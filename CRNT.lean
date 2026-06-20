@@ -29,6 +29,7 @@ import CRNT.Dynamics.MassActionAlgebra
 
 -- Deficiency
 import CRNT.Deficiency.Definition
+import CRNT.Deficiency.KernelDimension
 
 -- Theorem statement interfaces (statements only; no axioms)
 import CRNT.Theorems.DeficiencyZero.Statement

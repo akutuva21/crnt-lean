@@ -62,3 +62,23 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     N.massActionVectorField κ x =
       N.complexMap (N.kineticMap κ (N.complexMonomialVector x)) :=
   N.massActionVectorField_eq κ x
+
+-- Deficiency rank bridge: rank(∂) = s + dim(ker Y ∩ Im ∂).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
+    N.incidenceRank = N.stoichRank + Module.finrank ℝ N.deficiencySubspace :=
+  N.incidenceRank_eq_stoichRank_add
+
+-- Fact B: the incidence-rank identity rank(∂) = n − ℓ.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
+    N.incidenceRank + N.numLinkageClasses = N.numComplexes :=
+  N.incidenceRank_add_numLinkageClasses
+
+-- Deficiency as a kernel dimension: δ = dim(ker Y ∩ Im ∂).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
+    N.deficiencyInt = (Module.finrank ℝ N.deficiencySubspace : ℤ) :=
+  N.deficiencyInt_eq_finrank_deficiencySubspace
+
+-- Deficiency zero ⟺ the deficiency subspace `ker Y ∩ Im ∂` vanishes (unconditional).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
+    N.DeficiencyZero ↔ N.deficiencySubspace = ⊥ :=
+  N.deficiencyZero_iff_deficiencySubspace_eq_bot

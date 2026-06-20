@@ -14,9 +14,18 @@ staged as follows.
    `ẋ = Y (A_k (Ψ x))`, the complex-balancing characterization `A_k (Ψ x) = 0`, and
    the corollary that complex-balanced concentrations are steady states. See
    `CRNT/Dynamics/MassActionAlgebra.lean`.
-2. **Deficiency as a kernel dimension** — `δ = dim (ker Y ∩ Im I_a)`, via
-   `rank I_a = n − ℓ` (incidence rank equals vertices minus connected components) and
-   `s = rank (Y ∘ I_a)`. This gives `δ = 0 ⟺ ker Y ∩ Im I_a = 0`.
+2. **Deficiency as a kernel dimension** *(complete)* — the stoichiometric map
+   `stoichMap` and incidence map `incidenceMap` (`∂`), the factorization
+   `stoichMap = Y ∘ ∂`, `range stoichMap = stoichSubspace`, the rank bridge
+   `rank(∂) = s + dim(ker Y ∩ Im ∂)` (`incidenceRank_eq_stoichRank_add`), and the
+   incidence-rank identity `rank(∂) = n − ℓ` (`incidenceRank_add_numLinkageClasses`),
+   proved via the matrix-transpose route (`Matrix.rank_transpose`) with
+   `ker ∂ᵀ ≅ (Quotient linkedSetoid → ℝ)` of dimension `ℓ`. These yield the
+   unconditional `δ = dim(ker Y ∩ Im ∂)`
+   (`deficiencyInt_eq_finrank_deficiencySubspace`) and the deficiency-zero theorem's
+   structural input `DeficiencyZero ⟺ deficiencySubspace = ⊥`
+   (`deficiencyZero_iff_deficiencySubspace_eq_bot`). See
+   `CRNT/Deficiency/KernelDimension.lean`.
 3. **Weakly reversible ⟹ `ker A_k` contains a positive vector** — the Matrix-Tree /
    Perron–Frobenius ingredient: the kinetic Laplacian of a strongly connected component
    has a one-dimensional, strictly positive kernel.

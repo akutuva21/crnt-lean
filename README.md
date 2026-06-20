@@ -71,6 +71,11 @@ Mathlib's. It defines and proves, among others:
   space, `ẋ = Y (A_k (Ψ x))` (`massActionVectorField_eq`), the characterization of
   complex balancing as `A_k (Ψ x) = 0`, and the theorem that **every complex-balanced
   concentration is a steady state** (`IsComplexBalanced.isMassActionSteadyState`);
+- the stoichiometric and incidence maps with the factorization `stoichMap = Y ∘ ∂`,
+  the incidence-rank identity `rank(∂) = n − ℓ`, and hence **deficiency as a kernel
+  dimension** `δ = dim(ker Y ∩ Im ∂)` (`deficiencyInt_eq_finrank_deficiencySubspace`)
+  with the deficiency-zero theorem's structural input
+  `DeficiencyZero ⟺ ker Y ∩ Im ∂ = ⊥` (`deficiencyZero_iff_deficiencySubspace_eq_bot`);
 - deficiency over `ℤ` (`deficiencyInt`, `DeficiencyZero`), with no natural-number
   truncated-subtraction pitfall;
 - a sound, computable directed-walk certificate checker (`reaches_of_walk`).
