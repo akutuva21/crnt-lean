@@ -82,3 +82,44 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
     N.DeficiencyZero ↔ N.deficiencySubspace = ⊥ :=
   N.deficiencyZero_iff_deficiencySubspace_eq_bot
+
+-- Laplacian/conservation property of the kinetic matrix: columns sum to zero.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    (κ : Network.RateConstants N) (v : N.ComplexIdx → ℝ) :
+    (∑ c : N.ComplexIdx, N.kineticMap κ v c) = 0 :=
+  N.kineticMap_sum_eq_zero κ v
+
+-- Reactions stay within a linkage class.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (r : N.R) :
+    N.Linked (N.reaction r).source (N.reaction r).target :=
+  N.linked_of_reaction r
+
+-- Perron–Frobenius positivity: a nonnegative nonzero fixed vector of a nonnegative,
+-- strongly connected matrix is strictly positive.
+example {ι : Type} [Fintype ι] [DecidableEq ι] (P : Matrix ι ι ℝ)
+    (hP : ∀ i j, 0 ≤ P i j) (b : ι → ℝ) (hb : ∀ i, 0 ≤ b i) (hb0 : b ≠ 0)
+    (hfix : P.mulVec b = b) (hsc : ∀ i j, CRNT.supportReaches P i j) :
+    ∀ i, 0 < b i :=
+  CRNT.pos_of_nonneg_mulVec_fixed_of_stronglyConnected P hP b hb hb0 hfix hsc
+
+-- Perron–Frobenius existence: a column-stochastic nonnegative matrix has a nonnegative
+-- nonzero fixed vector.
+example {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι] (P : Matrix ι ι ℝ)
+    (hP : ∀ i j, 0 ≤ P i j) (hcol : ∀ j, ∑ i, P i j = 1) :
+    ∃ b : ι → ℝ, (∀ i, 0 ≤ b i) ∧ b ≠ 0 ∧ P.mulVec b = b :=
+  CRNT.exists_nonneg_mulVec_fixed_of_colStochastic P hP hcol
+
+-- Perron–Frobenius (combined): a strongly connected column-stochastic nonnegative
+-- matrix has a strictly positive fixed vector.
+example {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι] (P : Matrix ι ι ℝ)
+    (hP : ∀ i j, 0 ≤ P i j) (hcol : ∀ j, ∑ i, P i j = 1)
+    (hsc : ∀ i j, CRNT.supportReaches P i j) :
+    ∃ b : ι → ℝ, (∀ i, 0 < b i) ∧ P.mulVec b = b :=
+  CRNT.exists_pos_mulVec_fixed_of_stronglyConnected P hP hcol hsc
+
+-- Milestone 3: a weakly reversible network's kinetic matrix has a strictly positive
+-- kernel vector.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    (hwr : N.WeaklyReversible) (κ : Network.RateConstants N) :
+    ∃ b : N.ComplexIdx → ℝ, (∀ c, 0 < b c) ∧ N.kineticMap κ b = 0 :=
+  CRNT.PositiveKernel.weaklyReversible_exists_positive_kernelVector N hwr κ

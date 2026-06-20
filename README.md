@@ -76,6 +76,19 @@ Mathlib's. It defines and proves, among others:
   dimension** `δ = dim(ker Y ∩ Im ∂)` (`deficiencyInt_eq_finrank_deficiencySubspace`)
   with the deficiency-zero theorem's structural input
   `DeficiencyZero ⟺ ker Y ∩ Im ∂ = ⊥` (`deficiencyZero_iff_deficiencySubspace_eq_bot`);
+- the Laplacian/conservation property of the kinetic matrix `A_k` — its columns sum to
+  zero (`kineticMap_sum_eq_zero`) — and that reactions stay within linkage classes
+  (`linked_of_reaction`);
+- **Perron–Frobenius for column-stochastic matrices**, built from primitives (Mathlib
+  has no Brouwer/Perron–Frobenius/Matrix-Tree): existence of a nonnegative fixed vector
+  by a Cesàro/Markov–Kakutani argument (`exists_nonneg_mulVec_fixed_of_colStochastic`),
+  the combinatorial positivity upgrade under strong connectivity
+  (`pos_of_nonneg_mulVec_fixed_of_stronglyConnected`), and the combined strictly-positive
+  fixed vector (`exists_pos_mulVec_fixed_of_stronglyConnected`);
+- the theorem that **a weakly reversible network's kinetic matrix has a strictly positive
+  kernel vector** (`PositiveKernel.weaklyReversible_exists_positive_kernelVector`) — the
+  existence of complex-balanced reference states, obtained by applying Perron–Frobenius
+  per linkage class;
 - deficiency over `ℤ` (`deficiencyInt`, `DeficiencyZero`), with no natural-number
   truncated-subtraction pitfall;
 - a sound, computable directed-walk certificate checker (`reaches_of_walk`).
@@ -96,7 +109,10 @@ These are stated or deferred, not asserted (see [`docs/roadmap.md`](docs/roadmap
 
 - the deficiency-zero theorem itself — its hypotheses and conclusion are exposed as a
   statement interface (`SatisfiesDeficiencyZeroHypotheses`, `DeficiencyZeroConclusion`)
-  but the implication is not proved;
+  but the implication is not yet assembled. Its structural inputs are proved (deficiency
+  as a kernel dimension, and the strictly positive kernel vector above); the remaining
+  ingredient is **Birch's theorem** — realizing the positive kernel vector as a monomial
+  vector `Ψ x`, uniquely in each positive stoichiometric compatibility class;
 - a verified computable Boolean decision procedure for reachability / weak
   reversibility (and the corresponding `..._iff` equivalence). Concrete examples are
   established by explicit proof or by the walk-certificate checker;

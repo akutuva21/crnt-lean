@@ -15,6 +15,9 @@ import CRNT.Graph.LinkageClass
 import CRNT.Stoich.Vector
 import CRNT.Stoich.Subspace
 
+-- Linear-algebra building blocks (Perron–Frobenius positivity)
+import CRNT.LinearAlgebra.PerronFrobenius
+
 -- Kinetics: concentrations and mass action
 import CRNT.Kinetics.Concentration
 import CRNT.Kinetics.MassAction
@@ -31,8 +34,9 @@ import CRNT.Dynamics.MassActionAlgebra
 import CRNT.Deficiency.Definition
 import CRNT.Deficiency.KernelDimension
 
--- Theorem statement interfaces (statements only; no axioms)
+-- Theorem statement interfaces and proved components
 import CRNT.Theorems.DeficiencyZero.Statement
+import CRNT.Theorems.DeficiencyZero.PositiveKernel
 
 -- Interoperability and certificate workflow
 import CRNT.Interop.Certificates

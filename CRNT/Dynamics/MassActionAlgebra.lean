@@ -114,6 +114,27 @@ theorem sum_ite_complexMap (N : Network S) (C : N.ComplexIdx) (s : S) :
     rw [if_neg (Ne.symm hc), zero_mul]
   · intro h; exact absurd (Finset.mem_univ C) h
 
+/-- A single indicator sums to one over the complexes: `∑_c [C = c] = 1`. -/
+theorem sum_ite_one (N : Network S) (C : N.ComplexIdx) :
+    (∑ c : N.ComplexIdx, if C = c then (1 : ℝ) else 0) = 1 := by
+  rw [Finset.sum_eq_single C]
+  · simp
+  · intro c _ hc; rw [if_neg (Ne.symm hc)]
+  · intro h; exact absurd (Finset.mem_univ C) h
+
+/-- **Conservation / Laplacian property of the kinetic matrix.** The columns of `A_k`
+sum to zero: `∑_c (A_k v)_c = 0` for every `v`. Equivalently the all-ones covector
+annihilates `A_k` on the left, so the image of `A_k` lies in the zero-total hyperplane.
+This is the structural property the Perron–Frobenius / Matrix-Tree argument builds on to
+produce a strictly positive kernel vector for weakly reversible networks. -/
+theorem kineticMap_sum_eq_zero (N : Network S) (κ : RateConstants N)
+    (v : N.ComplexIdx → ℝ) : (∑ c : N.ComplexIdx, N.kineticMap κ v c) = 0 := by
+  simp only [kineticMap_apply]
+  rw [Finset.sum_comm]
+  apply Finset.sum_eq_zero
+  intro r _
+  rw [← Finset.mul_sum, Finset.sum_sub_distrib, sum_ite_one, sum_ite_one, sub_self, mul_zero]
+
 /-- **The mass-action vector field factors as `Y ∘ A_k ∘ Ψ`.** -/
 theorem massActionVectorField_eq (N : Network S) (κ : RateConstants N)
     (x : Concentration S) :

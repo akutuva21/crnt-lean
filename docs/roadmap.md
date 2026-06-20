@@ -26,9 +26,35 @@ staged as follows.
    structural input `DeficiencyZero ⟺ deficiencySubspace = ⊥`
    (`deficiencyZero_iff_deficiencySubspace_eq_bot`). See
    `CRNT/Deficiency/KernelDimension.lean`.
-3. **Weakly reversible ⟹ `ker A_k` contains a positive vector** — the Matrix-Tree /
-   Perron–Frobenius ingredient: the kinetic Laplacian of a strongly connected component
-   has a one-dimensional, strictly positive kernel.
+3. **Weakly reversible ⟹ `ker A_k` contains a positive vector** *(complete)* — the
+   kinetic matrix `A_k` is a graph Laplacian: its columns sum to zero
+   (`kineticMap_sum_eq_zero`) and reactions stay within linkage classes
+   (`linked_of_reaction`). For a weakly reversible
+   network each linkage class is strongly connected, so `A_k` restricted to it is an
+   irreducible Metzler matrix whose kernel is one-dimensional and strictly positive.
+   This is Perron–Frobenius, and the abstract theorem is now **proved**, sorry-free, in
+   `CRNT.LinearAlgebra.PerronFrobenius` (Mathlib has no Brouwer, Perron–Frobenius, or
+   Matrix-Tree theorem, so it is built from primitives):
+
+   * **Existence** (`exists_nonneg_mulVec_fixed_of_colStochastic`): a column-stochastic
+     nonnegative matrix has a nonnegative, nonzero fixed vector. Proved by the
+     Cesàro/Markov–Kakutani argument — the affine map `x ↦ P x` preserves the compact
+     convex simplex, orbit time-averages stay in it, and a convergent subsequence's limit
+     is forced to be a fixed point. No Brouwer.
+   * **Positivity** (`pos_of_nonneg_mulVec_fixed_of_stronglyConnected`): strong
+     connectivity of the support digraph upgrades that fixed vector to strictly positive.
+     Purely combinatorial.
+   * **Combined** (`exists_pos_mulVec_fixed_of_stronglyConnected`): a strongly connected
+     column-stochastic nonnegative matrix has a strictly positive fixed vector.
+
+   **CRN reduction (done).**
+   `CRNT.PositiveKernel.weaklyReversible_exists_positive_kernelVector` completes the
+   milestone: rescale `A_k` to the column-stochastic `P = 1 + d⁻¹ A_k`, which is block-
+   diagonal across linkage classes, so the strengthened existence
+   (`exists_nonneg_mulVec_fixed_invariant`) keeps each class's uniform mass positive;
+   weak reversibility (`WeaklyReversible.reaches_of_linked`) makes each class strongly
+   connected, and positivity spreads across the whole kernel vector. See
+   `CRNT/Theorems/DeficiencyZero/PositiveKernel.lean`.
 4. **Birch's theorem** — existence and uniqueness of the complex-balanced equilibrium in
    each positive stoichiometric compatibility class (the toric / convex-geometry core).
 5. **Horn–Jackson Lyapunov function** — local asymptotic stability (deferrable).

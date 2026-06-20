@@ -1,4 +1,5 @@
 import CRNT.Graph.Reachability
+import CRNT.Graph.WeakReversibility
 import Mathlib.SetTheory.Cardinal.Finite
 
 /-!
@@ -48,6 +49,26 @@ theorem Linked.symm {N : Network S} {c d : Complex S} (h : N.Linked c d) :
   induction h with
   | refl => exact Linked.refl N c
   | tail _ hbc ih => exact Linked.trans (Relation.ReflTransGen.single hbc.symm) ih
+
+/-- The source and target of every reaction lie in the same linkage class: reactions
+do not cross linkage classes. -/
+theorem linked_of_reaction (N : Network S) (r : N.R) :
+    N.Linked (N.reaction r).source (N.reaction r).target :=
+  Relation.ReflTransGen.single (Or.inl ⟨r, rfl, rfl⟩)
+
+/-- In a weakly reversible network, undirected linkage implies directed reachability:
+each linkage class is strongly connected. Every undirected edge is traversable in both
+directions — forward directly, backward via the return path guaranteed by weak
+reversibility. -/
+theorem WeaklyReversible.reaches_of_linked {N : Network S} (hwr : N.WeaklyReversible)
+    {c d : Complex S} (hcd : N.Linked c d) : N.Reaches c d := by
+  induction hcd with
+  | refl => exact Network.Reaches.refl N c
+  | @tail e f _ hef ih =>
+    refine ih.trans ?_
+    rcases hef with ⟨r, hs, ht⟩ | ⟨r, hs, ht⟩
+    · exact Network.Reaches.single ⟨r, hs, ht⟩
+    · exact hs ▸ ht ▸ hwr r
 
 /-- Directed reachability implies linkage: a directed path is in particular an
 undirected one. -/
