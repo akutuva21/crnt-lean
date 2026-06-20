@@ -24,6 +24,9 @@ import CRNT.Equilibria.SteadyState
 import CRNT.Equilibria.CompatibilityClass
 import CRNT.Equilibria.ComplexBalanced
 
+-- Dynamics: algebraic (complex-space) form of mass-action kinetics
+import CRNT.Dynamics.MassActionAlgebra
+
 -- Deficiency
 import CRNT.Deficiency.Definition
 

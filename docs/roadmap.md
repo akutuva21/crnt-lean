@@ -3,6 +3,33 @@
 The stable core is intentionally narrow. The items below extend it without disturbing
 the existing API.
 
+## Toward the deficiency-zero theorem
+
+The Feinberg–Horn–Jackson deficiency-zero theorem is the headline target. Its proof is
+staged as follows.
+
+1. **Algebraic reformulation** *(in place)* — the complex space `ComplexIdx → ℝ`, the
+   complex matrix `Y` (`complexMap`), the kinetic Laplacian `A_k` (`kineticMap`), and
+   the monomial map `Ψ` (`complexMonomialVector`), with the factorization
+   `ẋ = Y (A_k (Ψ x))`, the complex-balancing characterization `A_k (Ψ x) = 0`, and
+   the corollary that complex-balanced concentrations are steady states. See
+   `CRNT/Dynamics/MassActionAlgebra.lean`.
+2. **Deficiency as a kernel dimension** — `δ = dim (ker Y ∩ Im I_a)`, via
+   `rank I_a = n − ℓ` (incidence rank equals vertices minus connected components) and
+   `s = rank (Y ∘ I_a)`. This gives `δ = 0 ⟺ ker Y ∩ Im I_a = 0`.
+3. **Weakly reversible ⟹ `ker A_k` contains a positive vector** — the Matrix-Tree /
+   Perron–Frobenius ingredient: the kinetic Laplacian of a strongly connected component
+   has a one-dimensional, strictly positive kernel.
+4. **Birch's theorem** — existence and uniqueness of the complex-balanced equilibrium in
+   each positive stoichiometric compatibility class (the toric / convex-geometry core).
+5. **Horn–Jackson Lyapunov function** — local asymptotic stability (deferrable).
+6. **Assembly** — discharge
+   `SatisfiesDeficiencyZeroHypotheses → DeficiencyZeroConclusion` in
+   `CRNT/Theorems/DeficiencyZero/`.
+
+Steps 3 and 4 are the deep ones and likely require building Mathlib-adjacent machinery
+(the Markov-chain tree theorem and a Birch/toric uniqueness result).
+
 ## Verified Boolean decision procedures
 
 Provide computable companions to the propositional graph predicates, related by

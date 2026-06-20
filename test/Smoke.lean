@@ -49,3 +49,16 @@ example (κ : Network.RateConstants Examples.Enzyme.N)
     Examples.Enzyme.N.massActionVectorField κ x .E +
       Examples.Enzyme.N.massActionVectorField κ x .ES = 0 :=
   Examples.Enzyme.total_enzyme_conserved κ x
+
+-- Algebraic reformulation: complex-balanced concentrations are steady states.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    (κ : Network.RateConstants N) (x : Concentration S) (h : N.IsComplexBalanced κ x) :
+    N.IsMassActionSteadyState κ x :=
+  Network.IsComplexBalanced.isMassActionSteadyState N κ h
+
+-- The mass-action vector field factors through the complex space as `Y ∘ A_k ∘ Ψ`.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    (κ : Network.RateConstants N) (x : Concentration S) :
+    N.massActionVectorField κ x =
+      N.complexMap (N.kineticMap κ (N.complexMonomialVector x)) :=
+  N.massActionVectorField_eq κ x

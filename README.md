@@ -67,6 +67,10 @@ Mathlib's. It defines and proves, among others:
   positivity lemmas;
 - equilibria: steady states, stoichiometric compatibility (an equivalence relation),
   and complex balancing;
+- the Feinberg–Horn–Jackson algebraic factorization of the dynamics through the complex
+  space, `ẋ = Y (A_k (Ψ x))` (`massActionVectorField_eq`), the characterization of
+  complex balancing as `A_k (Ψ x) = 0`, and the theorem that **every complex-balanced
+  concentration is a steady state** (`IsComplexBalanced.isMassActionSteadyState`);
 - deficiency over `ℤ` (`deficiencyInt`, `DeficiencyZero`), with no natural-number
   truncated-subtraction pitfall;
 - a sound, computable directed-walk certificate checker (`reaches_of_walk`).
