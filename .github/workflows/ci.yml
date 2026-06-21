@@ -2,8 +2,20 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [master]
+    paths:
+      - '**.lean'
+      - 'lakefile.toml'
+      - 'lake-manifest.json'
+      - 'lean-toolchain'
+      - '.github/workflows/ci.yml'
   pull_request:
+    paths:
+      - '**.lean'
+      - 'lakefile.toml'
+      - 'lake-manifest.json'
+      - 'lean-toolchain'
+      - '.github/workflows/ci.yml'
 
 jobs:
   build:
