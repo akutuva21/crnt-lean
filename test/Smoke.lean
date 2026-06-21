@@ -424,3 +424,14 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
     ∃ b : N.ComplexIdx → ℝ, (∀ c, N.classOf c = θ → 0 < b c) ∧
       (∀ c, N.classOf c ≠ θ → b c = 0) ∧ N.kineticMap κ b = 0 :=
   N.exists_pos_kernelVector_on_class_of_weaklyReversible hwr κ θ
+
+-- On a strongly connected class the per-class kernel mode is unique up to scaling.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (θ : Quotient N.linkedSetoid)
+    (hθ : ∀ c c' : N.ComplexIdx, N.classOf c = θ → N.classOf c' = θ → N.Reaches c.val c'.val)
+    {a v : N.ComplexIdx → ℝ}
+    (hapos : ∀ c, N.classOf c = θ → 0 < a c) (haoff : ∀ c, N.classOf c ≠ θ → a c = 0)
+    (haker : N.kineticMap κ a = 0)
+    (hvoff : ∀ c, N.classOf c ≠ θ → v c = 0) (hvker : N.kineticMap κ v = 0) :
+    ∃ t : ℝ, v = t • a :=
+  N.perClass_kernel_unique κ θ hθ hapos haoff haker hvoff hvker
