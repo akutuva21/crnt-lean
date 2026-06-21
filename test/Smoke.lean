@@ -354,3 +354,9 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
     N.DeficiencyOneExistence → N.DeficiencyOneUniqueness :=
   N.deficiencyOneUniqueness_of_existence
+
+-- Deficiency-one condition (iii): the number of terminal strong linkage classes equals the
+-- number of linkage classes.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    (h : N.OneTerminalSLCPerLinkageClass) : N.numTerminalSLC = N.numLinkageClasses :=
+  N.numTerminalSLC_eq_numLinkageClasses h
