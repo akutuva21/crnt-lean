@@ -367,3 +367,15 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     (q : Quotient N.linkedSetoid) (v : N.ComplexIdx → ℝ) :
     N.kineticMap κ (N.restrictToClass q v) = N.restrictToClass q (N.kineticMap κ v) :=
   N.kineticMap_restrictToClass κ q v
+
+-- A steady state's kinetic image lies in the deficiency subspace `ker Y ⊓ Im ∂`.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {x : Concentration S} (hx : N.IsMassActionSteadyState κ x) :
+    N.kineticMap κ (N.complexMonomialVector x) ∈ N.deficiencySubspace :=
+  N.kineticMap_complexMonomial_mem_deficiencySubspace κ hx
+
+-- In a deficiency-zero network every mass-action steady state is complex-balanced.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hδ : N.DeficiencyZero)
+    (κ : Network.RateConstants N) {x : Concentration S} (hx : N.IsMassActionSteadyState κ x) :
+    N.IsComplexBalanced κ x :=
+  N.isComplexBalanced_of_steadyState_of_deficiencyZero hδ κ hx
