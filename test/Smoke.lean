@@ -462,3 +462,10 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     ∃ b : N.ComplexIdx → ℝ, (∀ c', 0 ≤ b c') ∧ b ≠ 0 ∧
       (∀ c', ¬ N.StronglyLinked c.val c'.val → b c' = 0) ∧ N.kineticMap κ b = 0 :=
   N.exists_nonneg_kernelVector_on_terminalSLC κ hc
+
+-- The terminal-SLC kernel mode is strictly positive on the class and zero off it.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {c : N.ComplexIdx} (hc : N.IsTerminalSLC c.val) :
+    ∃ b : N.ComplexIdx → ℝ, (∀ c', N.StronglyLinked c.val c'.val → 0 < b c') ∧
+      (∀ c', ¬ N.StronglyLinked c.val c'.val → b c' = 0) ∧ N.kineticMap κ b = 0 :=
+  N.exists_pos_kernelVector_on_terminalSLC κ hc
