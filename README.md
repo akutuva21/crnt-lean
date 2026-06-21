@@ -106,6 +106,27 @@ Mathlib's. It defines and proves, among others:
   sublevel sets), the existence of a **minimizer over any finite-dimensional subspace**
   (`birchDual_exists_isMinOn`), and the **first-order optimality** of that minimizer
   (`birchDual_firstOrder`: the gradient `x* ⊙ exp(ŵ) − c` is orthogonal to the subspace);
+- **Perron–Frobenius uniqueness** (`mulVec_fixed_unique_of_stronglyConnected`): on a
+  strongly connected nonnegative matrix, a positive fixed vector is unique up to scaling
+  (a min-ratio argument feeding the localized positivity-spreading lemma);
+- the **toric structure of complex-balanced equilibria**: the monomial vector scales as
+  `Ψ(x)_c = Ψ(x*)_c · exp(⟨c, log(x/x*)⟩)` (`complexMonomialVector_eq_mul_exp`); the
+  **toric inclusion** (`complexBalanced_of_logRatio_orthogonal`) — relative to a
+  complex-balanced reference `x*`, any positive `x` with `log(x/x*)` orthogonal to the
+  stoichiometric subspace is itself complex-balanced — and its **converse** for weakly
+  reversible networks (`logRatio_orthogonal_of_complexBalanced`, via Perron–Frobenius
+  uniqueness per linkage class); hence **given one complex-balanced equilibrium, every
+  positive compatibility class contains exactly one** — existence
+  (`exists_isComplexBalanced_in_positiveClass`, via Birch existence) and uniqueness
+  (`isComplexBalanced_unique_in_positiveClass`, via Birch uniqueness);
+- existence of a complex-balanced equilibrium from weak reversibility + deficiency zero
+  (`exists_isComplexBalanced`): the strictly positive kernel vector of `A_k` is realized as
+  a monomial vector `Ψ x` because deficiency zero collapses the stoichiometric and incidence
+  row spaces (`range_stoichTranspose_eq`) — this is where `δ = 0` is consumed;
+- **the Feinberg–Horn–Jackson deficiency-zero theorem** (`deficiencyZeroTheorem`): for a
+  weakly reversible network of deficiency zero, every positive choice of rate constants and
+  positive starting concentration determines a *unique* complex-balanced equilibrium in the
+  positive compatibility class of the start;
 - deficiency over `ℤ` (`deficiencyInt`, `DeficiencyZero`), with no natural-number
   truncated-subtraction pitfall;
 - a sound, computable directed-walk certificate checker (`reaches_of_walk`).
@@ -124,13 +145,10 @@ Worked example networks (each `sorry`-free):
 
 These are stated or deferred, not asserted (see [`docs/roadmap.md`](docs/roadmap.md)):
 
-- the deficiency-zero theorem itself — its hypotheses and conclusion are exposed as a
-  statement interface (`SatisfiesDeficiencyZeroHypotheses`, `DeficiencyZeroConclusion`)
-  but the final implication is not yet assembled. Its major inputs are now all proved:
-  deficiency as a kernel dimension, the strictly positive kernel vector (Perron–Frobenius),
-  and the full Birch theorem (existence and uniqueness) above. What remains is the
-  **assembly** — realizing the positive kernel vector as a monomial vector `Ψ x` in each
-  positive compatibility class and discharging the statement interface;
+- local asymptotic stability of the complex-balanced equilibrium — the Horn–Jackson
+  Lyapunov function and its positive-definiteness are proved, but the dissipation
+  inequality `d/dt relEntropy(x(t)) ≤ 0` along trajectories and the LaSalle argument are
+  not;
 - a verified computable Boolean decision procedure for reachability / weak
   reversibility (and the corresponding `..._iff` equivalence). Concrete examples are
   established by explicit proof or by the walk-certificate checker;

@@ -33,6 +33,26 @@ def orthSum (S : Submodule ℝ (ι → ℝ)) : Submodule ℝ (ι → ℝ) where
 @[simp] lemma mem_orthSum {S : Submodule ℝ (ι → ℝ)} {w : ι → ℝ} :
     w ∈ orthSum S ↔ ∀ s ∈ S, ∑ i, w i * s i = 0 := Iff.rfl
 
+/-- Orthogonality to a spanning set extends to the whole span: if `w` is orthogonal to
+every generator, it lies in `orthSum (span G)`. -/
+theorem mem_orthSum_span {G : Set (ι → ℝ)} {w : ι → ℝ}
+    (h : ∀ g ∈ G, ∑ i, w i * g i = 0) : w ∈ orthSum (Submodule.span ℝ G) := by
+  rw [mem_orthSum]
+  intro s hs
+  induction hs using Submodule.span_induction with
+  | mem g hg => exact h g hg
+  | zero => simp
+  | add x y _ _ hx hy =>
+    have : ∑ i, w i * (x + y) i = (∑ i, w i * x i) + ∑ i, w i * y i := by
+      rw [← Finset.sum_add_distrib]
+      exact Finset.sum_congr rfl fun i _ => by rw [Pi.add_apply]; ring
+    rw [this, hx, hy, add_zero]
+  | smul r x _ hx =>
+    have : ∑ i, w i * (r • x) i = r * ∑ i, w i * x i := by
+      rw [Finset.mul_sum]
+      exact Finset.sum_congr rfl fun i _ => by rw [Pi.smul_apply, smul_eq_mul]; ring
+    rw [this, hx, mul_zero]
+
 /-- The standard linear identification of `ι → ℝ` with `EuclideanSpace ℝ ι` (the identity
 on coordinates), used to borrow Mathlib's inner-product orthogonal-complement theory. -/
 noncomputable def toEuclid : (ι → ℝ) ≃ₗ[ℝ] EuclideanSpace ℝ ι :=

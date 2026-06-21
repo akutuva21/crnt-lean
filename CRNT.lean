@@ -40,6 +40,8 @@ import CRNT.Theorems.DeficiencyZero.Statement
 import CRNT.Theorems.DeficiencyZero.PositiveKernel
 import CRNT.Theorems.DeficiencyZero.Birch
 import CRNT.Theorems.DeficiencyZero.BirchExistence
+import CRNT.Theorems.DeficiencyZero.Toric
+import CRNT.Theorems.DeficiencyZero.Existence
 import CRNT.Theorems.DeficiencyZero.Lyapunov
 
 -- Interoperability and certificate workflow

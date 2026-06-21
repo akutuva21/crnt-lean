@@ -58,6 +58,33 @@ theorem pos_of_supportReaches_pos
     refine Finset.sum_pos' (fun k _ => mul_nonneg (hP a k) (hb k)) ⟨c, Finset.mem_univ c, ?_⟩
     exact mul_pos ((hP a c).lt_of_ne (Ne.symm e)) ih
 
+/-- **Localized positivity spreading.** As `pos_of_supportReaches_pos`, but the fixed
+vector `w` need only be nonnegative on a forward-closed set `D` (one with no support edges
+leaving it) that contains the source `i`; the support path then stays inside `D`. This is
+what lets the spreading argument run inside a single block of a block-diagonal matrix. -/
+theorem pos_of_supportReaches_pos_on
+    {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (P : Matrix ι ι ℝ) (hP : ∀ i j, 0 ≤ P i j)
+    (D : ι → Prop) (hD : ∀ d, D d → ∀ k, P d k ≠ 0 → D k)
+    (w : ι → ℝ) (hw : ∀ k, D k → 0 ≤ w k) (hfix : P.mulVec w = w)
+    {i j : ι} (hi : D i) (hij : supportReaches P i j) (hwj : 0 < w j) : 0 < w i := by
+  suffices h : D i → 0 < w i from h hi
+  clear hi
+  induction hij using Relation.ReflTransGen.head_induction_on with
+  | refl => exact fun _ => hwj
+  | @head a c e _ ih =>
+    intro hDa
+    have hwc : 0 < w c := ih (hD a hDa c e)
+    have hwa : w a = ∑ k : ι, P a k * w k := by
+      have hcong := congrFun hfix a
+      rw [← hcong]; simp [Matrix.mulVec, dotProduct]
+    rw [hwa]
+    refine Finset.sum_pos' (fun k _ => ?_)
+      ⟨c, Finset.mem_univ c, mul_pos ((hP a c).lt_of_ne (Ne.symm e)) hwc⟩
+    by_cases hPak : P a k = 0
+    · rw [hPak, zero_mul]
+    · exact mul_nonneg (hP a k) (hw k (hD a hDa k hPak))
+
 /-- **Perron–Frobenius positivity.** If `P` is entrywise nonnegative, `b` is an
 entrywise nonnegative, nonzero fixed vector (`P.mulVec b = b`), and the support digraph
 of `P` is strongly connected (every vertex reaches every vertex), then `b` is strictly
@@ -232,5 +259,43 @@ theorem exists_pos_mulVec_fixed_of_stronglyConnected
     ∃ b : ι → ℝ, (∀ i, 0 < b i) ∧ P.mulVec b = b := by
   obtain ⟨b, hb, hb0, hfix⟩ := exists_nonneg_mulVec_fixed_of_colStochastic P hP hcol
   exact ⟨b, pos_of_nonneg_mulVec_fixed_of_stronglyConnected P hP b hb hb0 hfix hsc, hfix⟩
+
+/-- **Perron–Frobenius uniqueness.** For a strongly connected nonnegative matrix, a
+strictly positive fixed vector is unique up to scaling: every nonnegative fixed vector is
+a scalar multiple of it. (Proof: the minimum of the ratio `v/a` is attained at some `c₀`;
+`w := v − (v c₀/a c₀)·a` is a nonnegative fixed vector vanishing at `c₀`, so by positivity
+spreading from `c₀` it must be identically zero.) -/
+theorem mulVec_fixed_unique_of_stronglyConnected
+    {ι : Type*} [Fintype ι] [DecidableEq ι] [Nonempty ι]
+    (P : Matrix ι ι ℝ) (hP : ∀ i j, 0 ≤ P i j)
+    (a v : ι → ℝ) (ha : ∀ i, 0 < a i)
+    (hfa : P.mulVec a = a) (hfv : P.mulVec v = v)
+    (hsc : ∀ i j, supportReaches P i j) :
+    ∃ t : ℝ, v = t • a := by
+  classical
+  obtain ⟨c₀, -, hmin⟩ := Finset.exists_min_image Finset.univ (fun c => v c / a c)
+    ⟨Classical.arbitrary ι, Finset.mem_univ _⟩
+  refine ⟨v c₀ / a c₀, ?_⟩
+  set t := v c₀ / a c₀ with ht
+  set w := v - t • a with hw
+  have hwnn : ∀ c, 0 ≤ w c := by
+    intro c
+    have hle : t ≤ v c / a c := hmin c (Finset.mem_univ c)
+    rw [le_div_iff₀ (ha c)] at hle
+    simp only [hw, Pi.sub_apply, Pi.smul_apply, smul_eq_mul]; linarith
+  have hwfix : P.mulVec w = w := by
+    rw [hw, Matrix.mulVec_sub, Matrix.mulVec_smul, hfv, hfa]
+  have hwc0 : w c₀ = 0 := by
+    have hcancel : v c₀ / a c₀ * a c₀ = v c₀ := div_mul_cancel₀ (v c₀) (ha c₀).ne'
+    simp only [hw, Pi.sub_apply, Pi.smul_apply, smul_eq_mul, ht]
+    rw [hcancel, sub_self]
+  have hw0 : w = 0 := by
+    by_contra hne
+    obtain ⟨j, hj⟩ := Function.ne_iff.mp hne
+    have hwj : 0 < w j := (hwnn j).lt_of_ne (Ne.symm hj)
+    have hpos := pos_of_supportReaches_pos P hP w hwnn hwfix (hsc c₀ j) hwj
+    rw [hwc0] at hpos; exact lt_irrefl 0 hpos
+  rw [hw] at hw0
+  exact sub_eq_zero.mp hw0
 
 end CRNT

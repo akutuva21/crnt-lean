@@ -85,14 +85,55 @@ staged as follows.
    (Gibbs' inequality). Local asymptotic stability further requires the dissipation
    inequality `d/dt relEntropy(x(t)) ≤ 0` along mass-action trajectories and a LaSalle
    argument (deferrable).
-6. **Assembly** — discharge
-   `SatisfiesDeficiencyZeroHypotheses → DeficiencyZeroConclusion` in
-   `CRNT/Theorems/DeficiencyZero/`.
+6. **Assembly** *(complete)* — `SatisfiesDeficiencyZeroHypotheses →
+   DeficiencyZeroConclusion` is discharged as `deficiencyZeroTheorem`. The toric structure
+   of complex-balanced equilibria is in `CRNT/Theorems/DeficiencyZero/Toric.lean`:
 
-Steps 3 and 4 are the deep ones, both now proved by building the Mathlib-adjacent
-machinery they need (a Perron–Frobenius existence/positivity argument, and the Birch
-existence/uniqueness result via dual-objective minimization). What remains for the
-headline theorem is step 6, the assembly.
+   * the **monomial vector scales toricly** about a positive reference,
+     `Ψ(x)_c = Ψ(x*)_c · exp(⟨c, log(x/x*)⟩)` (`complexMonomialVector_eq_mul_exp`,
+     `log_complexMonomialVector`), and orthogonality to the stoichiometric subspace means
+     `⟨tgt r, log(x/x*)⟩ = ⟨src r, log(x/x*)⟩` per reaction (`pairing_eq_of_orthogonal`);
+   * the **toric inclusion** `complexBalanced_of_logRatio_orthogonal`: relative to a
+     complex-balanced reference `x*`, any positive `x` with `log(x/x*) ⊥ S` is
+     complex-balanced — proved termwise (each reaction contributing to `(A_k Ψ x)_c` is
+     incident to `c`, so the common factor `exp(⟨c, log(x/x*)⟩)` pulls out of
+     `A_k Ψ x* = 0`);
+   * hence, **given one complex-balanced equilibrium**, every positive compatibility class
+     contains one (`exists_isComplexBalanced_in_positiveClass`), by Birch existence + the
+     toric inclusion.
+
+   The **converse toric inclusion** is now also proved
+   (`logRatio_orthogonal_of_complexBalanced`): for a weakly reversible network, two positive
+   complex-balanced concentrations have `S`-orthogonal log-ratio. Its engine is
+   **Perron–Frobenius uniqueness** (`mulVec_fixed_unique_of_stronglyConnected`, in
+   `CRNT/LinearAlgebra/PerronFrobenius.lean`): on a strongly connected nonnegative matrix a
+   positive fixed vector is unique up to scaling (a min-ratio argument feeding the localized
+   positivity-spreading lemma `pos_of_supportReaches_pos_on`). Applied per linkage class,
+   `Ψ x` and `Ψ x*` are proportional on each class, so the ratio is constant along every
+   reaction. This yields **per-class uniqueness of the complex-balanced equilibrium**
+   (`isComplexBalanced_unique_in_positiveClass`), via `birch_uniqueness`.
+
+   The last gap — **existence of a first complex-balanced equilibrium** — is now also
+   proved (`exists_isComplexBalanced`, in `CRNT/Theorems/DeficiencyZero/Existence.lean`),
+   and this is where `δ = 0` is consumed. Weak reversibility gives a strictly positive
+   kernel vector `b` of `A_k`; realizing some positive kernel vector as a monomial vector
+   `Ψ x` requires the reaction-edge differences `log b(target) − log b(source)` to be of
+   the form `⟨reaction vector, p⟩`. Those differences lie in the row space of the incidence
+   matrix `∂ᵀ`, and **deficiency zero makes the stoichiometric and incidence row spaces
+   coincide** (`range_stoichTranspose_eq`: `Im(stoichᵀ) ⊆ Im(∂ᵀ)` always, with equal
+   dimensions `s = n − ℓ` exactly when `δ = 0`), so the system is solvable; `x = exp(p)` is
+   then complex-balanced (`kineticMap_scale_eq_zero`).
+
+   Combining existence (`exists_isComplexBalanced` + `exists_isComplexBalanced_in_positiveClass`)
+   with uniqueness (`isComplexBalanced_unique_in_positiveClass`) discharges
+   `DeficiencyZeroConclusion`: **the Feinberg–Horn–Jackson deficiency-zero theorem**
+   `deficiencyZeroTheorem` is proved.
+
+Steps 3 and 4 were the deep ones, proved by building the Mathlib-adjacent machinery they
+need (a Perron–Frobenius existence/positivity/uniqueness argument, and the Birch
+existence/uniqueness result via dual-objective minimization). With step 6 complete, the
+**headline theorem `deficiencyZeroTheorem` is proved**; the items below are independent
+extensions.
 
 ## Verified Boolean decision procedures
 
@@ -119,12 +160,6 @@ noncomputable `Module.finrank`.
 A tactic that discharges the common certificate goals (complex equality, membership in
 the complex set, finite reachability, weak reversibility, small deficiency
 computations), so generated files need only write `by crnt_check`.
-
-## Deficiency-zero theorem
-
-Prove `∀ N, N.SatisfiesDeficiencyZeroHypotheses → N.DeficiencyZeroConclusion`. This is
-substantial algebra; the statement interface in
-`CRNT/Theorems/DeficiencyZero/Statement.lean` is already in place.
 
 ## Further theory
 

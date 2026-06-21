@@ -187,3 +187,61 @@ example {ι : Type} [Fintype ι] (S : Submodule ℝ (ι → ℝ)) {xstar c : ι 
       ∀ y : ι → ℝ, (∀ i, 0 < y i) → y - c ∈ S →
         (∀ s ∈ S, ∑ i, (Real.log (y i) - Real.log (xstar i)) * s i = 0) → y = x :=
   CRNT.birch S hxs hc
+
+-- Toric inclusion: relative to a complex-balanced reference, positive points with
+-- `S`-orthogonal log-ratio are complex-balanced.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {x xstar : Concentration S} (hx : x.Positive) (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar)
+    (horth : (fun s => Real.log (x s) - Real.log (xstar s)) ∈ CRNT.orthSum N.stoichSubspace) :
+    N.IsComplexBalanced κ x :=
+  N.complexBalanced_of_logRatio_orthogonal κ hx hxs hcb horth
+
+-- Given one complex-balanced equilibrium, every positive compatibility class contains a
+-- complex-balanced equilibrium.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {xstar x₀ : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    (hx0 : x₀.Positive) :
+    ∃ x ∈ N.positiveCompatibilityClass x₀, N.IsComplexBalanced κ x :=
+  N.exists_isComplexBalanced_in_positiveClass κ hxs hcb hx0
+
+-- Perron–Frobenius uniqueness: a strongly connected nonnegative matrix's positive fixed
+-- vector is unique up to scaling.
+example {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι] (P : Matrix ι ι ℝ)
+    (hP : ∀ i j, 0 ≤ P i j) (a v : ι → ℝ) (ha : ∀ i, 0 < a i)
+    (hfa : P.mulVec a = a) (hfv : P.mulVec v = v) (hsc : ∀ i j, CRNT.supportReaches P i j) :
+    ∃ t : ℝ, v = t • a :=
+  CRNT.mulVec_fixed_unique_of_stronglyConnected P hP a v ha hfa hfv hsc
+
+-- Converse toric inclusion: for a weakly reversible network, two positive complex-balanced
+-- concentrations have `S`-orthogonal log-ratio.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (κ : Network.RateConstants N) {x xstar : Concentration S} (hx : x.Positive)
+    (hxs : xstar.Positive) (hcbx : N.IsComplexBalanced κ x) (hcbs : N.IsComplexBalanced κ xstar) :
+    (fun s => Real.log (x s) - Real.log (xstar s)) ∈ CRNT.orthSum N.stoichSubspace :=
+  N.logRatio_orthogonal_of_complexBalanced hwr κ hx hxs hcbx hcbs
+
+-- Uniqueness of the complex-balanced equilibrium in a positive compatibility class.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (κ : Network.RateConstants N) {x₀ x y : Concentration S}
+    (hx : x ∈ N.positiveCompatibilityClass x₀) (hy : y ∈ N.positiveCompatibilityClass x₀)
+    (hcbx : N.IsComplexBalanced κ x) (hcby : N.IsComplexBalanced κ y) : x = y :=
+  N.isComplexBalanced_unique_in_positiveClass hwr κ hx hy hcbx hcby
+
+-- Existence of a complex-balanced equilibrium for a weakly reversible deficiency-zero
+-- network (the step that consumes δ = 0).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (hδ : N.DeficiencyZero) (κ : Network.RateConstants N) :
+    ∃ x : Concentration S, x.Positive ∧ N.IsComplexBalanced κ x :=
+  N.exists_isComplexBalanced hwr hδ κ
+
+-- **The Feinberg–Horn–Jackson deficiency-zero theorem.**
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
+    N.SatisfiesDeficiencyZeroHypotheses → N.DeficiencyZeroConclusion :=
+  N.deficiencyZeroTheorem
+
+-- The reversible pair `A ⇌ B` satisfies the deficiency-zero conclusion: each positive
+-- compatibility class has a unique complex-balanced equilibrium.
+example : Examples.ReversiblePair.N.DeficiencyZeroConclusion :=
+  Examples.ReversiblePair.N.deficiencyZeroTheorem
+    Examples.ReversiblePair.satisfiesDeficiencyZeroHypotheses
