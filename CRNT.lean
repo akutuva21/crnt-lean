@@ -57,6 +57,7 @@ import CRNT.Deficiency.DeficiencyOne
 import CRNT.Deficiency.LinkageDeficiency
 import CRNT.Deficiency.DeficiencyOneHypotheses
 import CRNT.Deficiency.TerminalSLC
+import CRNT.Deficiency.KineticBlock
 
 -- Theorem statement interfaces and proved components
 import CRNT.Theorems.DeficiencyZero.Statement

@@ -360,3 +360,10 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     (h : N.OneTerminalSLCPerLinkageClass) : N.numTerminalSLC = N.numLinkageClasses :=
   N.numTerminalSLC_eq_numLinkageClasses h
+
+-- The kinetic map is block diagonal over linkage classes: restriction to a class commutes
+-- with `A_k`.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (q : Quotient N.linkedSetoid) (v : N.ComplexIdx → ℝ) :
+    N.kineticMap κ (N.restrictToClass q v) = N.restrictToClass q (N.kineticMap κ v) :=
+  N.kineticMap_restrictToClass κ q v
