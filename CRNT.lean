@@ -63,6 +63,7 @@ import CRNT.Deficiency.DeficiencyOneLine
 import CRNT.Deficiency.ClassConservation
 import CRNT.Deficiency.PerClassKernel
 import CRNT.Deficiency.KernelDimensionBound
+import CRNT.Deficiency.PerClassKernelPos
 
 -- Theorem statement interfaces and proved components
 import CRNT.Theorems.DeficiencyZero.Statement

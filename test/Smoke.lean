@@ -416,3 +416,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N) :
     Module.finrank ℝ (LinearMap.range (N.kineticMap κ)) + N.numLinkageClasses ≤ N.numComplexes :=
   N.finrank_range_kineticMap_add_numLinkageClasses_le κ
+
+-- Every linkage class of a weakly reversible network carries a strictly positive kernel
+-- vector of the kinetic map.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (κ : Network.RateConstants N) (θ : Quotient N.linkedSetoid) :
+    ∃ b : N.ComplexIdx → ℝ, (∀ c, N.classOf c = θ → 0 < b c) ∧
+      (∀ c, N.classOf c ≠ θ → b c = 0) ∧ N.kineticMap κ b = 0 :=
+  N.exists_pos_kernelVector_on_class_of_weaklyReversible hwr κ θ
