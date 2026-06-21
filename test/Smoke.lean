@@ -411,3 +411,8 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N) :
     N.numLinkageClasses ≤ Module.finrank ℝ (LinearMap.ker (N.kineticMap κ)) :=
   N.numLinkageClasses_le_finrank_ker_kineticMap κ
+
+-- Dually, the rank of the kinetic map is at most `n − ℓ`.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N) :
+    Module.finrank ℝ (LinearMap.range (N.kineticMap κ)) + N.numLinkageClasses ≤ N.numComplexes :=
+  N.finrank_range_kineticMap_add_numLinkageClasses_le κ

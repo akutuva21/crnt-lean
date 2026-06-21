@@ -56,6 +56,18 @@ theorem numLinkageClasses_le_finrank_ker_kineticMap (N : Network S) (κ : RateCo
     _ = Module.finrank ℝ (Submodule.span ℝ (Set.range b)) := (finrank_span_eq_card hli).symm
     _ ≤ Module.finrank ℝ (LinearMap.ker (N.kineticMap κ)) := Submodule.finrank_mono hspan_le
 
+/-- **`dim(range A_k) + ℓ ≤ n`.** Dually to the kernel bound, the rank of the kinetic map is
+at most `n − ℓ` — the number of complexes net of the linkage classes. -/
+theorem finrank_range_kineticMap_add_numLinkageClasses_le (N : Network S) (κ : RateConstants N) :
+    Module.finrank ℝ (LinearMap.range (N.kineticMap κ)) + N.numLinkageClasses ≤ N.numComplexes := by
+  have hrn := LinearMap.finrank_range_add_finrank_ker (N.kineticMap κ)
+  have hdom : Module.finrank ℝ (N.ComplexIdx → ℝ) = N.numComplexes := by
+    rw [Module.finrank_fintype_fun_eq_card]
+    simp only [Fintype.card_coe, numComplexes]
+  have hk := N.numLinkageClasses_le_finrank_ker_kineticMap κ
+  rw [hdom] at hrn
+  omega
+
 end Network
 
 end CRNT
