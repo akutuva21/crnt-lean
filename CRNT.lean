@@ -55,6 +55,7 @@ import CRNT.Deficiency.Definition
 import CRNT.Deficiency.KernelDimension
 import CRNT.Deficiency.DeficiencyOne
 import CRNT.Deficiency.LinkageDeficiency
+import CRNT.Deficiency.DeficiencyOneHypotheses
 
 -- Theorem statement interfaces and proved components
 import CRNT.Theorems.DeficiencyZero.Statement
