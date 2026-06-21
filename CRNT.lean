@@ -11,6 +11,9 @@ import CRNT.Graph.Reachability
 import CRNT.Graph.WeakReversibility
 import CRNT.Graph.LinkageClass
 
+-- Decision procedures: decidable bounded reachability and weak reversibility
+import CRNT.Decision.Reachability
+
 -- Stoichiometry: reaction vectors, subspace, rank
 import CRNT.Stoich.Vector
 import CRNT.Stoich.Subspace
