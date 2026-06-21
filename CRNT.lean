@@ -19,9 +19,10 @@ import CRNT.Stoich.Subspace
 import CRNT.LinearAlgebra.PerronFrobenius
 import CRNT.LinearAlgebra.OrthogonalComplement
 
--- Kinetics: concentrations and mass action
+-- Kinetics: concentrations, mass action, and the general kinetics abstraction
 import CRNT.Kinetics.Concentration
 import CRNT.Kinetics.MassAction
+import CRNT.Kinetics.General
 
 -- Equilibria: steady states, compatibility classes, complex balancing
 import CRNT.Equilibria.SteadyState
