@@ -337,3 +337,15 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     ∃ (K M : ℝ≥0), LipschitzWith K (N.massActionVectorField κ ∘ Network.clampBox B) ∧
       (∀ x, ‖(N.massActionVectorField κ ∘ Network.clampBox B) x‖ ≤ M) :=
   N.exists_cutoff κ hB
+
+-- Local asymptotic stability: the complex-balanced equilibrium's ω-limit set is `{x*}`.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (κ : Network.RateConstants N) {xstar x₀ : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar) (hx0 : x₀.Positive)
+    (hx0compat : N.StoichCompatible x₀ xstar)
+    (hloc : ∀ s, CRNT.relEntropy xstar x₀ < xstar s) :
+    ∃ (ϕ : Flow ℝ≥0 (Concentration S)) (γ : Concentration S → ℝ → Concentration S),
+      (∀ x, γ x 0 = x) ∧ (∀ x (t : ℝ≥0), ϕ t x = γ x t) ∧
+      (∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t) ∧
+      omegaLimit Filter.atTop ϕ {x₀} = {xstar} :=
+  N.omegaLimit_eq_singleton_of_local hwr κ hxs hcb hx0 hx0compat hloc

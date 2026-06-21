@@ -79,9 +79,8 @@ staged as follows.
        `CRNT/LinearAlgebra/OrthogonalComplement.lean`, by transporting Mathlib's
        `Submodule.orthogonal_orthogonal` across `ι → ℝ ≃ EuclideanSpace ℝ ι`), placing
        `x − c ∈ S`.
-5. **Horn–Jackson Lyapunov function & stability** *(Lyapunov function, dissipation, and
-   descent done; full asymptotic stability open)* — the Lyapunov function `relEntropy` and
-   its positive-definiteness about a reference equilibrium are proved in
+5. **Horn–Jackson Lyapunov function & stability** *(complete)* — the Lyapunov function
+   `relEntropy` and its positive-definiteness about a reference equilibrium are proved in
    `CRNT/Theorems/DeficiencyZero/Lyapunov.lean` (Gibbs' inequality). Beyond that:
 
    * the **dissipation inequality** `dissipation_nonpos`
@@ -142,23 +141,29 @@ staged as follows.
      `ODE.exists_flow` applies to. (This is the bounded-Lipschitz route, simpler than a
      smooth product-bump and free of the smooth-norm/inner-product issues.)
 
-   Remaining — the **final assembly** on top of the proved pieces:
+   The **final assembly** `omegaLimit_eq_singleton_of_local`
+   (`CRNT/Theorems/DeficiencyZero/AsymptoticStability.lean`) ties these together:
 
-   * apply `ODE.exists_flow` to the cutoff field to get a `Flow ℝ≥0`; choose `B` past the
+   * `ODE.exists_flow` on the cutoff field gives a `Flow ℝ≥0`; `B` is chosen past the
      coercivity bound of `{relEntropy x* · ≤ relEntropy x* x₀}` so the box interior contains
      that sublevel set;
-   * **confinement** — the orbit of `x₀` stays in the compact set
-     `K = {x.Positive ∧ relEntropy x* x ≤ relEntropy x* x₀}`: a coupled maximal-interval
-     argument joining `pos_of_forward_deriv_ge` (positivity, where the cutoff equals `f`)
-     and the descent + `relEntropy_coord_le` (box-confinement), each needing the other on
-     `[0,T*)` and closed by continuity at `T*`;
-   * **compatibility** — the orbit stays in `x₀`'s positive class (velocity `f(x) ∈ S`, so
-     the displacement lies in the stoichiometric subspace);
-   * **invocation** — `Flow.laSalle` (continuous `relEntropy`, precompact orbit, descent)
-     gives `relEntropy` constant on `ω(x₀)`; invariance + chain rule ⟹ dissipation `= 0`
-     there ⟹ `complexBalanced_of_dissipation_eq_zero` ⟹ each `ω`-point is complex-balanced
-     in `x₀`'s class ⟹ by `deficiencyZeroTheorem` uniqueness equals `x*`, so
-     `ω(x₀) = {x*}`.
+   * **positivity** `orbit_pos`: the cutoff orbit stays strictly positive on `[0,∞)` — a
+     single first-crossing (`ge_mul_exp_of_forward_deriv_ge`) on the whole orbit, decoupled
+     from box-confinement because the cutoff already bounds the field's argument, so the
+     linear lower bound `exists_field_lower_bound` (`f_s(x) ≥ −L·x_s`, by factoring `x_s`
+     out of each consuming reaction's monomial) holds globally;
+   * **confinement** `orbit_relEntropy_le`: the orbit stays in `{relEntropy x* · ≤ relEntropy
+     x* x₀}` — a first-exit-from-the-box argument (`clampBox_eq_of_sublevel` makes the cutoff
+     equal `f` there) closed by Lyapunov descent + coercivity; the sublevel set is compact
+     (`isCompact_relEntropy_sublevel`) and, below every reference coordinate, inside the open
+     orthant (`positive_of_relEntropy_lt`), so it absorbs the orbit;
+   * **compatibility** `sub_mem_stoichSubspace_of_solution`: the orbit stays in `x₀`'s
+     positive class (velocity `f(x) ∈ S`, so the displacement lies in the stoichiometric
+     subspace, by orthogonality to `Sᗮ`);
+   * **invocation** — `Flow.laSalle` gives `relEntropy` constant on `ω(x₀)`; invariance +
+     chain rule ⟹ dissipation `= 0` there ⟹ `complexBalanced_of_dissipation_eq_zero` ⟹ each
+     `ω`-point is complex-balanced in `x₀`'s class ⟹ by `deficiencyZeroTheorem` uniqueness
+     equals `x*`, so `ω(x₀) = {x*}`.
 6. **Assembly** *(complete)* — `SatisfiesDeficiencyZeroHypotheses →
    DeficiencyZeroConclusion` is discharged as `deficiencyZeroTheorem`. The toric structure
    of complex-balanced equilibria is in `CRNT/Theorems/DeficiencyZero/Toric.lean`:

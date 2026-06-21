@@ -154,6 +154,18 @@ Mathlib's. It defines and proves, among others:
   weakly reversible network of deficiency zero, every positive choice of rate constants and
   positive starting concentration determines a *unique* complex-balanced equilibrium in the
   positive compatibility class of the start;
+- **local asymptotic stability** of that equilibrium (`omegaLimit_eq_singleton_of_local`):
+  for a positive start `x₀` in `x*`'s class whose relative entropy lies below every reference
+  coordinate, the mass-action semiflow's orbit through `x₀` (the genuine dynamics) has
+  ω-limit set exactly `{x*}`. The genuine field is replaced by a bounded-Lipschitz cutoff
+  `f ∘ clampBox B` (`exists_cutoff`) so `ODE.exists_flow` gives a `Flow ℝ≥0`; the orbit is
+  shown to stay strictly positive (`orbit_pos`, a first-crossing using the field's linear
+  lower bound `exists_field_lower_bound`), inside the initial relative-entropy sublevel set
+  (`orbit_relEntropy_le`, Lyapunov descent + coercivity), and in `x₀`'s compatibility class
+  (`sub_mem_stoichSubspace_of_solution`); `Flow.laSalle` then forces the relative entropy to
+  be constant on the ω-limit set, so the dissipation vanishes there, each ω-point is
+  complex-balanced (`complexBalanced_of_dissipation_eq_zero`), and deficiency-zero uniqueness
+  pins it to `x*`;
 - deficiency over `ℤ` (`deficiencyInt`, `DeficiencyZero`), with no natural-number
   truncated-subtraction pitfall;
 - a sound, computable directed-walk certificate checker (`reaches_of_walk`).
@@ -172,20 +184,6 @@ Worked example networks (each `sorry`-free):
 
 These are stated or deferred, not asserted (see [`docs/roadmap.md`](docs/roadmap.md)):
 
-- local asymptotic stability of the complex-balanced equilibrium — every supporting
-  component is proved: the Lyapunov function and its strict dissipation, the descent along
-  solutions, the abstract LaSalle invariance principle, the ODE foundations (smoothness,
-  boundary invariance, local existence), the entire general flow construction (global
-  existence, continuous dependence, uniqueness, and the `Flow ℝ≥0` object
-  `ODE.exists_flow`), and the confinement analytic inputs (coercivity, first-crossing
-  positivity, and the bounded-Lipschitz cutoff — all above). The remaining step to a literal
-  `x(t) → x*` is to **assemble** them: show the cutoff flow's orbit is confined to the
-  compact positive `relEntropy`-sublevel set (a coupled forward-invariance argument joining
-  the positivity and coercivity bounds via a maximal-interval/continuity argument — where
-  the cutoff equals the genuine field), conclude the orbit stays in the start's
-  compatibility class, then invoke `Flow.laSalle` with the dissipation characterization and
-  deficiency-zero uniqueness to pin the ω-limit set to `{x*}`. This final assembly is the
-  one remaining piece;
 - a verified computable Boolean decision procedure for reachability / weak
   reversibility (and the corresponding `..._iff` equivalence). Concrete examples are
   established by explicit proof or by the walk-certificate checker;
