@@ -24,9 +24,11 @@ import CRNT.Decision.Tactic
 import CRNT.Stoich.Vector
 import CRNT.Stoich.Subspace
 
--- Linear-algebra building blocks (Perron–Frobenius positivity; dot-product orthogonality)
+-- Linear-algebra building blocks (Perron–Frobenius positivity; dot-product orthogonality;
+-- finrank subadditivity over finite suprema)
 import CRNT.LinearAlgebra.PerronFrobenius
 import CRNT.LinearAlgebra.OrthogonalComplement
+import CRNT.LinearAlgebra.FinrankSup
 
 -- Kinetics: concentrations, mass action, and the general kinetics abstraction
 import CRNT.Kinetics.Concentration
@@ -52,6 +54,7 @@ import CRNT.Dynamics.FlowConstruction
 import CRNT.Deficiency.Definition
 import CRNT.Deficiency.KernelDimension
 import CRNT.Deficiency.DeficiencyOne
+import CRNT.Deficiency.LinkageDeficiency
 
 -- Theorem statement interfaces and proved components
 import CRNT.Theorems.DeficiencyZero.Statement
