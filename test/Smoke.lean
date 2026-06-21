@@ -368,6 +368,12 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     N.kineticMap κ (N.restrictToClass q v) = N.restrictToClass q (N.kineticMap κ v) :=
   N.kineticMap_restrictToClass κ q v
 
+-- The kernel of the kinetic map decomposes over linkage classes.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (v : N.ComplexIdx → ℝ) :
+    N.kineticMap κ v = 0 ↔ ∀ q, N.kineticMap κ (N.restrictToClass q v) = 0 :=
+  N.kineticMap_eq_zero_iff_forall_restrictToClass κ v
+
 -- A steady state's kinetic image lies in the deficiency subspace `ker Y ⊓ Im ∂`.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
     {x : Concentration S} (hx : N.IsMassActionSteadyState κ x) :

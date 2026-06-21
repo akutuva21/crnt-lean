@@ -78,6 +78,31 @@ theorem kineticMap_restrictToClass (N : Network S) (κ : RateConstants N)
     exact N.kineticMap_apply_eq_of_eqOn_class κ
       fun d hd => restrictToClass_apply_of_ne N v (by rw [hd]; exact hc)
 
+/-- **The per-class restrictions of a vector reassemble it:** the linkage classes partition
+the complexes, so `∑_q (restriction to q) = v`. -/
+theorem sum_restrictToClass (N : Network S) (v : N.ComplexIdx → ℝ) :
+    ∑ q, N.restrictToClass q v = v := by
+  funext c
+  rw [Finset.sum_apply]
+  simp only [restrictToClass]
+  rw [Finset.sum_ite_eq Finset.univ (N.classOf c) (fun _ => v c)]
+  simp
+
+/-- **The kernel of the kinetic map decomposes over linkage classes.** A vector is killed by
+`A_k` iff each of its per-class restrictions is — the block-diagonal kernel decomposition that
+lets the deficiency-one argument solve `A_k v = 0` one linkage class at a time. -/
+theorem kineticMap_eq_zero_iff_forall_restrictToClass (N : Network S) (κ : RateConstants N)
+    (v : N.ComplexIdx → ℝ) :
+    N.kineticMap κ v = 0 ↔ ∀ q, N.kineticMap κ (N.restrictToClass q v) = 0 := by
+  constructor
+  · intro h q
+    rw [kineticMap_restrictToClass, h]
+    funext c
+    simp [restrictToClass]
+  · intro h
+    rw [← sum_restrictToClass N v, map_sum]
+    exact Finset.sum_eq_zero fun q _ => h q
+
 end Network
 
 end CRNT
