@@ -48,6 +48,7 @@ import CRNT.Theorems.DeficiencyZero.Toric
 import CRNT.Theorems.DeficiencyZero.Existence
 import CRNT.Theorems.DeficiencyZero.Dissipation
 import CRNT.Theorems.DeficiencyZero.Stability
+import CRNT.Theorems.DeficiencyZero.Confinement
 import CRNT.Theorems.DeficiencyZero.Lyapunov
 
 -- Interoperability and certificate workflow

@@ -1,5 +1,6 @@
 import Mathlib.Analysis.ODE.Gronwall
 import Mathlib.Analysis.ODE.ExistUnique
+import Mathlib.Dynamics.Flow
 
 /-!
 # Toward the flow of an autonomous Lipschitz vector field
@@ -20,14 +21,17 @@ solution exists on `[-T, T]` for every `T` (no continuation-limit argument neede
 interval solutions are then glued by uniqueness. This is the analytic step that the Mathlib
 ODE library otherwise lacks.
 
-These are the inputs to assembling a `Flow ℝ≥0` (semigroup from uniqueness, continuity from
-continuous dependence) — and, for mass action, to the stability theorem after a cutoff to a
-bounded field and the `relEntropy` confinement.
+**The forward semiflow** (`exists_flow`). Assembling the above, a bounded Lipschitz
+autonomous field generates a `Flow ℝ≥0 E` whose orbits are its solutions — existence
+supplies the orbits, uniqueness the semigroup law, and continuous dependence the joint
+continuity. For mass action this applies after a cutoff to a bounded field together with the
+`relEntropy` confinement (forward-invariant compact sublevel sets within a class).
 
 This module is **stable** and `sorry`-free.
 -/
 
-open scoped NNReal
+open Filter
+open scoped NNReal Topology
 
 namespace ODE
 
@@ -125,5 +129,65 @@ theorem exists_isIntegralCurve {f : E → E} {K M : ℝ≥0} (hl : LipschitzWith
     Filter.eventuallyEq_of_mem (isOpen_Ioo.mem_nhds (hmem t))
       (fun s hs => huniq ⌊|s|⌋₊ ⌊|t|⌋₊ s (hmem s) hs)
   exact (hα ⌊|t|⌋₊ t (hmem t)).congr_of_eventuallyEq hEq
+
+open scoped Topology in
+/-- **The flow of a bounded Lipschitz autonomous field.** Such a field generates a forward
+semiflow `Flow ℝ≥0 E` whose orbits are its solutions. Existence supplies the orbits,
+uniqueness the semigroup law, and continuous dependence the joint continuity. -/
+theorem exists_flow {f : E → E} {K M : ℝ≥0} (hl : LipschitzWith K f) (hb : ∀ x, ‖f x‖ ≤ M) :
+    ∃ (ϕ : Flow ℝ≥0 E) (γ : E → ℝ → E),
+      (∀ x, γ x 0 = x) ∧ (∀ x t, HasDerivAt (γ x) (f (γ x t)) t) ∧
+      (∀ x (t : ℝ≥0), ϕ t x = γ x (t : ℝ)) := by
+  choose γ hγ0 hγd using fun x => exists_isIntegralCurve hl hb x
+  have hγc : ∀ x, Continuous (γ x) :=
+    fun x => continuous_iff_continuousAt.2 fun t => (hγd x t).continuousAt
+  -- semigroup law from uniqueness of global solutions
+  have hsemi : ∀ (x : E) (a b : ℝ), γ x (a + b) = γ (γ x b) a := by
+    intro x a b
+    have h1 : ∀ s : ℝ, HasDerivAt (fun u => γ x (u + b)) (f (γ x (s + b))) s := fun s => by
+      have hg : HasDerivAt (fun u : ℝ => u + b) 1 s := by simpa using (hasDerivAt_id s).add_const b
+      simpa [Function.comp_def] using (hγd x (s + b)).scomp s hg
+    have heq : (fun s => γ x (s + b)) = γ (γ x b) :=
+      ODE_solution_unique_univ (v := fun _ => f) (s := fun _ => Set.univ)
+        (fun _ => hl.lipschitzOnWith) (fun s => ⟨h1 s, Set.mem_univ _⟩)
+        (fun s => ⟨hγd (γ x b) s, Set.mem_univ _⟩) (by rw [zero_add, hγ0 (γ x b)])
+    exact congrFun heq a
+  -- joint continuity from continuous dependence
+  have hcont : Continuous (Function.uncurry fun (t : ℝ≥0) (x : E) => γ x (t : ℝ)) := by
+    refine continuous_iff_continuousAt.2 fun p => ?_
+    obtain ⟨t₀, x₀⟩ := p
+    have he : Continuous fun p : ℝ≥0 × E => Real.exp (K * (p.1 : ℝ)) :=
+      Real.continuous_exp.comp (continuous_const.mul (NNReal.continuous_coe.comp continuous_fst))
+    have h1 : Tendsto (fun p : ℝ≥0 × E => dist p.2 x₀ * Real.exp (K * (p.1 : ℝ)))
+        (𝓝 (t₀, x₀)) (𝓝 0) := by
+      have hcd : Continuous fun p : ℝ≥0 × E => dist p.2 x₀ * Real.exp (K * (p.1 : ℝ)) :=
+        (continuous_snd.dist continuous_const).mul he
+      exact hcd.tendsto' (t₀, x₀) 0 (by simp)
+    have h2 : Tendsto (fun p : ℝ≥0 × E => dist (γ x₀ (p.1 : ℝ)) (γ x₀ (t₀ : ℝ)))
+        (𝓝 (t₀, x₀)) (𝓝 0) := by
+      have hcd : Continuous fun p : ℝ≥0 × E => dist (γ x₀ (p.1 : ℝ)) (γ x₀ (t₀ : ℝ)) :=
+        ((hγc x₀).comp (NNReal.continuous_coe.comp continuous_fst)).dist continuous_const
+      exact hcd.tendsto' (t₀, x₀) 0 (by simp)
+    have hbound : Tendsto (fun p : ℝ≥0 × E =>
+        dist p.2 x₀ * Real.exp (K * (p.1 : ℝ)) + dist (γ x₀ (p.1 : ℝ)) (γ x₀ (t₀ : ℝ)))
+        (𝓝 (t₀, x₀)) (𝓝 0) := by simpa using h1.add h2
+    rw [ContinuousAt, tendsto_iff_dist_tendsto_zero]
+    refine squeeze_zero (fun _ => dist_nonneg) (fun p => ?_) hbound
+    calc dist (γ p.2 (p.1 : ℝ)) (γ x₀ (t₀ : ℝ))
+        ≤ dist (γ p.2 (p.1 : ℝ)) (γ x₀ (p.1 : ℝ)) + dist (γ x₀ (p.1 : ℝ)) (γ x₀ (t₀ : ℝ)) :=
+          dist_triangle _ _ _
+      _ ≤ dist p.2 x₀ * Real.exp (K * (p.1 : ℝ)) + dist (γ x₀ (p.1 : ℝ)) (γ x₀ (t₀ : ℝ)) := by
+          gcongr
+          have hd := dist_le_of_isIntegralCurve hl (hγd p.2) (hγd x₀) (p.1).coe_nonneg
+          rwa [hγ0 p.2, hγ0 x₀] at hd
+  let ϕ : Flow ℝ≥0 E :=
+    { toFun := fun t x => γ x (t : ℝ)
+      cont' := hcont
+      map_zero' := fun x => hγ0 x
+      map_add' := fun t₁ t₂ x => by
+        have hc : ((t₁ + t₂ : ℝ≥0) : ℝ) = (t₁ : ℝ) + (t₂ : ℝ) := NNReal.coe_add t₁ t₂
+        simp only [hc]
+        exact hsemi x (t₁ : ℝ) (t₂ : ℝ) }
+  exact ⟨ϕ, γ, hγ0, hγd, fun _ _ => rfl⟩
 
 end ODE

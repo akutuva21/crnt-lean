@@ -114,9 +114,19 @@ Mathlib's. It defines and proves, among others:
   (`exists_local_solution`, via Picard–Lindelöf);
 - general flow-construction infrastructure (CRN-free, upstream-targeted): **continuous
   dependence** on initial conditions (`ODE.dist_le_of_isIntegralCurve`), uniqueness on
-  `[0,∞)` (`ODE.eqOn_Ici_of_isIntegralCurve`), and **global existence** for a bounded
-  Lipschitz autonomous field (`ODE.exists_isIntegralCurve`) — the analytic core of building
-  a flow from an ODE, which Mathlib otherwise lacks;
+  `[0,∞)` (`ODE.eqOn_Ici_of_isIntegralCurve`), **global existence** for a bounded Lipschitz
+  autonomous field (`ODE.exists_isIntegralCurve`), and the resulting **forward semiflow**
+  `ODE.exists_flow` — a `Flow ℝ≥0` whose orbits are the solutions (semigroup from
+  uniqueness, joint continuity from continuous dependence). This is the flow-of-a-vector-field
+  construction that Mathlib otherwise lacks;
+- the analytic inputs to mass-action confinement: **coercivity** of the relative entropy
+  (`relEntropy_coord_le` — sublevel sets are bounded coordinatewise, so descent keeps a
+  trajectory bounded), a **first-crossing positivity** principle
+  (`pos_of_forward_deriv_ge` — `y' ≥ −L·y` wherever `y > 0` keeps `y` strictly positive on
+  `[0,∞)`, the boundary non-attraction that keeps a confined trajectory off the orthant
+  faces), and the **bounded-Lipschitz cutoff** of the field (`exists_cutoff`: `f ∘ clampBox`
+  is globally bounded and Lipschitz, agreeing with `f` on the box `[-B,B]^S`) that lets the
+  `Flow ℝ≥0` construction apply to the genuine dynamics on a compact sublevel set;
 - the analytic chain behind Birch existence: the **Fenchel–Young inequality**
   (`birchDualTerm_ge`, convex conjugate dual to Gibbs), the boundedness below of the Birch
   dual objective (`birchDual_ge`), its **coercivity** (`birchDual_coercive`, bounded
@@ -162,15 +172,20 @@ Worked example networks (each `sorry`-free):
 
 These are stated or deferred, not asserted (see [`docs/roadmap.md`](docs/roadmap.md)):
 
-- local asymptotic stability of the complex-balanced equilibrium — the Lyapunov function,
-  its strict dissipation, the descent along solutions, the abstract LaSalle invariance
-  principle, and the ODE foundations (smoothness, boundary invariance, local existence) are
-  all proved (above), as are the general flow-construction inputs — global existence,
-  continuous dependence, and uniqueness for bounded Lipschitz fields. The remaining step to
-  a literal `x(t) → x*` is now **assembly**: package these into a `Flow ℝ≥0` (semigroup +
-  joint continuity) and apply it to mass action after a cutoff to a bounded field with the
-  `relEntropy` confinement, then invoke LaSalle. This is bookkeeping on top of the proved
-  pieces rather than missing infrastructure;
+- local asymptotic stability of the complex-balanced equilibrium — every supporting
+  component is proved: the Lyapunov function and its strict dissipation, the descent along
+  solutions, the abstract LaSalle invariance principle, the ODE foundations (smoothness,
+  boundary invariance, local existence), the entire general flow construction (global
+  existence, continuous dependence, uniqueness, and the `Flow ℝ≥0` object
+  `ODE.exists_flow`), and the confinement analytic inputs (coercivity, first-crossing
+  positivity, and the bounded-Lipschitz cutoff — all above). The remaining step to a literal
+  `x(t) → x*` is to **assemble** them: show the cutoff flow's orbit is confined to the
+  compact positive `relEntropy`-sublevel set (a coupled forward-invariance argument joining
+  the positivity and coercivity bounds via a maximal-interval/continuity argument — where
+  the cutoff equals the genuine field), conclude the orbit stays in the start's
+  compatibility class, then invoke `Flow.laSalle` with the dissipation characterization and
+  deficiency-zero uniqueness to pin the ω-limit set to `{x*}`. This final assembly is the
+  one remaining piece;
 - a verified computable Boolean decision procedure for reachability / weak
   reversibility (and the corresponding `..._iff` equivalence). Concrete examples are
   established by explicit proof or by the walk-certificate checker;

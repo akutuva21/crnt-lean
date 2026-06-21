@@ -294,6 +294,14 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] 
     ∃ γ : ℝ → E, γ 0 = x₀ ∧ ∀ t : ℝ, HasDerivAt γ (f (γ t)) t :=
   ODE.exists_isIntegralCurve hl hb x₀
 
+-- The flow of a bounded Lipschitz autonomous field: a forward semiflow whose orbits solve
+-- the ODE.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] {f : E → E}
+    {K M : ℝ≥0} (hl : LipschitzWith K f) (hb : ∀ x, ‖f x‖ ≤ M) :
+    ∃ (ϕ : Flow ℝ≥0 E) (γ : E → ℝ → E), (∀ x, γ x 0 = x) ∧
+      (∀ x t, HasDerivAt (γ x) (f (γ x t)) t) ∧ (∀ x (t : ℝ≥0), ϕ t x = γ x t) :=
+  ODE.exists_flow hl hb
+
 -- Continuous dependence on initial conditions for an autonomous Lipschitz ODE.
 example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] {f : E → E} {K : ℝ≥0}
     (hf : LipschitzWith K f) {γ₁ γ₂ : ℝ → E} (h₁ : ∀ t, HasDerivAt γ₁ (f (γ₁ t)) t)
@@ -310,3 +318,22 @@ example {α : Type} [TopologicalSpace α] (ϕ : Flow ℝ≥0 α) {V : α → ℝ
       IsInvariant ϕ (omegaLimit Filter.atTop ϕ {x}) ∧
       ∀ y ∈ omegaLimit Filter.atTop ϕ {x}, V y = c :=
   Flow.laSalle ϕ hV x hK habs hmono
+
+-- Coercivity of the relative entropy: sublevel sets are bounded coordinatewise.
+example {S : Type} [DecidableEq S] [Fintype S] {xstar x : Concentration S}
+    (hxs : xstar.Positive) (hx : x.Nonnegative) {C : ℝ} (h : CRNT.relEntropy xstar x ≤ C)
+    (s : S) : x s ≤ max (Real.exp 2 * xstar s) C :=
+  Network.relEntropy_coord_le hxs hx h s
+
+-- First-crossing positivity: `y' ≥ −L·y` (where positive) keeps `y` positive on `[0, ∞)`.
+example {y : ℝ → ℝ} {L : ℝ} (hd : ∀ t, HasDerivAt y (deriv y t) t)
+    (hineq : ∀ t, 0 < y t → -L * y t ≤ deriv y t) (h0 : 0 < y 0) :
+    ∀ t, 0 ≤ t → 0 < y t :=
+  CRNT.pos_of_forward_deriv_ge hd hineq h0
+
+-- Bounded-Lipschitz cutoff of the mass-action field (so the flow construction applies).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {B : ℝ} (hB : 0 ≤ B) :
+    ∃ (K M : ℝ≥0), LipschitzWith K (N.massActionVectorField κ ∘ Network.clampBox B) ∧
+      (∀ x, ‖(N.massActionVectorField κ ∘ Network.clampBox B) x‖ ≤ M) :=
+  N.exists_cutoff κ hB

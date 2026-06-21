@@ -119,14 +119,46 @@ staged as follows.
      field has a global integral curve through every point. Because the field is bounded the
      Picard–Lindelöf ball radius is unrestricted, giving a solution on `[-T, T]` for every
      `T` (no continuation-limit argument); the pieces are glued by uniqueness. This is the
-     step the Mathlib ODE library otherwise lacks.
+     step the Mathlib ODE library otherwise lacks;
+   * **the forward semiflow** (`ODE.exists_flow`) — a bounded Lipschitz autonomous field
+     generates a `Flow ℝ≥0 E` whose orbits are its solutions (semigroup from uniqueness,
+     joint continuity from continuous dependence via a local squeeze). The general
+     flow-construction-with-continuous-dependence is thus complete.
 
-   The remaining step to a literal `x(t) → x*` statement is to assemble these into a
-   `Flow ℝ≥0` (semigroup from uniqueness, joint continuity from continuous dependence) and,
-   for mass action, to apply it after a cutoff to a bounded field with the `relEntropy`
-   confinement (forward-invariant compact sublevel sets within a class), then invoke
-   `Flow.laSalle` + the dissipation characterization + `deficiencyZeroTheorem` uniqueness.
-   This is now a matter of assembly rather than missing infrastructure.
+   What remains is the mass-action *application*. The three analytic inputs are proved
+   (`CRNT/Theorems/DeficiencyZero/Confinement.lean`):
+
+   * **coercivity** `relEntropy_coord_le`: on the nonnegative orthant a sublevel set
+     `{relEntropy x* · ≤ C}` is bounded in each coordinate (each per-coordinate term grows
+     superlinearly);
+   * **positivity** `pos_of_forward_deriv_ge`: a differentiable `y` with `0 < y 0` and
+     `y' ≥ −L·y` (where `y > 0`) stays positive on `[0,∞)` — the first-crossing argument
+     that keeps a confined trajectory off the boundary (so `relEntropy` stays differentiable
+     and the dissipation descent is valid). For each species `f_s(x) ≥ −L·x_s` on a bounded
+     region, supplying the hypothesis;
+   * **cutoff** `exists_cutoff`: clamping each coordinate to `[-B,B]` (`clampBox`, a
+     `1`-Lipschitz retraction onto the box) and precomposing the field gives a globally
+     bounded, globally Lipschitz field agreeing with `f` on the box — the field
+     `ODE.exists_flow` applies to. (This is the bounded-Lipschitz route, simpler than a
+     smooth product-bump and free of the smooth-norm/inner-product issues.)
+
+   Remaining — the **final assembly** on top of the proved pieces:
+
+   * apply `ODE.exists_flow` to the cutoff field to get a `Flow ℝ≥0`; choose `B` past the
+     coercivity bound of `{relEntropy x* · ≤ relEntropy x* x₀}` so the box interior contains
+     that sublevel set;
+   * **confinement** — the orbit of `x₀` stays in the compact set
+     `K = {x.Positive ∧ relEntropy x* x ≤ relEntropy x* x₀}`: a coupled maximal-interval
+     argument joining `pos_of_forward_deriv_ge` (positivity, where the cutoff equals `f`)
+     and the descent + `relEntropy_coord_le` (box-confinement), each needing the other on
+     `[0,T*)` and closed by continuity at `T*`;
+   * **compatibility** — the orbit stays in `x₀`'s positive class (velocity `f(x) ∈ S`, so
+     the displacement lies in the stoichiometric subspace);
+   * **invocation** — `Flow.laSalle` (continuous `relEntropy`, precompact orbit, descent)
+     gives `relEntropy` constant on `ω(x₀)`; invariance + chain rule ⟹ dissipation `= 0`
+     there ⟹ `complexBalanced_of_dissipation_eq_zero` ⟹ each `ω`-point is complex-balanced
+     in `x₀`'s class ⟹ by `deficiencyZeroTheorem` uniqueness equals `x*`, so
+     `ω(x₀) = {x*}`.
 6. **Assembly** *(complete)* — `SatisfiesDeficiencyZeroHypotheses →
    DeficiencyZeroConclusion` is discharged as `deficiencyZeroTheorem`. The toric structure
    of complex-balanced equilibria is in `CRNT/Theorems/DeficiencyZero/Toric.lean`:
