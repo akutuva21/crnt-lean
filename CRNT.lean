@@ -51,6 +51,7 @@ import CRNT.Dynamics.FlowConstruction
 -- Deficiency
 import CRNT.Deficiency.Definition
 import CRNT.Deficiency.KernelDimension
+import CRNT.Deficiency.DeficiencyOne
 
 -- Theorem statement interfaces and proved components
 import CRNT.Theorems.DeficiencyZero.Statement
