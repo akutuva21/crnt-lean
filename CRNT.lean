@@ -16,6 +16,7 @@ import CRNT.Graph.LinkageClass
 import CRNT.Decision.Reachability
 import CRNT.Decision.Linkage
 import CRNT.Decision.StrongLinkage
+import CRNT.Decision.DirectedReachability
 import CRNT.Decision.Rank
 
 -- Stoichiometry: reaction vectors, subspace, rank
