@@ -447,3 +447,18 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
     (κ : Network.RateConstants N) :
     LinearMap.range (N.kineticMap κ) = LinearMap.range N.incidenceMap :=
   N.range_kineticMap_eq_range_incidenceMap_of_weaklyReversible hwr κ
+
+-- A reaction-closed set of complexes supports a nonnegative nonzero kernel vector of `A_k`.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (D : N.ComplexIdx → Prop) (hclosed : ∀ r, D (N.sourceIdx r) → D (N.targetIdx r))
+    {c0 : N.ComplexIdx} (hc0 : D c0) :
+    ∃ b : N.ComplexIdx → ℝ, (∀ c, 0 ≤ b c) ∧ b ≠ 0 ∧
+      (∀ c, ¬ D c → b c = 0) ∧ N.kineticMap κ b = 0 :=
+  N.exists_nonneg_kernelVector_on_closed κ D hclosed hc0
+
+-- In particular, each terminal strong linkage class supports such a kernel vector.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {c : N.ComplexIdx} (hc : N.IsTerminalSLC c.val) :
+    ∃ b : N.ComplexIdx → ℝ, (∀ c', 0 ≤ b c') ∧ b ≠ 0 ∧
+      (∀ c', ¬ N.StronglyLinked c.val c'.val → b c' = 0) ∧ N.kineticMap κ b = 0 :=
+  N.exists_nonneg_kernelVector_on_terminalSLC κ hc
