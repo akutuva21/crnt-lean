@@ -486,6 +486,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     {c : N.ComplexIdx} (hbc : 0 < b c) : N.IsTerminalSLC c.val :=
   N.isTerminalSLC_of_pos_kernel κ hbnn hbker hbc
 
+-- Weak reversibility ⟺ the kinetic map has a strictly positive kernel vector.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N) :
+    N.WeaklyReversible ↔ ∃ b : N.ComplexIdx → ℝ, (∀ c, 0 < b c) ∧ N.kineticMap κ b = 0 :=
+  N.weaklyReversible_iff_exists_pos_kernelVector κ
+
 -- The terminal-SLC kernel mode is unique up to scaling.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
     {c : N.ComplexIdx} {a v : N.ComplexIdx → ℝ}

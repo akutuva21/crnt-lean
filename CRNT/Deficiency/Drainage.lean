@@ -134,6 +134,22 @@ theorem isTerminalSLC_of_pos_kernel (N : Network S) (κ : RateConstants N)
       ⟨hbc, hcterm⟩
   exact hdtrans hdterm
 
+/-- **A strictly positive kernel vector of `A_k` forces weak reversibility.** If `b > 0`
+everywhere and `A_k b = 0`, every complex's strong linkage class is terminal, so every
+reaction's target reaches its source. -/
+theorem weaklyReversible_of_exists_pos_kernelVector (N : Network S) (κ : RateConstants N)
+    {b : N.ComplexIdx → ℝ} (hbpos : ∀ c, 0 < b c) (hbker : N.kineticMap κ b = 0) :
+    N.WeaklyReversible := fun r =>
+  ((N.isTerminalSLC_of_pos_kernel κ (fun c => (hbpos c).le) hbker (hbpos (N.sourceIdx r))) r
+    (StronglyLinked.refl N (N.sourceIdx r).val)).2
+
+/-- **Weak reversibility is equivalent to the existence of a strictly positive kernel vector of
+`A_k`.** The forward direction is the Perron–Frobenius construction; the reverse is drainage. -/
+theorem weaklyReversible_iff_exists_pos_kernelVector (N : Network S) (κ : RateConstants N) :
+    N.WeaklyReversible ↔ ∃ b : N.ComplexIdx → ℝ, (∀ c, 0 < b c) ∧ N.kineticMap κ b = 0 :=
+  ⟨fun hwr => PositiveKernel.weaklyReversible_exists_positive_kernelVector N hwr κ,
+   fun ⟨_, hbpos, hbker⟩ => N.weaklyReversible_of_exists_pos_kernelVector κ hbpos hbker⟩
+
 end Network
 
 end CRNT
