@@ -157,6 +157,23 @@ theorem linkageDeficiency_eq_zero_of_deficiencyZero (N : Network S) (h : N.Defic
   exact (Finset.sum_eq_zero_iff_of_nonneg fun q' _ => N.linkageDeficiency_nonneg q').mp hsum0 q
     (Finset.mem_univ q)
 
+/-- The decomposition is tight exactly when the network deficiency is at most the sum of the
+per-class deficiencies — the reverse of the always-valid inequality. -/
+theorem sum_linkageDeficiency_eq_deficiency_iff (N : Network S) :
+    (∑ q, N.linkageDeficiency q = N.deficiencyInt) ↔
+      N.deficiencyInt ≤ ∑ q, N.linkageDeficiency q :=
+  ⟨fun h => h ▸ le_refl _, fun h => le_antisymm N.sum_linkageDeficiency_le_deficiency h⟩
+
+/-- **Feinberg's per-linkage-class deficiency conditions:** every linkage class has deficiency
+at most one, and the class deficiencies sum to the network deficiency. These are conditions (i)
+and (ii) of the deficiency-one theorem; the remaining condition is that each linkage class has
+exactly one terminal strong linkage class. -/
+structure DeficiencyOneConditions (N : Network S) : Prop where
+  /-- Each linkage class has deficiency at most one. -/
+  linkageDeficiency_le_one : ∀ q, N.linkageDeficiency q ≤ 1
+  /-- The per-class deficiencies sum to the network deficiency (the decomposition is tight). -/
+  sum_eq : ∑ q, N.linkageDeficiency q = N.deficiencyInt
+
 end Network
 
 end CRNT
