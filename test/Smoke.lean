@@ -480,6 +480,12 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (c : N.ComplexIdx
     ∃ d : N.ComplexIdx, N.Reaches c.val d.val ∧ N.IsTerminalSLC d.val :=
   N.exists_terminal_reachable c
 
+-- A nonnegative kernel vector of the kinetic map drains to terminal strong linkage classes.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {b : N.ComplexIdx → ℝ} (hbnn : ∀ c, 0 ≤ b c) (hbker : N.kineticMap κ b = 0)
+    {c : N.ComplexIdx} (hbc : 0 < b c) : N.IsTerminalSLC c.val :=
+  N.isTerminalSLC_of_pos_kernel κ hbnn hbker hbc
+
 -- The terminal-SLC kernel mode is unique up to scaling.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
     {c : N.ComplexIdx} {a v : N.ComplexIdx → ℝ}
