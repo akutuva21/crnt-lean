@@ -1,4 +1,4 @@
-# CRNT in Lean 4
+# Chemical Reaction Network Theory (CRNT) in Lean 4
 
 A Lean 4 formalization of **Chemical Reaction Network Theory** (CRNT), oriented toward
 synthetic biology, molecular programming, and biochemical design automation.
