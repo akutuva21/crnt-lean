@@ -69,6 +69,7 @@ import CRNT.Theorems.DeficiencyZero.Stability
 import CRNT.Theorems.DeficiencyZero.Confinement
 import CRNT.Theorems.DeficiencyZero.Lyapunov
 import CRNT.Theorems.DeficiencyZero.AsymptoticStability
+import CRNT.Theorems.DeficiencyOne.Statement
 
 -- Interoperability and certificate workflow
 import CRNT.Interop.Certificates

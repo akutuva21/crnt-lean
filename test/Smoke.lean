@@ -349,3 +349,8 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
       (∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t) ∧
       omegaLimit Filter.atTop ϕ {x₀} = {xstar} :=
   N.omegaLimit_eq_singleton_of_local hwr κ hxs hcb hx0 hx0compat hloc
+
+-- Deficiency-one statement interface: the existence conclusion refines uniqueness.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
+    N.DeficiencyOneExistence → N.DeficiencyOneUniqueness :=
+  N.deficiencyOneUniqueness_of_existence
