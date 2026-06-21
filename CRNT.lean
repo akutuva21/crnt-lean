@@ -70,6 +70,7 @@ import CRNT.Deficiency.RangeKineticWR
 import CRNT.Deficiency.ClosedSetKernel
 import CRNT.Deficiency.TerminalSLCKernel
 import CRNT.Deficiency.TerminalKernelBound
+import CRNT.Deficiency.TerminalReachable
 
 -- Theorem statement interfaces and proved components
 import CRNT.Theorems.DeficiencyZero.Statement

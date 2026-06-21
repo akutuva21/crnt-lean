@@ -475,6 +475,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     N.numTerminalSLC ≤ Module.finrank ℝ (LinearMap.ker (N.kineticMap κ)) :=
   N.numTerminalSLC_le_finrank_ker_kineticMap κ
 
+-- Every complex reaches a terminal strong linkage class.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (c : N.ComplexIdx) :
+    ∃ d : N.ComplexIdx, N.Reaches c.val d.val ∧ N.IsTerminalSLC d.val :=
+  N.exists_terminal_reachable c
+
 -- The terminal-SLC kernel mode is unique up to scaling.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
     {c : N.ComplexIdx} {a v : N.ComplexIdx → ℝ}
