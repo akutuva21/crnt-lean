@@ -15,6 +15,7 @@ stated example properties hold.
 -/
 
 open CRNT
+open scoped NNReal
 
 -- Computed complex counts reduce as expected.
 example : Examples.ReversiblePair.N.numComplexes = 2 := by decide
@@ -245,3 +246,67 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
 example : Examples.ReversiblePair.N.DeficiencyZeroConclusion :=
   Examples.ReversiblePair.N.deficiencyZeroTheorem
     Examples.ReversiblePair.satisfiesDeficiencyZeroHypotheses
+
+-- Dissipation: the relative entropy's directional derivative along the vector field is ≤ 0.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {x xstar : Concentration S} (hx : x.Positive) (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar) :
+    (∑ s, (Real.log (x s) - Real.log (xstar s)) * N.massActionVectorField κ x s) ≤ 0 :=
+  N.dissipation_nonpos κ hx hxs hcb
+
+-- Vanishing dissipation characterizes complex balance.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {x xstar : Concentration S} (hx : x.Positive) (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar)
+    (h0 : (∑ s, (Real.log (x s) - Real.log (xstar s)) * N.massActionVectorField κ x s) = 0) :
+    N.IsComplexBalanced κ x :=
+  N.complexBalanced_of_dissipation_eq_zero κ hx hxs hcb h0
+
+-- Lyapunov descent: relEntropy is nonincreasing along positive mass-action solutions.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {γ : ℝ → Concentration S} (hpos : ∀ t, (γ t).Positive)
+    (hsol : ∀ t s, HasDerivAt (fun τ => γ τ s) (N.massActionVectorField κ (γ t) s) t) :
+    Antitone (fun t => CRNT.relEntropy xstar (γ t)) :=
+  N.relEntropy_antitone_along_solution κ hxs hcb hpos hsol
+
+-- The mass-action vector field is smooth (regularity for ODE existence theory).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N) :
+    ContDiff ℝ ⊤ (N.massActionVectorField κ) :=
+  N.massActionVectorField_contDiff κ
+
+-- Boundary faces of the orthant are non-attracting.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {x : Concentration S} (hx : x.Nonnegative) {s : S} (hs : x s = 0) :
+    0 ≤ N.massActionVectorField κ x s :=
+  N.massActionVectorField_nonneg_of_zero κ hx hs
+
+-- Local existence of mass-action solutions.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (x₀ : Concentration S) (t₀ : ℝ) :
+    ∃ γ : ℝ → Concentration S, γ t₀ = x₀ ∧ ∃ ε > (0 : ℝ),
+      ∀ t ∈ Set.Ioo (t₀ - ε) (t₀ + ε), HasDerivAt γ (N.massActionVectorField κ (γ t)) t :=
+  N.exists_local_solution κ x₀ t₀
+
+-- Global existence: a bounded Lipschitz autonomous field has a global integral curve.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E] {f : E → E}
+    {K M : ℝ≥0} (hl : LipschitzWith K f) (hb : ∀ x, ‖f x‖ ≤ M) (x₀ : E) :
+    ∃ γ : ℝ → E, γ 0 = x₀ ∧ ∀ t : ℝ, HasDerivAt γ (f (γ t)) t :=
+  ODE.exists_isIntegralCurve hl hb x₀
+
+-- Continuous dependence on initial conditions for an autonomous Lipschitz ODE.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] {f : E → E} {K : ℝ≥0}
+    (hf : LipschitzWith K f) {γ₁ γ₂ : ℝ → E} (h₁ : ∀ t, HasDerivAt γ₁ (f (γ₁ t)) t)
+    (h₂ : ∀ t, HasDerivAt γ₂ (f (γ₂ t)) t) {t : ℝ} (ht : 0 ≤ t) :
+    dist (γ₁ t) (γ₂ t) ≤ dist (γ₁ 0) (γ₂ 0) * Real.exp (K * t) :=
+  ODE.dist_le_of_isIntegralCurve hf h₁ h₂ ht
+
+-- LaSalle's invariance principle for forward semiflows.
+example {α : Type} [TopologicalSpace α] (ϕ : Flow ℝ≥0 α) {V : α → ℝ} (hV : Continuous V)
+    (x : α) {K : Set α} (hK : IsCompact K)
+    (habs : ∃ v ∈ (Filter.atTop : Filter ℝ≥0), closure (Set.image2 ϕ v {x}) ⊆ K)
+    (hmono : ∀ s t : ℝ≥0, s ≤ t → V (ϕ t x) ≤ V (ϕ s x)) :
+    ∃ c : ℝ, (omegaLimit Filter.atTop ϕ {x}).Nonempty ∧
+      IsInvariant ϕ (omegaLimit Filter.atTop ϕ {x}) ∧
+      ∀ y ∈ omegaLimit Filter.atTop ϕ {x}, V y = c :=
+  Flow.laSalle ϕ hV x hK habs hmono

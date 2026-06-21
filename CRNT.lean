@@ -28,8 +28,12 @@ import CRNT.Equilibria.SteadyState
 import CRNT.Equilibria.CompatibilityClass
 import CRNT.Equilibria.ComplexBalanced
 
--- Dynamics: algebraic (complex-space) form of mass-action kinetics
+-- Dynamics: algebraic (complex-space) form of mass-action kinetics; ODE regularity and
+-- local existence; LaSalle invariance
 import CRNT.Dynamics.MassActionAlgebra
+import CRNT.Dynamics.MassActionField
+import CRNT.Dynamics.LaSalle
+import CRNT.Dynamics.FlowConstruction
 
 -- Deficiency
 import CRNT.Deficiency.Definition
@@ -42,6 +46,8 @@ import CRNT.Theorems.DeficiencyZero.Birch
 import CRNT.Theorems.DeficiencyZero.BirchExistence
 import CRNT.Theorems.DeficiencyZero.Toric
 import CRNT.Theorems.DeficiencyZero.Existence
+import CRNT.Theorems.DeficiencyZero.Dissipation
+import CRNT.Theorems.DeficiencyZero.Stability
 import CRNT.Theorems.DeficiencyZero.Lyapunov
 
 -- Interoperability and certificate workflow

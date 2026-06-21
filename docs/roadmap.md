@@ -79,13 +79,54 @@ staged as follows.
        `CRNT/LinearAlgebra/OrthogonalComplement.lean`, by transporting Mathlib's
        `Submodule.orthogonal_orthogonal` across `ι → ℝ ≃ EuclideanSpace ℝ ι`), placing
        `x − c ∈ S`.
-5. **Horn–Jackson Lyapunov function** *(function + positive-definiteness done; dissipation
-   open)* — the Lyapunov function `relEntropy` and its positive-definiteness about a
-   reference equilibrium are proved in `CRNT/Theorems/DeficiencyZero/Lyapunov.lean`
-   (Gibbs' inequality). Local asymptotic stability further requires the dissipation
-   inequality `d/dt relEntropy(x(t)) ≤ 0` along mass-action trajectories and a LaSalle
-   argument; the abstract **LaSalle invariance principle** is now proved (`Flow.laSalle`
-   in `CRNT/Dynamics/LaSalle.lean`, general dynamical-systems content).
+5. **Horn–Jackson Lyapunov function & stability** *(Lyapunov function, dissipation, and
+   descent done; full asymptotic stability open)* — the Lyapunov function `relEntropy` and
+   its positive-definiteness about a reference equilibrium are proved in
+   `CRNT/Theorems/DeficiencyZero/Lyapunov.lean` (Gibbs' inequality). Beyond that:
+
+   * the **dissipation inequality** `dissipation_nonpos`
+     (`CRNT/Theorems/DeficiencyZero/Dissipation.lean`): the directional derivative
+     `∑_s (log x_s − log x*_s) f(x)_s ≤ 0`, with vanishing exactly at complex-balanced
+     points (`complexBalanced_of_dissipation_eq_zero`) — `relEntropy` is a strict Lyapunov
+     function. Proof termwise over reactions via the Gibbs inequality `a(log b − log a) ≤ b − a`;
+   * the **Lyapunov chain rule** `relEntropy_hasDerivAt` and **descent**
+     `relEntropy_antitone_along_solution` (`CRNT/Theorems/DeficiencyZero/Stability.lean`):
+     `relEntropy` is nonincreasing along every positive mass-action solution;
+   * the abstract **LaSalle invariance principle** `Flow.laSalle`
+     (`CRNT/Dynamics/LaSalle.lean`): for a forward semiflow (`Flow ℝ≥0`), a continuous
+     Lyapunov function with precompact orbit is constant on the ω-limit set — general
+     dynamical-systems content, written for upstreaming.
+
+   The **ODE foundations** are in `CRNT/Dynamics/MassActionField.lean`:
+
+   * `massActionVectorField_contDiff`: the field `f` is `C^∞` (it is a polynomial map) — the
+     regularity hypothesis of the existence theory;
+   * `massActionVectorField_nonneg_of_zero`: on a boundary face `{x_s = 0}` of the orthant,
+     `f_s ≥ 0` (every reaction decreasing `x_s` consumes `x_s`) — the algebraic core of
+     forward-invariance of the positive orthant;
+   * `exists_local_solution`: local existence of solutions from every start (Picard–Lindelöf
+     via the smoothness).
+
+   Toward the forward semiflow, `CRNT/Dynamics/FlowConstruction.lean` collects the general
+   (CRN-free, upstream-targeted) lemmas, and the previously-missing analytic pieces are now
+   proved:
+
+   * **continuous dependence and uniqueness** — two global solutions of an autonomous
+     Lipschitz ODE diverge at most exponentially (`ODE.dist_le_of_isIntegralCurve`, from
+     Grönwall) and so a solution is determined on `[0, ∞)` by its initial value
+     (`ODE.eqOn_Ici_of_isIntegralCurve`);
+   * **global existence** (`ODE.exists_isIntegralCurve`) — a *bounded* Lipschitz autonomous
+     field has a global integral curve through every point. Because the field is bounded the
+     Picard–Lindelöf ball radius is unrestricted, giving a solution on `[-T, T]` for every
+     `T` (no continuation-limit argument); the pieces are glued by uniqueness. This is the
+     step the Mathlib ODE library otherwise lacks.
+
+   The remaining step to a literal `x(t) → x*` statement is to assemble these into a
+   `Flow ℝ≥0` (semigroup from uniqueness, joint continuity from continuous dependence) and,
+   for mass action, to apply it after a cutoff to a bounded field with the `relEntropy`
+   confinement (forward-invariant compact sublevel sets within a class), then invoke
+   `Flow.laSalle` + the dissipation characterization + `deficiencyZeroTheorem` uniqueness.
+   This is now a matter of assembly rather than missing infrastructure.
 6. **Assembly** *(complete)* — `SatisfiesDeficiencyZeroHypotheses →
    DeficiencyZeroConclusion` is discharged as `deficiencyZeroTheorem`. The toric structure
    of complex-balanced equilibria is in `CRNT/Theorems/DeficiencyZero/Toric.lean`:

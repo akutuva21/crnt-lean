@@ -100,6 +100,23 @@ Mathlib's. It defines and proves, among others:
 - the **Horn–Jackson Lyapunov function** (`relEntropy`, the relative entropy) and its
   positive-definiteness about a reference equilibrium (Gibbs' inequality):
   `relEntropy_nonneg`, `relEntropy_eq_zero_iff`, `relEntropy_pos_of_ne`;
+- that `relEntropy` is a **strict Lyapunov function** for the dynamics: the dissipation
+  inequality `∑_s (log x_s − log x*_s) f(x)_s ≤ 0` (`dissipation_nonpos`), vanishing exactly
+  at complex-balanced points (`complexBalanced_of_dissipation_eq_zero`), and hence the
+  **Lyapunov descent** `relEntropy_antitone_along_solution` — `relEntropy` is nonincreasing
+  along every positive mass-action solution (chain rule `relEntropy_hasDerivAt`);
+- **LaSalle's invariance principle for forward semiflows** (`Flow.laSalle`), general
+  dynamical-systems content built on Mathlib's `Flow`/`omegaLimit`: a continuous Lyapunov
+  function with precompact orbit is constant on the ω-limit set;
+- the **ODE foundations** of the mass-action dynamics: the vector field is `C^∞`
+  (`massActionVectorField_contDiff`), the orthant's boundary faces are non-attracting
+  (`massActionVectorField_nonneg_of_zero`), and solutions exist locally from every start
+  (`exists_local_solution`, via Picard–Lindelöf);
+- general flow-construction infrastructure (CRN-free, upstream-targeted): **continuous
+  dependence** on initial conditions (`ODE.dist_le_of_isIntegralCurve`), uniqueness on
+  `[0,∞)` (`ODE.eqOn_Ici_of_isIntegralCurve`), and **global existence** for a bounded
+  Lipschitz autonomous field (`ODE.exists_isIntegralCurve`) — the analytic core of building
+  a flow from an ODE, which Mathlib otherwise lacks;
 - the analytic chain behind Birch existence: the **Fenchel–Young inequality**
   (`birchDualTerm_ge`, convex conjugate dual to Gibbs), the boundedness below of the Birch
   dual objective (`birchDual_ge`), its **coercivity** (`birchDual_coercive`, bounded
@@ -145,10 +162,15 @@ Worked example networks (each `sorry`-free):
 
 These are stated or deferred, not asserted (see [`docs/roadmap.md`](docs/roadmap.md)):
 
-- local asymptotic stability of the complex-balanced equilibrium — the Horn–Jackson
-  Lyapunov function and its positive-definiteness are proved, but the dissipation
-  inequality `d/dt relEntropy(x(t)) ≤ 0` along trajectories and the LaSalle argument are
-  not;
+- local asymptotic stability of the complex-balanced equilibrium — the Lyapunov function,
+  its strict dissipation, the descent along solutions, the abstract LaSalle invariance
+  principle, and the ODE foundations (smoothness, boundary invariance, local existence) are
+  all proved (above), as are the general flow-construction inputs — global existence,
+  continuous dependence, and uniqueness for bounded Lipschitz fields. The remaining step to
+  a literal `x(t) → x*` is now **assembly**: package these into a `Flow ℝ≥0` (semigroup +
+  joint continuity) and apply it to mass action after a cutoff to a bounded field with the
+  `relEntropy` confinement, then invoke LaSalle. This is bookkeeping on top of the proved
+  pieces rather than missing infrastructure;
 - a verified computable Boolean decision procedure for reachability / weak
   reversibility (and the corresponding `..._iff` equivalence). Concrete examples are
   established by explicit proof or by the walk-certificate checker;

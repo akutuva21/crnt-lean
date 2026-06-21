@@ -1,7 +1,7 @@
 # Design notes
 
 This document records the concrete design decisions realized in the library. The
-broader vision and roadmap live in [`../PLAN.md`](../PLAN.md).
+broader roadmap lives in [`roadmap.md`](roadmap.md).
 
 ## Representation
 
