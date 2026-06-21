@@ -216,6 +216,14 @@ instance (N : Network S) : Fintype (Quotient N.stronglyLinkedSetoid) :=
 def numStrongLinkageClasses (N : Network S) : ℕ :=
   Fintype.card (Quotient N.stronglyLinkedSetoid)
 
+/-- **Weak reversibility is decidable** — full (unbounded) decision, since directed
+reachability among the network's complexes is decidable. -/
+instance (N : Network S) : Decidable N.WeaklyReversible := by
+  refine @Fintype.decidableForallFintype _ _ (fun r => ?_) _
+  exact decidable_of_iff _
+    (reaches_iff_reflTransGen_directedStep N
+      ⟨_, N.target_mem_complexes r⟩ ⟨_, N.source_mem_complexes r⟩).symm
+
 /-- **Terminality of a strong linkage class is decidable.** -/
 instance (N : Network S) (a : {c : Complex S // c ∈ N.complexes}) :
     Decidable (N.IsTerminalSLC a.val) := by
