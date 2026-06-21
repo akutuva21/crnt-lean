@@ -385,3 +385,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hδ : N.Deficien
     (κ : Network.RateConstants N) {x : Concentration S} (hx : N.IsMassActionSteadyState κ x) :
     N.IsComplexBalanced κ x :=
   N.isComplexBalanced_of_steadyState_of_deficiencyZero hδ κ hx
+
+-- Deficiency one pins every steady state's kinetic image to a common line through 0.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (hδ : N.DeficiencyOne) :
+    ∃ g : N.ComplexIdx → ℝ, g ≠ 0 ∧ ∀ ⦃x : Concentration S⦄,
+      N.IsMassActionSteadyState κ x →
+        ∃ c : ℝ, N.kineticMap κ (N.complexMonomialVector x) = c • g :=
+  N.exists_kineticImage_smul_of_deficiencyOne κ hδ
