@@ -499,3 +499,42 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     (hvoff : ∀ c', ¬ N.StronglyLinked c.val c'.val → v c' = 0) (hvker : N.kineticMap κ v = 0) :
     ∃ t : ℝ, v = t • a :=
   N.terminalSLC_kernel_unique κ hapos haoff haker hvoff hvker
+
+-- Parallel wave: the new structural modules exercised on the library API.
+
+-- Track K.1 (ACR): a pinned monomial ratio yields absolute concentration robustness in `s`.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (s : S)
+    (H : N.ShinarFeinbergHypotheses s) (hpin : H.PinnedRatio)
+    (hne : ∃ (κ : Network.RateConstants N) (x : Concentration S),
+      x.Positive ∧ N.IsMassActionSteadyState κ x) :
+    N.HasACR s :=
+  Network.HasACR.of_pinnedRatio H hpin hne
+
+-- Track M: the computable stoichiometric-rank lower bound is sound.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
+    N.computeStoichRankLB ≤ N.stoichRank :=
+  N.computeStoichRankLB_le_stoichRank
+
+-- Track B: the fully open extension satisfies `n⁺ = ℓ⁺ + card S + δ⁺`.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
+    N.fullyOpen.numComplexes
+      = N.fullyOpen.numLinkageClasses + Fintype.card S + N.fullyOpen.deficiency :=
+  N.numComplexes_fullyOpen_eq_add
+
+-- Track H.1: the generalized (kinetic-order) Birch existence statement.
+example {ι : Type} [Fintype ι] (T : Submodule ℝ (ι → ℝ)) {xstar c : ι → ℝ}
+    (hxs : ∀ i, 0 < xstar i) (hc : ∀ i, 0 < c i) :
+    ∃ x : ι → ℝ, (∀ i, 0 < x i) ∧ x - c ∈ T ∧
+      (fun i => Real.log (x i) - Real.log (xstar i)) ∈ CRNT.orthSum T :=
+  CRNT.gen_birch_existence T hxs hc
+
+-- Track D.2: the species-reaction graph is bipartite.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) : N.srGraph.IsBipartite :=
+  N.srGraph_isBipartite
+
+-- Track D.1: an injective mass-action network has at most one steady state per positive class.
+example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} {κ : Network.RateConstants N}
+    (h : (N.massActionKinetics κ).Injective) {x₀ x y : Concentration S}
+    (hx : x ∈ N.positiveCompatibilityClass x₀) (hy : y ∈ N.positiveCompatibilityClass x₀)
+    (hsx : N.IsMassActionSteadyState κ x) (hsy : N.IsMassActionSteadyState κ y) : x = y :=
+  Network.massAction_subsingleton_steadyState_of_injective h hx hy hsx hsy

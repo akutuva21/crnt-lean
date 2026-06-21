@@ -19,6 +19,7 @@ import CRNT.Decision.StrongLinkage
 import CRNT.Decision.DirectedReachability
 import CRNT.Decision.Rank
 import CRNT.Decision.Tactic
+import CRNT.Decision.RankExact
 
 -- Stoichiometry: reaction vectors, subspace, rank
 import CRNT.Stoich.Vector
@@ -34,9 +35,11 @@ import CRNT.LinearAlgebra.FinrankSup
 import CRNT.Kinetics.Concentration
 import CRNT.Kinetics.MassAction
 import CRNT.Kinetics.General
+import CRNT.Kinetics.Generalized
 
 -- Open networks: inflow/outflow pseudo-reactions and the fully open extension
 import CRNT.Open.Augmentation
+import CRNT.Open.Deficiency
 
 -- Equilibria: steady states, compatibility classes, complex balancing
 import CRNT.Equilibria.SteadyState
@@ -86,6 +89,13 @@ import CRNT.Theorems.DeficiencyZero.Confinement
 import CRNT.Theorems.DeficiencyZero.Lyapunov
 import CRNT.Theorems.DeficiencyZero.AsymptoticStability
 import CRNT.Theorems.DeficiencyOne.Statement
+
+-- Multistationarity: species-reaction graph, injectivity criteria
+import CRNT.Multistationarity.SRGraph
+import CRNT.Multistationarity.Injectivity
+
+-- Design: robustness and special equilibria
+import CRNT.Design.ACR
 
 -- Interoperability and certificate workflow
 import CRNT.Interop.Certificates
