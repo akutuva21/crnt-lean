@@ -474,3 +474,12 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N) :
     N.numTerminalSLC ≤ Module.finrank ℝ (LinearMap.ker (N.kineticMap κ)) :=
   N.numTerminalSLC_le_finrank_ker_kineticMap κ
+
+-- The terminal-SLC kernel mode is unique up to scaling.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {c : N.ComplexIdx} {a v : N.ComplexIdx → ℝ}
+    (hapos : ∀ c', N.StronglyLinked c.val c'.val → 0 < a c')
+    (haoff : ∀ c', ¬ N.StronglyLinked c.val c'.val → a c' = 0) (haker : N.kineticMap κ a = 0)
+    (hvoff : ∀ c', ¬ N.StronglyLinked c.val c'.val → v c' = 0) (hvker : N.kineticMap κ v = 0) :
+    ∃ t : ℝ, v = t • a :=
+  N.terminalSLC_kernel_unique κ hapos haoff haker hvoff hvker
