@@ -123,3 +123,67 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     (hwr : N.WeaklyReversible) (κ : Network.RateConstants N) :
     ∃ b : N.ComplexIdx → ℝ, (∀ c, 0 < b c) ∧ N.kineticMap κ b = 0 :=
   CRNT.PositiveKernel.weaklyReversible_exists_positive_kernelVector N hwr κ
+
+-- Milestone 4 (uniqueness half of Birch): positive vectors in the same coset of `S`
+-- with `S`-orthogonal log-ratio are equal.
+example {ι : Type} [Fintype ι] (S : Submodule ℝ (ι → ℝ)) {x y : ι → ℝ}
+    (hx : ∀ i, 0 < x i) (hy : ∀ i, 0 < y i) (hxy : x - y ∈ S)
+    (horth : ∀ s ∈ S, ∑ i, (Real.log (x i) - Real.log (y i)) * s i = 0) :
+    x = y :=
+  CRNT.birch_uniqueness S hx hy hxy horth
+
+-- Horn–Jackson Lyapunov function: positive-definite about the reference equilibrium.
+example {ι : Type} [Fintype ι] {xstar x : ι → ℝ}
+    (hx : ∀ i, 0 ≤ x i) (hxs : ∀ i, 0 < xstar i) (hne : x ≠ xstar) :
+    0 < CRNT.relEntropy xstar x :=
+  CRNT.relEntropy_pos_of_ne hx hxs hne
+
+-- Fenchel–Young / Birch dual objective bounded below (well-posedness anchor for the
+-- minimization underlying Birch existence).
+example {ι : Type} [Fintype ι] {xstar c : ι → ℝ}
+    (hxs : ∀ i, 0 < xstar i) (hc : ∀ i, 0 < c i) (w : ι → ℝ) :
+    (∑ i, (c i - c i * Real.log (c i / xstar i))) ≤ CRNT.birchDual xstar c w :=
+  CRNT.birchDual_ge hxs hc w
+
+-- Coercivity of the Birch dual objective: bounded sublevel sets.
+example {ι : Type} [Fintype ι] {xstar c : ι → ℝ}
+    (hxs : ∀ i, 0 < xstar i) (hc : ∀ i, 0 < c i) (M : ℝ) :
+    ∃ R : ℝ, ∀ w : ι → ℝ, CRNT.birchDual xstar c w ≤ M → ∀ i, |w i| ≤ R :=
+  CRNT.birchDual_coercive hxs hc M
+
+-- The Birch dual objective attains a minimum over any (finite-dimensional) subspace.
+example {ι : Type} [Fintype ι] {xstar c : ι → ℝ}
+    (hxs : ∀ i, 0 < xstar i) (hc : ∀ i, 0 < c i) (T : Submodule ℝ (ι → ℝ)) :
+    ∃ ŵ ∈ T, ∀ w ∈ T, CRNT.birchDual xstar c ŵ ≤ CRNT.birchDual xstar c w :=
+  CRNT.birchDual_exists_isMinOn hxs hc T
+
+-- First-order optimality of the dual minimizer: the gradient `x* ⊙ exp(ŵ) − c` is
+-- orthogonal to the minimization subspace.
+example {ι : Type} [Fintype ι] {xstar c : ι → ℝ} (T : Submodule ℝ (ι → ℝ))
+    {ŵ : ι → ℝ} (hŵT : ŵ ∈ T)
+    (hŵmin : ∀ w ∈ T, CRNT.birchDual xstar c ŵ ≤ CRNT.birchDual xstar c w) :
+    ∀ v ∈ T, ∑ i, (xstar i * Real.exp (ŵ i) - c i) * v i = 0 :=
+  CRNT.birchDual_firstOrder T hŵT hŵmin
+
+-- The dot-product double orthogonal complement returns the original subspace.
+example {ι : Type} [Fintype ι] (S : Submodule ℝ (ι → ℝ)) :
+    CRNT.orthSum (CRNT.orthSum S) = S :=
+  CRNT.orthSum_orthSum S
+
+-- Existence half of Birch's theorem: every positive compatibility class `c + S` contains
+-- a positive point with `S`-orthogonal log-ratio (the complex-balanced equilibrium).
+example {ι : Type} [Fintype ι] (S : Submodule ℝ (ι → ℝ)) {xstar c : ι → ℝ}
+    (hxs : ∀ i, 0 < xstar i) (hc : ∀ i, 0 < c i) :
+    ∃ x : ι → ℝ, (∀ i, 0 < x i) ∧ x - c ∈ S ∧
+      ∀ s ∈ S, ∑ i, (Real.log (x i) - Real.log (xstar i)) * s i = 0 :=
+  CRNT.birch_existence S hxs hc
+
+-- Birch's theorem (existence + uniqueness): the positive compatibility class `c + S` has
+-- a unique point with `S`-orthogonal log-ratio relative to a positive reference `x*`.
+example {ι : Type} [Fintype ι] (S : Submodule ℝ (ι → ℝ)) {xstar c : ι → ℝ}
+    (hxs : ∀ i, 0 < xstar i) (hc : ∀ i, 0 < c i) :
+    ∃ x : ι → ℝ, (∀ i, 0 < x i) ∧ x - c ∈ S ∧
+      (∀ s ∈ S, ∑ i, (Real.log (x i) - Real.log (xstar i)) * s i = 0) ∧
+      ∀ y : ι → ℝ, (∀ i, 0 < y i) → y - c ∈ S →
+        (∀ s ∈ S, ∑ i, (Real.log (y i) - Real.log (xstar i)) * s i = 0) → y = x :=
+  CRNT.birch S hxs hc

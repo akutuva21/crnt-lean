@@ -1,4 +1,4 @@
-# lean-crnt
+# CRNT in Lean 4
 
 A Lean 4 formalization of **Chemical Reaction Network Theory** (CRNT), oriented toward
 synthetic biology, molecular programming, and biochemical design automation.
@@ -89,6 +89,23 @@ Mathlib's. It defines and proves, among others:
   kernel vector** (`PositiveKernel.weaklyReversible_exists_positive_kernelVector`) — the
   existence of complex-balanced reference states, obtained by applying Perron–Frobenius
   per linkage class;
+- **Birch's theorem** (`birch`): relative to a positive reference `x*`, every positive
+  stoichiometric compatibility class `c + S` contains a **unique** point with
+  `S`-orthogonal log-ratio — the existence and uniqueness of the complex-balanced
+  equilibrium in each positive class. Uniqueness (`birch_uniqueness`) is the strict
+  monotonicity of `log`; existence (`birch_existence`) comes from minimizing the dual
+  objective (below) and the double-complement identity `(Sᗮ)ᗮ = S` (`orthSum_orthSum`,
+  by transporting Mathlib's `Submodule.orthogonal_orthogonal` across
+  `ι → ℝ ≃ EuclideanSpace ℝ ι`);
+- the **Horn–Jackson Lyapunov function** (`relEntropy`, the relative entropy) and its
+  positive-definiteness about a reference equilibrium (Gibbs' inequality):
+  `relEntropy_nonneg`, `relEntropy_eq_zero_iff`, `relEntropy_pos_of_ne`;
+- the analytic chain behind Birch existence: the **Fenchel–Young inequality**
+  (`birchDualTerm_ge`, convex conjugate dual to Gibbs), the boundedness below of the Birch
+  dual objective (`birchDual_ge`), its **coercivity** (`birchDual_coercive`, bounded
+  sublevel sets), the existence of a **minimizer over any finite-dimensional subspace**
+  (`birchDual_exists_isMinOn`), and the **first-order optimality** of that minimizer
+  (`birchDual_firstOrder`: the gradient `x* ⊙ exp(ŵ) − c` is orthogonal to the subspace);
 - deficiency over `ℤ` (`deficiencyInt`, `DeficiencyZero`), with no natural-number
   truncated-subtraction pitfall;
 - a sound, computable directed-walk certificate checker (`reaches_of_walk`).
@@ -109,10 +126,11 @@ These are stated or deferred, not asserted (see [`docs/roadmap.md`](docs/roadmap
 
 - the deficiency-zero theorem itself — its hypotheses and conclusion are exposed as a
   statement interface (`SatisfiesDeficiencyZeroHypotheses`, `DeficiencyZeroConclusion`)
-  but the implication is not yet assembled. Its structural inputs are proved (deficiency
-  as a kernel dimension, and the strictly positive kernel vector above); the remaining
-  ingredient is **Birch's theorem** — realizing the positive kernel vector as a monomial
-  vector `Ψ x`, uniquely in each positive stoichiometric compatibility class;
+  but the final implication is not yet assembled. Its major inputs are now all proved:
+  deficiency as a kernel dimension, the strictly positive kernel vector (Perron–Frobenius),
+  and the full Birch theorem (existence and uniqueness) above. What remains is the
+  **assembly** — realizing the positive kernel vector as a monomial vector `Ψ x` in each
+  positive compatibility class and discharging the statement interface;
 - a verified computable Boolean decision procedure for reachability / weak
   reversibility (and the corresponding `..._iff` equivalence). Concrete examples are
   established by explicit proof or by the walk-certificate checker;
