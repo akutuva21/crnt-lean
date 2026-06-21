@@ -538,3 +538,37 @@ example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} {κ : Network.Rat
     (hx : x ∈ N.positiveCompatibilityClass x₀) (hy : y ∈ N.positiveCompatibilityClass x₀)
     (hsx : N.IsMassActionSteadyState κ x) (hsy : N.IsMassActionSteadyState κ y) : x = y :=
   Network.massAction_subsingleton_steadyState_of_injective h hx hy hsx hsy
+
+-- Parallel wave 2: deciders, motifs, siphons, composition exercised on the API.
+
+-- Track K.2 (adaptation): the antithetic motif pins its output to a setpoint at steady state.
+example (κ : Network.RateConstants CRNT.Design.Adaptation.N)
+    (x : Concentration CRNT.Design.Adaptation.Species)
+    (hss : CRNT.Design.Adaptation.N.IsMassActionSteadyState κ x) :
+    κ.k .sense * x CRNT.Design.Adaptation.Species.X = κ.k .ref :=
+  CRNT.Design.Adaptation.setpoint κ x hss
+
+-- Track M (ACR companion): the Shinar-Feinberg structural hypotheses imply the decidable pair.
+example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} {s : S}
+    (H : N.ShinarFeinbergHypotheses s) : N.HasShinarFeinbergPair s :=
+  Network.HasShinarFeinbergPair.of_hypotheses H
+
+-- Track E (siphons): siphons are closed under union.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {P Q : Finset S}
+    (hP : N.IsSiphon P) (hQ : N.IsSiphon Q) : N.IsSiphon (P ∪ Q) :=
+  N.union_isSiphon hP hQ
+
+-- Track L (composition): the stoichiometric subspace of an interconnection is the join.
+example {S : Type} [DecidableEq S] [Fintype S] (N₁ N₂ : Network S) :
+    (N₁.interconnect N₂).stoichSubspace = N₁.stoichSubspace ⊔ N₂.stoichSubspace :=
+  N₁.stoichSubspace_interconnect N₂
+
+-- Track D.2 (decidable cycles): undirected cycle existence is decidable on a finite graph.
+example {V : Type} [Fintype V] [DecidableEq V] (G : SimpleGraph V) [DecidableRel G.Adj] :
+    Decidable G.HasCycle :=
+  inferInstance
+
+-- Track C.2: the one-terminal-SLC-per-linkage-class condition is decidable.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
+    Decidable N.OneTerminalSLCPerLinkageClass :=
+  inferInstance

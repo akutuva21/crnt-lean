@@ -1,6 +1,9 @@
 -- Deriving handlers used by example and generated networks (`deriving Fintype`)
 import Mathlib.Tactic.DeriveFintype
 
+-- General-purpose combinatorics (decidable undirected cycles)
+import CRNT.Combinatorics.DecidableCycle
+
 -- Basic CRN data structures
 import CRNT.Basic.Complex
 import CRNT.Basic.Reaction
@@ -20,6 +23,7 @@ import CRNT.Decision.DirectedReachability
 import CRNT.Decision.Rank
 import CRNT.Decision.Tactic
 import CRNT.Decision.RankExact
+import CRNT.Decision.ACRCheck
 
 -- Stoichiometry: reaction vectors, subspace, rank
 import CRNT.Stoich.Vector
@@ -96,6 +100,16 @@ import CRNT.Multistationarity.Injectivity
 
 -- Design: robustness and special equilibria
 import CRNT.Design.ACR
+import CRNT.Design.Adaptation
+
+-- Persistence: Petri-net siphons
+import CRNT.Dynamics.Siphon
+
+-- Network composition
+import CRNT.Compose.Interconnect
+
+-- Deficiency-one decidable structural conditions
+import CRNT.Deficiency.DeficiencyOneDecide
 
 -- Interoperability and certificate workflow
 import CRNT.Interop.Certificates
