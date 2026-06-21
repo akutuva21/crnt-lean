@@ -435,3 +435,9 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     (hvoff : ∀ c, N.classOf c ≠ θ → v c = 0) (hvker : N.kineticMap κ v = 0) :
     ∃ t : ℝ, v = t • a :=
   N.perClass_kernel_unique κ θ hθ hapos haoff haker hvoff hvker
+
+-- For a weakly reversible network, the kinetic-map kernel has dimension exactly ℓ.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (κ : Network.RateConstants N) :
+    Module.finrank ℝ (LinearMap.ker (N.kineticMap κ)) = N.numLinkageClasses :=
+  N.finrank_ker_kineticMap_eq_of_weaklyReversible hwr κ
