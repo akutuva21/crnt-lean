@@ -393,3 +393,9 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
       N.IsMassActionSteadyState κ x →
         ∃ c : ℝ, N.kineticMap κ (N.complexMonomialVector x) = c • g :=
   N.exists_kineticImage_smul_of_deficiencyOne κ hδ
+
+-- A deficiency vector sums to zero over each linkage class.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {g : N.ComplexIdx → ℝ}
+    (hg : g ∈ N.deficiencySubspace) (q : Quotient N.linkedSetoid) :
+    ∑ c, N.restrictToClass q g c = 0 :=
+  N.sum_restrictToClass_eq_zero_of_mem_deficiencySubspace hg q
