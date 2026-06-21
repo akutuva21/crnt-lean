@@ -66,6 +66,7 @@ import CRNT.Deficiency.KernelDimensionBound
 import CRNT.Deficiency.PerClassKernelPos
 import CRNT.Deficiency.PerClassKernelUnique
 import CRNT.Deficiency.KernelDimensionWR
+import CRNT.Deficiency.RangeKineticWR
 
 -- Theorem statement interfaces and proved components
 import CRNT.Theorems.DeficiencyZero.Statement

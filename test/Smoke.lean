@@ -441,3 +441,9 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
     (κ : Network.RateConstants N) :
     Module.finrank ℝ (LinearMap.ker (N.kineticMap κ)) = N.numLinkageClasses :=
   N.finrank_ker_kineticMap_eq_of_weaklyReversible hwr κ
+
+-- For a weakly reversible network, the kinetic image fills the cut space `Im ∂`.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (κ : Network.RateConstants N) :
+    LinearMap.range (N.kineticMap κ) = LinearMap.range N.incidenceMap :=
+  N.range_kineticMap_eq_range_incidenceMap_of_weaklyReversible hwr κ
