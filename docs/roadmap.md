@@ -84,7 +84,8 @@ staged as follows.
    reference equilibrium are proved in `CRNT/Theorems/DeficiencyZero/Lyapunov.lean`
    (Gibbs' inequality). Local asymptotic stability further requires the dissipation
    inequality `d/dt relEntropy(x(t)) ≤ 0` along mass-action trajectories and a LaSalle
-   argument (deferrable).
+   argument; the abstract **LaSalle invariance principle** is now proved (`Flow.laSalle`
+   in `CRNT/Dynamics/LaSalle.lean`, general dynamical-systems content).
 6. **Assembly** *(complete)* — `SatisfiesDeficiencyZeroHypotheses →
    DeficiencyZeroConclusion` is discharged as `deficiencyZeroTheorem`. The toric structure
    of complex-balanced equilibria is in `CRNT/Theorems/DeficiencyZero/Toric.lean`:
