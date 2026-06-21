@@ -1,5 +1,15 @@
-import CRNT
+import Mathlib.Tactic.DeriveFintype
 import Mathlib.LinearAlgebra.FiniteDimensional.Basic
+import CRNT.Basic.Complex
+import CRNT.Basic.Reaction
+import CRNT.Basic.Network
+import CRNT.Stoich.Vector
+import CRNT.Stoich.Subspace
+import CRNT.Graph.Reachability
+import CRNT.Graph.WeakReversibility
+import CRNT.Graph.LinkageClass
+import CRNT.Deficiency.Definition
+import CRNT.Theorems.DeficiencyZero.Statement
 
 /-!
 # Reversible pair `A ⇌ B`

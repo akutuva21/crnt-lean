@@ -1,4 +1,10 @@
-import CRNT
+import Mathlib.Tactic.DeriveFintype
+import CRNT.Basic.Complex
+import CRNT.Basic.Reaction
+import CRNT.Basic.Network
+import CRNT.Stoich.Vector
+import CRNT.Graph.Reachability
+import CRNT.Graph.WeakReversibility
 
 /-!
 # Minimal example: a single irreversible reaction `A → B`

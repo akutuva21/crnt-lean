@@ -1,4 +1,9 @@
-import CRNT
+import Mathlib.Tactic.DeriveFintype
+import CRNT.Basic.Complex
+import CRNT.Basic.Reaction
+import CRNT.Basic.Network
+import CRNT.Graph.Reachability
+import CRNT.Graph.WeakReversibility
 
 /-!
 # Irreversible chain `A → B → C`
