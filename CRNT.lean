@@ -61,6 +61,7 @@ import CRNT.Deficiency.KineticBlock
 import CRNT.Deficiency.SteadyStateKernel
 import CRNT.Deficiency.DeficiencyOneLine
 import CRNT.Deficiency.ClassConservation
+import CRNT.Deficiency.PerClassKernel
 
 -- Theorem statement interfaces and proved components
 import CRNT.Theorems.DeficiencyZero.Statement

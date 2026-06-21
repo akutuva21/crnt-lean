@@ -399,3 +399,10 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {g : N.ComplexIdx
     (hg : g ∈ N.deficiencySubspace) (q : Quotient N.linkedSetoid) :
     ∑ c, N.restrictToClass q g c = 0 :=
   N.sum_restrictToClass_eq_zero_of_mem_deficiencySubspace hg q
+
+-- Each linkage class supports a nonnegative nonzero kernel vector of the kinetic map.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (θ : Quotient N.linkedSetoid) :
+    ∃ b : N.ComplexIdx → ℝ, (∀ c, 0 ≤ b c) ∧ b ≠ 0 ∧
+      (∀ c, N.classOf c ≠ θ → b c = 0) ∧ N.kineticMap κ b = 0 :=
+  N.exists_nonneg_kernelVector_on_class κ θ
