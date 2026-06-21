@@ -1,6 +1,7 @@
 import CRNT.Deficiency.DeficiencyOne
 import CRNT.Decision.Linkage
 import CRNT.LinearAlgebra.FinrankSup
+import Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional
 
 /-!
 # Per-linkage-class deficiency and the decomposition inequality
@@ -114,6 +115,47 @@ theorem sum_linkageDeficiency_le_deficiency (N : Network S) :
       nsmul_eq_mul, mul_one]
   rw [hsum, deficiencyInt, hn, card_quotient_eq]
   omega
+
+/-- **Each linkage class has nonnegative deficiency** `0 ≤ δ_θ`. The reaction vectors of a
+class are differences of the position vectors of its complexes, so their span sits inside the
+`vectorSpan` of those `n_θ` points, of dimension at most `n_θ − 1`; hence `s_θ ≤ n_θ − 1`. -/
+theorem linkageDeficiency_nonneg (N : Network S) (q : Quotient N.linkedSetoid) :
+    0 ≤ N.linkageDeficiency q := by
+  obtain ⟨c0, hc0⟩ := Quotient.exists_rep q
+  set ι := {c : N.ComplexIdx // N.classOf c = q} with hι
+  haveI : Nonempty ι := ⟨⟨c0, hc0⟩⟩
+  set p : ι → (S → ℝ) := fun c => Complex.toRealVector c.val.val with hp
+  have hWle : N.linkageStoichSubspace q ≤ vectorSpan ℝ (Set.range p) := by
+    rw [linkageStoichSubspace, Submodule.span_le]
+    rintro _ ⟨r, hr, rfl⟩
+    have hlink : N.classOf (N.sourceIdx r) = N.classOf (N.targetIdx r) :=
+      Quotient.sound (N.linked_of_reaction r)
+    have htgt : N.classOf (N.targetIdx r) = q := by rw [← hlink]; exact hr
+    have hmem : N.reactionVector r
+        = p ⟨N.targetIdx r, htgt⟩ -ᵥ p ⟨N.sourceIdx r, hr⟩ := by
+      funext s
+      simp only [hp, vsub_eq_sub, Pi.sub_apply, Complex.toRealVector_apply, reactionVector_apply,
+        sourceIdx, targetIdx]
+    rw [hmem]
+    exact vsub_mem_vectorSpan ℝ (Set.mem_range_self _) (Set.mem_range_self _)
+  have hs : N.linkageStoichRank q ≤ Module.finrank ℝ (vectorSpan ℝ (Set.range p)) :=
+    Submodule.finrank_mono hWle
+  have hv := finrank_vectorSpan_range_add_one_le (k := ℝ) p
+  have hn : Fintype.card ι = N.numComplexesIn q := by
+    rw [numComplexesIn]; exact Fintype.card_subtype _
+  rw [linkageDeficiency]
+  omega
+
+/-- **In a deficiency-zero network every linkage class has deficiency zero.** Each `δ_θ ≥ 0`
+and `∑ δ_θ ≤ δ = 0`, so all are zero. -/
+theorem linkageDeficiency_eq_zero_of_deficiencyZero (N : Network S) (h : N.DeficiencyZero)
+    (q : Quotient N.linkedSetoid) : N.linkageDeficiency q = 0 := by
+  have hsum := N.sum_linkageDeficiency_le_deficiency
+  rw [(h : N.deficiencyInt = 0)] at hsum
+  have hsum0 : ∑ q', N.linkageDeficiency q' = 0 :=
+    le_antisymm hsum (Finset.sum_nonneg fun q' _ => N.linkageDeficiency_nonneg q')
+  exact (Finset.sum_eq_zero_iff_of_nonneg fun q' _ => N.linkageDeficiency_nonneg q').mp hsum0 q
+    (Finset.mem_univ q)
 
 end Network
 
