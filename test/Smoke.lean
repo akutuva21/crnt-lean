@@ -981,3 +981,9 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     (hpos : ∀ t, 0 < t → (γ t).Positive) (hnn0 : (γ 0).Nonnegative)
     (h0 : γ 0 ∈ N.SiphonFace P) : ∀ t, 0 ≤ t → γ t ∈ N.SiphonFace P :=
   N.siphonFace_forwardInvariant_of_complexBalanced_pos_pos κ hP hxs hcb hderiv hpos hnn0 h0
+
+-- Michaelis–Menten reduced field: the substrate slow-flow field is the MM rate law `-V_max·s/(K_m+s)`
+-- on the forward ray (extended by 0 for s < 0).
+example (Km Vmax s : ℝ) :
+    CRNT.MichaelisMenten.mmReducedField Km Vmax s = (if 0 ≤ s then -(Vmax * s / (Km + s)) else 0) :=
+  rfl
