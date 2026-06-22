@@ -169,6 +169,7 @@ import CRNT.Stochastic.CTMC
 import CRNT.Stochastic.JumpKernel
 import CRNT.Stochastic.Kernel
 import CRNT.Stochastic.KernelInvariant
+import CRNT.Stochastic.KernelStationary
 
 -- Network composition
 import CRNT.Compose.Interconnect
