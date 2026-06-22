@@ -126,6 +126,7 @@ import CRNT.Theorems.DeficiencyOne.Existence
 import CRNT.Multistationarity.SRGraph
 import CRNT.Multistationarity.SRGraphCriterion
 import CRNT.Multistationarity.Injectivity
+import CRNT.Multistationarity.PMatrix
 
 -- Design: robustness and special equilibria
 import CRNT.Design.ACR
