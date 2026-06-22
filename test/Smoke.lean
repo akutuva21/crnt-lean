@@ -840,3 +840,7 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
 example {ι : Type} [Fintype ι] (S : Submodule ℝ (ι → ℝ)) :
     (fun _ => 0) ∈ CRNT.RealizableSignVector S :=
   CRNT.realizable_zero S
+
+-- Hurwitz determinant interface: the second Hurwitz determinant of a cubic is `a₂a₁ − a₀`.
+example (a : ℕ → ℝ) : CRNT.hurwitzDet a 3 2 (by norm_num) = a 2 * a 1 - a 0 :=
+  CRNT.hurwitzDet_two_cubic a

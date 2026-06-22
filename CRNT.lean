@@ -68,6 +68,7 @@ import CRNT.Dynamics.LaSalle
 import CRNT.Dynamics.FlowConstruction
 import CRNT.Dynamics.Monotone
 import CRNT.Dynamics.RouthHurwitz
+import CRNT.Dynamics.Hurwitz
 import CRNT.Dynamics.QSSA
 import CRNT.Dynamics.Nagumo
 
