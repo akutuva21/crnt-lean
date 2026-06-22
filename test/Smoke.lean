@@ -616,3 +616,17 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {x y : Concentrat
     (fun s => Real.log (x s) - Real.log (y s)) ∈ CRNT.orthSum N.stoichSubspace ↔
       ∀ r, N.logMonomialRatio x y (N.targetIdx r) = N.logMonomialRatio x y (N.sourceIdx r) :=
   N.logRatio_mem_orthSum_iff hx hy
+
+-- On a deficiency-zero linkage class the log-monomial ratio is constant (complex balancing).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.DeficiencyOneHypotheses)
+    (κ : Network.RateConstants N) {x y : Concentration S} (hx : x.Positive) (hy : y.Positive)
+    (hxss : N.IsMassActionSteadyState κ x) (hyss : N.IsMassActionSteadyState κ y)
+    {q : Quotient N.linkedSetoid} (hq : N.linkageDeficiency q = 0)
+    {c c' : N.ComplexIdx} (hc : N.classOf c = q) (hc' : N.classOf c' = q) :
+    N.logMonomialRatio x y c = N.logMonomialRatio x y c' :=
+  N.logMonomialRatio_const_of_deficiencyZeroClass h κ hx hy hxss hyss hq hc hc'
+
+-- Deficiency-one uniqueness reduces to log-ratio constancy on the single deficient class.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.DeficiencyOneHypotheses)
+    (hdef : N.DeficientClassRatioConst) : N.DeficiencyOneUniqueness :=
+  N.deficiencyOneUniqueness_of_deficientClassRatioConst h hdef

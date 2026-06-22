@@ -69,6 +69,7 @@ import CRNT.Deficiency.IncidenceBlock
 import CRNT.Deficiency.DeficiencyOneDecomp
 import CRNT.Deficiency.DeficiencyOneLocalize
 import CRNT.Deficiency.LogMonomialRatio
+import CRNT.Deficiency.ComplexBalancedRatio
 import CRNT.Deficiency.TerminalSLC
 import CRNT.Deficiency.KineticBlock
 import CRNT.Deficiency.SteadyStateKernel
@@ -100,6 +101,7 @@ import CRNT.Theorems.DeficiencyZero.Lyapunov
 import CRNT.Theorems.DeficiencyZero.AsymptoticStability
 import CRNT.Theorems.DeficiencyOne.Statement
 import CRNT.Theorems.DeficiencyOne.LogRatioUniqueness
+import CRNT.Theorems.DeficiencyOne.ToricReduction
 
 -- Multistationarity: species-reaction graph, injectivity criteria
 import CRNT.Multistationarity.SRGraph
