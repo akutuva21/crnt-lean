@@ -16,7 +16,12 @@ over a finite set `s`, a positive lump `a₀`, total `a₀ + ∑ a = 0`, and the
 the proof (via `Tuple.sort`), so the caller supplies only the level-set inequalities — exactly the
 excess-of-down-set quantities the deficiency-one assembly produces.
 
+A logarithmic corollary records that the log-sum `∑_{i ∈ s} aᵢ · log(β + qᵢ)` is itself strictly
+decreasing — the form in which the monotonicity enters the deficiency-one uniqueness argument,
+where it is a constant plus `∑_c G_c · log(β · y*_c + b_c)`.
+
 * `powerProd_strictAntiOn_finset` — the order-free strict monotonicity.
+* `powerProd_logSum_strictAntiOn` — the log-sum form.
 
 This module is **stable** and `sorry`-free. Depends on:
 `Mathlib.Data.Fin.Tuple.Sort`, `CRNT.LinearAlgebra.PowerProductMono`.
@@ -176,5 +181,34 @@ theorem powerProd_strictAntiOn_finset {ι : Type*} [DecidableEq ι] (s : Finset 
   have h12 := hkey' hβ₁ hβ₂ hlt
   simp only at h12 ⊢
   rwa [hprodeq, hprodeq] at h12
+
+/-- **Log-sum form of the order-free monotonicity.** Under the same hypotheses, the log-sum
+`β ↦ ∑_{i ∈ s} aᵢ · log(β + qᵢ)` is strictly decreasing on `(−qmin, ∞)`. -/
+theorem powerProd_logSum_strictAntiOn {ι : Type*} [DecidableEq ι] (s : Finset ι)
+    (q a : ι → ℝ) (a0 qmin : ℝ)
+    (ha0 : 0 < a0)
+    (hsum : a0 + ∑ i ∈ s, a i = 0)
+    (hqmin : ∀ i ∈ s, qmin ≤ q i)
+    (hlevel : ∀ v : ℝ, 0 ≤ a0 + ∑ i ∈ s.filter (fun i => v < q i), a i) :
+    StrictAntiOn (fun β => ∑ i ∈ s, a i * Real.log (β + q i)) (Set.Ioi (- qmin)) := by
+  have hP := powerProd_strictAntiOn_finset s q a a0 qmin ha0 hsum hqmin hlevel
+  have hbase : ∀ β ∈ Set.Ioi (- qmin), ∀ i ∈ s, 0 < β + q i := by
+    intro β hβ i hi
+    simp only [Set.mem_Ioi] at hβ
+    have := hqmin i hi
+    linarith
+  have hpos : ∀ β ∈ Set.Ioi (- qmin), 0 < ∏ i ∈ s, (β + q i) ^ a i := by
+    intro β hβ
+    exact Finset.prod_pos fun i hi => Real.rpow_pos_of_pos (hbase β hβ i hi) _
+  have hlog : ∀ β ∈ Set.Ioi (- qmin),
+      Real.log (∏ i ∈ s, (β + q i) ^ a i) = ∑ i ∈ s, a i * Real.log (β + q i) := by
+    intro β hβ
+    rw [Real.log_prod (fun i hi => (Real.rpow_pos_of_pos (hbase β hβ i hi) _).ne')]
+    exact Finset.sum_congr rfl fun i hi => Real.log_rpow (hbase β hβ i hi) _
+  intro β₁ hβ₁ β₂ hβ₂ hlt
+  have h12 := hP hβ₁ hβ₂ hlt
+  simp only at h12 ⊢
+  rw [← hlog β₁ hβ₁, ← hlog β₂ hβ₂]
+  exact Real.log_lt_log (hpos β₂ hβ₂) h12
 
 end CRNT
