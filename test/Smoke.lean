@@ -852,3 +852,8 @@ example {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {f : E → 
     (hcon : ODE.OneSidedContraction f zstar lam) (hlam : 0 ≤ lam) :
     ∀ t, 0 ≤ t → ‖z t - zstar‖ ≤ ‖z 0 - zstar‖ * Real.exp (-lam * t) :=
   ODE.norm_sub_le_exp_neg_mul hz hstat hcon hlam
+
+-- Computable matrix rank over ℚ agrees with Mathlib's `Matrix.rank`.
+example {m n : Type} [Fintype m] [Fintype n] [DecidableEq m] [DecidableEq n] (A : Matrix m n ℚ) :
+    CRNT.GaussianRank.computeRank A = A.rank :=
+  CRNT.GaussianRank.computeRank_eq_rank A
