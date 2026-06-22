@@ -16,7 +16,11 @@ These are exactly the partial-sum sign inequalities feeding the order-free power
 monotonicity lemma in the deficiency-one uniqueness proof: the level set `{v · y* < b}` is the
 down-set of complexes whose ratio `b/y*` exceeds the threshold `v`.
 
+A companion records the boundary case: over a **reaction-closed** (absorbing) set of complexes —
+no reaction leaves it — the `A_k w`-total is pure inflow, hence nonnegative for any `w ≥ 0`.
+
 * `sum_kineticMap_superlevel_nonneg` — `0 ≤ ∑_{c : v·y*_c < b_c} (A_k y*)_c` for `v > 0`.
+* `sum_kineticMap_closed_nonneg` — `0 ≤ ∑_{c ∈ U} (A_k w)_c` for `U` reaction-closed and `w ≥ 0`.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Deficiency.KineticExcess`.
 -/
@@ -84,6 +88,31 @@ theorem sum_kineticMap_superlevel_nonneg (N : Network S) (κ : RateConstants N)
   have hle : outY ≤ inY := le_of_mul_le_mul_left hcancel hv
   rw [key ystar, ← hinY, ← houtY]
   linarith [hle]
+
+/-- **Nonnegativity of the `A_k`-total over an absorbing set.** If no reaction leaves `U`
+(`source ∈ U → target ∈ U`) and `w ≥ 0`, then the `A_k w`-total over `U` is the inflow into `U`,
+hence nonnegative. -/
+theorem sum_kineticMap_closed_nonneg (N : Network S) (κ : RateConstants N)
+    (w : N.ComplexIdx → ℝ) (U : Finset N.ComplexIdx)
+    (hclosed : ∀ r, N.sourceIdx r ∈ U → N.targetIdx r ∈ U) (hw : ∀ c, 0 ≤ w c) :
+    0 ≤ ∑ c ∈ U, N.kineticMap κ w c := by
+  classical
+  have h := N.excessSet_eq_neg_sum_kineticMap κ w U
+  simp only [excessSet, kineticFlux] at h
+  -- the outflow term vanishes: no reaction leaves `U`
+  have hout : (∑ r, if N.sourceIdx r ∈ U ∧ N.targetIdx r ∉ U
+      then κ.k r * w (N.sourceIdx r) else 0) = 0 := by
+    refine Finset.sum_eq_zero fun r _ => ?_
+    rw [if_neg]; rintro ⟨hs, ht⟩; exact ht (hclosed r hs)
+  -- the inflow term is nonnegative
+  have hin : 0 ≤ ∑ r, if N.sourceIdx r ∉ U ∧ N.targetIdx r ∈ U
+      then κ.k r * w (N.sourceIdx r) else 0 := by
+    refine Finset.sum_nonneg fun r _ => ?_
+    by_cases hc : N.sourceIdx r ∉ U ∧ N.targetIdx r ∈ U
+    · rw [if_pos hc]; exact mul_nonneg (κ.positive r).le (hw _)
+    · rw [if_neg hc]
+  rw [hout] at h
+  linarith [h, hin]
 
 end Network
 

@@ -739,3 +739,10 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     (b ystar : N.ComplexIdx → ℝ) {v : ℝ} (hv : 0 < v) (hb : N.kineticMap κ b = 0) :
     0 ≤ ∑ c ∈ Finset.univ.filter (fun c => v * ystar c < b c), N.kineticMap κ ystar c :=
   N.sum_kineticMap_superlevel_nonneg κ b ystar hv hb
+
+-- Nonnegativity of the A_k-total over an absorbing (reaction-closed) set, for w ≥ 0.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (w : N.ComplexIdx → ℝ) (U : Finset N.ComplexIdx)
+    (hclosed : ∀ r, N.sourceIdx r ∈ U → N.targetIdx r ∈ U) (hw : ∀ c, 0 ≤ w c) :
+    0 ≤ ∑ c ∈ U, N.kineticMap κ w c :=
+  N.sum_kineticMap_closed_nonneg κ w U hclosed hw
