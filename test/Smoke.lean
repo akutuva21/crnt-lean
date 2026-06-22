@@ -631,20 +631,24 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.Deficiency
     (hdef : N.DeficientClassRatioConst) : N.DeficiencyOneUniqueness :=
   N.deficiencyOneUniqueness_of_deficientClassRatioConst h hdef
 
--- The deficient-class kernel relation: on a strongly connected deficiency-one class, two
--- steady states satisfy cy·Ψx − cx·Ψy = λ·b pointwise (b positive), reducing the remaining
--- sign argument to forcing λ = 0.
+-- Signed drainage: a kernel vector of A_k vanishes at every non-terminal complex.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {v : N.ComplexIdx → ℝ} (hv : N.kineticMap κ v = 0)
+    {c : N.ComplexIdx} (hc : ¬ N.IsTerminalSLC c.val) : v c = 0 :=
+  N.kineticMap_eq_zero_of_not_terminal κ hv hc
+
+-- The deficient-class kernel relation (no strong-connectivity hypothesis): on the
+-- deficiency-one class, two steady states satisfy cy·Ψx − cx·Ψy = λ·b pointwise, with b
+-- positive on the terminal strong linkage class — reducing the sign argument to forcing λ = 0.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hδ : N.DeficiencyOne)
-    (κ : Network.RateConstants N) {θ : Quotient N.linkedSetoid}
-    (hsc : ∀ c c' : N.ComplexIdx, N.classOf c = θ → N.classOf c' = θ →
-      N.StronglyLinked c.val c'.val)
+    (h : N.DeficiencyOneHypotheses) (κ : Network.RateConstants N) {θ : Quotient N.linkedSetoid}
     {x y : Concentration S} (hxss : N.IsMassActionSteadyState κ x)
     (hyss : N.IsMassActionSteadyState κ y) :
     ∃ (b : N.ComplexIdx → ℝ) (cx cy lam : ℝ),
-      (∀ c, N.classOf c = θ → 0 < b c) ∧
+      (∀ c, N.classOf c = θ → N.IsTerminalSLC c.val → 0 < b c) ∧
       ∀ c, N.classOf c = θ →
         cy * N.complexMonomialVector x c - cx * N.complexMonomialVector y c = lam * b c :=
-  N.deficientClass_kernel_relation hδ κ hsc hxss hyss
+  N.deficientClass_kernel_relation hδ h κ hxss hyss
 
 -- Substochastic Perron–Frobenius: a column-substochastic matrix whose every index reaches a
 -- leak (a strictly-substochastic column) has only the zero fixed vector.
