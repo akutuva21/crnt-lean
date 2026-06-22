@@ -824,3 +824,8 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.Deficiency
 example {a b : ℝ} (hab : a ≤ b) {f : ℝ → ℝ} (hf : ContinuousOn f (Set.Icc a b))
     (hmaps : Set.MapsTo f (Set.Icc a b) (Set.Icc a b)) : ∃ x ∈ Set.Icc a b, f x = x :=
   CRNT.Analysis.fixedPoint_Icc hab hf hmaps
+
+-- Nagumo inward condition: the mass-action field points inward on every orthant boundary face.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N) :
+    Network.InwardOnBoundary (N.massActionVectorField κ) :=
+  N.massActionVectorField_inwardOnBoundary κ
