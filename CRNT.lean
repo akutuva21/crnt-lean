@@ -64,6 +64,7 @@ import CRNT.Dynamics.MassActionAlgebra
 import CRNT.Dynamics.MassActionField
 import CRNT.Dynamics.LaSalle
 import CRNT.Dynamics.FlowConstruction
+import CRNT.Dynamics.Monotone
 
 -- Deficiency
 import CRNT.Deficiency.Definition
