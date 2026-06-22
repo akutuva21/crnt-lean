@@ -966,3 +966,8 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
 example (Km Vmax s : ℝ) :
     CRNT.MichaelisMenten.mmComplexEquil Km Vmax s = Vmax * s / (Km + s) :=
   rfl
+
+-- Full 2-D Sperner over any door incidence: a Sperner-colored triangulation has a rainbow triangle.
+example {Cell : Type*} [Fintype Cell] (D : CRNT.Analysis.SpernerTriangulation.DoorIncidence Cell) :
+    ∃ t : Cell, D.IsRainbowCell t :=
+  D.exists_rainbow
