@@ -668,3 +668,9 @@ example {k : ℕ} (hk : 1 ≤ k) {q a : ℕ → ℝ}
     StrictAntiOn (fun β => ∏ i ∈ Finset.range k, (β + q (i + 1)) ^ a (i + 1))
       (Set.Ioi (- q k)) :=
   CRNT.powerProd_strictAntiOn hk hq ha0 hsum hpartial
+
+-- Digraph excess additivity: the net boundary flux of a vertex set equals the sum of the
+-- per-vertex net fluxes (internal arcs cancel) — the backbone of the kernel balance argument.
+example {V E : Type} [DecidableEq V] [Fintype E] (src tgt : E → V) (z : E → ℝ) (U : Finset V) :
+    CRNT.excessSet src tgt z U = ∑ i ∈ U, CRNT.excessVertex src tgt z i :=
+  CRNT.excessSet_eq_sum_excessVertex src tgt z U

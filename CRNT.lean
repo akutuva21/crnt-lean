@@ -1,8 +1,9 @@
 -- Deriving handlers used by example and generated networks (`deriving Fintype`)
 import Mathlib.Tactic.DeriveFintype
 
--- General-purpose combinatorics (decidable undirected cycles)
+-- General-purpose combinatorics (decidable undirected cycles; digraph excess function)
 import CRNT.Combinatorics.DecidableCycle
+import CRNT.Combinatorics.DigraphExcess
 
 -- Basic CRN data structures
 import CRNT.Basic.Complex
