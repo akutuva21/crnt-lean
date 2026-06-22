@@ -829,3 +829,9 @@ example {a b : ℝ} (hab : a ≤ b) {f : ℝ → ℝ} (hf : ContinuousOn f (Set.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N) :
     Network.InwardOnBoundary (N.massActionVectorField κ) :=
   N.massActionVectorField_inwardOnBoundary κ
+
+-- Generator-level Anderson–Craciun–Kurtz: a complex-balanced product-Poisson density is a
+-- stationary state of the chemical-master-equation generator (`πQ = 0`).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (c : Concentration S) (hcb : N.IsComplexBalanced κ c) : N.IsGeneratorStationary κ c :=
+  N.productPoisson_isGeneratorStationary_of_complexBalanced κ c hcb

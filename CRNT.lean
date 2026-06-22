@@ -146,6 +146,7 @@ import CRNT.Dynamics.ForwardInvariance
 -- Stochastic CRN: Anderson–Craciun–Kurtz product-form objects
 import CRNT.Stochastic.ProductForm
 import CRNT.Stochastic.Generator
+import CRNT.Stochastic.CTMC
 
 -- Network composition
 import CRNT.Compose.Interconnect
