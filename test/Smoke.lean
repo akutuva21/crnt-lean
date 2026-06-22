@@ -790,3 +790,17 @@ open Polynomial in
 example (a₁ a₀ : ℝ) :
     IsHurwitz (X ^ 2 + C (a₁ : ℂ) * X + C (a₀ : ℂ)) ↔ 0 < a₁ ∧ 0 < a₀ :=
   CRNT.hurwitz_quadratic_iff a₁ a₀
+
+-- Single-linkage-class global stability from relative-entropy confinement: under a positive
+-- complex-balanced reference and a start whose relative entropy is below every reference
+-- coordinate, the genuine mass-action semiflow's ω-limit is the equilibrium.
+open Filter in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (κ : N.RateConstants) {xstar x₀ : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar) (hx0 : x₀.Positive)
+    (hx0compat : N.StoichCompatible x₀ xstar) (hloc : ∀ s, relEntropy xstar x₀ < xstar s) :
+    ∃ (ϕ : Flow ℝ≥0 (Concentration S)) (γ : Concentration S → ℝ → Concentration S),
+      (∀ x, γ x 0 = x) ∧ (∀ x (t : ℝ≥0), ϕ t x = γ x t) ∧
+      (∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t) ∧
+      omegaLimit atTop ϕ {x₀} = {xstar} :=
+  N.gac_of_local_confinement hwr κ hxs hcb hx0 hx0compat hloc

@@ -138,6 +138,7 @@ import CRNT.Design.Adaptation
 import CRNT.Dynamics.Siphon
 import CRNT.Dynamics.Persistence
 import CRNT.Dynamics.GlobalStability
+import CRNT.Dynamics.ForwardInvariance
 
 -- Stochastic CRN: Anderson–Craciun–Kurtz product-form objects
 import CRNT.Stochastic.ProductForm
