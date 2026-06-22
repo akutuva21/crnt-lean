@@ -139,6 +139,9 @@ import CRNT.Dynamics.Siphon
 import CRNT.Dynamics.Persistence
 import CRNT.Dynamics.GlobalStability
 
+-- Stochastic CRN: Anderson–Craciun–Kurtz product-form objects
+import CRNT.Stochastic.ProductForm
+
 -- Network composition
 import CRNT.Compose.Interconnect
 
