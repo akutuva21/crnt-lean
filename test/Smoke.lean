@@ -919,3 +919,9 @@ example (z₁ z₂ : ℂ) (a₂ a₁ a₀ : ℝ) (hz₁im : z₁.im = 0)
 example {n : ℕ} {c : ℕ → Bool} (h : CRNT.Analysis.Sperner.IsSpernerColoring n c) :
     ∃ i < n, c (i + 1) ≠ c i :=
   CRNT.Analysis.Sperner.sperner_exists_rainbow h
+
+-- Persistence substrate: the siphon-face distance functional is nonnegative on nonnegative
+-- concentrations (the Lyapunov functional behind face forward-invariance).
+example {S : Type} [DecidableEq S] [Fintype S] {P : Finset S} {x : Concentration S}
+    (hx : x.Nonnegative) : 0 ≤ Network.faceSum P x :=
+  Network.faceSum_nonneg hx
