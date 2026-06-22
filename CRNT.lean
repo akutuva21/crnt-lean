@@ -132,6 +132,7 @@ import CRNT.Theorems.DeficiencyOne.ExistenceDynamical
 -- Multistationarity: species-reaction graph, injectivity criteria
 import CRNT.Multistationarity.SRGraph
 import CRNT.Multistationarity.SRGraphCriterion
+import CRNT.Multistationarity.SignedSRGraph
 import CRNT.Multistationarity.Injectivity
 import CRNT.Multistationarity.PMatrix
 import CRNT.Multistationarity.Toric

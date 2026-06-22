@@ -864,3 +864,8 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {x y : Concentrat
     (hx : x.Positive) (hy : y.Positive) (h : N.ToricRelated x y) {c d : N.ComplexIdx}
     (hcd : N.Linked c.val d.val) : N.logMonomialRatio x y c = N.logMonomialRatio x y d :=
   N.logMonomialRatio_eqOn_linked hx hy h hcd
+
+-- Signed species-reaction graph: every cycle in the SR-graph has even length.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {u : N.SRVertex S}
+    {w : N.srGraph.Walk u u} (hw : w.IsCycle) : Even w.length :=
+  N.cycle_even_length hw
