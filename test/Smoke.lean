@@ -945,3 +945,8 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     (hnn : ∀ t, 0 ≤ t → (γ t).Nonnegative) (hbox : ∀ t, 0 ≤ t → ∀ s, γ t s ≤ B)
     (h0 : γ 0 ∈ N.SiphonFace P) : ∀ t, 0 ≤ t → γ t ∈ N.SiphonFace P :=
   N.siphonFace_forwardInvariant_confined κ hP hderiv hnn hbox h0
+
+-- Constructed Fenichel slow manifold: the fibre-equilibrium graph map is stationary by construction.
+example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] (M : ODE.SlowManifoldSeed Y E)
+    (y : Y) : M.fast y (M.manifoldMap y) = 0 :=
+  M.manifoldMap_stat y
