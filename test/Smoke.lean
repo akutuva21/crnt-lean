@@ -931,3 +931,8 @@ example {S : Type} [DecidableEq S] [Fintype S] {P : Finset S} {x : Concentration
 example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] (M : ODE.SlowManifold Y E)
     (y : Y) : {w : E | M.fast y w = 0} = {M.h y} :=
   M.fiber_eq_singleton y
+
+-- 2-D Sperner core: a triangle has an odd number of {0,1}-doors iff it is rainbow (3-colored).
+example (a b c : CRNT.Analysis.Sperner2D.Color) :
+    Odd (CRNT.Analysis.Sperner2D.doorCount a b c) ↔ CRNT.Analysis.Sperner2D.isRainbow a b c :=
+  CRNT.Analysis.Sperner2D.doorCount_odd_iff a b c

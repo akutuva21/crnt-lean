@@ -47,6 +47,7 @@ import CRNT.LinearAlgebra.PowerProductMonoFinset
 import CRNT.LinearAlgebra.LogSumInj
 import CRNT.Analysis.FixedPoint
 import CRNT.Analysis.Sperner
+import CRNT.Analysis.Sperner2D
 
 -- Kinetics: concentrations, mass action, and the general kinetics abstraction
 import CRNT.Kinetics.Concentration
