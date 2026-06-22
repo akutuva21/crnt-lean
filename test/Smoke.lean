@@ -925,3 +925,9 @@ example {n : ℕ} {c : ℕ → Bool} (h : CRNT.Analysis.Sperner.IsSpernerColorin
 example {S : Type} [DecidableEq S] [Fintype S] {P : Finset S} {x : Concentration S}
     (hx : x.Nonnegative) : 0 ≤ Network.faceSum P x :=
   Network.faceSum_nonneg hx
+
+-- Fenichel slow manifold: each layer fibre of fast-equilibria is the single point of the graph
+-- (uniqueness of the attracting slow manifold).
+example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] (M : ODE.SlowManifold Y E)
+    (y : Y) : {w : E | M.fast y w = 0} = {M.h y} :=
+  M.fiber_eq_singleton y
