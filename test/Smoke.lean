@@ -709,3 +709,18 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     (hsrc : N.sourceIdx r₀ ∉ U) (htgt : N.targetIdx r₀ ∈ U) (hpos : 0 < v (N.sourceIdx r₀)) :
     0 < ∑ c ∈ U, N.kineticMap κ v c :=
   N.sum_kineticMap_pos_of_inflow κ v U hvnn hv hsrc htgt hpos
+
+-- The structured preimage with a zero coordinate: from the terminal-class kernel mode b and a
+-- preimage z, the vector y* = z − t·b is a preimage of A_k z, nonnegative on the class, equal to
+-- z off it, and zero at the arg-min complex.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {c0 : N.ComplexIdx} (b z : N.ComplexIdx → ℝ)
+    (hbpos : ∀ c', N.StronglyLinked c0.val c'.val → 0 < b c')
+    (hboff : ∀ c', ¬ N.StronglyLinked c0.val c'.val → b c' = 0)
+    (hbker : N.kineticMap κ b = 0) :
+    ∃ (ystar : N.ComplexIdx → ℝ) (cm : N.ComplexIdx),
+      N.kineticMap κ ystar = N.kineticMap κ z ∧
+      N.StronglyLinked c0.val cm.val ∧ ystar cm = 0 ∧
+      (∀ c', N.StronglyLinked c0.val c'.val → 0 ≤ ystar c') ∧
+      (∀ c', ¬ N.StronglyLinked c0.val c'.val → ystar c' = z c') :=
+  N.exists_zeroCoord_preimage κ b z hbpos hboff hbker

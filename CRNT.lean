@@ -77,6 +77,7 @@ import CRNT.Deficiency.ComplexBalancedRatio
 import CRNT.Deficiency.SignedDrainage
 import CRNT.Deficiency.KineticExcess
 import CRNT.Deficiency.ExcessPositivity
+import CRNT.Deficiency.StructuredPreimage
 import CRNT.Deficiency.DeficientClassKernel
 import CRNT.Deficiency.TerminalSLC
 import CRNT.Deficiency.KineticBlock
