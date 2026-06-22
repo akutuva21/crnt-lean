@@ -39,6 +39,7 @@ import CRNT.LinearAlgebra.FinrankSup
 import CRNT.LinearAlgebra.SignVector
 import CRNT.LinearAlgebra.Substochastic
 import CRNT.LinearAlgebra.PowerProductMono
+import CRNT.LinearAlgebra.PowerProductMonoFinset
 
 -- Kinetics: concentrations, mass action, and the general kinetics abstraction
 import CRNT.Kinetics.Concentration

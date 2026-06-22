@@ -724,3 +724,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
       (∀ c', N.StronglyLinked c0.val c'.val → 0 ≤ ystar c') ∧
       (∀ c', ¬ N.StronglyLinked c0.val c'.val → ystar c' = z c') :=
   N.exists_zeroCoord_preimage κ b z hbpos hboff hbker
+
+-- Order-free power-product monotonicity: with a positive lump a0, total a0 + ∑a = 0, a lower
+-- bound qmin, and the level-set sign condition, β ↦ ∏ (β + q i)^(a i) is strictly decreasing.
+example {ι : Type} [DecidableEq ι] (s : Finset ι) (q a : ι → ℝ) (a0 qmin : ℝ)
+    (ha0 : 0 < a0) (hsum : a0 + ∑ i ∈ s, a i = 0) (hqmin : ∀ i ∈ s, qmin ≤ q i)
+    (hlevel : ∀ v : ℝ, 0 ≤ a0 + ∑ i ∈ s.filter (fun i => v < q i), a i) :
+    StrictAntiOn (fun β => ∏ i ∈ s, (β + q i) ^ a i) (Set.Ioi (- qmin)) :=
+  CRNT.powerProd_strictAntiOn_finset s q a a0 qmin ha0 hsum hqmin hlevel
