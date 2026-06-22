@@ -602,3 +602,9 @@ example {ι : Type} [Fintype ι] {S : Submodule ℝ (ι → ℝ)} {u w : ι → 
 -- Same-sign is equality of sign vectors.
 example {ι : Type} {u v : ι → ℝ} : CRNT.SameSign u v ↔ CRNT.signVector u = CRNT.signVector v :=
   CRNT.sameSign_iff_signVector_eq
+
+-- Deficiency-one uniqueness reduces to the log-ratio (toric) characterization, via the
+-- Birch sign argument. This isolates the substantive remaining obligation.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    (h : N.LogRatioCharacterization) : N.DeficiencyOneUniqueness :=
+  N.deficiencyOneUniqueness_of_logRatio h
