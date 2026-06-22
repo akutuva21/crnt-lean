@@ -68,6 +68,7 @@ import CRNT.Deficiency.DeficiencyOneStructure
 import CRNT.Deficiency.IncidenceBlock
 import CRNT.Deficiency.DeficiencyOneDecomp
 import CRNT.Deficiency.DeficiencyOneLocalize
+import CRNT.Deficiency.LogMonomialRatio
 import CRNT.Deficiency.TerminalSLC
 import CRNT.Deficiency.KineticBlock
 import CRNT.Deficiency.SteadyStateKernel

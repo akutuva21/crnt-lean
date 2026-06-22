@@ -608,3 +608,11 @@ example {ι : Type} {u v : ι → ℝ} : CRNT.SameSign u v ↔ CRNT.signVector u
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     (h : N.LogRatioCharacterization) : N.DeficiencyOneUniqueness :=
   N.deficiencyOneUniqueness_of_logRatio h
+
+-- The toric condition equals constancy of the log-monomial ratio along reactions:
+-- log-ratio ⊥ stoichiometric subspace ↔ Φ(target) = Φ(source) for every reaction.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {x y : Concentration S}
+    (hx : x.Positive) (hy : y.Positive) :
+    (fun s => Real.log (x s) - Real.log (y s)) ∈ CRNT.orthSum N.stoichSubspace ↔
+      ∀ r, N.logMonomialRatio x y (N.targetIdx r) = N.logMonomialRatio x y (N.sourceIdx r) :=
+  N.logRatio_mem_orthSum_iff hx hy
