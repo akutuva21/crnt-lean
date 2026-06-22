@@ -127,6 +127,7 @@ import CRNT.Multistationarity.SRGraph
 import CRNT.Multistationarity.SRGraphCriterion
 import CRNT.Multistationarity.Injectivity
 import CRNT.Multistationarity.PMatrix
+import CRNT.Multistationarity.Toric
 
 -- Design: robustness and special equilibria
 import CRNT.Design.ACR
