@@ -14,6 +14,7 @@ import CRNT.Basic.Network
 import CRNT.Graph.Reachability
 import CRNT.Graph.WeakReversibility
 import CRNT.Graph.LinkageClass
+import CRNT.Graph.Crossing
 
 -- Decision procedures: decidable bounded reachability, weak reversibility, linkage classes,
 -- strong linkage classes, and rank/deficiency certificates over ℚ
@@ -75,6 +76,7 @@ import CRNT.Deficiency.LogMonomialRatio
 import CRNT.Deficiency.ComplexBalancedRatio
 import CRNT.Deficiency.SignedDrainage
 import CRNT.Deficiency.KineticExcess
+import CRNT.Deficiency.ExcessPositivity
 import CRNT.Deficiency.DeficientClassKernel
 import CRNT.Deficiency.TerminalSLC
 import CRNT.Deficiency.KineticBlock

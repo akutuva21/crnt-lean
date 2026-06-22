@@ -693,3 +693,19 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     (v : N.ComplexIdx → ℝ) (c : N.ComplexIdx) :
     CRNT.excessVertex N.sourceIdx N.targetIdx (N.kineticFlux κ v) c = - N.kineticMap κ v c :=
   N.excessVertex_eq_neg_kineticMap κ v c
+
+-- A path into a complex set crosses its boundary: from reachability into a set (start outside,
+-- end inside), some reaction runs from outside the set to inside it.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (P : Complex S → Prop)
+    {c d : Complex S} (h : N.Reaches c d) (hc : ¬ P c) (hd : P d) :
+    ∃ r : N.R, ¬ P (N.reaction r).source ∧ P (N.reaction r).target :=
+  N.exists_crossing_reaction P h hc hd
+
+-- Prop II.8 (net inflow positivity): if v vanishes on U and some reaction enters U from a complex
+-- where v is positive, the kinetic-map total over U is strictly positive.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (v : N.ComplexIdx → ℝ) (U : Finset N.ComplexIdx) (hvnn : ∀ c, 0 ≤ v c)
+    (hv : ∀ c ∈ U, v c = 0) {r₀ : N.R}
+    (hsrc : N.sourceIdx r₀ ∉ U) (htgt : N.targetIdx r₀ ∈ U) (hpos : 0 < v (N.sourceIdx r₀)) :
+    0 < ∑ c ∈ U, N.kineticMap κ v c :=
+  N.sum_kineticMap_pos_of_inflow κ v U hvnn hv hsrc htgt hpos
