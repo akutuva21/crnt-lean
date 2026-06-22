@@ -63,4 +63,35 @@ theorem finrank_iSup_eq_sum_of_iSupIndep {ι : Type*} [Fintype ι]
       (Finset.sup_le fun i _ => le_iSup f i)
   rw [hsup, finrank_finset_sup_eq_sum_of_iSupIndep Finset.univ f h]
 
+/-- **Converse: equality in the dimension bound forces independence.** If the dimension of a
+finite join of submodules equals the sum of their dimensions, the submodules are independent
+(`Finset.SupIndep` form). -/
+theorem supIndep_of_finrank_sup_eq_sum {ι : Type*} (s : Finset ι) (f : ι → Submodule K V)
+    (h : Module.finrank K (s.sup f : Submodule K V) = ∑ i ∈ s, Module.finrank K (f i)) :
+    s.SupIndep f := by
+  classical
+  induction s using Finset.induction with
+  | empty => exact Finset.supIndep_empty f
+  | insert a s ha ih =>
+    rw [Finset.sup_insert, Finset.sum_insert ha] at h
+    have hsub_sup := finrank_sup_le (f a) (s.sup f)
+    have hsub_s := finrank_finset_sup_le s f
+    have hs_eq : Module.finrank K (s.sup f : Submodule K V) = ∑ i ∈ s, Module.finrank K (f i) := by
+      omega
+    have hadd := Submodule.finrank_sup_add_finrank_inf_eq (f a) (s.sup f)
+    have hdis : Disjoint (f a) (s.sup f) := by
+      rw [disjoint_iff]
+      exact Submodule.finrank_eq_zero.mp (by omega)
+    exact (ih hs_eq).insert hdis
+
+/-- **Converse, `Fintype`/`iSup` form.** -/
+theorem iSupIndep_of_finrank_iSup_eq_sum {ι : Type*} [Fintype ι] (f : ι → Submodule K V)
+    (h : Module.finrank K (⨆ i, f i : Submodule K V) = ∑ i, Module.finrank K (f i)) :
+    iSupIndep f := by
+  have hsup : (⨆ i, f i : Submodule K V) = Finset.univ.sup f :=
+    le_antisymm (iSup_le fun i => Finset.le_sup (Finset.mem_univ i))
+      (Finset.sup_le fun i _ => le_iSup f i)
+  rw [iSupIndep_iff_supIndep_univ]
+  exact supIndep_of_finrank_sup_eq_sum Finset.univ f (by rw [← hsup]; exact h)
+
 end CRNT
