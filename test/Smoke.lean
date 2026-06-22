@@ -857,3 +857,10 @@ example {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {f : E → 
 example {m n : Type} [Fintype m] [Fintype n] [DecidableEq m] [DecidableEq n] (A : Matrix m n ℚ) :
     CRNT.GaussianRank.computeRank A = A.rank :=
   CRNT.GaussianRank.computeRank_eq_rank A
+
+-- ACR cross-class bridge: under the toric/orthogonality property the log-monomial ratio is
+-- constant on every linkage class.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {x y : Concentration S}
+    (hx : x.Positive) (hy : y.Positive) (h : N.ToricRelated x y) {c d : N.ComplexIdx}
+    (hcd : N.Linked c.val d.val) : N.logMonomialRatio x y c = N.logMonomialRatio x y d :=
+  N.logMonomialRatio_eqOn_linked hx hy h hcd
