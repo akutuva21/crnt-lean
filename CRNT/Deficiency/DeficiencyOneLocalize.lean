@@ -180,6 +180,23 @@ theorem restrictToClass_kineticImage_eq_zero (N : Network S) (h : N.DeficiencyOn
   rw [N.linkageDeficiencySubspace_eq_bot_of_deficiency_zero hq] at hmem
   exact (Submodule.mem_bot ℝ).mp hmem
 
+/-- **The deficiency mode of a deficiency-one network lives on its single deficient linkage
+class.** The deficiency subspace equals the per-class deficiency subspace of the unique class of
+deficiency one; every other class is deficiency-zero and contributes nothing. This concentrates
+the entire complex-balancing defect of any steady state onto one linkage class — the launchpad
+for the deficiency-one sign analysis. -/
+theorem deficiencySubspace_eq_linkageDeficiencySubspace_of_deficiencyOne (N : Network S)
+    (hδ : N.DeficiencyOne) (h : N.DeficiencyOneConditions) :
+    ∃ q : Quotient N.linkedSetoid,
+      N.linkageDeficiency q = 1 ∧ N.deficiencySubspace = N.linkageDeficiencySubspace q := by
+  obtain ⟨q0, hq0, hq0uniq⟩ := N.existsUnique_deficient_of_deficiencyOne hδ h
+  refine ⟨q0, hq0, ?_⟩
+  rw [N.deficiencySubspace_eq_iSup h]
+  refine le_antisymm (iSup_le fun q => ?_) (le_iSup _ q0)
+  rcases N.linkageDeficiency_eq_zero_or_one h q with hz | ho
+  · rw [N.linkageDeficiencySubspace_eq_bot_of_deficiency_zero hz]; exact bot_le
+  · exact le_of_eq (congrArg N.linkageDeficiencySubspace (hq0uniq q ho))
+
 end Network
 
 end CRNT
