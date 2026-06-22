@@ -732,3 +732,10 @@ example {ι : Type} [DecidableEq ι] (s : Finset ι) (q a : ι → ℝ) (a0 qmin
     (hlevel : ∀ v : ℝ, 0 ≤ a0 + ∑ i ∈ s.filter (fun i => v < q i), a i) :
     StrictAntiOn (fun β => ∏ i ∈ s, (β + q i) ^ a i) (Set.Ioi (- qmin)) :=
   CRNT.powerProd_strictAntiOn_finset s q a a0 qmin ha0 hsum hqmin hlevel
+
+-- Level-set sign of the kinetic map: for v>0 and a kernel vector b, the A_k y*-total over the
+-- super-level set {c : v·y*_c < b_c} is nonnegative.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (b ystar : N.ComplexIdx → ℝ) {v : ℝ} (hv : 0 < v) (hb : N.kineticMap κ b = 0) :
+    0 ≤ ∑ c ∈ Finset.univ.filter (fun c => v * ystar c < b c), N.kineticMap κ ystar c :=
+  N.sum_kineticMap_superlevel_nonneg κ b ystar hv hb
