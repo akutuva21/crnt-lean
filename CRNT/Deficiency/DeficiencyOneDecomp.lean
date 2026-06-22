@@ -1,6 +1,7 @@
 import CRNT.Deficiency.IncidenceBlock
 import CRNT.Deficiency.DeficiencyOneStructure
 import CRNT.LinearAlgebra.FinrankSup
+import Mathlib.LinearAlgebra.DFinsupp
 
 /-!
 # Per-linkage-class decomposition of the deficiency subspace
@@ -85,6 +86,73 @@ theorem iSupIndep_linkageDeficiencySubspace (N : Network S) :
 theorem iSup_linkageDeficiencySubspace_le (N : Network S) :
     (⨆ q, N.linkageDeficiencySubspace q) ≤ N.deficiencySubspace :=
   iSup_le fun q => N.linkageDeficiencySubspace_le q
+
+/-- The complex map sends a class-restricted cut vector into the per-class stoichiometric
+subspace. -/
+theorem complexMap_restrictToClass_mem_linkageStoichSubspace (N : Network S)
+    (q : Quotient N.linkedSetoid) {v : N.ComplexIdx → ℝ}
+    (hv : v ∈ LinearMap.range N.incidenceMap) :
+    N.complexMap (N.restrictToClass q v) ∈ N.linkageStoichSubspace q := by
+  obtain ⟨w, rfl⟩ := hv
+  rw [N.incidenceMap_restrictToClass q w, ← LinearMap.comp_apply, complexMap_comp_incidenceMap]
+  have hsum : N.stoichMap (fun r => if N.classOf (N.sourceIdx r) = q then w r else 0)
+      = ∑ r, (if N.classOf (N.sourceIdx r) = q then w r else 0) • N.reactionVector r := by
+    funext s
+    rw [stoichMap_apply, Finset.sum_apply]
+    exact Finset.sum_congr rfl fun r _ => by rw [Pi.smul_apply, smul_eq_mul]
+  rw [hsum]
+  refine Submodule.sum_mem _ fun r _ => ?_
+  by_cases hr : N.classOf (N.sourceIdx r) = q
+  · rw [if_pos hr]
+    exact Submodule.smul_mem _ _ (Submodule.subset_span ⟨r, hr, rfl⟩)
+  · rw [if_neg hr, zero_smul]; exact Submodule.zero_mem _
+
+/-- **The per-class stoichiometric subspaces are independent** (under the deficiency-one
+conditions): condition (ii) `∑ s_θ = s` is exactly this independence. -/
+theorem iSupIndep_linkageStoichSubspace (N : Network S) (h : N.DeficiencyOneConditions) :
+    iSupIndep N.linkageStoichSubspace := by
+  apply CRNT.iSupIndep_of_finrank_iSup_eq_sum
+  have hsup : (⨆ q, N.linkageStoichSubspace q : Submodule ℝ (S → ℝ)) = N.stoichSubspace := by
+    rw [N.stoichSubspace_eq_sup]
+    exact le_antisymm (iSup_le fun q => Finset.le_sup (Finset.mem_univ q))
+      (Finset.sup_le fun q _ => le_iSup _ q)
+  rw [hsup]
+  have hnat : ∑ q, N.linkageStoichRank q = N.stoichRank := by
+    exact_mod_cast N.sum_linkageStoichRank_eq_stoichRank h
+  exact hnat.symm
+
+/-- **A deficiency vector restricts to a per-class deficiency vector.** For `v` in the
+deficiency subspace, its restriction to any linkage class is again in the deficiency subspace
+(supported on that class). -/
+theorem restrictToClass_mem_linkageDeficiencySubspace (N : Network S)
+    (h : N.DeficiencyOneConditions) {v : N.ComplexIdx → ℝ} (hv : v ∈ N.deficiencySubspace)
+    (q : Quotient N.linkedSetoid) :
+    N.restrictToClass q v ∈ N.linkageDeficiencySubspace q := by
+  have hker : N.complexMap v = 0 := LinearMap.mem_ker.mp (Submodule.mem_inf.mp hv).1
+  have hrange : v ∈ LinearMap.range N.incidenceMap := (Submodule.mem_inf.mp hv).2
+  -- the per-class complex images sum to zero and land in independent subspaces, so each is zero
+  have hxmem : ∀ q', N.complexMap (N.restrictToClass q' v) ∈ N.linkageStoichSubspace q' :=
+    fun q' => N.complexMap_restrictToClass_mem_linkageStoichSubspace q' hrange
+  have hxsum : (∑ q', N.complexMap (N.restrictToClass q' v)) = 0 := by
+    rw [← map_sum, N.sum_restrictToClass v, hker]
+  have hx0 : N.complexMap (N.restrictToClass q v) = 0 := by
+    have hind := (iSupIndep_iff_finsetSum_eq_zero_imp_eq_zero _).mp
+      (N.iSupIndep_linkageStoichSubspace h)
+    exact hind Finset.univ (fun q' => N.complexMap (N.restrictToClass q' v))
+      (fun q' _ => hxmem q') hxsum q (Finset.mem_univ q)
+  refine Submodule.mem_inf.mpr ⟨Submodule.mem_inf.mpr ⟨?_, ?_⟩,
+    N.restrictToClass_mem_supportedOn q v⟩
+  · exact LinearMap.mem_ker.mpr hx0
+  · exact N.restrictToClass_mem_range_incidenceMap q hrange
+
+/-- **The deficiency subspace is the join of its per-linkage-class parts** under the
+deficiency-one conditions: the decomposition `∑_θ δ_θ = δ` is tight. -/
+theorem deficiencySubspace_eq_iSup (N : Network S) (h : N.DeficiencyOneConditions) :
+    N.deficiencySubspace = ⨆ q, N.linkageDeficiencySubspace q := by
+  refine le_antisymm (fun v hv => ?_) N.iSup_linkageDeficiencySubspace_le
+  rw [← N.sum_restrictToClass v]
+  exact Submodule.sum_mem _ fun q _ =>
+    Submodule.mem_iSup_of_mem q (N.restrictToClass_mem_linkageDeficiencySubspace h hv q)
 
 end Network
 
