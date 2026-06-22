@@ -40,6 +40,7 @@ import CRNT.LinearAlgebra.OrthogonalComplement
 import CRNT.LinearAlgebra.FinrankSup
 import CRNT.LinearAlgebra.SignVector
 import CRNT.LinearAlgebra.OrientedMatroid
+import CRNT.LinearAlgebra.ConformalDecomposition
 import CRNT.LinearAlgebra.Substochastic
 import CRNT.LinearAlgebra.PowerProductMono
 import CRNT.LinearAlgebra.PowerProductMonoFinset

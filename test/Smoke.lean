@@ -898,3 +898,8 @@ example : ODE.FastSubsystem CRNT.MichaelisMenten.E :=
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
     (n : S → ℕ) (h : 0 < N.exitRate κ n) : (∑ r : N.R, N.jumpProb κ n r) = 1 :=
   N.sum_jumpProb_eq_one κ n h
+
+-- Conformal decomposition: every nonzero vector of a subspace is a sum of conforming dominators.
+example {ι : Type} [Fintype ι] {S : Submodule ℝ (ι → ℝ)} {v : ι → ℝ} (hv : v ∈ S) (hv0 : v ≠ 0) :
+    ∃ L : List (ι → ℝ), L.sum = v ∧ ∀ w ∈ L, CRNT.ConfDom S v w :=
+  CRNT.exists_conformalSum hv hv0
