@@ -835,3 +835,8 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
     (c : Concentration S) (hcb : N.IsComplexBalanced κ c) : N.IsGeneratorStationary κ c :=
   N.productPoisson_isGeneratorStationary_of_complexBalanced κ c hcb
+
+-- Oriented matroid of a subspace: the zero covector is realizable.
+example {ι : Type} [Fintype ι] (S : Submodule ℝ (ι → ℝ)) :
+    (fun _ => 0) ∈ CRNT.RealizableSignVector S :=
+  CRNT.realizable_zero S
