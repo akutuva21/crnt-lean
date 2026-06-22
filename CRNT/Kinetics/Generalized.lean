@@ -1,5 +1,6 @@
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import CRNT.LinearAlgebra.OrthogonalComplement
+import CRNT.LinearAlgebra.SignVector
 import CRNT.Theorems.DeficiencyZero.Birch
 import CRNT.Theorems.DeficiencyZero.BirchExistence
 
@@ -20,8 +21,11 @@ complex-balanced / Birch condition, recovered as `birch_uniqueness_of_self`; a d
   `v ∈ T` that are sign-identical is `u = 0`.
 * `logRatio_sameSign` — for positive `x, y`, the difference `x − y` and the log-ratio
   `log x − log y` always share signs, because `Real.log` is strictly monotone.
-* `signCompatible_self` — `SignCompatible S (orthSum S)` holds unconditionally, the
-  bridge showing the framework subsumes the classical case.
+* `sameSign_iff_signVector_eq` / `conformal_of_sameSign` — identify the order-theoretic
+  `SameSign` with equality of `signVector`s, and derive conformality.
+* `signCompatible_self` — `SignCompatible S (orthSum S)` holds unconditionally (via the
+  general sign-vector cancellation `mul_eq_zero_of_conformal_mem_orthSum`), the bridge
+  showing the framework subsumes the classical case.
 * `gen_birch_uniqueness` — sign compatibility forces uniqueness of generalized
   equilibria; `birch_uniqueness_of_self` is its `T = S` specialization.
 * `gen_birch_existence` — the single-subspace specialization of generalized existence,
@@ -30,6 +34,7 @@ complex-balanced / Birch condition, recovered as `birch_uniqueness_of_self`; a d
 This module is **stable** and `sorry`-free. Depends on:
 `Mathlib.Analysis.SpecialFunctions.Log.Basic`,
 `CRNT.LinearAlgebra.OrthogonalComplement`,
+`CRNT.LinearAlgebra.SignVector`,
 `CRNT.Theorems.DeficiencyZero.Birch`,
 `CRNT.Theorems.DeficiencyZero.BirchExistence`.
 -/
@@ -56,6 +61,37 @@ theorem sameSign_refl {ι : Type*} (u : ι → ℝ) : SameSign u u :=
 /-- `SameSign` is symmetric. -/
 theorem sameSign_symm {ι : Type*} {u v : ι → ℝ} (h : SameSign u v) : SameSign v u :=
   fun i => ⟨(h i).1.symm, (h i).2.symm⟩
+
+/-- `SameSign` is exactly equality of sign vectors: agreeing on every coordinate's strict
+sign is the same as having the same `SignType` at every coordinate. This identifies the
+order-theoretic `SameSign` with the combinatorial `signVector`. -/
+theorem sameSign_iff_signVector_eq {ι : Type*} {u v : ι → ℝ} :
+    SameSign u v ↔ signVector u = signVector v := by
+  constructor
+  · intro h
+    funext i
+    rcases lt_trichotomy (u i) 0 with hlt | heq | hgt
+    · rw [signVector_apply, signVector_apply, sign_neg hlt, sign_neg ((h i).2.mp hlt)]
+    · have hv : v i = 0 := by
+        rcases lt_trichotomy (v i) 0 with h1 | h2 | h3
+        · exact absurd ((h i).2.mpr h1) (by rw [heq]; exact lt_irrefl 0)
+        · exact h2
+        · exact absurd ((h i).1.mpr h3) (by rw [heq]; exact lt_irrefl 0)
+      rw [signVector_apply, signVector_apply, heq, hv]
+    · rw [signVector_apply, signVector_apply, sign_pos hgt, sign_pos ((h i).1.mp hgt)]
+  · intro h i
+    have hi : SignType.sign (u i) = SignType.sign (v i) := congrFun h i
+    exact ⟨by rw [← sign_eq_one_iff, ← sign_eq_one_iff, hi],
+      by rw [← sign_eq_neg_one_iff, ← sign_eq_neg_one_iff, hi]⟩
+
+/-- Same-sign vectors are conformal: agreeing on strict signs precludes any coordinate where
+they point in strictly opposite directions, so every coordinate product is nonnegative. -/
+theorem conformal_of_sameSign {ι : Type*} {u v : ι → ℝ} (h : SameSign u v) : Conformal u v := by
+  intro i
+  rcases lt_trichotomy (u i) 0 with hlt | heq | hgt
+  · exact (mul_pos_of_neg_of_neg hlt ((h i).2.mp hlt)).le
+  · simp [heq]
+  · exact (mul_pos hgt ((h i).1.mp hgt)).le
 
 /-- For strictly positive `x` and `y`, the difference `x − y` and the log-ratio
 `i ↦ log (x i) − log (y i)` share signs coordinatewise, since `Real.log` is strictly
@@ -88,24 +124,17 @@ generalized framework to the classical case `T = S`. -/
 theorem signCompatible_self {ι : Type*} [Fintype ι] (S : Submodule ℝ (ι → ℝ)) :
     SignCompatible S (orthSum S) := by
   intro u hu v hv hsame
-  -- Every coordinate term `v i * u i` is nonnegative: same sign means the product of two
-  -- positives or two negatives, or a zero.
-  have hterm_nonneg : ∀ i, 0 ≤ v i * u i := by
-    intro i
-    rcases lt_trichotomy (u i) 0 with h | h | h
-    · exact (mul_pos_of_neg_of_neg ((hsame i).2.mp h) h).le
-    · simp [h]
-    · exact (mul_pos ((hsame i).1.mp h) h).le
-  -- Orthogonality gives the total sum is zero.
-  have h0 : ∑ i, v i * u i = 0 := (mem_orthSum.mp hv) u hu
-  -- A sum of nonnegative terms is zero only if each term is zero.
-  have hall := (Finset.sum_eq_zero_iff_of_nonneg fun i _ => hterm_nonneg i).mp h0
   funext i
-  have hz := hall i (Finset.mem_univ i)
-  rcases lt_trichotomy (u i) 0 with h | h | h
-  · exact absurd hz (mul_pos_of_neg_of_neg ((hsame i).2.mp h) h).ne'
+  -- Conformality of `u` with `v ∈ orthSum S` forces their coordinate products to vanish.
+  have hz : u i * v i = 0 :=
+    mul_eq_zero_of_conformal_mem_orthSum hu hv (conformal_of_sameSign hsame) i
+  rcases mul_eq_zero.mp hz with h | h
   · exact h
-  · exact absurd hz (mul_pos ((hsame i).1.mp h) h).ne'
+  · -- `v i = 0`, and sharing signs then forces `u i = 0`.
+    rcases lt_trichotomy (u i) 0 with hlt | heq | hgt
+    · exact absurd ((hsame i).2.mp hlt) (by rw [h]; exact lt_irrefl 0)
+    · exact heq
+    · exact absurd ((hsame i).1.mp hgt) (by rw [h]; exact lt_irrefl 0)
 
 /-- **Single-subspace specialization of generalized Birch existence.** For positive `x*`
 and `c`, the kinetic subspace `T` admits a positive `x` with `x − c ∈ T` and log-ratio

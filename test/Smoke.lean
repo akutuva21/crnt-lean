@@ -585,3 +585,20 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.Deficiency
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.DeficiencyOneConditions) :
     N.deficiencySubspace = ⨆ q, N.linkageDeficiencySubspace q :=
   N.deficiencySubspace_eq_iSup h
+
+-- Sign-vector layer: the sign vectors of a subspace and its dot-product orthogonal
+-- complement are orthogonal (oriented-matroid covector orthogonality).
+example {ι : Type} [Fintype ι] {S : Submodule ℝ (ι → ℝ)} {u w : ι → ℝ}
+    (hu : u ∈ S) (hw : w ∈ CRNT.orthSum S) :
+    CRNT.SignVector.Orthogonal (CRNT.signVector u) (CRNT.signVector w) :=
+  CRNT.orthogonal_signVector_of_mem_orthSum hu hw
+
+-- Conformal vectors in complementary subspaces have pointwise-vanishing products.
+example {ι : Type} [Fintype ι] {S : Submodule ℝ (ι → ℝ)} {u w : ι → ℝ}
+    (hu : u ∈ S) (hw : w ∈ CRNT.orthSum S) (hc : CRNT.Conformal u w) (i : ι) :
+    u i * w i = 0 :=
+  CRNT.mul_eq_zero_of_conformal_mem_orthSum hu hw hc i
+
+-- Same-sign is equality of sign vectors.
+example {ι : Type} {u v : ι → ℝ} : CRNT.SameSign u v ↔ CRNT.signVector u = CRNT.signVector v :=
+  CRNT.sameSign_iff_signVector_eq

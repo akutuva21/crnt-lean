@@ -30,10 +30,11 @@ import CRNT.Stoich.Vector
 import CRNT.Stoich.Subspace
 
 -- Linear-algebra building blocks (Perron–Frobenius positivity; dot-product orthogonality;
--- finrank subadditivity over finite suprema)
+-- finrank subadditivity over finite suprema; sign vectors of subspaces)
 import CRNT.LinearAlgebra.PerronFrobenius
 import CRNT.LinearAlgebra.OrthogonalComplement
 import CRNT.LinearAlgebra.FinrankSup
+import CRNT.LinearAlgebra.SignVector
 
 -- Kinetics: concentrations, mass action, and the general kinetics abstraction
 import CRNT.Kinetics.Concentration
