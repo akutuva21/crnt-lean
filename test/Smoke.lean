@@ -936,3 +936,12 @@ example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] (M : ODE.
 example (a b c : CRNT.Analysis.Sperner2D.Color) :
     Odd (CRNT.Analysis.Sperner2D.doorCount a b c) ↔ CRNT.Analysis.Sperner2D.isRainbow a b c :=
   CRNT.Analysis.Sperner2D.doorCount_odd_iff a b c
+
+-- Unconditional confined persistence: a box-confined nonnegative mass-action orbit starting on a
+-- siphon face stays on it for all forward time (the dissipativity hypothesis is discharged).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    {P : Finset S} (hP : N.IsSiphon P) {γ : ℝ → Concentration S} {B : ℝ}
+    (hderiv : ∀ t, HasDerivAt γ (N.massActionVectorField κ (γ t)) t)
+    (hnn : ∀ t, 0 ≤ t → (γ t).Nonnegative) (hbox : ∀ t, 0 ≤ t → ∀ s, γ t s ≤ B)
+    (h0 : γ 0 ∈ N.SiphonFace P) : ∀ t, 0 ≤ t → γ t ∈ N.SiphonFace P :=
+  N.siphonFace_forwardInvariant_confined κ hP hderiv hnn hbox h0

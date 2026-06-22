@@ -158,6 +158,7 @@ import CRNT.Dynamics.GlobalStability
 import CRNT.Dynamics.ForwardInvariance
 import CRNT.Dynamics.PersistenceGAC
 import CRNT.Dynamics.PersistenceTheorem
+import CRNT.Dynamics.PersistenceConfined
 
 -- Stochastic CRN: Anderson–Craciun–Kurtz product-form objects
 import CRNT.Stochastic.ProductForm
