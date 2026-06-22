@@ -674,3 +674,15 @@ example {k : ℕ} (hk : 1 ≤ k) {q a : ℕ → ℝ}
 example {V E : Type} [DecidableEq V] [Fintype E] (src tgt : E → V) (z : E → ℝ) (U : Finset V) :
     CRNT.excessSet src tgt z U = ∑ i ∈ U, CRNT.excessVertex src tgt z i :=
   CRNT.excessSet_eq_sum_excessVertex src tgt z U
+
+-- Lemma II.6 (per-class kernel mode): a deficiency-one linkage class carries a kernel mode of
+-- A_k, positive on its terminal strong linkage class, and every kernel vector supported on the
+-- class is a scalar multiple of it (the per-class kernel is one-dimensional).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    (h : N.DeficiencyOneHypotheses) (κ : Network.RateConstants N) (θ : Quotient N.linkedSetoid) :
+    ∃ b : N.ComplexIdx → ℝ,
+      (∀ c, N.classOf c = θ → N.IsTerminalSLC c.val → 0 < b c) ∧
+      N.kineticMap κ b = 0 ∧
+      ∀ v : N.ComplexIdx → ℝ, N.kineticMap κ v = 0 →
+        (∀ c, N.classOf c ≠ θ → v c = 0) → ∃ t : ℝ, v = t • b :=
+  N.exists_kernel_mode_of_deficiencyOne h κ θ
