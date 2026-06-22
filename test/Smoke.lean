@@ -819,3 +819,8 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.Deficiency
       x.Positive ∧ N.IsComplexBalanced κ x) :
     N.DeficiencyOneExistence :=
   N.deficiencyOneExistence_of_complexBalancedExistence h hδ hCB
+
+-- Degree-free 1-D Brouwer fixed point: a continuous self-map of a closed interval has a fixed point.
+example {a b : ℝ} (hab : a ≤ b) {f : ℝ → ℝ} (hf : ContinuousOn f (Set.Icc a b))
+    (hmaps : Set.MapsTo f (Set.Icc a b) (Set.Icc a b)) : ∃ x ∈ Set.Icc a b, f x = x :=
+  CRNT.Analysis.fixedPoint_Icc hab hf hmaps
