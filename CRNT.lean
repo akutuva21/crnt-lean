@@ -74,6 +74,7 @@ import CRNT.Deficiency.DeficiencyOneLocalize
 import CRNT.Deficiency.LogMonomialRatio
 import CRNT.Deficiency.ComplexBalancedRatio
 import CRNT.Deficiency.SignedDrainage
+import CRNT.Deficiency.KineticExcess
 import CRNT.Deficiency.DeficientClassKernel
 import CRNT.Deficiency.TerminalSLC
 import CRNT.Deficiency.KineticBlock

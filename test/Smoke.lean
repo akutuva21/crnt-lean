@@ -686,3 +686,10 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
       ∀ v : N.ComplexIdx → ℝ, N.kineticMap κ v = 0 →
         (∀ c, N.classOf c ≠ θ → v c = 0) → ∃ t : ℝ, v = t • b :=
   N.exists_kernel_mode_of_deficiencyOne h κ θ
+
+-- Prop II.5 (kinetic map as digraph excess): on the reaction graph, the per-vertex excess of the
+-- mass-action flux is the negative of the kinetic map at that complex.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (v : N.ComplexIdx → ℝ) (c : N.ComplexIdx) :
+    CRNT.excessVertex N.sourceIdx N.targetIdx (N.kineticFlux κ v) c = - N.kineticMap κ v c :=
+  N.excessVertex_eq_neg_kineticMap κ v c
