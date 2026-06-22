@@ -157,6 +157,7 @@ import CRNT.Dynamics.PersistenceGAC
 import CRNT.Stochastic.ProductForm
 import CRNT.Stochastic.Generator
 import CRNT.Stochastic.CTMC
+import CRNT.Stochastic.JumpKernel
 
 -- Network composition
 import CRNT.Compose.Interconnect

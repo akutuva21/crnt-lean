@@ -893,3 +893,8 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
 -- Michaelis–Menten boundary layer: the enzyme fast subsystem is a bundled fast subsystem.
 example : ODE.FastSubsystem CRNT.MichaelisMenten.E :=
   CRNT.MichaelisMenten.enzymeFastSubsystem 1 (by norm_num) 0
+
+-- Stochastic jump chain: the jump probabilities sum to one wherever the exit rate is positive.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (n : S → ℕ) (h : 0 < N.exitRate κ n) : (∑ r : N.R, N.jumpProb κ n r) = 1 :=
+  N.sum_jumpProb_eq_one κ n h
