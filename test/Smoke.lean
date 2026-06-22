@@ -764,3 +764,9 @@ example {ι : Type} [DecidableEq ι] (s U : Finset ι) (hdisj : Disjoint s U) (y
         = ∑ c ∈ s ∪ U, G c * Real.log (β₂ * ystar c + b c)) :
     β₁ = β₂ :=
   CRNT.eq_of_shiftedLogSum_eq s U hdisj ystar b G hys hyU ha0 hsum hlevel hd₁ hd₂ hH
+
+-- The deficiency-one uniqueness theorem: a deficiency-one network meeting Feinberg's structural
+-- hypotheses has at most one positive mass-action steady state per positive compatibility class.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.DeficiencyOneHypotheses)
+    (hδ : N.DeficiencyOne) : N.DeficiencyOneUniqueness :=
+  N.deficiencyOneUniqueness h hδ
