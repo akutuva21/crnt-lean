@@ -881,3 +881,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.TightLinka
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
     N.deficiency = N.computeDeficiency :=
   N.deficiency_eq_computeDeficiency
+
+-- Nagumo-based persistence: a genuine mass-action orbit with an inward dissipativity bound stays
+-- in the closed nonnegative orthant for all forward time.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants) {L : ℝ}
+    {γ : ℝ → Concentration S} (hderiv : ∀ t, HasDerivAt γ (N.massActionVectorField κ (γ t)) t)
+    (hLip : ∀ t s, -L * (γ t s) ≤ N.massActionVectorField κ (γ t) s ∨ 0 ≤ γ t s)
+    (h0 : (γ 0).Nonnegative) : ∀ t, 0 ≤ t → (γ t).Nonnegative :=
+  N.massAction_orbit_nonneg κ hderiv hLip h0
