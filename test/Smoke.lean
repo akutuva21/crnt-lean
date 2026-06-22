@@ -903,3 +903,13 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
 example {ι : Type} [Fintype ι] {S : Submodule ℝ (ι → ℝ)} {v : ι → ℝ} (hv : v ∈ S) (hv0 : v ≠ 0) :
     ∃ L : List (ι → ℝ), L.sum = v ∧ ∀ w ∈ L, CRNT.ConfDom S v w :=
   CRNT.exists_conformalSum hv hv0
+
+-- Hopf crossing gate: at the boundary of the cubic Hurwitz region (`a₂a₁ = a₀`) the conjugate
+-- pair is purely imaginary and the real root is negative.
+example (z₁ z₂ : ℂ) (a₂ a₁ a₀ : ℝ) (hz₁im : z₁.im = 0)
+    (e₂ : (a₂ : ℂ) = -(z₁ + z₂ + (starRingEnd ℂ) z₂))
+    (e₁ : (a₁ : ℂ) = z₁ * z₂ + z₁ * ((starRingEnd ℂ) z₂) + z₂ * ((starRingEnd ℂ) z₂))
+    (e₀ : (a₀ : ℂ) = -(z₁ * z₂ * ((starRingEnd ℂ) z₂)))
+    (H₂ : 0 < a₂) (H₀ : 0 < a₀) (HΔ : a₂ * a₁ = a₀) :
+    z₁.re < 0 ∧ z₂.re = 0 ∧ z₂.im ≠ 0 :=
+  CRNT.hopf_crossing_gate z₁ z₂ a₂ a₁ a₀ hz₁im e₂ e₁ e₀ H₂ H₀ HΔ

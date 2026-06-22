@@ -72,6 +72,7 @@ import CRNT.Dynamics.FlowConstruction
 import CRNT.Dynamics.Monotone
 import CRNT.Dynamics.RouthHurwitz
 import CRNT.Dynamics.Hurwitz
+import CRNT.Dynamics.HopfGate
 import CRNT.Dynamics.QSSA
 import CRNT.Dynamics.Nagumo
 import CRNT.Dynamics.Tikhonov
