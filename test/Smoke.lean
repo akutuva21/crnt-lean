@@ -971,3 +971,13 @@ example (Km Vmax s : ℝ) :
 example {Cell : Type*} [Fintype Cell] (D : CRNT.Analysis.SpernerTriangulation.DoorIncidence Cell) :
     ∃ t : Cell, D.IsRainbowCell t :=
   D.exists_rainbow
+
+-- Boundary relative-entropy descent: a complex-balanced-referenced orbit positive on (0,∞) and
+-- nonnegative at 0, starting on a siphon face, stays on it (positivity only away from t=0).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    {P : Finset S} (hP : N.IsSiphon P) {xstar : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar) {γ : ℝ → Concentration S}
+    (hderiv : ∀ t, HasDerivAt γ (N.massActionVectorField κ (γ t)) t)
+    (hpos : ∀ t, 0 < t → (γ t).Positive) (hnn0 : (γ 0).Nonnegative)
+    (h0 : γ 0 ∈ N.SiphonFace P) : ∀ t, 0 ≤ t → γ t ∈ N.SiphonFace P :=
+  N.siphonFace_forwardInvariant_of_complexBalanced_pos_pos κ hP hxs hcb hderiv hpos hnn0 h0
