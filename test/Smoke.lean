@@ -844,3 +844,11 @@ example {ι : Type} [Fintype ι] (S : Submodule ℝ (ι → ℝ)) :
 -- Hurwitz determinant interface: the second Hurwitz determinant of a cubic is `a₂a₁ − a₀`.
 example (a : ℕ → ℝ) : CRNT.hurwitzDet a 3 2 (by norm_num) = a 2 * a 1 - a 0 :=
   CRNT.hurwitzDet_two_cubic a
+
+-- Singular-perturbation boundary layer: a one-sided contraction toward its equilibrium decays
+-- exponentially.
+example {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {f : E → E} {z : ℝ → E}
+    {zstar : E} {lam : ℝ} (hz : ∀ t, HasDerivAt z (f (z t)) t) (hstat : f zstar = 0)
+    (hcon : ODE.OneSidedContraction f zstar lam) (hlam : 0 ≤ lam) :
+    ∀ t, 0 ≤ t → ‖z t - zstar‖ ≤ ‖z 0 - zstar‖ * Real.exp (-lam * t) :=
+  ODE.norm_sub_le_exp_neg_mul hz hstat hcon hlam

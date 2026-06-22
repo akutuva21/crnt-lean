@@ -71,6 +71,7 @@ import CRNT.Dynamics.RouthHurwitz
 import CRNT.Dynamics.Hurwitz
 import CRNT.Dynamics.QSSA
 import CRNT.Dynamics.Nagumo
+import CRNT.Dynamics.Tikhonov
 
 -- Deficiency
 import CRNT.Deficiency.Definition
