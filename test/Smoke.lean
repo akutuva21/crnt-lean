@@ -776,3 +776,10 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.Deficiency
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.DeficiencyOneHypotheses) :
     N.DeficiencyOneUniqueness :=
   N.deficiencyOneUniqueness_multiClass h
+
+-- The fully open extension carries no boundary equilibria: every nonnegative mass-action steady
+-- state of `N⁺` is strictly positive (interior to the orthant).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    (κ : Network.RateConstants N.fullyOpen) {x : Concentration S} (hx : x.Nonnegative)
+    (hss : N.fullyOpen.IsMassActionSteadyState κ x) : x.Positive :=
+  N.fullyOpen_steadyState_positive κ hx hss

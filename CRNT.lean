@@ -51,6 +51,7 @@ import CRNT.Kinetics.Generalized
 -- Open networks: inflow/outflow pseudo-reactions and the fully open extension
 import CRNT.Open.Augmentation
 import CRNT.Open.Deficiency
+import CRNT.Open.Boundary
 
 -- Equilibria: steady states, compatibility classes, complex balancing
 import CRNT.Equilibria.SteadyState
