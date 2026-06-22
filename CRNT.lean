@@ -108,6 +108,7 @@ import CRNT.Deficiency.TerminalSLCKernel
 import CRNT.Deficiency.TerminalKernelBound
 import CRNT.Deficiency.TerminalReachable
 import CRNT.Deficiency.Drainage
+import CRNT.Deficiency.HigherDeficiency
 
 -- Theorem statement interfaces and proved components
 import CRNT.Theorems.DeficiencyZero.Statement

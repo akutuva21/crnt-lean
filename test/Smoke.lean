@@ -869,3 +869,10 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {x y : Concentrat
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {u : N.SRVertex S}
     {w : N.srGraph.Walk u u} (hw : w.IsCycle) : Even w.length :=
   N.cycle_even_length hw
+
+-- Higher-deficiency localization: under tightness each per-class deficiency subspace has
+-- dimension exactly `δ_θ`.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.TightLinkageDeficiency)
+    (q : Quotient N.linkedSetoid) :
+    Module.finrank ℝ (N.linkageDeficiencySubspace q) = (N.linkageDeficiency q).toNat :=
+  N.finrank_linkageDeficiencySubspace_eq_of_tight h q
