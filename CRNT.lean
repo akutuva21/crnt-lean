@@ -65,6 +65,7 @@ import CRNT.Deficiency.LinkageDeficiency
 import CRNT.Deficiency.DeficiencyOneHypotheses
 import CRNT.Deficiency.DeficiencyOneStructure
 import CRNT.Deficiency.IncidenceBlock
+import CRNT.Deficiency.DeficiencyOneDecomp
 import CRNT.Deficiency.TerminalSLC
 import CRNT.Deficiency.KineticBlock
 import CRNT.Deficiency.SteadyStateKernel
