@@ -572,3 +572,16 @@ example {V : Type} [Fintype V] [DecidableEq V] (G : SimpleGraph V) [DecidableRel
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
     Decidable N.OneTerminalSLCPerLinkageClass :=
   inferInstance
+
+-- Phase 2 localization: a mass-action steady state is complex-balanced on every
+-- deficiency-zero linkage class (deficiency-one analysis localizes to the deficient class).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.DeficiencyOneConditions)
+    (κ : Network.RateConstants N) {x : Concentration S} (hx : N.IsMassActionSteadyState κ x)
+    {q : Quotient N.linkedSetoid} (hq : N.linkageDeficiency q = 0) :
+    N.restrictToClass q (N.kineticMap κ (N.complexMonomialVector x)) = 0 :=
+  N.restrictToClass_kineticImage_eq_zero h κ hx hq
+
+-- The deficiency subspace decomposes over linkage classes (the structural backbone).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.DeficiencyOneConditions) :
+    N.deficiencySubspace = ⨆ q, N.linkageDeficiencySubspace q :=
+  N.deficiencySubspace_eq_iSup h
