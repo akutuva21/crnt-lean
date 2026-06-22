@@ -804,3 +804,9 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
       (∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t) ∧
       omegaLimit atTop ϕ {x₀} = {xstar} :=
   N.gac_of_local_confinement hwr κ hxs hcb hx0 hx0compat hloc
+
+-- Anderson–Craciun–Kurtz: for a complex-balanced network the product-of-Poissons density
+-- satisfies the stochastic master-equation stationarity condition.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (c : Concentration S) (hcb : N.IsComplexBalanced κ c) : N.IsMasterStationary κ c :=
+  N.productPoisson_isStationary_of_complexBalanced κ c hcb
