@@ -987,3 +987,9 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
 example (Km Vmax s : ℝ) :
     CRNT.MichaelisMenten.mmReducedField Km Vmax s = (if 0 ≤ s then -(Vmax * s / (Km + s)) else 0) :=
   rfl
+
+-- Concrete 2-D Sperner: the explicitly-constructed single-cell triangulation has a rainbow triangle
+-- (the full DoorIncidence → rainbow pipeline on a genuine `Fintype` cell type).
+example : ∃ t : CRNT.Analysis.SpernerGrid.Cell,
+    CRNT.Analysis.SpernerGrid.doorIncidence.IsRainbowCell t :=
+  CRNT.Analysis.SpernerGrid.exists_rainbow_cell
