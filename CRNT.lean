@@ -131,6 +131,7 @@ import CRNT.Multistationarity.Toric
 
 -- Design: robustness and special equilibria
 import CRNT.Design.ACR
+import CRNT.Design.ACRUnconditional
 import CRNT.Design.Adaptation
 
 -- Persistence: Petri-net siphons
