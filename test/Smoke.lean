@@ -960,3 +960,9 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     (hnn : ∀ t, 0 ≤ t → (γ t).Nonnegative) (hrele : ∀ t, 0 ≤ t → relEntropy xstar (γ t) ≤ C)
     (h0 : γ 0 ∈ N.SiphonFace P) : ∀ t, 0 ≤ t → γ t ∈ N.SiphonFace P :=
   N.siphonFace_forwardInvariant_of_relEntropy_le κ hP hxs hderiv hnn hrele h0
+
+-- True Michaelis–Menten slow-manifold reduction: the substrate-dependent complex equilibrium is the
+-- Michaelis–Menten rate law `V_max·s/(K_m+s)`.
+example (Km Vmax s : ℝ) :
+    CRNT.MichaelisMenten.mmComplexEquil Km Vmax s = Vmax * s / (Km + s) :=
+  rfl

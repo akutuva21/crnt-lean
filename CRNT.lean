@@ -81,6 +81,7 @@ import CRNT.Dynamics.Tikhonov
 import CRNT.Dynamics.MichaelisMenten
 import CRNT.Dynamics.Fenichel
 import CRNT.Dynamics.FenichelManifold
+import CRNT.Dynamics.MichaelisMentenManifold
 
 -- Deficiency
 import CRNT.Deficiency.Definition
