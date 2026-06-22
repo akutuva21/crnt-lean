@@ -124,6 +124,7 @@ import CRNT.Theorems.DeficiencyOne.Existence
 
 -- Multistationarity: species-reaction graph, injectivity criteria
 import CRNT.Multistationarity.SRGraph
+import CRNT.Multistationarity.SRGraphCriterion
 import CRNT.Multistationarity.Injectivity
 
 -- Design: robustness and special equilibria
