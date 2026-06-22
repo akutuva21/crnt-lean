@@ -46,6 +46,23 @@ theorem card_deficientLinkageClasses (N : Network S) (h : N.DeficiencyOneConditi
       = (N.deficiency : ℤ) := by rw [hcast, h.sum_eq, N.deficiencyInt_eq_deficiency]
   exact_mod_cast this
 
+/-- **Condition (ii) is exactly that the per-class stoichiometric ranks sum to the network
+stoichiometric rank.** Equivalently, the per-class stoichiometric subspaces are independent (the
+join `⨆_θ stoichSubspace_θ = stoichSubspace` is a direct sum). This is the linear-algebraic
+content of the tightness condition `∑_θ δ_θ = δ`. -/
+theorem sum_linkageStoichRank_eq_stoichRank (N : Network S) (h : N.DeficiencyOneConditions) :
+    ∑ q, (N.linkageStoichRank q : ℤ) = (N.stoichRank : ℤ) := by
+  have hn : (∑ q, (N.numComplexesIn q : ℤ)) = (N.numComplexes : ℤ) := by
+    rw [← Nat.cast_sum, N.sum_numComplexesIn]
+  have hexp : ∑ q, N.linkageDeficiency q
+      = (∑ q, (N.numComplexesIn q : ℤ)) - (Fintype.card (Quotient N.linkedSetoid) : ℤ)
+        - ∑ q, (N.linkageStoichRank q : ℤ) := by
+    simp only [linkageDeficiency, Finset.sum_sub_distrib, Finset.sum_const, Finset.card_univ,
+      nsmul_eq_mul, mul_one]
+  have hs := h.sum_eq
+  rw [hexp, hn, card_quotient_eq, deficiencyInt] at hs
+  linarith
+
 /-- **A deficiency-one network satisfying the conditions has exactly one deficient linkage
 class.** Every other linkage class is deficiency-zero. -/
 theorem existsUnique_deficient_of_deficiencyOne (N : Network S) (hδ : N.DeficiencyOne)
