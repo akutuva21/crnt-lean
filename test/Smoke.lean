@@ -753,3 +753,14 @@ example {ι : Type} [DecidableEq ι] (s : Finset ι) (q a : ι → ℝ) (a0 qmin
     (hlevel : ∀ v : ℝ, 0 ≤ a0 + ∑ i ∈ s.filter (fun i => v < q i), a i) :
     StrictAntiOn (fun β => ∑ i ∈ s, a i * Real.log (β + q i)) (Set.Ioi (- qmin)) :=
   CRNT.powerProd_logSum_strictAntiOn s q a a0 qmin ha0 hsum hqmin hlevel
+
+-- Injectivity of the shifted-monomial log-sum: H β₁ = H β₂ ⟹ β₁ = β₂.
+example {ι : Type} [DecidableEq ι] (s U : Finset ι) (hdisj : Disjoint s U) (ystar b G : ι → ℝ)
+    (hys : ∀ c ∈ s, 0 < ystar c) (hyU : ∀ c ∈ U, ystar c = 0) (ha0 : 0 < ∑ c ∈ U, G c)
+    (hsum : (∑ c ∈ U, G c) + ∑ c ∈ s, G c = 0)
+    (hlevel : ∀ v : ℝ, 0 ≤ (∑ c ∈ U, G c) + ∑ c ∈ s.filter (fun c => v < b c / ystar c), G c)
+    {β₁ β₂ : ℝ} (hd₁ : ∀ c ∈ s, - (b c / ystar c) < β₁) (hd₂ : ∀ c ∈ s, - (b c / ystar c) < β₂)
+    (hH : (∑ c ∈ s ∪ U, G c * Real.log (β₁ * ystar c + b c))
+        = ∑ c ∈ s ∪ U, G c * Real.log (β₂ * ystar c + b c)) :
+    β₁ = β₂ :=
+  CRNT.eq_of_shiftedLogSum_eq s U hdisj ystar b G hys hyU ha0 hsum hlevel hd₁ hd₂ hH
