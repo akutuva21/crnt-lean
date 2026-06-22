@@ -810,3 +810,12 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
     (c : Concentration S) (hcb : N.IsComplexBalanced κ c) : N.IsMasterStationary κ c :=
   N.productPoisson_isStationary_of_complexBalanced κ c hcb
+
+-- Degree-free deficiency-one existence: a per-rate-constant complex-balanced witness yields a
+-- positive steady state in every positive compatibility class.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.DeficiencyOneHypotheses)
+    (hδ : N.DeficiencyOne)
+    (hCB : ∀ (κ : Network.RateConstants N), ∃ x : Concentration S,
+      x.Positive ∧ N.IsComplexBalanced κ x) :
+    N.DeficiencyOneExistence :=
+  N.deficiencyOneExistence_of_complexBalancedExistence h hδ hCB

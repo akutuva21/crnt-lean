@@ -121,6 +121,7 @@ import CRNT.Theorems.DeficiencyOne.ToricReduction
 import CRNT.Theorems.DeficiencyOne.Uniqueness
 import CRNT.Theorems.DeficiencyOne.MultiClass
 import CRNT.Theorems.DeficiencyOne.Existence
+import CRNT.Theorems.DeficiencyOne.ExistenceDynamical
 
 -- Multistationarity: species-reaction graph, injectivity criteria
 import CRNT.Multistationarity.SRGraph
