@@ -913,3 +913,9 @@ example (z₁ z₂ : ℂ) (a₂ a₁ a₀ : ℝ) (hz₁im : z₁.im = 0)
     (H₂ : 0 < a₂) (H₀ : 0 < a₀) (HΔ : a₂ * a₁ = a₀) :
     z₁.re < 0 ∧ z₂.re = 0 ∧ z₂.im ≠ 0 :=
   CRNT.hopf_crossing_gate z₁ z₂ a₂ a₁ a₀ hz₁im e₂ e₁ e₀ H₂ H₀ HΔ
+
+-- One-dimensional Sperner lemma: a Sperner-colored path (false at 0, true at n) has a
+-- color-change edge — the base case of the Sperner→Brouwer ladder.
+example {n : ℕ} {c : ℕ → Bool} (h : CRNT.Analysis.Sperner.IsSpernerColoring n c) :
+    ∃ i < n, c (i + 1) ≠ c i :=
+  CRNT.Analysis.Sperner.sperner_exists_rainbow h
