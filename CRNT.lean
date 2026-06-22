@@ -134,9 +134,10 @@ import CRNT.Design.ACR
 import CRNT.Design.ACRUnconditional
 import CRNT.Design.Adaptation
 
--- Persistence: Petri-net siphons; siphon-face tangency
+-- Persistence: Petri-net siphons; siphon-face tangency; single-linkage-class global stability
 import CRNT.Dynamics.Siphon
 import CRNT.Dynamics.Persistence
+import CRNT.Dynamics.GlobalStability
 
 -- Network composition
 import CRNT.Compose.Interconnect
