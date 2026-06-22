@@ -134,8 +134,9 @@ import CRNT.Design.ACR
 import CRNT.Design.ACRUnconditional
 import CRNT.Design.Adaptation
 
--- Persistence: Petri-net siphons
+-- Persistence: Petri-net siphons; siphon-face tangency
 import CRNT.Dynamics.Siphon
+import CRNT.Dynamics.Persistence
 
 -- Network composition
 import CRNT.Compose.Interconnect
