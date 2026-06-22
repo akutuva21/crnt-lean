@@ -163,6 +163,7 @@ import CRNT.Stochastic.ProductForm
 import CRNT.Stochastic.Generator
 import CRNT.Stochastic.CTMC
 import CRNT.Stochastic.JumpKernel
+import CRNT.Stochastic.Kernel
 
 -- Network composition
 import CRNT.Compose.Interconnect
