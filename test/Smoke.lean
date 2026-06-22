@@ -645,3 +645,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hδ : N.Deficien
       ∀ c, N.classOf c = θ →
         cy * N.complexMonomialVector x c - cx * N.complexMonomialVector y c = lam * b c :=
   N.deficientClass_kernel_relation hδ κ hsc hxss hyss
+
+-- Substochastic Perron–Frobenius: a column-substochastic matrix whose every index reaches a
+-- leak (a strictly-substochastic column) has only the zero fixed vector.
+example {ι : Type} [Fintype ι] (M : Matrix ι ι ℝ) (hM : ∀ i j, 0 ≤ M i j)
+    (hcol : ∀ j, ∑ i, M i j ≤ 1)
+    (hreach : ∀ j, ∃ ℓ, CRNT.supportReaches M ℓ j ∧ ∑ i, M i ℓ < 1)
+    {v : ι → ℝ} (hv : M.mulVec v = v) : v = 0 :=
+  CRNT.mulVec_fixed_eq_zero_of_substochastic M hM hcol hreach hv

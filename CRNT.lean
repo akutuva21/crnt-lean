@@ -35,6 +35,7 @@ import CRNT.LinearAlgebra.PerronFrobenius
 import CRNT.LinearAlgebra.OrthogonalComplement
 import CRNT.LinearAlgebra.FinrankSup
 import CRNT.LinearAlgebra.SignVector
+import CRNT.LinearAlgebra.Substochastic
 
 -- Kinetics: concentrations, mass action, and the general kinetics abstraction
 import CRNT.Kinetics.Concentration
