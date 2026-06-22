@@ -876,3 +876,8 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.TightLinka
     (q : Quotient N.linkedSetoid) :
     Module.finrank ℝ (N.linkageDeficiencySubspace q) = (N.linkageDeficiency q).toNat :=
   N.finrank_linkageDeficiencySubspace_eq_of_tight h q
+
+-- Exact computable deficiency over ℚ: the network deficiency equals its Gaussian-rank value.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
+    N.deficiency = N.computeDeficiency :=
+  N.deficiency_eq_computeDeficiency
