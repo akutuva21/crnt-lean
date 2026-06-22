@@ -630,3 +630,18 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.Deficiency
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.DeficiencyOneHypotheses)
     (hdef : N.DeficientClassRatioConst) : N.DeficiencyOneUniqueness :=
   N.deficiencyOneUniqueness_of_deficientClassRatioConst h hdef
+
+-- The deficient-class kernel relation: on a strongly connected deficiency-one class, two
+-- steady states satisfy cy·Ψx − cx·Ψy = λ·b pointwise (b positive), reducing the remaining
+-- sign argument to forcing λ = 0.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hδ : N.DeficiencyOne)
+    (κ : Network.RateConstants N) {θ : Quotient N.linkedSetoid}
+    (hsc : ∀ c c' : N.ComplexIdx, N.classOf c = θ → N.classOf c' = θ →
+      N.StronglyLinked c.val c'.val)
+    {x y : Concentration S} (hxss : N.IsMassActionSteadyState κ x)
+    (hyss : N.IsMassActionSteadyState κ y) :
+    ∃ (b : N.ComplexIdx → ℝ) (cx cy lam : ℝ),
+      (∀ c, N.classOf c = θ → 0 < b c) ∧
+      ∀ c, N.classOf c = θ →
+        cy * N.complexMonomialVector x c - cx * N.complexMonomialVector y c = lam * b c :=
+  N.deficientClass_kernel_relation hδ κ hsc hxss hyss

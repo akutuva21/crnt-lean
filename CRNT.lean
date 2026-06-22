@@ -70,6 +70,7 @@ import CRNT.Deficiency.DeficiencyOneDecomp
 import CRNT.Deficiency.DeficiencyOneLocalize
 import CRNT.Deficiency.LogMonomialRatio
 import CRNT.Deficiency.ComplexBalancedRatio
+import CRNT.Deficiency.DeficientClassKernel
 import CRNT.Deficiency.TerminalSLC
 import CRNT.Deficiency.KineticBlock
 import CRNT.Deficiency.SteadyStateKernel
