@@ -657,3 +657,14 @@ example {ι : Type} [Fintype ι] (M : Matrix ι ι ℝ) (hM : ∀ i j, 0 ≤ M i
     (hreach : ∀ j, ∃ ℓ, CRNT.supportReaches M ℓ j ∧ ∑ i, M i ℓ < 1)
     {v : ι → ℝ} (hv : M.mulVec v = v) : v = 0 :=
   CRNT.mulVec_fixed_eq_zero_of_substochastic M hM hcol hreach hv
+
+-- Feinberg's Lemma (the deficiency-one analytic linchpin): a product of power functions with
+-- exponents summing to zero, a 0 > 0, antitone shifts, and the partial-sum sign condition is
+-- strictly decreasing — so the equilibrium-parameter equation has at most one solution.
+example {k : ℕ} (hk : 1 ≤ k) {q a : ℕ → ℝ}
+    (hq : ∀ i j, 1 ≤ i → i ≤ j → j ≤ k → q j ≤ q i)
+    (ha0 : 0 < a 0) (hsum : ∑ i ∈ Finset.range (k + 1), a i = 0)
+    (hpartial : ∀ i, 1 ≤ i → i < k → q (i + 1) < q i → 0 ≤ ∑ j ∈ Finset.range (i + 1), a j) :
+    StrictAntiOn (fun β => ∏ i ∈ Finset.range k, (β + q (i + 1)) ^ a (i + 1))
+      (Set.Ioi (- q k)) :=
+  CRNT.powerProd_strictAntiOn hk hq ha0 hsum hpartial
