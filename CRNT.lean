@@ -115,6 +115,7 @@ import CRNT.Theorems.DeficiencyOne.Statement
 import CRNT.Theorems.DeficiencyOne.LogRatioUniqueness
 import CRNT.Theorems.DeficiencyOne.ToricReduction
 import CRNT.Theorems.DeficiencyOne.Uniqueness
+import CRNT.Theorems.DeficiencyOne.MultiClass
 
 -- Multistationarity: species-reaction graph, injectivity criteria
 import CRNT.Multistationarity.SRGraph

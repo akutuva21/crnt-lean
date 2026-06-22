@@ -770,3 +770,9 @@ example {ι : Type} [DecidableEq ι] (s U : Finset ι) (hdisj : Disjoint s U) (y
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.DeficiencyOneHypotheses)
     (hδ : N.DeficiencyOne) : N.DeficiencyOneUniqueness :=
   N.deficiencyOneUniqueness h hδ
+
+-- Multi-deficient-class generalization: uniqueness holds under Feinberg's structural hypotheses
+-- alone, dropping the single-deficient-class restriction (the total deficiency may exceed one).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.DeficiencyOneHypotheses) :
+    N.DeficiencyOneUniqueness :=
+  N.deficiencyOneUniqueness_multiClass h
