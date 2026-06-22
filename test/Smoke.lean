@@ -889,3 +889,7 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     (hLip : ∀ t s, -L * (γ t s) ≤ N.massActionVectorField κ (γ t) s ∨ 0 ≤ γ t s)
     (h0 : (γ 0).Nonnegative) : ∀ t, 0 ≤ t → (γ t).Nonnegative :=
   N.massAction_orbit_nonneg κ hderiv hLip h0
+
+-- Michaelis–Menten boundary layer: the enzyme fast subsystem is a bundled fast subsystem.
+example : ODE.FastSubsystem CRNT.MichaelisMenten.E :=
+  CRNT.MichaelisMenten.enzymeFastSubsystem 1 (by norm_num) 0

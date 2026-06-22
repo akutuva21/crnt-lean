@@ -74,6 +74,7 @@ import CRNT.Dynamics.Hurwitz
 import CRNT.Dynamics.QSSA
 import CRNT.Dynamics.Nagumo
 import CRNT.Dynamics.Tikhonov
+import CRNT.Dynamics.MichaelisMenten
 
 -- Deficiency
 import CRNT.Deficiency.Definition
