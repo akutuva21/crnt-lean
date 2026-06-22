@@ -65,6 +65,7 @@ import CRNT.Dynamics.MassActionField
 import CRNT.Dynamics.LaSalle
 import CRNT.Dynamics.FlowConstruction
 import CRNT.Dynamics.Monotone
+import CRNT.Dynamics.RouthHurwitz
 
 -- Deficiency
 import CRNT.Deficiency.Definition

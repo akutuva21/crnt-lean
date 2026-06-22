@@ -783,3 +783,10 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     (κ : Network.RateConstants N.fullyOpen) {x : Concentration S} (hx : x.Nonnegative)
     (hss : N.fullyOpen.IsMassActionSteadyState κ x) : x.Positive :=
   N.fullyOpen_steadyState_positive κ hx hss
+
+-- Routh–Hurwitz in degree two: a monic real quadratic is Hurwitz (both roots in the open left
+-- half-plane) iff both lower coefficients are positive.
+open Polynomial in
+example (a₁ a₀ : ℝ) :
+    IsHurwitz (X ^ 2 + C (a₁ : ℂ) * X + C (a₀ : ℂ)) ↔ 0 < a₁ ∧ 0 < a₀ :=
+  CRNT.hurwitz_quadratic_iff a₁ a₀
