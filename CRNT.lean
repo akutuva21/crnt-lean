@@ -58,6 +58,7 @@ import CRNT.Analysis.SpernerLatticeColoring
 import CRNT.Analysis.SpernerLatticeIncidence
 import CRNT.Analysis.SpernerLatticeIncidenceHV
 import CRNT.Analysis.SpernerLatticeCellColor
+import CRNT.Analysis.SpernerLatticeDoorGraph
 import CRNT.Analysis.SpernerGrid
 
 -- Kinetics: concentrations, mass action, and the general kinetics abstraction

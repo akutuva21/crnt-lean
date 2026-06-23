@@ -1079,6 +1079,12 @@ example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N) (a : ℕ
       (κ.color (CRNT.Analysis.SpernerLattice.mkPt (a + 1) 0 (by omega))) = false :=
   CRNT.Analysis.SpernerLattice.bottom_H_not_door κ a ha
 
+-- Door graph assembly: the cell adjacency (sharing a {0,1} door edge) is symmetric.
+example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
+    {t t' : CRNT.Analysis.SpernerLattice.Cell N} (h : CRNT.Analysis.SpernerLattice.cellDoor κ t t') :
+    CRNT.Analysis.SpernerLattice.cellDoor κ t' t :=
+  CRNT.Analysis.SpernerLattice.cellDoor_symm κ h
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
