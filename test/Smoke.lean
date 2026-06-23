@@ -1395,3 +1395,9 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] {f : E → E} {γ 
 example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} (h : N.WeaklyReversible) (r : N.R) :
     N.OnDirectedCycle r :=
   h.onDirectedCycle r
+
+-- GAC Route D (§4 surface, 1-D base case): a 1-D field that is nonnegative near P₀ admits a
+-- zero-separating surface (wired into the genuine-flow persistence layer).
+example {f : ℝ → ℝ} {P₀ : ℝ} (hP₀ : 0 < P₀) (hf : ∀ y, P₀ - y ≤ 1 → 0 ≤ f y) :
+    DifferentialInclusion.ZeroSeparatingSurfaceExists f P₀ :=
+  DifferentialInclusion.zeroSeparatingSurfaceExists_one_dim hP₀ hf
