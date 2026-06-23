@@ -1063,6 +1063,15 @@ example (N i j : ℕ) (hd : i + j + 2 ≤ N) (c : CRNT.Analysis.SpernerLattice.C
         c = Sum.inr ⟨(i, j), by rw [CRNT.Analysis.SpernerLattice.mem_downCarrier]; omega⟩) :=
   CRNT.Analysis.SpernerLattice.diag_incidence_interior N i j hd c
 
+-- Lattice-edge incidence (vertical, any N): a boundary vertical edge on the left side bounds exactly
+-- one triangle, `up(0,j)`.
+example (N j : ℕ) (hj : j + 1 ≤ N) (c : CRNT.Analysis.SpernerLattice.Cell N) :
+    (CRNT.Analysis.SpernerLattice.mkPt 0 j (by omega) ∈ CRNT.Analysis.SpernerLattice.triVerts c ∧
+      CRNT.Analysis.SpernerLattice.mkPt 0 (j + 1) (by omega) ∈
+        CRNT.Analysis.SpernerLattice.triVerts c) ↔
+      c = Sum.inl ⟨(0, j), by rw [CRNT.Analysis.SpernerLattice.mem_upCarrier]; omega⟩ :=
+  CRNT.Analysis.SpernerLattice.vert_incidence_boundary N j hj c
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
