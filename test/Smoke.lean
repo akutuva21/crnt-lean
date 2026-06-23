@@ -1037,6 +1037,12 @@ example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [PseudoMe
     ‖S.manifoldMap (y t) - S.manifoldMap (y t')‖ ≤ (L / S.rate) * ε * |t - t'| :=
   S.manifoldMap_slowDrift_le hL hlip hy t t'
 
+-- Ladder 3 (Fenichel/MM): the constructed Michaelis-Menten substrate curve is monotonically depleted
+-- (antitone) — a qualitative property of the reduced flow.
+example (Km Vmax : ℝ) (hKm : 0 < Km) (hV : 0 ≤ Vmax) (s₀ : ℝ) :
+    Antitone (CRNT.MichaelisMenten.mmSubstrate Km Vmax hKm hV s₀) :=
+  CRNT.MichaelisMenten.mmSubstrate_antitone Km Vmax hKm hV s₀
+
 -- Ladder 4 (CTMC): over a finite closed enabled region with positive mass, the normalized restricted
 -- stationary measure is an invariant probability measure for the embedded jump kernel.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)

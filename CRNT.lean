@@ -88,6 +88,7 @@ import CRNT.Dynamics.FenichelManifold
 import CRNT.Dynamics.FenichelSlowDrift
 import CRNT.Dynamics.MichaelisMentenManifold
 import CRNT.Dynamics.MichaelisMentenReduced
+import CRNT.Dynamics.MichaelisMentenDepletion
 
 -- Deficiency
 import CRNT.Deficiency.Definition
