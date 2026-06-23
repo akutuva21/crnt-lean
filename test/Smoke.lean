@@ -928,6 +928,13 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
     DifferentialInclusion.IsInclusionSolution F γ :=
   DifferentialInclusion.IsInclusionSolution.of_ode hderiv hsel
 
+-- GAC-frontier foundation F4: dissipation is strictly negative at a positive non-equilibrium.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    {x xstar : Concentration S} (hx : Concentration.Positive x) (hxs : Concentration.Positive xstar)
+    (hcb : N.IsComplexBalanced κ xstar) (hnotcb : ¬ N.IsComplexBalanced κ x) :
+    (∑ s, (Real.log (x s) - Real.log (xstar s)) * N.massActionVectorField κ x s) < 0 :=
+  N.dissipation_neg_of_not_complexBalanced κ hx hxs hcb hnotcb
+
 -- Anderson–Craciun–Kurtz: for a complex-balanced network the product-of-Poissons density
 -- satisfies the stochastic master-equation stationarity condition.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
