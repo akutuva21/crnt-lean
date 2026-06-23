@@ -55,6 +55,7 @@ import CRNT.Geometry.ConeFace
 import CRNT.Geometry.ZeroSeparatingCurve2D
 import CRNT.Geometry.ToricFieldPolar
 import CRNT.Geometry.ToricFieldPolarMulti
+import CRNT.Geometry.FaithfulCurve
 import CRNT.LinearAlgebra.LogSumInj
 import CRNT.Analysis.FixedPoint
 import CRNT.Analysis.Sperner

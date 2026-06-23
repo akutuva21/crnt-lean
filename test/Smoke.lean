@@ -1436,3 +1436,9 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {faces : Lis
     (hanti : AntitoneOn (fun t => Metric.infDist (γ t) (ZeroSeparatingCurve2D.polyRegion faces)) (Set.Ici 0))
     {t : ℝ} (ht : 0 ≤ t) : γ t ∈ ZeroSeparatingCurve2D.polyRegion faces :=
   ZeroSeparatingCurve2D.stays_in_polyRegion_of_support h0 hanti ht
+
+-- GAC Route D (§4.2 faithful curve, concrete witness): the diagonal direction is attracting for
+-- every cell of the cross-fan — a worked instance of the support-segment geometry.
+example (δ : ℝ) (X : FaithfulCurveExample.Plane) :
+    Faithful.AttractsTowardAll FaithfulCurveExample.crossFan δ X ZeroSeparatingCurve2D.diagNormal :=
+  FaithfulCurveExample.diagNormal_attractsTowardAll δ X
