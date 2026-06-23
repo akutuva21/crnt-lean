@@ -206,6 +206,7 @@ import CRNT.Dynamics.ToricEmbeddingWR
 import CRNT.Dynamics.ZeroSeparating
 import CRNT.Dynamics.Viability
 import CRNT.Dynamics.FirstExit
+import CRNT.Dynamics.SublevelInvariant
 import CRNT.Dynamics.EndotacticPermanence
 import CRNT.Dynamics.FacetRepulsion
 

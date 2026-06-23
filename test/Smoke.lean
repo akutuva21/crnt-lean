@@ -1361,3 +1361,9 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {ι : Type} 
 example {α : Type} [TopologicalSpace α] {γ : ℝ → α} {R : Set α} {s : ℝ}
     (hs0 : 0 ≤ s) (hsτ : s < exitTime γ R) : γ s ∈ R :=
   mem_of_lt_exitTime hs0 hsτ
+
+-- GAC Route D viability P1.2: a sublevel set is forward-invariant under a Lyapunov-descent condition.
+example {V : ℝ → ℝ} {c : ℝ} (hcont : ContinuousOn V (Set.Ici 0))
+    (hdiff : ∀ t > 0, DifferentiableAt ℝ V t) (hderiv : ∀ t > 0, deriv V t ≤ 0) (h0 : V 0 ≤ c) :
+    ∀ t ≥ 0, V t ≤ c :=
+  sublevel_invariant_of_deriv_nonpos hcont hdiff hderiv h0
