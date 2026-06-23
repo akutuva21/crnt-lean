@@ -1452,3 +1452,14 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {faces : Lis
     (h0 : γ 0 ∈ ZeroSeparatingCurve2D.polyRegion faces) {t : ℝ} (ht : 0 ≤ t) :
     γ t ∈ ZeroSeparatingCurve2D.polyRegion faces :=
   ZeroSeparatingCurve2D.polyRegion_invariant_of_support hγcont hγ hsupp h0 ht
+
+-- GAC Route D (§4.2 end-to-end concrete instance): a genuine trajectory of the cross-fan toric
+-- inclusion, started in the zero-separating region, stays distance 1 from the origin for all time —
+-- the full chain (support → invariance → separation → persistence) composed in a worked case.
+open ZeroSeparatingCurve2D FaithfulCurveExample FaithfulCurveExistence in
+example {δ : ℝ} {f : Plane → Plane} {γ : ℝ → Plane}
+    (hsel : ∀ x : Plane, f x ∈ toricField crossFan δ (logCoords x))
+    (hγcont : Continuous γ) (hγ : ∀ t > 0, HasDerivAt γ (f (γ t)) t)
+    (h0 : γ 0 ∈ polyRegion crossFaces) {t : ℝ} (ht : 0 ≤ t) :
+    (1 : ℝ) ≤ dist (γ t) 0 :=
+  crossFan_genuine_persistent hsel hγcont hγ h0 ht
