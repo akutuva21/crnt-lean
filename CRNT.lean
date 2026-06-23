@@ -202,6 +202,7 @@ import CRNT.Dynamics.ButlerMcGehee
 import CRNT.Dynamics.ToricInclusion
 import CRNT.Dynamics.ToricEmbedding
 import CRNT.Dynamics.EndotacticPermanence
+import CRNT.Dynamics.FacetRepulsion
 
 -- Stochastic CRN: Anderson–Craciun–Kurtz product-form objects
 import CRNT.Stochastic.ProductForm

@@ -1321,3 +1321,10 @@ example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} (h : N.StronglyEn
     (w : S → ℝ) (hncon : ∃ r₁ r₂ : N.R, N.wValue w r₁ ≠ N.wValue w r₂) :
     ∃ r : N.R, N.IsMaxSource w r ∧ N.wRate w r < 0 :=
   Network.stronglyEndotactic_strict_dissipation_direction h w hncon
+
+-- GAC Route A: a non-siphon codimension-1 facet repels (strictly positive inflow at the empty species).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    {sstar : S} (hns : ¬ N.IsSiphon ({sstar} : Finset S)) {w : Concentration S}
+    (hwnn : Concentration.Nonnegative w) (hzero : ∀ s, w s = 0 ↔ s = sstar) :
+    0 < N.massActionVectorField κ w sstar :=
+  N.massActionVectorField_pos_on_facet_of_not_isSiphon κ hns hwnn hzero
