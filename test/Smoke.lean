@@ -1473,3 +1473,15 @@ example {δ : ℝ} {x₀ : Plane} {f : Plane → Plane} {γ : ℝ → Plane}
     (h0 : γ 0 ∈ polyRegion twoWallFaces) {t : ℝ} (ht : 0 ≤ t) :
     (1 : ℝ) ≤ dist (γ t) 0 :=
   twoWall_genuine_persistent hsel hγcont hγ h0 ht
+
+-- GAC Route D (§4.2 honest invariance): boundary-local strict subtangency — checked only at active
+-- faces at the curve's actual position — forces the polygonal region to be forward-invariant, so
+-- distinct/conflicting segment normals are handled without any global all-faces condition.
+open scoped InnerProductSpace in
+open ZeroSeparatingCurve2D in
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {faces : List (E × ℝ)} {γ : ℝ → E}
+    {f : E → E} (hγcont : Continuous γ) (hγ : ∀ t > 0, HasDerivAt γ (f (γ t)) t)
+    (hsupp : IsStrictSupportField f faces) (hstart : ∀ nf ∈ faces, nf.2 < ⟪nf.1, γ 0⟫_ℝ)
+    {t : ℝ} (ht : 0 ≤ t) :
+    γ t ∈ polyRegion faces :=
+  polyRegion_invariant_of_strictSupport hγcont hγ hsupp hstart ht

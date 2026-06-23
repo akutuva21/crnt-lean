@@ -220,6 +220,7 @@ import CRNT.Dynamics.SublevelNagumo
 import CRNT.Dynamics.ClosedSetNagumo
 import CRNT.Dynamics.SupportDiniBridge
 import CRNT.Dynamics.PolyRegionInvariant
+import CRNT.Dynamics.PolyRegionStrictInvariant
 import CRNT.Dynamics.ThmBGenuine
 import CRNT.Dynamics.EndotacticPermanence
 import CRNT.Dynamics.FacetRepulsion
