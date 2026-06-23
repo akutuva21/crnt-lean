@@ -1428,3 +1428,11 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpa
     {a : ℝ} {faces : List (E × ℝ)} {v : E} (hv : v ∈ toricField F δ X) :
     ZeroSeparatingCurve2D.IsSupportFace (fun _ => v) faces n a :=
   isSupportFace_of_mem_forall h hv
+
+-- GAC Route D (§4.2 Dini bridge): if distance to the convex polygonal region is nonincreasing,
+-- the curve stays in it (the support ⇒ invariance half, for the convex region).
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {faces : List (E × ℝ)} {γ : ℝ → E}
+    (h0 : γ 0 ∈ ZeroSeparatingCurve2D.polyRegion faces)
+    (hanti : AntitoneOn (fun t => Metric.infDist (γ t) (ZeroSeparatingCurve2D.polyRegion faces)) (Set.Ici 0))
+    {t : ℝ} (ht : 0 ≤ t) : γ t ∈ ZeroSeparatingCurve2D.polyRegion faces :=
+  ZeroSeparatingCurve2D.stays_in_polyRegion_of_support h0 hanti ht

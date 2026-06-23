@@ -215,6 +215,7 @@ import CRNT.Dynamics.FirstExit
 import CRNT.Dynamics.SublevelInvariant
 import CRNT.Dynamics.SublevelNagumo
 import CRNT.Dynamics.ClosedSetNagumo
+import CRNT.Dynamics.SupportDiniBridge
 import CRNT.Dynamics.ThmBGenuine
 import CRNT.Dynamics.EndotacticPermanence
 import CRNT.Dynamics.FacetRepulsion
