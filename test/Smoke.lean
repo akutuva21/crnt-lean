@@ -1300,3 +1300,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     {x : Concentration S} (hx : Concentration.Nonnegative x) :
     N.massActionVectorField κ x ∈ N.reactionCone :=
   N.massActionVectorField_mem_reactionCone κ hx
+
+-- GAC Route D (Thm A kernel): the cyclic monomial-ordered velocity lies in the cone of
+-- consecutive differences (Abel summation; correct hypothesis is monotonicity of the coefficients).
+example {S : Type} [DecidableEq S] [Fintype S] (u : ℕ → S → ℝ) (a : ℕ → ℝ) (n : ℕ)
+    (hcyc : u n = u 0) (hmono : Monotone a) :
+    (∑ i ∈ Finset.range n, a i • (u (i + 1) - u i)) ∈
+      generatedCone (fun i : Fin (n - 1) => u 0 - u (i + 1)) :=
+  cycle_velocity_mem_generatedCone u a n hcyc hmono

@@ -199,6 +199,7 @@ import CRNT.Dynamics.DifferentialInclusion
 import CRNT.Dynamics.DissipationBound
 import CRNT.Dynamics.ButlerMcGehee
 import CRNT.Dynamics.ToricInclusion
+import CRNT.Dynamics.ToricEmbedding
 
 -- Stochastic CRN: Anderson–Craciun–Kurtz product-form objects
 import CRNT.Stochastic.ProductForm
