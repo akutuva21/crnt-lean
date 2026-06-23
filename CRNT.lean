@@ -182,6 +182,7 @@ import CRNT.Dynamics.PersistenceTheorem
 import CRNT.Dynamics.PersistenceConfined
 import CRNT.Dynamics.ConfinedInvariance
 import CRNT.Dynamics.BoundaryDescent
+import CRNT.Dynamics.StrictInflow
 import CRNT.Dynamics.NegativeInvariance
 import CRNT.Dynamics.SingleLinkageGAC
 

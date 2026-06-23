@@ -833,6 +833,13 @@ example {α : Type} [TopologicalSpace α] [T2Space α] (ϕ : Flow ℝ≥0 α) (x
     ∃ w' ∈ omegaLimit atTop ϕ {x₀}, ϕ t w' = w :=
   CRNT.omegaLimit_negInvariant ϕ x₀ hK hmaps t hw
 
+-- Strict inflow at a non-siphon zero set: if the zero set of a nonnegative concentration is not
+-- a siphon, the mass-action field is strictly positive at some empty species.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    {w : Concentration S} (hwnn : w.Nonnegative) {P : Finset S} (hP : ∀ s, s ∈ P ↔ w s = 0)
+    (hns : ¬ N.IsSiphon P) : ∃ s ∈ P, 0 < N.massActionVectorField κ w s :=
+  N.massActionVectorField_pos_of_not_isSiphon κ hwnn hP hns
+
 -- Anderson–Craciun–Kurtz: for a complex-balanced network the product-of-Poissons density
 -- satisfies the stochastic master-equation stationarity condition.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
