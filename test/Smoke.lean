@@ -1381,3 +1381,12 @@ example {α : Type} [PseudoMetricSpace α] {γ : ℝ → α} {R : Set α} (hR : 
     (h0 : γ 0 ∈ R) (hanti : AntitoneOn (fun t => Metric.infDist (γ t) R) (Set.Ici 0))
     {t : ℝ} (ht : 0 ≤ t) : γ t ∈ R :=
   invariant_of_infDist_antitoneOn hR hne h0 hanti ht
+
+-- GAC Route D viability P1.5 (Thm B dim≥2 assembly): under neighborhood descent, the genuine flow
+-- stays in the sublevel zero-separating region for all forward time.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] {f : E → E} {γ : ℝ → E} {g : E → ℝ}
+    {g' : E → (E →L[ℝ] ℝ)} {c δ : ℝ} (hgc : Continuous g) (hg : ∀ y, HasFDerivAt g (g' y) y)
+    (hγcont : Continuous γ) (hγderiv : ∀ t, 0 ≤ t → HasDerivAt γ (f (γ t)) t) (hδ : 0 < δ)
+    (hdescent : ∀ y, c - δ ≤ g y → g y ≤ c + δ → g' y (f y) ≤ 0) (h0 : g (γ 0) ≤ c) :
+    ∀ t, 0 ≤ t → g (γ t) ≤ c :=
+  DifferentialInclusion.genuine_sublevel_invariant hgc hg hγcont hγderiv hδ hdescent h0
