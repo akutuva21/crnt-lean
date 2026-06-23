@@ -916,6 +916,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
   N.omegaLimit_eq_singleton_of_mem_positive hwr κ hxs hcb hx0compat hγ0 hϕγ hgenω hωnn hωaff hωc
     hposorbit hex
 
+-- GAC-frontier foundation F1: the maximal invariant subset of a set is invariant.
+example {α : Type} [TopologicalSpace α] (ϕ : Flow ℝ≥0 α) (N : Set α) :
+    IsInvariant ϕ (maximalInvariantSubset ϕ N) :=
+  isInvariant_maximalInvariantSubset ϕ N
+
 -- Anderson–Craciun–Kurtz: for a complex-balanced network the product-of-Poissons density
 -- satisfies the stochastic master-equation stationarity condition.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
