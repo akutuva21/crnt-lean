@@ -1281,3 +1281,10 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N) :
     N.ClosedEnabledRegion κ (N.maximalClosedEnabledRegion κ) :=
   N.closedEnabledRegion_maximal κ
+
+-- GAC Route A: an isolated invariant set cannot trap an ω-limit set without containing it
+-- (Butler–McGehee escape core) — here the ω-limit set is invariant.
+open Filter in
+example {α : Type} [TopologicalSpace α] (ϕ : Flow ℝ≥0 α) (x₀ : α) :
+    IsInvariant ϕ (omegaLimit atTop ϕ {x₀}) :=
+  omegaLimit_isInvariant_two_sided ϕ x₀

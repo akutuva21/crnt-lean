@@ -196,6 +196,7 @@ import CRNT.Dynamics.SingleLinkageGAC
 import CRNT.Dynamics.IsolatedInvariant
 import CRNT.Dynamics.DifferentialInclusion
 import CRNT.Dynamics.DissipationBound
+import CRNT.Dynamics.ButlerMcGehee
 
 -- Stochastic CRN: Anderson–Craciun–Kurtz product-form objects
 import CRNT.Stochastic.ProductForm
