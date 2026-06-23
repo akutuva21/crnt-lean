@@ -1493,3 +1493,14 @@ open scoped InnerProductSpace in
 open FaithfulCurve2D in
 example (θ₁ θ₂ : ℝ) : ⟪dir θ₁, dir θ₂⟫_ℝ = Real.cos (θ₁ - θ₂) :=
   inner_dir θ₁ θ₂
+
+-- GAC Route D (§4.2 existence, angular chaining): for fan walls fitting in a sector of width < π
+-- with one positive-offset wall, the constructed angular region has a nonempty strict interior AND
+-- excludes a ball about 0 — both halves of "zero-separating" built outright (no abstract existence).
+open scoped InnerProductSpace in
+open FaithfulCurve2D ZeroSeparatingCurve2D in
+example (walls : List (ℝ × ℝ)) {φ θ₀ a : ℝ} (hsec : ∀ w ∈ walls, |w.1 - φ| < Real.pi / 2)
+    (hmem : (θ₀, a) ∈ walls) (hpos : 0 < a) :
+    (∃ x : Plane, ∀ nf ∈ facesOfAngles walls, nf.2 < ⟪nf.1, x⟫_ℝ) ∧
+      polyRegion (facesOfAngles walls) ⊆ (Metric.ball (0 : Plane) a)ᶜ :=
+  exists_faithful_separating_region walls hsec hmem hpos

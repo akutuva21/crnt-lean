@@ -86,6 +86,101 @@ curve's vertices relative to each face's bounding line. -/
 theorem inner_dir_smul (θ φ ρ : ℝ) : ⟪dir θ, ρ • dir φ⟫_ℝ = ρ * Real.cos (θ - φ) := by
   rw [inner_smul_right, inner_dir]
 
+/-! ## Angular chaining: a single apex direction satisfies all monotone constraints -/
+
+/-- Every finite list of reals has an upper bound. -/
+theorem exists_ub_list (L : List ℝ) : ∃ M : ℝ, ∀ x ∈ L, x ≤ M := by
+  induction L with
+  | nil => exact ⟨0, by simp⟩
+  | cons hd tl ih =>
+      obtain ⟨M, hM⟩ := ih
+      refine ⟨max hd M, fun x hx => ?_⟩
+      rcases List.mem_cons.mp hx with rfl | h
+      · exact le_max_left _ _
+      · exact le_trans (hM x h) (le_max_right _ _)
+
+/-- The faithful curve's face list from a list of `(wall angle, offset)` pairs: one oriented
+half-plane `(dir angle, offset)` per wall. The region is `polyRegion (facesOfAngles walls)`. -/
+noncomputable def facesOfAngles (walls : List (ℝ × ℝ)) : List (Plane × ℝ) :=
+  walls.map (fun w => (dir w.1, w.2))
+
+/-- **Strict feasibility — the angular-chaining engine.** If every wall angle lies within `π/2` of
+an apex angle `φ` (so the walls fit in a sector of width `< π`), then the point `ρ • dir φ` far out
+along the apex direction lies strictly inside *every* face half-plane simultaneously. One apex
+direction satisfies all the monotone-normal constraints at once — the precise geometric content of
+Craciun's "the slopes chain so a single curve realizes them all."
+
+The sector hypothesis `|w.1 − φ| < π/2` is exactly the condition under which the chaining closes; an
+arbitrary 2-D fan's curve-relevant walls satisfying it (after the 3rd-quadrant orientation) is the
+separate claim Craciun's figure asserts. Within a sector of width `< π` every cosine `cos (w.1 − φ)`
+is strictly positive, so a large enough radius clears every offset. -/
+theorem exists_strict_interior (walls : List (ℝ × ℝ)) {φ : ℝ}
+    (hsector : ∀ w ∈ walls, |w.1 - φ| < π / 2) :
+    ∃ ρ : ℝ, ∀ nf ∈ facesOfAngles walls, nf.2 < ⟪nf.1, ρ • dir φ⟫_ℝ := by
+  obtain ⟨M, hM⟩ := exists_ub_list (walls.map (fun w => w.2 / Real.cos (w.1 - φ)))
+  refine ⟨M + 1, fun nf hnf => ?_⟩
+  rw [facesOfAngles, List.mem_map] at hnf
+  obtain ⟨w, hw, rfl⟩ := hnf
+  have hcos : 0 < Real.cos (w.1 - φ) := by
+    rw [← Real.cos_abs]
+    exact Real.cos_pos_of_mem_Ioo ⟨by linarith [abs_nonneg (w.1 - φ), Real.pi_pos], hsector w hw⟩
+  have hbnd : w.2 / Real.cos (w.1 - φ) ≤ M := hM _ (List.mem_map.mpr ⟨w, hw, rfl⟩)
+  rw [div_le_iff₀ hcos] at hbnd
+  have hexpand : (M + 1) * Real.cos (w.1 - φ) = M * Real.cos (w.1 - φ) + Real.cos (w.1 - φ) := by
+    ring
+  rw [inner_dir_smul]
+  linarith [hbnd, hcos, hexpand]
+
+/-- **The far side is nonempty (strict interior exists).** Under the sector hypothesis, the region
+`polyRegion (facesOfAngles walls)` contains the apex point in its strict interior, so it is
+nonempty. This is the `hstart` data consumed by `polyRegion_invariant_of_strictSupport`. -/
+theorem exists_mem_polyRegion (walls : List (ℝ × ℝ)) {φ : ℝ}
+    (hsector : ∀ w ∈ walls, |w.1 - φ| < π / 2) :
+    ∃ x : Plane, ∀ nf ∈ facesOfAngles walls, nf.2 < ⟪nf.1, x⟫_ℝ := by
+  obtain ⟨ρ, hρ⟩ := exists_strict_interior walls hsector
+  exact ⟨ρ • dir φ, hρ⟩
+
+/-! ## Assembly: the constructed zero-separating region and its persistence -/
+
+/-- **The angular region separates the origin.** Each face normal `dir w.1` is a unit vector, so a
+wall `(θ₀, a)` with offset `a ≥ r > 0` makes the whole region miss the open `r`-ball about `0` — the
+separation is automatic from the angular construction (no extra hypothesis). -/
+theorem facesOfAngles_subset_compl_ball {walls : List (ℝ × ℝ)} {θ₀ a r : ℝ}
+    (hmem : (θ₀, a) ∈ walls) (har : r ≤ a) :
+    polyRegion (facesOfAngles walls) ⊆ (Metric.ball (0 : Plane) r)ᶜ :=
+  polyRegion_subset_compl_ball (List.mem_map.mpr ⟨(θ₀, a), hmem, rfl⟩) (norm_dir θ₀) har
+
+/-- **A constructed zero-separating region.** Under the sector hypothesis with one positive-offset
+wall `(θ₀, a)`, the angular region `polyRegion (facesOfAngles walls)` has a nonempty strict interior
+*and* excludes the open `a`-ball about `0`. Both halves of "zero-separating" are constructed outright
+from the angular chaining — no abstract existence assumed. -/
+theorem exists_faithful_separating_region (walls : List (ℝ × ℝ)) {φ θ₀ a : ℝ}
+    (hsector : ∀ w ∈ walls, |w.1 - φ| < π / 2) (hmem : (θ₀, a) ∈ walls) (_hpos : 0 < a) :
+    (∃ x : Plane, ∀ nf ∈ facesOfAngles walls, nf.2 < ⟪nf.1, x⟫_ℝ) ∧
+      polyRegion (facesOfAngles walls) ⊆ (Metric.ball (0 : Plane) a)ᶜ :=
+  ⟨exists_mem_polyRegion walls hsector, facesOfAngles_subset_compl_ball hmem le_rfl⟩
+
+/-- **Persistence on the constructed angular region.** A genuine curve `γ` solving `ẋ = f(γ)` whose
+field is strictly subtangent (boundary-locally) to the angular faces, started strictly inside the
+region, keeps a hard distance `r` from the origin for all forward time — given a separating wall
+`(θ₀, a)` with `a ≥ r`. This composes the angular face structure (unit normals, automatic
+separation) with the honest boundary-local invariance `polyRegion_invariant_of_strictSupport`.
+
+The remaining input `hsupp` — that the field strictly attracts toward the region across each
+angular face — is the fan-geometry connection (the per-wall attracting-direction analysis), the one
+piece still supplied as a hypothesis; everything else (the separating region, the interior start via
+`exists_strict_interior`) is constructed from the angular chaining. -/
+theorem faithful_region_persistent (walls : List (ℝ × ℝ)) {θ₀ a r : ℝ}
+    (hmem : (θ₀, a) ∈ walls) (har : r ≤ a)
+    {f : Plane → Plane} {γ : ℝ → Plane}
+    (hsupp : IsStrictSupportField f (facesOfAngles walls))
+    (hγcont : Continuous γ) (hγ : ∀ t > 0, HasDerivAt γ (f (γ t)) t)
+    (hstart : ∀ nf ∈ facesOfAngles walls, nf.2 < ⟪nf.1, γ 0⟫_ℝ)
+    {t : ℝ} (ht : 0 ≤ t) :
+    r ≤ dist (γ t) 0 :=
+  stays_away_from_zero_of_strictSupport
+    (List.mem_map.mpr ⟨(θ₀, a), hmem, rfl⟩) (norm_dir θ₀) har hγcont hγ hsupp hstart ht
+
 end FaithfulCurve2D
 
 end CRNT
