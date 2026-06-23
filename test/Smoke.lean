@@ -1023,6 +1023,19 @@ example : ∃ t : CRNT.Analysis.SpernerN2.Cell,
 example : CRNT.Analysis.SpernerN2.multiDoorIncidence.IsRainbowCell CRNT.Analysis.SpernerN2.Cell.dn := by
   decide
 
+-- Geometric derivation: the N=2 door graph built from vertices+coloring (not a hand-listed edge set)
+-- still yields a rainbow triangle, with the lattice-edge incidence lemma proved from `triVerts`.
+example : ∃ t : CRNT.Analysis.SpernerN2Geo.Cell,
+    CRNT.Analysis.SpernerN2Geo.multiDoorIncidence.IsRainbowCell t :=
+  CRNT.Analysis.SpernerN2Geo.exists_rainbow_cell
+
+-- The lattice-edge incidence lemma: the interior door edge `mAB–mAC` borders exactly two triangles.
+example (t : CRNT.Analysis.SpernerN2Geo.Cell) :
+    (CRNT.Analysis.SpernerN2Geo.Vertex.mAB ∈ CRNT.Analysis.SpernerN2Geo.triVerts t ∧
+      CRNT.Analysis.SpernerN2Geo.Vertex.mAC ∈ CRNT.Analysis.SpernerN2Geo.triVerts t) ↔
+      (t = .up1 ∨ t = .dn) :=
+  CRNT.Analysis.SpernerN2Geo.interior_doorEdge_borders_two t
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :

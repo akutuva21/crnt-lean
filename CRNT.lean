@@ -52,6 +52,7 @@ import CRNT.Analysis.Sperner2DMulti
 import CRNT.Analysis.SpernerTriangulation
 import CRNT.Analysis.SpernerMultiIncidence
 import CRNT.Analysis.SpernerGridMulti
+import CRNT.Analysis.SpernerGridGeometric
 import CRNT.Analysis.SpernerGrid
 
 -- Kinetics: concentrations, mass action, and the general kinetics abstraction
