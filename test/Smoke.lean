@@ -1356,3 +1356,8 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {ι : Type} 
     {s : Set E} (v : ι → E) (hv : ∀ j, v j ∈ polarCone s) :
     (∑ j, v j) ∈ polarCone s :=
   sum_univ_mem_polarCone v hv
+
+-- GAC Route D viability P1.1: before the first exit time, a curve stays in the closed set.
+example {α : Type} [TopologicalSpace α] {γ : ℝ → α} {R : Set α} {s : ℝ}
+    (hs0 : 0 ≤ s) (hsτ : s < exitTime γ R) : γ s ∈ R :=
+  mem_of_lt_exitTime hs0 hsτ
