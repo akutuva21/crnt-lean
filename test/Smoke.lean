@@ -806,6 +806,24 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
       omegaLimit atTop ϕ {x₀} = {xstar} :=
   N.gac_of_local_confinement hwr κ hxs hcb hx0 hx0compat hloc
 
+-- Single-linkage-class GAC, conditional on single-linkage persistence: the conjecture for a
+-- single-linkage network reduces to the named residue `SingleLinkageClass → PersistentFrom`.
+open Filter in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (hslc : N.SingleLinkageClass) (κ : N.RateConstants) {xstar x₀ : Concentration S}
+    (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar) (hx0 : x₀.Positive)
+    (hx0compat : N.StoichCompatible x₀ xstar)
+    (hpers : N.SingleLinkageClass → N.PersistentFrom κ x₀) :
+    ∃ (ϕ : Flow ℝ≥0 (Concentration S)) (γ : Concentration S → ℝ → Concentration S),
+      (∀ x, γ x 0 = x) ∧ (∀ x (t : ℝ≥0), ϕ t x = γ x t) ∧
+      (∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t) ∧
+      omegaLimit atTop ϕ {x₀} = {xstar} :=
+  N.singleLinkageClass_gac hwr hslc κ hxs hcb hx0 hx0compat hpers
+
+-- The reversible pair `A ⇌ B` has a single linkage class.
+example : Examples.ReversiblePair.N.SingleLinkageClass :=
+  Examples.ReversiblePair.numLinkageClasses_eq
+
 -- Anderson–Craciun–Kurtz: for a complex-balanced network the product-of-Poissons density
 -- satisfies the stochastic master-equation stationarity condition.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
