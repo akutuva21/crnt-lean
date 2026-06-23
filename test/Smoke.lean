@@ -935,6 +935,15 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     (∑ s, (Real.log (x s) - Real.log (xstar s)) * N.massActionVectorField κ x s) < 0 :=
   N.dissipation_neg_of_not_complexBalanced κ hx hxs hcb hnotcb
 
+-- GAC-frontier foundation F2: reaction vectors lie in the reaction cone; Newton polytope is convex.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (r : N.R) :
+    N.reactionVector r ∈ N.reactionCone :=
+  N.reactionVector_mem_reactionCone r
+
+example {S : Type} [DecidableEq S] [Fintype S] (Y : Finset (Complex S)) :
+    Convex ℝ (newtonPolytope Y) :=
+  newtonPolytope_convex Y
+
 -- Anderson–Craciun–Kurtz: for a complex-balanced network the product-of-Poissons density
 -- satisfies the stochastic master-equation stationarity condition.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
