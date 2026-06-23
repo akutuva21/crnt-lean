@@ -1072,6 +1072,13 @@ example (N j : ℕ) (hj : j + 1 ≤ N) (c : CRNT.Analysis.SpernerLattice.Cell N)
       c = Sum.inl ⟨(0, j), by rw [CRNT.Analysis.SpernerLattice.mem_upCarrier]; omega⟩ :=
   CRNT.Analysis.SpernerLattice.vert_incidence_boundary N j hj c
 
+-- Door confinement (any N): a horizontal edge on the bottom side is never a {0,1} door, so boundary
+-- doors are confined to the k=0 side (the setup that collapses the door graph's outer vertices).
+example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N) (a : ℕ) (ha : a + 1 ≤ N) :
+    CRNT.Analysis.Sperner2D.isDoor (κ.color (CRNT.Analysis.SpernerLattice.mkPt a 0 (by omega)))
+      (κ.color (CRNT.Analysis.SpernerLattice.mkPt (a + 1) 0 (by omega))) = false :=
+  CRNT.Analysis.SpernerLattice.bottom_H_not_door κ a ha
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
