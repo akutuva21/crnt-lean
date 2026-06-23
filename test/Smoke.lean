@@ -1005,3 +1005,9 @@ example {Cell Outer : Type*} [Fintype Cell] [Fintype Outer]
     (houter : Odd #{o : Outer | Odd (G.degree (Sum.inr o))}) :
     ∃ x : Cell, rainbow x :=
   CRNT.Analysis.Sperner2D.multiDoorGraph_exists_rainbow G rainbow hcell houter
+
+-- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
+-- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
+    (∀ r : N.R, ∑ s, v s * N.reactionVector r s = 0) ↔ v ∈ CRNT.orthSum N.stoichSubspace :=
+  N.conservationLaw_iff_mem_orthSum v
