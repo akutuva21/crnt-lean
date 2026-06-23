@@ -1036,6 +1036,12 @@ example (t : CRNT.Analysis.SpernerN2Geo.Cell) :
       (t = .up1 ∨ t = .dn) :=
   CRNT.Analysis.SpernerN2Geo.interior_doorEdge_borders_two t
 
+-- Arbitrary-N parametric subdivision (geometry layer): every triangle of the N-subdivision has
+-- exactly three vertices — the basis for its three edges and door count.
+example {N : ℕ} (c : CRNT.Analysis.SpernerLattice.Cell N) :
+    (CRNT.Analysis.SpernerLattice.triVerts c).card = 3 :=
+  CRNT.Analysis.SpernerLattice.triVerts_card c
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
