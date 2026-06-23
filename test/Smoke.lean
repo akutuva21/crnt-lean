@@ -1028,6 +1028,16 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
     N.deficiency = N.computeDeficiency :=
   N.deficiency_eq_computeDeficiency
 
+-- Per-linkage-class deficiency in exact computable form: `δ_θ = n_θ − 1 − computeRank (class matrix)`.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (q : Quotient N.linkedSetoid) :
+    N.linkageDeficiency q = N.computeLinkageDeficiency q :=
+  N.linkageDeficiency_eq_computeLinkageDeficiency q
+
+-- The per-class deficiency-one test `δ_θ ≤ 1` carries a total `Decidable` instance.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (q : Quotient N.linkedSetoid) :
+    Decidable (N.linkageDeficiency q ≤ 1) :=
+  N.decidableLinkageDeficiency_le_one q
+
 -- Nagumo-based persistence: a genuine mass-action orbit with an inward dissipativity bound stays
 -- in the closed nonnegative orthant for all forward time.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants) {L : ℝ}
