@@ -47,6 +47,7 @@ import CRNT.LinearAlgebra.PowerProductMonoFinset
 
 -- Convex geometry: generated cones, dual cones, Newton polytopes (endotactic / toric-inclusion routes)
 import CRNT.Geometry.PolyhedralFan
+import CRNT.Geometry.Endotactic
 import CRNT.LinearAlgebra.LogSumInj
 import CRNT.Analysis.FixedPoint
 import CRNT.Analysis.Sperner

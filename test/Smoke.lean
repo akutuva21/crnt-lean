@@ -1288,3 +1288,8 @@ open Filter in
 example {α : Type} [TopologicalSpace α] (ϕ : Flow ℝ≥0 α) (x₀ : α) :
     IsInvariant ϕ (omegaLimit atTop ϕ {x₀}) :=
   omegaLimit_isInvariant_two_sided ϕ x₀
+
+-- GAC Route C: strongly endotactic networks are endotactic.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.StronglyEndotactic) :
+    N.Endotactic :=
+  h.endotactic
