@@ -4,6 +4,9 @@ import CRNT.Geometry.ToricFan
 /-!
 # Exposed faces of convex cones and the polyhedral-fan axioms
 
+The polyhedral fan organizing a toric differential inclusion is the object underlying
+Craciun, _Toric differential inclusions and a proof of the global attractor conjecture_.
+
 An *exposed face* of a convex cone `C` in a real inner-product space `E`, cut out by a
 functional direction `a : E`, is the intersection of `C` with the hyperplane on which
 `⟪a, ·⟫` vanishes:
@@ -22,10 +25,11 @@ lattice.
 The full polyhedral-fan axioms — faces closed under taking faces in the *minimal/non-
 exposed* sense, pairwise intersections being a *common* face, and the cones covering the
 ambient space — rest on convex-geometry machinery (the general face lattice, support
-theory, and a covering argument) absent from Mathlib. They are named here as the residue
+theory, and a covering argument) absent from Mathlib. They are bundled here as the
 predicate `IsPolyhedralFan` over `Fan E`, with the exposed-face notion supplying the
 face-membership clause; the covering and intersection-is-a-common-face clauses are stated
-but their substantive theory is not formalized.
+as hypotheses, their substantive convex-geometry theory taken as given rather than
+constructed here.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.PolyhedralFan`,
 `CRNT.Geometry.ToricFan`.
@@ -155,9 +159,9 @@ when (i) every exposed face of a cone of the fan is realized by some cone of the
 (ii) the intersection of any two cones of the fan is, as a set, a cone of the fan (the
 *common-face* condition specialized to set equality), and (iii) the cones cover the whole
 space. The substantive convex-geometry content of (ii)/(iii) — that the shared cone is in
-fact a face of *each* side, and the covering argument — is the residue not formalized
-here; this predicate names the obligations and bundles the exposed-face clause that the
-preceding theory does support. -/
+fact a face of *each* side, and the covering argument — is taken as a hypothesis rather
+than constructed here; this predicate bundles those obligations together with the
+exposed-face clause the preceding theory does support. -/
 structure IsPolyhedralFan (F : Fan E) : Prop where
   /-- Closure under exposed faces: an exposed face of a fan cone is a fan cone. -/
   faces_mem : ∀ C ∈ F, ∀ D : ProperCone ℝ E, IsExposedFaceOf D C → D ∈ F
@@ -169,8 +173,8 @@ structure IsPolyhedralFan (F : Fan E) : Prop where
 
 /-- The empty fan trivially satisfies the face-closure and intersection clauses (both
 quantify over an empty cone family); only the covering clause carries content, so a fan
-covering `E` with no cones cannot exist unless `E` is empty. This records that the two
-combinatorial clauses are vacuously met by the empty family. -/
+covering `E` with no cones cannot exist unless `E` is empty. The two combinatorial clauses
+are vacuously met by the empty family. -/
 theorem isPolyhedralFan_empty_clauses :
     (∀ C ∈ (∅ : Fan E), ∀ D : ProperCone ℝ E, IsExposedFaceOf D C → D ∈ (∅ : Fan E)) ∧
     (∀ C ∈ (∅ : Fan E), ∀ D ∈ (∅ : Fan E), ∃ G ∈ (∅ : Fan E),

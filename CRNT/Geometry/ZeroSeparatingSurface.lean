@@ -3,33 +3,36 @@ import CRNT.Dynamics.ZeroSeparating
 import CRNT.Geometry.ToricFan
 
 /-!
-# The zero-separating-surface construction interface (Craciun §4)
+# The zero-separating-surface construction interface
 
-This module is the clean interface to the **zero-separating-surface construction** of Craciun's
-Theorem B (arXiv:1501.02860v2 §4) — the contested geometric crux of the Global Attractor
-Conjecture persistence argument. `ThmBGenuine.lean` already proves the *consequence*: IF a
-function `g` admits neighborhood-descent of the field on a band around a sublevel value `c`, and
-the sublevel set `{g ≤ c}` is separated from a ball about the origin, THEN the genuine flow stays
-in `{g ≤ c}` and a fixed distance from `0`. The job of §4 is to *construct* such a `g` out of a
-toric differential inclusion, by induction on dimension. This module packages §4's deliverable as
-a predicate and wires it to `ThmBGenuine`, lands the one-dimensional base case sorry-free, and
-states the induction step precisely without proving the simplicial machinery.
+A *zero-separating surface* is a `C¹` function `g : E → ℝ` whose sublevel set `{g ≤ c}` is
+forward-invariant for a toric differential inclusion and is separated from a ball about the
+origin, so a genuine flow starting in it stays a fixed distance from extinction. Such a surface
+is the geometric heart of the persistence argument in Craciun, _Toric differential inclusions
+and a proof of the global attractor conjecture_.
+
+`ThmBGenuine.lean` proves the *consequence*: if a function `g` admits neighborhood-descent of the
+field on a band around a sublevel value `c`, and the sublevel set `{g ≤ c}` is separated from a
+ball about the origin, then the genuine flow stays in `{g ≤ c}` and a fixed distance from `0`.
+The remaining task is to *construct* such a `g` out of a toric differential inclusion, by
+induction on dimension. This module packages the surface as a predicate and wires it to
+`ThmBGenuine`, proves the one-dimensional base case sorry-free, and states the induction step
+precisely. The simplicial gluing that would discharge the induction step is taken as a hypothesis,
+not constructed here.
 
 ## What this module formalizes
 
-* `ZeroSeparatingSurfaceExists f x₀`: the **surface-existence interface.** For a genuine vector
+* `ZeroSeparatingSurfaceExists f x₀`: the **surface-existence predicate.** For a genuine vector
   field `f : E → E` (intended to be a selection of a toric inclusion field) and a start `x₀`,
   there exist `g : E → ℝ`, a derivative field `g'`, and reals `c δ r` such that the full
   hypothesis bundle of `ThmBGenuine.genuine_away_from_origin` holds: `g` is `C¹`, has
   neighborhood descent `g' y (f y) ≤ 0` on the band `{c − δ ≤ g y ≤ c + δ}` (`δ > 0`),
-  `g x₀ ≤ c`, and `{g ≤ c}` misses `Metric.ball 0 r` (`r > 0`). This is exactly the output of the
-  §4 construction.
+  `g x₀ ≤ c`, and `{g ≤ c}` misses `Metric.ball 0 r` (`r > 0`).
 
 * `ZeroSeparatingSurfaceExists.away_from_origin` — the **wiring lemma.** From the surface
   existence and any genuine curve `γ` with `γ 0 = x₀` solving `ẋ = f (γ t)` on `[0, ∞)`, the
   genuine trajectory keeps a hard distance `r` from the origin for all forward times. A direct
-  feed into `genuine_away_from_origin`, making §4's output a clean interface to the assembled
-  P1.5 persistence layer. `genuineZeroSeparating` repackages it as a
+  feed into `genuine_away_from_origin`. `genuineZeroSeparating` repackages it as a
   `GenuineZeroSeparating` bundle.
 
 * `toricSelection_zeroSeparating` — the **toric wrapper.** Same conclusion stated against a fan
@@ -43,36 +46,36 @@ states the induction step precisely without proving the simplicial machinery.
   misses `Metric.ball 0 P₀`. This realizes `ZeroSeparatingSurfaceExists` in dimension one and
   connects to `ZeroSeparating.zeroSeparatingRegion_Ici`.
 
-* `InductionStepHypothesis` — the **induction-step interface** (§4.5), stated as a precise `Prop`
+* `InductionStepHypothesis` — the **induction-step interface**, stated as a precise `Prop`
   shape "a faithful `(n−1)`-D zero-separating surface yields an `n`-D one", with the simplicial
-  construction itself named as residue, *not* proved.
+  construction itself taken as a hypothesis, *not* proved.
 
-## Proven vs. residue — the §4 construction map
+## What is proved here, and what is taken as a hypothesis
 
-PROVEN here, sorry-free and axiom-clean:
+Proved, sorry-free and axiom-clean:
 
-* the surface-existence predicate and its wiring to `genuine_away_from_origin` (item 1);
-* the 1-D base case realizing the predicate (item 2).
+* the surface-existence predicate and its wiring to `genuine_away_from_origin`;
+* the 1-D base case realizing the predicate.
 
-RESIDUE — the figure-driven, informal core of §4, named but not formalized:
+Taken as hypotheses, not constructed here — the geometric core of the surface construction:
 
-* **§4.2 — neighborhood patches.** Cover a neighborhood of `0` in the positive orthant by the
+* **Neighborhood patches.** Cover a neighborhood of `0` in the positive orthant by the
   cones of the fan; on each cone the toric field is the polar cone, giving a constant admissible
   half-space. The separating surface is assembled patch-by-patch.
-* **§4.3 — 2-D polygonal zero-separating curves.** In the plane, the surface is a polygonal line
+* **2-D polygonal zero-separating curves.** In the plane, the surface is a polygonal line
   whose edges are subtangent to the field on each patch; the induction base above dimension one.
-* **§4.4 — the naive `n`-D surface and its failure in `ℝ⁴`.** The direct generalization of the
+* **The naive `n`-D surface and its failure in `ℝ⁴`.** The direct generalization of the
   3-D dotted-surface construction is *overdetermined* in `ℝ⁴`: the per-patch subtangency
   constraints exceed the available degrees of freedom. This is the subtlety that forces the
   inductive simplicial approach instead of a closed-form surface.
-* **§4.5 — the simplicial induction.** A faithful `(n−1)`-D zero-separating surface on each facet
+* **The simplicial induction.** A faithful `(n−1)`-D zero-separating surface on each facet
   of a simplicial subdivision is glued into an `n`-D one. `InductionStepHypothesis` states the
   shape of this step; the gluing, the subdivision combinatorics, and the verification that the
-  glued surface retains neighborhood-descent are the residue.
+  glued surface retains neighborhood-descent are taken as given.
 
-These residues additionally rest on the set-valued viability (Nagumo) layer absent from Mathlib,
+These rest additionally on the set-valued viability (Nagumo) layer absent from Mathlib,
 recorded in `ZeroSeparating.lean`; the genuine-flow wiring here needs only the single-valued
-descent lemma, which is why item 1 and item 2 land cleanly.
+descent lemma, which is why the predicate and base case land cleanly.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.ThmBGenuine`,
 `CRNT.Dynamics.ZeroSeparating`, `CRNT.Geometry.ToricFan`.
@@ -88,7 +91,7 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
 /-! ## Item 1 — the surface-existence interface and its wiring -/
 
-/-- **Zero-separating-surface existence.** The deliverable of Craciun §4 for a genuine vector
+/-- **Zero-separating-surface existence.** For a genuine vector
 field `f : E → E` and a start `x₀`: there is a `C¹` function `g`, a derivative field `g'`, a
 sublevel value `c`, a band radius `δ > 0`, and a separation margin `r > 0` such that
 
@@ -98,7 +101,7 @@ sublevel value `c`, a band radius `δ > 0`, and a separation margin `r > 0` such
 * the sublevel set is separated from the origin: `{g ≤ c} ⊆ (Metric.ball 0 r)ᶜ`.
 
 This is exactly the hypothesis bundle that `genuine_away_from_origin` consumes, so an instance of
-this predicate is precisely "§4 produced the separating surface". -/
+this predicate is precisely a separating surface for the field. -/
 structure ZeroSeparatingSurfaceExists (f : E → E) (x₀ : E) : Prop where
   /-- The constructed surface and all of its scalar parameters and descent data. -/
   exists_surface :
@@ -111,7 +114,7 @@ structure ZeroSeparatingSurfaceExists (f : E → E) (x₀ : E) : Prop where
       0 < r ∧
       ({y : E | g y ≤ c} ⊆ (Metric.ball (0 : E) r)ᶜ)
 
-/-- **Wiring lemma (§4 → P1.5).** Given the zero-separating surface for `f` at `x₀`, every genuine
+/-- **Wiring lemma.** Given the zero-separating surface for `f` at `x₀`, every genuine
 trajectory `γ` continuous on `[0, ∞)`, solving `ẋ = f (γ t)` there, and starting at `γ 0 = x₀`,
 keeps a hard distance from the origin: there is `r > 0` with `r ≤ dist (γ t) 0` for all `t ≥ 0`.
 The origin is therefore not an `ω`-limit point of `γ`. This feeds the surface directly into
@@ -149,7 +152,7 @@ end DifferentialInclusion
 
 The genuine mass-action flow is a *selection* of the toric differential inclusion
 (`toricInclusionField`): its velocity `f x` is an admissible velocity `f x ∈ F_{F,δfan}(log x)`.
-The surface produced by §4 separates that genuine selection, so the persistence conclusion holds
+A zero-separating surface separates that genuine selection, so the persistence conclusion holds
 for the genuine flow whenever a separating surface for `f` exists. -/
 
 namespace DifferentialInclusion
@@ -160,8 +163,8 @@ variable {S : Type*} [Fintype S]
 
 /-- **Toric persistence via the zero-separating surface.** Let `f` be a genuine vector field on
 `EuclideanSpace ℝ S` that is a pointwise selection of the toric inclusion field
-`toricInclusionField F δfan` (`f x ∈ toricInclusionField F δfan x` for all `x`), and suppose §4
-has produced a zero-separating surface for `f` at `x₀` (`ZeroSeparatingSurfaceExists f x₀`). Then
+`toricInclusionField F δfan` (`f x ∈ toricInclusionField F δfan x` for all `x`), and suppose a
+zero-separating surface for `f` at `x₀` exists (`ZeroSeparatingSurfaceExists f x₀`). Then
 every genuine trajectory `γ` of `f` through `x₀` keeps a hard positive distance from the origin
 for all forward times. The selection hypothesis records that `γ` is also an inclusion solution of
 the toric field, the form persistence is stated against in the inclusion layer. -/
@@ -237,28 +240,28 @@ theorem zeroSeparatingSurfaceExists_one_dim {f : ℝ → ℝ} {P₀ : ℝ} (hP�
 
 end DifferentialInclusion
 
-/-! ## Item 3 — the induction-step interface (§4.5)
+/-! ## Item 3 — the induction-step interface
 
-The induction of §4.5 turns a faithful zero-separating surface on the boundary facets of a
+The induction turns a faithful zero-separating surface on the boundary facets of a
 simplicial subdivision (the `(n−1)`-D data) into a zero-separating surface on the full `n`-D
 neighborhood. Below is the *shape* of that step as a `Prop`: it asserts that surface existence on
 each facet-restricted field implies surface existence on the ambient field. The hypothesis
 quantifies the facet data abstractly — a finite family of `(n−1)`-D restricted fields and start
 points each carrying its own surface — and the conclusion is ambient surface existence. The
 content of the step — the simplicial subdivision combinatorics, the polygonal-lines-of-patches
-gluing of §4.2–4.3, and the verification that the glued surface retains neighborhood-descent
-across facet seams (the part §4.4 shows is delicate, failing for the naive closed form in `ℝ⁴`) —
-is the residue and is **not** proved here. -/
+gluing, and the verification that the glued surface retains neighborhood-descent across facet
+seams (delicate, since the naive closed form fails in `ℝ⁴`) — is taken as a hypothesis and is
+**not** proved here. -/
 
 namespace DifferentialInclusion
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
-/-- **Induction-step interface (§4.5).** For an ambient genuine field `f` and start `x₀`, an
+/-- **Induction-step interface.** For an ambient genuine field `f` and start `x₀`, an
 induction step is a witness that surface existence for a finite indexed family of facet data
 `facetField i` / `facetStart i` (the `(n−1)`-D zero-separating surfaces) yields surface existence
 for `f` at `x₀` (the `n`-D surface). This captures the *form* of the simplicial induction; the
-simplicial gluing that would discharge it is the named residue. -/
+simplicial gluing that would discharge it is taken as a hypothesis. -/
 def InductionStepHypothesis
     (f : E → E) (x₀ : E) {ι : Type*} [Fintype ι]
     (facetField : ι → (E → E)) (facetStart : ι → E) : Prop :=
@@ -267,7 +270,7 @@ def InductionStepHypothesis
 
 /-- Discharging an `InductionStepHypothesis` against facet surfaces yields the ambient surface:
 the trivial unfolding that records how the step is meant to be applied once the simplicial gluing
-(the residue) supplies the implication. -/
+supplies the implication. -/
 theorem InductionStepHypothesis.elim
     {f : E → E} {x₀ : E} {ι : Type*} [Fintype ι]
     {facetField : ι → (E → E)} {facetStart : ι → E}

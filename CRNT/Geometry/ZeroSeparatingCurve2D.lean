@@ -4,16 +4,17 @@ import Mathlib.Analysis.Convex.Segment
 import Mathlib.Topology.MetricSpace.HausdorffDistance
 
 /-!
-# The 2-D polygonal zero-separating curve (Craciun §4.2)
+# The 2-D polygonal zero-separating curve
 
 In the plane a toric differential inclusion is *constant* — equal to a polar cone — on the
 interior of each exponential cone of the fan, and a half-plane field across the thin
-"uncertainty region" straddling each fan line. Craciun's §4.2 (arXiv:1501.02860v2) builds a
-**zero-separating curve**: a polygonal line running from the positive `x`-axis to the positive
-`y`-axis, with one vertex per bounded exp-cone, each edge crossing an uncertainty region in that
-region's *attracting direction* — the direction orthogonal to the corresponding third-quadrant
-half-line. The side of the curve away from the origin is forward-invariant for the inclusion and
-its closure misses `0`, separating every persistent trajectory from extinction.
+"uncertainty region" straddling each fan line. Following Craciun, _Toric differential inclusions
+and a proof of the global attractor conjecture_, the planar **zero-separating curve** is a
+polygonal line running from the positive `x`-axis to the positive `y`-axis, with one vertex per
+bounded exp-cone, each edge crossing an uncertainty region in that region's *attracting
+direction* — the direction orthogonal to the corresponding third-quadrant half-line. The side of
+the curve away from the origin is forward-invariant for the inclusion and its closure misses `0`,
+separating every persistent trajectory from extinction.
 
 Craciun's curve is **piecewise-linear**, so the boundary of its region is only Lipschitz, never
 `C¹`. The connection to invariance is therefore the *distance-based* closed-set Nagumo rung
@@ -54,31 +55,29 @@ whose induced norm is the genuine Euclidean metric used by `infDist`/Nagumo.
   supplied as a hypothesis), the trajectory stays in the region for all forward time and hence a
   fixed distance `r` from `0`. A direct feed into `invariant_of_infDist_antitoneOn`.
 
-## Proven vs. residue — where the §4.2 core sits
+## What is proved here, and what is taken as a hypothesis
 
-PROVEN here, sorry-free and axiom-clean:
+Proved, sorry-free and axiom-clean:
 
 * the half-plane / closed-region geometry and its closedness;
 * the separation geometry — the region excludes a ball about `0`, the start lies in it;
 * the subtangency *definitions* and the directional lemma `attractingDirection_isSupport`;
 * the wiring from a supplied distance-nonincreasing hypothesis into the closed-set Nagumo rung.
 
-RESIDUE — the figure-driven content of §4.2, named in prose, **not** stated as `theorem … : True`
-and **never** `sorry`:
+Taken as hypotheses, not derived here:
 
 * **Fan-geometry subtangency.** That for an *actual* toric inclusion's fan the support-face
   hypothesis `0 ≤ ⟪n, f p⟫_ℝ` holds at every boundary point with `n` the attracting direction
   orthogonal to the corresponding third-quadrant half-line — across both the constant exp-cone
   pieces and the half-plane uncertainty pieces. This is the per-fan-cell attracting-direction
   analysis; it needs the explicit polar-cone-of-each-exp-cone description of `toricField` and the
-  uncertainty-region half-plane field, themselves §4.2 residues in `ToricFan.lean`.
+  uncertainty-region half-plane field.
 
 * **Support ⇒ `infDist` nonincreasing.** The Lipschitz/Dini link from "the field lies in the
   region-side half-plane on each edge" to "`t ↦ Metric.infDist (γ t) polyRegion` is nonincreasing"
   along the genuine flow. For a polygonal (Lipschitz, non-`C¹`) boundary this is the
-  proximal-normal / contingent-derivative-of-distance step flagged as the standing residue in
-  `ClosedSetNagumo.lean`; it is supplied as a hypothesis to `stays_away_from_zero_of_support`,
-  not discharged.
+  proximal-normal / contingent-derivative-of-distance step recorded in `ClosedSetNagumo.lean`; it
+  is supplied as a hypothesis to `stays_away_from_zero_of_support`, not discharged.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.ClosedSetNagumo`,
 `CRNT.Geometry.ToricFan`, `Mathlib.Analysis.Convex.Segment`,
@@ -209,7 +208,7 @@ def IsSupportFace (f : E → E) (faces : List (E × ℝ)) (n : E) (a : ℝ) : Pr
   ∀ p, OnFaceBoundary faces n a p → 0 ≤ ⟪n, f p⟫_ℝ
 
 /-- **Support field.** The field `f` is *subtangent* to the region cut out by `faces` when every
-face of the list is a support face. This is the planar §4.2 support condition: along every edge of
+face of the list is a support face. This is the planar support condition: along every edge of
 the polygonal curve the field points into the region. -/
 def IsSupportField (f : E → E) (faces : List (E × ℝ)) : Prop :=
   ∀ nf ∈ faces, IsSupportFace f faces nf.1 nf.2
@@ -220,7 +219,7 @@ with `n` the edge's inward normal, the *attracting direction* orthogonal to the 
 third-quadrant half-line — the face `(n, a)` is a support face for the constant field `fun _ => v`.
 This is the clean direction-level statement: a segment whose normal is the attracting direction of
 the uncertainty region it crosses is a support segment. The fan-geometry fact that `0 ≤ ⟪n, v⟫_ℝ`
-holds for an actual toric inclusion is the named residue. -/
+holds for an actual toric inclusion is taken as a hypothesis. -/
 theorem attractingDirection_isSupport {v n : E} {a : ℝ} {faces : List (E × ℝ)}
     (hv : 0 ≤ ⟪n, v⟫_ℝ) :
     IsSupportFace (fun _ => v) faces n a :=
@@ -241,9 +240,9 @@ supplied: `t ↦ Metric.infDist (γ t) (polyRegion faces)` is antitone on `[0, �
 the region for all forward time. If moreover some face `(n, a)` of the list has a unit normal and
 offset `a ≥ r > 0`, the trajectory keeps a hard distance `r` from the origin.
 
-The distance-nonincreasing hypothesis is exactly the §4.2 support ⇒ `infDist`-nonincreasing
-content (the residue named in the module header and in `ClosedSetNagumo.lean`); given it, this is a
-direct application of `invariant_of_infDist_antitoneOn` plus the half-plane separation. -/
+The distance-nonincreasing hypothesis is exactly the support ⇒ `infDist`-nonincreasing
+content (taken as a hypothesis, as in the module header and in `ClosedSetNagumo.lean`); given it,
+this is a direct application of `invariant_of_infDist_antitoneOn` plus the half-plane separation. -/
 theorem stays_away_from_zero_of_support {faces : List (E × ℝ)} {γ : ℝ → E}
     {n : E} {a r : ℝ}
     (hmem : (n, a) ∈ faces) (hn : ‖n‖ = 1) (har : r ≤ a) (_hr : 0 < r)

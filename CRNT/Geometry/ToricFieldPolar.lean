@@ -2,11 +2,13 @@ import CRNT.Geometry.ToricFan
 import CRNT.Geometry.ZeroSeparatingCurve2D
 
 /-!
-# Polar-cone description of the toric field, and constant-cone subtangency (Craciun §4.2)
+# Polar-cone description of the toric field, and constant-cone subtangency
 
-The toric differential-inclusion field `toricField F δ X` is the pointed-cone hull of the
-union of the polar cones `Cᵒ = coneDual C` of the fan cells `C ∈ F` lying within distance `δ`
-of `X` (`mem_toricGenerators`). This module gives the **explicit polar-cone description on the
+The polar-cone description of the toric field of Craciun, _Toric differential inclusions
+and a proof of the global attractor conjecture_. The toric differential-inclusion field
+`toricField F δ X` is the pointed-cone hull of the union of the polar cones
+`Cᵒ = coneDual C` of the fan cells `C ∈ F` lying within distance `δ` of `X`
+(`mem_toricGenerators`). This module gives the **explicit polar-cone description on the
 deep-interior portion** of the field and reads off the resulting **subtangency** condition for
 the planar zero-separating curve.
 
@@ -18,8 +20,8 @@ collapse to the carrier of `coneDual C₀`, and the hull of a cone's own carrier
 
 `toricField_eq_coneDual_of_isolated : toricField F δ X = (coneDual (C₀ : Set E)).toPointedCone`.
 
-This is the **constant-cone** regime of Craciun's §4.2: on the open interior of an exponential
-cone the toric field is *literally* the polar cone `C₀ᵒ`, with no hull/union content left.
+This is the **constant-cone** regime: on the open interior of an exponential cone the toric
+field is *literally* the polar cone `C₀ᵒ`, with no hull/union content left.
 
 ## Part B — membership gives a supporting half-plane
 
@@ -37,16 +39,16 @@ satisfies `0 ≤ ⟪n, v⟫_ℝ`. Packaged against the planar interface, the con
 `ZeroSeparatingCurve2D.IsSupportFace`, and `toricField_subset_dualHalfPlane_of_isolated_mem`
 records the field-wide inclusion `↑(toricField F δ X) ⊆ {y | 0 ≤ ⟪n, y⟫_ℝ}`.
 
-## Residue — the uncertainty region (NOT attempted here)
+## The uncertainty region (not treated here)
 
 When `X` is near a fan wall, **two or more** cells `C₁, …, Cₖ` satisfy `infDist X Cᵢ < δ`, so the
 field does not collapse: `toricField F δ X = PointedCone.hull ℝ (⋃ i, coneDual Cᵢ)`, a strictly
 larger pointed cone than any single polar cone. The matching subtangency requires the region
 normal `n` to lie in the **intersection** `⋂ i, Cᵢ` of the adjacent cells (equivalently, on the
-shared face / the segment crossing in the uncertainty region's attracting direction) so that the
-membership argument of Part B applies *simultaneously* to every generator `coneDual Cᵢ`. That
-slope / attracting-direction "faithful curve" analysis across the half-plane uncertainty piece is
-the remaining residue of §4.2 residue 1 and is **not** formalized in this module.
+shared face, in the uncertainty region's attracting direction) so that the membership argument
+of Part B applies *simultaneously* to every generator `coneDual Cᵢ`. That slope and
+attracting-direction analysis across the half-plane uncertainty piece is not formalized in this
+module.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.ToricFan`,
 `CRNT.Geometry.ZeroSeparatingCurve2D`.
@@ -78,7 +80,7 @@ theorem toricGenerators_eq_of_isolated {F : Fan E} {δ : ℝ} {X : E} {C₀ : Pr
 /-- **Explicit polar-cone description (deep interior).** At a deep-interior point `X` of a cell
 `C₀` — `C₀ ∈ F`, `infDist X C₀ < δ`, and every δ-near cell equal to `C₀` — the toric field is
 *literally* the polar cone `C₀ᵒ = coneDual C₀`: the admissible union collapses to `C₀ᵒ` and the
-hull of a cone's own carrier is the cone itself. This is the constant-cone regime of §4.2. -/
+hull of a cone's own carrier is the cone itself. This is the constant-cone regime. -/
 theorem toricField_eq_coneDual_of_isolated {F : Fan E} {δ : ℝ} {X : E} {C₀ : ProperCone ℝ E}
     (hC₀F : C₀ ∈ F) (hC₀d : Metric.infDist X (C₀ : Set E) < δ)
     (hiso : ∀ C ∈ F, Metric.infDist X (C : Set E) < δ → C = C₀) :
@@ -116,7 +118,7 @@ theorem toricField_subset_dualHalfPlane_of_isolated_mem {F : Fan E} {δ : ℝ} {
 `X` of a cell `C₀` whose interior contains the zero-separating curve's region normal `n`. For any
 single field value `v ∈ toricField F δ X`, the constant field `fun _ => v` is a
 `ZeroSeparatingCurve2D.IsSupportFace` for the planar region cut out by `faces`, with normal `n`
-and any offset `a`: the §4.2 subtangency condition holds on the constant-cone portion. -/
+and any offset `a`: the subtangency condition holds on the constant-cone portion. -/
 theorem isSupportFace_of_isolated_mem {F : Fan E} {δ : ℝ} {X n : E} {C₀ : ProperCone ℝ E}
     (hC₀F : C₀ ∈ F) (hC₀d : Metric.infDist X (C₀ : Set E) < δ)
     (hiso : ∀ C ∈ F, Metric.infDist X (C : Set E) < δ → C = C₀)

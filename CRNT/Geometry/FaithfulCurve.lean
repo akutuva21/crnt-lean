@@ -1,11 +1,12 @@
 import CRNT.Geometry.ToricFieldPolar
 
 /-!
-# The faithful zero-separating curve: attracting directions and per-segment support (Craciun §4.2/§4.3)
+# The faithful zero-separating curve: attracting directions and per-segment support
 
-Subtangency of Craciun's planar zero-separating curve reduces, through the polar-cone description
-of the toric field (`ToricFieldPolar`), to a purely *directional* condition on each polygonal
-segment. Writing `n` for the inward region-normal of a segment:
+Subtangency of the planar zero-separating curve of Craciun, _Toric differential inclusions and a
+proof of the global attractor conjecture_, reduces — through the polar-cone description of the
+toric field (`ToricFieldPolar`) — to a purely *directional* condition on each polygonal segment.
+Writing `n` for the inward region-normal of a segment:
 
 * on the **constant-cone interior** of an exponential cone `C₀` — where the toric field collapses
   to the single polar cone `C₀ᵒ` (`toricField_eq_coneDual_of_isolated`) — the segment is a support
@@ -18,7 +19,7 @@ segment. Writing `n` for the inward region-normal of a segment:
   the inward normal of the support segment, orthogonal to the corresponding third-quadrant
   half-line, lying in the shared fan face of the adjacent cells.
 
-Craciun's "faithful" curve is the polygonal line that realizes both conditions simultaneously:
+A "faithful" curve is the polygonal line that realizes both conditions simultaneously:
 **one vertex per bounded exp-cone**; each segment crossing an uncertainty region in that region's
 attracting direction; interior slopes in the *interior* of the interval bounded by the adjacent
 attracting directions, so each interior point's region-normal lands in the unique cell whose
@@ -52,9 +53,9 @@ interior it traverses.
   the plane with the diagonal attracting direction `n = (√2/2, √2/2)` lying in both cells, so the
   uncertainty-crossing support lemma fires on a genuine, fully-evaluated witness.
 
-## Proven vs. residue — the §4.2/§4.3 faithful-curve core
+## What is proved here, and what is taken as a hypothesis
 
-PROVEN here, sorry-free and axiom-clean:
+Proved, sorry-free and axiom-clean:
 
 * the attracting-direction predicates and the half-plane = `coneDual {n}` identity;
 * the **uncertainty-crossing support lemma** `toricField_subset_dualHalfPlane_of_attractsAll` — the
@@ -63,21 +64,19 @@ PROVEN here, sorry-free and axiom-clean:
 * the `FaithfulCurve` structure and the support-field certificate it carries;
 * a concrete two-cell crossing witness with the diagonal attracting direction.
 
-RESIDUE — the figure-driven §4.2/§4.3 content, named in prose, **not** stated as `theorem … : True`
-and **never** `sorry`:
+Taken as hypotheses, not constructed here:
 
 * **Full-fan traversal (existence).** That for an *arbitrary* 2-D toric fan there *exists* a faithful
   polygonal curve traversing all exponential cones — one vertex per bounded exp-cone, every segment's
   interior slope landing in the interior of the interval bounded by its adjacent attracting
   directions, simultaneously satisfying every cell's membership constraint — running from the
   positive `x`-axis to the positive `y`-axis and separating `0` from `x₀`. The simultaneous
-  solvability of all the slope constraints (the geometric heart of §4.2's construction, that the
-  attracting-direction intervals chain together so a single monotone polygonal curve realizes them
-  all) rests on the explicit fan-line/exp-cone slope ordering of the plane and is the genuine
-  figure-driven §4.2 content, not formalized here.
+  solvability of all the slope constraints — that the attracting-direction intervals chain together
+  so a single monotone polygonal curve realizes them all — rests on the explicit fan-line/exp-cone
+  slope ordering of the plane and is not formalized here.
 
 * **Forward-invariance / persistence closure.** The support ⇒ `infDist`-nonincreasing bridge for the
-  Lipschitz polygonal boundary, the standing residue of `ZeroSeparatingCurve2D` / `ClosedSetNagumo`.
+  Lipschitz polygonal boundary, taken as a hypothesis in `ZeroSeparatingCurve2D` / `ClosedSetNagumo`.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.ToricFieldPolar`.
 -/
@@ -157,7 +156,7 @@ theorem toricField_subset_dualHalfPlane_of_attractsAll {F : Fan E} {δ : ℝ} {X
 δ-near cells all contain the segment's region-normal `n` (`AttractsTowardAll`). For any single field
 value `v ∈ toricField F δ X`, the constant field `fun _ => v` is a
 `ZeroSeparatingCurve2D.IsSupportFace` for the planar region cut out by `faces`, with normal `n` and
-any offset `a`: the §4.2 subtangency condition holds on the uncertainty-crossing portion. -/
+any offset `a`: the subtangency condition holds on the uncertainty-crossing portion. -/
 theorem isSupportFace_of_attractsAll {F : Fan E} {δ : ℝ} {X n : E}
     (hatt : AttractsTowardAll F δ X n) {a : ℝ} {faces : List (E × ℝ)}
     {v : E} (hv : v ∈ toricField F δ X) :
@@ -168,7 +167,7 @@ theorem isSupportFace_of_attractsAll {F : Fan E} {δ : ℝ} {X n : E}
 /-! ## The faithful curve structure -/
 
 /-- **A faithful curve.** Bundles, over an ordered vertex list `verts` of a planar polygonal curve,
-the per-segment data realizing Craciun's faithful conditions:
+the per-segment data realizing the faithful conditions:
 
 * `faces` — the oriented region-side half-planes (normal/offset pairs) of the segments;
 * `field` — the toric field value taken to certify subtangency along each segment;

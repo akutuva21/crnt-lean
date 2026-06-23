@@ -2,13 +2,14 @@ import CRNT.Geometry.FaithfulCurve
 import CRNT.Dynamics.PolyRegionInvariant
 
 /-!
-# Faithful-curve existence: the end-to-end §4.2 composition (Craciun §4.2)
+# Faithful-curve existence: the end-to-end persistence composition
 
-The §4.2 zero-separating construction runs in three layers — *support* (the fan's attracting
-direction points the toric field into a half-plane region), *invariance* (a genuine curve solving
-the field cannot leave that region), and *separation* (the region misses a ball about `0`) —
-which together deliver *persistence*: a genuine mass-action curve started in the region stays a
-fixed distance from extinction for all forward time.
+The zero-separating construction of Craciun, _Toric differential inclusions and a proof of the
+global attractor conjecture_, runs in three layers — *support* (the fan's attracting direction
+points the toric field into a half-plane region), *invariance* (a genuine curve solving the field
+cannot leave that region), and *separation* (the region misses a ball about `0`) — which together
+deliver *persistence*: a genuine mass-action curve started in the region stays a fixed distance
+from extinction for all forward time.
 
 Each layer is proved in isolation upstream:
 
@@ -23,7 +24,7 @@ This module **composes them in a single concrete case**: the worked two-cell fan
 `FaithfulCurveExample.crossFan` (cells `coneDual {e₀}`, `coneDual {e₁}`, both containing the
 diagonal attracting direction `diagNormal`), the single-face region
 `polyRegion [(diagNormal, 1)]` = `{x | 1 ≤ ⟪diagNormal, x⟫_ℝ}`, and the toric field
-`toricField crossFan δ`. The result `crossFan_genuine_persistent` shows the whole §4.2 chain
+`toricField crossFan δ`. The result `crossFan_genuine_persistent` shows the whole chain
 links from fan to persistence in a genuine instance.
 
 ## What this module formalizes (sorry-free)
@@ -39,7 +40,7 @@ links from fan to persistence in a genuine instance.
   `γ` solving `ẋ = f(γ)` whose velocity field `f` is a selection of `toricField crossFan δ` at the
   log-state (`∀ x, f x ∈ toricField crossFan δ (logCoords x)`), continuous, started in the region
   `polyRegion crossFaces`, keeps a hard distance `1` from the origin for all `t ≥ 0`. The full
-  §4.2 support → invariance → separation → persistence chain, composed on the worked fan via
+  support → invariance → separation → persistence chain, composed on the worked fan via
   `stays_away_from_zero_of_support_invariant`.
 
 * `supportFieldOfNormals` / `isSupportField_of_attractsAll_normals` — **the construction
@@ -48,11 +49,11 @@ links from fan to persistence in a genuine instance.
   field for the region those normals cut out. The clean generalization of the single-direction
   `crossField_support` to a list of per-segment attracting directions.
 
-## Proven vs. residue — what composes end-to-end and what remains open
+## What is proved here, and what is taken as a hypothesis
 
-PROVEN here, sorry-free and axiom-clean:
+Proved, sorry-free and axiom-clean:
 
-* the **complete §4.2 composition on the worked `crossFan`**: support
+* the **complete composition on the worked `crossFan`**: support
   (`crossField_subset_dualHalfPlane`) → invariance (`polyRegion_invariant_of_support`) →
   separation (`polyRegion_subset_compl_ball`) → persistence
   (`stays_away_from_zero_of_support_invariant`), linked in `crossFan_genuine_persistent` for a
@@ -60,8 +61,7 @@ PROVEN here, sorry-free and axiom-clean:
 * the **list-of-normals construction framework**: `isSupportField_of_attractsAll_normals` turns a
   list of attracting directions, each in `⋂ᵢ Cᵢ`, into a support field for their cut-out region.
 
-RESIDUE — the genuine §4.2 heart, named in prose, **not** stated as `theorem … : True` and
-**never** `sorry`:
+Taken as a hypothesis, not constructed here:
 
 * **General arbitrary-fan faithful-curve existence.** That for an *arbitrary* 2-D toric fan there
   *exists* a faithful polygonal curve traversing every exponential cone — one vertex per bounded
@@ -70,10 +70,9 @@ RESIDUE — the genuine §4.2 heart, named in prose, **not** stated as `theorem 
   running from the positive `x`-axis to the positive `y`-axis and separating `0` from an arbitrary
   `x₀`. The simultaneous solvability of all the slope constraints — that the attracting-direction
   intervals chain together so a single monotone polygonal curve realizes them all — rests on the
-  explicit fan-line/exp-cone slope ordering of the plane and is the genuine figure-driven §4.2
-  content. The worked `crossFan` is the single-region degenerate instance where one attracting
-  direction (`diagNormal`) serves every cell, so no chaining is needed; the general chaining is the
-  open research crux.
+  explicit fan-line/exp-cone slope ordering of the plane. The worked `crossFan` is the
+  single-region degenerate instance where one attracting direction (`diagNormal`) serves every
+  cell, so no chaining is needed; the general chaining is not formalized here.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.FaithfulCurve`,
 `CRNT.Dynamics.PolyRegionInvariant`.
@@ -120,7 +119,7 @@ theorem isSupportField_of_attractsAll_normals {F : Fan E} {δ : ℝ} {X v : E}
 
 end FaithfulCurveExistence
 
-/-! ## The end-to-end concrete §4.2 instance on the worked `crossFan` -/
+/-! ## The end-to-end concrete instance on the worked `crossFan` -/
 
 namespace FaithfulCurveExistence
 
@@ -155,13 +154,13 @@ theorem crossFaces_separates :
   polyRegion_subset_compl_ball (n := diagNormal) (a := 1) (r := 1)
     diagNormal_one_mem_crossFaces norm_diagNormal le_rfl
 
-/-- **The end-to-end concrete §4.2 persistence theorem.** Let `γ` be a *genuine* curve solving the
+/-- **The end-to-end concrete persistence theorem.** Let `γ` be a *genuine* curve solving the
 ODE `ẋ = f(γ)` whose velocity field `f` is a **selection** of the worked toric field at the
 log-state — `f x ∈ toricField crossFan δ (logCoords x)` for every state `x` — continuous, and
 started in the region `polyRegion crossFaces`. Then `γ` keeps a hard distance `1` from the origin
 for all forward time `t ≥ 0`: it is persistent.
 
-This composes the full §4.2 chain on the worked `crossFan`:
+This composes the full chain on the worked `crossFan`:
 
 * **support** — `crossField_support` (from `crossField_subset_dualHalfPlane` /
   `diagNormal_attractsTowardAll`): the velocity `f (γ t) ∈ toricField crossFan δ (logCoords (γ t))`
@@ -170,7 +169,7 @@ This composes the full §4.2 chain on the worked `crossFan`:
   support, with the unit-normal/offset-`1` separating face, forces `γ` to stay in the region and so
   a distance `1` from `0`.
 
-This is the proof-of-concept that the §4.2 machinery links from fan to persistence in a real
+This is the proof-of-concept that the machinery links from fan to persistence in a real
 case. -/
 theorem crossFan_genuine_persistent {δ : ℝ} {f : Plane → Plane} {γ : ℝ → Plane}
     (hsel : ∀ x : Plane, f x ∈ toricField crossFan δ (logCoords x))

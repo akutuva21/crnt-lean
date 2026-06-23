@@ -5,7 +5,8 @@ import Mathlib.Topology.MetricSpace.HausdorffDistance
 /-!
 # Toric differential inclusions from a polyhedral fan
 
-A *polyhedral fan* in Craciun's toric-dynamical programme is a finite family of
+The toric differential inclusion of Craciun, _Toric differential inclusions and a
+proof of the global attractor conjecture_. A *polyhedral fan* is a finite family of
 polyhedral cones covering the ambient space, closed under faces, with pairwise
 intersections being common faces. The toric differential inclusion attached to a
 fan `F` and a scale `δ > 0` is the set-valued field
@@ -17,9 +18,9 @@ of `X`. The toric inclusion `ẋ ∈ F_{F,δ}(log x)` reads the logarithm of the
 into this field.
 
 Mathlib lacks the polytope face theory needed to certify the full face-lattice
-axioms (faces, intersection-is-a-face, covering), so `Fan E` here is the pragmatic
-*given data*: a `Finset` of proper cones. The face-lattice and covering conditions
-are named as residue, not formalized.
+axioms (faces, intersection-is-a-face, covering), so `Fan E` here is the given
+data: a `Finset` of proper cones. The face-lattice and covering conditions are
+taken as a hypothesis, not formalized.
 
 The field `toricField F δ X` is a genuine `PointedCone ℝ E` by construction
 (`PointedCone.hull` of the union of admissible polar cones). It is **monotone in

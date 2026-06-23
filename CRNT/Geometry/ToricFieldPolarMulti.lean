@@ -3,13 +3,15 @@ import CRNT.Geometry.ToricFieldPolar
 import CRNT.Geometry.ZeroSeparatingCurve2D
 
 /-!
-# Multi-cell polar-cone subtangency for the toric field (Craciun §4.2)
+# Multi-cell polar-cone subtangency for the toric field
 
-`ToricFieldPolar` reads off the §4.2 subtangency condition on the **constant-cone** regime,
-where a single cell `C₀` is δ-near the point `X` and the toric field collapses to one polar
-cone `C₀ᵒ`. This module extends that reading to the **uncertainty region** near a fan wall,
-where several cells `C₁, …, Cₖ` are simultaneously δ-near `X` and the field is the genuine
-hull `PointedCone.hull ℝ (⋃ i, coneDual Cᵢ)` of more than one polar cone.
+The multi-cell case of the toric-field subtangency condition of Craciun, _Toric differential
+inclusions and a proof of the global attractor conjecture_. `ToricFieldPolar` reads off the
+subtangency condition on the **constant-cone** regime, where a single cell `C₀` is δ-near the
+point `X` and the toric field collapses to one polar cone `C₀ᵒ`. This module extends that
+reading to the **uncertainty region** near a fan wall, where several cells `C₁, …, Cₖ` are
+simultaneously δ-near `X` and the field is the genuine hull
+`PointedCone.hull ℝ (⋃ i, coneDual Cᵢ)` of more than one polar cone.
 
 ## The half-plane cone
 
@@ -99,7 +101,7 @@ theorem toricField_subset_dualHalfPlane_of_mem_forall {F : Fan E} {δ : ℝ} {X 
 cell contains the region normal.** When the zero-separating curve's region normal `n` lies in
 every cell `C ∈ F` with `infDist X C < δ`, any single field value `v ∈ toricField F δ X` makes the
 constant field `fun _ => v` a `ZeroSeparatingCurve2D.IsSupportFace` for the planar region cut out
-by `faces`, with normal `n` and any offset `a`. This is the §4.2 subtangency condition on the
+by `faces`, with normal `n` and any offset `a`. This is the subtangency condition on the
 multi-cell uncertainty regime, mirroring the constant-cone `isSupportFace_of_isolated_mem`. -/
 theorem isSupportFace_of_mem_forall {F : Fan E} {δ : ℝ} {X n : E}
     (h : ∀ C ∈ F, Metric.infDist X (C : Set E) < δ → n ∈ (C : Set E))

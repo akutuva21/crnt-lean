@@ -4,8 +4,8 @@ import CRNT.Geometry.PolyhedralFan
 # Endotactic and strongly endotactic networks
 
 This module defines the endotactic and strongly endotactic predicates on a reaction
-network, the geometric backbone of the Gopalkrishnan–Miller–Shiu route to the Global
-Attractor Conjecture (strongly endotactic ⇒ permanent ⇒ GAC).
+network, the geometric backbone of Gopalkrishnan, Miller & Shiu, _A geometric approach
+to the global attractor conjecture_ (2014) (strongly endotactic ⇒ permanent ⇒ GAC).
 
 For a direction `w : S → ℝ`, the `wValue` of a reaction is the linear functional
 `∑ s, w s * exponentVector (source) s` evaluated at the reactant complex, and
@@ -26,8 +26,8 @@ refines the plain one), `wRate_eq` (the rate functional unfolds to the dot produ
 The condition depends only on the finite reaction data through `wValue`/`wRate`.
 
 The Gopalkrishnan–Miller–Shiu permanence theorem (strongly endotactic ⇒ permanent)
-and its consequence for the Global Attractor Conjecture are the residue: they require
-the Lyapunov / compactness machinery not yet present in the repo.
+and its consequence for the Global Attractor Conjecture are not constructed here: they
+require the Lyapunov / compactness machinery not yet present in the repo.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.PolyhedralFan`.
 -/

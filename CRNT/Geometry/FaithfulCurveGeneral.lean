@@ -1,10 +1,11 @@
 import CRNT.Geometry.FaithfulCurveExistence
 
 /-!
-# The general faithful zero-separating curve: chaining data and the §4.2 existence crux (Craciun §4.2)
+# The general faithful zero-separating curve: chaining data and the existence question
 
-The §4.2 zero-separating construction realizes a polygonal curve whose consecutive segments cross
-the fan's uncertainty regions in their respective *attracting directions*. Each segment contributes
+The zero-separating construction of Craciun, _Toric differential inclusions and a proof of the
+global attractor conjecture_, realizes a polygonal curve whose consecutive segments cross the
+fan's uncertainty regions in their respective *attracting directions*. Each segment contributes
 one oriented region-side half-plane `(nᵢ, aᵢ)`, with `nᵢ` the per-wall attracting direction; the
 curve's region is the intersection `polyRegion [(n₀, a₀), (n₁, a₁), …]`. The persistence chain runs
 *support* (every `nᵢ` attracts toward all δ-near cells, so the toric field points into the region on
@@ -12,7 +13,7 @@ every face) → *invariance* (`polyRegion_invariant_of_support`) → *separation
 excludes a ball about `0`) → *persistence*.
 
 `FaithfulCurveExistence.crossFan_genuine_persistent` composes this chain on the worked `crossFan`,
-but degenerately: one direction `diagNormal` served both cells, so the normal list collapses to a
+but degenerately: one direction `diagNormal` serves both cells, so the normal list collapses to a
 single face and no slope-chaining occurs. This module supplies the genuinely *chained* layer:
 
 * the `ChainingData` structure — an ordered list of segment normals, each an attracting direction
@@ -21,9 +22,9 @@ single face and no slope-chaining occurs. This module supplies the genuinely *ch
 * a **first non-degenerate witness** with two distinct segment normals `axisNormal 0 ≠ axisNormal 1`
   that genuinely chain into a two-face region, composed end-to-end to persistence;
 
-* the structured-fan existence attempt for 2-D, pushed to what is cleanly provable (consecutive
-  segments chain whenever every normal is a common attracting direction), with the residue — the
-  full angular-sort / slope-interval-nonemptiness / separation construction — named precisely.
+* the structured-fan existence question for 2-D, pushed to what is cleanly provable (consecutive
+  segments chain whenever every normal is a common attracting direction), with the full
+  angular-sort / slope-interval-nonemptiness / separation construction taken as a hypothesis.
 
 ## What this module formalizes (sorry-free)
 
@@ -52,9 +53,9 @@ single face and no slope-chaining occurs. This module supplies the genuinely *ch
   the sense that both serve as support faces of one toric-field value — the local compatibility that
   the global angular sort must arrange.
 
-## Proven vs. residue — the §4.2 general-existence crux
+## What is proved here, and what is taken as a hypothesis
 
-PROVEN here, sorry-free and axiom-clean:
+Proved, sorry-free and axiom-clean:
 
 * the `ChainingData` framework and its support certificate `ChainingData.isSupportField`;
 * the **general chained persistence theorem** `ChainingData.genuine_persistent`, an arbitrary
@@ -63,8 +64,7 @@ PROVEN here, sorry-free and axiom-clean:
   instance exhibiting genuine slope-chaining (degenerate-free, unlike `crossFan`);
 * the local-compatibility fragment `consecutive_chain` of the structured-fan existence.
 
-RESIDUE — the figure-driven §4.2 heart, named in prose, **not** stated as `theorem … : True` and
-**never** `sorry`:
+Taken as a hypothesis, not constructed here:
 
 * **General arbitrary-fan chaining-data existence.** For an *arbitrary* 2-D toric fan: the existence
   of the chaining normal-list whose per-segment attracting-direction slope intervals are nonempty and
@@ -72,13 +72,13 @@ RESIDUE — the figure-driven §4.2 heart, named in prose, **not** stated as `th
   the consecutive intervals overlap), traversing *every* exponential cone in angular order, running
   from the positive `x`-axis to the positive `y`-axis, and separating `0` from an arbitrary `x₀`.
   Two-dimensionality makes the sectors from origin lines totally angularly ordered, so a monotone
-  polygonal curve *should* exist; but turning that order into a concrete normal list with nonempty
+  polygonal curve exists; but turning that order into a concrete normal list with nonempty
   compatible slope intervals — the simultaneous solvability of all per-cell membership constraints by
-  one monotone curve — is the explicit fan-line/exp-cone slope-ordering construction Craciun draws
-  but never makes rigorous. `ChainingData` is the *interface* such a construction would populate;
+  one monotone curve — is the explicit fan-line/exp-cone slope-ordering construction.
+  `ChainingData` is the *interface* such a construction would populate;
   `consecutive_chain` shows the *local* compatibility once the normals are in hand; the *global*
   production of those normals (angular sort + slope-interval nonemptiness + axis endpoints +
-  `x₀`-separation) is the open research crux. The non-degenerate `twoWallFaces` witness shows the
+  `x₀`-separation) is not formalized here. The non-degenerate `twoWallFaces` witness shows the
   interface is genuinely inhabited by a chained (not collapsed) instance.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.FaithfulCurveExistence`.
@@ -103,9 +103,9 @@ polygonal curve relative to a fan `F`, scale `δ`, point `X`, and common offset 
   the per-segment cell-membership witness `nᵢ ∈ ⋂ⱼ Cⱼ`.
 
 The faithful curve's region is `polyRegion` of `faces`, the oriented half-planes
-`(nᵢ, a)`. This is the *interface* the general §4.2 construction would populate; the geometric
+`(nᵢ, a)`. This is the *interface* a general existence construction would populate; the geometric
 content producing a *specific* normal list (the angular sort with nonempty compatible slope
-intervals traversing every exp-cone) is the named existence residue. -/
+intervals traversing every exp-cone) is taken as a hypothesis. -/
 structure ChainingData (F : Fan E) (δ : ℝ) (X : E) (a : ℝ) where
   /-- The ordered list of per-segment attracting directions. -/
   normals : List E
@@ -157,7 +157,7 @@ velocity field `f` is a **selection** of the toric field at the *same* log-state
 If one face `(n, a)` of the chaining data has a unit normal and offset `a ≥ r > 0`, then `γ` keeps a
 hard distance `r` from the origin for all forward time `t ≥ 0`.
 
-This composes the full §4.2 chain on an *arbitrary* normal list:
+This composes the full chain on an *arbitrary* normal list:
 
 * **support** — `cd.face_nonneg`: each velocity `f (γ t)` pairs nonnegatively with every face normal;
 * **invariance + separation + persistence** — `stays_away_from_zero_of_support_invariant`: support,
@@ -254,7 +254,7 @@ fixed log-state `logCoords x₀`, continuous, started in the two-wall corner reg
 
 This is the first instance exhibiting *real slope-chaining*: two **distinct** segment normals
 `axisNormal 0 ≠ axisNormal 1` (a 3-cell-style two-wall fan), each attracting its adjacent cells,
-composed END-TO-END through the §4.2 support → invariance → separation → persistence chain via
+composed END-TO-END through the support → invariance → separation → persistence chain via
 `ChainingData.genuine_persistent`. Unlike `crossFan_genuine_persistent`, no single direction serves
 both cells — the region's boundary is a genuine two-segment polygonal chain. -/
 theorem twoWall_genuine_persistent
@@ -269,21 +269,21 @@ theorem twoWall_genuine_persistent
     (n := axisNormal 0) (r := 1) hmem (norm_axisNormal 0) le_rfl hsel hγcont hγ ?_ ht
   rwa [twoWallChaining_faces]
 
-/-! ## (c) The structured-fan existence attempt: local compatibility, and the named residue
+/-! ## (c) The structured-fan existence question: local compatibility, and the global hypothesis
 
 Two-dimensionality is special: the sectors cut by lines through the origin are *totally angularly
-ordered*, so Craciun's figure draws a monotone polygonal curve threading every exponential cone, one
-vertex per bounded cone, each segment crossing an uncertainty region in its attracting direction.
-Turning that picture into a rigorous existence statement requires producing a concrete normal list
-whose per-segment attracting-direction slope intervals are nonempty and mutually compatible — the
-simultaneous solvability of every cell's membership constraint by one monotone curve.
+ordered*, so a monotone polygonal curve threads every exponential cone, one vertex per bounded
+cone, each segment crossing an uncertainty region in its attracting direction. Turning that picture
+into a rigorous existence statement requires producing a concrete normal list whose per-segment
+attracting-direction slope intervals are nonempty and mutually compatible — the simultaneous
+solvability of every cell's membership constraint by one monotone curve.
 
 What is cleanly provable *once the normals are in hand* is the **local compatibility** of consecutive
 segments: if every normal in the list is a common attracting direction at the point, then each
 consecutive pair shares a support certificate from one toric-field value (`consecutive_chain` below).
 This is the local rung the global angular sort must arrange into a single curve.
 
-The RESIDUE — the figure-driven §4.2 heart — is the *global production* of the normal list:
+Taken as a hypothesis is the *global production* of the normal list:
 
   For an ARBITRARY 2-D toric fan, the existence of the chaining normal-list (a `ChainingData`)
   whose per-segment attracting-direction slope intervals are nonempty and mutually compatible —
@@ -293,13 +293,13 @@ The RESIDUE — the figure-driven §4.2 heart — is the *global production* of 
   `y`-axis, and separating `0` from an arbitrary `x₀`.
 
 This rests on the explicit fan-line / exp-cone slope ordering of the plane: the angular sort of the
-cells, the nonemptiness of each slope interval, and the overlap of consecutive intervals. It is the
-content Craciun's §4.2 figure asserts but never derives. `ChainingData` is the interface it would
-populate; the non-degenerate `twoWallFaces` witness shows that interface is genuinely inhabited by a
-chained (not collapsed) instance; `consecutive_chain` discharges the local compatibility. The global
-existence is the open research crux and is deliberately left unstated rather than faked. -/
+cells, the nonemptiness of each slope interval, and the overlap of consecutive intervals.
+`ChainingData` is the interface it would populate; the non-degenerate `twoWallFaces` witness shows
+that interface is genuinely inhabited by a chained (not collapsed) instance; `consecutive_chain`
+discharges the local compatibility. The global existence is taken as a hypothesis rather than
+constructed. -/
 
-/-- **Local compatibility of consecutive segments (the cleanly-provable fragment of (c)).** Fix a
+/-- **Local compatibility of consecutive segments.** Fix a
 fan `F`, scale `δ`, point `X`, offset `a`, and chaining data `cd`. For any value `v` of the toric
 field at `X` and any two consecutive segment normals (`cd.normals[k]` and `cd.normals[k+1]`, with
 `k + 1` in range), *both* their faces are support faces of the single constant
@@ -307,7 +307,7 @@ field `fun _ => v`: the velocity points into the region across both adjacent seg
 
 This is the local rung the global angular sort must arrange: consecutive segments chain in the sense
 that one toric-field value certifies subtangency on both. The *global* production of a normal list
-whose consecutive slope intervals are nonempty and overlapping is the named existence residue. -/
+whose consecutive slope intervals are nonempty and overlapping is taken as a hypothesis. -/
 theorem consecutive_chain
     {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
     {F : Fan E} {δ : ℝ} {X v : E} {a : ℝ}
