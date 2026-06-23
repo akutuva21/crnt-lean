@@ -1335,3 +1335,10 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {C : Set E}
     (u : ℕ → E) (a : ℕ → ℝ) (n : ℕ) (hcyc : u n = u 0) (hmono : Monotone a) (hmin : CMinimal C u) :
     (∑ i ∈ Finset.range n, a i • (u (i + 1) - u i)) ∈ polarCone C :=
   cycle_velocity_mem_polarCone u a n hcyc hmono hmin
+
+-- GAC Route D (Thm B, 1-D base case): a ray [P₀,∞) is a zero-separating region for any 1-D
+-- inclusion whose field points nonnegatively — invariance holds with no viability theory.
+example {F : DifferentialInclusion.Field ℝ} {P₀ : ℝ} (hP₀ : 0 < P₀)
+    (hF : ∀ y, F y ⊆ Set.Ici (0 : ℝ)) :
+    DifferentialInclusion.ZeroSeparatingRegion F (Set.Ici P₀) P₀ P₀ :=
+  DifferentialInclusion.zeroSeparatingRegion_Ici hP₀ hF
