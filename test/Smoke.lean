@@ -1524,3 +1524,16 @@ example {θ₀ θ₁ θ₂ : ℝ} (h₀₁ : |θ₁ - θ₀| ≤ Real.pi / 2) (h
     (δ : ℝ) (X : Plane) :
     (toricField (adjacentFan θ₀ θ₁ θ₂) δ X : Set Plane) ⊆ {y : Plane | 0 ≤ ⟪dir θ₁, y⟫_ℝ} :=
   toricField_subset_wall_halfPlane h₀₁ h₁₂ δ X
+
+-- GAC Route D (§4.4 obstruction, dimension threshold): a ruled patch's surface normal must be
+-- orthogonal to its active tangency directions; below finrank such a normal exists (3 in ℝ⁴), at/above
+-- it the spanning case kills it (4 in ℝ⁴). The threshold mechanism behind "fails in ℝ⁴" — the count
+-- of forced tangency directions per patch (whether it reaches 4) is the residual combinatorial fact.
+open scoped InnerProductSpace in
+open ZeroSeparatingInduction in
+example :
+    (∀ v : Fin 3 → EuclideanSpace ℝ (Fin 4),
+        ∃ n : EuclideanSpace ℝ (Fin 4), n ≠ 0 ∧ ∀ i, ⟪v i, n⟫_ℝ = 0) ∧
+      (∀ n : EuclideanSpace ℝ (Fin 4),
+        (∀ i, ⟪EuclideanSpace.basisFun (Fin 4) ℝ i, n⟫_ℝ = 0) → n = 0) :=
+  over_determined_in_dim_four
