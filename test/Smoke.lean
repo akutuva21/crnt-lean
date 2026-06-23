@@ -1504,3 +1504,13 @@ example (walls : List (ℝ × ℝ)) {φ θ₀ a : ℝ} (hsec : ∀ w ∈ walls, 
     (∃ x : Plane, ∀ nf ∈ facesOfAngles walls, nf.2 < ⟪nf.1, x⟫_ℝ) ∧
       polyRegion (facesOfAngles walls) ⊆ (Metric.ball (0 : Plane) a)ᶜ :=
   exists_faithful_separating_region walls hsec hmem hpos
+
+-- GAC Route D (§4.2 genuinely-chained witness): three DISTINCT conflicting attracting directions
+-- (angles 0, π/4, π/2) chain into one constructed zero-separating region — the non-degenerate
+-- instance the earlier single-direction collapses could not exhibit.
+open scoped InnerProductSpace in
+open FaithfulCurve2D ZeroSeparatingCurve2D in
+example :
+    (∃ x : Plane, ∀ nf ∈ facesOfAngles threeWalls, nf.2 < ⟪nf.1, x⟫_ℝ) ∧
+      polyRegion (facesOfAngles threeWalls) ⊆ (Metric.ball (0 : Plane) 1)ᶜ :=
+  threeWall_separating_region

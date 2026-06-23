@@ -181,6 +181,35 @@ theorem faithful_region_persistent (walls : List (ℝ × ℝ)) {θ₀ a r : ℝ}
   stays_away_from_zero_of_strictSupport
     (List.mem_map.mpr ⟨(θ₀, a), hmem, rfl⟩) (norm_dir θ₀) har hγcont hγ hsupp hstart ht
 
+/-! ## A genuinely-chained concrete witness -/
+
+/-- The three walls of a genuinely-chained faithful curve: angles `0, π/4, π/2`, offsets `1`. Their
+attracting directions `(1,0)`, `(√2/2, √2/2)`, `(0,1)` are three *distinct* normals spanning a
+quarter turn — a real chained instance, unlike a single collapsed direction. -/
+noncomputable def threeWalls : List (ℝ × ℝ) := [(0, 1), (π / 4, 1), (π / 2, 1)]
+
+/-- **A genuinely-chained constructed zero-separating region.** The three-wall faithful curve fits in
+the sector of width `π/2` about apex `π/4`, so its region has a nonempty strict interior and
+separates the unit ball about `0`. Three distinct conflicting attracting directions chain into one
+region — the non-degenerate witness validating the angular-chaining pipeline end-to-end. -/
+theorem threeWall_separating_region :
+    (∃ x : Plane, ∀ nf ∈ facesOfAngles threeWalls, nf.2 < ⟪nf.1, x⟫_ℝ) ∧
+      polyRegion (facesOfAngles threeWalls) ⊆ (Metric.ball (0 : Plane) 1)ᶜ := by
+  have hpi := Real.pi_pos
+  refine exists_faithful_separating_region threeWalls (φ := π / 4) (θ₀ := 0) (a := 1) ?_
+    (by simp [threeWalls]) one_pos
+  intro w hw
+  simp only [threeWalls, List.mem_cons, List.not_mem_nil, or_false] at hw
+  rcases hw with rfl | rfl | rfl
+  · show |(0 : ℝ) - π / 4| < π / 2
+    rw [show (0 : ℝ) - π / 4 = -(π / 4) by ring, abs_neg, abs_of_nonneg (by positivity)]
+    linarith
+  · show |π / 4 - π / 4| < π / 2
+    rw [sub_self, abs_zero]; linarith
+  · show |π / 2 - π / 4| < π / 2
+    rw [show π / 2 - π / 4 = π / 4 by ring, abs_of_nonneg (by positivity)]
+    linarith
+
 end FaithfulCurve2D
 
 end CRNT
