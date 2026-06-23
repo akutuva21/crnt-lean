@@ -1052,3 +1052,9 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     MeasureTheory.IsProbabilityMeasure
       ((N.restrictedStationaryMeasure κ c T Set.univ)⁻¹ • N.restrictedStationaryMeasure κ c T) :=
   (N.jumpKernel_normalized_isInvariant_probabilityMeasure κ c hc hcb hT hTfin hpos).2
+
+-- Ladder 4 (CTMC): the canonical maximal closed enabled region is itself a closed enabled region
+-- (arbitrary union of such regions is one), so it carries the invariant restricted stationary measure.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N) :
+    N.ClosedEnabledRegion κ (N.maximalClosedEnabledRegion κ) :=
+  N.closedEnabledRegion_maximal κ
