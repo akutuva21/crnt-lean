@@ -854,6 +854,21 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     {P : Finset S} (hP : ∀ s, s ∈ P ↔ w s = 0) : N.IsSiphon P :=
   N.isSiphon_zeroSet_of_mem_omegaLimit κ hϕγ hK hmaps hωnn hgenω hw hP
 
+-- Boundary ω-limit ⇒ CRITICAL siphon: for a positive start, a boundary ω-limit point's zero set
+-- carries no positive conservation law, so it is a critical siphon.
+open Filter in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S} (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    {K : Set (Concentration S)} (hK : IsCompact K) (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, (y : Concentration S).Nonnegative)
+    (hgenω : ∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      HasDerivAt (γ y) (N.massActionVectorField κ (γ y t)) t)
+    (hωaff : ∀ z ∈ omegaLimit atTop ϕ {x₀}, (z - x₀ : Concentration S) ∈ N.stoichSubspace)
+    (hx0pos : x₀.Positive) {w : Concentration S} (hw : w ∈ omegaLimit atTop ϕ {x₀})
+    {P : Finset S} (hP : ∀ s, s ∈ P ↔ w s = 0) (hPne : P.Nonempty) : N.IsCriticalSiphon P :=
+  N.isCriticalSiphon_zeroSet_of_mem_omegaLimit κ hϕγ hK hmaps hωnn hgenω hωaff hx0pos hw hP hPne
+
 -- Anderson–Craciun–Kurtz: for a complex-balanced network the product-of-Poissons density
 -- satisfies the stochastic master-equation stationarity condition.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
