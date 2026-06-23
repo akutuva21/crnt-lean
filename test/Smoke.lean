@@ -1020,3 +1020,13 @@ example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [PseudoMe
     {y : ℝ → Y} (hy : ∀ t t', dist (y t) (y t') ≤ ε * |t - t'|) (t t' : ℝ) :
     ‖S.manifoldMap (y t) - S.manifoldMap (y t')‖ ≤ (L / S.rate) * ε * |t - t'| :=
   S.manifoldMap_slowDrift_le hL hlip hy t t'
+
+-- Ladder 4 (CTMC): over a finite closed enabled region with positive mass, the normalized restricted
+-- stationary measure is an invariant probability measure for the embedded jump kernel.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (c : Concentration S) (hc : c.Nonnegative) (hcb : N.IsComplexBalanced κ c)
+    {T : Set (S → ℕ)} (hT : N.ClosedEnabledRegion κ T) (hTfin : T.Finite)
+    (hpos : N.restrictedStationaryMeasure κ c T Set.univ ≠ 0) :
+    MeasureTheory.IsProbabilityMeasure
+      ((N.restrictedStationaryMeasure κ c T Set.univ)⁻¹ • N.restrictedStationaryMeasure κ c T) :=
+  (N.jumpKernel_normalized_isInvariant_probabilityMeasure κ c hc hcb hT hTfin hpos).2

@@ -179,6 +179,7 @@ import CRNT.Stochastic.Kernel
 import CRNT.Stochastic.KernelInvariant
 import CRNT.Stochastic.KernelStationary
 import CRNT.Stochastic.KernelIrreducible
+import CRNT.Stochastic.KernelNormalized
 
 -- Network composition
 import CRNT.Compose.Interconnect
