@@ -1006,6 +1006,13 @@ example {Cell Outer : Type*} [Fintype Cell] [Fintype Outer]
     ∃ x : Cell, rainbow x :=
   CRNT.Analysis.Sperner2D.multiDoorGraph_exists_rainbow G rainbow hcell houter
 
+-- Multi-outer-vertex door-incidence interface: the uncollapsed `DoorIncidence` (one outer vertex per
+-- boundary sub-edge) yields the 2-D Sperner conclusion from bundled degree/parity facts.
+example {Cell Outer : Type*} [Fintype Cell] [Fintype Outer]
+    (D : CRNT.Analysis.SpernerTriangulation.MultiDoorIncidence Cell Outer) :
+    ∃ t : Cell, D.IsRainbowCell t :=
+  D.exists_rainbow
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
