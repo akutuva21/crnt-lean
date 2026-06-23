@@ -1406,3 +1406,9 @@ example {f : ℝ → ℝ} {P₀ : ℝ} (hP₀ : 0 < P₀) (hf : ∀ y, P₀ - y 
 example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
     (C : PointedCone ℝ E) : exposedFace C 0 = C :=
   exposedFace_zero C
+
+-- GAC Route D (§4.2 2-D curve): the polygonal zero-separating region (intersection of region-side
+-- half-planes) is closed — the load-bearing property for the distance-based Nagumo invariance.
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] (faces : List (E × ℝ)) :
+    IsClosed (ZeroSeparatingCurve2D.polyRegion faces) :=
+  ZeroSeparatingCurve2D.isClosed_polyRegion faces
