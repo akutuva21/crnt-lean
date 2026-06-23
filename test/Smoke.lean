@@ -1442,3 +1442,13 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {faces : Lis
 example (δ : ℝ) (X : FaithfulCurveExample.Plane) :
     Faithful.AttractsTowardAll FaithfulCurveExample.crossFan δ X ZeroSeparatingCurve2D.diagNormal :=
   FaithfulCurveExample.diagNormal_attractsTowardAll δ X
+
+-- GAC Route D (§4.2 Dini half closed): under per-face support the genuine curve stays in the convex
+-- polygonal region for all forward time — via per-half-plane invariance (no Hoffman bound).
+open scoped InnerProductSpace in
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {faces : List (E × ℝ)} {γ : ℝ → E}
+    {f : E → E} (hγcont : Continuous γ) (hγ : ∀ t > 0, HasDerivAt γ (f (γ t)) t)
+    (hsupp : ∀ na ∈ faces, ∀ t > 0, 0 ≤ ⟪na.1, f (γ t)⟫_ℝ)
+    (h0 : γ 0 ∈ ZeroSeparatingCurve2D.polyRegion faces) {t : ℝ} (ht : 0 ≤ t) :
+    γ t ∈ ZeroSeparatingCurve2D.polyRegion faces :=
+  ZeroSeparatingCurve2D.polyRegion_invariant_of_support hγcont hγ hsupp h0 ht
