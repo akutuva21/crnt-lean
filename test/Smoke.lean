@@ -785,6 +785,13 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     (hss : N.fullyOpen.IsMassActionSteadyState κ x) : x.Positive :=
   N.fullyOpen_steadyState_positive κ hx hss
 
+-- The partial-open (CFSTR) extension can carry boundary equilibria, but only on closed species:
+-- the face supporting any nonnegative steady state is disjoint from the open set `O`.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (O : Finset S)
+    (κ : Network.RateConstants (N.partialOpen O)) {x : Concentration S} (hx : x.Nonnegative)
+    (hss : (N.partialOpen O).IsMassActionSteadyState κ x) : Disjoint (Network.faceOf x) O :=
+  N.faceOf_partialOpen_steadyState_disjoint O κ hx hss
+
 -- Routh–Hurwitz in degree two: a monic real quadratic is Hurwitz (both roots in the open left
 -- half-plane) iff both lower coefficients are positive.
 open Polynomial in

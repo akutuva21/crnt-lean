@@ -91,6 +91,7 @@ import CRNT.Kinetics.Generalized
 import CRNT.Open.Augmentation
 import CRNT.Open.Deficiency
 import CRNT.Open.Boundary
+import CRNT.Open.PartialOpen
 
 -- Equilibria: steady states, compatibility classes, complex balancing
 import CRNT.Equilibria.SteadyState
