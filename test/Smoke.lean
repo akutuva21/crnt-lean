@@ -1085,6 +1085,12 @@ example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
     CRNT.Analysis.SpernerLattice.cellDoor κ t' t :=
   CRNT.Analysis.SpernerLattice.cellDoor_symm κ h
 
+-- Door graph bipartite: two up-triangles are never door-adjacent (same orientation shares ≤1 vertex).
+example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
+    (u u' : CRNT.Analysis.SpernerLattice.Up N) :
+    ¬ CRNT.Analysis.SpernerLattice.cellDoor κ (Sum.inl u) (Sum.inl u') :=
+  CRNT.Analysis.SpernerLattice.not_cellDoor_inl_inl κ u u'
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
