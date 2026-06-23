@@ -186,6 +186,7 @@ import CRNT.Dynamics.StrictInflow
 import CRNT.Dynamics.NegativeInvariance
 import CRNT.Dynamics.BoundaryOmegaSiphon
 import CRNT.Dynamics.CriticalSiphonOmega
+import CRNT.Dynamics.NoCriticalSiphonPersistence
 import CRNT.Dynamics.SingleLinkageGAC
 
 -- Stochastic CRN: Anderson–Craciun–Kurtz product-form objects
