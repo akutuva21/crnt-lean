@@ -201,6 +201,7 @@ import CRNT.Dynamics.DissipationBound
 import CRNT.Dynamics.ButlerMcGehee
 import CRNT.Dynamics.ToricInclusion
 import CRNT.Dynamics.ToricEmbedding
+import CRNT.Dynamics.ToricEmbeddingOrder
 import CRNT.Dynamics.EndotacticPermanence
 import CRNT.Dynamics.FacetRepulsion
 

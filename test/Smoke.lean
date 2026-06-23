@@ -1328,3 +1328,10 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     (hwnn : Concentration.Nonnegative w) (hzero : ∀ s, w s = 0 ↔ s = sstar) :
     0 < N.massActionVectorField κ w sstar :=
   N.massActionVectorField_pos_on_facet_of_not_isSiphon κ hns hwnn hzero
+
+-- GAC Route D (Thm A complete, single cycle): the monomial-ordered cyclic velocity lies in the
+-- polar cone of any cone for which the cycle's base vertex is minimal.
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {C : Set E}
+    (u : ℕ → E) (a : ℕ → ℝ) (n : ℕ) (hcyc : u n = u 0) (hmono : Monotone a) (hmin : CMinimal C u) :
+    (∑ i ∈ Finset.range n, a i • (u (i + 1) - u i)) ∈ polarCone C :=
+  cycle_velocity_mem_polarCone u a n hcyc hmono hmin
