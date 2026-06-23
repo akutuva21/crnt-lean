@@ -1013,6 +1013,16 @@ example {Cell Outer : Type*} [Fintype Cell] [Fintype Outer]
     ∃ t : Cell, D.IsRainbowCell t :=
   D.exists_rainbow
 
+-- Concrete multi-triangle 2-D Sperner: the N=2 barycentric subdivision (four cells, one interior door
+-- and one boundary door) has a rainbow triangle — the full multi-outer pipeline on a real triangulation.
+example : ∃ t : CRNT.Analysis.SpernerN2.Cell,
+    CRNT.Analysis.SpernerN2.multiDoorIncidence.IsRainbowCell t :=
+  CRNT.Analysis.SpernerN2.exists_rainbow_cell
+
+-- The rainbow triangle is exactly the central inverted triangle `dn`.
+example : CRNT.Analysis.SpernerN2.multiDoorIncidence.IsRainbowCell CRNT.Analysis.SpernerN2.Cell.dn := by
+  decide
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
