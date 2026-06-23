@@ -1314,3 +1314,10 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpa
     (F : Fan E) {δ₁ δ₂ : ℝ} (X : E) (hδ : δ₁ ≤ δ₂) :
     (toricField F δ₁ X : Set E) ⊆ (toricField F δ₂ X : Set E) :=
   toricField_mono_delta X hδ
+
+-- GAC Route C: a strongly endotactic network has a strictly descending direction at any
+-- non-constant functional on its source complexes.
+example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} (h : N.StronglyEndotactic)
+    (w : S → ℝ) (hncon : ∃ r₁ r₂ : N.R, N.wValue w r₁ ≠ N.wValue w r₂) :
+    ∃ r : N.R, N.IsMaxSource w r ∧ N.wRate w r < 0 :=
+  Network.stronglyEndotactic_strict_dissipation_direction h w hncon
