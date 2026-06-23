@@ -1042,6 +1042,16 @@ example {N : ℕ} (c : CRNT.Analysis.SpernerLattice.Cell N) :
     (CRNT.Analysis.SpernerLattice.triVerts c).card = 3 :=
   CRNT.Analysis.SpernerLattice.triVerts_card c
 
+-- Arbitrary-N Sperner boundary conditions: the corner (N,0) is colored 0 under any proper coloring.
+example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N) :
+    κ.color (CRNT.Analysis.SpernerLattice.mkPt N 0 (by omega)) = 0 :=
+  CRNT.Analysis.SpernerLattice.corner_color_i κ
+
+-- ...and a boundary side omits the opposite color: on `i + j = N` the color is never 2.
+example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N) (i j : ℕ) (h : i + j = N) :
+    κ.color (CRNT.Analysis.SpernerLattice.mkPt i j (by omega)) ≠ 2 :=
+  CRNT.Analysis.SpernerLattice.side_ij_ne_two κ i j h
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
