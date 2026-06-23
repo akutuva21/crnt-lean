@@ -897,6 +897,25 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
       omegaLimit atTop ϕ {x₀} = {xstar} :=
   N.gac_of_hasNoCriticalSiphon hwr κ hncs hxs hcb hx0 hx0compat
 
+-- Broader reduction: a single positive ω-limit point forces ω = {x*} (no structural hypothesis).
+open Filter in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (κ : N.RateConstants) {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {xstar x₀ : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    (hx0compat : N.StoichCompatible x₀ xstar) (hγ0 : ∀ x, γ x 0 = x)
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hgenω : ∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      HasDerivAt (γ y) (N.massActionVectorField κ (γ y t)) t)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    (hωaff : ∀ z ∈ omegaLimit atTop ϕ {x₀}, (z - x₀ : Concentration S) ∈ N.stoichSubspace)
+    {c : ℝ} (hωc : ∀ z ∈ omegaLimit atTop ϕ {x₀}, relEntropy xstar z = c)
+    (hposorbit : ∀ p ∈ omegaLimit atTop ϕ {x₀}, Concentration.Positive p →
+      ∀ t : ℝ, 0 ≤ t → Concentration.Positive (γ p t))
+    (hex : ∃ p ∈ omegaLimit atTop ϕ {x₀}, Concentration.Positive p) :
+    omegaLimit atTop ϕ {x₀} = {xstar} :=
+  N.omegaLimit_eq_singleton_of_mem_positive hwr κ hxs hcb hx0compat hγ0 hϕγ hgenω hωnn hωaff hωc
+    hposorbit hex
+
 -- Anderson–Craciun–Kurtz: for a complex-balanced network the product-of-Poissons density
 -- satisfies the stochastic master-equation stationarity condition.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
