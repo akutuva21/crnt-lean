@@ -1463,3 +1463,13 @@ example {δ : ℝ} {f : Plane → Plane} {γ : ℝ → Plane}
     (h0 : γ 0 ∈ polyRegion crossFaces) {t : ℝ} (ht : 0 ≤ t) :
     (1 : ℝ) ≤ dist (γ t) 0 :=
   crossFan_genuine_persistent hsel hγcont hγ h0 ht
+
+-- GAC Route D (§4.2 first non-degenerate witness): two DISTINCT chaining normals (the axis normals)
+-- cut a corner zero-separating region; the genuine toric trajectory stays distance 1 from 0.
+open ZeroSeparatingCurve2D FaithfulCurveExample FaithfulCurveExistence FaithfulCurveGeneral in
+example {δ : ℝ} {x₀ : Plane} {f : Plane → Plane} {γ : ℝ → Plane}
+    (hsel : ∀ x, f x ∈ toricField crossFan δ (logCoords x₀))
+    (hγcont : Continuous γ) (hγ : ∀ t > 0, HasDerivAt γ (f (γ t)) t)
+    (h0 : γ 0 ∈ polyRegion twoWallFaces) {t : ℝ} (ht : 0 ≤ t) :
+    (1 : ℝ) ≤ dist (γ t) 0 :=
+  twoWall_genuine_persistent hsel hγcont hγ h0 ht
