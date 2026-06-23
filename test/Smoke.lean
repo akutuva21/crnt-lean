@@ -1011,3 +1011,12 @@ example {Cell Outer : Type*} [Fintype Cell] [Fintype Outer]
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
     (∀ r : N.R, ∑ s, v s * N.reactionVector r s = 0) ↔ v ∈ CRNT.orthSum N.stoichSubspace :=
   N.conservationLaw_iff_mem_orthSum v
+
+-- Ladder 3 (Fenichel/QSSA): on the constructed slow manifold, an ε-slow slow path drives the slaved
+-- fast variable with O(ε) displacement — the QSSA drift bound at the Lipschitz tier.
+example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [PseudoMetricSpace Y]
+    (S : ODE.SlowManifoldSeed Y E) {L ε : ℝ} (hL : 0 ≤ L)
+    (hlip : ∀ y y' z, ‖S.fast y z - S.fast y' z‖ ≤ L * dist y y')
+    {y : ℝ → Y} (hy : ∀ t t', dist (y t) (y t') ≤ ε * |t - t'|) (t t' : ℝ) :
+    ‖S.manifoldMap (y t) - S.manifoldMap (y t')‖ ≤ (L / S.rate) * ε * |t - t'| :=
+  S.manifoldMap_slowDrift_le hL hlip hy t t'
