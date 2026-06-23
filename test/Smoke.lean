@@ -1420,3 +1420,11 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpa
     (hiso : ∀ C ∈ F, Metric.infDist X (C : Set E) < δ → C = C₀) :
     toricField F δ X = (coneDual (C₀ : Set E)).toPointedCone :=
   toricField_eq_coneDual_of_isolated hC₀F hC₀d hiso
+
+-- GAC Route D (§4.2 uncertainty-region subtangency): if the region normal lies in every δ-near
+-- cell, the toric field is a support face — the whole subtangency algebra is now proven.
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E] {F : Fan E}
+    {δ : ℝ} {X n : E} (h : ∀ C ∈ F, Metric.infDist X (C : Set E) < δ → n ∈ (C : Set E))
+    {a : ℝ} {faces : List (E × ℝ)} {v : E} (hv : v ∈ toricField F δ X) :
+    ZeroSeparatingCurve2D.IsSupportFace (fun _ => v) faces n a :=
+  isSupportFace_of_mem_forall h hv
