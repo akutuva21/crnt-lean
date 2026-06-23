@@ -23,13 +23,17 @@ independence in both directions, so
 
 * `stoichRank_eq_computeRank : N.stoichRank = computeRank N.stoichMatrixQ`,
 
-upgrading `RankExact`'s one-sided bound to an exact, computable, axiom-clean rank. Hence the
-**exact computable deficiency**
+upgrading `RankExact`'s one-sided bound to an exact, computable, axiom-clean rank. The exact
+deficiency
 
 * `computeDeficiency N := numComplexes − numLinkageClasses − computeRank stoichMatrixQ`,
 
-with `deficiency_eq_computeDeficiency : N.deficiency = N.computeDeficiency` valid for *every*
-deficiency value, and the `δ = 0` / `δ = 1` decision corollaries.
+is `noncomputable` as written, because `numLinkageClasses` is a quotient cardinality
+(`Nat.card (Quotient linkedSetoid)`). Its *value* and the `δ = 0` / `δ = 1` *decisions* are
+nonetheless decidable: `numLinkageClasses_eq_card_connectedComponent` rewrites the link count as
+`Fintype.card (linkageGraph).ConnectedComponent`, so `deficiency_eq_computeDeficiency :
+N.deficiency = N.computeDeficiency` (valid for *every* deficiency value) and the decision
+corollaries reduce by `decide`.
 
 The field-extension invariance is proved directly: `GaussianRank`'s minor machinery is hardcoded
 to `Matrix _ _ ℚ`, so the `ℝ` side cannot reuse it. Instead, `(stoichMatrixQ.map (Rat.castHom ℝ)).rank
@@ -170,8 +174,10 @@ theorem stoichRank_eq_computeRank (N : Network S) :
   rw [computeRank_eq_rank]
   omega
 
-/-- **The exact computable deficiency.** With the stoichiometric rank now exactly computable,
-`δ = n − ℓ − s` is computable: `numComplexes − numLinkageClasses − computeRank stoichMatrixQ`. -/
+/-- **The exact deficiency in terms of the computable rank.** With the stoichiometric rank now
+exactly computable, `δ = n − ℓ − s = numComplexes − numLinkageClasses − computeRank stoichMatrixQ`.
+This `def` is `noncomputable` because `numLinkageClasses` is a quotient cardinality; the value and
+the `δ = 0` / `δ = 1` decisions are decidable via `numLinkageClasses_eq_card_connectedComponent`. -/
 noncomputable def computeDeficiency (N : Network S) : ℕ :=
   N.numComplexes - N.numLinkageClasses - computeRank N.stoichMatrixQ
 
