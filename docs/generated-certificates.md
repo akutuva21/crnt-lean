@@ -40,11 +40,11 @@ def N : Network Species :=
 
 ## Checkable claims
 
-- **Complex count** — `example : N.numComplexes = 2 := by decide`.
-- **Directed reachability** — emit a walk (a list of complexes) and check it:
+- **Complex count**: `example : N.numComplexes = 2 := by decide`.
+- **Directed reachability**: emit a walk (a list of complexes) and check it:
   `N.reaches_of_walk c d walk (by decide) (by decide) : N.Reaches c d`. The first
   `decide` confirms the walk ends at `d`; the second confirms each step is a reaction.
-- **Weak reversibility** — supply a return walk per reaction:
+- **Weak reversibility**: supply a return walk per reaction:
 
   ```lean
   example : N.WeaklyReversible := by

@@ -1,17 +1,19 @@
 # Chemical Reaction Network Theory (CRNT) in Lean 4
 
-A Lean 4 formalization of **Chemical Reaction Network Theory** (CRNT), oriented toward
-synthetic biology, molecular programming, and biochemical design automation.
+A Lean 4 formalization of **Chemical Reaction Network Theory**, oriented toward synthetic biology,
+molecular programming, and biochemical design automation.
 
-The library provides a rigorous, composable core for finite chemical reaction
-networks: species, complexes, reactions, the reaction graph, stoichiometry, mass-
-action kinetics, linkage classes, weak reversibility, and deficiency. It is designed
-so external tools can emit Lean files that *check* structural network properties
-against a stable API.
+The library provides a rigorous, composable core for finite chemical reaction networks (species,
+complexes, reactions, the reaction graph, stoichiometry, mass-action kinetics, linkage classes,
+weak reversibility, deficiency) and builds on it the classical structural and dynamical theory:
+the deficiency-zero and deficiency-one theorems, the Horn–Jackson Lyapunov/LaSalle stability theory,
+persistence and the global attractor conjecture, the Anderson–Craciun–Kurtz stochastic product form,
+multistationarity and robustness criteria, and decidable companions with exact certificates. It is
+designed so external tools can emit Lean files that *check* network properties against a stable API.
 
-- **Package:** `lean-crnt`
-- **Namespace:** `CRNT`
+- **Package:** `lean-crnt` · **Namespace:** `CRNT`
 - **Lean:** 4.31.0 · **Mathlib:** v4.31.0
+- The default import (`import CRNT`) is **`sorry`-free** and introduces **no axioms beyond Mathlib's**.
 
 ## Build
 
@@ -49,153 +51,69 @@ example : N.WeaklyReversible := by
   · exact Network.Reaches.single ⟨Rxn.fwd, rfl, rfl⟩
 ```
 
-See [`docs/tutorial.md`](docs/tutorial.md) for a step-by-step walkthrough and
-[`docs/generated-certificates.md`](docs/generated-certificates.md) for the external-tool
-emission contract.
+`Complex S` is `S → ℕ` (stoichiometric coefficients). See
+[`docs/foundations.md`](docs/foundations.md) for the data model and
+[`docs/decidability.md`](docs/decidability.md) for `decide` / `crnt_check` and certificates.
 
-## What is proven
+## Documentation
 
-The stable library (`import CRNT`) is `sorry`-free and introduces no axioms beyond
-Mathlib's. It defines and proves, among others:
+The mathematics is documented by area. Start with the architecture overview, then read the area you
+need.
 
-- finite CRN data structures: `Complex`, `Reaction`, `Network`;
-- the reaction graph: directed reachability (`Reaches`), weak reversibility
-  (`WeaklyReversible`), and linkage (`Linked`, `numLinkageClasses`);
-- stoichiometry: reaction vectors, the stoichiometric subspace, and rank
-  (`stoichRank ≤ card S`);
-- mass-action kinetics: monomials, rates, and the vector field, with nonnegativity and
-  positivity lemmas;
-- equilibria: steady states, stoichiometric compatibility (an equivalence relation),
-  and complex balancing;
-- the Feinberg–Horn–Jackson algebraic factorization of the dynamics through the complex
-  space, `ẋ = Y (A_k (Ψ x))` (`massActionVectorField_eq`), the characterization of
-  complex balancing as `A_k (Ψ x) = 0`, and the theorem that **every complex-balanced
-  concentration is a steady state** (`IsComplexBalanced.isMassActionSteadyState`);
-- the stoichiometric and incidence maps with the factorization `stoichMap = Y ∘ ∂`,
-  the incidence-rank identity `rank(∂) = n − ℓ`, and hence **deficiency as a kernel
-  dimension** `δ = dim(ker Y ∩ Im ∂)` (`deficiencyInt_eq_finrank_deficiencySubspace`)
-  with the deficiency-zero theorem's structural input
-  `DeficiencyZero ⟺ ker Y ∩ Im ∂ = ⊥` (`deficiencyZero_iff_deficiencySubspace_eq_bot`);
-- the Laplacian/conservation property of the kinetic matrix `A_k` — its columns sum to
-  zero (`kineticMap_sum_eq_zero`) — and that reactions stay within linkage classes
-  (`linked_of_reaction`);
-- **Perron–Frobenius for column-stochastic matrices**, built from primitives (Mathlib
-  has no Brouwer/Perron–Frobenius/Matrix-Tree): existence of a nonnegative fixed vector
-  by a Cesàro/Markov–Kakutani argument (`exists_nonneg_mulVec_fixed_of_colStochastic`),
-  the combinatorial positivity upgrade under strong connectivity
-  (`pos_of_nonneg_mulVec_fixed_of_stronglyConnected`), and the combined strictly-positive
-  fixed vector (`exists_pos_mulVec_fixed_of_stronglyConnected`);
-- the theorem that **a weakly reversible network's kinetic matrix has a strictly positive
-  kernel vector** (`PositiveKernel.weaklyReversible_exists_positive_kernelVector`) — the
-  existence of complex-balanced reference states, obtained by applying Perron–Frobenius
-  per linkage class;
-- **Birch's theorem** (`birch`): relative to a positive reference `x*`, every positive
-  stoichiometric compatibility class `c + S` contains a **unique** point with
-  `S`-orthogonal log-ratio — the existence and uniqueness of the complex-balanced
-  equilibrium in each positive class. Uniqueness (`birch_uniqueness`) is the strict
-  monotonicity of `log`; existence (`birch_existence`) comes from minimizing the dual
-  objective (below) and the double-complement identity `(Sᗮ)ᗮ = S` (`orthSum_orthSum`,
-  by transporting Mathlib's `Submodule.orthogonal_orthogonal` across
-  `ι → ℝ ≃ EuclideanSpace ℝ ι`);
-- the **Horn–Jackson Lyapunov function** (`relEntropy`, the relative entropy) and its
-  positive-definiteness about a reference equilibrium (Gibbs' inequality):
-  `relEntropy_nonneg`, `relEntropy_eq_zero_iff`, `relEntropy_pos_of_ne`;
-- that `relEntropy` is a **strict Lyapunov function** for the dynamics: the dissipation
-  inequality `∑_s (log x_s − log x*_s) f(x)_s ≤ 0` (`dissipation_nonpos`), vanishing exactly
-  at complex-balanced points (`complexBalanced_of_dissipation_eq_zero`), and hence the
-  **Lyapunov descent** `relEntropy_antitone_along_solution` — `relEntropy` is nonincreasing
-  along every positive mass-action solution (chain rule `relEntropy_hasDerivAt`);
-- **LaSalle's invariance principle for forward semiflows** (`Flow.laSalle`), general
-  dynamical-systems content built on Mathlib's `Flow`/`omegaLimit`: a continuous Lyapunov
-  function with precompact orbit is constant on the ω-limit set;
-- the **ODE foundations** of the mass-action dynamics: the vector field is `C^∞`
-  (`massActionVectorField_contDiff`), the orthant's boundary faces are non-attracting
-  (`massActionVectorField_nonneg_of_zero`), and solutions exist locally from every start
-  (`exists_local_solution`, via Picard–Lindelöf);
-- general flow-construction infrastructure (CRN-free, upstream-targeted): **continuous
-  dependence** on initial conditions (`ODE.dist_le_of_isIntegralCurve`), uniqueness on
-  `[0,∞)` (`ODE.eqOn_Ici_of_isIntegralCurve`), **global existence** for a bounded Lipschitz
-  autonomous field (`ODE.exists_isIntegralCurve`), and the resulting **forward semiflow**
-  `ODE.exists_flow` — a `Flow ℝ≥0` whose orbits are the solutions (semigroup from
-  uniqueness, joint continuity from continuous dependence). This is the flow-of-a-vector-field
-  construction that Mathlib otherwise lacks;
-- the analytic inputs to mass-action confinement: **coercivity** of the relative entropy
-  (`relEntropy_coord_le` — sublevel sets are bounded coordinatewise, so descent keeps a
-  trajectory bounded), a **first-crossing positivity** principle
-  (`pos_of_forward_deriv_ge` — `y' ≥ −L·y` wherever `y > 0` keeps `y` strictly positive on
-  `[0,∞)`, the boundary non-attraction that keeps a confined trajectory off the orthant
-  faces), and the **bounded-Lipschitz cutoff** of the field (`exists_cutoff`: `f ∘ clampBox`
-  is globally bounded and Lipschitz, agreeing with `f` on the box `[-B,B]^S`) that lets the
-  `Flow ℝ≥0` construction apply to the genuine dynamics on a compact sublevel set;
-- the analytic chain behind Birch existence: the **Fenchel–Young inequality**
-  (`birchDualTerm_ge`, convex conjugate dual to Gibbs), the boundedness below of the Birch
-  dual objective (`birchDual_ge`), its **coercivity** (`birchDual_coercive`, bounded
-  sublevel sets), the existence of a **minimizer over any finite-dimensional subspace**
-  (`birchDual_exists_isMinOn`), and the **first-order optimality** of that minimizer
-  (`birchDual_firstOrder`: the gradient `x* ⊙ exp(ŵ) − c` is orthogonal to the subspace);
-- **Perron–Frobenius uniqueness** (`mulVec_fixed_unique_of_stronglyConnected`): on a
-  strongly connected nonnegative matrix, a positive fixed vector is unique up to scaling
-  (a min-ratio argument feeding the localized positivity-spreading lemma);
-- the **toric structure of complex-balanced equilibria**: the monomial vector scales as
-  `Ψ(x)_c = Ψ(x*)_c · exp(⟨c, log(x/x*)⟩)` (`complexMonomialVector_eq_mul_exp`); the
-  **toric inclusion** (`complexBalanced_of_logRatio_orthogonal`) — relative to a
-  complex-balanced reference `x*`, any positive `x` with `log(x/x*)` orthogonal to the
-  stoichiometric subspace is itself complex-balanced — and its **converse** for weakly
-  reversible networks (`logRatio_orthogonal_of_complexBalanced`, via Perron–Frobenius
-  uniqueness per linkage class); hence **given one complex-balanced equilibrium, every
-  positive compatibility class contains exactly one** — existence
-  (`exists_isComplexBalanced_in_positiveClass`, via Birch existence) and uniqueness
-  (`isComplexBalanced_unique_in_positiveClass`, via Birch uniqueness);
-- existence of a complex-balanced equilibrium from weak reversibility + deficiency zero
-  (`exists_isComplexBalanced`): the strictly positive kernel vector of `A_k` is realized as
-  a monomial vector `Ψ x` because deficiency zero collapses the stoichiometric and incidence
-  row spaces (`range_stoichTranspose_eq`) — this is where `δ = 0` is consumed;
-- **the Feinberg–Horn–Jackson deficiency-zero theorem** (`deficiencyZeroTheorem`): for a
-  weakly reversible network of deficiency zero, every positive choice of rate constants and
-  positive starting concentration determines a *unique* complex-balanced equilibrium in the
-  positive compatibility class of the start;
-- **local asymptotic stability** of that equilibrium (`omegaLimit_eq_singleton_of_local`):
-  for a positive start `x₀` in `x*`'s class whose relative entropy lies below every reference
-  coordinate, the mass-action semiflow's orbit through `x₀` (the genuine dynamics) has
-  ω-limit set exactly `{x*}`. The genuine field is replaced by a bounded-Lipschitz cutoff
-  `f ∘ clampBox B` (`exists_cutoff`) so `ODE.exists_flow` gives a `Flow ℝ≥0`; the orbit is
-  shown to stay strictly positive (`orbit_pos`, a first-crossing using the field's linear
-  lower bound `exists_field_lower_bound`), inside the initial relative-entropy sublevel set
-  (`orbit_relEntropy_le`, Lyapunov descent + coercivity), and in `x₀`'s compatibility class
-  (`sub_mem_stoichSubspace_of_solution`); `Flow.laSalle` then forces the relative entropy to
-  be constant on the ω-limit set, so the dissipation vanishes there, each ω-point is
-  complex-balanced (`complexBalanced_of_dissipation_eq_zero`), and deficiency-zero uniqueness
-  pins it to `x*`;
-- deficiency over `ℤ` (`deficiencyInt`, `DeficiencyZero`), with no natural-number
-  truncated-subtraction pitfall;
-- a sound, computable directed-walk certificate checker (`reaches_of_walk`).
+- [`docs/architecture.md`](docs/architecture.md): the **mathematical architecture**: layers, core
+  abstractions, and the dependency structure of the major theorems (the hub for everything below).
+- [`docs/foundations.md`](docs/foundations.md): networks, the reaction graph, stoichiometry.
+- [`docs/dynamics.md`](docs/dynamics.md): kinetics, the complex-space factorization, the semiflow,
+  the relative-entropy Lyapunov function, LaSalle, local stability, and reduced models.
+- [`docs/deficiency.md`](docs/deficiency.md): complex balancing, Birch, Perron–Frobenius, and the
+  deficiency-zero and deficiency-one theorems.
+- [`docs/persistence-gac.md`](docs/persistence-gac.md): siphons, persistence, and the global
+  attractor conjecture (what is proven, and what remains open).
+- [`docs/stochastic.md`](docs/stochastic.md): the chemical master equation and Anderson–Craciun–Kurtz
+  product-form stationarity.
+- [`docs/multistationarity-robustness.md`](docs/multistationarity-robustness.md): injectivity,
+  the species–reaction graph, absolute concentration robustness, adaptation, open systems, composition.
+- [`docs/decidability.md`](docs/decidability.md): decision procedures, the `crnt_check` tactic, and
+  exact rational rank/deficiency certificates.
+- [`docs/generated-certificates.md`](docs/generated-certificates.md): the contract for external
+  tools that emit checkable Lean.
+- [`docs/design.md`](docs/design.md): the implementation/representation decisions behind the code.
 
-Worked example networks (each `sorry`-free):
+## What is proven (at a glance)
 
-| Network | Proven properties |
-|---|---|
-| `Examples.Minimal` (`A → B`) | complex count; **not** weakly reversible |
-| `Examples.ReversiblePair` (`A ⇌ B`) | `n=2`, `ℓ=1`, `s=1`; weakly reversible; **deficiency zero** |
-| `Examples.IrreversibleChain` (`A → B → C`) | complex count; **not** weakly reversible |
-| `Examples.GeneExpression` | complex count; DNA conservation `d[DNA]/dt = 0` |
-| `Examples.Enzyme` (`E + S ⇌ ES → E + P`) | complex count; total-enzyme conservation |
+Headline machine-checked results, by area (see the area docs for the precise statements and module
+names):
 
-## What is not yet proven
+- **Foundations & decidability:** the network/graph/stoichiometry core; decidable reachability,
+  weak reversibility, and linkage; the `crnt_check` tactic; exact rational rank and deficiency
+  certificates via verified Gaussian elimination.
+- **Equilibria & deficiency:** complex balancing and the toric structure of equilibria; Birch's
+  theorem (existence and uniqueness per positive class); Perron–Frobenius for column-stochastic
+  matrices; deficiency as a kernel dimension; the **Feinberg–Horn–Jackson deficiency-zero theorem**;
+  and the **deficiency-one uniqueness theorem** (single- and multi-deficient-class).
+- **Dynamics & stability:** the factorization `ẋ = Y(A_k(Ψ x))`; the forward semiflow `Flow ℝ≥0`;
+  the relative-entropy Lyapunov function with its dissipation inequality; **LaSalle's invariance
+  principle**; **local asymptotic stability** of the complex-balanced equilibrium; and a compact-time
+  Michaelis–Menten quasi-steady-state reduction.
+- **Persistence & the global attractor conjecture:** the reduction *GAC ⟺ persistence*;
+  **unconditional global convergence for the no-critical-siphon class**; the sharp "one positive
+  ω-limit point ⇒ convergence" reduction; and a machine-checked development of the
+  toric-differential-inclusion approach. The conjecture is open in general; see the area doc for what
+  is proven versus assumed.
+- **Stochastic CRN:** the chemical-master-equation generator on `ℕ^S` and the
+  **Anderson–Craciun–Kurtz product-form** stationary distribution for complex-balanced networks.
+- **Multistationarity & robustness:** injectivity and species–reaction-graph fragments; the P-matrix
+  layer; absolute concentration robustness; antithetic integral feedback (perfect adaptation); open
+  (CFSTR) extensions; network interconnection.
 
-These are stated or deferred, not asserted (see [`docs/roadmap.md`](docs/roadmap.md)):
-
-- a verified computable Boolean decision procedure for reachability / weak
-  reversibility (and the corresponding `..._iff` equivalence). Concrete examples are
-  established by explicit proof or by the walk-certificate checker;
-- computable linkage-class enumeration and exact rational rank certificates;
-- a `crnt_check` tactic.
+Each abstraction is exercised by at least one worked example network in `CRNT/Examples/`.
 
 ## Contributing
 
-- Keep the default import (`CRNT`) `sorry`-free and axiom-free.
-- Provide both a propositional definition and, where feasible, a computable companion,
+- Keep the default import (`CRNT`) `sorry`-free and axiom-clean (`[propext, Classical.choice,
+  Quot.sound]`); no `native_decide` (`decide` is fine).
+- Provide both a propositional definition and, where feasible, a decidable computable companion,
   related by a theorem.
-- Exercise every new abstraction with at least one example network.
-- Place unfinished proofs in clearly named experimental modules that `CRNT.lean` does
-  not re-export.
-
+- Exercise every new abstraction with at least one example network and a `test/Smoke.lean` entry.
+- Module docstrings describe the mathematics as present fact and cite source literature by author and
+  title; place unfinished proofs in clearly named modules that `CRNT.lean` does not re-export.

@@ -1,7 +1,8 @@
 # Design notes
 
-This document records the concrete design decisions realized in the library. The
-broader roadmap lives in [`roadmap.md`](roadmap.md).
+This document records the concrete implementation and representation decisions realized in the
+library. The mathematical architecture and the per-area results are in
+[`architecture.md`](architecture.md).
 
 ## Representation
 
@@ -22,13 +23,13 @@ broader roadmap lives in [`roadmap.md`](roadmap.md).
 
 | Question | Decision |
 |---|---|
-| Duplicate reactions allowed? | Yes — distinct indices may share source/target. |
+| Duplicate reactions allowed? | Yes: distinct indices may share source/target. |
 | Self-reactions allowed? | Yes in the structure; `Reaction.Nontrivial` excludes them. |
 | Zero complex allowed? | Yes (`Complex.zero`); needed for inflow/outflow/degradation. |
 | Complexes globally `S → ℕ`? | Yes; each network has a finite appearing subset. |
 | Deficiency in `ℕ` or `ℤ`? | `ℤ` (`deficiencyInt`), to avoid truncated subtraction. |
 | Rate constants? | `ℝ` with an explicit positivity field (`RateConstants.positive`). |
-| External import path? | Codegen first — Lean checks emitted certificates, no in-Lean parsing. |
+| External import path? | Codegen first: Lean checks emitted certificates, no in-Lean parsing. |
 
 ## Structure vs. dynamics
 
