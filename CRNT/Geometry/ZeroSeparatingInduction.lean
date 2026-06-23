@@ -14,17 +14,24 @@ out a **ruled surface** whose tangent plane everywhere contains the ruling direc
 these ruled patches across the "shaded stripes" of the blueprint (§4.3, Fig. 5) assembles the full
 `n`-D surface; §4.4 warns that the naive closed-form generalization "fails in ℝ⁴ — overdetermined".
 
-This module formalizes the **sound structural skeleton** of that induction and — its highest-value
-deliverable — **localizes the ℝ⁴ over-determination to a precise linear-feasibility count**, with a
-Mathlib proof of the threshold dichotomy that is the algebraic heart of §4.4. What is *not* settled
-here (and is named as residue, never `sorry`): the figure-driven gluing combinatorics (§4.3) and the
-toric attracting-direction analysis that would fix *how many* independent ruling/tangency directions
-a single patch is forced to carry as a function of dimension — the count that determines whether the
-threshold is actually crossed. A genuine codimension-1 hypersurface always admits a normal (its
-tangent is `(n−1)`-dimensional); the obstruction is therefore not a property of one smooth patch but
-of the construction *over-specifying* the rulings, which is exactly the unformalized combinatorial
-input. So this module establishes the *mechanism* and its dimension-sensitivity, not a verdict on
-whether Craciun's construction triggers it.
+This module formalizes the **sound structural skeleton** of that induction and the precise
+linear-feasibility threshold behind §4.4's "fails in ℝ⁴". Critically, §4.4's over-determination is
+**not a gap in the conjecture's proof**: Craciun identifies it as the failure of the *naive direct
+generalization* — the ℝ³ method that makes the smaller simplices' vertices align *simultaneously*
+along several turning patches and attracting directions — and footnote 48 states exactly that "the
+system of restrictions given by these alignments is overdetermined in ℝ⁴". He then **repairs it by
+fan refinement**: subdivide each tetrahedron with extra points along its advance edge, build the
+zero-separating surface for the *finer* inclusion `T'`, and observe its normals land in the interior
+of the *coarse* inclusion's attracting cones — so it is faithful for `T`. The refinement breaks each
+over-constrained patch into a *sequence* of patches each crossing one uncertainty region, restoring
+the per-patch constraint count below `finrank` (the 2-D chaining, lifted to `n`-D).
+
+So `over_determined_in_dim_four` below models the *naive* failure Craciun routes around; it is the
+reason the construction must refine, not evidence the conjecture is false. A genuine codimension-1
+hypersurface always admits a normal (its tangent is `(n−1)`-dimensional); the naive over-determination
+comes from *over-specifying* the rulings on a single patch, which refinement avoids. The repair's
+faithful-transfer engine (admissibility for a finer cell ⇒ admissibility for the containing coarse
+cell) is formalized in `CRNT.Geometry.FanRefinement`.
 
 ## The ruled-surface step (§4.3)
 
@@ -97,13 +104,13 @@ normal-direction constraint system, with the explicit ℝ⁴ instance.
 
 RESIDUE, named in prose only: the §4.3 stripe-gluing combinatorics that produce a *single* ruled
 patch decomposition of a neighborhood; and the toric fan analysis certifying that the per-patch
-attracting directions are what they are. These together fix the *count* of independent
-ruling/tangency directions a patch must carry — the quantity that decides whether the
-`finrank`-threshold dichotomy proved here is actually crossed. What is settled here is the
-*threshold mechanism* (spanning ⇒ no normal; `#< finrank` ⇒ a normal exists) and that it is
-dimension-sensitive; whether Craciun's construction forces the spanning case in ℝ⁴ — a genuine gap —
-or can be threaded — a surmountable informality — is **not** decided and is exactly the residual
-combinatorial input that makes §4.4–4.5 delicate.
+attracting directions are what they are. What is settled here is the *threshold mechanism* (spanning
+⇒ no normal; `#< finrank` ⇒ a normal exists) and that the *naive* alignment approach over-determines
+it in ℝ⁴. Craciun §4.4 **resolves** this — the over-determination is a surmountable informality, not
+a gap: fan refinement reduces every patch's constraint count below `finrank`, and the finer surface
+is faithful for the coarse fan. That faithful-transfer step is formalized in
+`CRNT.Geometry.FanRefinement`; the remaining genuinely figure-driven input is only the explicit
+stripe/tunnel decomposition, carried as the `hbuild` witness of `inductionStep_of_ruledBuild`.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.ZeroSeparatingSurface`,
 `CRNT.Geometry.FaithfulCurve2D`, `Mathlib.LinearAlgebra.Dimension.Constructions`,
@@ -307,9 +314,10 @@ theorem three_constraints_feasible_in_dim_four (v : Fin 3 → EuclideanSpace ℝ
 /-- **The over-determination dichotomy in ℝ⁴.** Together: three tangency constraints are always
 feasible (a nonzero normal exists), while four *spanning* constraints are infeasible (only the zero
 normal qualifies). The threshold sits exactly at the ambient dimension `4` — the algebraic shape of
-Craciun §4.4's "fails in ℝ⁴". Whether a single ruled patch is actually *forced* to carry four
-independent (spanning) tangency directions — turning this dichotomy into a genuine obstruction rather
-than a surmountable one — is the residual gluing/toric combinatorial fact, not decided here. -/
+Craciun §4.4's "fails in ℝ⁴". This is precisely why the *naive* direct generalization (one patch
+aligned to several attracting directions at once) breaks in ℝ⁴; Craciun's actual construction refines
+the fan so each patch carries fewer than `finrank` constraints, avoiding the spanning case. So this
+dichotomy explains the need to refine, and is not an obstruction to the conjecture. -/
 theorem over_determined_in_dim_four :
     (∀ v : Fin 3 → EuclideanSpace ℝ (Fin 4),
         ∃ n : EuclideanSpace ℝ (Fin 4), n ≠ 0 ∧ ∀ i, ⟪v i, n⟫_ℝ = 0) ∧

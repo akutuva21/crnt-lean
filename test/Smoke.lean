@@ -1537,3 +1537,11 @@ example :
       (∀ n : EuclideanSpace ℝ (Fin 4),
         (∀ i, ⟪EuclideanSpace.basisFun (Fin 4) ℝ i, n⟫_ℝ = 0) → n = 0) :=
   over_determined_in_dim_four
+
+-- GAC Route D (§4.4 repair): Craciun routes around the ℝ⁴ over-determination by fan refinement — a
+-- normal admissible for a finer cell C' ⊆ C is admissible for the coarse cell C, so the finer
+-- surface is faithful for the coarse fan (the faithful-transfer engine of the repair).
+open CRNT.Faithful FanRefinement in
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {n : E} {C C' : ProperCone ℝ E}
+    (hsub : (C' : Set E) ⊆ (C : Set E)) (h : AttractsToward n C') : AttractsToward n C :=
+  attractsToward_coarse_of_fine hsub h
