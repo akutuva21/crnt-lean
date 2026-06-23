@@ -1052,6 +1052,17 @@ example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N) (i j : �
     κ.color (CRNT.Analysis.SpernerLattice.mkPt i j (by omega)) ≠ 2 :=
   CRNT.Analysis.SpernerLattice.side_ij_ne_two κ i j h
 
+-- Lattice-edge incidence lemma (any N): an interior diagonal edge borders exactly two triangles,
+-- `up(i,j)` and `down(i,j)`.
+example (N i j : ℕ) (hd : i + j + 2 ≤ N) (c : CRNT.Analysis.SpernerLattice.Cell N) :
+    (CRNT.Analysis.SpernerLattice.mkPt (i + 1) j (by omega) ∈
+        CRNT.Analysis.SpernerLattice.triVerts c ∧
+      CRNT.Analysis.SpernerLattice.mkPt i (j + 1) (by omega) ∈
+        CRNT.Analysis.SpernerLattice.triVerts c) ↔
+      (c = Sum.inl ⟨(i, j), by rw [CRNT.Analysis.SpernerLattice.mem_upCarrier]; omega⟩ ∨
+        c = Sum.inr ⟨(i, j), by rw [CRNT.Analysis.SpernerLattice.mem_downCarrier]; omega⟩) :=
+  CRNT.Analysis.SpernerLattice.diag_incidence_interior N i j hd c
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
