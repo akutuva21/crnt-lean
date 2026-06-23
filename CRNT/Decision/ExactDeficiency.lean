@@ -23,17 +23,20 @@ independence in both directions, so
 
 * `stoichRank_eq_computeRank : N.stoichRank = computeRank N.stoichMatrixQ`,
 
-upgrading `RankExact`'s one-sided bound to an exact, computable, axiom-clean rank. The exact
-deficiency
+upgrading `RankExact`'s one-sided bound to an exact, axiom-clean rank. The rank `computeRank
+stoichMatrixQ` is exact and evaluates by compiled reduction (`#eval`), but it does **not** reduce
+under kernel `decide`: `computeRank` expands a determinant over a permutation sum, which the kernel
+does not reduce. The exact deficiency
 
 * `computeDeficiency N := numComplexes − numLinkageClasses − computeRank stoichMatrixQ`,
 
-is `noncomputable` as written, because `numLinkageClasses` is a quotient cardinality
-(`Nat.card (Quotient linkedSetoid)`). Its *value* and the `δ = 0` / `δ = 1` *decisions* are
-nonetheless decidable: `numLinkageClasses_eq_card_connectedComponent` rewrites the link count as
-`Fintype.card (linkageGraph).ConnectedComponent`, so `deficiency_eq_computeDeficiency :
-N.deficiency = N.computeDeficiency` (valid for *every* deficiency value) and the decision
-corollaries reduce by `decide`.
+is moreover `noncomputable` as written, because `numLinkageClasses` is a quotient cardinality
+(`Nat.card (Quotient linkedSetoid)`). So `deficiency_eq_computeDeficiency : N.deficiency =
+N.computeDeficiency` (valid for *every* deficiency value) and the `δ = 0` / `δ = 1` corollaries are
+exact equality/`iff` bridges to the computable rank — concrete deficiency values come through the
+bridge or `#eval`, not by `decide`. (The decidable deficiency-*one algorithm* runs through the
+structural conditions, e.g. `OneTerminalSLCPerLinkageClass`, which do `decide`-reduce — a path
+independent of the rank.)
 
 The field-extension invariance is proved directly: `GaussianRank`'s minor machinery is hardcoded
 to `Matrix _ _ ℚ`, so the `ℝ` side cannot reuse it. Instead, `(stoichMatrixQ.map (Rat.castHom ℝ)).rank
@@ -176,8 +179,9 @@ theorem stoichRank_eq_computeRank (N : Network S) :
 
 /-- **The exact deficiency in terms of the computable rank.** With the stoichiometric rank now
 exactly computable, `δ = n − ℓ − s = numComplexes − numLinkageClasses − computeRank stoichMatrixQ`.
-This `def` is `noncomputable` because `numLinkageClasses` is a quotient cardinality; the value and
-the `δ = 0` / `δ = 1` decisions are decidable via `numLinkageClasses_eq_card_connectedComponent`. -/
+This `def` is `noncomputable` because `numLinkageClasses` is a quotient cardinality, and `computeRank`
+itself does not reduce under kernel `decide`; the deficiency value is obtained through
+`deficiency_eq_computeDeficiency` or `#eval`, not by `decide`. -/
 noncomputable def computeDeficiency (N : Network S) : ℕ :=
   N.numComplexes - N.numLinkageClasses - computeRank N.stoichMatrixQ
 
@@ -189,12 +193,14 @@ theorem deficiency_eq_computeDeficiency (N : Network S) :
   rw [computeDeficiency, ← hrank]
   omega
 
-/-- **Exact computable deficiency-zero decision.** -/
+/-- **Exact deficiency-zero criterion** in terms of the computable rank (an `iff` bridge, not a
+kernel-`decide` reduction). -/
 theorem deficiencyZero_iff_computeDeficiency_eq_zero (N : Network S) :
     N.DeficiencyZero ↔ N.computeDeficiency = 0 := by
   rw [deficiencyZero_iff_deficiency_eq_zero, deficiency_eq_computeDeficiency]
 
-/-- **Exact computable deficiency-one decision.** -/
+/-- **Exact deficiency-one criterion** in terms of the computable rank (an `iff` bridge, not a
+kernel-`decide` reduction). -/
 theorem deficiencyOne_iff_computeDeficiency_eq_one (N : Network S) :
     N.DeficiencyOne ↔ N.computeDeficiency = 1 := by
   rw [deficiencyOne_iff_deficiency_eq_one, deficiency_eq_computeDeficiency]
