@@ -1091,6 +1091,13 @@ example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
     ¬ CRNT.Analysis.SpernerLattice.cellDoor κ (Sum.inl u) (Sum.inl u') :=
   CRNT.Analysis.SpernerLattice.not_cellDoor_inl_inl κ u u'
 
+-- Neighbor locator: a door-neighbor of an up-triangle is a down-triangle.
+example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
+    {u : CRNT.Analysis.SpernerLattice.Up N} {t' : CRNT.Analysis.SpernerLattice.Cell N}
+    (h : CRNT.Analysis.SpernerLattice.cellDoor κ (Sum.inl u) t') :
+    ∃ d : CRNT.Analysis.SpernerLattice.Down N, t' = Sum.inr d :=
+  CRNT.Analysis.SpernerLattice.cellDoor_inl_isRight κ h
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
