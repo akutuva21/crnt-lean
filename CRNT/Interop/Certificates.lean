@@ -9,8 +9,8 @@ for directed reachability: an external tool emits, for a reachability claim `c â
 an explicit walk (a list of complexes), and Lean verifies it with a computable
 `Bool` check whose `true` value soundly implies `Reaches`.
 
-Because `DirectlyReacts` is decidable, `reachesWalk` reduces by `decide`/`native_decide`
-on concrete networks, so generated certificates close their goals automatically.
+Because `DirectlyReacts` is decidable, `reachesWalk` reduces by `decide` on concrete
+networks, so generated certificates close their goals automatically.
 
 This module is **stable**. Depends on: `CRNT.Graph.WeakReversibility`.
 -/
