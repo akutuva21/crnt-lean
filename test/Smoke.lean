@@ -1390,3 +1390,8 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] {f : E → E} {γ 
     (hdescent : ∀ y, c - δ ≤ g y → g y ≤ c + δ → g' y (f y) ≤ 0) (h0 : g (γ 0) ≤ c) :
     ∀ t, 0 ≤ t → g (γ t) ≤ c :=
   DifferentialInclusion.genuine_sublevel_invariant hgc hg hγcont hγderiv hδ hdescent h0
+
+-- GAC Route D (Thm A graph residue): in a weakly reversible network every reaction lies on a directed cycle.
+example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} (h : N.WeaklyReversible) (r : N.R) :
+    N.OnDirectedCycle r :=
+  h.onDirectedCycle r

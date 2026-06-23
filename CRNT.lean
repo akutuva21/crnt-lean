@@ -13,6 +13,7 @@ import CRNT.Basic.Network
 -- Reaction graph: reachability, weak reversibility, linkage classes
 import CRNT.Graph.Reachability
 import CRNT.Graph.WeakReversibility
+import CRNT.Graph.CycleCover
 import CRNT.Graph.LinkageClass
 import CRNT.Graph.Crossing
 
