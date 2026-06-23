@@ -883,6 +883,20 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     {w : Concentration S} (hw : w ∈ omegaLimit atTop ϕ {x₀}) : w.Positive :=
   N.omegaLimit_positive_of_hasNoCriticalSiphon κ hϕγ hK hmaps hωnn hgenω hωaff hx0pos hncs hw
 
+-- Unconditional GAC for no-critical-siphon networks: a weakly reversible, no-critical-siphon,
+-- complex-balanced network converges to the unique equilibrium of any positive class — no
+-- persistence or closeness hypothesis.
+open Filter in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (κ : N.RateConstants) (hncs : N.HasNoCriticalSiphon) {xstar x₀ : Concentration S}
+    (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar) (hx0 : x₀.Positive)
+    (hx0compat : N.StoichCompatible x₀ xstar) :
+    ∃ (ϕ : Flow ℝ≥0 (Concentration S)) (γ : Concentration S → ℝ → Concentration S),
+      (∀ x, γ x 0 = x) ∧ (∀ x (t : ℝ≥0), ϕ t x = γ x t) ∧
+      (∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t) ∧
+      omegaLimit atTop ϕ {x₀} = {xstar} :=
+  N.gac_of_hasNoCriticalSiphon hwr κ hncs hxs hcb hx0 hx0compat
+
 -- Anderson–Craciun–Kurtz: for a complex-balanced network the product-of-Poissons density
 -- satisfies the stochastic master-equation stationarity condition.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
