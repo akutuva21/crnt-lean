@@ -9,7 +9,8 @@ The mass-action velocity at a point is a nonnegative combination of the reaction
 it lies in the reaction cone `Network.reactionCone N`. This embeds the genuine mass-action
 flow into the crude, constant differential inclusion whose admissible velocities at every
 point are exactly the reaction cone — the simplest toric differential inclusion, the substrate
-for Craciun's program toward the Global Attractor Conjecture.
+for the program toward the Global Attractor Conjecture of Craciun, _Toric differential
+inclusions and a proof of the global attractor conjecture_.
 
 ## The reaction-cone inclusion
 
@@ -28,11 +29,11 @@ differential inclusion, and `isInclusionSolution_reactionCone` shows that any ge
 integral curve that stays nonnegative is a selection of it, via
 `DifferentialInclusion.IsInclusionSolution.of_ode`.
 
-## Residue
+## Scope
 
 The full toric differential inclusion — the `x`-dependent assignment of dual cones to the cells
-of a polyhedral fan, and the trapping of solutions inside invariant regions — is large and **not**
-attempted here. Only the constant reaction-cone inclusion and the selection embedding are built.
+of a polyhedral fan, and the trapping of solutions inside invariant regions — is not constructed
+here. Only the constant reaction-cone inclusion and the selection embedding are built.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.DifferentialInclusion`,
 `CRNT.Geometry.PolyhedralFan`, `CRNT.Kinetics.MassAction`.

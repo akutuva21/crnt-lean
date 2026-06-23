@@ -3,10 +3,10 @@ import CRNT.Dynamics.IsolatedInvariant
 /-!
 # The Butler–McGehee escape principle for ω-limit sets
 
-This module provides the sound core of the **Butler–McGehee lemma**, the general
-dynamical-systems tool behind boundary-repulsion and persistence arguments. The content
-depends only on a topological space `α` carrying a `Flow ℝ≥0 α`, independent of reaction
-networks.
+This module provides the sound core of the **Butler–McGehee lemma** (Butler & Waltman; Hale,
+_Asymptotic Behavior of Dissipative Systems_), the general dynamical-systems tool behind
+boundary-repulsion and persistence arguments. The content depends only on a topological space
+`α` carrying a `Flow ℝ≥0 α`, independent of reaction networks.
 
 Fix a precompact forward orbit through `x₀` absorbed by a compact set `K` in a Hausdorff
 space, with `Ω = omegaLimit atTop ϕ {x₀}`. Such an `Ω` is **two-sided invariant**: forward

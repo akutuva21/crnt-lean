@@ -21,9 +21,10 @@ compact `K₀` of strictly positive concentrations absorbing every genuine integ
 
 `Network.SingleLinkageClass N` is `N.numLinkageClasses = 1`: the undirected reaction graph is
 connected. `singleLinkageClass_gac` states the global attractor conjecture for a single-linkage
-network conditional on the **named residue** `N.SingleLinkageClass → N.PersistentFrom κ x₀` —
-single-linkage persistence (Anderson). Supplying that implication closes the conjecture for the
-class; it is the one open lemma, isolated here as the theorem's hypothesis.
+network conditional on `N.SingleLinkageClass → N.PersistentFrom κ x₀` — single-linkage
+persistence, established by Anderson (_A proof of the global attractor conjecture in the single
+linkage class case_, 2011). Supplying that implication closes the conjecture for the class; it is
+taken as a hypothesis here, isolated as the theorem's antecedent.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.PersistenceGAC`,
 `CRNT.Graph.LinkageClass`.
@@ -72,10 +73,11 @@ def SingleLinkageClass (N : Network S) : Prop :=
 /-- **Single-linkage-class global attractor conjecture, conditional on single-linkage
 persistence.** For a single-linkage-class weakly reversible network with a positive
 complex-balanced reference `x*` and a positive start `x₀` in its class, the genuine mass-action
-semiflow's ω-limit set is `{x*}`, *given* the named residue `hpers`: that single linkage class
-yields the persistence certificate. That implication — single linkage class ⇒ no boundary
-attraction — is Anderson's theorem, the one isolated open lemma; it is the only hypothesis here
-beyond the standing complex-balanced data. -/
+semiflow's ω-limit set is `{x*}`, *given* `hpers`: that single linkage class yields the
+persistence certificate. That implication — single linkage class ⇒ no boundary attraction — is
+the theorem of Anderson (_A proof of the global attractor conjecture in the single linkage class
+case_, 2011), taken as a hypothesis; it is the only assumption here beyond the standing
+complex-balanced data. -/
 theorem singleLinkageClass_gac (N : Network S) (hwr : N.WeaklyReversible)
     (hslc : N.SingleLinkageClass) (κ : N.RateConstants)
     {xstar x₀ : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)

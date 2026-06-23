@@ -6,7 +6,8 @@ import CRNT.Dynamics.GlobalStability
 The dissipation functional
 `D(x) = ∑ s, (log (x s) - log (xstar s)) * massActionVectorField κ x s`
 is the time-derivative of the relative entropy `relEntropy xstar ·` along the mass-action
-flow. Relative to a positive complex-balanced reference `xstar`, it is nonpositive
+flow, the Lyapunov function of Horn & Jackson (_General mass action kinetics_, 1972).
+Relative to a positive complex-balanced reference `xstar`, it is nonpositive
 (`dissipation_nonpos`) and vanishes exactly at the complex-balanced concentrations
 (`complexBalanced_of_dissipation_eq_zero` / `dissipation_eq_zero_of_complexBalanced`).
 
@@ -23,9 +24,10 @@ interior of the positive orthant.
   `∃ δ > 0, ∀ y ∈ K, δ ≤ -D(y)`. This packages the strict Lyapunov decrease quantitatively on
   interior compacta: away from equilibrium the relative entropy decreases at a rate bounded below.
 
-The **uniform** lower bound valid up to the orthant boundary (the Gopalkrishnan–Miller–Shiu
-estimate underlying strongly-endotactic global stability) is the named residue: it requires the
-endotactic / Newton-polytope geometry, which is not available in this layer.
+The **uniform** lower bound valid up to the orthant boundary (the Gopalkrishnan, Miller & Shiu
+estimate underlying strongly-endotactic global stability) is taken as a hypothesis, not
+constructed here: it requires the endotactic / Newton-polytope geometry, which is not assembled
+in this layer.
 
 This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.GlobalStability.
 -/

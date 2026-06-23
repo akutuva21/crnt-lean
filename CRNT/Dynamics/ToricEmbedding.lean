@@ -5,13 +5,13 @@ import Mathlib.Algebra.BigOperators.Module
 /-!
 # The single-cycle monomial-ordering embedding
 
-This module formalizes the algebraic kernel of Craciun's toric-embedding argument for
-the global attractor conjecture: the velocity of a single oriented weakly-reversible
-mass-action cycle, once its monomial coefficients are placed in increasing order, is a
-nonnegative combination of the differences of the reordered cycle vertices, hence lies
-in the convex cone they generate.
+This module formalizes the algebraic kernel of the toric-embedding argument of Craciun,
+_Toric differential inclusions and a proof of the global attractor conjecture_: the velocity
+of a single oriented weakly-reversible mass-action cycle, once its monomial coefficients are
+placed in increasing order, is a nonnegative combination of the differences of the reordered
+cycle vertices, hence lies in the convex cone they generate.
 
-The crux is summation by parts (Abel's transformation). For a cyclic family of points
+The key tool is summation by parts (Abel's transformation). For a cyclic family of points
 `u 0, …, u n` with `u n = u 0` and coefficients `0 ≤ a 0 ≤ … ≤ a (n-1)`, the cyclic
 velocity
 `v = ∑_{i < n} a i • (u (i+1) − u i)`
@@ -23,13 +23,13 @@ regrouping is `cycle_velocity_eq_nonneg_combination`.
 
 Specialized to species space `S → ℝ`, the velocity lies in the `generatedCone` of the
 vertex-difference family `fun i => u 0 − u (i+1)` (`cycle_velocity_mem_generatedCone`),
-which is the polar-cone membership Craciun needs once that cone is shown to contain the
-chosen direction. The single-cycle mass-action velocity at a concentration, written over
-its reordered monomials, is the network specialization `singleCycle_velocity_eq`.
+which is the polar-cone membership the embedding needs once that cone is shown to contain
+the chosen direction. The single-cycle mass-action velocity at a concentration, written
+over its reordered monomials, is the network specialization `singleCycle_velocity_eq`.
 
 The projection-ordering step (choosing a direction `w` and sorting vertices by their
 `w`-projection so the coefficient ordering is realized) and the general weakly-reversible
-assembly over many cycles and uncertainty regions are the remaining residue; this module
+assembly over many cycles and uncertainty regions are not constructed here; this module
 supplies the per-cycle algebraic kernel they are built from.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.PolyhedralFan`,

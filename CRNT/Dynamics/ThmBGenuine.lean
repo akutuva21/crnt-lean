@@ -4,16 +4,16 @@ import CRNT.Kinetics.MassAction
 import Mathlib.Analysis.InnerProductSpace.PiL2
 
 /-!
-# Theorem B for the genuine flow in dimension `≥ 2`
+# Zero-separating away-from-origin invariance for the genuine flow in dimension `≥ 2`
 
 This assembles the viability rungs into a zero-separating, away-from-origin invariant region for
-the **genuine (single-valued) flow** `ẋ = f x`, upgrading Craciun's Theorem B from the 1-D base
-case of `ZeroSeparating.lean` to all dimensions for the genuine dynamics. As `VIABILITY.md` §1
-records, the persistence consequence of the Global Attractor Conjecture needs only the genuine
-mass-action trajectory to stay in the region — *not* set-valued Filippov viability of the whole
-inclusion — so this is the payoff rung.
+the **genuine (single-valued) flow** `ẋ = f x`, extending the zero-separating-region result of
+Craciun, _Toric differential inclusions and a proof of the global attractor conjecture_, from the
+1-D base case of `ZeroSeparating.lean` to all dimensions for the genuine dynamics. The persistence
+consequence of the Global Attractor Conjecture needs only the genuine mass-action trajectory to
+stay in the region — *not* set-valued Filippov viability of the whole inclusion.
 
-## What this module formalizes
+## Contents
 
 * `genuine_sublevel_invariant` — **genuine-flow sublevel zero-separating region.** A direct wrap of
   `sublevel_invariant_of_neighborhood_descent`: for a curve `γ` continuous on `[0, ∞)` and solving
@@ -38,13 +38,13 @@ inclusion — so this is the payoff rung.
   locally Lipschitz (polynomial), so such a `γ` exists and is unique by Picard–Lindelöf; existence
   is not the point — the invariance is — so `γ` and its derivative are taken as hypotheses.
 
-## Proven vs. residue
+## Scope
 
 What is **assembled here** is the genuine-flow invariance + away-from-origin conclusion, fully
-sorry-free, from the neighborhood-descent Nagumo lemma. What is **not** here — and is the separate
-geometric residue (`GAC.md` Route D, D4) — is the §4 zero-separating-surface construction: producing
-the function `g`, its descent band, and its separation from the origin out of the dimension
-induction. Those are taken as clean hypotheses.
+sorry-free, from the neighborhood-descent Nagumo lemma. The zero-separating-surface construction —
+producing the function `g`, its descent band, and its separation from the origin out of the
+dimension induction — is not constructed here; the function `g`, its descent band, and the
+separation are supplied as hypotheses.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.SublevelNagumo`,
 `CRNT.Dynamics.ZeroSeparating`, `CRNT.Kinetics.MassAction`,

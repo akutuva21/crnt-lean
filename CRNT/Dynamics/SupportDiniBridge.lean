@@ -3,15 +3,17 @@ import CRNT.Geometry.ZeroSeparatingCurve2D
 import Mathlib.Analysis.InnerProductSpace.Calculus
 
 /-!
-# Support ⇒ distance-nonincreasing bridge for a convex polygonal region (Craciun §4.2)
+# Support ⇒ distance-nonincreasing bridge for a convex polygonal region
 
-The §4.2 zero-separating region `ZeroSeparatingCurve2D.polyRegion faces` is a finite intersection
+The zero-separating region `ZeroSeparatingCurve2D.polyRegion faces` is a finite intersection
 of closed half-planes `{p | a ≤ ⟪n, p⟫_ℝ}`, hence **convex**, and for a unit inward normal the
-distance to a single half-plane is fully explicit. This module discharges the half-plane case of
-the support ⇒ `infDist`-nonincreasing bridge and assembles it toward the convex polyhedral region,
-feeding the distance-based Nagumo invariance of `ClosedSetNagumo.lean`.
+distance to a single half-plane is fully explicit. Such regions are the zero-separating surfaces of
+Craciun, _Toric differential inclusions and a proof of the global attractor conjecture_. This module
+discharges the half-plane case of the support ⇒ `infDist`-nonincreasing bridge and assembles it
+toward the convex polyhedral region, feeding the distance-based Nagumo invariance of
+`ClosedSetNagumo.lean`.
 
-## What this module formalizes (sorry-free)
+## Contents
 
 * `infDist_dotHalfPlane` — **half-plane distance formula.** For a unit inward normal `‖n‖ = 1`,
   `Metric.infDist x (dotHalfPlane n a) = max 0 (a − ⟪n, x⟫_ℝ)`. The lower bound is Cauchy–Schwarz
@@ -41,18 +43,18 @@ feeding the distance-based Nagumo invariance of `ClosedSetNagumo.lean`.
   `t ↦ Metric.infDist (γ t) (polyRegion faces)` is antitone (the assembled bridge), the genuine
   curve stays in the region for all forward time and a fixed distance `r` from `0`.
 
-## Proven vs. residue
+## Scope
 
-PROVEN here, sorry-free and axiom-clean: the half-plane distance formula (item 1), the half-plane
-Dini monotonicity (item 2) in full, the per-face slack lower bound for the convex region, and the
-Nagumo wiring.
+Established here, sorry-free and axiom-clean: the half-plane distance formula (item 1), the
+half-plane Dini monotonicity (item 2) in full, the per-face slack lower bound for the convex region,
+and the Nagumo wiring.
 
-RESIDUE — the **intersection-distance identity** for the convex polyhedral region: that
+The **intersection-distance identity** for the convex polyhedral region — that
 `Metric.infDist x (polyRegion faces)` is controlled *above* by the per-face slacks (the reverse of
-`dist_le_infDist_polyRegion`), turning per-face support into antitonicity of the region distance.
-The per-half-plane distances bound the region distance from below cleanly; the matching upper
-control is the convex-intersection projection identity, named here and consumed as the antitonicity
-hypothesis of `stays_away_from_zero_of_infDist_antitone`, not discharged.
+`dist_le_infDist_polyRegion`), turning per-face support into antitonicity of the region distance —
+is taken as a hypothesis, not constructed here. The per-half-plane distances bound the region
+distance from below cleanly; the matching upper control is the convex-intersection projection
+identity, which enters as the antitonicity hypothesis of `stays_away_from_zero_of_infDist_antitone`.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.ClosedSetNagumo`,
 `CRNT.Geometry.ZeroSeparatingCurve2D`.

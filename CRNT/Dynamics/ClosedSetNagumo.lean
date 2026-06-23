@@ -35,10 +35,10 @@ forcing the distance to be nonincreasing along the curve therefore certifies inv
   `τ` — contradicts that accumulation, so no exit occurs and `γ` stays in `R`.
 
 The link **`Subtangent F R` ⇒ `t ↦ infDist (γ ·) R` nonincreasing** for the genuine solution
-is the residue: it requires proximal-normal / contingent-derivative-of-distance machinery
+is taken as a hypothesis: it requires proximal-normal / contingent-derivative-of-distance machinery
 relating `tangentConeAt` to the one-sided derivative of `infDist`, which is delicate and partly
-absent from Mathlib. It is not attempted here; the distance-nonincreasing ⇒ invariance
-equivalence and the first-exit form are the supplied content.
+absent from Mathlib. It is not constructed here; the distance-nonincreasing ⇒ invariance
+equivalence and the first-exit form are the content established in this module.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.SublevelInvariant`,
 `CRNT.Dynamics.FirstExit`, `Mathlib.Topology.MetricSpace.HausdorffDistance`.

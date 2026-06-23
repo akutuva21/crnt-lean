@@ -36,7 +36,8 @@ This module builds the tangent-cone framework and the tractable half of Nagumo.
 The *general* converse — subtangentiality ⇒ forward invariance for an arbitrary closed `s` and
 set-valued `F` — requires viability/solution-existence theory (Filippov selection, Peano
 existence on a moving constraint) that is **absent** from Mathlib, and is not attempted here.
-It is the residue gating Craciun's Theorem B in dimension ≥ 2.
+It is the gap to the zero-separating-surface result of Craciun, _Toric differential inclusions and
+a proof of the global attractor conjecture_, in dimension ≥ 2.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.DifferentialInclusion`,
 `CRNT.Dynamics.Nagumo`, `Mathlib.Analysis.Calculus.TangentCone.Basic`,

@@ -1,13 +1,14 @@
 import CRNT.Dynamics.SupportDiniBridge
 
 /-!
-# Forward invariance of the convex polygonal region (Craciun §4.2, Dini half)
+# Forward invariance of the convex polygonal region (Dini half)
 
 The closed region `ZeroSeparatingCurve2D.polyRegion faces` is the intersection of the closed
-half-planes `dotHalfPlane n a` over the oriented faces `(n, a) ∈ faces`. Forward invariance of this
-intersection follows half-plane by half-plane, with **no** appeal to a distance-to-intersection
-(Hoffman) identity: a curve that satisfies the support condition on every face stays in every
-half-plane individually, hence in their intersection.
+half-planes `dotHalfPlane n a` over the oriented faces `(n, a) ∈ faces`. These zero-separating
+regions are studied in Craciun, _Toric differential inclusions and a proof of the global attractor
+conjecture_. Forward invariance of this intersection follows half-plane by half-plane, with **no**
+appeal to a distance-to-intersection (Hoffman) identity: a curve that satisfies the support
+condition on every face stays in every half-plane individually, hence in their intersection.
 
 The mechanism is the per-face slack `s ↦ a − ⟪n, γ s⟫_ℝ`. Along a curve with
 `HasDerivAt γ (f (γ s)) s`, this slack is antitone under the support condition
@@ -16,7 +17,7 @@ The mechanism is the per-face slack `s ↦ a − ⟪n, γ s⟫_ℝ`. Along a cur
 `≤ 0` at time `0`; antitonicity carries that to all forward times, so each slack stays `≤ 0` and
 `γ t` lies in every half-plane.
 
-## What this module formalizes (sorry-free)
+## Contents
 
 * `polyRegion_invariant_of_support` — **forward invariance via per-half-plane invariance.** A
   continuous curve solving the field on `(0, ∞)` with the support condition on every face, starting

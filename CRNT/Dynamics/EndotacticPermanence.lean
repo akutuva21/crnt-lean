@@ -2,12 +2,14 @@ import CRNT.Dynamics.GACOmegaPositive
 import CRNT.Geometry.Endotactic
 
 /-!
-# Permanence and the Gopalkrishnan–Miller–Shiu route to global convergence
+# Permanence and the geometric route to global convergence
 
-The Gopalkrishnan–Miller–Shiu route to the Global Attractor Conjecture runs
-`StronglyEndotactic ⇒ permanent ⇒ GAC`. This module lands the immediately provable
-end of that chain — the **permanence ⇒ convergence** bridge — together with the
-sign content of strong endotacticity along the relative-entropy dissipation.
+The route to the Global Attractor Conjecture of Gopalkrishnan, Miller & Shiu
+(_A geometric approach to the global attractor conjecture_, 2014), with low-dimensional
+predecessors in Craciun, Nazarov & Pantea (2013) and Pantea (2012), runs
+`StronglyEndotactic ⇒ permanent ⇒ GAC`. This module constructs the
+**permanence ⇒ convergence** bridge — together with the sign content of strong
+endotacticity along the relative-entropy dissipation.
 
 `Permanent` is the eventual-confinement predicate: the forward orbit of `x₀` under a
 semiflow `ϕ` is eventually contained in a fixed compact set `K` of strictly positive
@@ -19,20 +21,21 @@ orbit has a nonempty ω-limit set lying entirely inside the compact positive set
 so every ω-point — in particular some ω-point — is strictly positive. Feeding that
 positive ω-point into `omegaLimit_eq_singleton_of_mem_positive` gives
 `gac_of_permanent`: a weakly reversible complex-balanced trajectory that is permanent
-converges to the unique positive equilibrium `x*` of its compatibility class. This is
-the honest Route-C payoff: it reuses the one-positive-ω-point reduction verbatim and
-supplies its missing existence hypothesis from confinement.
+converges to the unique positive equilibrium `x*` of its compatibility class. It reuses
+the one-positive-ω-point reduction verbatim and supplies its missing existence hypothesis
+from confinement.
 
 `stronglyEndotactic_strict_dissipation_direction` is the discrete/geometric sign core:
 when the logarithmic gradient `w = log x - log x*` is non-constant on the reaction
 sources, strong endotacticity produces a `w`-maximal reaction whose `w`-rate is
 strictly negative — the rate functional strictly decreases in the active direction.
-This is the per-reaction sign that the Gopalkrishnan–Miller–Shiu argument aggregates
+This is the per-reaction sign that the Gopalkrishnan, Miller & Shiu argument aggregates
 into a uniform near-boundary dissipation estimate.
 
 The uniform near-boundary dissipation bound itself — the estimate that upgrades strong
-endotacticity to permanence, valid up to the orthant boundary — is the named residue:
-it requires the Newton-polytope / endotactic geometry not yet assembled in this layer.
+endotacticity to permanence, valid up to the orthant boundary — is taken as a hypothesis,
+not constructed here: it requires the Newton-polytope / endotactic geometry not assembled
+in this layer.
 
 This module is **stable** and `sorry`-free. Depends on:
 `CRNT.Dynamics.GACOmegaPositive`, `CRNT.Geometry.Endotactic`.
@@ -51,7 +54,7 @@ variable {S : Type} [DecidableEq S] [Fintype S]
 its forward orbit is eventually contained in a fixed compact set `K` of strictly positive
 concentrations: there is a compact `K`, all of whose points are strictly positive, and a
 tail filter set `v ∈ atTop` along which the orbit stays inside `K`. Permanence is the
-no-boundary-attraction confinement at the heart of the Gopalkrishnan–Miller–Shiu route. -/
+no-boundary-attraction confinement at the heart of the Gopalkrishnan, Miller & Shiu route. -/
 def Permanent (ϕ : Flow ℝ≥0 (Concentration S)) (x₀ : Concentration S) : Prop :=
   ∃ K : Set (Concentration S), IsCompact K ∧ (∀ y ∈ K, Concentration.Positive y) ∧
     ∃ v ∈ (atTop : Filter ℝ≥0), closure (Set.image2 ϕ v {x₀}) ⊆ K
@@ -120,10 +123,11 @@ endotactic and the direction `w` is non-constant on the reaction sources — the
 with different `wValue` — then there is a `w`-maximal reaction whose `w`-rate is strictly negative.
 
 Taking `w = log x - log x*` (the logarithmic gradient driving the relative-entropy dissipation),
-this is the per-reaction sign content of the Gopalkrishnan–Miller–Shiu argument: at the `w`-maximal
-reactant face the rate functional strictly decreases in the active direction. Aggregating these
-signs into a uniform near-boundary lower bound — the estimate that yields permanence — is the
-named residue, requiring the Newton-polytope geometry not present in this layer. -/
+this is the per-reaction sign content of the Gopalkrishnan, Miller & Shiu argument: at the
+`w`-maximal reactant face the rate functional strictly decreases in the active direction.
+Aggregating these signs into a uniform near-boundary lower bound — the estimate that yields
+permanence — is taken as a hypothesis, not constructed here; it requires the Newton-polytope
+geometry not present in this layer. -/
 theorem stronglyEndotactic_strict_dissipation_direction {N : Network S}
     (h : N.StronglyEndotactic) (w : S → ℝ)
     (hncon : ∃ r₁ r₂ : N.R, N.wValue w r₁ ≠ N.wValue w r₂) :

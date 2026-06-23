@@ -7,9 +7,10 @@ import Mathlib.Data.Fin.Tuple.Sort
 /-!
 # The single-cycle projection-ordering step: velocity in the polar cone
 
-This module completes the single-cycle case of Craciun's toric-embedding argument
-(arXiv:1501.02860v2, Theorem A, §3) by turning the already-proven Abel-summation kernel
-into a **polar-cone membership**. The kernel `cycle_velocity_eq_nonneg_combination`
+This module completes the single-cycle case of the toric-embedding argument of Craciun,
+_Toric differential inclusions and a proof of the global attractor conjecture_, by turning
+the Abel-summation kernel into a **polar-cone membership**. The kernel
+`cycle_velocity_eq_nonneg_combination`
 (in `CRNT.Dynamics.ToricEmbedding`) shows that, with monotone coefficients `Monotone a`
 and a closed cycle `u n = u 0`, the cyclic velocity is a nonnegative combination of the
 vertex differences `u 0 − u (i+1)`. The remaining geometric step landed here is: when the
@@ -20,10 +21,10 @@ polar of `C`, hence so does the whole cone they generate, hence so does the velo
 ## Sign and polar conventions
 
 The dual cone `coneDual s` of `CRNT.Geometry.PolyhedralFan` is the **nonnegative** dual
-`{y : ∀ x ∈ s, 0 ≤ ⟪x, y⟫}`. Craciun's polar `Cᵒ` is the **nonpositive** cone
+`{y : ∀ x ∈ s, 0 ≤ ⟪x, y⟫}`. The polar `Cᵒ` is the **nonpositive** cone
 `{y : ∀ x ∈ C, ⟪x, y⟫ ≤ 0}`. To make the statement true with no sign confusion we work
 directly with the nonpositive convention: `polarCone C` is defined here as the pointed
-cone `{y : ∀ x ∈ C, ⟪x, y⟫ ≤ 0}` (`mem_polarCone`). This is exactly Craciun's `Cᵒ`, and
+cone `{y : ∀ x ∈ C, ⟪x, y⟫ ≤ 0}` (`mem_polarCone`). This is exactly the polar `Cᵒ`, and
 `u 0 − u (i+1)` lands in `polarCone C` because `C`-minimality gives
 `⟪z, u 0 − u (i+1)⟫ = ⟪z, u 0⟫ − ⟪z, u (i+1)⟫ ≤ 0` for all `z ∈ C`.
 
@@ -35,20 +36,19 @@ All statements live over a general real inner-product space `E`
 along `(S → ℝ) ≃ EuclideanSpace ℝ S` is needed. To specialize to species space, take
 `E := EuclideanSpace ℝ S`.
 
-## Proven vs. residue
+## Results
 
-Proven sorry-free and axiom-clean here: the generated cone of polar-cone generators sits
-inside the polar cone (`generatedConeE_le_polarCone`); each vertex difference is polar to a
-`C`-minimal base (`vertexDiff_mem_polarCone`); and the assembled single-cycle velocity lies
-in the polar cone under `Monotone a`, `u n = u 0`, and `C`-minimality
-(`cycle_velocity_mem_polarCone`). A clean sorting lemma turning a generic interior
-direction with distinct projections into a relabeling realizing both `C`-minimality and
-coefficient monotonicity (`exists_sorted_reindex`) is provided over a finite cycle.
+The generated cone of polar-cone generators sits inside the polar cone
+(`generatedConeE_le_polarCone`); each vertex difference is polar to a `C`-minimal base
+(`vertexDiff_mem_polarCone`); and the assembled single-cycle velocity lies in the polar cone
+under `Monotone a`, `u n = u 0`, and `C`-minimality (`cycle_velocity_mem_polarCone`). A
+sorting lemma turning a generic interior direction with distinct projections into a relabeling
+realizing both `C`-minimality and coefficient monotonicity (`exists_sorted_reindex`) is
+provided over a finite cycle.
 
-Taken as clean named hypotheses (the analytic residue): that `Monotone a` actually holds
-for the mass-action coefficients (it does, away from the `δ`-uncertainty region where
-`log x ∈ C`), and the full multi-cycle weakly-reversible assembly across cycles and
-uncertainty regions.
+Taken as hypotheses: that `Monotone a` actually holds for the mass-action coefficients (it
+does, away from the `δ`-uncertainty region where `log x ∈ C`), and the full multi-cycle
+weakly-reversible assembly across cycles and uncertainty regions.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.ToricEmbedding`,
 Mathlib pointed cones, inner-product spaces, and module big operators.
@@ -63,11 +63,11 @@ section PolarCone
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
-/-- **Craciun's polar cone** `Cᵒ` of a set `s`, in the nonpositive convention: the pointed
+/-- **The polar cone** `Cᵒ` of a set `s`, in the nonpositive convention: the pointed
 cone of points `y` whose inner product with every `x ∈ s` is nonpositive. This is a pointed
 cone because the conditions `⟪x, y⟫ ≤ 0` are preserved under addition and nonnegative
 scaling of `y`. Note the sign: this is the negation-flipped twin of the nonnegative dual
-`coneDual` of `CRNT.Geometry.PolyhedralFan`, and matches Craciun's `Cᵒ` exactly. -/
+`coneDual` of `CRNT.Geometry.PolyhedralFan`. -/
 def polarCone (s : Set E) : PointedCone ℝ E where
   carrier := {y | ∀ ⦃x⦄, x ∈ s → ⟪x, y⟫_ℝ ≤ 0}
   add_mem' := by

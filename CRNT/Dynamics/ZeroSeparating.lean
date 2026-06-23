@@ -5,15 +5,16 @@ import Mathlib.Topology.MetricSpace.Basic
 /-!
 # Zero-separating invariant regions for differential inclusions
 
-This module opens Craciun's Theorem B (arXiv:1501.02860v2 §4): the zero-separating-surface /
-invariant-region result that drives the persistence half of the Global Attractor Conjecture.
-For a toric differential inclusion `F` and a small neighborhood of the origin, the theorem
-produces a hypersurface `Z` splitting the positive orthant into two connected regions, with
-`0` in one and a designated interior point `x₀` in the other, such that the `x₀`-region is
-*forward invariant* for `F` and its closure stays a positive distance from `0`. Every solution
-then stays inside such a region, so no `ω`-limit point can sit at the origin: persistence.
+This module opens the zero-separating-surface / invariant-region result of Craciun, _Toric
+differential inclusions and a proof of the global attractor conjecture_, which drives the
+persistence half of the Global Attractor Conjecture. For a toric differential inclusion `F` and a
+small neighborhood of the origin, this result produces a hypersurface `Z` splitting the positive
+orthant into two connected regions, with `0` in one and a designated interior point `x₀` in the
+other, such that the `x₀`-region is *forward invariant* for `F` and its closure stays a positive
+distance from `0`. Every solution then stays inside such a region, so no `ω`-limit point can sit at
+the origin: persistence.
 
-## What this module formalizes
+## Contents
 
 * `ZeroSeparatingRegion F R x₀ r`: the interface. A set `R` is a zero-separating invariant
   region for the inclusion `F`, the point `x₀`, and a margin `r > 0`, when `R` is
@@ -26,7 +27,7 @@ then stays inside such a region, so no `ω`-limit point can sit at the origin: p
 * **Separation geometry.** `ball_subset_compl_Ici` and `Ici_disjoint_ball`: in `ℝ`, the ray
   `Set.Ici P₀` with `0 < P₀` is disjoint from `Metric.ball 0 P₀`, the clean 1-D split of the
   line into a near-zero part and a far `x₀`-part. `isConnected_Ici` records that the far part
-  is connected (one of the two connected regions of Theorem B).
+  is connected (one of the two connected regions of the split).
 
 * **1-D base case.** `field_le_Ici_forwardInvariant_Ici`: when the inclusion field is contained
   in the nonnegative ray `Set.Ici 0` (near `0` the 1-D inclusion is exactly `dx/dt ≥ 0`), every
@@ -35,24 +36,22 @@ then stays inside such a region, so no `ω`-limit point can sit at the origin: p
   *is* the sign of the derivative. `zeroSeparatingRegion_Ici` assembles the base-case
   zero-separating region for `0 < P₀`.
 
-## Residues (named, not faked)
+## Hypotheses supplied externally
 
 Two general-mathematics layers are absent from Mathlib and from the differential-inclusion
-substrate, and gate the full Theorem B. They are documented here, never emitted as `sorry`
-or as a vacuous `theorem … : True`.
+substrate, and are taken as hypotheses rather than constructed here.
 
 1. **Set-valued viability / Nagumo for differential inclusions.** Concluding that a *curved*
    region `R` is `ForwardInvariant` for a set-valued field requires the Nagumo viability
    theorem: if at every boundary point of `R` the field is subtangent to `R` (meets the
    Bouligand tangent cone `T_R(x)`), then `R` is invariant. Mathlib has no tangent-cone-to-a-set
-   apparatus and the `DifferentialInclusion` layer explicitly left Filippov/viability as residue.
+   apparatus, and the `DifferentialInclusion` layer takes Filippov/viability as a hypothesis.
    The 1-D base case below sidesteps this only because the subtangency condition there is the
    literal derivative-sign constraint of the inclusion; in dimension `≥ 2` the gap is real.
 
-2. **Dimension induction (§4.2–4.5).** Theorem B is proved by induction on dimension: 2-D
-   polygonal zero-separating curves, then a simplicial construction in 3-D/4-D/`n`-D. This is
-   the figure-driven, informal core of the paper — §4.4 records that the naive `R⁴` approach is
-   overdetermined and fails — and is not formalized.
+2. **Dimension induction.** The zero-separating-surface result is proved by induction on
+   dimension: 2-D polygonal zero-separating curves, then a simplicial construction in
+   3-D/4-D/`n`-D. This geometric construction is not formalized.
 
 This module is **stable** and `sorry`-free. Depends on:
 `CRNT.Dynamics.DifferentialInclusion`, `Mathlib.Analysis.Calculus.MeanValue`,
@@ -78,7 +77,7 @@ the inclusion `F`, the designated point `x₀`, and a margin `r` when:
 * `R` keeps a hard distance `r` from the origin: the open ball `Metric.ball 0 r` is disjoint
   from `R` (equivalently, contained in `Rᶜ`).
 
-The margin condition is the separation of Theorem B: `0` is strictly inside the excluded ball
+The margin condition is the zero-separating condition: `0` is strictly inside the excluded ball
 while `x₀ ∈ R` is outside it, so `R` cannot accumulate at the origin. -/
 structure ZeroSeparatingRegion (F : Field E) (R : Set E) (x₀ : E) (r : ℝ) : Prop where
   /-- The separating margin is strictly positive. -/
@@ -128,7 +127,7 @@ end DifferentialInclusion
 /-! ## Separation geometry on the line
 
 The 1-D split of `ℝ` into a near-zero region and a far region, the clean base-case geometry of
-Theorem B before any dynamics enter. -/
+the zero-separating construction before any dynamics enter. -/
 
 namespace ZeroSeparating
 
@@ -148,7 +147,7 @@ theorem Ici_disjoint_ball {P₀ : ℝ} (hP₀ : 0 < P₀) :
   Set.disjoint_left.mpr fun _ hx hball => ball_subset_compl_Ici hP₀ hball hx
 
 /-- The far region `Set.Ici P₀` is connected: one of the two connected regions of the 1-D
-split. -/
+split of the line. -/
 theorem isConnected_Ici (P₀ : ℝ) : IsConnected (Set.Ici P₀) :=
   _root_.isConnected_Ici
 
@@ -186,7 +185,8 @@ theorem field_le_Ici_forwardInvariant_Ici {F : Field ℝ} (P₀ : ℝ)
 /-- **1-D base-case zero-separating region.** For a nonnegative-ray inclusion `F` (`F y ⊆ Ici 0`)
 and a far point `0 < P₀`, the ray `Set.Ici P₀` is a zero-separating invariant region for `F`,
 `x₀ = P₀`, and margin `P₀`: invariant by `field_le_Ici_forwardInvariant_Ici`, separated from `0`
-by `ball_subset_compl_Ici`. This is Theorem B in dimension one, proved sorry-free. -/
+by `ball_subset_compl_Ici`. This is the zero-separating region in dimension one, proved
+sorry-free. -/
 theorem zeroSeparatingRegion_Ici {F : Field ℝ} {P₀ : ℝ} (hP₀ : 0 < P₀)
     (hF : ∀ y, F y ⊆ Set.Ici (0 : ℝ)) :
     ZeroSeparatingRegion F (Set.Ici P₀) P₀ P₀ where

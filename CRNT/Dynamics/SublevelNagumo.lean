@@ -7,7 +7,8 @@ import Mathlib.Analysis.Calculus.Deriv.Comp
 # Subtangency-to-sublevel-descent bridge and neighborhood-descent sublevel Nagumo
 
 This connects the `tangentConeAt`/`Subtangent` interface to the concrete gradient-descent
-condition for level-set regions, the form Craciun's zero-separating surfaces take, and proves the
+condition for level-set regions, the form the zero-separating surfaces of Craciun, _Toric
+differential inclusions and a proof of the global attractor conjecture_, take, and proves the
 tractable neighborhood-descent Nagumo invariance for a sublevel set.
 
 * `inner_le_zero_of_mem_posTangentConeAt_sublevel` — **the bridge.** If `HasFDerivAt g g' x`,
@@ -38,7 +39,7 @@ tractable neighborhood-descent Nagumo invariance for a sublevel set.
 
 The **boundary-only** Nagumo — descent merely on the level set `{g = c}`, not on a neighborhood
 band — is genuinely subtler: it requires proximal/Bony viscosity-subgradient machinery (absent from
-Mathlib) and can fail without it. It is the residue; it is not attempted here.
+Mathlib) and can fail without it. It is not attempted here.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.Viability`,
 `CRNT.Dynamics.FirstExit`, `CRNT.Dynamics.SublevelInvariant`,

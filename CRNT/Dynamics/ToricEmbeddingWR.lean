@@ -4,9 +4,10 @@ import CRNT.LinearAlgebra.OrthogonalComplement
 /-!
 # The multi-cycle weakly-reversible toric-embedding assembly
 
-This module completes the assembly half of Craciun's toric-embedding argument
-(arXiv:1501.02860v2, Theorem A, §3). The single-cycle case is already established in
-`CRNT.Dynamics.ToricEmbeddingOrder`: with monotone coefficients and a `C`-minimal base
+This module completes the assembly half of the toric-embedding argument of Craciun,
+_Toric differential inclusions and a proof of the global attractor conjecture_. The
+single-cycle case is established in `CRNT.Dynamics.ToricEmbeddingOrder`: with monotone
+coefficients and a `C`-minimal base
 vertex, one oriented cycle's velocity lies in the polar cone `Cᵒ`
 (`cycle_velocity_mem_polarCone`). A weakly reversible graph `G` decomposes as a union of
 cyclic graphs `G = ⋃ Gᵢ`, the velocity decomposes as a sum of single-cycle velocities, one
@@ -32,20 +33,19 @@ reaction vectors are the consecutive vertex differences and whose mass-action ra
 coefficients; `NetworkCycleDecomposition.velocity_mem_polarCone` lands the sum of per-cycle
 mass-action velocities in `polarCone C`.
 
-## Proven vs. residue
+## Results
 
-Proven sorry-free and axiom-clean: the polar-cone sum-closure (`sum_mem_polarCone`); the
-abstract multi-cycle membership over a general inner-product space `E`
-(`multiCycle_velocity_mem_polarCone`); and the network-specialized multi-cycle membership
-(`NetworkCycleDecomposition.velocity_mem_polarCone`).
+The polar-cone sum-closure (`sum_mem_polarCone`); the abstract multi-cycle membership over a
+general inner-product space `E` (`multiCycle_velocity_mem_polarCone`); and the
+network-specialized multi-cycle membership (`NetworkCycleDecomposition.velocity_mem_polarCone`).
 
-Taken as the named graph-theoretic residue: that a `Network.WeaklyReversible` network's
-reactions are *covered* by directed cycles — i.e. that weak reversibility produces a
+Taken as a graph-theoretic hypothesis: that a `Network.WeaklyReversible` network's reactions
+are *covered* by directed cycles — i.e. that weak reversibility produces a
 `NetworkCycleDecomposition` whose per-cycle reaction sequences partition the reactions with
 the velocity summing correctly. The reachability layer (`CRNT.Graph.Reachability`,
 `CRNT.Graph.WeakReversibility`) defines weak reversibility propositionally via
 `Relation.ReflTransGen` and supplies no cycle-extraction / cycle-cover lemma, so the cover
-is consumed here as input rather than derived. This is the named WR-cycle-cover residue.
+is consumed here as input rather than derived.
 
 This module is **stable** and `sorry`-free. Depends on:
 `CRNT.Dynamics.ToricEmbeddingOrder`.
@@ -131,7 +131,7 @@ theorem CycleDecomposition.cycleVelocity_mem_polarCone {C : Set E} (D : CycleDec
 /-- **Item 2 — the multi-cycle embedding.** The total weakly-reversible velocity of a cycle
 decomposition lies in the polar cone `Cᵒ`. Each cycle's velocity lies in `Cᵒ`
 (`cycleVelocity_mem_polarCone`), and `Cᵒ` is closed under the finite sum over cycles
-(`sum_univ_mem_polarCone`). This is Craciun's §3 assembly: weak reversibility
+(`sum_univ_mem_polarCone`). This is the multi-cycle assembly: weak reversibility
 (velocity `= ∑ⱼ vⱼ`, each `vⱼ ∈ Cᵒ`) `⟹` velocity `∈ Cᵒ`. -/
 theorem multiCycle_velocity_mem_polarCone {C : Set E} (D : CycleDecomposition C) :
     D.totalVelocity ∈ polarCone C :=
@@ -226,9 +226,9 @@ theorem NetworkCycleDecomposition.cycleVelocity_mem_polarCone {N : Network S}
 
 /-- **Item 2, network form.** The total mass-action velocity of a network cycle
 decomposition lies in the polar cone `Cᵒ`: each cycle's mass-action velocity lies in `Cᵒ`,
-and `Cᵒ` is closed under the finite sum over cycles. This is Craciun's §3 assembly for a
-mass-action weakly-reversible network, modulo the named WR-cycle-cover residue that produces
-the decomposition `D` from `Network.WeaklyReversible N`. -/
+and `Cᵒ` is closed under the finite sum over cycles. This is the multi-cycle assembly for a
+mass-action weakly-reversible network, modulo the cycle-cover hypothesis that produces the
+decomposition `D` from `Network.WeaklyReversible N`. -/
 theorem NetworkCycleDecomposition.velocity_mem_polarCone {N : Network S}
     {κ : N.RateConstants} {x : Concentration S} {C : Set (EuclideanSpace ℝ S)}
     (D : NetworkCycleDecomposition N κ x C) :

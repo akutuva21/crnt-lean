@@ -17,8 +17,9 @@ exactly on `P`* (`exists_pos_conservationLaw_of_not_critical`). The conserved to
 `∑ s, v s · γ(t) s = ∑ s, v s · γ(0) s` then pins a strictly positive combination of the `P`-species
 to its initial value for all time (`not_critical_conserved_along_solution`): the species of a
 non-critical siphon cannot all be driven to extinction together, since their `v`-weighted sum is a
-constant of motion. This is the conserved-quantity half of the siphon persistence criterion; the
-converse boundary-repelling (Butler–McGehee) analysis remains the deeper outstanding dependency.
+constant of motion. This is the conserved-quantity half of the siphon persistence criterion of
+Angeli, De Leenheer & Sontag (_A Petri-net approach to persistence analysis_, 2007); the converse
+boundary-repelling (Butler & Waltman) analysis is not constructed here.
 
 ## Main results
 
