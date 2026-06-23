@@ -2,9 +2,9 @@ import CRNT.Dynamics.PolyRegionStrictInvariant
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
 
 /-!
-# The 2-D faithful zero-separating curve: angular chaining of attracting directions (Craciun §4.2)
+# The 2-D faithful zero-separating curve: angular chaining of attracting directions
 
-Craciun's §4.2 builds the planar zero-separating curve as a polygonal line from the positive
+A planar zero-separating curve is a polygonal line from the positive
 `x`-axis to the positive `y`-axis with **one vertex per bounded exponential cone** of the fan, each
 segment crossing one uncertainty region in that region's *attracting direction* — the direction
 **orthogonal to the corresponding fan half-line**, so the segment's region-normal points *along* the
@@ -108,11 +108,11 @@ noncomputable def facesOfAngles (walls : List (ℝ × ℝ)) : List (Plane × ℝ
 an apex angle `φ` (so the walls fit in a sector of width `< π`), then the point `ρ • dir φ` far out
 along the apex direction lies strictly inside *every* face half-plane simultaneously. One apex
 direction satisfies all the monotone-normal constraints at once — the precise geometric content of
-Craciun's "the slopes chain so a single curve realizes them all."
+the statement that the slopes chain so a single curve realizes them all.
 
-The sector hypothesis `|w.1 − φ| < π/2` is exactly the condition under which the chaining closes; an
-arbitrary 2-D fan's curve-relevant walls satisfying it (after the 3rd-quadrant orientation) is the
-separate claim Craciun's figure asserts. Within a sector of width `< π` every cosine `cos (w.1 − φ)`
+The sector hypothesis `|w.1 − φ| < π/2` is exactly the condition under which the chaining closes; that
+an arbitrary 2-D fan's curve-relevant walls satisfy it is a separate property of the fan geometry, not
+established here. Within a sector of width `< π` every cosine `cos (w.1 − φ)`
 is strictly positive, so a large enough radius clears every offset. -/
 theorem exists_strict_interior (walls : List (ℝ × ℝ)) {φ : ℝ}
     (hsector : ∀ w ∈ walls, |w.1 - φ| < π / 2) :

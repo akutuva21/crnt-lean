@@ -1474,9 +1474,9 @@ example {δ : ℝ} {x₀ : Plane} {f : Plane → Plane} {γ : ℝ → Plane}
     (1 : ℝ) ≤ dist (γ t) 0 :=
   twoWall_genuine_persistent hsel hγcont hγ h0 ht
 
--- GAC Route D (§4.2 honest invariance): boundary-local strict subtangency — checked only at active
--- faces at the curve's actual position — forces the polygonal region to be forward-invariant, so
--- distinct/conflicting segment normals are handled without any global all-faces condition.
+-- Boundary-local strict subtangency — checked only at active faces at the curve's actual position —
+-- forces the polygonal region to be forward-invariant, so distinct/conflicting segment normals are
+-- handled without any global all-faces condition.
 open scoped InnerProductSpace in
 open ZeroSeparatingCurve2D in
 example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {faces : List (E × ℝ)} {γ : ℝ → E}
@@ -1486,17 +1486,16 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {faces : Lis
     γ t ∈ polyRegion faces :=
   polyRegion_invariant_of_strictSupport hγcont hγ hsupp hstart ht
 
--- GAC Route D (§4.2 angular chaining engine): the Euclidean inner product of two attracting-direction
--- unit vectors is the cosine of the angle between them — the bridge driving the monotone rotation of
--- the faithful curve's edge normals.
+-- The Euclidean inner product of two attracting-direction unit vectors is the cosine of the angle
+-- between them — the bridge driving the monotone rotation of the faithful curve's edge normals.
 open scoped InnerProductSpace in
 open FaithfulCurve2D in
 example (θ₁ θ₂ : ℝ) : ⟪dir θ₁, dir θ₂⟫_ℝ = Real.cos (θ₁ - θ₂) :=
   inner_dir θ₁ θ₂
 
--- GAC Route D (§4.2 existence, angular chaining): for fan walls fitting in a sector of width < π
--- with one positive-offset wall, the constructed angular region has a nonempty strict interior AND
--- excludes a ball about 0 — both halves of "zero-separating" built outright (no abstract existence).
+-- For fan walls fitting in a sector of width < π with one positive-offset wall, the constructed
+-- angular region has a nonempty strict interior AND excludes a ball about 0 — both halves of
+-- "zero-separating" built outright (no abstract existence assumed).
 open scoped InnerProductSpace in
 open FaithfulCurve2D ZeroSeparatingCurve2D in
 example (walls : List (ℝ × ℝ)) {φ θ₀ a : ℝ} (hsec : ∀ w ∈ walls, |w.1 - φ| < Real.pi / 2)
@@ -1505,9 +1504,8 @@ example (walls : List (ℝ × ℝ)) {φ θ₀ a : ℝ} (hsec : ∀ w ∈ walls, 
       polyRegion (facesOfAngles walls) ⊆ (Metric.ball (0 : Plane) a)ᶜ :=
   exists_faithful_separating_region walls hsec hmem hpos
 
--- GAC Route D (§4.2 genuinely-chained witness): three DISTINCT conflicting attracting directions
--- (angles 0, π/4, π/2) chain into one constructed zero-separating region — the non-degenerate
--- instance the earlier single-direction collapses could not exhibit.
+-- Three distinct conflicting attracting directions (angles 0, π/4, π/2) chain into one constructed
+-- zero-separating region — a non-degenerate instance, not a single collapsed direction.
 open scoped InnerProductSpace in
 open FaithfulCurve2D ZeroSeparatingCurve2D in
 example :
@@ -1515,9 +1513,8 @@ example :
       polyRegion (facesOfAngles threeWalls) ⊆ (Metric.ball (0 : Plane) 1)ᶜ :=
   threeWall_separating_region
 
--- GAC Route D (§4.2 abstract-angle ↔ actual-fan bridge): the wall direction dir θ₁ is a genuine
--- attracting direction of the adjacent two-cell fan, so the real toric field lies in the wall's
--- region-side half-plane — the support side discharged from concrete planar fan geometry.
+-- The wall direction dir θ₁ is a genuine attracting direction of the adjacent two-cell fan, so the
+-- toric field lies in the wall's region-side half-plane — support from concrete planar fan geometry.
 open scoped InnerProductSpace in
 open FaithfulCurve2D FaithfulCurve2DFan in
 example {θ₀ θ₁ θ₂ : ℝ} (h₀₁ : |θ₁ - θ₀| ≤ Real.pi / 2) (h₁₂ : |θ₂ - θ₁| ≤ Real.pi / 2)
@@ -1525,10 +1522,9 @@ example {θ₀ θ₁ θ₂ : ℝ} (h₀₁ : |θ₁ - θ₀| ≤ Real.pi / 2) (h
     (toricField (adjacentFan θ₀ θ₁ θ₂) δ X : Set Plane) ⊆ {y : Plane | 0 ≤ ⟪dir θ₁, y⟫_ℝ} :=
   toricField_subset_wall_halfPlane h₀₁ h₁₂ δ X
 
--- GAC Route D (§4.4 obstruction, dimension threshold): a ruled patch's surface normal must be
--- orthogonal to its active tangency directions; below finrank such a normal exists (3 in ℝ⁴), at/above
--- it the spanning case kills it (4 in ℝ⁴). The threshold mechanism behind "fails in ℝ⁴" — the count
--- of forced tangency directions per patch (whether it reaches 4) is the residual combinatorial fact.
+-- A ruled patch's surface normal must be orthogonal to its active tangency directions; below finrank
+-- such a normal exists (3 in ℝ⁴), once they span it is killed (4 in ℝ⁴). The threshold dichotomy for
+-- the surface-normal constraint system; whether a patch is forced to carry 4 directions is not decided here.
 open scoped InnerProductSpace in
 open ZeroSeparatingInduction in
 example :
@@ -1538,9 +1534,8 @@ example :
         (∀ i, ⟪EuclideanSpace.basisFun (Fin 4) ℝ i, n⟫_ℝ = 0) → n = 0) :=
   over_determined_in_dim_four
 
--- GAC Route D (§4.4 repair): Craciun routes around the ℝ⁴ over-determination by fan refinement — a
--- normal admissible for a finer cell C' ⊆ C is admissible for the coarse cell C, so the finer
--- surface is faithful for the coarse fan (the faithful-transfer engine of the repair).
+-- Fan refinement transfers faithfulness to a coarser fan: a normal admissible for a finer cell
+-- C' ⊆ C is admissible for the coarse cell C, so the finer surface is faithful for the coarse fan.
 open CRNT.Faithful FanRefinement in
 example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {n : E} {C C' : ProperCone ℝ E}
     (hsub : (C' : Set E) ⊆ (C : Set E)) (h : AttractsToward n C') : AttractsToward n C :=

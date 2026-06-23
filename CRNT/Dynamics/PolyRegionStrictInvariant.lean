@@ -2,11 +2,11 @@ import CRNT.Dynamics.SupportDiniBridge
 import Mathlib.Analysis.Calculus.Deriv.Slope
 
 /-!
-# Boundary-local invariance of the polygonal zero-separating region (Craciun §4.2)
+# Boundary-local invariance of the polygonal zero-separating region
 
 The closed region `ZeroSeparatingCurve2D.polyRegion faces` is the intersection of the closed
-half-planes `{p | aⱼ ≤ ⟪nⱼ, p⟫_ℝ}` over the oriented faces `(nⱼ, aⱼ)`. Its forward invariance for
-Craciun's faithful curve is governed by **boundary-local subtangency**: at each point of the region
+half-planes `{p | aⱼ ≤ ⟪nⱼ, p⟫_ℝ}` over the oriented faces `(nⱼ, aⱼ)`. Its forward invariance for a
+piecewise-linear zero-separating curve is governed by **boundary-local subtangency**: at each point of the region
 that lies *on* a face's bounding line, the velocity must point into the region across that face. This
 is the `ZeroSeparatingCurve2D.IsSupportFace` condition — subtangency tested only where it is active,
 namely at boundary points on the face line.
@@ -25,7 +25,7 @@ first-exit argument that never appeals to a global all-faces condition:
 
 Crucially the support condition is evaluated **at the curve's actual position** `γ τ` and only over
 the **active** faces there. So distinct segments may carry distinct — even mutually conflicting —
-inward normals (the genuine §4.2 chaining of attracting directions): the argument never requires one
+inward normals (genuine chaining of attracting directions): the argument never requires one
 velocity to point inward across every face at once. This is the contrast with the convex
 per-half-plane route (`ZeroSeparatingCurve2D.polyRegion_invariant_of_support`), whose hypothesis
 `∀ na ∈ faces, ∀ t, 0 ≤ ⟪na.1, f (γ t)⟫_ℝ` demands every face inward at every point and so only

@@ -2,7 +2,7 @@ import CRNT.Geometry.FaithfulCurve2D
 import CRNT.Geometry.FaithfulCurve
 
 /-!
-# The abstract-angle ↔ actual-fan bridge in the plane (Craciun §4.2)
+# The abstract-angle ↔ actual-fan bridge in the plane
 
 `FaithfulCurve2D` carries the *abstract* angular data of a planar fan: the walls sit at increasing
 angles `θ`, and the attracting direction of each wall is the unit vector `dir θ = (cos θ, sin θ)`.
@@ -44,20 +44,18 @@ genuine member of the `Fan` type (a `ProperCone`), so it feeds the toric-field m
   wall ray sits on each cell's boundary, so equality is possible; the strictness of the dynamics
   comes from the selection elsewhere, not from this cone membership.
 
-* `firstQuadrant_sector` — a worked instance of the §4.2 sector hypothesis: walls at `0, π/4, π/2`
+* `firstQuadrant_sector` — a worked instance of the sector hypothesis: walls at `0, π/4, π/2`
   all lie within a quarter turn of the midpoint `π/4`, so the chaining of
   `FaithfulCurve2D.exists_faithful_separating_region` closes.
 
-## Proven vs. residue
+## Scope
 
-PROVEN, sorry-free and axiom-clean: the sector cell, membership criterion, shared-wall membership,
-the `AttractsTowardAll` fan bridge for the adjacent two-cell fan, the resulting half-plane support,
-and the worked first-quadrant sector instance.
-
-RESIDUE, named in prose (never `sorry`): the general `N`-cell fan assembly from an arbitrary
-increasing wall list — that the consecutive-gap hypotheses hold simultaneously across the whole fan
-and that the per-wall two-cell bridges patch into one global support certificate — is the
-figure-driven full-fan traversal of §4.2, the standing residue of the faithful-curve programme.
+This module establishes the per-wall bridge for the adjacent two-cell fan: the sector cell, its
+membership criterion, the shared-wall membership, the `AttractsTowardAll` bridge, the resulting
+half-plane support, and the worked first-quadrant sector instance. The general `N`-cell assembly from
+an arbitrary increasing wall list — that the consecutive-gap conditions hold simultaneously across the
+whole fan and that the per-wall two-cell bridges combine into one global support certificate — is not
+constructed here; it is the full-fan traversal underlying the faithful curve.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.FaithfulCurve2D`,
 `CRNT.Geometry.FaithfulCurve`.
@@ -187,7 +185,7 @@ theorem wall_isSupportFace {θ₀ θ₁ θ₂ : ℝ}
 /-- **The first-quadrant sector hypothesis closes.** The walls at `0, π/4, π/2` all lie within a
 quarter turn of the midpoint apex `π/4`, so the sector hypothesis of
 `FaithfulCurve2D.exists_faithful_separating_region` — `∀ w ∈ walls, |w.1 − φ| < π/2` — holds with
-`φ = π/4`. A worked instance of the §4.2 chaining-closure condition. -/
+`φ = π/4`. A worked instance of the chaining-closure condition. -/
 theorem firstQuadrant_sector :
     ∀ w ∈ FaithfulCurve2D.threeWalls, |w.1 - π / 4| < π / 2 := by
   have hpi := Real.pi_pos

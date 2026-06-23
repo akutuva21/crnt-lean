@@ -2,29 +2,27 @@ import CRNT.Geometry.ZeroSeparatingInduction
 import CRNT.Geometry.FaithfulCurve
 
 /-!
-# Craciun's fan-refinement repair of the ℝ⁴ over-determination (§4.4)
+# Fan refinement and faithful transfer to a coarser fan
 
-Craciun's §4.4 observes that the *naive* direct generalization of the 3-D zero-separating surface
-fails in ℝ⁴: forcing one ruled patch to align simultaneously with several attracting directions gives
-a constraint system that is over-determined in ℝ⁴ (the `finrank` threshold of
-`ZeroSeparatingInduction.over_determined_in_dim_four`). He **repairs** it by *refining the fan*:
-subdivide each cell with extra points along its advance edge, build the zero-separating surface for
-the finer toric inclusion `T'`, and observe that for each coarse cell the surface's normals (away
-from the coarse uncertainty regions) land in the coarse cell's attracting cone — so the finer surface
-is **faithful for the coarse inclusion** `T`. Refinement breaks each over-constrained patch into a
-*sequence* of patches, each crossing a single uncertainty region, restoring the per-patch constraint
-count below `finrank` (the planar angular chaining of `FaithfulCurve2D`, lifted to `n` dimensions).
+A ruled patch aligned simultaneously to several attracting directions has no surface normal once
+those directions span the ambient space, which first occurs in dimension four
+(`ZeroSeparatingInduction.over_determined_in_dim_four`). This over-determination is avoided by
+*refining the fan*: subdivide each cell into finer cells, build the zero-separating surface for the
+finer inclusion, and observe that for each coarse cell the surface's normals (away from the coarse
+uncertainty regions) land in the coarse cell's attracting cone — so the finer surface is **faithful
+for the coarse inclusion**. Refinement breaks each over-constrained patch into a sequence of patches
+each crossing a single uncertainty region, keeping the per-patch constraint count below `finrank`
+(the planar angular chaining, lifted to `n` dimensions).
 
-This module formalizes the two engines of that repair, sorry-free and axiom-clean:
+This module provides the two engines of that transfer:
 
 * the **faithful-transfer engine** — admissibility for a finer cell transfers to the containing coarse
   cell, so the finer surface's normals are admissible for the coarse fan; and
 
 * the **feasibility restoration** — a refined patch carrying fewer than `finrank ℝ E` active
-  attracting directions always admits a valid surface normal, so the refinement (which keeps each
-  patch's crossing count low) avoids the naive over-determination.
+  attracting directions always admits a valid surface normal.
 
-## What this module formalizes (sorry-free)
+## Contents
 
 * `Refines F' F` — the refinement relation: every cell of `F'` is contained (as a set) in some cell
   of `F`.
@@ -39,21 +37,17 @@ This module formalizes the two engines of that repair, sorry-free and axiom-clea
 * `exists_coarse_cell_of_refines` — packaged over `Refines`: a normal admissible for a cell of the
   refinement is admissible for some cell of the coarse fan.
 
-* `refined_patch_normal_exists` — feasibility restoration: a refined patch with fewer than
-  `finrank ℝ E` attracting-direction constraints admits a nonzero orthogonal surface normal — the
-  refinement keeps each patch below the over-determination threshold.
+* `refined_patch_normal_exists` — a refined patch with fewer than `finrank ℝ E` attracting-direction
+  constraints admits a nonzero orthogonal surface normal: refinement keeps each patch below the
+  over-determination threshold.
 
-## Proven vs. residue
+## Scope
 
-PROVEN here, sorry-free and axiom-clean: the refinement relation, the faithful-transfer of
-admissibility (and of field inwardness) from fine to coarse cells, and the feasibility restoration
-that the refinement exploits. Together these are the algebraic content of §4.4's repair: refining the
-fan transfers faithfulness downward while keeping each patch under the `finrank` threshold.
-
-RESIDUE, named in prose only: the explicit §4.5 stripe/tunnel decomposition that produces the refined
-fan with each patch crossing a single uncertainty region (the figure-driven combinatorics), and the
-toric analysis matching the per-patch attracting directions. This module supplies the transfer and
-feasibility engines those constructions consume.
+This module proves the refinement relation, the faithful-transfer of admissibility (and of field
+inwardness) from fine to coarse cells, and the feasibility restoration. Not constructed here: the
+explicit decomposition that produces the refined fan with each patch crossing a single uncertainty
+region, and the analysis matching the per-patch attracting directions — the constructions these
+engines consume.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.ZeroSeparatingInduction`,
 `CRNT.Geometry.FaithfulCurve`.
@@ -69,8 +63,8 @@ open CRNT.Faithful ZeroSeparatingInduction
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
 /-- **The refinement relation.** `F'` refines `F` when every cell of `F'` is contained, as a set, in
-some cell of `F`. This is the fan refinement of §4.4: each coarse cell is subdivided into finer
-cells, so the finer fan resolves the coarse one. -/
+some cell of `F`: each coarse cell is subdivided into finer cells, so the finer fan resolves the
+coarse one. -/
 def Refines [CompleteSpace E] (F' F : Fan E) : Prop :=
   ∀ C' ∈ F', ∃ C ∈ F, (C' : Set E) ⊆ (C : Set E)
 
@@ -103,9 +97,9 @@ theorem exists_coarse_cell_of_refines [CompleteSpace E] {F' F : Fan E} (href : R
 
 /-- **Feasibility restoration by refinement.** A refined patch crossing fewer than `finrank ℝ E`
 uncertainty regions carries fewer than `finrank ℝ E` attracting-direction constraints, so a nonzero
-surface normal orthogonal to all of them exists. The refinement of §4.4 keeps every patch below this
-threshold — each patch crossing a single uncertainty region — which is exactly how it avoids the
-naive over-determination of `over_determined_in_dim_four`. -/
+surface normal orthogonal to all of them exists. Refinement keeps every patch below this threshold —
+each patch crossing a single uncertainty region — which is how it avoids the over-determination of
+`over_determined_in_dim_four`. -/
 theorem refined_patch_normal_exists [FiniteDimensional ℝ E] {ι : Type*} [Fintype ι] (v : ι → E)
     (hcard : Fintype.card ι < Module.finrank ℝ E) :
     ∃ n : E, n ≠ 0 ∧ ∀ i, ⟪v i, n⟫_ℝ = 0 :=
