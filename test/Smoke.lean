@@ -1349,3 +1349,10 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] {γ : ℝ → E} {
     (hx : γ 0 = x) (hd : HasDerivAt γ v 0) (hs : ∀ t, 0 ≤ t → γ t ∈ s) :
     v ∈ tangentConeAt ℝ s x :=
   DifferentialInclusion.mem_tangentConeAt_of_solution hx hd hs
+
+-- GAC Route D (Thm A multi-cycle): a finite sum of polar-cone vectors stays in the polar cone —
+-- the assembly turning per-cycle embeddings into the full weakly-reversible velocity.
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {ι : Type} [Fintype ι]
+    {s : Set E} (v : ι → E) (hv : ∀ j, v j ∈ polarCone s) :
+    (∑ j, v j) ∈ polarCone s :=
+  sum_univ_mem_polarCone v hv
