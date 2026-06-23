@@ -3,12 +3,12 @@ import CRNT.Graph.WeakReversibility
 /-!
 # The weakly-reversible cycle cover
 
-Craciun's toric-embedding argument (arXiv:1501.02860v2, Theorem A, §3) assembles the
-multi-cycle velocity embedding from the graph fact that a weakly-reversible reaction
-graph is *covered by directed cycles*: every reaction `y → y'` lies on a directed cycle,
-because weak reversibility returns a directed path from `y'` back to `y`. This module
-records that cycle-cover at the reachability level, which is the graph residue the
-`NetworkCycleDecomposition` of `CRNT.Dynamics.ToricEmbeddingWR` consumes.
+The toric-embedding argument of Craciun, _Toric differential inclusions and a proof of
+the global attractor conjecture_, assembles the multi-cycle velocity embedding from the
+graph fact that a weakly-reversible reaction graph is *covered by directed cycles*: every
+reaction `y → y'` lies on a directed cycle, because weak reversibility returns a directed
+path from `y'` back to `y`. This module records that cycle-cover at the reachability level,
+which the `NetworkCycleDecomposition` of `CRNT.Dynamics.ToricEmbeddingWR` consumes.
 
 ## What lands here
 
@@ -24,20 +24,20 @@ records that cycle-cover at the reachability level, which is the graph residue t
   strongly connected. This is the strong-connectivity characterization of weak reversibility
   at the reachability level.
 
-## Proven vs. residue
+## Scope
 
-Proven sorry-free and axiom-clean: that under `WeaklyReversible` every reaction lies on a
-directed cycle, that each reaction's source reaches itself through it, and that reachability
-is symmetric (strong connectivity of components).
+Established here: under `WeaklyReversible` every reaction lies on a directed cycle, each
+reaction's source reaches itself through it, and reachability is symmetric (strong
+connectivity of components).
 
-Named residue (deferred): extracting a *concrete* closed walk — a `List N.R` realizing the
+Not constructed here: extracting a *concrete* closed walk — a `List N.R` realizing the
 cycle through each reaction — from the propositional `Relation.ReflTransGen` reachability
 witness, and assembling the full `NetworkCycleDecomposition` (the per-cycle reaction
 sequences `e`/`u`/`vec` with the velocity summing correctly). The reachability layer defines
 `Reaches` propositionally and carries no path data, so concrete cycle-list extraction is the
-deferred Boolean/path procedure noted in `CRNT.Graph.Reachability`. The `mono`/`cmin` fields
-of `NetworkCycleDecomposition` are the separate analytic projection-ordering residue, not
-graph theory.
+Boolean/path procedure of `CRNT.Graph.Reachability`. The `mono`/`cmin` fields of
+`NetworkCycleDecomposition` are a separate analytic projection-ordering matter, not graph
+theory.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Graph.WeakReversibility`.
 -/
