@@ -824,6 +824,15 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
 example : Examples.ReversiblePair.N.SingleLinkageClass :=
   Examples.ReversiblePair.numLinkageClasses_eq
 
+-- Negative (backward) invariance of the ω-limit set: for a semiflow whose orbit through `x₀`
+-- stays in a compact set, every ω-point has a `ϕ t`-preimage inside the ω-limit set.
+open Filter in
+example {α : Type} [TopologicalSpace α] [T2Space α] (ϕ : Flow ℝ≥0 α) (x₀ : α) {K : Set α}
+    (hK : IsCompact K) (hmaps : ∀ s : ℝ≥0, ϕ s x₀ ∈ K) (t : ℝ≥0) {w : α}
+    (hw : w ∈ omegaLimit atTop ϕ {x₀}) :
+    ∃ w' ∈ omegaLimit atTop ϕ {x₀}, ϕ t w' = w :=
+  CRNT.omegaLimit_negInvariant ϕ x₀ hK hmaps t hw
+
 -- Anderson–Craciun–Kurtz: for a complex-balanced network the product-of-Poissons density
 -- satisfies the stochastic master-equation stationarity condition.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
