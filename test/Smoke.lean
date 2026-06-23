@@ -1367,3 +1367,10 @@ example {V : ℝ → ℝ} {c : ℝ} (hcont : ContinuousOn V (Set.Ici 0))
     (hdiff : ∀ t > 0, DifferentiableAt ℝ V t) (hderiv : ∀ t > 0, deriv V t ≤ 0) (h0 : V 0 ≤ c) :
     ∀ t ≥ 0, V t ≤ c :=
   sublevel_invariant_of_deriv_nonpos hcont hdiff hderiv h0
+
+-- GAC Route D viability P1.3 (subtangency ⇒ descent bridge): a positive-tangent-cone direction at a
+-- sublevel boundary has nonpositive derivative of g.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] {g : E → ℝ} {g' : E →L[ℝ] ℝ} {x : E}
+    {c : ℝ} (hg : HasFDerivAt g g' x) (hx : g x = c) {v : E}
+    (hv : v ∈ posTangentConeAt {y | g y ≤ c} x) : g' v ≤ 0 :=
+  DifferentialInclusion.inner_le_zero_of_mem_posTangentConeAt_sublevel hg hx hv
