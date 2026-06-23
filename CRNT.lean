@@ -48,6 +48,7 @@ import CRNT.LinearAlgebra.LogSumInj
 import CRNT.Analysis.FixedPoint
 import CRNT.Analysis.Sperner
 import CRNT.Analysis.Sperner2D
+import CRNT.Analysis.Sperner2DMulti
 import CRNT.Analysis.SpernerTriangulation
 import CRNT.Analysis.SpernerGrid
 

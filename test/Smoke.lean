@@ -16,6 +16,7 @@ stated example properties hold.
 
 open CRNT
 open scoped NNReal
+open scoped Finset
 
 -- Computed complex counts reduce as expected.
 example : Examples.ReversiblePair.N.numComplexes = 2 := by decide
@@ -993,3 +994,14 @@ example (Km Vmax s : ℝ) :
 example : ∃ t : CRNT.Analysis.SpernerGrid.Cell,
     CRNT.Analysis.SpernerGrid.doorIncidence.IsRainbowCell t :=
   CRNT.Analysis.SpernerGrid.exists_rainbow_cell
+
+-- Multi-outer-vertex 2-D Sperner handshaking: over a door graph on `Cell ⊕ Outer` (one outer vertex
+-- per boundary sub-edge, no single-vertex collapse), odd-degree cells matching `rainbow` plus an odd
+-- number of odd-degree outer vertices force an odd rainbow-triangle count.
+example {Cell Outer : Type*} [Fintype Cell] [Fintype Outer]
+    (G : SimpleGraph (Cell ⊕ Outer)) [DecidableRel G.Adj]
+    (rainbow : Cell → Prop) [DecidablePred rainbow]
+    (hcell : ∀ x : Cell, Odd (G.degree (Sum.inl x)) ↔ rainbow x)
+    (houter : Odd #{o : Outer | Odd (G.degree (Sum.inr o))}) :
+    ∃ x : Cell, rainbow x :=
+  CRNT.Analysis.Sperner2D.multiDoorGraph_exists_rainbow G rainbow hcell houter
