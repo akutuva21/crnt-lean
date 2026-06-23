@@ -1374,3 +1374,10 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] {g : E → ℝ} {g
     {c : ℝ} (hg : HasFDerivAt g g' x) (hx : g x = c) {v : E}
     (hv : v ∈ posTangentConeAt {y | g y ≤ c} x) : g' v ≤ 0 :=
   DifferentialInclusion.inner_le_zero_of_mem_posTangentConeAt_sublevel hg hx hv
+
+-- GAC Route D viability P1.4 (closed-set Nagumo via distance): if distance to a closed set is
+-- nonincreasing along a curve starting inside, the curve stays inside.
+example {α : Type} [PseudoMetricSpace α] {γ : ℝ → α} {R : Set α} (hR : IsClosed R) (hne : R.Nonempty)
+    (h0 : γ 0 ∈ R) (hanti : AntitoneOn (fun t => Metric.infDist (γ t) R) (Set.Ici 0))
+    {t : ℝ} (ht : 0 ≤ t) : γ t ∈ R :=
+  invariant_of_infDist_antitoneOn hR hne h0 hanti ht
