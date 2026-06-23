@@ -1514,3 +1514,13 @@ example :
     (∃ x : Plane, ∀ nf ∈ facesOfAngles threeWalls, nf.2 < ⟪nf.1, x⟫_ℝ) ∧
       polyRegion (facesOfAngles threeWalls) ⊆ (Metric.ball (0 : Plane) 1)ᶜ :=
   threeWall_separating_region
+
+-- GAC Route D (§4.2 abstract-angle ↔ actual-fan bridge): the wall direction dir θ₁ is a genuine
+-- attracting direction of the adjacent two-cell fan, so the real toric field lies in the wall's
+-- region-side half-plane — the support side discharged from concrete planar fan geometry.
+open scoped InnerProductSpace in
+open FaithfulCurve2D FaithfulCurve2DFan in
+example {θ₀ θ₁ θ₂ : ℝ} (h₀₁ : |θ₁ - θ₀| ≤ Real.pi / 2) (h₁₂ : |θ₂ - θ₁| ≤ Real.pi / 2)
+    (δ : ℝ) (X : Plane) :
+    (toricField (adjacentFan θ₀ θ₁ θ₂) δ X : Set Plane) ⊆ {y : Plane | 0 ≤ ⟪dir θ₁, y⟫_ℝ} :=
+  toricField_subset_wall_halfPlane h₀₁ h₁₂ δ X

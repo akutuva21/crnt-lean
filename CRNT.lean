@@ -59,6 +59,7 @@ import CRNT.Geometry.FaithfulCurve
 import CRNT.Geometry.FaithfulCurveExistence
 import CRNT.Geometry.FaithfulCurveGeneral
 import CRNT.Geometry.FaithfulCurve2D
+import CRNT.Geometry.FaithfulCurve2DFan
 import CRNT.LinearAlgebra.LogSumInj
 import CRNT.Analysis.FixedPoint
 import CRNT.Analysis.Sperner
