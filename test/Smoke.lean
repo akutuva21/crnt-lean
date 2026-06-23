@@ -1485,3 +1485,11 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {faces : Lis
     {t : ℝ} (ht : 0 ≤ t) :
     γ t ∈ polyRegion faces :=
   polyRegion_invariant_of_strictSupport hγcont hγ hsupp hstart ht
+
+-- GAC Route D (§4.2 angular chaining engine): the Euclidean inner product of two attracting-direction
+-- unit vectors is the cosine of the angle between them — the bridge driving the monotone rotation of
+-- the faithful curve's edge normals.
+open scoped InnerProductSpace in
+open FaithfulCurve2D in
+example (θ₁ θ₂ : ℝ) : ⟪dir θ₁, dir θ₂⟫_ℝ = Real.cos (θ₁ - θ₂) :=
+  inner_dir θ₁ θ₂
