@@ -921,6 +921,13 @@ example {α : Type} [TopologicalSpace α] (ϕ : Flow ℝ≥0 α) (N : Set α) :
     IsInvariant ϕ (maximalInvariantSubset ϕ N) :=
   isInvariant_maximalInvariantSubset ϕ N
 
+-- GAC-frontier foundation F3: an ODE solution embeds as a solution of any inclusion it selects.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (F : DifferentialInclusion.Field E) {f : E → E} {γ : ℝ → E}
+    (hderiv : ∀ t, HasDerivAt γ (f (γ t)) t) (hsel : ∀ x, f x ∈ F x) :
+    DifferentialInclusion.IsInclusionSolution F γ :=
+  DifferentialInclusion.IsInclusionSolution.of_ode hderiv hsel
+
 -- Anderson–Craciun–Kurtz: for a complex-balanced network the product-of-Poissons density
 -- satisfies the stochastic master-equation stationarity condition.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
