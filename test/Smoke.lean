@@ -1308,3 +1308,9 @@ example {S : Type} [DecidableEq S] [Fintype S] (u : ℕ → S → ℝ) (a : ℕ 
     (∑ i ∈ Finset.range n, a i • (u (i + 1) - u i)) ∈
       generatedCone (fun i : Fin (n - 1) => u 0 - u (i + 1)) :=
   cycle_velocity_mem_generatedCone u a n hcyc hmono
+
+-- GAC Route D (toric inclusion field): F_{F,δ}(X) is monotone in δ.
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    (F : Fan E) {δ₁ δ₂ : ℝ} (X : E) (hδ : δ₁ ≤ δ₂) :
+    (toricField F δ₁ X : Set E) ⊆ (toricField F δ₂ X : Set E) :=
+  toricField_mono_delta X hδ
