@@ -162,6 +162,7 @@ import CRNT.Design.Adaptation
 -- Persistence: Petri-net siphons; siphon-face tangency; single-linkage-class global stability
 import CRNT.Dynamics.Siphon
 import CRNT.Dynamics.SiphonConservation
+import CRNT.Dynamics.ConservationLaw
 import CRNT.Dynamics.Persistence
 import CRNT.Dynamics.GlobalStability
 import CRNT.Dynamics.ForwardInvariance

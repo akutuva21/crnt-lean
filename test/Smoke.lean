@@ -1019,6 +1019,15 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
     (∀ r : N.R, ∑ s, v s * N.reactionVector r s = 0) ↔ v ∈ CRNT.orthSum N.stoichSubspace :=
   N.conservationLaw_iff_mem_orthSum v
 
+-- Ladder 2 (persistence): a conservation law (orthogonal to the stoichiometric subspace) is a constant
+-- of motion — its weighted total is unchanged along every mass-action solution.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {w : S → ℝ} (hw : w ∈ CRNT.orthSum N.stoichSubspace)
+    {γ : ℝ → Concentration S} {t : ℝ} (ht : 0 ≤ t)
+    (hsol : ∀ τ ∈ Set.Icc (0 : ℝ) t, HasDerivAt γ (N.massActionVectorField κ (γ τ)) τ) :
+    ∑ s, w s * γ t s = ∑ s, w s * γ 0 s :=
+  N.conservationLaw_const_along_solution κ hw ht hsol
+
 -- Ladder 3 (Fenichel/QSSA): on the constructed slow manifold, an ε-slow slow path drives the slaved
 -- fast variable with O(ε) displacement — the QSSA drift bound at the Lipschitz tier.
 example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [PseudoMetricSpace Y]
