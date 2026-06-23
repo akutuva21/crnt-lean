@@ -1412,3 +1412,11 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpa
 example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] (faces : List (E × ℝ)) :
     IsClosed (ZeroSeparatingCurve2D.polyRegion faces) :=
   ZeroSeparatingCurve2D.isClosed_polyRegion faces
+
+-- GAC Route D (§4.2 residue 1 closed, constant-cone): at a deep-interior point of a fan cell the
+-- toric field is exactly that cell's polar cone — the explicit polar-cone description.
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E] {F : Fan E}
+    {δ : ℝ} {X : E} {C₀ : ProperCone ℝ E} (hC₀F : C₀ ∈ F) (hC₀d : Metric.infDist X (C₀ : Set E) < δ)
+    (hiso : ∀ C ∈ F, Metric.infDist X (C : Set E) < δ → C = C₀) :
+    toricField F δ X = (coneDual (C₀ : Set E)).toPointedCone :=
+  toricField_eq_coneDual_of_isolated hC₀F hC₀d hiso
