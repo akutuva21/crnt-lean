@@ -203,6 +203,7 @@ import CRNT.Dynamics.ToricInclusion
 import CRNT.Dynamics.ToricEmbedding
 import CRNT.Dynamics.ToricEmbeddingOrder
 import CRNT.Dynamics.ZeroSeparating
+import CRNT.Dynamics.Viability
 import CRNT.Dynamics.EndotacticPermanence
 import CRNT.Dynamics.FacetRepulsion
 

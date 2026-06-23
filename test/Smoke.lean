@@ -1342,3 +1342,10 @@ example {F : DifferentialInclusion.Field ℝ} {P₀ : ℝ} (hP₀ : 0 < P₀)
     (hF : ∀ y, F y ⊆ Set.Ici (0 : ℝ)) :
     DifferentialInclusion.ZeroSeparatingRegion F (Set.Ici P₀) P₀ P₀ :=
   DifferentialInclusion.zeroSeparatingRegion_Ici hP₀ hF
+
+-- GAC Route D (viability easy direction): a solution staying in s witnesses its velocity in the
+-- Bouligand tangent cone — the invariance ⇒ subtangency half of Nagumo.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] {γ : ℝ → E} {x v : E} {s : Set E}
+    (hx : γ 0 = x) (hd : HasDerivAt γ v 0) (hs : ∀ t, 0 ≤ t → γ t ∈ s) :
+    v ∈ tangentConeAt ℝ s x :=
+  DifferentialInclusion.mem_tangentConeAt_of_solution hx hd hs
