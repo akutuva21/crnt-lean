@@ -51,6 +51,7 @@ import CRNT.Geometry.PolyhedralFan
 import CRNT.Geometry.Endotactic
 import CRNT.Geometry.ToricFan
 import CRNT.Geometry.ZeroSeparatingSurface
+import CRNT.Geometry.ConeFace
 import CRNT.LinearAlgebra.LogSumInj
 import CRNT.Analysis.FixedPoint
 import CRNT.Analysis.Sperner

@@ -1401,3 +1401,8 @@ example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} (h : N.WeaklyReve
 example {f : ℝ → ℝ} {P₀ : ℝ} (hP₀ : 0 < P₀) (hf : ∀ y, P₀ - y ≤ 1 → 0 ≤ f y) :
     DifferentialInclusion.ZeroSeparatingSurfaceExists f P₀ :=
   DifferentialInclusion.zeroSeparatingSurfaceExists_one_dim hP₀ hf
+
+-- GAC Route D (D2 face residue): the exposed face of a cone in the zero direction is the whole cone.
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    (C : PointedCone ℝ E) : exposedFace C 0 = C :=
+  exposedFace_zero C
