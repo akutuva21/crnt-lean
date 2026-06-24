@@ -1051,6 +1051,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.IsConsiste
     ∑ s, w s * N.reactionVector r s = 0 :=
   N.inner_reactionVector_eq_zero_of_isConsistent_of_nonneg h hw r
 
+-- A weakly reversible network is consistent (regular's first clause holds for WR networks).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible) :
+    N.IsConsistent :=
+  N.isConsistent_of_weaklyReversible hwr
+
 -- Cut pairs of the linkage graph are symmetric.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     {y y' : {c : Complex S // c ∈ N.complexes}} (h : N.CutPair y y') : N.CutPair y' y :=

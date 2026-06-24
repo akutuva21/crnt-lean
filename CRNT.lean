@@ -123,6 +123,7 @@ import CRNT.Dynamics.MichaelisMentenDepletion
 -- Deficiency
 import CRNT.Deficiency.Definition
 import CRNT.Deficiency.Consistent
+import CRNT.Deficiency.ConsistentWR
 import CRNT.Deficiency.CutPair
 import CRNT.Deficiency.Regular
 import CRNT.Deficiency.Signature
