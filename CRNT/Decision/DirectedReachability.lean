@@ -156,17 +156,17 @@ namespace Network
 variable {S : Type} [DecidableEq S] [Fintype S]
 
 /-- The directed reaction step on the finite vertex type of complexes. -/
-def directedStep (N : Network S) (a b : {c : Complex S // c ∈ N.complexes}) : Prop :=
+def DirectedStep (N : Network S) (a b : {c : Complex S // c ∈ N.complexes}) : Prop :=
   N.DirectlyReacts a.val b.val
 
-instance (N : Network S) : DecidableRel N.directedStep :=
+instance (N : Network S) : DecidableRel N.DirectedStep :=
   fun a b => inferInstanceAs (Decidable (N.DirectlyReacts a.val b.val))
 
 /-- A directed step of the closure lifts to directed reachability of the underlying
 complexes. -/
 theorem reaches_of_reflTransGen_directedStep (N : Network S)
     {a b : {c : Complex S // c ∈ N.complexes}}
-    (h : Relation.ReflTransGen N.directedStep a b) : N.Reaches a.val b.val := by
+    (h : Relation.ReflTransGen N.DirectedStep a b) : N.Reaches a.val b.val := by
   induction h with
   | refl => exact Reaches.refl N a.val
   | tail _ hstep ih => exact ih.tail hstep
@@ -176,7 +176,7 @@ directed path stays among the network's complexes. -/
 theorem reflTransGen_directedStep_of_reaches (N : Network S) {c d : Complex S}
     (h : N.Reaches c d) :
     ∀ (hc : c ∈ N.complexes) (hd : d ∈ N.complexes),
-      Relation.ReflTransGen N.directedStep ⟨c, hc⟩ ⟨d, hd⟩ := by
+      Relation.ReflTransGen N.DirectedStep ⟨c, hc⟩ ⟨d, hd⟩ := by
   induction h with
   | refl => intro hc _; exact Relation.ReflTransGen.refl
   | @tail e f _ hef ih =>
@@ -189,7 +189,7 @@ theorem reflTransGen_directedStep_of_reaches (N : Network S) {c d : Complex S}
 type.** -/
 theorem reaches_iff_reflTransGen_directedStep (N : Network S)
     (a b : {c : Complex S // c ∈ N.complexes}) :
-    N.Reaches a.val b.val ↔ Relation.ReflTransGen N.directedStep a b := by
+    N.Reaches a.val b.val ↔ Relation.ReflTransGen N.DirectedStep a b := by
   constructor
   · intro h; exact reflTransGen_directedStep_of_reaches N h a.2 b.2
   · intro h; exact reaches_of_reflTransGen_directedStep N h
