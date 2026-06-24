@@ -24,11 +24,6 @@ example : Examples.IrreversibleChain.N.numComplexes = 3 := by decide
 example : Examples.Enzyme.N.numComplexes = 3 := by decide
 example : Examples.GeneExpression.N.numComplexes = 6 := by decide
 
-#eval Examples.ReversiblePair.N.numComplexes
-#eval Examples.IrreversibleChain.N.numComplexes
-#eval Examples.Enzyme.N.numComplexes
-#eval Examples.GeneExpression.N.numComplexes
-
 -- Weak reversibility holds for the reversible pair and fails for the chain.
 example : Examples.ReversiblePair.N.WeaklyReversible := Examples.ReversiblePair.weaklyReversible
 example : ¬ Examples.IrreversibleChain.N.WeaklyReversible :=
