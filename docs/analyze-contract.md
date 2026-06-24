@@ -13,7 +13,8 @@ symbol names.
 axiom-clean guarantee. Each reported field is a computable companion of the library theory, and the
 library carries a bridge relating it to the propositional definition: `analyze_deficiency_eq`,
 `analyze_stoichRank_eq`, `analyze_numLinkageClasses_eq`, `analyze_conservationLawDim_eq`,
-`analyze_weaklyReversible_eq`, and `analyze_acrSpecies_eq` (`CRNT/Interop/Analysis.lean`). When a result needs an axiom-clean kernel certificate for a specific
+`analyze_weaklyReversible_eq`, `analyze_acrSpecies_eq`, and `analyze_hasSiphon_eq`
+(`CRNT/Interop/Analysis.lean`). When a result needs an axiom-clean kernel certificate for a specific
 network, use the codegen contract instead.
 
 ## Input: `NetworkData`
@@ -49,7 +50,8 @@ their analyses (the bulk path: one process invocation scores many networks).
   "conservationLawDim": 1,
   "deficiency": 0,
   "weaklyReversible": true,
-  "acrSpecies": []
+  "acrSpecies": [],
+  "hasSiphon": true
 }
 ```
 
@@ -66,10 +68,20 @@ their analyses (the bulk path: one process invocation scores many networks).
 | `deficiency` | int | `δ = n − ℓ − s` | `computableDeficiency` |
 | `weaklyReversible` | bool | weak reversibility | `decide WeaklyReversible` |
 | `acrSpecies` | int[] | species with a structural Shinar–Feinberg ACR witness | `acrSpecies` (`HasShinarFeinbergPair`) |
+| `hasSiphon` | bool | a nonempty siphon exists | `IsSiphon` (powerset search) |
 
 `acrSpecies` reports the decidable structural fragment of Shinar–Feinberg ACR (two non-terminal
 complexes in distinct linkage classes differing in exactly one species). The deficiency-one side
 condition is not a finite decision and is asserted by the consuming objective, not by `analyze`.
+
+`hasSiphon` enumerates the species powerset (`2^numSpecies`, fine for small networks) and reports
+whether any nonempty siphon exists. It is one-sided: `false` soundly excludes any *critical* siphon
+(`analyze_hasNoCriticalSiphon_of_hasSiphon_false`), hence — with weak reversibility and complex
+balancing — persistence; `true` is inconclusive. The exclusion is narrow in practice: for a closed
+network the full species set is always a siphon, so `hasSiphon = false` arises only with a synthesis
+reaction (`0 → y`). Deciding *criticality* directly is Farkas-blocked (sign-restricted kernel
+feasibility, absent in Mathlib v4.31), so `hasCriticalSiphon` is not offered; the minimal-siphon
+structure (next) is the actionable signal — the consumer runs its own feasibility check per siphon.
 
 The deficiency assembly `δ = n − ℓ − s` is owned by the library (`computableDeficiency`), not the
 consumer: `computeNumLinkageClasses` supplies a computable `ℓ` (the quotient `numLinkageClasses` does
@@ -99,6 +111,8 @@ never yields a structural verdict.
 - `CRNT/Decision/ComputableDeficiency.lean`: `computeNumLinkageClasses`, `computableDeficiency`, and
   `deficiency_eq_computableDeficiency`.
 - `CRNT/Decision/ACRCheck.lean`: `HasShinarFeinbergPair`, `acrSpecies`, and `mem_acrSpecies`.
+- `CRNT/Dynamics/Siphon.lean`: `IsSiphon`, `HasNoCriticalSiphon`, and the exclusion lemma
+  `hasNoCriticalSiphon_of_forall_not_isSiphon`.
 - `CRNT/LinearAlgebra/OrthogonalComplement.lean`: `orthSum` and `finrank_orthSum` (conservation laws).
 - `Analyze.lean`: the `lake exe analyze` entry point.
 

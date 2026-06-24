@@ -99,6 +99,15 @@ theorem isCriticalSiphon_isSiphon (N : Network S) {P : Finset S}
 theorem not_isCriticalSiphon_empty (N : Network S) : ¬ N.IsCriticalSiphon ∅ :=
   fun h => Finset.not_nonempty_empty h.1
 
+/-- **No nonempty siphon ⇒ no critical siphon.** Every critical siphon is a nonempty siphon, so a
+network with no nonempty siphon trivially has no critical siphon. This is the sound, Farkas-free
+direction: deciding `IsCriticalSiphon` needs sign-restricted feasibility, but *excluding* it via the
+absence of any nonempty siphon is purely structural and decidable — and (with weak reversibility and
+complex balancing) yields persistence through `gac_of_hasNoCriticalSiphon`. -/
+theorem hasNoCriticalSiphon_of_forall_not_isSiphon (N : Network S)
+    (h : ∀ P : Finset S, P.Nonempty → ¬ N.IsSiphon P) : N.HasNoCriticalSiphon :=
+  fun P hP => h P hP.1 hP.2.1
+
 end Network
 
 end CRNT

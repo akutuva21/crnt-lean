@@ -2,6 +2,7 @@ import CRNT.Interop.NetworkData
 import CRNT.Decision.ComputableDeficiency
 import CRNT.Decision.DirectedReachability
 import CRNT.Decision.ACRCheck
+import CRNT.Dynamics.Siphon
 import CRNT.LinearAlgebra.OrthogonalComplement
 
 /-!
@@ -19,7 +20,9 @@ Each numeric field has a bridge back to its propositional definition: `analyze_d
 stoichiometric subspace). The `weaklyReversible` flag is `decide N.WeaklyReversible`, sound by the
 `Decidable` instance. `acrSpecies` lists the species carrying the structural Shinar–Feinberg ACR
 witness (`analyze_acrSpecies_eq`), the decidable fragment; the deficiency-one side condition is
-supplied by the consumer.
+supplied by the consumer. `hasSiphon` flags the existence of a nonempty siphon
+(`analyze_hasSiphon_eq`); when `false` it soundly excludes any critical siphon
+(`analyze_hasNoCriticalSiphon_of_hasSiphon_false`), the Farkas-free persistence design filter.
 
 `version` tags the JSON contract; bump it whenever the field set changes.
 
@@ -33,7 +36,7 @@ open Lean (FromJson ToJson)
 open CRNT.GaussianRank
 
 /-- The version of the `Analysis` JSON contract. Bump on any field-set change. -/
-def analysisVersion : Nat := 3
+def analysisVersion : Nat := 4
 
 /-- The structural invariants of a network, as a JSON-serializable record. The numeric fields are
 the computable companions of the library theory; `deficiency` is `n − ℓ − s` assembled here. -/
@@ -62,6 +65,9 @@ structure Analysis where
   /-- The species indices carrying a structural Shinar–Feinberg ACR witness (decidable fragment;
   the deficiency-one side condition is supplied by the consumer). -/
   acrSpecies : Array Nat
+  /-- Whether the network has a nonempty siphon. When `false`, the network has no critical siphon,
+  so (weakly reversible and complex balanced) it is persistent — a sound design filter. -/
+  hasSiphon : Bool
   deriving FromJson, ToJson, Repr, DecidableEq
 
 namespace NetworkData
@@ -80,7 +86,8 @@ def analyze (d : NetworkData) : Analysis :=
     deficiency := N.computableDeficiency
     weaklyReversible := decide N.WeaklyReversible
     acrSpecies := (((List.finRange d.numSpecies).filter
-      (fun s => decide (N.HasShinarFeinbergPair s))).map Fin.val).toArray }
+      (fun s => decide (N.HasShinarFeinbergPair s))).map Fin.val).toArray
+    hasSiphon := decide (∃ P : Finset (Fin d.numSpecies), P.Nonempty ∧ N.IsSiphon P) }
 
 /-- The reported deficiency is the network's deficiency. -/
 theorem analyze_deficiency_eq (d : NetworkData) :
@@ -125,6 +132,22 @@ theorem analyze_acrSpecies_eq (d : NetworkData) (s : Fin d.numSpecies) :
     rwa [Fin.val_injective hav] at ha
   · intro h
     exact ⟨s, h, rfl⟩
+
+/-- The reported siphon flag is `true` exactly when the network has a nonempty siphon. -/
+theorem analyze_hasSiphon_eq (d : NetworkData) :
+    (d.analyze).hasSiphon = true ↔
+      ∃ P : Finset (Fin d.numSpecies), P.Nonempty ∧ d.toNetwork.IsSiphon P :=
+  decide_eq_true_iff
+
+/-- **Sound persistence filter.** When the siphon flag is `false`, the network has no critical
+siphon (every critical siphon is a nonempty siphon), so with weak reversibility and complex
+balancing it is persistent. The exclusion is Farkas-free — only the decidable `IsSiphon` is used. -/
+theorem analyze_hasNoCriticalSiphon_of_hasSiphon_false (d : NetworkData)
+    (h : (d.analyze).hasSiphon = false) : d.toNetwork.HasNoCriticalSiphon := by
+  apply Network.hasNoCriticalSiphon_of_forall_not_isSiphon
+  intro P hP hsiph
+  have htrue : (d.analyze).hasSiphon = true := (analyze_hasSiphon_eq d).mpr ⟨P, hP, hsiph⟩
+  simp [htrue] at h
 
 end NetworkData
 

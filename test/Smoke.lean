@@ -73,6 +73,19 @@ example (d : NetworkData) (s : Fin d.numSpecies) :
 example : Examples.ACRPair.Species.A ∈ Examples.ACRPair.N.acrSpecies :=
   (Examples.ACRPair.N.mem_acrSpecies _).mpr (by decide)
 
+-- The reversible pair has a nonempty siphon (the full species set `{A, B}`).
+example : interopRevData.analyze.hasSiphon = true := by decide
+
+-- The siphon flag is `true` exactly when a nonempty siphon exists, and `false` soundly excludes
+-- every critical siphon (the Farkas-free persistence design filter).
+example (d : NetworkData) :
+    d.analyze.hasSiphon = true
+      ↔ ∃ P : Finset (Fin d.numSpecies), P.Nonempty ∧ d.toNetwork.IsSiphon P :=
+  NetworkData.analyze_hasSiphon_eq d
+example (d : NetworkData) (h : d.analyze.hasSiphon = false) :
+    d.toNetwork.HasNoCriticalSiphon :=
+  NetworkData.analyze_hasNoCriticalSiphon_of_hasSiphon_false d h
+
 -- The `crnt_deficiency_zero` tactic certifies deficiency zero from an explicit minor witness:
 -- a 1×1 minor for the reversible pair, a 2×2 minor for the irreversible chain.
 example : Examples.ReversiblePair.N.DeficiencyZero := by
