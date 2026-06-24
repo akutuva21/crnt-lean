@@ -56,6 +56,14 @@ example : interopRevData.analyze.weaklyReversible = true := by decide
 example : interopRevData.analyze.deficiency = interopRevData.toNetwork.deficiency :=
   NetworkData.analyze_deficiency_eq _
 
+-- The `crnt_deficiency_zero` tactic certifies deficiency zero from an explicit minor witness:
+-- a 1×1 minor for the reversible pair, a 2×2 minor for the irreversible chain.
+example : Examples.ReversiblePair.N.DeficiencyZero := by
+  crnt_deficiency_zero ![Examples.ReversiblePair.Rxn.fwd], ![Examples.ReversiblePair.Species.A]
+example : Examples.IrreversibleChain.N.DeficiencyZero := by
+  crnt_deficiency_zero ![Examples.IrreversibleChain.Rxn.r1, Examples.IrreversibleChain.Rxn.r2],
+    ![Examples.IrreversibleChain.Species.A, Examples.IrreversibleChain.Species.B]
+
 -- The reversible pair has no critical siphon, so the no-critical-siphon global-attraction
 -- theorem applies to it: every hypothesis is met on this concrete network.
 example : Examples.ReversiblePair.N.HasNoCriticalSiphon :=

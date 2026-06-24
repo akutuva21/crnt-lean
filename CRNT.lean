@@ -31,6 +31,7 @@ import CRNT.Decision.GaussianRank
 import CRNT.Decision.ExactDeficiency
 import CRNT.Decision.LinkageDeficiencyExact
 import CRNT.Decision.ComputableDeficiency
+import CRNT.Decision.DeficiencyZeroTactic
 
 -- Stoichiometry: reaction vectors, subspace, rank
 import CRNT.Stoich.Vector
