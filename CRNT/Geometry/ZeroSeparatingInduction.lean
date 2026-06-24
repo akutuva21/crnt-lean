@@ -227,7 +227,7 @@ theorem exists_orthogonal_normal_of_card_lt_finrank {ι : Type*} [Fintype ι] (v
     Submodule.subset_span (Set.mem_range_self i)
   exact Submodule.inner_right_of_mem_orthogonal hvi hnmem
 
-set_option linter.unusedSectionVars false in
+omit [FiniteDimensional ℝ E] in
 /-- **Over-determination when the constraints span.** If the constraint directions span `E`, the
 only vector orthogonal to all of them is `0`: there is no valid surface normal. Once the active
 attracting directions on a single ruled patch span the ambient space, the simultaneous orthogonality
@@ -249,7 +249,7 @@ theorem not_exists_orthogonal_normal_of_span_top {ι : Type*} (v : ι → E)
   rw [hspan, Submodule.top_orthogonal_eq_bot, Submodule.mem_bot] at hmem
   exact hmem
 
-set_option linter.unusedSectionVars false in
+omit [FiniteDimensional ℝ E] in
 /-- **The dimension count.** If the constraint directions span `E`, their number is at least
 `finrank ℝ E`. The contrapositive of feasibility: a spanning (hence normal-killing) family of
 attracting directions requires at least `finrank ℝ E` of them — which dimension three cannot supply
