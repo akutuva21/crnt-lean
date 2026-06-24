@@ -1056,6 +1056,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     {y y' : {c : Complex S // c ∈ N.complexes}} (h : N.CutPair y y') : N.CutPair y' y :=
   h.symm
 
+-- A regular network is consistent and has one terminal SLC per linkage class.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.RegularNetwork) :
+    N.IsConsistent ∧ N.OneTerminalSLCPerLinkageClass :=
+  ⟨h.isConsistent, h.oneTerminalSLCPerLinkageClass⟩
+
 -- Nagumo-based persistence: a genuine mass-action orbit with an inward dissipativity bound stays
 -- in the closed nonnegative orthant for all forward time.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants) {L : ℝ}
