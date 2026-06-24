@@ -158,6 +158,12 @@ example {S : Type} [DecidableEq S] [Fintype S] (y : Complex S) (x : Concentratio
         ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : S => ℝ) j) x :=
   CRNT.massActionMonomial_hasFDerivAt y x
 
+-- The mass-action Jacobian operator is the Fréchet derivative of the vector field.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (x : Concentration S) :
+    HasFDerivAt (fun x => N.massActionVectorField κ x) (N.massActionJacobianCLM κ x) x :=
+  N.massActionVectorField_hasFDerivAt κ x
+
 -- Deficiency rank bridge: rank(∂) = s + dim(ker Y ∩ Im ∂).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
     N.incidenceRank = N.stoichRank + Module.finrank ℝ N.deficiencySubspace :=

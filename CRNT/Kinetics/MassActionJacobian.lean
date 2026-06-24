@@ -71,6 +71,35 @@ theorem massActionVectorField_differentiable (N : Network S) (κ : N.RateConstan
   simp only [Network.massActionVectorField]
   exact Differentiable.fun_sum fun r _ => (N.massActionRate_differentiable κ r).mul_const _
 
+/-- The mass-action Jacobian as a continuous linear operator at `x`: the Fréchet derivative of the
+vector field, in outer-product form `v ↦ ∑ r, κ_r · (∇monomial_r · v) · reactionVector r`. -/
+noncomputable def massActionJacobianCLM (N : Network S) (κ : N.RateConstants)
+    (x : Concentration S) : Concentration S →L[ℝ] Concentration S :=
+  ∑ r : N.R, (κ.k r • (∑ j, massActionMonomialGrad (N.reaction r).source x j •
+    ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : S => ℝ) j)).smulRight (N.reactionVector r)
+
+/-- **The mass-action Jacobian is the Fréchet derivative of the vector field.** Differentiating
+`∑ r, κ_r · monomial_r · reactionVector r` term by term, each reaction contributes the rank-one
+operator `(κ_r · ∇monomial_r) ⊗ reactionVector r`. -/
+theorem massActionVectorField_hasFDerivAt (N : Network S) (κ : N.RateConstants)
+    (x : Concentration S) :
+    HasFDerivAt (fun x => N.massActionVectorField κ x) (N.massActionJacobianCLM κ x) x := by
+  have hfun : (fun x : Concentration S => N.massActionVectorField κ x)
+      = ∑ r : N.R, (fun x => N.massActionRate κ r x • N.reactionVector r) := by
+    funext x s
+    simp only [Network.massActionVectorField, Finset.sum_apply, Pi.smul_apply, smul_eq_mul]
+  have hr : ∀ r : N.R,
+      HasFDerivAt (fun x : Concentration S => N.massActionRate κ r x • N.reactionVector r)
+        ((κ.k r • (∑ j, massActionMonomialGrad (N.reaction r).source x j •
+          ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : S => ℝ) j)).smulRight
+            (N.reactionVector r)) x := by
+    intro r
+    simp only [Network.massActionRate]
+    exact ((massActionMonomial_hasFDerivAt (N.reaction r).source x).const_mul (κ.k r)).smul_const
+      (N.reactionVector r)
+  rw [hfun]
+  exact HasFDerivAt.sum fun r _ => hr r
+
 end Network
 
 end CRNT
