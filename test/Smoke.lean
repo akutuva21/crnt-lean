@@ -64,6 +64,15 @@ example : Examples.IrreversibleChain.N.DeficiencyZero := by
   crnt_deficiency_zero ![Examples.IrreversibleChain.Rxn.r1, Examples.IrreversibleChain.Rxn.r2],
     ![Examples.IrreversibleChain.Species.A, Examples.IrreversibleChain.Species.B]
 
+-- The argument-free form finds the nonsingular minor itself.
+example : Examples.ReversiblePair.N.DeficiencyZero := by crnt_deficiency_zero
+example : Examples.IrreversibleChain.N.DeficiencyZero := by crnt_deficiency_zero
+
+-- The generalized minor-rank tactic bounds the stoichiometric rank below from a witness.
+example : 2 ≤ Examples.IrreversibleChain.N.stoichRank := by
+  crnt_stoich_rank_ge ![Examples.IrreversibleChain.Rxn.r1, Examples.IrreversibleChain.Rxn.r2],
+    ![Examples.IrreversibleChain.Species.A, Examples.IrreversibleChain.Species.B]
+
 -- The reversible pair has no critical siphon, so the no-critical-siphon global-attraction
 -- theorem applies to it: every hypothesis is met on this concrete network.
 example : Examples.ReversiblePair.N.HasNoCriticalSiphon :=
