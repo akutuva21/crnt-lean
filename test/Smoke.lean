@@ -1061,6 +1061,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.RegularNet
     N.IsConsistent ∧ N.OneTerminalSLCPerLinkageClass :=
   ⟨h.isConsistent, h.oneTerminalSLCPerLinkageClass⟩
 
+-- A DOA-system solution carrying a strict inequality is nonzero.
+example {S : Type} [DecidableEq S] [Fintype S] (sys : DOASystem S) {μ : S → ℝ}
+    (h : sys.Satisfies μ) {p : Complex S × Complex S} (hp : p ∈ sys.gts) : μ ≠ 0 :=
+  sys.ne_zero_of_satisfies_mem_gts h hp
+
 -- Nagumo-based persistence: a genuine mass-action orbit with an inward dissipativity bound stays
 -- in the closed nonnegative orthant for all forward time.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants) {L : ℝ}
