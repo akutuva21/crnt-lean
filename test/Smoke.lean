@@ -1038,6 +1038,12 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (q : Quotient N.l
     Decidable (N.linkageDeficiency q ≤ 1) :=
   N.decidableLinkageDeficiency_le_one q
 
+-- Multistationarity capacity is ruled out by injectivity for all rate constants.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    (h : ∀ κ : Network.RateConstants N, (N.massActionKinetics κ).Injective) :
+    ¬ N.HasMultistationarityCapacity :=
+  N.not_hasMultistationarityCapacity_of_injective h
+
 -- Nagumo-based persistence: a genuine mass-action orbit with an inward dissipativity bound stays
 -- in the closed nonnegative orthant for all forward time.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants) {L : ℝ}
