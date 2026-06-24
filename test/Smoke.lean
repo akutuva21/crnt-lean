@@ -1084,6 +1084,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     (h : N.DOAAffirmsCapacity) : N.stoichSubspace ≠ ⊥ :=
   N.stoichSubspace_ne_bot_of_doaAffirmsCapacity h
 
+-- DOA forward direction (entry step): capacity yields a nonzero sign-compatible vector.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    (h : N.HasMultistationarityCapacity) : ∃ μ : S → ℝ, μ ≠ 0 ∧ N.SignCompatibleWithStoich μ :=
+  N.exists_signCompatible_of_hasMultistationarityCapacity h
+
 -- Nagumo-based persistence: a genuine mass-action orbit with an inward dissipativity bound stays
 -- in the closed nonnegative orthant for all forward time.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants) {L : ℝ}

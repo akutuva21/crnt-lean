@@ -150,6 +150,7 @@ import CRNT.Deficiency.ClassConservation
 import CRNT.Deficiency.Confluence
 import CRNT.Deficiency.Shelf
 import CRNT.Deficiency.DeficiencyOneAlgorithm
+import CRNT.Deficiency.DOAForward
 import CRNT.Deficiency.PerClassKernel
 import CRNT.Deficiency.KernelDimensionBound
 import CRNT.Deficiency.PerClassKernelPos
