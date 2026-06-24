@@ -1,6 +1,7 @@
 import CRNT
 import CRNT.Examples.Minimal
 import CRNT.Examples.ReversiblePair
+import CRNT.Examples.GACReversiblePair
 import CRNT.Examples.IrreversibleChain
 import CRNT.Examples.GeneExpression
 import CRNT.Examples.Enzyme
@@ -34,6 +35,11 @@ example : ¬ Examples.Minimal.N.WeaklyReversible := Examples.Minimal.not_weaklyR
 example : Examples.ReversiblePair.N.DeficiencyZero := Examples.ReversiblePair.deficiencyZero
 example : Examples.ReversiblePair.N.SatisfiesDeficiencyZeroHypotheses :=
   Examples.ReversiblePair.satisfiesDeficiencyZeroHypotheses
+
+-- The reversible pair has no critical siphon, so the no-critical-siphon global-attraction
+-- theorem applies to it: every hypothesis is met on this concrete network.
+example : Examples.ReversiblePair.N.HasNoCriticalSiphon :=
+  Examples.ReversiblePair.hasNoCriticalSiphon
 
 -- Structural conservation laws (parameter-independent).
 example (κ : Network.RateConstants Examples.GeneExpression.N)
