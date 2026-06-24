@@ -92,4 +92,23 @@ theorem orthSum_orthSum (S : Submodule ℝ (ι → ℝ)) : orthSum (orthSum S) =
   rw [h1, Submodule.orthogonal_orthogonal,
     Submodule.comap_map_eq_of_injective toEuclid.injective]
 
+/-- **Rank–nullity for the dot-product complement.** The complement `Sᗮ` has dimension
+`card ι − dim S`: the conservation-law space (`orthSum` of the stoichiometric subspace) is
+the cokernel of the stoichiometric map, whose dimension is the number of species minus the
+stoichiometric rank. Obtained from Mathlib's inner-product `finrank_add_finrank_orthogonal`
+transported across `toEuclid`. -/
+theorem finrank_orthSum (S : Submodule ℝ (ι → ℝ)) :
+    Module.finrank ℝ (orthSum S) = Fintype.card ι - Module.finrank ℝ S := by
+  have hmap : (orthSum S).map toEuclid.toLinearMap
+      = (S.map toEuclid.toLinearMap).orthogonal := by
+    rw [orthSum_eq S, Submodule.map_comap_eq_of_surjective toEuclid.surjective]
+  have h1 := LinearEquiv.finrank_map_eq toEuclid (orthSum S)
+  rw [hmap] at h1
+  have hW : Module.finrank ℝ (S.map toEuclid.toLinearMap) = Module.finrank ℝ S :=
+    LinearEquiv.finrank_map_eq toEuclid S
+  have hperp : Module.finrank ℝ (S.map toEuclid.toLinearMap)
+      + Module.finrank ℝ ((S.map toEuclid.toLinearMap).orthogonal) = Fintype.card ι := by
+    rw [Submodule.finrank_add_finrank_orthogonal, finrank_euclideanSpace]
+  omega
+
 end CRNT

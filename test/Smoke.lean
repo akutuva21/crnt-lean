@@ -210,6 +210,11 @@ example {ι : Type} [Fintype ι] (S : Submodule ℝ (ι → ℝ)) :
     CRNT.orthSum (CRNT.orthSum S) = S :=
   CRNT.orthSum_orthSum S
 
+-- The dot-product complement has codimension `dim S`: `dim Sᗮ = card ι − dim S`.
+example {ι : Type} [Fintype ι] (S : Submodule ℝ (ι → ℝ)) :
+    Module.finrank ℝ (CRNT.orthSum S) = Fintype.card ι - Module.finrank ℝ S :=
+  CRNT.finrank_orthSum S
+
 -- Existence half of Birch's theorem: every positive compatibility class `c + S` contains
 -- a positive point with `S`-orthogonal log-ratio (the complex-balanced equilibrium).
 example {ι : Type} [Fintype ι] (S : Submodule ℝ (ι → ℝ)) {xstar c : ι → ℝ}
