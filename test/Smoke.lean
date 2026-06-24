@@ -1051,6 +1051,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.IsConsiste
     ∑ s, w s * N.reactionVector r s = 0 :=
   N.inner_reactionVector_eq_zero_of_isConsistent_of_nonneg h hw r
 
+-- Cut pairs of the linkage graph are symmetric.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    {y y' : {c : Complex S // c ∈ N.complexes}} (h : N.CutPair y y') : N.CutPair y' y :=
+  h.symm
+
 -- Nagumo-based persistence: a genuine mass-action orbit with an inward dissipativity bound stays
 -- in the closed nonnegative orthant for all forward time.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants) {L : ℝ}
