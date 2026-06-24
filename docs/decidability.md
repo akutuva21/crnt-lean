@@ -196,6 +196,24 @@ with no hand-built path witnesses. The `CRNT/Examples/Decide*` networks (e.g.
 `DecideReachability`, `DecideDirectedReachability`, `DecideLinkage`, `DecideStrongLinkage`,
 `DecideRank`) similarly exercise the individual decision procedures by `decide`.
 
+## The `crnt_deficiency_zero` tactic
+
+`CRNT.Decision.DeficiencyZeroTactic` defines `crnt_deficiency_zero f, σ`, which proves
+`N.DeficiencyZero` from an explicit nonsingular-minor witness: `f : Fin k → N.R` selects `k`
+reactions and `σ : Fin k → S` selects `k` species of a stoichiometric minor with nonzero
+determinant. It applies `deficiencyZero_of_minor` and discharges the two obligations automatically —
+the determinant by `simp` with the closed-form determinant lemmas (`det_fin_one`/`two`/`three`, with
+a `det_succ_row_zero` cofactor fallback) under ground reduction, and the count `n ≤ k + ℓ` by
+rewriting `numLinkageClasses` to the evaluable `computeNumLinkageClasses` and then `decide`. Both
+stay on the kernel path, so the certificate is axiom-clean. On the reversible pair `A ⇌ B`:
+
+```lean
+example : N.DeficiencyZero := by crnt_deficiency_zero ![Rxn.fwd], ![Species.A]
+```
+
+The unhidden linear algebra — *which* minor is nonsingular — is supplied by the caller (an external
+tool that already holds the stoichiometric matrix finds the indices); the tactic supplies the proof.
+
 ## Walk certificates
 
 `CRNT.Interop.Certificates` realizes the path-certificate pattern: an external tool emits, for
@@ -243,6 +261,9 @@ primitive those generated certificates target.
 - `CRNT/Decision/ACRCheck.lean`: the decidable structural fragment of the Shinar–Feinberg ACR
   condition.
 - `CRNT/Decision/Tactic.lean`: the `crnt_check` tactic.
+- `CRNT/Decision/ComputableDeficiency.lean`: the computable linkage count and deficiency assembly
+  (`computeNumLinkageClasses`, `computableDeficiency`) with their bridges.
+- `CRNT/Decision/DeficiencyZeroTactic.lean`: the `crnt_deficiency_zero` minor-witness tactic.
 - `CRNT/Interop/Certificates.lean`: the walk-certificate checker for reachability.
 - `CRNT/Examples/CrntCheck.lean`, `CRNT/Examples/ReversiblePair.lean`, and the
   `CRNT/Examples/Decide*` family: worked uses of `decide` / `crnt_check` and the decision
