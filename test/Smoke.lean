@@ -1078,6 +1078,12 @@ example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} (sp : N.ShelfPart
     {y y' : N.ComplexIdx} (hr : (sp.shelf y').rank < (sp.shelf y).rank) : μ ≠ 0 :=
   sp.ne_zero_of_imposes_of_higher h hr
 
+-- The Deficiency One Algorithm verdict is non-vacuous: affirming capacity yields a nonzero
+-- stoichiometric vector. (The capacity ⟺ signature theorem itself is the stated target.)
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    (h : N.DOAAffirmsCapacity) : N.stoichSubspace ≠ ⊥ :=
+  N.stoichSubspace_ne_bot_of_doaAffirmsCapacity h
+
 -- Nagumo-based persistence: a genuine mass-action orbit with an inward dissipativity bound stays
 -- in the closed nonnegative orthant for all forward time.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants) {L : ℝ}
