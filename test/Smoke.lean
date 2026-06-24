@@ -146,6 +146,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
       N.complexMap (N.kineticMap κ (N.complexMonomialVector x)) :=
   N.massActionVectorField_eq κ x
 
+-- The mass-action vector field is a polynomial map, hence differentiable everywhere.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N) :
+    Differentiable ℝ (fun x => N.massActionVectorField κ x) :=
+  N.massActionVectorField_differentiable κ
+
 -- Deficiency rank bridge: rank(∂) = s + dim(ker Y ∩ Im ∂).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
     N.incidenceRank = N.stoichRank + Module.finrank ℝ N.deficiencySubspace :=

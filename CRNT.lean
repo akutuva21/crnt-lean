@@ -88,6 +88,7 @@ import CRNT.Analysis.SpernerGrid
 -- Kinetics: concentrations, mass action, and the general kinetics abstraction
 import CRNT.Kinetics.Concentration
 import CRNT.Kinetics.MassAction
+import CRNT.Kinetics.MassActionJacobian
 import CRNT.Kinetics.General
 import CRNT.Kinetics.Generalized
 
