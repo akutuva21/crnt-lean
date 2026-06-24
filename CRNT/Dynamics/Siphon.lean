@@ -1,5 +1,6 @@
 import CRNT.Stoich.Vector
 import Mathlib.Tactic.DeriveFintype
+import Mathlib.Data.Finset.Powerset
 
 /-!
 # Siphons
@@ -107,6 +108,28 @@ complex balancing) yields persistence through `gac_of_hasNoCriticalSiphon`. -/
 theorem hasNoCriticalSiphon_of_forall_not_isSiphon (N : Network S)
     (h : ∀ P : Finset S, P.Nonempty → ¬ N.IsSiphon P) : N.HasNoCriticalSiphon :=
   fun P hP => h P hP.1 hP.2.1
+
+/-- A *minimal siphon* is a nonempty siphon none of whose proper nonempty subsets is a siphon. The
+minimal siphons are the support-minimal structural traps; a candidate critical siphon is found among
+them, so they are the species sets a persistence analysis (the consumer's feasibility check) tests. -/
+def IsMinimalSiphon (N : Network S) (P : Finset S) : Prop :=
+  P.Nonempty ∧ N.IsSiphon P ∧ ∀ Q ∈ P.powerset, Q.Nonempty → Q ≠ P → ¬ N.IsSiphon Q
+
+instance decidableIsMinimalSiphon (N : Network S) (P : Finset S) :
+    Decidable (N.IsMinimalSiphon P) := by unfold IsMinimalSiphon; infer_instance
+
+/-- A minimal siphon is in particular a siphon. -/
+theorem IsMinimalSiphon.isSiphon {N : Network S} {P : Finset S}
+    (h : N.IsMinimalSiphon P) : N.IsSiphon P := h.2.1
+
+/-- The finite set of minimal siphons of the network. -/
+def minimalSiphons (N : Network S) : Finset (Finset S) :=
+  (Finset.univ : Finset S).powerset.filter (fun P => N.IsMinimalSiphon P)
+
+@[simp] theorem mem_minimalSiphons (N : Network S) (P : Finset S) :
+    P ∈ N.minimalSiphons ↔ N.IsMinimalSiphon P := by
+  unfold minimalSiphons
+  rw [Finset.mem_filter, Finset.mem_powerset, and_iff_right (Finset.subset_univ P)]
 
 end Network
 

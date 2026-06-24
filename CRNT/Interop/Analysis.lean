@@ -23,6 +23,8 @@ witness (`analyze_acrSpecies_eq`), the decidable fragment; the deficiency-one si
 supplied by the consumer. `hasSiphon` flags the existence of a nonempty siphon
 (`analyze_hasSiphon_eq`); when `false` it soundly excludes any critical siphon
 (`analyze_hasNoCriticalSiphon_of_hasSiphon_false`), the Farkas-free persistence design filter.
+`minimalSiphons` lists the support-minimal siphons as ascending species-index arrays
+(`mem_analyze_minimalSiphons`) — the species sets a consumer's criticality feasibility check tests.
 
 `version` tags the JSON contract; bump it whenever the field set changes.
 
@@ -36,7 +38,7 @@ open Lean (FromJson ToJson)
 open CRNT.GaussianRank
 
 /-- The version of the `Analysis` JSON contract. Bump on any field-set change. -/
-def analysisVersion : Nat := 4
+def analysisVersion : Nat := 5
 
 /-- The structural invariants of a network, as a JSON-serializable record. The numeric fields are
 the computable companions of the library theory; `deficiency` is `n − ℓ − s` assembled here. -/
@@ -68,6 +70,9 @@ structure Analysis where
   /-- Whether the network has a nonempty siphon. When `false`, the network has no critical siphon,
   so (weakly reversible and complex balanced) it is persistent — a sound design filter. -/
   hasSiphon : Bool
+  /-- The support-minimal siphons, each as an ascending array of species indices. These are the
+  candidate critical siphons a persistence/extinction analysis tests for feasibility. -/
+  minimalSiphons : Array (Array Nat)
   deriving FromJson, ToJson, Repr, DecidableEq
 
 namespace NetworkData
@@ -87,7 +92,10 @@ def analyze (d : NetworkData) : Analysis :=
     weaklyReversible := decide N.WeaklyReversible
     acrSpecies := (((List.finRange d.numSpecies).filter
       (fun s => decide (N.HasShinarFeinbergPair s))).map Fin.val).toArray
-    hasSiphon := decide (∃ P : Finset (Fin d.numSpecies), P.Nonempty ∧ N.IsSiphon P) }
+    hasSiphon := decide (∃ P : Finset (Fin d.numSpecies), P.Nonempty ∧ N.IsSiphon P)
+    minimalSiphons := (((List.finRange d.numSpecies).sublists.filter
+      (fun l => decide (N.IsMinimalSiphon l.toFinset))).map
+      (fun l => (l.map Fin.val).toArray)).toArray }
 
 /-- The reported deficiency is the network's deficiency. -/
 theorem analyze_deficiency_eq (d : NetworkData) :
@@ -148,6 +156,23 @@ theorem analyze_hasNoCriticalSiphon_of_hasSiphon_false (d : NetworkData)
   intro P hP hsiph
   have htrue : (d.analyze).hasSiphon = true := (analyze_hasSiphon_eq d).mpr ⟨P, hP, hsiph⟩
   simp [htrue] at h
+
+/-- An entry of `minimalSiphons` is exactly the ascending index image of a minimal siphon: it is
+present iff some subset list `l` of the species whose underlying set `l.toFinset` is a minimal
+siphon maps to it. -/
+theorem mem_analyze_minimalSiphons (d : NetworkData) (arr : Array Nat) :
+    arr ∈ (d.analyze).minimalSiphons ↔
+      ∃ l : List (Fin d.numSpecies), l ∈ (List.finRange d.numSpecies).sublists ∧
+        d.toNetwork.IsMinimalSiphon l.toFinset ∧ arr = (l.map Fin.val).toArray := by
+  show arr ∈ (((List.finRange d.numSpecies).sublists.filter
+      (fun l => decide (d.toNetwork.IsMinimalSiphon l.toFinset))).map
+      (fun l => (l.map Fin.val).toArray)).toArray ↔ _
+  simp only [List.mem_toArray, List.mem_map, List.mem_filter, decide_eq_true_eq]
+  constructor
+  · rintro ⟨l, ⟨hl, hmin⟩, harr⟩
+    exact ⟨l, hl, hmin, harr.symm⟩
+  · rintro ⟨l, hl, hmin, harr⟩
+    exact ⟨l, ⟨hl, hmin⟩, harr.symm⟩
 
 end NetworkData
 

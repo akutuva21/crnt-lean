@@ -86,6 +86,19 @@ example (d : NetworkData) (h : d.analyze.hasSiphon = false) :
     d.toNetwork.HasNoCriticalSiphon :=
   NetworkData.analyze_hasNoCriticalSiphon_of_hasSiphon_false d h
 
+-- The full species set `{A, B}` is the (unique) minimal siphon of the reversible pair.
+example : Examples.SiphonReversiblePair.N.IsMinimalSiphon (Finset.univ) := by decide
+
+-- The data-driven reversible pair reports `{0, 1}` as its only minimal siphon.
+example : interopRevData.analyze.minimalSiphons = #[#[0, 1]] := by decide
+
+-- Each `minimalSiphons` entry is the ascending index image of a minimal siphon.
+example (d : NetworkData) (arr : Array Nat) :
+    arr ∈ d.analyze.minimalSiphons ↔
+      ∃ l : List (Fin d.numSpecies), l ∈ (List.finRange d.numSpecies).sublists ∧
+        d.toNetwork.IsMinimalSiphon l.toFinset ∧ arr = (l.map Fin.val).toArray :=
+  NetworkData.mem_analyze_minimalSiphons d arr
+
 -- The `crnt_deficiency_zero` tactic certifies deficiency zero from an explicit minor witness:
 -- a 1×1 minor for the reversible pair, a 2×2 minor for the irreversible chain.
 example : Examples.ReversiblePair.N.DeficiencyZero := by
