@@ -85,6 +85,7 @@ import CRNT.Analysis.SpernerLatticeBipartite
 import CRNT.Analysis.SpernerLatticeNeighbor
 import CRNT.Analysis.SpernerLatticeFullGraph
 import CRNT.Analysis.SpernerLatticeBoundary
+import CRNT.Analysis.SpernerLatticeCellDegree
 import CRNT.Analysis.SpernerGrid
 
 -- Kinetics: concentrations, mass action, and the general kinetics abstraction
