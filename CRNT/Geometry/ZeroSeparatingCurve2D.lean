@@ -181,12 +181,12 @@ def polyCurve (verts : List E) : Set E := ⋃ s ∈ polyEdges verts, s
 /-- The curve stays a positive distance from `0`: every edge is contained in the complement of
 the open `r`-ball. The vertices and segments of Craciun's curve are bounded away from the origin,
 which is what keeps the region's closure off `0`. -/
-def segmentBoundedAwayFromZero (verts : List E) (r : ℝ) : Prop :=
+def SegmentBoundedAwayFromZero (verts : List E) (r : ℝ) : Prop :=
   ∀ s ∈ polyEdges verts, s ⊆ (Metric.ball (0 : E) r)ᶜ
 
 /-- Under a positive bound, the whole curve avoids the open `r`-ball. -/
 theorem polyCurve_subset_compl_ball {verts : List E} {r : ℝ}
-    (h : segmentBoundedAwayFromZero verts r) :
+    (h : SegmentBoundedAwayFromZero verts r) :
     polyCurve verts ⊆ (Metric.ball (0 : E) r)ᶜ := by
   intro p hp
   rw [polyCurve, Set.mem_iUnion₂] at hp
