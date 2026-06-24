@@ -1066,6 +1066,12 @@ example {S : Type} [DecidableEq S] [Fintype S] (sys : DOASystem S) {μ : S → �
     (h : sys.Satisfies μ) {p : Complex S × Complex S} (hp : p ∈ sys.gts) : μ ≠ 0 :=
   sys.ne_zero_of_satisfies_mem_gts h hp
 
+-- The cut-pair functional of a confluence vector is antisymmetric.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {g : N.ComplexIdx → ℝ}
+    (hg : N.IsConfluenceVector g) {y y' : N.ComplexIdx} (h : N.CutPair y y') :
+    N.cutSum g y y' = - N.cutSum g y' y :=
+  N.cutSum_antisymm hg h
+
 -- Nagumo-based persistence: a genuine mass-action orbit with an inward dissipativity bound stays
 -- in the closed nonnegative orthant for all forward time.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants) {L : ℝ}

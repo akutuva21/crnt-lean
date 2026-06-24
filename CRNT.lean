@@ -147,6 +147,7 @@ import CRNT.Deficiency.KineticBlock
 import CRNT.Deficiency.SteadyStateKernel
 import CRNT.Deficiency.DeficiencyOneLine
 import CRNT.Deficiency.ClassConservation
+import CRNT.Deficiency.Confluence
 import CRNT.Deficiency.PerClassKernel
 import CRNT.Deficiency.KernelDimensionBound
 import CRNT.Deficiency.PerClassKernelPos
