@@ -42,6 +42,14 @@ example : Examples.ReversiblePair.N.computeNumLinkageClasses = 1 := by decide
 example : Examples.ReversiblePair.N.deficiency = Examples.ReversiblePair.N.computableDeficiency :=
   Network.deficiency_eq_computableDeficiency _
 
+-- A data-driven reversible pair `A ⇌ B` reconstructs to a 2-complex, 2-reaction network.
+def interopRevData : NetworkData :=
+  { numSpecies := 2,
+    reactions := #[ { source := #[1, 0], target := #[0, 1] },
+                    { source := #[0, 1], target := #[1, 0] } ] }
+example : interopRevData.toNetwork.numComplexes = 2 := by decide
+example : interopRevData.toNetwork.numReactions = 2 := by decide
+
 -- The reversible pair has no critical siphon, so the no-critical-siphon global-attraction
 -- theorem applies to it: every hypothesis is met on this concrete network.
 example : Examples.ReversiblePair.N.HasNoCriticalSiphon :=

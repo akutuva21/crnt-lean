@@ -264,6 +264,7 @@ import CRNT.Deficiency.DeficiencyOneDecide
 
 -- Interoperability and certificate workflow
 import CRNT.Interop.Certificates
+import CRNT.Interop.NetworkData
 
 /-!
 # `crnt-lean`: Chemical Reaction Network Theory in Lean 4
