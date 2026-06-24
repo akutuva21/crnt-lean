@@ -1457,6 +1457,19 @@ example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
       ↔ CRNT.Analysis.SpernerLattice.CellDoor κ t t' :=
   CRNT.Analysis.SpernerLattice.cellDoorGraph_adj κ t t'
 
+-- The full door graph: cell–cell adjacency is `CellDoor`; cell–outer adjacency joins an outer
+-- vertex to its up-triangle exactly when its hypotenuse sub-edge is a door.
+example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
+    (t t' : CRNT.Analysis.SpernerLattice.Cell N) :
+    (CRNT.Analysis.SpernerLattice.fullDoorGraph κ).Adj (Sum.inl t) (Sum.inl t')
+      ↔ CRNT.Analysis.SpernerLattice.CellDoor κ t t' :=
+  CRNT.Analysis.SpernerLattice.fullDoorGraph_adj_inl_inl κ t t'
+example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
+    (t : CRNT.Analysis.SpernerLattice.Cell N) (k : CRNT.Analysis.SpernerLattice.Outer N) :
+    (CRNT.Analysis.SpernerLattice.fullDoorGraph κ).Adj (Sum.inl t) (Sum.inr k)
+      ↔ t = CRNT.Analysis.SpernerLattice.outerTri k ∧ CRNT.Analysis.SpernerLattice.BoundaryDoor κ k :=
+  CRNT.Analysis.SpernerLattice.fullDoorGraph_adj_inl_inr κ t k
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
