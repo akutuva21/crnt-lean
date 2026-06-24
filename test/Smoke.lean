@@ -1044,6 +1044,13 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     ¬ N.HasMultistationarityCapacity :=
   N.not_hasMultistationarityCapacity_of_injective h
 
+-- Consistency (positive dependence of reaction vectors): a functional nonnegative on every
+-- reaction vector is forced to vanish on all of them.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.IsConsistent)
+    {w : S → ℝ} (hw : ∀ r, 0 ≤ ∑ s, w s * N.reactionVector r s) (r : N.R) :
+    ∑ s, w s * N.reactionVector r s = 0 :=
+  N.inner_reactionVector_eq_zero_of_isConsistent_of_nonneg h hw r
+
 -- Nagumo-based persistence: a genuine mass-action orbit with an inward dissipativity bound stays
 -- in the closed nonnegative orthant for all forward time.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants) {L : ℝ}
