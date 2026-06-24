@@ -115,7 +115,7 @@ theorem michaelisMenten_qssa_error (rate : ℝ) (hrate : 0 < rate) (equil : E)
   set S := enzymeFastSubsystem rate hrate equil with hS
   -- Derived slaving defect of the constant reduced curve sitting at the equilibrium fibre.
   have hslow' : ‖full S.equil‖ ≤ εf := by rwa [hS, enzymeFastSubsystem_equil]
-  have hdef : ODE.qssaDefect full (fun _ => S.equil) (fun _ => (0 : E)) 0 T εf :=
+  have hdef : ODE.QssaDefect full (fun _ => S.equil) (fun _ => (0 : E)) 0 T εf :=
     ODE.qssaDefect_of_fastSubsystem S full hslow'
   -- The reduced curve is constant at `equil`, hence continuous with zero right derivative.
   have hγᵣc : ContinuousOn (fun _ : ℝ => S.equil) (Icc 0 T) := continuousOn_const

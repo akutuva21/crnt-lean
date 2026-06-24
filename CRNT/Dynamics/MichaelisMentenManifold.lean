@@ -174,7 +174,7 @@ theorem michaelisMenten_manifold_qssa_error (rate : ℝ) (hrate : 0 < rate) (Km 
     (hσ' : ∀ t ∈ Ico (0 : ℝ) T,
       HasDerivWithinAt (fun t => (mmSlowManifoldSeed rate hrate Km Vmax).manifoldMap (σ t))
         (γᵣ' t) (Ici t) t)
-    (hdef : ODE.qssaDefect full
+    (hdef : ODE.QssaDefect full
       (fun t => (mmSlowManifoldSeed rate hrate Km Vmax).manifoldMap (σ t)) γᵣ' 0 T εf)
     (h0 : dist (γ 0) ((mmSlowManifoldSeed rate hrate Km Vmax).manifoldMap (σ 0)) ≤ δ) :
     (∀ t ∈ Icc 0 T,
@@ -194,7 +194,7 @@ theorem michaelisMenten_manifold_qssa_error_const (rate : ℝ) (hrate : 0 < rate
     (hσc : ContinuousOn (fun t => mmComplexEquil Km Vmax (σ t) • e0) (Icc 0 T))
     (hσ' : ∀ t ∈ Ico (0 : ℝ) T,
       HasDerivWithinAt (fun t => mmComplexEquil Km Vmax (σ t) • e0) (γᵣ' t) (Ici t) t)
-    (hdef : ODE.qssaDefect full (fun t => mmComplexEquil Km Vmax (σ t) • e0) γᵣ' 0 T εf)
+    (hdef : ODE.QssaDefect full (fun t => mmComplexEquil Km Vmax (σ t) • e0) γᵣ' 0 T εf)
     (h0 : dist (γ 0) (mmComplexEquil Km Vmax (σ 0) • e0) ≤ δ) :
     (∀ t ∈ Icc 0 T,
         dist (γ t) (mmComplexEquil Km Vmax (σ t) • e0) ≤ gronwallBound δ K εf T) ∧

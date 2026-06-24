@@ -285,7 +285,7 @@ theorem michaelisMenten_reduced_qssa_error (rate : ℝ) (hrate : 0 < rate) (Km V
     (full : E → E) {K : ℝ≥0} (hl : LipschitzWith K full)
     {γ : ℝ → E} {T εf δ : ℝ} (hT : 0 ≤ T) (hδ : 0 ≤ δ) (hεf : 0 ≤ εf)
     (hγd : ∀ t, HasDerivAt γ (full (γ t)) t)
-    (hdef : ODE.qssaDefect full
+    (hdef : ODE.QssaDefect full
       (fun t => mmComplexEquil Km Vmax (mmSubstrate Km Vmax hKm hV s₀ t) • e0)
       (fun t => (Vmax * Km / (Km + mmSubstrate Km Vmax hKm hV s₀ t) ^ 2 *
         (-mmComplexEquil Km Vmax (mmSubstrate Km Vmax hKm hV s₀ t))) • e0) 0 T εf)

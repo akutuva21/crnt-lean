@@ -36,7 +36,7 @@ positive contraction rate, with `FastSubsystem.attraction_bound` re-exporting th
 **Derived QSSA defect** (`ODE.qssaDefect_of_fastSubsystem`). For a full field `full = fast + slow`
 of a fast subsystem, the constant reduced curve sitting at the fast equilibrium has slaving defect
 exactly the slow-drift magnitude `‖full zstar‖ = ‖full zstar - fast zstar‖` at the equilibrium.
-Hence any bound `εf` on this slow drift yields `ODE.qssaDefect full (fun _ => zstar) (fun _ => 0)
+Hence any bound `εf` on this slow drift yields `ODE.QssaDefect full (fun _ => zstar) (fun _ => 0)
 a b εf`, which a Michaelis–Menten reduction can compose with `ODE.qssa_error_tendsto_zero`. When the
 slow drift is `O(ε)` the defect is `O(ε)` and vanishes as `ε → 0`.
 
@@ -218,12 +218,12 @@ theorem FastSubsystem.tendsto_equil (S : FastSubsystem E) {z : ℝ → E}
 field of `S` and whose slow part is `slow := fun z => full z - S.fast z`. The reduced trajectory
 that sits at the fast equilibrium (`γᵣ = fun _ => S.equil`, `γᵣ' = fun _ => 0`) has slaving defect
 against the full field equal to the slow-drift magnitude `‖full S.equil‖` at the equilibrium.
-Hence any bound `εf` on that slow drift produces `ODE.qssaDefect full (fun _ => S.equil)
+Hence any bound `εf` on that slow drift produces `ODE.QssaDefect full (fun _ => S.equil)
 (fun _ => 0) a b εf` — the defect is *derived* from the geometry, not postulated. When the slow
 drift is `O(ε)` the defect is `O(ε)` and tends to `0` as `ε → 0`. -/
 theorem qssaDefect_of_fastSubsystem (S : FastSubsystem E) (full : E → E)
     {a b εf : ℝ} (hslow : ‖full S.equil‖ ≤ εf) :
-    qssaDefect full (fun _ => S.equil) (fun _ => 0) a b εf := by
+    QssaDefect full (fun _ => S.equil) (fun _ => 0) a b εf := by
   intro t _
   -- `dist 0 (full S.equil) = ‖full S.equil‖`, and `full S.equil = full S.equil - S.fast S.equil`.
   have : dist (0 : E) (full S.equil) = ‖full S.equil‖ := by

@@ -10,7 +10,7 @@ initial mismatch together with the slaving defect of the reduced curve. It is CR
 written in the `ODE` namespace shared with `CRNT.Dynamics.FlowConstruction`.
 
 **Slaving defect.** For a field `f` and a reduced curve `γᵣ` with derivative `γᵣ'`, the
-predicate `ODE.qssaDefect f γᵣ γᵣ' a b εf` asserts `dist (γᵣ' t) (f (γᵣ t)) ≤ εf` on `[a, b)`.
+predicate `ODE.QssaDefect f γᵣ γᵣ' a b εf` asserts `dist (γᵣ' t) (f (γᵣ t)) ≤ εf` on `[a, b)`.
 This is the definable surrogate for "the fast variables sit at quasi-steady state": the
 reduced trajectory satisfies the full vector field up to a residual `εf`.
 
@@ -56,7 +56,7 @@ structure SlowFastSplitting (E : Type*) [NormedAddCommGroup E] [NormedSpace ℝ 
 /-- The QSSA *slaving defect*: the reduced curve `γᵣ` satisfies the full field `f` up to a
 residual `εf` on `[a, b)`. This is the sound, definable surrogate for the assertion that the
 fast variables are at quasi-steady state. -/
-def qssaDefect (f : E → E) (γᵣ γᵣ' : ℝ → E) (a b : ℝ) (εf : ℝ) : Prop :=
+def QssaDefect (f : E → E) (γᵣ γᵣ' : ℝ → E) (a b : ℝ) (εf : ℝ) : Prop :=
   ∀ t ∈ Set.Ico a b, dist (γᵣ' t) (f (γᵣ t)) ≤ εf
 
 /-- **Compact-time QSSA error bound.** For a `K`-Lipschitz autonomous field `f`, an exact
@@ -69,7 +69,7 @@ theorem qssa_error_bound {f : E → E} {K : ℝ≥0} (hl : LipschitzWith K f)
     (hγd : ∀ t, HasDerivAt γ (f (γ t)) t)
     (hγᵣ : ContinuousOn γᵣ (Set.Icc a b))
     (hγᵣ' : ∀ t ∈ Set.Ico a b, HasDerivWithinAt γᵣ (γᵣ' t) (Set.Ici t) t)
-    (hdef : qssaDefect f γᵣ γᵣ' a b εf)
+    (hdef : QssaDefect f γᵣ γᵣ' a b εf)
     (h0 : dist (γ a) (γᵣ a) ≤ δ) :
     ∀ t ∈ Set.Icc a b, dist (γ t) (γᵣ t) ≤ gronwallBound δ K εf (t - a) := by
   have hγc : ContinuousOn γ (Set.Icc a b) :=
@@ -92,7 +92,7 @@ theorem qssa_exact_of_zero_defect {f : E → E} {K : ℝ≥0} (hl : LipschitzWit
     (hγd : ∀ t, HasDerivAt γ (f (γ t)) t)
     (hγᵣ : ContinuousOn γᵣ (Set.Icc a b))
     (hγᵣ' : ∀ t ∈ Set.Ico a b, HasDerivWithinAt γᵣ (γᵣ' t) (Set.Ici t) t)
-    (hdef : qssaDefect f γᵣ γᵣ' a b 0)
+    (hdef : QssaDefect f γᵣ γᵣ' a b 0)
     (h0 : γ a = γᵣ a) :
     Set.EqOn γ γᵣ (Set.Icc a b) := by
   intro t ht
@@ -118,7 +118,7 @@ theorem qssa_error_tendsto_zero {f : E → E} {K : ℝ≥0} (hl : LipschitzWith 
     (hγd : ∀ t, HasDerivAt γ (f (γ t)) t)
     (hγᵣ : ContinuousOn γᵣ (Set.Icc 0 T))
     (hγᵣ' : ∀ t ∈ Set.Ico 0 T, HasDerivWithinAt γᵣ (γᵣ' t) (Set.Ici t) t)
-    (hdef : qssaDefect f γᵣ γᵣ' 0 T εf) (h0 : dist (γ 0) (γᵣ 0) ≤ δ) :
+    (hdef : QssaDefect f γᵣ γᵣ' 0 T εf) (h0 : dist (γ 0) (γᵣ 0) ≤ δ) :
     (∀ t ∈ Set.Icc 0 T, dist (γ t) (γᵣ t) ≤ gronwallBound δ K εf T) ∧
       Filter.Tendsto (fun p : ℝ × ℝ => gronwallBound p.1 K p.2 T) (𝓝 0 ×ˢ 𝓝 0) (𝓝 0) := by
   refine ⟨?_, ?_⟩
