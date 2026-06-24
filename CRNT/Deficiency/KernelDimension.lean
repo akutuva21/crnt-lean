@@ -24,10 +24,9 @@ rank(∂) = s + dim(ker Y ∩ Im ∂)
 ```
 
 (`incidenceRank_eq_stoichRank_add`). Writing `deficiencySubspace := ker Y ⊓ Im ∂`, the
-deficiency then equals `dim(deficiencySubspace)` provided `rank(∂) = n − ℓ`
-(`deficiencyInt_eq_finrank_deficiencySubspace`). That remaining graph identity — the
-rank of the incidence map equals vertices minus connected components — is the one
-ingredient of this milestone still to be discharged (see `docs/roadmap.md`).
+deficiency equals `dim(deficiencySubspace)` (`deficiencyInt_eq_finrank_deficiencySubspace`),
+using the graph identity `rank(∂) = n − ℓ` — the rank of the incidence map equals vertices
+minus connected components — established here as `incidenceRank_add_numLinkageClasses`.
 
 This module is **stable**. Depends on the dynamics and stoichiometry layers.
 -/

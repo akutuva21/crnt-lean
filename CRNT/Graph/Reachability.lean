@@ -11,8 +11,7 @@ and its reflexive-transitive closure `Reaches`, the directed reachability relati
 `DirectlyReacts` is decidable (the reaction index type is finite and complexes have
 decidable equality), so explicit reachability witnesses can be checked. Reachability
 itself is defined propositionally via `Relation.ReflTransGen`; example properties are
-established by explicit path construction. A verified Boolean decision procedure for
-reachability is future work (see `docs/roadmap.md`).
+established by explicit path construction.
 
 This module is **stable**. Depends on: `CRNT.Basic.Network`, `Mathlib.Logic.Relation`.
 -/
