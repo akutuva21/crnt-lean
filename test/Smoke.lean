@@ -151,6 +151,13 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     Differentiable ℝ (fun x => N.massActionVectorField κ x) :=
   N.massActionVectorField_differentiable κ
 
+-- The source monomial's Fréchet derivative is the dot product with its gradient.
+example {S : Type} [DecidableEq S] [Fintype S] (y : Complex S) (x : Concentration S) :
+    HasFDerivAt (fun x => y.massActionMonomial x)
+      (∑ j, CRNT.massActionMonomialGrad y x j •
+        ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : S => ℝ) j) x :=
+  CRNT.massActionMonomial_hasFDerivAt y x
+
 -- Deficiency rank bridge: rank(∂) = s + dim(ker Y ∩ Im ∂).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
     N.incidenceRank = N.stoichRank + Module.finrank ℝ N.deficiencySubspace :=

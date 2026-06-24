@@ -33,6 +33,27 @@ theorem massActionMonomial_differentiable (y : Complex S) :
   exact (HasFDerivAt.finsetProd fun s _ =>
     ((differentiable_apply s).pow (y s)).differentiableAt.hasFDerivAt).differentiableAt
 
+/-- The `j`-th partial derivative of the source monomial `∏ s, x_s ^ (y_s)`, in the polynomial form
+`y_j · x_j ^ (y_j - 1) · ∏_{s ≠ j} x_s ^ (y_s)` valid at every point. -/
+def massActionMonomialGrad (y : Complex S) (x : Concentration S) (j : S) : ℝ :=
+  (y j : ℝ) * x j ^ (y j - 1) * ∏ s ∈ Finset.univ.erase j, x s ^ (y s)
+
+/-- The Fréchet derivative of the source monomial is the dot product with its gradient:
+`∑ j, (∂_j monomial) • proj_j`. -/
+theorem massActionMonomial_hasFDerivAt (y : Complex S) (x : Concentration S) :
+    HasFDerivAt (fun x : Concentration S => y.massActionMonomial x)
+      (∑ j, massActionMonomialGrad y x j •
+        ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : S => ℝ) j) x := by
+  have hfac : ∀ s : S, HasFDerivAt (fun x : Concentration S => x s ^ (y s))
+      ((y s • x s ^ (y s - 1)) • ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : S => ℝ) s) x :=
+    fun s => (hasFDerivAt_apply s x).pow (y s)
+  have h := HasFDerivAt.finsetProd (u := (Finset.univ : Finset S)) (fun s _ => hfac s)
+  simp only [Complex.massActionMonomial]
+  refine h.congr_fderiv (Finset.sum_congr rfl fun s _ => ?_)
+  rw [massActionMonomialGrad, smul_smul, nsmul_eq_mul]
+  congr 1
+  ring
+
 namespace Network
 
 /-- The mass-action rate of a reaction, `x ↦ κ r · monomial`, is differentiable. -/
