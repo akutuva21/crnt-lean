@@ -50,6 +50,12 @@ def interopRevData : NetworkData :=
 example : interopRevData.toNetwork.numComplexes = 2 := by decide
 example : interopRevData.toNetwork.numReactions = 2 := by decide
 
+-- The one-call analysis reports the right invariants, with the deficiency bridged to `N.deficiency`.
+example : interopRevData.analyze.numComplexes = 2 := by decide
+example : interopRevData.analyze.weaklyReversible = true := by decide
+example : interopRevData.analyze.deficiency = interopRevData.toNetwork.deficiency :=
+  NetworkData.analyze_deficiency_eq _
+
 -- The reversible pair has no critical siphon, so the no-critical-siphon global-attraction
 -- theorem applies to it: every hypothesis is met on this concrete network.
 example : Examples.ReversiblePair.N.HasNoCriticalSiphon :=
