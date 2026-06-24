@@ -14,3 +14,7 @@ globs = ["CRNT", "CRNT.+"]
 [[lean_lib]]
 name = "test"
 globs = ["test.+"]
+
+[[lean_exe]]
+name = "analyze"
+root = "Analyze"
