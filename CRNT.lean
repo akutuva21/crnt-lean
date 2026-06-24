@@ -265,7 +265,7 @@ import CRNT.Deficiency.DeficiencyOneDecide
 import CRNT.Interop.Certificates
 
 /-!
-# `lean-crnt`: Chemical Reaction Network Theory in Lean 4
+# `crnt-lean`: Chemical Reaction Network Theory in Lean 4
 
 Top-level import for the stable core of the `CRNT` library. It re-exports the basic
 CRN data structures, the reaction-graph and stoichiometry layers, mass-action

@@ -3,7 +3,7 @@ import CRNT.Graph.WeakReversibility
 /-!
 # Certificate checking
 
-A core purpose of `lean-crnt` is to *check* structural claims emitted by external
+A core purpose of `crnt-lean` is to *check* structural claims emitted by external
 tools rather than recompute them. This module realizes the path-certificate pattern
 for directed reachability: an external tool emits, for a reachability claim `c ⇝ d`,
 an explicit walk (a list of complexes), and Lean verifies it with a computable

@@ -11,7 +11,7 @@ persistence and the global attractor conjecture, the Anderson–Craciun–Kurtz 
 multistationarity and robustness criteria, and decidable companions with exact certificates. It is
 designed so external tools can emit Lean files that *check* network properties against a stable API.
 
-- **Package:** `lean-crnt` · **Namespace:** `CRNT`
+- **Package:** `crnt-lean` · **Namespace:** `CRNT`
 - **Lean:** 4.31.0 · **Mathlib:** v4.31.0
 - The default import (`import CRNT`) is **`sorry`-free** and introduces **no axioms beyond Mathlib's**.
 

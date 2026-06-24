@@ -1,4 +1,4 @@
-name = "lean-crnt"
+name = "crnt-lean"
 defaultTargets = ["CRNT"]
 testRunner = "test"
 
