@@ -1094,6 +1094,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {r r' r'' : N.R}
     (h₁ : N.ColinearReactions r r') (h₂ : N.ColinearReactions r' r'') : N.ColinearReactions r r'' :=
   h₁.trans h₂
 
+-- The Advanced Deficiency Algorithm verdict is non-vacuous: it yields a nonzero stoichiometric vector.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    (h : N.ADAAffirmsCapacity) : N.stoichSubspace ≠ ⊥ :=
+  N.stoichSubspace_ne_bot_of_adaAffirmsCapacity h
+
 -- Nagumo-based persistence: a genuine mass-action orbit with an inward dissipativity bound stays
 -- in the closed nonnegative orthant for all forward time.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants) {L : ℝ}
