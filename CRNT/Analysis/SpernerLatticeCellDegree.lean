@@ -250,4 +250,87 @@ theorem down_cell_degree (κ : SpernerColoring N) (a b : ℕ) (hd : a + b + 2 �
     simp [← hd1, ← hd2, ← hd3, hb1, hb2, hb3, h12, h13, h23, Finset.card_union_of_disjoint,
       Finset.disjoint_singleton]
 
+/-- **Up construction (diagonal).** `up(a,b)` is door-adjacent to `down(a,b)` across their shared
+diagonal (interior). -/
+theorem up_diagonal_cellDoor (κ : SpernerColoring N) (a b : ℕ) (hd : a + b + 2 ≤ N)
+    (hdoor : isDoor (κ.color (mkPt (a + 1) b (by omega))) (κ.color (mkPt a (b + 1) (by omega)))
+      = true) :
+    CellDoor κ (Sum.inl ⟨(a, b), by rw [mem_upCarrier]; omega⟩)
+      (Sum.inr ⟨(a, b), by rw [mem_downCarrier]; omega⟩) :=
+  cellDoor_symm κ (down_diagonal_cellDoor κ a b hd hdoor)
+
+/-- **Up construction (horizontal).** `up(a,b+1)` is door-adjacent to `down(a,b)` across `up`'s bottom
+edge `{(a,b+1),(a+1,b+1)}`. -/
+theorem up_horiz_cellDoor (κ : SpernerColoring N) (a b : ℕ) (hd : a + b + 2 ≤ N)
+    (hdoor : isDoor (κ.color (mkPt a (b + 1) (by omega)))
+      (κ.color (mkPt (a + 1) (b + 1) (by omega))) = true) :
+    CellDoor κ (Sum.inl ⟨(a, b + 1), by rw [mem_upCarrier]; omega⟩)
+      (Sum.inr ⟨(a, b), by rw [mem_downCarrier]; omega⟩) :=
+  cellDoor_symm κ (down_horizTop_cellDoor κ a b hd hdoor)
+
+/-- **Up construction (vertical).** `up(a+1,b)` is door-adjacent to `down(a,b)` across `up`'s left
+edge `{(a+1,b),(a+1,b+1)}`. -/
+theorem up_vert_cellDoor (κ : SpernerColoring N) (a b : ℕ) (hd : a + b + 2 ≤ N)
+    (hdoor : isDoor (κ.color (mkPt (a + 1) b (by omega)))
+      (κ.color (mkPt (a + 1) (b + 1) (by omega))) = true) :
+    CellDoor κ (Sum.inl ⟨(a + 1, b), by rw [mem_upCarrier]; omega⟩)
+      (Sum.inr ⟨(a, b), by rw [mem_downCarrier]; omega⟩) :=
+  cellDoor_symm κ (down_vertRight_cellDoor κ a b hd hdoor)
+
+/-- **Characterization of an interior up-triangle's cell-neighbours.** For `up(a,b)` interior
+(`a+b+2 ≤ N`), a down-triangle `⟨(p,q),_⟩` is door-adjacent iff its index is one of the three
+edge-partners — `(a,b)` (diagonal), `(a,b-1)` (horizontal, `q+1=b`), `(a-1,b)` (vertical, `p+1=a`) —
+and the corresponding edge carries a door. -/
+theorem up_cellDoor_iff (κ : SpernerColoring N) (a b : ℕ) (hd : a + b + 2 ≤ N) (p q : ℕ)
+    (hpq : (p, q) ∈ downCarrier N) :
+    CellDoor κ (Sum.inl ⟨(a, b), by rw [mem_upCarrier]; omega⟩) (Sum.inr ⟨(p, q), hpq⟩) ↔
+      (p = a ∧ q = b ∧
+        isDoor (κ.color (mkPt (a + 1) b (by omega))) (κ.color (mkPt a (b + 1) (by omega))) = true) ∨
+      (p = a ∧ q + 1 = b ∧
+        isDoor (κ.color (mkPt a b (by omega))) (κ.color (mkPt (a + 1) b (by omega))) = true) ∨
+      (p + 1 = a ∧ q = b ∧
+        isDoor (κ.color (mkPt a b (by omega))) (κ.color (mkPt a (b + 1) (by omega))) = true) := by
+  constructor
+  · intro h
+    obtain ⟨_, x, hxu, y, hyu, hxy, hxd, hyd, hdoor⟩ := h
+    have hpart := up_down_share_two hxu hxd hyu hyd hxy
+    simp only [triVerts, Sum.elim_inl, Sum.elim_inr, upVerts, downVerts, Finset.mem_insert,
+      Finset.mem_singleton] at hxu hyu hxd hyd
+    dsimp only at hpart hxu hyu hxd hyd
+    rcases hpart with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+    · refine Or.inl ⟨rfl, rfl, isDoor_of_pair κ ?_ ?_ hxy hdoor⟩
+      · rcases hxu with h | h | h
+        · rw [h] at hxd; rcases hxd with h' | h' | h' <;> (rw [mkPt_inj] at h'; omega)
+        · exact Or.inl h
+        · exact Or.inr h
+      · rcases hyu with h | h | h
+        · rw [h] at hyd; rcases hyd with h' | h' | h' <;> (rw [mkPt_inj] at h'; omega)
+        · exact Or.inl h
+        · exact Or.inr h
+    · refine Or.inr (Or.inl ⟨rfl, rfl, isDoor_of_pair κ ?_ ?_ hxy hdoor⟩)
+      · rcases hxu with h | h | h
+        · exact Or.inl h
+        · exact Or.inr h
+        · rw [h] at hxd; rcases hxd with h' | h' | h' <;> (rw [mkPt_inj] at h'; omega)
+      · rcases hyu with h | h | h
+        · exact Or.inl h
+        · exact Or.inr h
+        · rw [h] at hyd; rcases hyd with h' | h' | h' <;> (rw [mkPt_inj] at h'; omega)
+    · refine Or.inr (Or.inr ⟨rfl, rfl, isDoor_of_pair κ ?_ ?_ hxy hdoor⟩)
+      · rcases hxu with h | h | h
+        · exact Or.inl h
+        · rw [h] at hxd; rcases hxd with h' | h' | h' <;> (rw [mkPt_inj] at h'; omega)
+        · exact Or.inr h
+      · rcases hyu with h | h | h
+        · exact Or.inl h
+        · rw [h] at hyd; rcases hyd with h' | h' | h' <;> (rw [mkPt_inj] at h'; omega)
+        · exact Or.inr h
+  · rintro (⟨hp, hq, hdoor⟩ | ⟨hp, hq, hdoor⟩ | ⟨hp, hq, hdoor⟩)
+    · subst a; subst b
+      exact up_diagonal_cellDoor κ p q (by rw [mem_downCarrier] at hpq; omega) hdoor
+    · subst a; subst b
+      exact up_horiz_cellDoor κ p q (by rw [mem_downCarrier] at hpq; omega) hdoor
+    · subst a; subst b
+      exact up_vert_cellDoor κ p q (by rw [mem_downCarrier] at hpq; omega) hdoor
+
 end CRNT.Analysis.SpernerLattice
