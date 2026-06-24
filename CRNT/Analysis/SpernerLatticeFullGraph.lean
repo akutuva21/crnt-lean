@@ -89,4 +89,45 @@ theorem fullDoorGraph_adj_inl_inr (κ : SpernerColoring N) (t : Cell N) (k : Out
   · intro h
     exact ⟨Sum.inl_ne_inr, Or.inl h⟩
 
+/-- Outer vertices are pairwise non-adjacent in the full door graph. -/
+theorem fullDoorGraph_not_adj_inr_inr (κ : SpernerColoring N) (k k' : Outer N) :
+    ¬ (fullDoorGraph κ).Adj (Sum.inr k) (Sum.inr k') := by
+  rw [fullDoorGraph, SimpleGraph.fromRel_adj]
+  rintro ⟨_, h | h⟩ <;> exact h
+
+/-- The neighbours of an outer vertex: its up-triangle when the sub-edge is a door, else none. -/
+theorem outerNeighborFinset (κ : SpernerColoring N) (k : Outer N) :
+    (fullDoorGraph κ).neighborFinset (Sum.inr k)
+      = if BoundaryDoor κ k then {Sum.inl (outerTri k)} else ∅ := by
+  by_cases h : BoundaryDoor κ k
+  · rw [if_pos h]
+    ext w
+    rw [SimpleGraph.mem_neighborFinset, Finset.mem_singleton]
+    cases w with
+    | inl t =>
+      rw [SimpleGraph.adj_comm, fullDoorGraph_adj_inl_inr]
+      constructor
+      · rintro ⟨ht, _⟩; rw [ht]
+      · intro h'; exact ⟨Sum.inl.inj h', h⟩
+    | inr k' =>
+      constructor
+      · intro hadj; exact absurd hadj (fullDoorGraph_not_adj_inr_inr κ k k')
+      · intro hc; exact absurd hc Sum.inr_ne_inl
+  · rw [if_neg h, Finset.eq_empty_iff_forall_notMem]
+    intro w
+    rw [SimpleGraph.mem_neighborFinset]
+    cases w with
+    | inl t =>
+      rw [SimpleGraph.adj_comm, fullDoorGraph_adj_inl_inr]
+      rintro ⟨_, h'⟩; exact h h'
+    | inr k' => exact fullDoorGraph_not_adj_inr_inr κ k k'
+
+/-- **Outer-vertex degree.** An outer vertex has degree `1` when its hypotenuse sub-edge is a door and
+`0` otherwise — the input to the `outer_odd` count via one-dimensional Sperner. -/
+theorem outer_degree (κ : SpernerColoring N) (k : Outer N) :
+    (fullDoorGraph κ).degree (Sum.inr k) = if BoundaryDoor κ k then 1 else 0 := by
+  unfold SimpleGraph.degree
+  rw [outerNeighborFinset]
+  by_cases h : BoundaryDoor κ k <;> simp [h]
+
 end CRNT.Analysis.SpernerLattice
