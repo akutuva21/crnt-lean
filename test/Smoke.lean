@@ -1450,6 +1450,13 @@ example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
     ∃ d : CRNT.Analysis.SpernerLattice.Down N, t' = Sum.inr d :=
   CRNT.Analysis.SpernerLattice.cellDoor_inl_isRight κ h
 
+-- The cell–cell door graph's adjacency is the `CellDoor` relation.
+example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
+    (t t' : CRNT.Analysis.SpernerLattice.Cell N) :
+    (CRNT.Analysis.SpernerLattice.cellDoorGraph κ).Adj t t'
+      ↔ CRNT.Analysis.SpernerLattice.CellDoor κ t t' :=
+  CRNT.Analysis.SpernerLattice.cellDoorGraph_adj κ t t'
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :

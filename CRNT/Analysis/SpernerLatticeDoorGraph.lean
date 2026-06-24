@@ -54,4 +54,18 @@ theorem cellDoor_symm (κ : SpernerColoring N) {t t' : Cell N} (h : CellDoor κ 
 theorem cellDoor_irrefl (κ : SpernerColoring N) (t : Cell N) : ¬ CellDoor κ t t :=
   fun h => h.1 rfl
 
+/-- The **cell–cell door graph** of the `N`-subdivision: triangles are adjacent when they share a
+`{0,1}` door edge. The symmetric, loopless `SimpleGraph` packaging of `CellDoor`, whose degrees the
+`cell_degree` bijection will equate to the local `doorCount`. -/
+def cellDoorGraph (κ : SpernerColoring N) : SimpleGraph (Cell N) where
+  Adj := CellDoor κ
+  symm := ⟨fun _ _ h => cellDoor_symm κ h⟩
+  loopless := ⟨fun t h => cellDoor_irrefl κ t h⟩
+
+instance (κ : SpernerColoring N) : DecidableRel (cellDoorGraph κ).Adj :=
+  inferInstanceAs (DecidableRel (CellDoor κ))
+
+@[simp] theorem cellDoorGraph_adj (κ : SpernerColoring N) (t t' : Cell N) :
+    (cellDoorGraph κ).Adj t t' ↔ CellDoor κ t t' := Iff.rfl
+
 end CRNT.Analysis.SpernerLattice
