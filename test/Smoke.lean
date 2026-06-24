@@ -164,6 +164,12 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     HasFDerivAt (fun x => N.massActionVectorField κ x) (N.massActionJacobianCLM κ x) x :=
   N.massActionVectorField_hasFDerivAt κ x
 
+-- The Jacobian operator acts as the explicit Jacobian matrix.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (x v : Concentration S) :
+    N.massActionJacobianCLM κ x v = (N.massActionJacobian κ x).mulVec v :=
+  N.massActionJacobianCLM_apply κ x v
+
 -- Deficiency rank bridge: rank(∂) = s + dim(ker Y ∩ Im ∂).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
     N.incidenceRank = N.stoichRank + Module.finrank ℝ N.deficiencySubspace :=

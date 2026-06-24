@@ -4,6 +4,7 @@ import Mathlib.Analysis.Calculus.FDeriv.Add
 import Mathlib.Analysis.Calculus.FDeriv.Mul
 import Mathlib.Analysis.Calculus.FDeriv.Pow
 import Mathlib.Analysis.Calculus.FDeriv.Prod
+import Mathlib.Data.Matrix.Mul
 
 /-!
 # Differentiability of the mass-action vector field
@@ -99,6 +100,27 @@ theorem massActionVectorField_hasFDerivAt (N : Network S) (κ : N.RateConstants)
       (N.reactionVector r)
   rw [hfun]
   exact HasFDerivAt.sum fun r _ => hr r
+
+/-- The mass-action Jacobian matrix at `x`: entry `(i, j)` is `∂(ẋ_i)/∂x_j`, namely
+`∑ r, κ_r · (∂_j monomial_r) · reactionVector r i`. -/
+def massActionJacobian (N : Network S) (κ : N.RateConstants) (x : Concentration S) :
+    Matrix S S ℝ :=
+  fun i j => ∑ r : N.R,
+    κ.k r * massActionMonomialGrad (N.reaction r).source x j * N.reactionVector r i
+
+/-- The Jacobian operator acts as the Jacobian matrix: `J(x) · v = massActionJacobian · v`. This
+bridges the Fréchet-derivative operator to the explicit matrix whose determinant and principal
+minors drive the Craciun–Feinberg injectivity analysis. -/
+theorem massActionJacobianCLM_apply (N : Network S) (κ : N.RateConstants)
+    (x v : Concentration S) :
+    N.massActionJacobianCLM κ x v = (N.massActionJacobian κ x).mulVec v := by
+  funext i
+  simp only [massActionJacobianCLM, massActionJacobian, sum_apply, Finset.sum_apply,
+    ContinuousLinearMap.smulRight_apply, smul_apply, ContinuousLinearMap.proj_apply,
+    smul_eq_mul, Pi.smul_apply, Matrix.mulVec_eq_sum, Matrix.transpose_apply, op_smul_eq_mul]
+  simp only [Finset.mul_sum, Finset.sum_mul]
+  rw [Finset.sum_comm]
+  exact Finset.sum_congr rfl fun j _ => Finset.sum_congr rfl fun r _ => by ring
 
 end Network
 
