@@ -36,6 +36,12 @@ example : Examples.ReversiblePair.N.DeficiencyZero := Examples.ReversiblePair.de
 example : Examples.ReversiblePair.N.SatisfiesDeficiencyZeroHypotheses :=
   Examples.ReversiblePair.satisfiesDeficiencyZeroHypotheses
 
+-- The computable linkage count reduces under `decide`; the computable deficiency assembly
+-- agrees with the deficiency via the axiom-clean bridge (the value itself is `#eval`-only).
+example : Examples.ReversiblePair.N.computeNumLinkageClasses = 1 := by decide
+example : Examples.ReversiblePair.N.deficiency = Examples.ReversiblePair.N.computableDeficiency :=
+  Network.deficiency_eq_computableDeficiency _
+
 -- The reversible pair has no critical siphon, so the no-critical-siphon global-attraction
 -- theorem applies to it: every hypothesis is met on this concrete network.
 example : Examples.ReversiblePair.N.HasNoCriticalSiphon :=

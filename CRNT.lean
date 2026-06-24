@@ -30,6 +30,7 @@ import CRNT.Decision.ACRCheck
 import CRNT.Decision.GaussianRank
 import CRNT.Decision.ExactDeficiency
 import CRNT.Decision.LinkageDeficiencyExact
+import CRNT.Decision.ComputableDeficiency
 
 -- Stoichiometry: reaction vectors, subspace, rank
 import CRNT.Stoich.Vector
