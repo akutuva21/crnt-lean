@@ -31,14 +31,14 @@ variable {N : ℕ}
 
 /-- A door-neighbor of an up-triangle is a down-triangle. -/
 theorem cellDoor_inl_isRight (κ : SpernerColoring N) {u : Up N} {t' : Cell N}
-    (h : cellDoor κ (Sum.inl u) t') : ∃ d : Down N, t' = Sum.inr d := by
+    (h : CellDoor κ (Sum.inl u) t') : ∃ d : Down N, t' = Sum.inr d := by
   cases t' with
   | inl u' => exact absurd h (not_cellDoor_inl_inl κ u u')
   | inr d => exact ⟨d, rfl⟩
 
 /-- A door-neighbor of a down-triangle is an up-triangle. -/
 theorem cellDoor_inr_isLeft (κ : SpernerColoring N) {d : Down N} {t' : Cell N}
-    (h : cellDoor κ (Sum.inr d) t') : ∃ u : Up N, t' = Sum.inl u := by
+    (h : CellDoor κ (Sum.inr d) t') : ∃ u : Up N, t' = Sum.inl u := by
   cases t' with
   | inl u => exact ⟨u, rfl⟩
   | inr d' => exact absurd h (not_cellDoor_inr_inr κ d d')

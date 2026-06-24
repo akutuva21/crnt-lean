@@ -22,12 +22,12 @@ three vertices (`triVerts`):
 A `{0,1}`-**door edge** of the triangulation is an unordered pair of vertices, both belonging to a
 common triangle, whose colors are `{0, 1}`. The door graph is then defined *geometrically*:
 
-* two distinct triangles are adjacent (`cellAdj`) when they **share** a `{0,1}`-door edge — two
+* two distinct triangles are adjacent (`CellAdj`) when they **share** a `{0,1}`-door edge — two
   common vertices `u ≠ v` with `isDoor (colorOf u) (colorOf v)`;
-* a triangle is adjacent to a boundary outer vertex (`boundaryAdj`) when it contains both endpoints
+* a triangle is adjacent to a boundary outer vertex (`BoundaryAdj`) when it contains both endpoints
   of that outer vertex's door edge.
 
-No edge list is assumed: `cellAdj` quantifies over the vertices of the triangles, so the adjacency is
+No edge list is assumed: `CellAdj` quantifies over the vertices of the triangles, so the adjacency is
 computed from `triVerts` and `colorOf` alone.
 
 ## The lattice-edge incidence lemma
@@ -97,11 +97,11 @@ def col (t : Cell) : Color × Color × Color :=
 
 /-- **Interior door adjacency, geometric.** Two distinct triangles are adjacent when they share a
 `{0,1}`-door edge: two common vertices `u ≠ v` whose colors form a door. -/
-def cellAdj (t t' : Cell) : Prop :=
+def CellAdj (t t' : Cell) : Prop :=
   t ≠ t' ∧ ∃ u ∈ triVerts t, ∃ v ∈ triVerts t,
     u ≠ v ∧ u ∈ triVerts t' ∧ v ∈ triVerts t' ∧ isDoor (colorOf u) (colorOf v) = true
 
-instance : DecidableRel cellAdj := fun t t' => by unfold cellAdj; infer_instance
+instance : DecidableRel CellAdj := fun t t' => by unfold CellAdj; infer_instance
 
 /-- The door edge carried by each boundary outer vertex. -/
 def outerEdge : Outer → Vertex × Vertex
@@ -109,17 +109,17 @@ def outerEdge : Outer → Vertex × Vertex
 
 /-- **Boundary door adjacency, geometric.** A triangle is adjacent to a boundary outer vertex when it
 contains both endpoints of that vertex's door edge. -/
-def boundaryAdj (t : Cell) (o : Outer) : Prop :=
+def BoundaryAdj (t : Cell) (o : Outer) : Prop :=
   (outerEdge o).1 ∈ triVerts t ∧ (outerEdge o).2 ∈ triVerts t
 
-instance : DecidableRel boundaryAdj := fun t o => by unfold boundaryAdj; infer_instance
+instance : DecidableRel BoundaryAdj := fun t o => by unfold BoundaryAdj; infer_instance
 
 /-- The combined door relation over `Cell ⊕ Outer`: interior adjacency between triangles, boundary
 adjacency between a triangle and an outer vertex, none between outer vertices. -/
 def gRel : (Cell ⊕ Outer) → (Cell ⊕ Outer) → Prop
-  | Sum.inl t, Sum.inl t' => cellAdj t t'
-  | Sum.inl t, Sum.inr o => boundaryAdj t o
-  | Sum.inr o, Sum.inl t => boundaryAdj t o
+  | Sum.inl t, Sum.inl t' => CellAdj t t'
+  | Sum.inl t, Sum.inr o => BoundaryAdj t o
+  | Sum.inr o, Sum.inl t => BoundaryAdj t o
   | Sum.inr _, Sum.inr _ => False
 
 instance : DecidableRel gRel := fun a b => by cases a <;> cases b <;> unfold gRel <;> infer_instance

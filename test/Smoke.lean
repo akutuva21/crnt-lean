@@ -1303,20 +1303,20 @@ example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N) (a : ℕ
 
 -- Door graph assembly: the cell adjacency (sharing a {0,1} door edge) is symmetric.
 example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
-    {t t' : CRNT.Analysis.SpernerLattice.Cell N} (h : CRNT.Analysis.SpernerLattice.cellDoor κ t t') :
-    CRNT.Analysis.SpernerLattice.cellDoor κ t' t :=
+    {t t' : CRNT.Analysis.SpernerLattice.Cell N} (h : CRNT.Analysis.SpernerLattice.CellDoor κ t t') :
+    CRNT.Analysis.SpernerLattice.CellDoor κ t' t :=
   CRNT.Analysis.SpernerLattice.cellDoor_symm κ h
 
 -- Door graph bipartite: two up-triangles are never door-adjacent (same orientation shares ≤1 vertex).
 example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
     (u u' : CRNT.Analysis.SpernerLattice.Up N) :
-    ¬ CRNT.Analysis.SpernerLattice.cellDoor κ (Sum.inl u) (Sum.inl u') :=
+    ¬ CRNT.Analysis.SpernerLattice.CellDoor κ (Sum.inl u) (Sum.inl u') :=
   CRNT.Analysis.SpernerLattice.not_cellDoor_inl_inl κ u u'
 
 -- Neighbor locator: a door-neighbor of an up-triangle is a down-triangle.
 example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
     {u : CRNT.Analysis.SpernerLattice.Up N} {t' : CRNT.Analysis.SpernerLattice.Cell N}
-    (h : CRNT.Analysis.SpernerLattice.cellDoor κ (Sum.inl u) t') :
+    (h : CRNT.Analysis.SpernerLattice.CellDoor κ (Sum.inl u) t') :
     ∃ d : CRNT.Analysis.SpernerLattice.Down N, t' = Sum.inr d :=
   CRNT.Analysis.SpernerLattice.cellDoor_inl_isRight κ h
 

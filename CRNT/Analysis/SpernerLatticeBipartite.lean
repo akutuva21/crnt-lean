@@ -4,7 +4,7 @@ import CRNT.Analysis.SpernerLatticeDoorGraph
 # The door graph is bipartite between up- and down-triangles
 
 This module proves the structural keystone of the door-degree bijection: in the `N`-subdivision two
-triangles of the **same orientation** never share an edge, so the cell adjacency `cellDoor` relates
+triangles of the **same orientation** never share an edge, so the cell adjacency `CellDoor` relates
 only an up-triangle to a down-triangle. This bipartiteness is what lets the neighbor-finset count
 later reduce to "which down-triangle lies across each door edge of an up-triangle" (and conversely),
 via the lattice-edge incidence lemmas.
@@ -13,13 +13,13 @@ The geometric core is that two distinct up-triangles (or two distinct down-trian
 one vertex** (`up_up_share_le_one`, `down_down_share_le_one`): two common distinct vertices force the
 indices to coincide. Each is a uniform-in-`N` computation — the three-element vertex memberships are
 unfolded to their coordinate components and the index equality is discharged by `omega`. Since
-`cellDoor` requires two common distinct vertices, it cannot hold between two up-triangles
+`CellDoor` requires two common distinct vertices, it cannot hold between two up-triangles
 (`not_cellDoor_inl_inl`) or two down-triangles (`not_cellDoor_inr_inr`).
 
 ## Main results
 
 * `up_up_share_le_one`, `down_down_share_le_one` — same-orientation triangles share at most one vertex.
-* `not_cellDoor_inl_inl`, `not_cellDoor_inr_inr` — `cellDoor` holds only between opposite orientations.
+* `not_cellDoor_inl_inl`, `not_cellDoor_inr_inr` — `CellDoor` holds only between opposite orientations.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLatticeDoorGraph`.
 -/
@@ -54,14 +54,14 @@ theorem down_down_share_le_one {u u' : Down N} {p q : Pt N}
 /-- **No two up-triangles are door-adjacent**: they cannot share the two distinct vertices a door
 edge requires. -/
 theorem not_cellDoor_inl_inl (κ : SpernerColoring N) (u u' : Up N) :
-    ¬ cellDoor κ (Sum.inl u) (Sum.inl u') := by
+    ¬ CellDoor κ (Sum.inl u) (Sum.inl u') := by
   rintro ⟨hne, p, hpu, q, hqu, hpq, hpu', hqu', _⟩
   simp only [triVerts, Sum.elim_inl] at hpu hqu hpu' hqu'
   exact hne (congrArg Sum.inl (up_up_share_le_one hpu hpu' hqu hqu' hpq))
 
 /-- **No two down-triangles are door-adjacent.** -/
 theorem not_cellDoor_inr_inr (κ : SpernerColoring N) (d d' : Down N) :
-    ¬ cellDoor κ (Sum.inr d) (Sum.inr d') := by
+    ¬ CellDoor κ (Sum.inr d) (Sum.inr d') := by
   rintro ⟨hne, p, hpu, q, hqu, hpq, hpu', hqu', _⟩
   simp only [triVerts, Sum.elim_inr] at hpu hqu hpu' hqu'
   exact hne (congrArg Sum.inr (down_down_share_le_one hpu hpu' hqu hqu' hpq))
