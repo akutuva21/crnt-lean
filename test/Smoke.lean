@@ -170,6 +170,14 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     N.massActionJacobianCLM κ x v = (N.massActionJacobian κ x).mulVec v :=
   N.massActionJacobianCLM_apply κ x v
 
+-- A C¹ map with positive-definite Jacobian along a convex set is injective there.
+example {ι : Type} [Fintype ι] {f : (ι → ℝ) → (ι → ℝ)}
+    {f' : (ι → ℝ) → ((ι → ℝ) →L[ℝ] (ι → ℝ))} {C : Set (ι → ℝ)} (hC : Convex ℝ C)
+    (hf : ∀ x ∈ C, HasFDerivAt f (f' x) x)
+    (hpos : ∀ x ∈ C, ∀ v : ι → ℝ, v ≠ 0 → 0 < ∑ i, v i * (f' x v) i) :
+    Set.InjOn f C :=
+  CRNT.injOn_of_hasFDerivAt_dotProduct_pos hC hf hpos
+
 -- Deficiency rank bridge: rank(∂) = s + dim(ker Y ∩ Im ∂).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
     N.incidenceRank = N.stoichRank + Module.finrank ℝ N.deficiencySubspace :=
