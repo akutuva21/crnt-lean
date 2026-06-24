@@ -178,6 +178,19 @@ example {ι : Type} [Fintype ι] {f : (ι → ℝ) → (ι → ℝ)}
     Set.InjOn f C :=
   CRNT.injOn_of_hasFDerivAt_dotProduct_pos hC hf hpos
 
+-- The positive compatibility class is convex.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (x₀ : Concentration S) :
+    Convex ℝ (N.positiveCompatibilityClass x₀) :=
+  N.convex_positiveCompatibilityClass x₀
+
+-- Positive-definite mass-action Jacobian on a class ⇒ injective on that class.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (x₀ : Concentration S)
+    (hpos : ∀ x ∈ N.positiveCompatibilityClass x₀, ∀ v : Concentration S, v ≠ 0 →
+      0 < ∑ i, v i * ((N.massActionJacobian κ x).mulVec v) i) :
+    (N.massActionKinetics κ).InjectiveOnClass x₀ :=
+  N.massActionInjectiveOnClass_of_jacobian_pos κ x₀ hpos
+
 -- Deficiency rank bridge: rank(∂) = s + dim(ker Y ∩ Im ∂).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
     N.incidenceRank = N.stoichRank + Module.finrank ℝ N.deficiencySubspace :=

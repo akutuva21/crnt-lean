@@ -1,4 +1,5 @@
 import CRNT.Kinetics.MassActionJacobian
+import CRNT.Multistationarity.Injectivity
 import Mathlib.Analysis.Calculus.MeanValue
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 
@@ -72,5 +73,51 @@ theorem injOn_of_hasFDerivAt_dotProduct_pos
     simp only [hg'def, hLapp]
     exact hpos (γ c) (hγmem c (Set.Ioo_subset_Icc_self hc)) v hv0
   linarith [hslope, hpos_c]
+
+namespace Network
+
+variable {S : Type} [DecidableEq S] [Fintype S]
+
+/-- The positive stoichiometric compatibility class is convex: an affine coset of the
+stoichiometric subspace intersected with the strictly positive orthant. -/
+theorem convex_positiveCompatibilityClass (N : Network S) (x₀ : Concentration S) :
+    Convex ℝ (N.positiveCompatibilityClass x₀) := by
+  intro a ha b hb p q hp hq hpq
+  refine ⟨?_, ?_⟩
+  · have hsum : p • x₀ + q • x₀ = x₀ := by rw [← add_smul, hpq, one_smul]
+    have key : p • (a - x₀) + q • (b - x₀) = p • a + q • b - x₀ := by
+      rw [smul_sub, smul_sub, sub_add_sub_comm, hsum]
+    show p • a + q • b - x₀ ∈ N.stoichSubspace
+    rw [← key]
+    exact add_mem (N.stoichSubspace.smul_mem p ha.1) (N.stoichSubspace.smul_mem q hb.1)
+  · intro s
+    have ha' : 0 < a s := ha.2 s
+    have hb' : 0 < b s := hb.2 s
+    simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul]
+    rcases hp.eq_or_lt with hp0 | hp0
+    · have hq1 : 0 < q := by linarith
+      have := mul_pos hq1 hb'
+      have := mul_nonneg hp ha'.le
+      linarith
+    · have := mul_pos hp0 ha'
+      have := mul_nonneg hq hb'.le
+      linarith
+
+/-- **Mass-action injectivity from a positive-definite Jacobian on a class.** If the mass-action
+Jacobian is positive definite (`∑ i, vᵢ (J(x) v)ᵢ > 0` for `v ≠ 0`) at every point of the positive
+compatibility class of `x₀`, then mass-action kinetics is injective on that class — so the class
+carries at most one steady state. The positive-definite half of the Craciun–Feinberg theory. -/
+theorem massActionInjectiveOnClass_of_jacobian_pos (N : Network S) (κ : N.RateConstants)
+    (x₀ : Concentration S)
+    (hpos : ∀ x ∈ N.positiveCompatibilityClass x₀, ∀ v : Concentration S, v ≠ 0 →
+      0 < ∑ i, v i * ((N.massActionJacobian κ x).mulVec v) i) :
+    (N.massActionKinetics κ).InjectiveOnClass x₀ := by
+  show Set.InjOn (N.massActionVectorField κ) (N.positiveCompatibilityClass x₀)
+  refine injOn_of_hasFDerivAt_dotProduct_pos (N.convex_positiveCompatibilityClass x₀)
+    (fun x _ => N.massActionVectorField_hasFDerivAt κ x) (fun x hx v hv => ?_)
+  rw [N.massActionJacobianCLM_apply κ x v]
+  exact hpos x hx v hv
+
+end Network
 
 end CRNT
