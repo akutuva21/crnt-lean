@@ -1072,6 +1072,12 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {g : N.ComplexIdx
     N.cutSum g y y' = - N.cutSum g y' y :=
   N.cutSum_antisymm hg h
 
+-- A shelf partition's strict height constraint forces μ ≠ 0.
+example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} (sp : N.ShelfPartition)
+    {g : N.ComplexIdx → ℝ} {μ : S → ℝ} (h : sp.imposes g μ)
+    {y y' : N.ComplexIdx} (hr : (sp.shelf y').rank < (sp.shelf y).rank) : μ ≠ 0 :=
+  sp.ne_zero_of_imposes_of_higher h hr
+
 -- Nagumo-based persistence: a genuine mass-action orbit with an inward dissipativity bound stays
 -- in the closed nonnegative orthant for all forward time.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants) {L : ℝ}
