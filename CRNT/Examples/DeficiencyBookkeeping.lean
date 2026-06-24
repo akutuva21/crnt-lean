@@ -11,7 +11,7 @@ identity `n = ℓ + s + δ`, and confirms the network is not of deficiency one.
 This module is **stable** (example/test). It contains no `sorry`.
 -/
 
-namespace CRNT.Examples.DeficiencyOneExample
+namespace CRNT.Examples.DeficiencyBookkeeping
 
 open CRNT CRNT.Examples.ReversiblePair
 
@@ -27,4 +27,4 @@ example : N.numComplexes = N.numLinkageClasses + N.stoichRank + N.deficiency :=
 example : ¬ N.DeficiencyOne :=
   fun h => N.not_deficiencyZero_of_deficiencyOne h deficiencyZero
 
-end CRNT.Examples.DeficiencyOneExample
+end CRNT.Examples.DeficiencyBookkeeping
