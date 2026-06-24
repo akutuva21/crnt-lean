@@ -68,16 +68,16 @@ noncomputable def ShinarFeinbergHypotheses.ofPair {N : Network S} {s : S}
     N.ShinarFeinbergHypotheses s :=
   let a := hpair.choose
   let b := hpair.choose_spec.choose
-  let h := hpair.choose_spec.choose_spec
+  let ⟨hntC, hntD, hnotLinked, hdiffOnly, hdiffAt⟩ := hpair.choose_spec.choose_spec
   { c := a.val
     d := b.val
     hc := a.2
     hd := b.2
-    nonTerminalC := h.1
-    nonTerminalD := h.2.1
-    diffClass := (classOf_ne_iff_not_linked N a b).mpr h.2.2.1
-    differOnlyAt := h.2.2.2.1
-    differAt := h.2.2.2.2
+    nonTerminalC := hntC
+    nonTerminalD := hntD
+    diffClass := (classOf_ne_iff_not_linked N a b).mpr hnotLinked
+    differOnlyAt := hdiffOnly
+    differAt := hdiffAt
     defOne := hdef }
 
 end Network

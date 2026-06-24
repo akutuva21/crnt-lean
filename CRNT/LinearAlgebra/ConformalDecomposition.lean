@@ -200,7 +200,8 @@ theorem exists_min_confDom {S : Submodule ℝ (ι → ℝ)} {v : ι → ℝ}
   intro w hwcd hwss
   have hwcand : support w ∈ cands := by
     rw [Finset.mem_filter, Finset.mem_powerset]
-    exact ⟨hwcd.2.2.2, w, hwcd, rfl⟩
+    have hwsub : support w ⊆ support v := hwcd.2.2.2
+    exact ⟨hwsub, w, hwcd, rfl⟩
   have := hmin (support w) hwcand
   have hlt : (support w).card < A.card := by rw [← heA]; exact Finset.card_lt_card hwss
   omega
