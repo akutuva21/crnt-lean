@@ -1477,6 +1477,13 @@ example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
       = if CRNT.Analysis.SpernerLattice.BoundaryDoor κ k then 1 else 0 :=
   CRNT.Analysis.SpernerLattice.outer_degree κ k
 
+-- An outer vertex has odd degree exactly when its sub-edge is a door.
+example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
+    (k : CRNT.Analysis.SpernerLattice.Outer N) :
+    Odd ((CRNT.Analysis.SpernerLattice.fullDoorGraph κ).degree (Sum.inr k))
+      ↔ CRNT.Analysis.SpernerLattice.BoundaryDoor κ k :=
+  CRNT.Analysis.SpernerLattice.odd_degree_outer_iff κ k
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :

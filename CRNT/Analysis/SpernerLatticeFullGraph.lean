@@ -130,4 +130,12 @@ theorem outer_degree (κ : SpernerColoring N) (k : Outer N) :
   rw [outerNeighborFinset]
   by_cases h : BoundaryDoor κ k <;> simp [h]
 
+/-- An outer vertex has **odd degree exactly when its sub-edge is a door** — reducing the
+`MultiDoorIncidence.outer_odd` count to the number of boundary doors (then one-dimensional Sperner on
+the `i+j=N` side). -/
+theorem odd_degree_outer_iff (κ : SpernerColoring N) (k : Outer N) :
+    Odd ((fullDoorGraph κ).degree (Sum.inr k)) ↔ BoundaryDoor κ k := by
+  rw [outer_degree]
+  by_cases h : BoundaryDoor κ k <;> simp [h]
+
 end CRNT.Analysis.SpernerLattice
