@@ -1504,6 +1504,16 @@ example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
     ¬ (CRNT.Analysis.SpernerLattice.fullDoorGraph κ).Adj (Sum.inl (Sum.inr d)) (Sum.inr k) :=
   CRNT.Analysis.SpernerLattice.down_not_adj_outer κ d k
 
+-- A down-triangle's door-graph degree equals its local door count.
+example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N) (a b : ℕ) (hd : a + b + 2 ≤ N) :
+    (CRNT.Analysis.SpernerLattice.fullDoorGraph κ).degree
+        (Sum.inl (Sum.inr ⟨(a, b), by rw [CRNT.Analysis.SpernerLattice.mem_downCarrier]; omega⟩))
+      = CRNT.Analysis.Sperner2D.doorCount
+          (κ.color (CRNT.Analysis.SpernerLattice.mkPt (a + 1) b (by omega)))
+          (κ.color (CRNT.Analysis.SpernerLattice.mkPt a (b + 1) (by omega)))
+          (κ.color (CRNT.Analysis.SpernerLattice.mkPt (a + 1) (b + 1) (by omega))) :=
+  CRNT.Analysis.SpernerLattice.down_cell_degree κ a b hd
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
