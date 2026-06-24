@@ -12,8 +12,8 @@ symbol names.
 `analyze` uses **compiled evaluation** (compiler trust), so it sits outside the `CRNT` library's
 axiom-clean guarantee. Each reported field is a computable companion of the library theory, and the
 library carries a bridge relating it to the propositional definition: `analyze_deficiency_eq`,
-`analyze_stoichRank_eq`, `analyze_numLinkageClasses_eq`, `analyze_conservationLawDim_eq`, and
-`analyze_weaklyReversible_eq` (`CRNT/Interop/Analysis.lean`). When a result needs an axiom-clean kernel certificate for a specific
+`analyze_stoichRank_eq`, `analyze_numLinkageClasses_eq`, `analyze_conservationLawDim_eq`,
+`analyze_weaklyReversible_eq`, and `analyze_acrSpecies_eq` (`CRNT/Interop/Analysis.lean`). When a result needs an axiom-clean kernel certificate for a specific
 network, use the codegen contract instead.
 
 ## Input: `NetworkData`
@@ -39,7 +39,7 @@ their analyses (the bulk path: one process invocation scores many networks).
 
 ```json
 {
-  "version": 2,
+  "version": 3,
   "numSpecies": 2,
   "numComplexes": 2,
   "numReactions": 2,
@@ -48,7 +48,8 @@ their analyses (the bulk path: one process invocation scores many networks).
   "stoichRank": 1,
   "conservationLawDim": 1,
   "deficiency": 0,
-  "weaklyReversible": true
+  "weaklyReversible": true,
+  "acrSpecies": []
 }
 ```
 
@@ -64,6 +65,11 @@ their analyses (the bulk path: one process invocation scores many networks).
 | `conservationLawDim` | int | conservation laws `numSpecies − s` (cokernel dim) | `finrank (orthSum stoichSubspace)` |
 | `deficiency` | int | `δ = n − ℓ − s` | `computableDeficiency` |
 | `weaklyReversible` | bool | weak reversibility | `decide WeaklyReversible` |
+| `acrSpecies` | int[] | species with a structural Shinar–Feinberg ACR witness | `acrSpecies` (`HasShinarFeinbergPair`) |
+
+`acrSpecies` reports the decidable structural fragment of Shinar–Feinberg ACR (two non-terminal
+complexes in distinct linkage classes differing in exactly one species). The deficiency-one side
+condition is not a finite decision and is asserted by the consuming objective, not by `analyze`.
 
 The deficiency assembly `δ = n − ℓ − s` is owned by the library (`computableDeficiency`), not the
 consumer: `computeNumLinkageClasses` supplies a computable `ℓ` (the quotient `numLinkageClasses` does
@@ -92,6 +98,8 @@ never yields a structural verdict.
 - `CRNT/Interop/Analysis.lean`: `Analysis`, `analyze`, and the field bridges.
 - `CRNT/Decision/ComputableDeficiency.lean`: `computeNumLinkageClasses`, `computableDeficiency`, and
   `deficiency_eq_computableDeficiency`.
+- `CRNT/Decision/ACRCheck.lean`: `HasShinarFeinbergPair`, `acrSpecies`, and `mem_acrSpecies`.
+- `CRNT/LinearAlgebra/OrthogonalComplement.lean`: `orthSum` and `finrank_orthSum` (conservation laws).
 - `Analyze.lean`: the `lake exe analyze` entry point.
 
 ## Related documents

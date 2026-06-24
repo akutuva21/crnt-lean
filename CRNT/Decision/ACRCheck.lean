@@ -43,6 +43,16 @@ instance instDecidableHasShinarFeinbergPair (N : Network S) (s : S) :
     Decidable (N.HasShinarFeinbergPair s) :=
   inferInstanceAs (Decidable (∃ _ _, _))
 
+/-- **The species carrying a structural Shinar–Feinberg ACR witness.** The finite set of species
+`s` for which `HasShinarFeinbergPair s` holds, computed by filtering the species. This is the
+decidable structural fragment of ACR; the deficiency-one side condition is supplied externally. -/
+def acrSpecies (N : Network S) : Finset S :=
+  Finset.univ.filter (fun s => N.HasShinarFeinbergPair s)
+
+@[simp] theorem mem_acrSpecies (N : Network S) (s : S) :
+    s ∈ N.acrSpecies ↔ N.HasShinarFeinbergPair s := by
+  simp [acrSpecies]
+
 /-- **Distinct linkage classes versus non-linkage.** Two complex indices have different linkage
 classes exactly when they are not linked. This is the human-facing bridge between the
 `classOf`-based formulation in `ShinarFeinbergHypotheses` and the `¬ N.Linked` formulation used

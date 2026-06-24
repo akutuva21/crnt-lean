@@ -1,6 +1,7 @@
 import CRNT.Interop.NetworkData
 import CRNT.Decision.ComputableDeficiency
 import CRNT.Decision.DirectedReachability
+import CRNT.Decision.ACRCheck
 import CRNT.LinearAlgebra.OrthogonalComplement
 
 /-!
@@ -16,7 +17,9 @@ Each numeric field has a bridge back to its propositional definition: `analyze_d
 (`δ`), `analyze_stoichRank_eq` (`s`), `analyze_numLinkageClasses_eq` (`ℓ`), and
 `analyze_conservationLawDim_eq` (the dimension of the conservation-law space, `orthSum` of the
 stoichiometric subspace). The `weaklyReversible` flag is `decide N.WeaklyReversible`, sound by the
-`Decidable` instance.
+`Decidable` instance. `acrSpecies` lists the species carrying the structural Shinar–Feinberg ACR
+witness (`analyze_acrSpecies_eq`), the decidable fragment; the deficiency-one side condition is
+supplied by the consumer.
 
 `version` tags the JSON contract; bump it whenever the field set changes.
 
@@ -30,7 +33,7 @@ open Lean (FromJson ToJson)
 open CRNT.GaussianRank
 
 /-- The version of the `Analysis` JSON contract. Bump on any field-set change. -/
-def analysisVersion : Nat := 2
+def analysisVersion : Nat := 3
 
 /-- The structural invariants of a network, as a JSON-serializable record. The numeric fields are
 the computable companions of the library theory; `deficiency` is `n − ℓ − s` assembled here. -/
@@ -56,6 +59,9 @@ structure Analysis where
   deficiency : Nat
   /-- Whether the network is weakly reversible. -/
   weaklyReversible : Bool
+  /-- The species indices carrying a structural Shinar–Feinberg ACR witness (decidable fragment;
+  the deficiency-one side condition is supplied by the consumer). -/
+  acrSpecies : Array Nat
   deriving FromJson, ToJson, Repr, DecidableEq
 
 namespace NetworkData
@@ -72,7 +78,9 @@ def analyze (d : NetworkData) : Analysis :=
     stoichRank := computeRank N.stoichMatrixQ
     conservationLawDim := d.numSpecies - computeRank N.stoichMatrixQ
     deficiency := N.computableDeficiency
-    weaklyReversible := decide N.WeaklyReversible }
+    weaklyReversible := decide N.WeaklyReversible
+    acrSpecies := (((List.finRange d.numSpecies).filter
+      (fun s => decide (N.HasShinarFeinbergPair s))).map Fin.val).toArray }
 
 /-- The reported deficiency is the network's deficiency. -/
 theorem analyze_deficiency_eq (d : NetworkData) :
@@ -103,6 +111,20 @@ theorem analyze_numLinkageClasses_eq (d : NetworkData) :
 theorem analyze_weaklyReversible_eq (d : NetworkData) :
     (d.analyze).weaklyReversible = true ↔ d.toNetwork.WeaklyReversible :=
   decide_eq_true_iff
+
+/-- A species index is reported in `acrSpecies` exactly when that species carries a structural
+Shinar–Feinberg ACR witness. -/
+theorem analyze_acrSpecies_eq (d : NetworkData) (s : Fin d.numSpecies) :
+    s.val ∈ (d.analyze).acrSpecies ↔ d.toNetwork.HasShinarFeinbergPair s := by
+  show s.val ∈ (((List.finRange d.numSpecies).filter
+      (fun t => decide (d.toNetwork.HasShinarFeinbergPair t))).map Fin.val).toArray ↔ _
+  simp only [List.mem_toArray, List.mem_map, List.mem_filter, List.mem_finRange,
+    true_and, decide_eq_true_eq]
+  constructor
+  · rintro ⟨a, ha, hav⟩
+    rwa [Fin.val_injective hav] at ha
+  · intro h
+    exact ⟨s, h, rfl⟩
 
 end NetworkData
 

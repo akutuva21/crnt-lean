@@ -60,6 +60,19 @@ example : interopRevData.analyze.conservationLawDim
     = Module.finrank ℝ (CRNT.orthSum interopRevData.toNetwork.stoichSubspace) :=
   NetworkData.analyze_conservationLawDim_eq _
 
+-- The reversible pair carries no structural ACR witness.
+example : interopRevData.analyze.acrSpecies = #[] := by decide
+
+-- A reported ACR species index is exactly one carrying a structural Shinar–Feinberg witness.
+example (d : NetworkData) (s : Fin d.numSpecies) :
+    s.val ∈ d.analyze.acrSpecies ↔ d.toNetwork.HasShinarFeinbergPair s :=
+  NetworkData.analyze_acrSpecies_eq d s
+
+-- `mem_acrSpecies` characterizes the structural ACR species set: species `A` of the toy network
+-- (`A → P`, `2A → Q`) carries a witness.
+example : Examples.ACRPair.Species.A ∈ Examples.ACRPair.N.acrSpecies :=
+  (Examples.ACRPair.N.mem_acrSpecies _).mpr (by decide)
+
 -- The `crnt_deficiency_zero` tactic certifies deficiency zero from an explicit minor witness:
 -- a 1×1 minor for the reversible pair, a 2×2 minor for the irreversible chain.
 example : Examples.ReversiblePair.N.DeficiencyZero := by
