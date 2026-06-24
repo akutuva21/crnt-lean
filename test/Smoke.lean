@@ -55,6 +55,10 @@ example : interopRevData.analyze.numComplexes = 2 := by decide
 example : interopRevData.analyze.weaklyReversible = true := by decide
 example : interopRevData.analyze.deficiency = interopRevData.toNetwork.deficiency :=
   NetworkData.analyze_deficiency_eq _
+-- The conservation-law dimension is bridged to the cokernel dimension (`numSpecies − s`).
+example : interopRevData.analyze.conservationLawDim
+    = Module.finrank ℝ (CRNT.orthSum interopRevData.toNetwork.stoichSubspace) :=
+  NetworkData.analyze_conservationLawDim_eq _
 
 -- The `crnt_deficiency_zero` tactic certifies deficiency zero from an explicit minor witness:
 -- a 1×1 minor for the reversible pair, a 2×2 minor for the irreversible chain.

@@ -12,8 +12,8 @@ symbol names.
 `analyze` uses **compiled evaluation** (compiler trust), so it sits outside the `CRNT` library's
 axiom-clean guarantee. Each reported field is a computable companion of the library theory, and the
 library carries a bridge relating it to the propositional definition: `analyze_deficiency_eq`,
-`analyze_stoichRank_eq`, `analyze_numLinkageClasses_eq`, and `analyze_weaklyReversible_eq`
-(`CRNT/Interop/Analysis.lean`). When a result needs an axiom-clean kernel certificate for a specific
+`analyze_stoichRank_eq`, `analyze_numLinkageClasses_eq`, `analyze_conservationLawDim_eq`, and
+`analyze_weaklyReversible_eq` (`CRNT/Interop/Analysis.lean`). When a result needs an axiom-clean kernel certificate for a specific
 network, use the codegen contract instead.
 
 ## Input: `NetworkData`
@@ -39,13 +39,14 @@ their analyses (the bulk path: one process invocation scores many networks).
 
 ```json
 {
-  "version": 1,
+  "version": 2,
   "numSpecies": 2,
   "numComplexes": 2,
   "numReactions": 2,
   "numLinkageClasses": 1,
   "numStrongLinkageClasses": 1,
   "stoichRank": 1,
+  "conservationLawDim": 1,
   "deficiency": 0,
   "weaklyReversible": true
 }
@@ -60,6 +61,7 @@ their analyses (the bulk path: one process invocation scores many networks).
 | `numLinkageClasses` | int | linkage classes `ℓ` | `computeNumLinkageClasses` |
 | `numStrongLinkageClasses` | int | strong linkage classes | `numStrongLinkageClasses` |
 | `stoichRank` | int | stoichiometric rank `s` | `computeRank stoichMatrixQ` |
+| `conservationLawDim` | int | conservation laws `numSpecies − s` (cokernel dim) | `finrank (orthSum stoichSubspace)` |
 | `deficiency` | int | `δ = n − ℓ − s` | `computableDeficiency` |
 | `weaklyReversible` | bool | weak reversibility | `decide WeaklyReversible` |
 
