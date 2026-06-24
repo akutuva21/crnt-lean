@@ -1089,6 +1089,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     (h : N.HasMultistationarityCapacity) : ∃ μ : S → ℝ, μ ≠ 0 ∧ N.SignCompatibleWithStoich μ :=
   N.exists_signCompatible_of_hasMultistationarityCapacity h
 
+-- Colinearity of reactions is transitive.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {r r' r'' : N.R}
+    (h₁ : N.ColinearReactions r r') (h₂ : N.ColinearReactions r' r'') : N.ColinearReactions r r'' :=
+  h₁.trans h₂
+
 -- Nagumo-based persistence: a genuine mass-action orbit with an inward dissipativity bound stays
 -- in the closed nonnegative orthant for all forward time.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants) {L : ℝ}
