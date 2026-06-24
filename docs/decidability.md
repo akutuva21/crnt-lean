@@ -198,21 +198,29 @@ with no hand-built path witnesses. The `CRNT/Examples/Decide*` networks (e.g.
 
 ## The `crnt_deficiency_zero` tactic
 
-`CRNT.Decision.DeficiencyZeroTactic` defines `crnt_deficiency_zero f, σ`, which proves
-`N.DeficiencyZero` from an explicit nonsingular-minor witness: `f : Fin k → N.R` selects `k`
-reactions and `σ : Fin k → S` selects `k` species of a stoichiometric minor with nonzero
-determinant. It applies `deficiencyZero_of_minor` and discharges the two obligations automatically —
-the determinant by `simp` with the closed-form determinant lemmas (`det_fin_one`/`two`/`three`, with
-a `det_succ_row_zero` cofactor fallback) under ground reduction, and the count `n ≤ k + ℓ` by
-rewriting `numLinkageClasses` to the evaluable `computeNumLinkageClasses` and then `decide`. Both
-stay on the kernel path, so the certificate is axiom-clean. On the reversible pair `A ⇌ B`:
+`CRNT.Decision.DeficiencyZeroTactic` defines `crnt_deficiency_zero`, which proves `N.DeficiencyZero`
+through `deficiencyZero_of_minor`: a `k × k` stoichiometric minor with nonzero determinant (witnessing
+`s ≥ k`) plus the count `n ≤ k + ℓ`. It comes in two forms.
+
+The **explicit** form `crnt_deficiency_zero f, σ` takes the witnessing selection — `f : Fin k → N.R`
+choosing `k` reactions, `σ : Fin k → S` choosing `k` species — and discharges both obligations: the
+determinant by `simp` with the closed-form determinant lemmas (`det_fin_one`/`two`/`three`, with a
+`det_succ_row_zero` cofactor fallback) under ground reduction, and the count by rewriting
+`numLinkageClasses` to the evaluable `computeNumLinkageClasses` and then `decide`.
+
+The **argument-free** form `crnt_deficiency_zero` finds the witness itself: it meta-evaluates
+`k = n − ℓ`, runs the compiled search `findMinorWitness` (`CRNT.Decision.MinorSearch`) to locate a
+nonsingular minor — the determinant's permutation sum runs under compiled evaluation, which the
+kernel `decide` cannot reduce — then builds the selection and discharges as above. Both stay on the
+kernel path, so the certificate is axiom-clean. On the reversible pair `A ⇌ B`:
 
 ```lean
-example : N.DeficiencyZero := by crnt_deficiency_zero ![Rxn.fwd], ![Species.A]
+example : N.DeficiencyZero := by crnt_deficiency_zero                    -- auto-search
+example : N.DeficiencyZero := by crnt_deficiency_zero ![Rxn.fwd], ![Species.A]  -- explicit
 ```
 
-The unhidden linear algebra — *which* minor is nonsingular — is supplied by the caller (an external
-tool that already holds the stoichiometric matrix finds the indices); the tactic supplies the proof.
+`crnt_stoich_rank_ge f, σ` reuses the same determinant discharge to prove `k ≤ N.stoichRank` from a
+nonsingular-minor witness (`stoichRank_ge_of_det_ne_zero`).
 
 ## Walk certificates
 
@@ -263,7 +271,9 @@ primitive those generated certificates target.
 - `CRNT/Decision/Tactic.lean`: the `crnt_check` tactic.
 - `CRNT/Decision/ComputableDeficiency.lean`: the computable linkage count and deficiency assembly
   (`computeNumLinkageClasses`, `computableDeficiency`) with their bridges.
-- `CRNT/Decision/DeficiencyZeroTactic.lean`: the `crnt_deficiency_zero` minor-witness tactic.
+- `CRNT/Decision/MinorSearch.lean`: the compiled nonsingular-minor search (`findMinorWitness`).
+- `CRNT/Decision/DeficiencyZeroTactic.lean`: the `crnt_deficiency_zero` tactic (explicit and
+  argument-free auto-search forms) and the `crnt_stoich_rank_ge` minor-rank tactic.
 - `CRNT/Interop/Certificates.lean`: the walk-certificate checker for reachability.
 - `CRNT/Examples/CrntCheck.lean`, `CRNT/Examples/ReversiblePair.lean`, and the
   `CRNT/Examples/Decide*` family: worked uses of `decide` / `crnt_check` and the decision
