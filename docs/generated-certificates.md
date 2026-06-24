@@ -74,3 +74,12 @@ and emits the Lean file above. A minimal JSON network:
 
 Each `species` entry becomes a `Species` constructor, each `complexes` entry a complex
 `def`, and each `reactions` entry a `Rxn` constructor and a `reaction` arm.
+
+## Throughput path: the `analyze` contract
+
+Codegen is the *provenance* path: Lean kernel-checks each emitted network. For bulk scoring where a
+stable JSON contract matters more than a per-network kernel certificate, the `analyze` executable
+reads a `NetworkData` (or array) and returns its structural invariants as JSON at native speed, with
+no per-network elaboration. It uses compiled evaluation (a labeled trust boundary), with library
+bridges relating each field to its propositional definition. See
+[`analyze-contract.md`](analyze-contract.md).
