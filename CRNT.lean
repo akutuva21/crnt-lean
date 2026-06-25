@@ -300,6 +300,7 @@ import CRNT.Stochastic.KernelMaximalRegion
 
 -- Network composition
 import CRNT.Compose.Interconnect
+import CRNT.Compose.InterconnectKinetics
 
 -- Deficiency-one decidable structural conditions
 import CRNT.Deficiency.DeficiencyOneDecide

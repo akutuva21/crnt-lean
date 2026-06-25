@@ -1244,6 +1244,12 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {r r' : N.Nonzero
 example {S : Type} {v w : S → ℝ} (hw : w ≠ 0) {a : ℝ} (ha : w = a • v) : 0 < a ∨ a < 0 :=
   ColinearVec.orientation_dichotomy hw ha
 
+-- An interconnection's vector field is the sum of the component vector fields.
+example {S : Type} [DecidableEq S] [Fintype S] {N₁ N₂ : Network S}
+    (K₁ : Network.Kinetics N₁) (K₂ : Network.Kinetics N₂) :
+    (K₁.sum K₂).vectorField = fun x => K₁.vectorField x + K₂.vectorField x :=
+  K₁.sum_vectorField K₂
+
 -- The Advanced Deficiency Algorithm verdict is non-vacuous: it yields a nonzero stoichiometric vector.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     (h : N.ADAAffirmsCapacity) : N.stoichSubspace ≠ ⊥ :=
