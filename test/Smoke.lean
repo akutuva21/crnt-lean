@@ -1663,6 +1663,14 @@ noncomputable example {n N : ℕ} (c : CRNT.Analysis.SpernerN.Cell n N) (m : Fin
     (hv : CRNT.Analysis.SpernerN.FlipValid c m hm0 hmn) :
     (CRNT.Analysis.SpernerN.facetSharers c m).card = 2 :=
   CRNT.Analysis.SpernerN.facet_shared_by_two c m hm0 hmn hv
+-- n-D Sperner geometric crux (G1): an interior-chain door facet is always flip valid, so it borders a
+-- second cell (the door's color structure forbids it from lying on an interior coordinate face).
+example {n N : ℕ} (col : CRNT.Analysis.SpernerN.SpernerColoring (n + 1) N)
+    (c : CRNT.Analysis.SpernerN.Cell (n + 1) N) (m : Fin (n + 2))
+    (h0 : 0 < (m : ℕ)) (hn : (m : ℕ) < n + 1)
+    (hdoor : CRNT.Analysis.SpernerN.IsDoorFacet col c m) :
+    CRNT.Analysis.SpernerN.FlipValid c m h0 hn :=
+  CRNT.Analysis.SpernerN.flipValid_of_doorFacet col c m h0 hn hdoor
 -- An odd number of rainbow cells yields one (the final step of the n-D Sperner induction).
 example {n N : ℕ} (col : CRNT.Analysis.SpernerN.SpernerColoring n N)
     (h : Odd (Finset.univ.filter (CRNT.Analysis.SpernerN.IsRainbowCell col)).card) :
