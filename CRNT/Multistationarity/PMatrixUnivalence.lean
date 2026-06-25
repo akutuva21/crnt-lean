@@ -144,4 +144,65 @@ theorem IsPMatrix.eq_zero_of_mulVec_nonpos {n : ℕ} {A : Matrix (Fin n) (Fin n)
       linarith [hθnn]
     rw [hxθb, hθ0, zero_smul]
 
+/-- **Gale–Nikaido Corollary 1.** For a P-matrix there is a uniform `λ > 0` such that every
+nonnegative vector `v` has a component of `A *ᵥ v` at least `λ‖v‖`. By Theorem 1, on the compact set
+of nonnegative unit vectors the maximal component of `A *ᵥ ·` is everywhere positive, so it attains a
+positive minimum `λ`; scaling recovers the bound for all `v ≥ 0`. -/
+theorem IsPMatrix.exists_pos_le_mulVec {n : ℕ} {A : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ}
+    (hA : A.IsPMatrix) :
+    ∃ lam : ℝ, 0 < lam ∧ ∀ v : Fin (n + 1) → ℝ, 0 ≤ v → ∃ i, lam * ‖v‖ ≤ (A *ᵥ v) i := by
+  classical
+  set g : (Fin (n + 1) → ℝ) → ℝ :=
+    fun v => Finset.univ.sup' Finset.univ_nonempty (fun i => (A *ᵥ v) i) with hgdef
+  have hgcont : Continuous g := by
+    rw [continuous_iff_continuousAt]
+    intro v
+    refine ContinuousAt.finset_sup'_apply Finset.univ_nonempty (fun i _ => ?_)
+    exact ((continuous_apply i).comp A.mulVecLin.continuous_of_finiteDimensional).continuousAt
+  set K : Set (Fin (n + 1) → ℝ) := Metric.sphere 0 1 ∩ {v | 0 ≤ v} with hKdef
+  have hKcompact : IsCompact K :=
+    (isCompact_sphere 0 1).inter_right (isClosed_le continuous_const continuous_id)
+  have hKne : K.Nonempty := by
+    refine ⟨Pi.single 0 1, ?_, ?_⟩
+    · rw [Metric.mem_sphere, dist_zero_right, Pi.norm_single, norm_one]
+    · intro i
+      rw [Pi.zero_apply, Pi.single_apply]
+      split <;> norm_num
+  obtain ⟨v₀, hv₀K, hv₀min⟩ := hKcompact.exists_isMinOn hKne hgcont.continuousOn
+  set lam : ℝ := g v₀ with hlamdef
+  have hv₀ne : v₀ ≠ 0 := by
+    intro h; rw [h] at hv₀K; simp [hKdef] at hv₀K
+  have hv₀nn : 0 ≤ v₀ := hv₀K.2
+  have hlampos : 0 < lam := by
+    have hnotle : ¬ A *ᵥ v₀ ≤ 0 := fun hle => hv₀ne (hA.eq_zero_of_mulVec_nonpos hv₀nn hle)
+    rw [Pi.le_def] at hnotle
+    simp only [not_forall, not_le] at hnotle
+    obtain ⟨i, hi⟩ := hnotle
+    rw [Pi.zero_apply] at hi
+    exact lt_of_lt_of_le hi (Finset.le_sup' (fun i => (A *ᵥ v₀) i) (Finset.mem_univ i))
+  -- the unit-vector bound: every w ∈ K has a component ≥ lam
+  have hunit : ∀ w ∈ K, ∃ i, lam ≤ (A *ᵥ w) i := by
+    intro w hwK
+    obtain ⟨i, _, hi⟩ := Finset.exists_mem_eq_sup' Finset.univ_nonempty (fun i => (A *ᵥ w) i)
+    exact ⟨i, by rw [hlamdef]; rw [← hi]; exact hv₀min hwK⟩
+  refine ⟨lam, hlampos, fun v hv => ?_⟩
+  rcases eq_or_ne v 0 with rfl | hvne
+  · exact ⟨0, by simp⟩
+  · have hvpos : 0 < ‖v‖ := norm_pos_iff.mpr hvne
+    set w : Fin (n + 1) → ℝ := ‖v‖⁻¹ • v with hwdef
+    have hwnn : 0 ≤ w := by
+      intro i; rw [Pi.zero_apply, hwdef, Pi.smul_apply, smul_eq_mul]
+      exact mul_nonneg (le_of_lt (inv_pos.mpr hvpos)) (hv i)
+    have hwK : w ∈ K := by
+      refine ⟨?_, hwnn⟩
+      rw [Metric.mem_sphere, dist_zero_right, hwdef, norm_smul, norm_inv, Real.norm_eq_abs,
+        abs_of_pos hvpos, inv_mul_cancel₀ (ne_of_gt hvpos)]
+    obtain ⟨i, hi⟩ := hunit w hwK
+    refine ⟨i, ?_⟩
+    have hAw : (A *ᵥ w) i = ‖v‖⁻¹ * (A *ᵥ v) i := by
+      rw [hwdef, Matrix.mulVec_smul, Pi.smul_apply, smul_eq_mul]
+    rw [hAw] at hi
+    have := mul_le_mul_of_nonneg_left hi (le_of_lt hvpos)
+    rwa [← mul_assoc, mul_inv_cancel₀ (ne_of_gt hvpos), one_mul, mul_comm] at this
+
 end Matrix
