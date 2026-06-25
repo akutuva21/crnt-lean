@@ -2064,3 +2064,9 @@ example {f : (Fin 1 → ℝ) → (Fin 1 → ℝ)} {f' : (Fin 1 → ℝ) → ((Fi
     (hP : ∀ x ∈ Set.Icc a b, (CRNT.jacobianMatrix (f' x)).IsPMatrix) :
     Set.InjOn f (Set.Icc a b) :=
   CRNT.injOn_of_pmatrix_fderiv_dim_one hf hP
+-- Gale–Nikaido rung 3: a P-matrix stays a P-matrix under ±1 diagonal (signature) conjugation —
+-- the coordinatewise sign-flip reduction.
+example {n : ℕ} {M : Matrix (Fin n) (Fin n) ℝ} (h : M.IsPMatrix)
+    {ε : Fin n → ℝ} (hε : ∀ i, ε i = 1 ∨ ε i = -1) :
+    (Matrix.of (fun i j => ε i * M i j * ε j)).IsPMatrix :=
+  h.signatureConj hε
