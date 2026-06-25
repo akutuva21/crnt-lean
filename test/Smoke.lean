@@ -1680,6 +1680,25 @@ example {n N : ℕ} (col : CRNT.Analysis.SpernerN.SpernerColoring (n + 1) N) (hN
       = (Finset.univ.filter
           (CRNT.Analysis.SpernerN.IsRainbowCell (CRNT.Analysis.SpernerN.restrictColoring col))).card :=
   CRNT.Analysis.SpernerN.boundary_doors_eq_rainbow col hN
+-- n-D Sperner handshake: the door incidences have the same parity as the rainbow cells (the cell side
+-- of the double-count).
+example {n N : ℕ} (col : CRNT.Analysis.SpernerN.SpernerColoring n N) :
+    (CRNT.Analysis.SpernerN.doorIncidences col).card % 2
+      = (#{c : CRNT.Analysis.SpernerN.Cell n N | CRNT.Analysis.SpernerN.IsRainbowCell col c}) % 2 :=
+  CRNT.Analysis.SpernerN.card_doorIncidences_mod_two col
+-- n-D Sperner last-facet rigidity: a cell sharing the last-vertex facet is the cell or its
+-- base-change predecessor.
+example {n N : ℕ} (c c' : CRNT.Analysis.SpernerN.Cell (n + 1) N) (m' : Fin (n + 2))
+    (heq : CRNT.Analysis.SpernerN.facetVerts c (Fin.last (n + 1))
+      = CRNT.Analysis.SpernerN.facetVerts c' m') :
+    c' = c ∨ (m' = 0 ∧ ∃ h : CRNT.Analysis.SpernerN.ShiftValid c',
+      CRNT.Analysis.SpernerN.shiftCell c' h = c) :=
+  CRNT.Analysis.SpernerN.facetLast_eq_imp c c' m' heq
+-- n-D Sperner: granting the handshake at every dimension, a rainbow cell exists in every dimension.
+example (H : ∀ {N : ℕ}, CRNT.Analysis.SpernerN.SpernerHandshake (N := N)) {m N : ℕ}
+    (col : CRNT.Analysis.SpernerN.SpernerColoring m N) (hN : 0 < N) :
+    ∃ c : CRNT.Analysis.SpernerN.Cell m N, CRNT.Analysis.SpernerN.IsRainbowCell col c :=
+  CRNT.Analysis.SpernerN.sperner_exists_rainbow_of_handshake H col hN
 
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
