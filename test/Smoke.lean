@@ -1614,6 +1614,11 @@ example {n N : ℕ} (c c' : CRNT.Analysis.SpernerN.Cell n N) (m : Fin (n + 1))
     (heq : CRNT.Analysis.SpernerN.facetVerts c m = CRNT.Analysis.SpernerN.facetVerts c' m) :
     c' = c ∨ ∃ hv, c' = CRNT.Analysis.SpernerN.flipCell c m hm0 hmn hv :=
   CRNT.Analysis.SpernerN.facet_eq_imp c c' m hm0 hmn heq
+-- n-D Sperner boundary reduction: dropping the last coordinate is a bijection from the boundary
+-- face {x_last = 0} of the (n+1)-simplex to the n-dimensional lattice.
+example {n N : ℕ} (q : CRNT.Analysis.SpernerN.Pt n N) (i : Fin (n + 1)) :
+    ((CRNT.Analysis.SpernerN.boundaryEquiv n N).symm q).1.1 i.castSucc = q.1 i :=
+  CRNT.Analysis.SpernerN.boundaryEquiv_symm_apply_castSucc q i
 
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
