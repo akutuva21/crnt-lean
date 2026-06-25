@@ -303,6 +303,7 @@ import CRNT.Compose.Interconnect
 import CRNT.Compose.InterconnectKinetics
 import CRNT.Compose.InterconnectSiphon
 import CRNT.Compose.InterconnectMonostationary
+import CRNT.Compose.StoichIndependent
 
 -- Deficiency-one decidable structural conditions
 import CRNT.Deficiency.DeficiencyOneDecide

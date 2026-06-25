@@ -1265,6 +1265,14 @@ example {S : Type} [DecidableEq S] [Fintype S] {N₁ N₂ : Network S}
     (hsy : (N₁.interconnect N₂).IsKineticSteadyState (K₁.sum K₂) y) : x = y :=
   h.sum_subsingleton_steadyState hx hy hsx hsy
 
+-- Stoichiometrically independent components: injectivity of one lifts to the interconnection.
+example {S : Type} [DecidableEq S] [Fintype S] {N₁ N₂ : Network S}
+    {K₁ : Network.Kinetics N₁} {K₂ : Network.Kinetics N₂} {x₀ : Concentration S}
+    (hind : N₁.StoichIndependent N₂)
+    (h₁ : Set.InjOn K₁.vectorField ((N₁.interconnect N₂).positiveCompatibilityClass x₀)) :
+    (K₁.sum K₂).InjectiveOnClass x₀ :=
+  Network.Kinetics.InjectiveOnClass.interconnect_of_stoichIndependent_left hind h₁
+
 -- The Advanced Deficiency Algorithm verdict is non-vacuous: it yields a nonzero stoichiometric vector.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     (h : N.ADAAffirmsCapacity) : N.stoichSubspace ≠ ⊥ :=
