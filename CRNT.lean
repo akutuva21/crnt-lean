@@ -98,6 +98,8 @@ import CRNT.Analysis.SpernerNBoundary
 import CRNT.Analysis.SpernerNDoor
 import CRNT.Analysis.SpernerNBoundaryCell
 import CRNT.Analysis.SpernerNBoundaryCorr
+import CRNT.Analysis.SpernerNFintype
+import CRNT.Analysis.SpernerNSperner
 import CRNT.Analysis.SpernerGrid
 
 -- Kinetics: concentrations, mass action, and the general kinetics abstraction

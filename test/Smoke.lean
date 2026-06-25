@@ -1649,6 +1649,18 @@ example {n N : ℕ} (c : CRNT.Analysis.SpernerN.Cell (n + 1) N) (hb : c.base (Fi
           (fun k => (CRNT.Analysis.SpernerN.restrictColoring col).color
             ((CRNT.Analysis.SpernerN.bcell c hb hp0).vertex k)) :=
   CRNT.Analysis.SpernerN.door_iff_rainbow c hb hp0 col
+-- n-D Kuhn cells form a finite type (the counting infrastructure for the handshaking induction).
+example {n N : ℕ} : Fintype (CRNT.Analysis.SpernerN.Cell n N) := inferInstance
+-- An odd number of rainbow cells yields one (the final step of the n-D Sperner induction).
+example {n N : ℕ} (col : CRNT.Analysis.SpernerN.SpernerColoring n N)
+    (h : Odd (Finset.univ.filter (CRNT.Analysis.SpernerN.IsRainbowCell col)).card) :
+    ∃ c, CRNT.Analysis.SpernerN.IsRainbowCell col c :=
+  CRNT.Analysis.SpernerN.exists_rainbow_of_odd col h
+-- n-D Sperner base case (dimension 0): the single cell is rainbow.
+example {N : ℕ} (col : CRNT.Analysis.SpernerN.SpernerColoring 0 N) :
+    ∃ c : CRNT.Analysis.SpernerN.Cell 0 N,
+      Function.Bijective (fun k => col.color (c.vertex k)) :=
+  CRNT.Analysis.SpernerN.sperner_exists_rainbow_zero col
 
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
