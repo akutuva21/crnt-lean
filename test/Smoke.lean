@@ -1640,6 +1640,15 @@ example {n N : ℕ} (c : CRNT.Analysis.SpernerN.Cell (n + 1) N) (k : Fin (n + 2)
       ↔ (c.base (Fin.last (n + 1)) = 1
           ∧ ((c.perm⁻¹ (Fin.last n) : Fin (n + 1)) : ℕ) < (k : ℕ)) :=
   CRNT.Analysis.SpernerN.vertex_last_zero_iff c k
+-- The recursion crux: a boundary door facet of an (n+1)-cell ⟺ its (n-1)-cell is rainbow under the
+-- restricted coloring — the bridge that makes #boundary doors = #rainbow (n-1)-cells.
+example {n N : ℕ} (c : CRNT.Analysis.SpernerN.Cell (n + 1) N) (hb : c.base (Fin.last (n + 1)) = 1)
+    (hp0 : c.perm 0 = Fin.last n) (col : CRNT.Analysis.SpernerN.SpernerColoring (n + 1) N) :
+    (CRNT.Analysis.SpernerN.facetVerts c 0).image col.color = CRNT.Analysis.SpernerN.lowColors (n + 1)
+      ↔ Function.Bijective
+          (fun k => (CRNT.Analysis.SpernerN.restrictColoring col).color
+            ((CRNT.Analysis.SpernerN.bcell c hb hp0).vertex k)) :=
+  CRNT.Analysis.SpernerN.door_iff_rainbow c hb hp0 col
 
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
