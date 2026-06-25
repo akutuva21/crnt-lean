@@ -2049,3 +2049,18 @@ example {n : ℕ} (M : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ)
     (hd : M (Fin.last n) (Fin.last n) ≠ 0) :
     M.det = M (Fin.last n) (Fin.last n) * (Matrix.schurLast M).det :=
   Matrix.det_schurLast M hd
+
+-- Gale–Nikaido rung 1: a map with everywhere-strict derivative whose Jacobian is a P-matrix at every
+-- point is a local homeomorphism (local injectivity).
+example {n : ℕ} {f : (Fin n → ℝ) → (Fin n → ℝ)}
+    {f' : (Fin n → ℝ) → ((Fin n → ℝ) →L[ℝ] (Fin n → ℝ))}
+    (hf : ∀ x, HasStrictFDerivAt f (f' x) x)
+    (hP : ∀ x, (CRNT.jacobianMatrix (f' x)).IsPMatrix) : IsLocalHomeomorph f :=
+  CRNT.isLocalHomeomorph_of_pmatrix_fderiv hf hP
+-- Gale–Nikaido rung 2: the one-dimensional base case — a P-matrix Jacobian on a 1-D box gives
+-- injectivity.
+example {f : (Fin 1 → ℝ) → (Fin 1 → ℝ)} {f' : (Fin 1 → ℝ) → ((Fin 1 → ℝ) →L[ℝ] (Fin 1 → ℝ))}
+    {a b : Fin 1 → ℝ} (hf : ∀ x ∈ Set.Icc a b, HasFDerivAt f (f' x) x)
+    (hP : ∀ x ∈ Set.Icc a b, (CRNT.jacobianMatrix (f' x)).IsPMatrix) :
+    Set.InjOn f (Set.Icc a b) :=
+  CRNT.injOn_of_pmatrix_fderiv_dim_one hf hP
