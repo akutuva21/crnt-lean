@@ -2128,3 +2128,12 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {u : N.SRVertex S
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {x₀ x : Concentration S}
     (h : N.StoichCompatible x₀ x) : N.affineChart x₀ (N.chartCoord x₀ x) = x :=
   N.affineChart_chartCoord h
+
+-- A P-matrix reduced Jacobian on a class ⇒ mass-action injectivity on that class, binding the
+-- box Gale–Nikaido theorem to CRN compatibility classes via coordinate reduction.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (x₀ : Concentration S) {lo hi : Fin N.stoichRank → ℝ}
+    (hbox : ∀ x ∈ N.positiveCompatibilityClass x₀, N.chartCoord x₀ x ∈ Set.Icc lo hi)
+    (hpm : ∀ y ∈ Set.Icc lo hi, (N.reducedJacobian κ x₀ y).IsPMatrix) :
+    (N.massActionKinetics κ).InjectiveOnClass x₀ :=
+  N.massActionInjectiveOnClass_of_jacobian_pmatrix κ x₀ hbox hpm

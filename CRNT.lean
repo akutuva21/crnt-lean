@@ -235,6 +235,7 @@ import CRNT.Multistationarity.GaleNikaidoBox
 import CRNT.Multistationarity.PMatrixUnivalence
 import CRNT.Multistationarity.GaleNikaidoUniv
 import CRNT.Multistationarity.StoichChart
+import CRNT.Multistationarity.ReducedJacobian
 import CRNT.Multistationarity.Toric
 
 -- Design: robustness and special equilibria
