@@ -99,6 +99,7 @@ import CRNT.Analysis.SpernerNDoor
 import CRNT.Analysis.SpernerNBoundaryCell
 import CRNT.Analysis.SpernerNBoundaryCorr
 import CRNT.Analysis.SpernerNFintype
+import CRNT.Analysis.SpernerNFacetCount
 import CRNT.Analysis.SpernerNSperner
 import CRNT.Analysis.SpernerGrid
 

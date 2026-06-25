@@ -1651,6 +1651,12 @@ example {n N : ℕ} (c : CRNT.Analysis.SpernerN.Cell (n + 1) N) (hb : c.base (Fi
   CRNT.Analysis.SpernerN.door_iff_rainbow c hb hp0 col
 -- n-D Kuhn cells form a finite type (the counting infrastructure for the handshaking induction).
 noncomputable example {n N : ℕ} : Fintype (CRNT.Analysis.SpernerN.Cell n N) := inferInstance
+-- An interior (flip-valid) facet borders exactly two Kuhn cells (the handshaking multiplicity).
+noncomputable example {n N : ℕ} (c : CRNT.Analysis.SpernerN.Cell n N) (m : Fin (n + 1))
+    (hm0 : 0 < (m : ℕ)) (hmn : (m : ℕ) < n)
+    (hv : CRNT.Analysis.SpernerN.FlipValid c m hm0 hmn) :
+    (CRNT.Analysis.SpernerN.facetSharers c m).card = 2 :=
+  CRNT.Analysis.SpernerN.facet_shared_by_two c m hm0 hmn hv
 -- An odd number of rainbow cells yields one (the final step of the n-D Sperner induction).
 example {n N : ℕ} (col : CRNT.Analysis.SpernerN.SpernerColoring n N)
     (h : Odd (Finset.univ.filter (CRNT.Analysis.SpernerN.IsRainbowCell col)).card) :
