@@ -42,6 +42,7 @@ import CRNT.Stoich.Subspace
 -- Linear-algebra building blocks (Perron–Frobenius positivity; dot-product orthogonality;
 -- finrank subadditivity over finite suprema; sign vectors of subspaces)
 import CRNT.LinearAlgebra.PerronFrobenius
+import CRNT.LinearAlgebra.DetCycleCover
 import CRNT.LinearAlgebra.OrthogonalComplement
 import CRNT.LinearAlgebra.FinrankSup
 import CRNT.LinearAlgebra.SignVector

@@ -2112,3 +2112,9 @@ example {n : ℕ} {F : (Fin n → ℝ) → (Fin n → ℝ)}
     (hP : ∀ z ∈ Set.Icc lo hi, (CRNT.jacobianMatrix (F' z)).IsPMatrix) :
     Set.InjOn F (Set.Icc lo hi) :=
   CRNT.injOn_of_pmatrix_fderiv hF hP
+
+-- The determinant expands as a sum over permutations with the sign read off the cycle type.
+example {n : Type} [DecidableEq n] [Fintype n] {R : Type} [CommRing R] (M : Matrix n n R) :
+    M.det = ∑ σ : Equiv.Perm n,
+      ((σ.cycleType.map fun k => -(-1 : ℤˣ) ^ k).prod) • ∏ i, M (σ i) i :=
+  CRNT.det_eq_sum_over_perm_cycleType M
