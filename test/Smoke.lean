@@ -1594,6 +1594,17 @@ example {n N : ℕ} (c : CRNT.Analysis.SpernerN.Cell n N) (m : Fin (n + 1))
   ⟨CRNT.Analysis.SpernerN.flipCell_facet c m hm0 hmn hv,
     CRNT.Analysis.SpernerN.flipCell_ne c m hm0 hmn hv⟩
 
+-- A Kuhn cell is determined by its vertex function.
+example {n N : ℕ} {c c' : CRNT.Analysis.SpernerN.Cell n N}
+    (h : ∀ k, c.vertex k = c'.vertex k) : c = c' :=
+  CRNT.Analysis.SpernerN.Cell.ext_of_vertex_eq h
+-- Facet-incidence index rigidity: a shared interior-chain facet forces the dropped index and base sum.
+example {n N : ℕ} (c c' : CRNT.Analysis.SpernerN.Cell n N) (m m' : Fin (n + 1))
+    (hm0 : 0 < (m : ℕ)) (hmn : (m : ℕ) < n)
+    (heq : CRNT.Analysis.SpernerN.facetVerts c m = CRNT.Analysis.SpernerN.facetVerts c' m') :
+    m' = m ∧ CRNT.Analysis.SpernerN.Wb c = CRNT.Analysis.SpernerN.Wb c' :=
+  CRNT.Analysis.SpernerN.facet_eq_index c c' m m' hm0 hmn heq
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
