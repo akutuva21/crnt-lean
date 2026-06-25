@@ -185,6 +185,7 @@ import CRNT.Deficiency.Shelf
 import CRNT.Deficiency.DeficiencyOneAlgorithm
 import CRNT.Deficiency.DOAForward
 import CRNT.Deficiency.Colinearity
+import CRNT.Deficiency.ColinearityClasses
 import CRNT.Deficiency.AdvancedDeficiencyAlgorithm
 import CRNT.Deficiency.PerClassKernel
 import CRNT.Deficiency.KernelDimensionBound

@@ -1235,6 +1235,15 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {r r' r'' : N.R}
     (h₁ : N.ColinearReactions r r') (h₂ : N.ColinearReactions r' r'') : N.ColinearReactions r r'' :=
   h₁.trans h₂
 
+-- Colinearity classes form a genuine quotient: same class iff reaction vectors collinear.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {r r' : N.NonzeroReaction} :
+    N.colinearityClass r = N.colinearityClass r' ↔ N.ColinearReactions r.val r'.val :=
+  N.colinearityClass_eq
+
+-- Orientation dichotomy: the scalar relating two collinear nonzero vectors is signed.
+example {S : Type} {v w : S → ℝ} (hw : w ≠ 0) {a : ℝ} (ha : w = a • v) : 0 < a ∨ a < 0 :=
+  ColinearVec.orientation_dichotomy hw ha
+
 -- The Advanced Deficiency Algorithm verdict is non-vacuous: it yields a nonzero stoichiometric vector.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     (h : N.ADAAffirmsCapacity) : N.stoichSubspace ≠ ⊥ :=
