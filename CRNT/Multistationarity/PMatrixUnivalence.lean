@@ -1,6 +1,7 @@
 import CRNT.Multistationarity.PMatrix
 import CRNT.Multistationarity.PMatrixSchur
 import CRNT.Multistationarity.PMatrixSignature
+import Mathlib.Analysis.LocallyConvex.Separation
 
 /-!
 # Gale–Nikaido global univalence for P-matrix maps
@@ -204,5 +205,110 @@ theorem IsPMatrix.exists_pos_le_mulVec {n : ℕ} {A : Matrix (Fin (n + 1)) (Fin 
     rw [hAw] at hi
     have := mul_le_mul_of_nonneg_left hi (le_of_lt hvpos)
     rwa [← mul_assoc, mul_inv_cancel₀ (ne_of_gt hvpos), one_mul, mul_comm] at this
+
+/-- **Gale–Nikaido Corollary 2.** For a P-matrix `A` there is a nonnegative `w` with every component
+of `A *ᵥ w` strictly positive. This is Stiemke's theorem of the alternative: were the image of the
+nonnegative orthant under `A` disjoint from the open positive orthant, a separating hyperplane would
+supply `p ≥ 0`, `p ≠ 0` with `Aᵀ *ᵥ p ≤ 0`, contradicting Theorem 1 applied to the P-matrix `Aᵀ`. -/
+theorem IsPMatrix.exists_nonneg_mulVec_pos {n : ℕ} {A : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ}
+    (hA : A.IsPMatrix) :
+    ∃ w : Fin (n + 1) → ℝ, 0 ≤ w ∧ ∀ i, 0 < (A *ᵥ w) i := by
+  classical
+  by_contra hcon
+  simp only [not_exists, not_and, not_forall, not_lt] at hcon
+  set C : Set (Fin (n + 1) → ℝ) := (fun w => A *ᵥ w) '' {w | 0 ≤ w} with hCdef
+  set P : Set (Fin (n + 1) → ℝ) := {q | ∀ i, 0 < q i} with hPdef
+  have hCconv : Convex ℝ C := by
+    rw [hCdef]
+    exact (convex_Ici 0).is_linear_image ⟨fun _ _ => Matrix.mulVec_add A _ _,
+      fun c v => Matrix.mulVec_smul A c v⟩
+  have hPconv : Convex ℝ P := by
+    intro a ha b hb s t hs ht hst i
+    simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul]
+    rcases eq_or_lt_of_le hs with hs0 | hs0
+    · have ht1 : t = 1 := by rw [← hs0] at hst; linarith
+      rw [← hs0, ht1]; simp only [zero_mul, one_mul, zero_add]; exact hb i
+    · exact add_pos_of_pos_of_nonneg (mul_pos hs0 (ha i)) (mul_nonneg ht (hb i).le)
+  have hPopen : IsOpen P := by
+    rw [hPdef, show {q : Fin (n+1) → ℝ | ∀ i, 0 < q i} = ⋂ i, (fun q => q i) ⁻¹' Set.Ioi 0 by
+      ext q; simp]
+    exact isOpen_iInter_of_finite fun i => (isOpen_Ioi).preimage (continuous_apply i)
+  have hdisj : Disjoint P C := by
+    rw [Set.disjoint_left]
+    rintro q hqP ⟨w, hw, rfl⟩
+    obtain ⟨i, hi⟩ := hcon w hw
+    exact absurd (hqP i) (not_lt.mpr hi)
+  obtain ⟨f, u, hfP, hfC⟩ := geometric_hahn_banach_open hPconv hPopen hCconv hdisj
+  have h0C : (0 : Fin (n + 1) → ℝ) ∈ C := by
+    refine ⟨0, ?_, ?_⟩
+    · simp
+    · simp
+  have hu0 : u ≤ 0 := by have := hfC 0 h0C; rwa [map_zero] at this
+  -- C-side scaling: f (A *ᵥ single j 1) ≥ 0
+  have hfAj : ∀ j, 0 ≤ f (A *ᵥ Pi.single j 1) := by
+    intro j
+    by_contra hlt
+    rw [not_le] at hlt
+    set c := f (A *ᵥ Pi.single j 1) with hc
+    set t := u / c + 1 with ht
+    have htnn : 0 ≤ t := by
+      rw [ht]; have : 0 ≤ u / c := div_nonneg_of_nonpos hu0 (le_of_lt hlt)
+      linarith
+    have hwnn : (0 : Fin (n+1) → ℝ) ≤ t • Pi.single j 1 := by
+      intro i; rw [Pi.zero_apply, Pi.smul_apply, smul_eq_mul]
+      exact mul_nonneg htnn (by rw [Pi.single_apply]; split <;> norm_num)
+    have hmem : (A *ᵥ (t • Pi.single j 1)) ∈ C := ⟨t • Pi.single j 1, hwnn, rfl⟩
+    have hle := hfC _ hmem
+    rw [Matrix.mulVec_smul, map_smul, smul_eq_mul, ← hc] at hle
+    have htc : t * c < u := by
+      rw [ht, add_mul, one_mul, div_mul_cancel₀ u (ne_of_lt hlt)]; linarith
+    linarith
+  -- P-side scaling: f (single i 1) ≤ 0
+  have hfei : ∀ i, f (Pi.single i 1) ≤ 0 := by
+    intro i
+    by_contra hgt
+    rw [not_le] at hgt
+    set d := f (Pi.single i 1) with hd
+    set t := (u - f 1) / d with ht
+    have hf1 : f 1 < u := hfP 1 (fun _ => one_pos)
+    have htpos : 0 < t := div_pos (by linarith) hgt
+    have hqmem : (1 + t • Pi.single i 1) ∈ P := by
+      intro k
+      have h1 : (0 : ℝ) ≤ (Pi.single i (1 : ℝ) : Fin (n + 1) → ℝ) k := by
+        rw [Pi.single_apply]; split <;> norm_num
+      simp only [Pi.add_apply, Pi.one_apply, Pi.smul_apply, smul_eq_mul]
+      have : 0 ≤ t * (Pi.single i (1 : ℝ) : Fin (n + 1) → ℝ) k :=
+        mul_nonneg (le_of_lt htpos) h1
+      linarith
+    have hlt := hfP _ hqmem
+    rw [map_add, map_smul, smul_eq_mul, ← hd, ht, div_mul_cancel₀ _ (ne_of_gt hgt)] at hlt
+    linarith
+  -- assemble p
+  set p : Fin (n + 1) → ℝ := fun i => - f (Pi.single i 1) with hpdef
+  have hpnn : 0 ≤ p := fun i => by rw [Pi.zero_apply, hpdef]; exact neg_nonneg.mpr (hfei i)
+  have hAtp : Aᵀ *ᵥ p ≤ 0 := by
+    intro j
+    rw [Pi.zero_apply]
+    have hcol : (A *ᵥ Pi.single j 1) = (fun i => A i j) := by
+      funext i; rw [Matrix.mulVec_single]; simp
+    have hrep : (fun i => A i j) = ∑ i, (A i j) • Pi.single i (1 : ℝ) := by
+      funext k; simp [Finset.sum_apply, Pi.single_apply, Finset.sum_ite_eq]
+    have hsum : f (A *ᵥ Pi.single j 1) = ∑ i, A i j * f (Pi.single i 1) := by
+      rw [hcol, hrep, map_sum]; simp only [map_smul, smul_eq_mul]
+    have hkey : (Aᵀ *ᵥ p) j = - f (A *ᵥ Pi.single j 1) := by
+      simp only [Matrix.mulVec, dotProduct, Matrix.transpose_apply, hpdef]
+      rw [hsum, ← Finset.sum_neg_distrib]
+      exact Finset.sum_congr rfl (fun i _ => by ring)
+    rw [hkey]
+    exact neg_nonpos.mpr (hfAj j)
+  have hpne : p ≠ 0 := by
+    intro h
+    have hf1 : f 1 < u := hfP 1 (fun _ => one_pos)
+    have hsum : f 1 = - ∑ i, p i := by
+      rw [show (1 : Fin (n+1) → ℝ) = ∑ i, Pi.single i (1:ℝ) by
+        funext k; simp [Finset.sum_apply, Pi.single_apply, Finset.sum_ite_eq], map_sum]
+      simp only [hpdef]; rw [← Finset.sum_neg_distrib]; simp
+    rw [h] at hsum; simp at hsum; linarith
+  exact hpne (hA.transpose.eq_zero_of_mulVec_nonpos hpnn hAtp)
 
 end Matrix
