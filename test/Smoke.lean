@@ -1541,6 +1541,14 @@ example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N) :
         (CRNT.Analysis.SpernerLattice.col κ t).2.2 = true :=
   CRNT.Analysis.SpernerLattice.exists_rainbow_cell κ
 
+-- Meshing sequences along which a continuous self-map is coordinate-non-increasing yield a fixed pt.
+example (f : ↥(stdSimplex ℝ (Fin 3)) → ↥(stdSimplex ℝ (Fin 3))) (hf : Continuous f)
+    (x : Fin 3 → ℕ → ↥(stdSimplex ℝ (Fin 3)))
+    (hmesh : ∀ i j : Fin 3, Filter.Tendsto (fun n => dist (x i n) (x j n)) Filter.atTop (nhds 0))
+    (hdec : ∀ (n : ℕ) (i : Fin 3), (f (x i n) : Fin 3 → ℝ) i ≤ ((x i n : Fin 3 → ℝ) i)) :
+    ∃ z : ↥(stdSimplex ℝ (Fin 3)), f z = z :=
+  CRNT.Analysis.brouwer_of_meshing_sequences f hf x hmesh hdec
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
