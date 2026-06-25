@@ -1614,6 +1614,12 @@ example {n N : ℕ} (c c' : CRNT.Analysis.SpernerN.Cell n N) (m : Fin (n + 1))
     (heq : CRNT.Analysis.SpernerN.facetVerts c m = CRNT.Analysis.SpernerN.facetVerts c' m) :
     c' = c ∨ ∃ hv, c' = CRNT.Analysis.SpernerN.flipCell c m hm0 hmn hv :=
   CRNT.Analysis.SpernerN.facet_eq_imp c c' m hm0 hmn heq
+-- n-D Sperner extreme-facet rigidity: a cell sharing the vertex-0 facet is the cell itself or its
+-- base-change neighbour (the shiftCell), the extreme analogue of facet_eq_imp.
+example {n N : ℕ} (c c' : CRNT.Analysis.SpernerN.Cell (n + 1) N) (m' : Fin (n + 2))
+    (heq : CRNT.Analysis.SpernerN.facetVerts c 0 = CRNT.Analysis.SpernerN.facetVerts c' m') :
+    c' = c ∨ ∃ h : CRNT.Analysis.SpernerN.ShiftValid c, c' = CRNT.Analysis.SpernerN.shiftCell c h :=
+  CRNT.Analysis.SpernerN.facet0_eq_imp c c' m' heq
 -- n-D Sperner boundary reduction: dropping the last coordinate is a bijection from the boundary
 -- face {x_last = 0} of the (n+1)-simplex to the n-dimensional lattice.
 example {n N : ℕ} (q : CRNT.Analysis.SpernerN.Pt n N) (i : Fin (n + 1)) :
