@@ -1619,6 +1619,13 @@ example {n N : ℕ} (c c' : CRNT.Analysis.SpernerN.Cell n N) (m : Fin (n + 1))
 example {n N : ℕ} (q : CRNT.Analysis.SpernerN.Pt n N) (i : Fin (n + 1)) :
     ((CRNT.Analysis.SpernerN.boundaryEquiv n N).symm q).1.1 i.castSucc = q.1 i :=
   CRNT.Analysis.SpernerN.boundaryEquiv_symm_apply_castSucc q i
+-- A door facet lying on a boundary face `{x_j = 0}` must lie on the face opposite the top color.
+example {n N : ℕ} (c : CRNT.Analysis.SpernerN.Cell n N) (m : Fin (n + 1))
+    (col : CRNT.Analysis.SpernerN.SpernerColoring n N) (j : Fin (n + 1))
+    (hdoor : (CRNT.Analysis.SpernerN.facetVerts c m).image col.color
+      = CRNT.Analysis.SpernerN.lowColors n)
+    (hface : ∀ p ∈ CRNT.Analysis.SpernerN.facetVerts c m, p.1 j = 0) : j = Fin.last n :=
+  CRNT.Analysis.SpernerN.door_face_eq_last c m col j hdoor hface
 
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).

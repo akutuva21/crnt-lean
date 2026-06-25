@@ -95,6 +95,7 @@ import CRNT.Analysis.SpernerNGeometric
 import CRNT.Analysis.SpernerNParity
 import CRNT.Analysis.SpernerNIncidence
 import CRNT.Analysis.SpernerNBoundary
+import CRNT.Analysis.SpernerNDoor
 import CRNT.Analysis.SpernerGrid
 
 -- Kinetics: concentrations, mass action, and the general kinetics abstraction
