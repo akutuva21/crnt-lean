@@ -224,6 +224,7 @@ import CRNT.Multistationarity.Injectivity
 import CRNT.Multistationarity.Capacity
 import CRNT.Multistationarity.JacobianInjectivity
 import CRNT.Multistationarity.PMatrix
+import CRNT.Multistationarity.PMatrixSchur
 import CRNT.Multistationarity.Toric
 
 -- Design: robustness and special equilibria

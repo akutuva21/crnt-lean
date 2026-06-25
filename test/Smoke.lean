@@ -2026,3 +2026,14 @@ open CRNT.Faithful FanRefinement in
 example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {n : E} {C C' : ProperCone ℝ E}
     (hsub : (C' : Set E) ⊆ (C : Set E)) (h : AttractsToward n C') : AttractsToward n C :=
   attractsToward_coarse_of_fine hsub h
+
+-- The Schur complement of a P-matrix (at the last coordinate) is a P-matrix — the dimension-drop
+-- step for the inductive Gale–Nikaido theorem.
+example {n : ℕ} {M : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ} (h : M.IsPMatrix) :
+    (Matrix.schurLast M).IsPMatrix :=
+  h.schurLast
+-- The Schur determinant identity at the last coordinate.
+example {n : ℕ} (M : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ)
+    (hd : M (Fin.last n) (Fin.last n) ≠ 0) :
+    M.det = M (Fin.last n) (Fin.last n) * (Matrix.schurLast M).det :=
+  Matrix.det_schurLast M hd
