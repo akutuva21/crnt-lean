@@ -1541,6 +1541,12 @@ example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N) :
         (CRNT.Analysis.SpernerLattice.col κ t).2.2 = true :=
   CRNT.Analysis.SpernerLattice.exists_rainbow_cell κ
 
+-- The barycentric realization lands in the standard 2-simplex.
+example : CRNT.Analysis.SpernerLattice.realize
+      (CRNT.Analysis.SpernerLattice.mkPt 1 1 (by omega) : CRNT.Analysis.SpernerLattice.Pt 3)
+    ∈ stdSimplex ℝ (Fin 3) :=
+  CRNT.Analysis.SpernerLattice.realize_mem_stdSimplex (by norm_num) _
+
 -- Meshing sequences along which a continuous self-map is coordinate-non-increasing yield a fixed pt.
 example (f : ↥(stdSimplex ℝ (Fin 3)) → ↥(stdSimplex ℝ (Fin 3))) (hf : Continuous f)
     (x : Fin 3 → ℕ → ↥(stdSimplex ℝ (Fin 3)))
