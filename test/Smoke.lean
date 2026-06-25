@@ -1273,6 +1273,13 @@ example {S : Type} [DecidableEq S] [Fintype S] {N₁ N₂ : Network S}
     (K₁.sum K₂).InjectiveOnClass x₀ :=
   Network.Kinetics.InjectiveOnClass.interconnect_of_stoichIndependent_left hind h₁
 
+-- A concordant network is monostationary under any weakly monotonic kinetics.
+example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} (hN : N.Concordant)
+    {K : Network.Kinetics N} (hwm : K.WeaklyMonotonic) {x₀ x y : Concentration S}
+    (hx : x ∈ N.positiveCompatibilityClass x₀) (hy : y ∈ N.positiveCompatibilityClass x₀)
+    (hsx : N.IsKineticSteadyState K x) (hsy : N.IsKineticSteadyState K y) : x = y :=
+  hN.subsingleton_steadyState hwm hx hy hsx hsy
+
 -- The Advanced Deficiency Algorithm verdict is non-vacuous: it yields a nonzero stoichiometric vector.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     (h : N.ADAAffirmsCapacity) : N.stoichSubspace ≠ ⊥ :=
