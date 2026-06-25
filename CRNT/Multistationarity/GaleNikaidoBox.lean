@@ -2,6 +2,8 @@ import CRNT.Multistationarity.GaleNikaido
 import CRNT.Multistationarity.PMatrixSchur
 import CRNT.Multistationarity.PMatrixSignature
 import Mathlib.Analysis.Calculus.FDeriv.Pi
+import Mathlib.Analysis.Calculus.Deriv.Prod
+import Mathlib.Analysis.Calculus.MeanValue
 
 /-!
 # Gale–Nikaido on a box: the reduced-map Jacobian is the Schur complement
@@ -139,5 +141,17 @@ theorem reduced_isPMatrix {n : ℕ} {Dφ : (Fin n → ℝ) →L[ℝ] ℝ}
         (Fin.lastCases Dφ (fun j => ContinuousLinearMap.proj j)))))).IsPMatrix := by
   rw [jacobianMatrix_reduced_eq_schurLast himp]
   exact hP.schurLast
+
+/-- **The one-variable `Fin.snoc` derivative.** Moving only the last coordinate, `t ↦ Fin.snoc x̂ t`
+has derivative the basis vector `Pi.single (Fin.last n) 1`. -/
+theorem hasDerivAt_snocLast {n : ℕ} (x : Fin n → ℝ) (s : ℝ) :
+    HasDerivAt (fun t => (Fin.snoc x t : Fin (n + 1) → ℝ)) (Pi.single (Fin.last n) 1) s := by
+  rw [hasDerivAt_pi]
+  intro k
+  refine Fin.lastCases ?_ (fun j => ?_) k
+  · simp only [Fin.snoc_last, Pi.single_eq_same]
+    exact hasDerivAt_id s
+  · simp only [Fin.snoc_castSucc, Pi.single_eq_of_ne (Fin.castSucc_lt_last j).ne]
+    exact hasDerivAt_const s (x j)
 
 end CRNT
