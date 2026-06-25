@@ -1572,6 +1572,12 @@ example {n N : ℕ} (hN : 0 < N) (i : Fin (n + 1)) :
     CRNT.Analysis.SpernerN.realize (CRNT.Analysis.SpernerN.corner n N i) = Pi.single i 1 :=
   CRNT.Analysis.SpernerN.realize_corner hN i
 
+-- n-D Kuhn cell mesh bound: any two vertices of a cell realize within sup-distance 1/N.
+example {n N : ℕ} (hN : 0 < N) (c : CRNT.Analysis.SpernerN.Cell n N) (k k' : Fin (n + 1)) :
+    dist (CRNT.Analysis.SpernerN.realize (c.vertex k))
+        (CRNT.Analysis.SpernerN.realize (c.vertex k')) ≤ 1 / N :=
+  CRNT.Analysis.SpernerN.cell_vertex_dist_le hN c k k'
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
