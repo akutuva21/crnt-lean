@@ -229,6 +229,7 @@ import CRNT.Multistationarity.PMatrixSchur
 import CRNT.Multistationarity.PMatrixSignature
 import CRNT.Multistationarity.GaleNikaido
 import CRNT.Multistationarity.GaleNikaidoBox
+import CRNT.Multistationarity.PMatrixUnivalence
 import CRNT.Multistationarity.Toric
 
 -- Design: robustness and special equilibria
