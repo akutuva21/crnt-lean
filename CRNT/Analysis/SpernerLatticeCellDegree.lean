@@ -277,11 +277,12 @@ theorem up_vert_cellDoor (κ : SpernerColoring N) (a b : ℕ) (hd : a + b + 2 �
       (Sum.inr ⟨(a, b), by rw [mem_downCarrier]; omega⟩) :=
   cellDoor_symm κ (down_vertRight_cellDoor κ a b hd hdoor)
 
-/-- **Characterization of an interior up-triangle's cell-neighbours.** For `up(a,b)` interior
-(`a+b+2 ≤ N`), a down-triangle `⟨(p,q),_⟩` is door-adjacent iff its index is one of the three
-edge-partners — `(a,b)` (diagonal), `(a,b-1)` (horizontal, `q+1=b`), `(a-1,b)` (vertical, `p+1=a`) —
-and the corresponding edge carries a door. -/
-theorem up_cellDoor_iff (κ : SpernerColoring N) (a b : ℕ) (hd : a + b + 2 ≤ N) (p q : ℕ)
+/-- **Characterization of an up-triangle's cell-neighbours.** For any `up(a,b)` (`a+b+1 ≤ N`), a
+down-triangle `⟨(p,q),_⟩` is door-adjacent iff its index is one of the three edge-partners — `(a,b)`
+(diagonal), `(a,b-1)` (horizontal, `q+1=b`), `(a-1,b)` (vertical, `p+1=a`) — and the corresponding
+edge carries a door. (On the hypotenuse the diagonal partner `down(a,b)` does not exist, so that
+disjunct is vacuous — the diagonal then reaches an outer vertex instead.) -/
+theorem up_cellDoor_iff (κ : SpernerColoring N) (a b : ℕ) (hu : a + b + 1 ≤ N) (p q : ℕ)
     (hpq : (p, q) ∈ downCarrier N) :
     CellDoor κ (Sum.inl ⟨(a, b), by rw [mem_upCarrier]; omega⟩) (Sum.inr ⟨(p, q), hpq⟩) ↔
       (p = a ∧ q = b ∧
@@ -332,5 +333,202 @@ theorem up_cellDoor_iff (κ : SpernerColoring N) (a b : ℕ) (hd : a + b + 2 ≤
       exact up_horiz_cellDoor κ p q (by rw [mem_downCarrier] at hpq; omega) hdoor
     · subst a; subst b
       exact up_vert_cellDoor κ p q (by rw [mem_downCarrier] at hpq; omega) hdoor
+
+open Finset in
+set_option linter.unusedSimpArgs false in
+/-- **Up-triangle degree.** An up-triangle's door-graph degree equals its `doorCount`: each of its
+three door edges reaches a unique neighbour — an interior cell-partner, or (for the diagonal on the
+hypotenuse) a boundary outer vertex. -/
+theorem up_cell_degree (κ : SpernerColoring N) (a b : ℕ) (hu : a + b + 1 ≤ N) :
+    (fullDoorGraph κ).degree
+        (Sum.inl (Sum.inl ⟨(a, b), by rw [mem_upCarrier]; omega⟩ : Cell N))
+      = doorCount (κ.color (mkPt a b (by omega))) (κ.color (mkPt (a + 1) b (by omega)))
+          (κ.color (mkPt a (b + 1) (by omega))) := by
+  rw [degree_inl_eq]
+  set HD := isDoor (κ.color (mkPt a b (by omega))) (κ.color (mkPt (a + 1) b (by omega))) with hHD
+  set DD := isDoor (κ.color (mkPt (a + 1) b (by omega))) (κ.color (mkPt a (b + 1) (by omega)))
+    with hDD
+  set VD := isDoor (κ.color (mkPt a b (by omega))) (κ.color (mkPt a (b + 1) (by omega))) with hVD
+  -- a horizontal/vertical door forces its partner triangle to exist
+  have hHDb : HD = true → 1 ≤ b := by
+    intro h; rcases Nat.eq_zero_or_pos b with hb | hb
+    · subst hb; rw [hHD, bottom_H_not_door κ a (by omega)] at h; exact absurd h (by simp)
+    · exact hb
+  have hVDa : VD = true → 1 ≤ a := by
+    intro h; rcases Nat.eq_zero_or_pos a with ha | ha
+    · subst ha; rw [hVD, left_V_not_door κ b (by omega)] at h; exact absurd h (by simp)
+    · exact ha
+  -- the cell-neighbour finset as the union of the three door-gated partners
+  set Ddiag : Finset (Cell N) :=
+    if h : a + b + 2 ≤ N then (if DD then {Sum.inr (⟨(a, b), by rw [mem_downCarrier]; omega⟩ : Down N)}
+      else ∅) else ∅ with hDdiag
+  set Dhoriz : Finset (Cell N) :=
+    if h : HD = true then {Sum.inr (⟨(a, b - 1), by have := hHDb h; rw [mem_downCarrier]; omega⟩
+      : Down N)} else ∅ with hDhoriz
+  set Dvert : Finset (Cell N) :=
+    if h : VD = true then {Sum.inr (⟨(a - 1, b), by have := hVDa h; rw [mem_downCarrier]; omega⟩
+      : Down N)} else ∅ with hDvert
+  have hset : (univ.filter (fun c : Cell N =>
+      CellDoor κ (Sum.inl ⟨(a, b), by rw [mem_upCarrier]; omega⟩) c))
+      = Ddiag ∪ Dhoriz ∪ Dvert := by
+    ext c
+    rw [Finset.mem_filter, Finset.mem_union, Finset.mem_union]
+    constructor
+    · rintro ⟨-, hcd⟩
+      cases c with
+      | inl u' => exact absurd hcd (not_cellDoor_inl_inl κ _ u')
+      | inr d =>
+        obtain ⟨⟨p, q⟩, hpq⟩ := d
+        have hpqN : p + q + 2 ≤ N := by rw [mem_downCarrier] at hpq; exact hpq
+        rw [up_cellDoor_iff κ a b hu p q hpq] at hcd
+        rcases hcd with ⟨hp, hq, hdoor⟩ | ⟨hp, hq, hdoor⟩ | ⟨hp, hq, hdoor⟩
+        · refine Or.inl (Or.inl ?_)
+          rw [hDdiag, dif_pos (show a + b + 2 ≤ N by omega), if_pos hdoor, Finset.mem_singleton,
+            Sum.inr.injEq, Subtype.mk.injEq, Prod.mk.injEq]
+          exact ⟨hp, hq⟩
+        · refine Or.inl (Or.inr ?_)
+          rw [hDhoriz, dif_pos hdoor, Finset.mem_singleton, Sum.inr.injEq, Subtype.mk.injEq,
+            Prod.mk.injEq]
+          exact ⟨hp, by omega⟩
+        · refine Or.inr ?_
+          rw [hDvert, dif_pos hdoor, Finset.mem_singleton, Sum.inr.injEq, Subtype.mk.injEq,
+            Prod.mk.injEq]
+          exact ⟨by omega, hq⟩
+    · intro hc
+      refine ⟨Finset.mem_univ _, ?_⟩
+      rcases hc with (hc | hc) | hc
+      · rw [hDdiag] at hc
+        split at hc
+        · rename_i hI
+          split at hc
+          · rename_i hdd
+            rw [Finset.mem_singleton] at hc; subst hc
+            exact (up_cellDoor_iff κ a b hu a b (by rw [mem_downCarrier]; omega)).mpr
+              (Or.inl ⟨rfl, rfl, hdd⟩)
+          · exact absurd hc (Finset.notMem_empty _)
+        · exact absurd hc (Finset.notMem_empty _)
+      · rw [hDhoriz] at hc
+        split at hc
+        · rename_i hdd
+          rw [Finset.mem_singleton] at hc; subst hc
+          refine (up_cellDoor_iff κ a b hu a (b - 1) _).mpr (Or.inr (Or.inl ⟨rfl, ?_, hdd⟩))
+          have := hHDb hdd; omega
+        · exact absurd hc (Finset.notMem_empty _)
+      · rw [hDvert] at hc
+        split at hc
+        · rename_i hdd
+          rw [Finset.mem_singleton] at hc; subst hc
+          refine (up_cellDoor_iff κ a b hu (a - 1) b _).mpr (Or.inr (Or.inr ⟨?_, rfl, hdd⟩))
+          have := hVDa hdd; omega
+        · exact absurd hc (Finset.notMem_empty _)
+  -- the outer-neighbour finset: the hypotenuse diagonal, only on the boundary
+  have houter : (univ.filter (fun k : Outer N =>
+      (Sum.inl ⟨(a, b), by rw [mem_upCarrier]; omega⟩ : Cell N) = outerTri k ∧ BoundaryDoor κ k)).card
+      = if a + b + 2 ≤ N then 0 else (if DD then 1 else 0) := by
+    by_cases hI : a + b + 2 ≤ N
+    · rw [if_pos hI, Finset.card_eq_zero, Finset.eq_empty_iff_forall_notMem]
+      intro k hk
+      rw [Finset.mem_filter] at hk
+      have he := hk.2.1
+      rw [outerTri, Sum.inl.injEq, Subtype.mk.injEq, Prod.mk.injEq] at he
+      have := k.isLt; omega
+    · rw [if_neg hI]
+      have hbdy : a + b + 1 = N := by omega
+      have haN : a < N := by omega
+      have het : outerTri (⟨a, haN⟩ : Outer N) = Sum.inl ⟨(a, b), by rw [mem_upCarrier]; omega⟩ := by
+        show Sum.inl (⟨(a, N - 1 - a), by rw [mem_upCarrier]; omega⟩ : Up N) = _
+        rw [Sum.inl.injEq, Subtype.mk.injEq, Prod.mk.injEq]; omega
+      have hpa : outerPtA (⟨a, haN⟩ : Outer N) = mkPt (a + 1) b (by omega) := by
+        show mkPt (a + 1) (N - 1 - a) (by omega) = mkPt (a + 1) b (by omega)
+        rw [mkPt_inj]; omega
+      have hpb : outerPtB (⟨a, haN⟩ : Outer N) = mkPt a (b + 1) (by omega) := by
+        show mkPt a (N - a) (by omega) = mkPt a (b + 1) (by omega)
+        rw [mkPt_inj]; omega
+      have hbd_iff : BoundaryDoor κ (⟨a, haN⟩ : Outer N) ↔ DD = true := by
+        rw [BoundaryDoor, hpa, hpb, ← hDD]
+      have hkey : (univ.filter (fun k : Outer N =>
+          (Sum.inl ⟨(a, b), by rw [mem_upCarrier]; omega⟩ : Cell N) = outerTri k ∧ BoundaryDoor κ k))
+          = if DD then {(⟨a, haN⟩ : Outer N)} else ∅ := by
+        ext k
+        rw [Finset.mem_filter]
+        constructor
+        · rintro ⟨-, he, hbd⟩
+          rw [outerTri, Sum.inl.injEq, Subtype.mk.injEq, Prod.mk.injEq] at he
+          obtain ⟨hka, -⟩ := he
+          have hk : k = ⟨a, haN⟩ := Fin.ext hka.symm
+          subst hk
+          rw [if_pos (hbd_iff.mp hbd), Finset.mem_singleton]
+        · intro hk
+          by_cases hdd : DD
+          · rw [if_pos hdd, Finset.mem_singleton] at hk; subst hk
+            exact ⟨Finset.mem_univ _, het.symm, hbd_iff.mpr hdd⟩
+          · rw [if_neg hdd] at hk; exact absurd hk (Finset.notMem_empty _)
+      rw [hkey]; by_cases hdd : DD <;> simp [hdd]
+  rw [hset]
+  -- cardinalities of the three door-gated singletons, with disjointness
+  have hcd : (Ddiag ∪ Dhoriz ∪ Dvert).card
+      = (if a + b + 2 ≤ N then (if DD then 1 else 0) else 0)
+        + (if HD then 1 else 0) + (if VD then 1 else 0) := by
+    have hcardD : Ddiag.card = if a + b + 2 ≤ N then (if DD then 1 else 0) else 0 := by
+      rw [hDdiag]; by_cases hI : a + b + 2 ≤ N <;> by_cases hd : DD <;> simp [hI, hd]
+    have hcardH : Dhoriz.card = if HD then 1 else 0 := by
+      rw [hDhoriz]; by_cases hd : HD = true <;> simp [hd]
+    have hcardV : Dvert.card = if VD then 1 else 0 := by
+      rw [hDvert]; by_cases hd : VD = true <;> simp [hd]
+    have hdisj1 : Disjoint Ddiag Dhoriz := by
+      rw [Finset.disjoint_left]; intro x hx hy
+      rw [hDdiag] at hx; rw [hDhoriz] at hy
+      split at hx
+      · split at hx
+        · rw [Finset.mem_singleton] at hx
+          split at hy
+          · rename_i hh
+            rw [Finset.mem_singleton] at hy
+            have := hHDb hh; rw [hx] at hy
+            simp only [Sum.inr.injEq, Subtype.mk.injEq, Prod.mk.injEq] at hy; omega
+          · exact absurd hy (Finset.notMem_empty _)
+        · exact absurd hx (Finset.notMem_empty _)
+      · exact absurd hx (Finset.notMem_empty _)
+    have hdisj2 : Disjoint (Ddiag ∪ Dhoriz) Dvert := by
+      rw [Finset.disjoint_left]; intro x hx hy
+      rw [hDvert] at hy
+      split at hy
+      · rename_i hv
+        rw [Finset.mem_singleton] at hy; have := hVDa hv
+        rw [Finset.mem_union] at hx
+        rcases hx with hx | hx
+        · rw [hDdiag] at hx; split at hx
+          · split at hx
+            · rw [Finset.mem_singleton, hy] at hx
+              simp only [Sum.inr.injEq, Subtype.mk.injEq, Prod.mk.injEq] at hx; omega
+            · exact absurd hx (Finset.notMem_empty _)
+          · exact absurd hx (Finset.notMem_empty _)
+        · rw [hDhoriz] at hx; split at hx
+          · rename_i hh
+            rw [Finset.mem_singleton, hy] at hx
+            have := hHDb hh
+            simp only [Sum.inr.injEq, Subtype.mk.injEq, Prod.mk.injEq] at hx; omega
+          · exact absurd hx (Finset.notMem_empty _)
+      · exact absurd hy (Finset.notMem_empty _)
+    rw [Finset.card_union_of_disjoint hdisj2, Finset.card_union_of_disjoint hdisj1,
+      hcardD, hcardH, hcardV]
+  rw [hcd, houter, doorCount, ← hHD, ← hDD, ← hVD]
+  by_cases hI : a + b + 2 ≤ N <;> by_cases h1 : HD <;> by_cases h2 : DD <;> by_cases h3 : VD <;>
+    simp [hI, h1, h2, h3]
+
+/-- **The cell-degree obligation.** Every triangle's door-graph degree equals its `doorCount` — the
+`cell_degree` field of `MultiDoorIncidence` for the `N`-subdivision. -/
+theorem cell_degree (κ : SpernerColoring N) (t : Cell N) :
+    (fullDoorGraph κ).degree (Sum.inl t)
+      = doorCount (col κ t).1 (col κ t).2.1 (col κ t).2.2 := by
+  cases t with
+  | inl u =>
+    obtain ⟨⟨a, b⟩, hu⟩ := u
+    rw [mem_upCarrier] at hu
+    exact up_cell_degree κ a b (by omega)
+  | inr d =>
+    obtain ⟨⟨a, b⟩, hd⟩ := d
+    rw [mem_downCarrier] at hd
+    exact down_cell_degree κ a b (by omega)
 
 end CRNT.Analysis.SpernerLattice

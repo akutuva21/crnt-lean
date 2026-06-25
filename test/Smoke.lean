@@ -1514,6 +1514,24 @@ example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N) (a b : �
           (κ.color (CRNT.Analysis.SpernerLattice.mkPt (a + 1) (b + 1) (by omega))) :=
   CRNT.Analysis.SpernerLattice.down_cell_degree κ a b hd
 
+-- An up-triangle's door-graph degree equals its local door count.
+example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N) (a b : ℕ) (hu : a + b + 1 ≤ N) :
+    (CRNT.Analysis.SpernerLattice.fullDoorGraph κ).degree
+        (Sum.inl (Sum.inl ⟨(a, b), by rw [CRNT.Analysis.SpernerLattice.mem_upCarrier]; omega⟩))
+      = CRNT.Analysis.Sperner2D.doorCount
+          (κ.color (CRNT.Analysis.SpernerLattice.mkPt a b (by omega)))
+          (κ.color (CRNT.Analysis.SpernerLattice.mkPt (a + 1) b (by omega)))
+          (κ.color (CRNT.Analysis.SpernerLattice.mkPt a (b + 1) (by omega))) :=
+  CRNT.Analysis.SpernerLattice.up_cell_degree κ a b hu
+
+-- **The cell-degree obligation**: every triangle's door-graph degree equals its door count.
+example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
+    (t : CRNT.Analysis.SpernerLattice.Cell N) :
+    (CRNT.Analysis.SpernerLattice.fullDoorGraph κ).degree (Sum.inl t)
+      = CRNT.Analysis.Sperner2D.doorCount (CRNT.Analysis.SpernerLattice.col κ t).1
+          (CRNT.Analysis.SpernerLattice.col κ t).2.1 (CRNT.Analysis.SpernerLattice.col κ t).2.2 :=
+  CRNT.Analysis.SpernerLattice.cell_degree κ t
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
