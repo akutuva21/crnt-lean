@@ -1555,6 +1555,12 @@ example (f : ↥(stdSimplex ℝ (Fin 3)) → ↥(stdSimplex ℝ (Fin 3))) (hf : 
     ∃ z : ↥(stdSimplex ℝ (Fin 3)), f z = z :=
   CRNT.Analysis.brouwer_of_meshing_sequences f hf x hmesh hdec
 
+-- **Two-dimensional Brouwer fixed-point theorem**: every continuous self-map of the standard
+-- 2-simplex has a fixed point.
+example (f : ↥(stdSimplex ℝ (Fin 3)) → ↥(stdSimplex ℝ (Fin 3))) (hf : Continuous f) :
+    ∃ z, f z = z :=
+  CRNT.Analysis.SpernerLattice.brouwer_stdSimplex_fin3 f hf
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
