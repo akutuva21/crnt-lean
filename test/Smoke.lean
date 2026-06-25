@@ -1633,6 +1633,13 @@ example {n N : ℕ} (col : CRNT.Analysis.SpernerN.SpernerColoring (n + 1) N)
     ((CRNT.Analysis.SpernerN.restrictColoring col).color
         (CRNT.Analysis.SpernerN.boundaryEquiv n N ⟨p, hp⟩)).castSucc = col.color p :=
   CRNT.Analysis.SpernerN.restrictColoring_color_of_boundary col p hp
+-- n-D Sperner boundary geometry: a cell vertex lies on the face x_last=0 iff the cell touches the
+-- face (base_last=1) and the vertex comes after the d_last step.
+example {n N : ℕ} (c : CRNT.Analysis.SpernerN.Cell (n + 1) N) (k : Fin (n + 2)) :
+    (c.vertex k).1 (Fin.last (n + 1)) = 0
+      ↔ (c.base (Fin.last (n + 1)) = 1
+          ∧ ((c.perm⁻¹ (Fin.last n) : Fin (n + 1)) : ℕ) < (k : ℕ)) :=
+  CRNT.Analysis.SpernerN.vertex_last_zero_iff c k
 
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
