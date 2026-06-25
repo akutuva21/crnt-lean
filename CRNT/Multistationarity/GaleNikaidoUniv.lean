@@ -326,6 +326,100 @@ theorem pmatrix_order_eq : ∀ {n : ℕ} {F : (Fin n → ℝ) → (Fin n → ℝ
       · exact hia
       · exact congrFun hrm k
 
+/-- The diagonal sign map `x ↦ (ε i * x i)ᵢ` as a continuous linear map. -/
+noncomputable def signDiag {n : ℕ} (ε : Fin n → ℝ) : (Fin n → ℝ) →L[ℝ] (Fin n → ℝ) :=
+  ContinuousLinearMap.pi (fun i => (ε i) • ContinuousLinearMap.proj i)
+
+@[simp] theorem signDiag_apply {n : ℕ} (ε : Fin n → ℝ) (x : Fin n → ℝ) (i : Fin n) :
+    signDiag ε x i = ε i * x i := by
+  simp [signDiag, ContinuousLinearMap.pi_apply]
+
+/-- **Diagonal-conjugation Jacobian.** The Jacobian of `D ∘ L ∘ D` (with `D` the diagonal sign map)
+is the signature conjugate `(ε i · M i j · ε j)` of `jacobianMatrix L`. -/
+theorem jacobianMatrix_diagConj {n : ℕ} (L : (Fin n → ℝ) →L[ℝ] (Fin n → ℝ)) (ε : Fin n → ℝ) :
+    jacobianMatrix ((signDiag ε).comp (L.comp (signDiag ε)))
+      = Matrix.of (fun i j => ε i * (jacobianMatrix L) i j * ε j) := by
+  apply Matrix.ext
+  intro k l
+  have hcol : signDiag ε (Pi.single l 1) = ε l • Pi.single l (1 : ℝ) := by
+    funext m
+    simp only [signDiag_apply, Pi.smul_apply, smul_eq_mul, Pi.single_apply]
+    split <;> simp_all
+  have hact : ((signDiag ε).comp (L.comp (signDiag ε))) (Pi.single l 1) k
+      = ε k * (ε l * (jacobianMatrix L) k l) := by
+    simp only [ContinuousLinearMap.comp_apply, signDiag_apply, hcol, map_smul, Pi.smul_apply,
+      smul_eq_mul]
+    rw [← jacobianMatrix_mulVec]
+    simp [Matrix.mulVec_single]
+  have hjac : jacobianMatrix ((signDiag ε).comp (L.comp (signDiag ε))) k l
+      = ((signDiag ε).comp (L.comp (signDiag ε))) (Pi.single l 1) k := by
+    rw [← jacobianMatrix_mulVec]; simp [Matrix.mulVec_single]
+  rw [Matrix.of_apply, hjac, hact]; ring
+
+/-- **Gale–Nikaido Theorem 4 — global univalence (unconditional box-GN).** A `C¹` map whose Jacobian
+is a P-matrix at every point of a box is injective on that box. Given `F a = F b`, the sign
+normalization `D` (flip the coordinates where `a > b`) makes `a* := D a ≤ D b =: b*` while `H := D∘F∘D`
+keeps a P-matrix Jacobian (`signatureConj`); since `H a* = H b*`, Theorem 3 gives `a* = b*`, hence
+`a = b`. -/
+theorem injOn_of_pmatrix_fderiv {n : ℕ} {F : (Fin n → ℝ) → (Fin n → ℝ)}
+    {F' : (Fin n → ℝ) → ((Fin n → ℝ) →L[ℝ] (Fin n → ℝ))} {lo hi : Fin n → ℝ}
+    (hF : ∀ z ∈ Set.Icc lo hi, HasFDerivAt F (F' z) z)
+    (hP : ∀ z ∈ Set.Icc lo hi, (jacobianMatrix (F' z)).IsPMatrix) :
+    Set.InjOn F (Set.Icc lo hi) := by
+  intro a ha b hb hFab
+  classical
+  set ε : Fin n → ℝ := fun i => if a i ≤ b i then (1 : ℝ) else -1 with hε
+  have hεpm : ∀ i, ε i = 1 ∨ ε i = -1 := by
+    intro i; simp only [hε]; split_ifs <;> simp
+  have hεsq : ∀ i, ε i * ε i = 1 := by
+    intro i; rcases hεpm i with h | h <;> rw [h] <;> norm_num
+  have hDD : ∀ x : Fin n → ℝ, signDiag ε (signDiag ε x) = x := by
+    intro x; funext i; rw [signDiag_apply, signDiag_apply, ← mul_assoc, hεsq, one_mul]
+  set as : Fin n → ℝ := signDiag ε a with has
+  set bs : Fin n → ℝ := signDiag ε b with hbs
+  have hasbs : as ≤ bs := by
+    intro i
+    rw [has, hbs, signDiag_apply, signDiag_apply]
+    simp only [hε]
+    by_cases h : a i ≤ b i
+    · rw [if_pos h, one_mul, one_mul]; exact h
+    · rw [if_neg h]; rw [not_le] at h; nlinarith
+  have hDmem : ∀ x ∈ Set.Icc as bs, signDiag ε x ∈ Set.Icc lo hi := by
+    rintro x ⟨hxa, hxb⟩
+    refine ⟨fun i => ?_, fun i => ?_⟩ <;> rw [signDiag_apply]
+    · rcases hεpm i with h | h
+      · have hxi := hxa i; rw [has, signDiag_apply, h, one_mul] at hxi
+        rw [h, one_mul]; exact (ha.1 i).trans hxi
+      · have hxi := hxb i; rw [hbs, signDiag_apply, h] at hxi
+        rw [h]; nlinarith [hb.1 i, hxi]
+    · rcases hεpm i with h | h
+      · have hxi := hxb i; rw [hbs, signDiag_apply, h, one_mul] at hxi
+        rw [h, one_mul]; exact hxi.trans (hb.2 i)
+      · have hxi := hxa i; rw [has, signDiag_apply, h] at hxi
+        rw [h]; nlinarith [ha.2 i, hxi]
+  -- the conjugated map H and its data
+  set H : (Fin n → ℝ) → (Fin n → ℝ) := fun x => signDiag ε (F (signDiag ε x)) with hH
+  set H' : (Fin n → ℝ) → ((Fin n → ℝ) →L[ℝ] (Fin n → ℝ)) :=
+    fun x => (signDiag ε).comp ((F' (signDiag ε x)).comp (signDiag ε)) with hH'
+  have hHF : ∀ z ∈ Set.Icc as bs, HasFDerivAt H (H' z) z := by
+    intro z hz
+    have hc2 := (hF _ (hDmem z hz)).comp z (signDiag ε).hasFDerivAt
+    exact (signDiag ε).hasFDerivAt.comp z hc2
+  have hHP : ∀ z ∈ Set.Icc as bs, (jacobianMatrix (H' z)).IsPMatrix := by
+    intro z hz
+    rw [hH', jacobianMatrix_diagConj]
+    exact (hP _ (hDmem z hz)).signatureConj hεpm
+  have hasmem : as ∈ Set.Icc as bs := ⟨le_refl _, hasbs⟩
+  have hbsmem : bs ∈ Set.Icc as bs := ⟨hasbs, le_refl _⟩
+  have hHab : H bs ≤ H as := by
+    have e1 : H bs = signDiag ε (F b) := by simp only [hH]; rw [hbs, hDD]
+    have e2 : H as = signDiag ε (F a) := by simp only [hH]; rw [has, hDD]
+    rw [e1, e2]; exact le_of_eq (by rw [hFab])
+  have hbsas : bs = as := pmatrix_order_eq hHF hHP hasmem hbsmem hasbs hHab
+  have hsd : signDiag ε bs = signDiag ε as := by rw [hbsas]
+  rw [hbs, hDD, has, hDD] at hsd
+  exact hsd.symm
+
 end CRNT
 
 

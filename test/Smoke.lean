@@ -2099,3 +2099,11 @@ example {n : ℕ} {F : (Fin (n + 1) → ℝ) → (Fin (n + 1) → ℝ)}
           (Set.Icc (Fin.init a) (Fin.init b))) :
     Set.InjOn F (Set.Icc a b) :=
   CRNT.injOn_of_pmatrix_fderiv_of_sections hF hP hsec
+-- **The Gale–Nikaido global univalence theorem (unconditional):** a C¹ map whose Jacobian is a
+-- P-matrix at every point of a box is injective on that box. (Degree-free.)
+example {n : ℕ} {F : (Fin n → ℝ) → (Fin n → ℝ)}
+    {F' : (Fin n → ℝ) → ((Fin n → ℝ) →L[ℝ] (Fin n → ℝ))} {lo hi : Fin n → ℝ}
+    (hF : ∀ z ∈ Set.Icc lo hi, HasFDerivAt F (F' z) z)
+    (hP : ∀ z ∈ Set.Icc lo hi, (CRNT.jacobianMatrix (F' z)).IsPMatrix) :
+    Set.InjOn F (Set.Icc lo hi) :=
+  CRNT.injOn_of_pmatrix_fderiv hF hP
