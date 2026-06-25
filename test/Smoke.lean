@@ -1583,6 +1583,17 @@ example {n : ℕ} (c : Fin (n + 1) → Fin (n + 1)) :
     Odd (CRNT.Analysis.SpernerN.doorCount c) ↔ Function.Bijective c :=
   CRNT.Analysis.SpernerN.doorCount_odd_iff c
 
+-- n-D Kuhn facet incidence: the adjacent-transposition flip shares the dropped facet and is distinct.
+example {n N : ℕ} (c : CRNT.Analysis.SpernerN.Cell n N) (m : Fin (n + 1))
+    (hm0 : 0 < (m : ℕ)) (hmn : (m : ℕ) < n)
+    (hv : ∀ i, 0 ≤ (c.base i : ℤ) +
+      CRNT.Analysis.SpernerN.voff (CRNT.Analysis.SpernerN.flipPerm c.perm m hm0 hmn) m i) :
+    CRNT.Analysis.SpernerN.facetVerts (CRNT.Analysis.SpernerN.flipCell c m hm0 hmn hv) m
+        = CRNT.Analysis.SpernerN.facetVerts c m
+      ∧ CRNT.Analysis.SpernerN.flipCell c m hm0 hmn hv ≠ c :=
+  ⟨CRNT.Analysis.SpernerN.flipCell_facet c m hm0 hmn hv,
+    CRNT.Analysis.SpernerN.flipCell_ne c m hm0 hmn hv⟩
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :

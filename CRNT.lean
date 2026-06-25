@@ -93,6 +93,7 @@ import CRNT.Analysis.SpernerBrouwer2D
 import CRNT.Analysis.SpernerLatticeN
 import CRNT.Analysis.SpernerNGeometric
 import CRNT.Analysis.SpernerNParity
+import CRNT.Analysis.SpernerNIncidence
 import CRNT.Analysis.SpernerGrid
 
 -- Kinetics: concentrations, mass action, and the general kinetics abstraction
