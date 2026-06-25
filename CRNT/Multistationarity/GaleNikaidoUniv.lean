@@ -110,5 +110,58 @@ theorem jacobianMatrix_face_eq_submatrix {n : ℕ}
   rw [Matrix.submatrix_apply, ← hact, ← jacobianMatrix_mulVec]
   simp [Matrix.mulVec_single]
 
+/-- **Descent step (Gale–Nikaido Theorem 3).** At a point `c` whose Jacobian is a P-matrix, Corollary
+2 provides a direction `w ≥ 0`, `w ≠ 0` with `L w > 0` componentwise; moving against it
+(`c − t w`) strictly decreases every component of `F` for small `t > 0`, so `F (c − t w) ≤ F c`. -/
+theorem pmatrix_descent {n : ℕ} {F : (Fin (n + 1) → ℝ) → (Fin (n + 1) → ℝ)}
+    {L : (Fin (n + 1) → ℝ) →L[ℝ] (Fin (n + 1) → ℝ)} {c : Fin (n + 1) → ℝ}
+    (hF : HasFDerivAt F L c) (hL : (jacobianMatrix L).IsPMatrix) :
+    ∃ w : Fin (n + 1) → ℝ, 0 ≤ w ∧ w ≠ 0 ∧
+      ∃ δ > 0, ∀ t : ℝ, 0 < t → t < δ → F (c - t • w) ≤ F c := by
+  obtain ⟨w, hwnn, hwpos⟩ := hL.exists_nonneg_mulVec_pos
+  have hLw : ∀ i, 0 < (L w) i := by
+    intro i; have := hwpos i; rwa [jacobianMatrix_mulVec] at this
+  have hwne : w ≠ 0 := by
+    intro h; have := hLw 0; rw [h, map_zero] at this; simp at this
+  have hwpos' : 0 < ‖w‖ := norm_pos_iff.mpr hwne
+  set cmin : ℝ := Finset.univ.inf' Finset.univ_nonempty (fun i => (L w) i) with hcmin
+  have hcminpos : 0 < cmin := by
+    rw [hcmin, Finset.lt_inf'_iff]; intro i _; exact hLw i
+  have hcminle : ∀ i, cmin ≤ (L w) i := fun i =>
+    Finset.inf'_le _ (Finset.mem_univ i)
+  have hlo : (fun z => F z - F c - L (z - c)) =o[𝓝 c] (fun z => z - c) := hF.isLittleO
+  have hev := hlo.def (c := cmin / (2 * ‖w‖)) (by positivity)
+  rw [Metric.eventually_nhds_iff] at hev
+  obtain ⟨δ', hδ', hball⟩ := hev
+  refine ⟨w, hwnn, hwne, δ' / ‖w‖, by positivity, fun t ht htδ => ?_⟩
+  intro i
+  have hzdist : dist (c - t • w) c < δ' := by
+    rw [dist_eq_norm, sub_sub_cancel_left, norm_neg, norm_smul, Real.norm_eq_abs, abs_of_pos ht]
+    rw [lt_div_iff₀ hwpos'] at htδ; linarith [htδ]
+  have hbnd : ‖F (c - t • w) - F c - L ((c - t • w) - c)‖ ≤ (cmin / (2 * ‖w‖)) * ‖(c - t • w) - c‖ :=
+    hball hzdist
+  rw [sub_sub_cancel_left, norm_neg, norm_smul, Real.norm_eq_abs, abs_of_pos ht] at hbnd
+  have hri : |(F (c - t • w) - F c - L ((c - t • w) - c)) i| ≤ (cmin / (2 * ‖w‖)) * (t * ‖w‖) :=
+    le_trans (by simpa [Real.norm_eq_abs] using
+      norm_le_pi_norm (F (c - t • w) - F c - L ((c - t • w) - c)) i) hbnd
+  have hLval : (L ((c - t • w) - c)) i = - (t * (L w) i) := by
+    rw [sub_sub_cancel_left, map_neg, map_smul]; simp
+  have hcomp : (F (c - t • w)) i - (F c) i
+      = (L ((c - t • w) - c)) i + (F (c - t • w) - F c - L ((c - t • w) - c)) i := by
+    simp only [Pi.sub_apply]; ring
+  rw [show (F (c - t • w)) i = (F c) i + ((F (c - t • w)) i - (F c) i) by ring, hcomp, hLval]
+  have hupper : (F (c - t • w) - F c - L ((c - t • w) - c)) i ≤ (cmin / (2 * ‖w‖)) * (t * ‖w‖) :=
+    le_trans (le_abs_self _) hri
+  have hsimp : (cmin / (2 * ‖w‖)) * (t * ‖w‖) = t * cmin / 2 := by
+    field_simp
+  have hkey : -(t * (L w) i) + (F (c - t • w) - F c - L ((c - t • w) - c)) i ≤ 0 := by
+    have h1 : t * cmin ≤ t * (L w) i :=
+      mul_le_mul_of_nonneg_left (hcminle i) (le_of_lt ht)
+    have htc : 0 < t * cmin := mul_pos ht hcminpos
+    rw [hsimp] at hupper
+    linarith
+  linarith [hkey]
+
 end CRNT
+
 
