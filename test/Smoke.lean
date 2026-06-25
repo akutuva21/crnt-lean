@@ -2082,3 +2082,20 @@ example {n : ℕ} {Dφ : (Fin n → ℝ) →L[ℝ] ℝ}
         (Fin.lastCases Dφ (fun j => ContinuousLinearMap.proj j)))))
       = Matrix.schurLast (CRNT.jacobianMatrix L) :=
   CRNT.jacobianMatrix_reduced_eq_schurLast himp
+-- Gale–Nikaido on a box (conditional): a C¹ map with everywhere P-matrix Jacobian is injective, given
+-- last-coordinate sections through each colliding pair along which the reduced map is injective.
+example {n : ℕ} {F : (Fin (n + 1) → ℝ) → (Fin (n + 1) → ℝ)}
+    {F' : (Fin (n + 1) → ℝ) → ((Fin (n + 1) → ℝ) →L[ℝ] (Fin (n + 1) → ℝ))}
+    {a b : Fin (n + 1) → ℝ}
+    (hF : ∀ z ∈ Set.Icc a b, HasFDerivAt F (F' z) z)
+    (hP : ∀ z ∈ Set.Icc a b, (CRNT.jacobianMatrix (F' z)).IsPMatrix)
+    (hsec : ∀ p ∈ Set.Icc a b, ∀ q ∈ Set.Icc a b, F p = F q →
+      ∃ φ : (Fin n → ℝ) → ℝ,
+        φ (Fin.init p) ∈ Set.Icc (a (Fin.last n)) (b (Fin.last n)) ∧
+        φ (Fin.init q) ∈ Set.Icc (a (Fin.last n)) (b (Fin.last n)) ∧
+        F (Fin.snoc (Fin.init p) (φ (Fin.init p))) (Fin.last n) = F p (Fin.last n) ∧
+        F (Fin.snoc (Fin.init q) (φ (Fin.init q))) (Fin.last n) = F q (Fin.last n) ∧
+        Set.InjOn (fun x => fun i : Fin n => F (Fin.snoc x (φ x)) i.castSucc)
+          (Set.Icc (Fin.init a) (Fin.init b))) :
+    Set.InjOn F (Set.Icc a b) :=
+  CRNT.injOn_of_pmatrix_fderiv_of_sections hF hP hsec
