@@ -124,4 +124,20 @@ theorem jacobianMatrix_reduced_eq_schurLast {n : ℕ} {Dφ : (Fin n → ℝ) →
   rw [← jacobianMatrix_mulVec DG (Pi.single j 1)] at h
   simpa [Matrix.mulVec_single] using h
 
+/-- The reduced map's Jacobian is a **P-matrix**: it equals the Schur complement of the full
+P-matrix Jacobian (`jacobianMatrix_reduced_eq_schurLast`), which is a P-matrix
+(`Matrix.IsPMatrix.schurLast`). This is the inductive hypothesis-feeder of the Gale–Nikaido
+dimension induction. -/
+theorem reduced_isPMatrix {n : ℕ} {Dφ : (Fin n → ℝ) →L[ℝ] ℝ}
+    {L : (Fin (n + 1) → ℝ) →L[ℝ] (Fin (n + 1) → ℝ)}
+    (hP : (jacobianMatrix L).IsPMatrix)
+    (himp : ∀ Δ : Fin n → ℝ, Dφ Δ = -(jacobianMatrix L (Fin.last n) (Fin.last n))⁻¹ *
+        ∑ j, jacobianMatrix L (Fin.last n) j.castSucc * Δ j) :
+    (jacobianMatrix ((ContinuousLinearMap.pi (fun i : Fin n =>
+        ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : Fin (n + 1) => ℝ) i.castSucc)).comp
+      (L.comp (ContinuousLinearMap.pi
+        (Fin.lastCases Dφ (fun j => ContinuousLinearMap.proj j)))))).IsPMatrix := by
+  rw [jacobianMatrix_reduced_eq_schurLast himp]
+  exact hP.schurLast
+
 end CRNT
