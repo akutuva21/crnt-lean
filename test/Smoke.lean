@@ -1532,6 +1532,15 @@ example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N)
           (CRNT.Analysis.SpernerLattice.col κ t).2.1 (CRNT.Analysis.SpernerLattice.col κ t).2.2 :=
   CRNT.Analysis.SpernerLattice.cell_degree κ t
 
+-- **Two-dimensional Sperner lemma (parametric N)**: every proper Sperner coloring of the
+-- N-subdivision of the 2-simplex has a rainbow triangle.
+example {N : ℕ} (κ : CRNT.Analysis.SpernerLattice.SpernerColoring N) :
+    ∃ t : CRNT.Analysis.SpernerLattice.Cell N,
+      CRNT.Analysis.Sperner2D.isRainbow (CRNT.Analysis.SpernerLattice.col κ t).1
+        (CRNT.Analysis.SpernerLattice.col κ t).2.1
+        (CRNT.Analysis.SpernerLattice.col κ t).2.2 = true :=
+  CRNT.Analysis.SpernerLattice.exists_rainbow_cell κ
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
