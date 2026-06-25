@@ -101,6 +101,7 @@ import CRNT.Analysis.SpernerNBoundaryCorr
 import CRNT.Analysis.SpernerNFintype
 import CRNT.Analysis.SpernerNFacetCount
 import CRNT.Analysis.SpernerNSperner
+import CRNT.Analysis.SpernerNBoundaryCount
 import CRNT.Analysis.SpernerGrid
 
 -- Kinetics: concentrations, mass action, and the general kinetics abstraction

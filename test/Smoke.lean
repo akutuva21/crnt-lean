@@ -1667,6 +1667,13 @@ example {N : ℕ} (col : CRNT.Analysis.SpernerN.SpernerColoring 0 N) :
     ∃ c : CRNT.Analysis.SpernerN.Cell 0 N,
       Function.Bijective (fun k => col.color (c.vertex k)) :=
   CRNT.Analysis.SpernerN.sperner_exists_rainbow_zero col
+-- n-D Sperner inductive bridge: the boundary door cells biject with the rainbow n-cells on the face,
+-- so their counts agree (feeds the inductive hypothesis into the handshake).
+example {n N : ℕ} (col : CRNT.Analysis.SpernerN.SpernerColoring (n + 1) N) (hN : 0 < N) :
+    (Finset.univ.filter (CRNT.Analysis.SpernerN.isBoundaryDoorCell col)).card
+      = (Finset.univ.filter
+          (CRNT.Analysis.SpernerN.IsRainbowCell (CRNT.Analysis.SpernerN.restrictColoring col))).card :=
+  CRNT.Analysis.SpernerN.boundary_doors_eq_rainbow col hN
 
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
