@@ -1561,6 +1561,17 @@ example (f : ↥(stdSimplex ℝ (Fin 3)) → ↥(stdSimplex ℝ (Fin 3))) (hf : 
     ∃ z, f z = z :=
   CRNT.Analysis.SpernerLattice.brouwer_stdSimplex_fin3 f hf
 
+-- n-D Kuhn-triangulation framework: every cell has exactly n+1 vertices; lattice points realize
+-- into the standard n-simplex; the corners realize to the basis vectors.
+example {n N : ℕ} (c : CRNT.Analysis.SpernerN.Cell n N) : c.simplexVerts.card = n + 1 :=
+  c.simplexVerts_card
+example {n N : ℕ} (hN : 0 < N) (p : CRNT.Analysis.SpernerN.Pt n N) :
+    CRNT.Analysis.SpernerN.realize p ∈ stdSimplex ℝ (Fin (n + 1)) :=
+  CRNT.Analysis.SpernerN.realize_mem_stdSimplex hN p
+example {n N : ℕ} (hN : 0 < N) (i : Fin (n + 1)) :
+    CRNT.Analysis.SpernerN.realize (CRNT.Analysis.SpernerN.corner n N i) = Pi.single i 1 :=
+  CRNT.Analysis.SpernerN.realize_corner hN i
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
