@@ -223,6 +223,7 @@ import CRNT.Theorems.DeficiencyOne.ExistenceDynamical
 import CRNT.Multistationarity.SRGraph
 import CRNT.Multistationarity.SRGraphCriterion
 import CRNT.Multistationarity.SignedSRGraph
+import CRNT.Multistationarity.SRGraphCycleDict
 import CRNT.Multistationarity.Injectivity
 import CRNT.Multistationarity.Capacity
 import CRNT.Multistationarity.JacobianInjectivity

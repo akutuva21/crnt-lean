@@ -2118,3 +2118,8 @@ example {n : Type} [DecidableEq n] [Fintype n] {R : Type} [CommRing R] (M : Matr
     M.det = ∑ σ : Equiv.Perm n,
       ((σ.cycleType.map fun k => -(-1 : ℤˣ) ^ k).prod) • ∏ i, M (σ i) i :=
   CRNT.det_eq_sum_over_perm_cycleType M
+
+-- Every species–reaction-graph cycle has even length `2k` (bipartite alternation).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {u : N.SRVertex S}
+    {w : N.srGraph.Walk u u} (hcyc : w.IsCycle) : ∃ k, w.length = 2 * k :=
+  N.srCycle_length_eq_two_mul hcyc
