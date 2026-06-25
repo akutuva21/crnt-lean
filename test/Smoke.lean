@@ -1560,6 +1560,11 @@ example (f : ↥(stdSimplex ℝ (Fin 3)) → ↥(stdSimplex ℝ (Fin 3))) (hf : 
 example (f : ↥(stdSimplex ℝ (Fin 3)) → ↥(stdSimplex ℝ (Fin 3))) (hf : Continuous f) :
     ∃ z, f z = z :=
   CRNT.Analysis.SpernerLattice.brouwer_stdSimplex_fin3 f hf
+-- **The n-dimensional Brouwer fixed-point theorem**: every continuous self-map of the standard
+-- n-simplex `stdSimplex ℝ (Fin (n+1))` has a fixed point, for every `n`.
+example (n : ℕ) (f : ↥(stdSimplex ℝ (Fin (n + 1))) → ↥(stdSimplex ℝ (Fin (n + 1))))
+    (hf : Continuous f) : ∃ z, f z = z :=
+  CRNT.Analysis.SpernerN.brouwer_stdSimplex_fin n f hf
 
 -- n-D Kuhn-triangulation framework: every cell has exactly n+1 vertices; lattice points realize
 -- into the standard n-simplex; the corners realize to the basis vectors.

@@ -89,6 +89,7 @@ import CRNT.Analysis.SpernerLatticeCellDegree
 import CRNT.Analysis.SpernerLatticeSperner
 import CRNT.Analysis.SpernerLatticeGeometric
 import CRNT.Analysis.SpernerSimplexLimit
+import CRNT.Analysis.SpernerSimplexLimitN
 import CRNT.Analysis.SpernerBrouwer2D
 import CRNT.Analysis.SpernerLatticeN
 import CRNT.Analysis.SpernerNGeometric
@@ -106,6 +107,7 @@ import CRNT.Analysis.SpernerNBoundaryCount
 import CRNT.Analysis.SpernerNHandshake
 import CRNT.Analysis.SpernerNInterior
 import CRNT.Analysis.SpernerNClose
+import CRNT.Analysis.SpernerBrouwerN
 import CRNT.Analysis.SpernerGrid
 
 -- Kinetics: concentrations, mass action, and the general kinetics abstraction
