@@ -1250,6 +1250,11 @@ example {S : Type} [DecidableEq S] [Fintype S] {N₁ N₂ : Network S}
     (K₁.sum K₂).vectorField = fun x => K₁.vectorField x + K₂.vectorField x :=
   K₁.sum_vectorField K₂
 
+-- A set is a siphon of an interconnection iff it is a siphon of each component.
+example {S : Type} [DecidableEq S] [Fintype S] (N₁ N₂ : Network S) (P : Finset S) :
+    (N₁.interconnect N₂).IsSiphon P ↔ N₁.IsSiphon P ∧ N₂.IsSiphon P :=
+  N₁.interconnect_isSiphon_iff N₂ P
+
 -- The Advanced Deficiency Algorithm verdict is non-vacuous: it yields a nonzero stoichiometric vector.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     (h : N.ADAAffirmsCapacity) : N.stoichSubspace ≠ ⊥ :=
