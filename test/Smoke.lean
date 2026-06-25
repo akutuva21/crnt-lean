@@ -2070,3 +2070,15 @@ example {n : ℕ} {M : Matrix (Fin n) (Fin n) ℝ} (h : M.IsPMatrix)
     {ε : Fin n → ℝ} (hε : ∀ i, ε i = 1 ∨ ε i = -1) :
     (Matrix.of (fun i j => ε i * M i j * ε j)).IsPMatrix :=
   h.signatureConj hε
+-- Gale–Nikaido rung 4: the reduced map (last coordinate solved by `φ`) has Jacobian equal to the
+-- Schur complement of the full Jacobian — the dimension-drop step.
+example {n : ℕ} {Dφ : (Fin n → ℝ) →L[ℝ] ℝ}
+    {L : (Fin (n + 1) → ℝ) →L[ℝ] (Fin (n + 1) → ℝ)}
+    (himp : ∀ Δ : Fin n → ℝ, Dφ Δ = -(CRNT.jacobianMatrix L (Fin.last n) (Fin.last n))⁻¹ *
+        ∑ j, CRNT.jacobianMatrix L (Fin.last n) j.castSucc * Δ j) :
+    CRNT.jacobianMatrix ((ContinuousLinearMap.pi (fun i : Fin n =>
+        ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : Fin (n + 1) => ℝ) i.castSucc)).comp
+      (L.comp (ContinuousLinearMap.pi
+        (Fin.lastCases Dφ (fun j => ContinuousLinearMap.proj j)))))
+      = Matrix.schurLast (CRNT.jacobianMatrix L) :=
+  CRNT.jacobianMatrix_reduced_eq_schurLast himp
