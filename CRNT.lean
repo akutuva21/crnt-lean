@@ -302,6 +302,7 @@ import CRNT.Stochastic.KernelMaximalRegion
 import CRNT.Compose.Interconnect
 import CRNT.Compose.InterconnectKinetics
 import CRNT.Compose.InterconnectSiphon
+import CRNT.Compose.InterconnectMonostationary
 
 -- Deficiency-one decidable structural conditions
 import CRNT.Deficiency.DeficiencyOneDecide

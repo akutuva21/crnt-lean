@@ -1255,6 +1255,16 @@ example {S : Type} [DecidableEq S] [Fintype S] (N₁ N₂ : Network S) (P : Fins
     (N₁.interconnect N₂).IsSiphon P ↔ N₁.IsSiphon P ∧ N₂.IsSiphon P :=
   N₁.interconnect_isSiphon_iff N₂ P
 
+-- Injectivity of the composed field ⇒ ≤1 steady state per class of the interconnection.
+example {S : Type} [DecidableEq S] [Fintype S] {N₁ N₂ : Network S}
+    {K₁ : Network.Kinetics N₁} {K₂ : Network.Kinetics N₂} {x₀ : Concentration S}
+    (h : (K₁.sum K₂).InjectiveOnClass x₀) {x y : Concentration S}
+    (hx : x ∈ (N₁.interconnect N₂).positiveCompatibilityClass x₀)
+    (hy : y ∈ (N₁.interconnect N₂).positiveCompatibilityClass x₀)
+    (hsx : (N₁.interconnect N₂).IsKineticSteadyState (K₁.sum K₂) x)
+    (hsy : (N₁.interconnect N₂).IsKineticSteadyState (K₁.sum K₂) y) : x = y :=
+  h.sum_subsingleton_steadyState hx hy hsx hsy
+
 -- The Advanced Deficiency Algorithm verdict is non-vacuous: it yields a nonzero stoichiometric vector.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     (h : N.ADAAffirmsCapacity) : N.stoichSubspace ≠ ⊥ :=
