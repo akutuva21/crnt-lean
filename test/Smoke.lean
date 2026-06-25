@@ -42,6 +42,11 @@ example : Examples.ReversiblePair.N.computeNumLinkageClasses = 1 := by decide
 example : Examples.ReversiblePair.N.deficiency = Examples.ReversiblePair.N.computableDeficiency :=
   Network.deficiency_eq_computableDeficiency _
 
+-- The deficiency-one linkage conditions carry a (total, axiom-clean, `#eval`-only) decidability
+-- instance, assembled from the per-class and tightness deciders.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
+    Decidable N.DeficiencyOneConditions := inferInstance
+
 -- A data-driven reversible pair `A ⇌ B` reconstructs to a 2-complex, 2-reaction network.
 def interopRevData : NetworkData :=
   { numSpecies := 2,

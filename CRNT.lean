@@ -31,6 +31,7 @@ import CRNT.Decision.GaussianRank
 import CRNT.Decision.ExactDeficiency
 import CRNT.Decision.LinkageDeficiencyExact
 import CRNT.Decision.ComputableDeficiency
+import CRNT.Decision.DeficiencyOneConditionsDecide
 import CRNT.Decision.MinorSearch
 import CRNT.Decision.DeficiencyZeroTactic
 
