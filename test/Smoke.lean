@@ -1578,6 +1578,11 @@ example {n N : ℕ} (hN : 0 < N) (c : CRNT.Analysis.SpernerN.Cell n N) (k k' : F
         (CRNT.Analysis.SpernerN.realize (c.vertex k')) ≤ 1 / N :=
   CRNT.Analysis.SpernerN.cell_vertex_dist_le hN c k k'
 
+-- n-D local Sperner parity: a colored cell has an odd door count iff it is fully labeled.
+example {n : ℕ} (c : Fin (n + 1) → Fin (n + 1)) :
+    Odd (CRNT.Analysis.SpernerN.doorCount c) ↔ Function.Bijective c :=
+  CRNT.Analysis.SpernerN.doorCount_odd_iff c
+
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (v : S → ℝ) :
