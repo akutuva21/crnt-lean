@@ -108,6 +108,7 @@ import CRNT.Analysis.SpernerNHandshake
 import CRNT.Analysis.SpernerNInterior
 import CRNT.Analysis.SpernerNClose
 import CRNT.Analysis.SpernerBrouwerN
+import CRNT.Analysis.BrouwerConvex
 import CRNT.Analysis.SpernerGrid
 
 -- Kinetics: concentrations, mass action, and the general kinetics abstraction

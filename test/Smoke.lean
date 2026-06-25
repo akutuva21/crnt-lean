@@ -1565,6 +1565,18 @@ example (f : ↥(stdSimplex ℝ (Fin 3)) → ↥(stdSimplex ℝ (Fin 3))) (hf : 
 example (n : ℕ) (f : ↥(stdSimplex ℝ (Fin (n + 1))) → ↥(stdSimplex ℝ (Fin (n + 1))))
     (hf : Continuous f) : ∃ z, f z = z :=
   CRNT.Analysis.SpernerN.brouwer_stdSimplex_fin n f hf
+-- **Brouwer on the unit cube**: every continuous self-map of `Set.Icc 0 1 ⊆ Fin n → ℝ` has a fixed point.
+example (n : ℕ) (f : (Fin n → ℝ) → (Fin n → ℝ)) (hf : ContinuousOn f (Set.Icc 0 1))
+    (hmaps : Set.MapsTo f (Set.Icc (0 : Fin n → ℝ) 1) (Set.Icc 0 1)) :
+    ∃ x ∈ Set.Icc (0 : Fin n → ℝ) 1, f x = x :=
+  CRNT.Analysis.brouwer_cube f hf hmaps
+-- **The Poincaré–Miranda theorem**: a continuous map on the cube with the standard boundary sign
+-- conditions on each pair of opposite faces has a zero.
+example (n : ℕ) (f : (Fin n → ℝ) → (Fin n → ℝ)) (hf : ContinuousOn f (Set.Icc 0 1))
+    (hlo : ∀ x ∈ Set.Icc (0 : Fin n → ℝ) 1, ∀ i, x i = 0 → f x i ≤ 0)
+    (hhi : ∀ x ∈ Set.Icc (0 : Fin n → ℝ) 1, ∀ i, x i = 1 → 0 ≤ f x i) :
+    ∃ x ∈ Set.Icc (0 : Fin n → ℝ) 1, f x = 0 :=
+  CRNT.Analysis.poincare_miranda f hf hlo hhi
 
 -- n-D Kuhn-triangulation framework: every cell has exactly n+1 vertices; lattice points realize
 -- into the standard n-simplex; the corners realize to the basis vectors.
