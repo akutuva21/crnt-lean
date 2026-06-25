@@ -259,4 +259,109 @@ theorem facet_eq_vertex_align (c c' : Cell n N) (m : Fin (n + 1))
   have hkeq : (k : ℕ) = (k' : ℕ) := by rw [hWb] at hval; omega
   exact (congrArg c'.vertex (Fin.ext hkeq)).trans hkk'
 
+/-! ### Facet rigidity: a shared facet is the cell or its flip -/
+
+/-- **Two permutations agreeing off a 2-element set are equal or differ by that transposition.** -/
+theorem perm_eq_or_swap {α : Type*} [DecidableEq α] (σ σ' : Equiv.Perm α) (a b : α) (hab : a ≠ b)
+    (h : ∀ l, l ≠ a → l ≠ b → σ' l = σ l) :
+    σ' = σ ∨ σ' = σ * Equiv.swap a b := by
+  have himg : ∀ y : α, (y = a ∨ y = b) → σ' y = σ a ∨ σ' y = σ b := by
+    intro y hy
+    have hx : σ (σ.symm (σ' y)) = σ' y := Equiv.apply_symm_apply _ _
+    by_cases hxa : σ.symm (σ' y) = a
+    · exact Or.inl (by rw [← hx, hxa])
+    · by_cases hxb : σ.symm (σ' y) = b
+      · exact Or.inr (by rw [← hx, hxb])
+      · exfalso
+        have heq : σ' (σ.symm (σ' y)) = σ' y := by rw [h _ hxa hxb, hx]
+        have hxy : σ.symm (σ' y) = y := σ'.injective heq
+        rcases hy with rfl | rfl
+        · exact hxa hxy
+        · exact hxb hxy
+  have ha2 : σ' a = σ a ∨ σ' a = σ b := himg a (Or.inl rfl)
+  have hb2 : σ' b = σ a ∨ σ' b = σ b := himg b (Or.inr rfl)
+  rcases ha2 with ha | ha
+  · have hb : σ' b = σ b := by
+      rcases hb2 with hb | hb
+      · exact absurd (σ'.injective (hb.trans ha.symm)) hab.symm
+      · exact hb
+    left
+    apply Equiv.ext; intro l
+    by_cases hla : l = a
+    · rw [hla]; exact ha
+    · by_cases hlb : l = b
+      · rw [hlb]; exact hb
+      · exact h l hla hlb
+  · have hb : σ' b = σ a := by
+      rcases hb2 with hb | hb
+      · exact hb
+      · exact absurd (σ'.injective (ha.trans hb.symm)) hab
+    right
+    apply Equiv.ext; intro l
+    rw [Equiv.Perm.mul_apply]
+    by_cases hla : l = a
+    · rw [hla, Equiv.swap_apply_left]; exact ha
+    · by_cases hlb : l = b
+      · rw [hlb, Equiv.swap_apply_right]; exact hb
+      · rw [Equiv.swap_apply_of_ne_of_ne hla hlb]; exact h l hla hlb
+
+/-- A Kuhn cell is determined by its base and permutation. -/
+theorem Cell.eq_of_base_perm {c c' : Cell n N} (hb : c.base = c'.base) (hp : c.perm = c'.perm) :
+    c = c' := by
+  obtain ⟨b, p, sb, v⟩ := c
+  obtain ⟨b', p', sb', v'⟩ := c'
+  obtain rfl : b = b' := hb
+  obtain rfl : p = p' := hp
+  rfl
+
+/-- **Facet incidence rigidity.** Any cell sharing the interior-chain facet that drops `m` is either
+`c` itself or its adjacent-transposition flip. -/
+theorem facet_eq_imp (c c' : Cell n N) (m : Fin (n + 1)) (hm0 : 0 < (m : ℕ)) (hmn : (m : ℕ) < n)
+    (heq : facetVerts c m = facetVerts c' m) :
+    c' = c ∨ ∃ hv, c' = flipCell c m hm0 hmn hv := by
+  have hWb : Wb c = Wb c' := (facet_eq_index c c' m m hm0 hmn heq).2
+  -- bases agree
+  have hm_ne0 : (0 : Fin (n + 1)) ≠ m := by rintro rfl; simp at hm0
+  have hbase : ∀ i, c'.base i = c.base i := by
+    intro i
+    rw [← vertex_zero c' i, ← vertex_zero c i,
+      facet_eq_vertex_align c c' m heq hWb 0 hm_ne0]
+  -- the swap positions
+  have hm1 : (m : ℕ) - 1 < n := by omega
+  set a : Fin n := ⟨(m : ℕ) - 1, hm1⟩ with ha_def
+  set b : Fin n := ⟨(m : ℕ), hmn⟩ with hb_def
+  have hab : a ≠ b := by rw [ha_def, hb_def]; intro h; rw [Fin.mk.injEq] at h; omega
+  -- permutations agree off {a, b}
+  have hpoff : ∀ l, l ≠ a → l ≠ b → c'.perm l = c.perm l := by
+    intro l hla hlb
+    apply root_injective; funext i
+    have hcs : l.castSucc ≠ m := by
+      intro hc; apply hlb
+      have hv2 : (l : ℕ) = (m : ℕ) := by have := congrArg Fin.val hc; simpa using this
+      apply Fin.ext; rw [hb_def]; exact hv2
+    have hsc : l.succ ≠ m := by
+      intro hc; apply hla
+      have hv2 : (l : ℕ) + 1 = (m : ℕ) := by
+        have := congrArg Fin.val hc; simpa using this
+      have hl : (l : ℕ) = (m : ℕ) - 1 := by omega
+      apply Fin.ext; rw [ha_def]; exact hl
+    have ec := vertex_step c l i
+    have ec' := vertex_step c' l i
+    rw [facet_eq_vertex_align c c' m heq hWb l.succ hsc,
+      facet_eq_vertex_align c c' m heq hWb l.castSucc hcs] at ec'
+    linarith [ec, ec']
+  have hflip_eq : c.perm * Equiv.swap a b = flipPerm c.perm m hm0 hmn := rfl
+  rcases perm_eq_or_swap c.perm c'.perm a b hab hpoff with hpe | hpe
+  · exact Or.inl (Cell.eq_of_base_perm (funext hbase) hpe)
+  · rw [hflip_eq] at hpe
+    have hv : ∀ i, 0 ≤ (c.base i : ℤ) + voff (flipPerm c.perm m hm0 hmn) m i := by
+      intro i
+      have hval := c'.valid m i
+      rw [hbase i, hpe] at hval
+      exact hval
+    refine Or.inr ⟨hv, ?_⟩
+    apply Cell.eq_of_base_perm
+    · funext i; exact hbase i
+    · rw [hpe]; rfl
+
 end CRNT.Analysis.SpernerN

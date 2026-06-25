@@ -1604,6 +1604,16 @@ example {n N : ℕ} (c c' : CRNT.Analysis.SpernerN.Cell n N) (m m' : Fin (n + 1)
     (heq : CRNT.Analysis.SpernerN.facetVerts c m = CRNT.Analysis.SpernerN.facetVerts c' m') :
     m' = m ∧ CRNT.Analysis.SpernerN.Wb c = CRNT.Analysis.SpernerN.Wb c' :=
   CRNT.Analysis.SpernerN.facet_eq_index c c' m m' hm0 hmn heq
+-- Two permutations agreeing off a 2-element set are equal or differ by that transposition.
+example {α : Type} [DecidableEq α] (σ σ' : Equiv.Perm α) (a b : α) (hab : a ≠ b)
+    (h : ∀ l, l ≠ a → l ≠ b → σ' l = σ l) : σ' = σ ∨ σ' = σ * Equiv.swap a b :=
+  CRNT.Analysis.SpernerN.perm_eq_or_swap σ σ' a b hab h
+-- Facet-incidence rigidity: any cell sharing an interior-chain facet is the cell or its flip.
+example {n N : ℕ} (c c' : CRNT.Analysis.SpernerN.Cell n N) (m : Fin (n + 1))
+    (hm0 : 0 < (m : ℕ)) (hmn : (m : ℕ) < n)
+    (heq : CRNT.Analysis.SpernerN.facetVerts c m = CRNT.Analysis.SpernerN.facetVerts c' m) :
+    c' = c ∨ ∃ hv, c' = CRNT.Analysis.SpernerN.flipCell c m hm0 hmn hv :=
+  CRNT.Analysis.SpernerN.facet_eq_imp c c' m hm0 hmn heq
 
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
