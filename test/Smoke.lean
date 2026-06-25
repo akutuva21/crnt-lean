@@ -2123,3 +2123,8 @@ example {n : Type} [DecidableEq n] [Fintype n] {R : Type} [CommRing R] (M : Matr
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {u : N.SRVertex S}
     {w : N.srGraph.Walk u u} (hcyc : w.IsCycle) : ∃ k, w.length = 2 * k :=
   N.srCycle_length_eq_two_mul hcyc
+
+-- The stoichiometric-subspace chart recovers a class point from its coordinate.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {x₀ x : Concentration S}
+    (h : N.StoichCompatible x₀ x) : N.affineChart x₀ (N.chartCoord x₀ x) = x :=
+  N.affineChart_chartCoord h
