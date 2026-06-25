@@ -1626,6 +1626,13 @@ example {n N : ℕ} (c : CRNT.Analysis.SpernerN.Cell n N) (m : Fin (n + 1))
       = CRNT.Analysis.SpernerN.lowColors n)
     (hface : ∀ p ∈ CRNT.Analysis.SpernerN.facetVerts c m, p.1 j = 0) : j = Fin.last n :=
   CRNT.Analysis.SpernerN.door_face_eq_last c m col j hdoor hface
+-- Restricting an (n+1)-D Sperner coloring along the boundary face yields an n-D Sperner coloring;
+-- on the face, its color (recast up) matches the original.
+example {n N : ℕ} (col : CRNT.Analysis.SpernerN.SpernerColoring (n + 1) N)
+    (p : CRNT.Analysis.SpernerN.Pt (n + 1) N) (hp : p.1 (Fin.last (n + 1)) = 0) :
+    ((CRNT.Analysis.SpernerN.restrictColoring col).color
+        (CRNT.Analysis.SpernerN.boundaryEquiv n N ⟨p, hp⟩)).castSucc = col.color p :=
+  CRNT.Analysis.SpernerN.restrictColoring_color_of_boundary col p hp
 
 -- Ladder 2 (persistence): the conservation-law clause of siphon criticality equals membership in the
 -- dot-product orthogonal complement of the stoichiometric subspace (the Farkas-feasibility entry point).
