@@ -1688,6 +1688,14 @@ example {n N : ℕ} (col : CRNT.Analysis.SpernerN.SpernerColoring (n + 1) N) (hN
       = (Finset.univ.filter
           (CRNT.Analysis.SpernerN.IsRainbowCell (CRNT.Analysis.SpernerN.restrictColoring col))).card :=
   CRNT.Analysis.SpernerN.boundary_doors_eq_rainbow col hN
+-- The n-dimensional Sperner lemma (unconditional): every proper Sperner coloring of the N-subdivided
+-- n-simplex has a rainbow Kuhn cell, and the number of rainbow cells is odd.
+example {m N : ℕ} (col : CRNT.Analysis.SpernerN.SpernerColoring m N) (hN : 0 < N) :
+    ∃ c : CRNT.Analysis.SpernerN.Cell m N, CRNT.Analysis.SpernerN.IsRainbowCell col c :=
+  CRNT.Analysis.SpernerN.sperner_exists_rainbow col hN
+example {m N : ℕ} (col : CRNT.Analysis.SpernerN.SpernerColoring m N) (hN : 0 < N) :
+    Odd (Finset.univ.filter (CRNT.Analysis.SpernerN.IsRainbowCell col)).card :=
+  CRNT.Analysis.SpernerN.sperner_odd_rainbow col hN
 -- n-D Sperner handshake: the door incidences have the same parity as the rainbow cells (the cell side
 -- of the double-count).
 example {n N : ℕ} (col : CRNT.Analysis.SpernerN.SpernerColoring n N) :
