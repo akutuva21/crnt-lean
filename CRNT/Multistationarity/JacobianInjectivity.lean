@@ -12,10 +12,13 @@ every `x` in the set and every `v ≠ 0` — is injective there. The proof is th
 value theorem applied to `t ↦ ⟨v, f(x + t v)⟩` along each segment: its derivative `⟨v, J v⟩` is
 strictly positive, so the endpoints differ.
 
-This is the *positive-definite* fragment. The full Gale–Nikaido theorem (a P-matrix Jacobian — all
-principal minors positive, not symmetry/definiteness — gives global injectivity) needs topological
-degree theory, and the Craciun–Feinberg determinant-sign criterion needs the determinant-via-cycle-
-cover expansion; both are absent from Mathlib v4.31 and out of scope here.
+This is the *positive-definite* fragment. The full Gale–Nikaido theorem — a P-matrix Jacobian (all
+principal minors positive, not symmetry/definiteness) gives global injectivity — is proved
+degree-free in `CRNT.Multistationarity.GaleNikaidoUniv` (`injOn_of_pmatrix_fderiv`), through
+signature conjugation and order-interval monotonicity rather than topological degree. The
+determinant-via-cycle-cover expansion behind the Craciun–Feinberg sign criterion is in
+`CRNT.LinearAlgebra.DetCycleCover` (`det_eq_sum_cycleCover_terms`); specializing it to the factored
+mass-action Jacobian to close that criterion is not yet done.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Kinetics.MassActionJacobian`, Mathlib
 `Analysis.Calculus.MeanValue`.

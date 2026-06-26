@@ -23,9 +23,9 @@ the fully-enabled part of the lattice this mass equals the complex-indexed total
 generator-outflow sum (the holding-rate departure flux of `CRNT.Stochastic.CTMC`), and at a
 complex-balanced concentration the generator stationarity `πQ = 0` upgrades this to global
 balance for the embedded chain: total inflow equals total outflow equals the stationary
-mass. This is the discrete-time invariance rung at the real-arithmetic level matching the
-elementary generator; the measure-theoretic `Kernel.Invariant`/`Kernel.IsReversible` layer
-is out of reach here.
+mass. This is the discrete-time invariance statement at the real-arithmetic level matching the
+elementary generator; the measure-theoretic `Kernel.Invariant`/`Kernel.IsReversible` layer is
+built on top of it in `CRNT.Stochastic.Kernel` and `CRNT.Stochastic.KernelInvariant`.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.CTMC`.
 -/
@@ -86,7 +86,7 @@ theorem jumpStationaryMass_eq_generatorOutflowSum (N : Network S) (κ : RateCons
 /-- Global balance for the embedded jump chain at a complex-balanced concentration. On the
 fully-enabled part of the lattice the total complex-indexed inflow equals the jump-chain
 stationary mass, since generator stationarity `πQ = 0` forces total inflow to equal total
-outflow and the latter is the stationary mass. This is the discrete-time invariance rung at
+outflow and the latter is the stationary mass. This is the discrete-time invariance statement at
 the elementary real-arithmetic level. -/
 theorem jumpGlobalBalance_of_complexBalanced (N : Network S) (κ : RateConstants N)
     (c : Concentration S) (n : S → ℕ) (hcb : N.IsComplexBalanced κ c)

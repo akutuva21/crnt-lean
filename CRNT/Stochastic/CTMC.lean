@@ -21,7 +21,7 @@ The genuine generator-level stationarity predicate `IsGeneratorStationary` is th
 vanishing of `cmeGenerator π` at every count, i.e. `πQ = 0`. The Anderson–Craciun–Kurtz
 product-form theorem `productPoisson_isGeneratorStationary_of_complexBalanced` shows that,
 for a complex-balanced concentration `c`, the product-Poisson density is annihilated by the
-generator. The bridge `cmeGenerator_productPoissonPMF_eq_ackResidual` rewrites the literal
+generator. The bridge `cmeGenerator_eq_ackResidual` rewrites the literal
 generator on the product-Poisson density into the ACK residual of `CRNT.Stochastic.Generator`
 via the per-reaction product-form substitution, after which complex balance closes it.
 

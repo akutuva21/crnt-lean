@@ -17,8 +17,10 @@ directed reachability.
 
 `StronglyLinkedWithin k` is the decidable bounded companion: it is sound for `StronglyLinked`
 (`stronglyLinked_of_within`), so concrete networks confirm strong connectivity by `decide` at
-a chosen depth. A full `DecidableRel` for `StronglyLinked` (and the `Fintype` of strong
-linkage classes) requires the directed path-length bound and is future work.
+a chosen depth. Full decidability is also available: `CRNT.Decision.DirectedReachability`
+provides `decidableStronglyLinkedV`, the `Fintype` of strong linkage classes
+(`Fintype (Quotient N.stronglyLinkedSetoid)`), and the computable count `numStrongLinkageClasses`,
+through the directed path-length bound on a finite type.
 
 This module is **stable**. Depends on: `CRNT.Decision.Reachability`, `CRNT.Decision.Linkage`.
 -/

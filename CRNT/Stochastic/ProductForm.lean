@@ -23,7 +23,7 @@ the measure of a single count vector with that density.
 The stochastic mass-action propensity `stochasticMassActionRate` is the falling-
 factorial counting law `κ r · ∏ s, (n s)^{(source r s)}`, the discrete analogue of the
 deterministic mass-action monomial. The lemma `productPoissonPMF_mul_descFactorial`
-is the load-bearing per-species/global identity: multiplying the product-Poisson
+is the central per-species/global identity: multiplying the product-Poisson
 density by a falling-factorial propensity factor reproduces the density at the shifted
 count weighted by a power of the rate, `π(n) · n^{(k)} = c^k · π(n - k)`. Feeding this
 through `IsComplexBalanced` reduces the complex-by-complex stochastic flux balance
@@ -32,13 +32,13 @@ exactly to the deterministic complex-balance equation; that reduction is
 
 ## Scope
 
-The continuous-time Markov generator (Q-matrix / master equation) is out of scope:
-Mathlib provides discrete-time transition kernels (`Kernel.Invariant`,
-`Kernel.IsReversible`) but no continuous-time generator type, so the statement
-"`productPoisson` is annihilated by the generator" cannot be phrased. This module
-supplies the stationary product measure, its density, the stochastic propensity, and
-the density/balance algebra that any generator-level stationarity proof reduces to.
-The generator-level equivalence is the named gap.
+This module supplies the measure side: the stationary product measure, its density, the
+stochastic propensity, and the density/balance algebra that the generator-level stationarity
+proof reduces to. Mathlib has discrete-time transition kernels (`Kernel.Invariant`,
+`Kernel.IsReversible`) but no continuous-time generator type, so the generator is rendered as
+an explicit pointwise-finite operator in `CRNT.Stochastic.CTMC`, where
+`productPoisson_isGeneratorStationary_of_complexBalanced` proves that the product-Poisson
+density is annihilated by the generator (`πQ = 0`) at a complex-balanced concentration.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Equilibria.ComplexBalanced`,
 `CRNT.Kinetics.MassAction`, `CRNT.Kinetics.Concentration`, Mathlib Poisson and product

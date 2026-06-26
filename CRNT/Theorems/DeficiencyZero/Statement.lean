@@ -8,10 +8,10 @@ import CRNT.Equilibria.ComplexBalanced
 
 This module exposes the hypotheses and the conclusion of the deficiency-zero theorem
 as named definitions, so that downstream tools and proofs can refer to them by a
-stable API. It contains **no axioms and no `sorry`**: the theorem itself is not
-asserted here. The conclusion is packaged as a `Prop`-valued definition
-(`DeficiencyZeroConclusion`) that a future proof — or an explicit, clearly marked
-experimental hypothesis — can target.
+stable API. It contains **no axioms and no `sorry`** and asserts no theorem itself: the
+proof against this interface is `Network.deficiencyZeroTheorem` in
+`CRNT.Theorems.DeficiencyZero.Existence`. The conclusion is packaged as a `Prop`-valued
+definition (`DeficiencyZeroConclusion`) that that proof targets.
 
 This module is **stable** (statement-only). Depends on the deficiency, weak-
 reversibility, and equilibrium layers.
@@ -33,9 +33,9 @@ positive choice of rate constants and every positive starting concentration, the
 a unique concentration in the positive compatibility class of the start that is
 complex-balanced.
 
-This is a `Prop`-valued *statement*, not an asserted theorem. Proving
-`∀ N, N.SatisfiesDeficiencyZeroHypotheses → N.DeficiencyZeroConclusion` is a long-term
-target; it is intentionally left unproved in the stable library. -/
+This is a `Prop`-valued *statement*, not an asserted theorem in this module.
+`Network.deficiencyZeroTheorem` (`CRNT.Theorems.DeficiencyZero.Existence`) proves
+`∀ N, N.SatisfiesDeficiencyZeroHypotheses → N.DeficiencyZeroConclusion`. -/
 def DeficiencyZeroConclusion (N : Network S) : Prop :=
   ∀ (κ : RateConstants N) (x₀ : Concentration S), x₀.Positive →
     ∃! x : Concentration S, x ∈ N.positiveCompatibilityClass x₀ ∧ N.IsComplexBalanced κ x
