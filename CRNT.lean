@@ -304,6 +304,7 @@ import CRNT.Stochastic.KernelStationary
 import CRNT.Stochastic.KernelIrreducible
 import CRNT.Stochastic.KernelNormalized
 import CRNT.Stochastic.KernelSupport
+import CRNT.Stochastic.KernelProductForm
 import CRNT.Stochastic.KernelMaximalRegion
 
 -- Network composition

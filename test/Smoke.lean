@@ -1936,6 +1936,27 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
         N.restrictedStationaryMeasure κ c T) {m} :=
   N.jumpKernel_invariantProb_singleton_pos κ c hc hT hTfin hne hm
 
+-- Ladder 4 (CTMC): the normalized invariant jump-chain singleton masses inside a closed enabled
+-- region are cross-multiplied proportional through the jump-chain stationary weights (the discrete
+-- shadow of the Anderson–Craciun–Kurtz product form).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (c : Concentration S) {T : Set (S → ℕ)} {m m' : S → ℕ} (hm : m ∈ T) (hm' : m' ∈ T) :
+    ((N.restrictedStationaryMeasure κ c T Set.univ)⁻¹ • N.restrictedStationaryMeasure κ c T) {m}
+        * ENNReal.ofReal (N.jumpStationaryMass κ c m')
+      = ((N.restrictedStationaryMeasure κ c T Set.univ)⁻¹ • N.restrictedStationaryMeasure κ c T) {m'}
+        * ENNReal.ofReal (N.jumpStationaryMass κ c m) :=
+  N.jumpKernel_invariantProb_singleton_ratio κ c hm hm'
+
+-- Ladder 4 (CTMC): the normalized invariant jump-chain probability measure is nonzero on a
+-- singleton exactly when the count lies in the nonempty finite closed enabled region.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (c : Concentration S) (hc : c.Positive)
+    {T : Set (S → ℕ)} (hT : N.ClosedEnabledRegion κ T) (hTfin : T.Finite) (hne : T.Nonempty)
+    (m : S → ℕ) :
+    ((N.restrictedStationaryMeasure κ c T Set.univ)⁻¹ •
+        N.restrictedStationaryMeasure κ c T) {m} ≠ 0 ↔ m ∈ T :=
+  N.jumpKernel_invariantProb_singleton_ne_zero_iff κ c hc hT hTfin hne m
+
 -- Ladder 4 (CTMC): the canonical maximal closed enabled region is itself a closed enabled region
 -- (arbitrary union of such regions is one), so it carries the invariant restricted stationary measure.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N) :
