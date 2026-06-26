@@ -1134,6 +1134,22 @@ example {ι : Type} [Fintype ι] (S : Submodule ℝ (ι → ℝ)) :
 example (a : ℕ → ℝ) : CRNT.hurwitzDet a 3 2 (by norm_num) = a 2 * a 1 - a 0 :=
   CRNT.hurwitzDet_two_cubic a
 
+-- Routh–Hurwitz in degree four (Liénard–Chipart necessity): four negative real roots of the
+-- monic quartic force the five sign conditions, including the third Hurwitz determinant.
+example (r₁ r₂ r₃ r₄ a₃ a₂ a₁ a₀ : ℝ)
+    (hr₁ : r₁ < 0) (hr₂ : r₂ < 0) (hr₃ : r₃ < 0) (hr₄ : r₄ < 0)
+    (e₃ : a₃ = -(r₁ + r₂ + r₃ + r₄))
+    (e₂ : a₂ = r₁ * r₂ + r₁ * r₃ + r₁ * r₄ + r₂ * r₃ + r₂ * r₄ + r₃ * r₄)
+    (e₁ : a₁ = -(r₁ * r₂ * r₃ + r₁ * r₂ * r₄ + r₁ * r₃ * r₄ + r₂ * r₃ * r₄))
+    (e₀ : a₀ = r₁ * r₂ * r₃ * r₄) :
+    0 < a₃ ∧ 0 < a₂ ∧ 0 < a₁ ∧ 0 < a₀ ∧ a₁ ^ 2 + a₃ ^ 2 * a₀ < a₃ * a₂ * a₁ :=
+  CRNT.hurwitz_quartic_necessary_allReal r₁ r₂ r₃ r₄ a₃ a₂ a₁ a₀ hr₁ hr₂ hr₃ hr₄ e₃ e₂ e₁ e₀
+
+-- Bridge: the third Hurwitz determinant of a quartic is the Liénard–Chipart `Δ₃`.
+example (a : ℕ → ℝ) :
+    CRNT.hurwitzDet a 4 3 (by norm_num) = a 3 * a 2 * a 1 - a 1 ^ 2 - a 3 ^ 2 * a 0 :=
+  CRNT.hurwitzDet_three_quartic a
+
 -- Singular-perturbation boundary layer: a one-sided contraction toward its equilibrium decays
 -- exponentially.
 example {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {f : E → E} {z : ℝ → E}
