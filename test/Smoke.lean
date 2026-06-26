@@ -1145,6 +1145,20 @@ example (r₁ r₂ r₃ r₄ a₃ a₂ a₁ a₀ : ℝ)
     0 < a₃ ∧ 0 < a₂ ∧ 0 < a₁ ∧ 0 < a₀ ∧ a₁ ^ 2 + a₃ ^ 2 * a₀ < a₃ * a₂ * a₁ :=
   CRNT.hurwitz_quartic_necessary_allReal r₁ r₂ r₃ r₄ a₃ a₂ a₁ a₀ hr₁ hr₂ hr₃ hr₄ e₃ e₂ e₁ e₀
 
+-- Routh–Hurwitz in degree four (Liénard–Chipart full criterion): the five sign conditions
+-- on the monic quartic hold iff all four complex roots lie in the open left half-plane.
+example (z₁ z₂ z₃ z₄ : ℂ) (a₃ a₂ a₁ a₀ : ℝ)
+    (e₃ : (a₃ : ℂ) = -(z₁ + z₂ + z₃ + z₄))
+    (e₂ : (a₂ : ℂ) = z₁ * z₂ + z₁ * z₃ + z₁ * z₄ + z₂ * z₃ + z₂ * z₄ + z₃ * z₄)
+    (e₁ : (a₁ : ℂ) = -(z₁ * z₂ * z₃ + z₁ * z₂ * z₄ + z₁ * z₃ * z₄ + z₂ * z₃ * z₄))
+    (e₀ : (a₀ : ℂ) = z₁ * z₂ * z₃ * z₄)
+    (hstruct : (z₁.im = 0 ∧ z₂.im = 0 ∧ z₃.im = 0 ∧ z₄.im = 0)
+      ∨ (z₂ = (starRingEnd ℂ) z₁ ∧ z₃.im = 0 ∧ z₄.im = 0)
+      ∨ (z₂ = (starRingEnd ℂ) z₁ ∧ z₄ = (starRingEnd ℂ) z₃)) :
+    (0 < a₃ ∧ 0 < a₂ ∧ 0 < a₁ ∧ 0 < a₀ ∧ a₁ ^ 2 + a₃ ^ 2 * a₀ < a₃ * a₂ * a₁) ↔
+      (z₁.re < 0 ∧ z₂.re < 0 ∧ z₃.re < 0 ∧ z₄.re < 0) :=
+  CRNT.hurwitz_quartic_root_iff z₁ z₂ z₃ z₄ a₃ a₂ a₁ a₀ e₃ e₂ e₁ e₀ hstruct
+
 -- Bridge: the third Hurwitz determinant of a quartic is the Liénard–Chipart `Δ₃`.
 example (a : ℕ → ℝ) :
     CRNT.hurwitzDet a 4 3 (by norm_num) = a 3 * a 2 * a 1 - a 1 ^ 2 - a 3 ^ 2 * a 0 :=
