@@ -14,7 +14,8 @@ axiom-clean guarantee. Each reported field is a computable companion of the libr
 derived fields each have a bridge in `CRNT/Interop/Analysis.lean` relating the reported value to its
 propositional definition: `analyze_deficiency_eq`, `analyze_stoichRank_eq`,
 `analyze_numLinkageClasses_eq`, `analyze_conservationLawDim_eq`, `analyze_weaklyReversible_eq`,
-`analyze_acrSpecies_eq`, `analyze_hasSiphon_eq`, and `mem_analyze_minimalSiphons`. The one-sided
+`analyze_acrSpecies_eq`, `analyze_hasSiphon_eq`, `mem_analyze_minimalSiphons`, and
+`analyze_srSignConsistent_eq`. The one-sided
 exclusion `analyze_hasNoCriticalSiphon_of_hasSiphon_false` is proved there too. When a result needs an
 axiom-clean kernel certificate for a specific network, use the codegen contract instead.
 
@@ -44,8 +45,8 @@ their analyses (the bulk path: one process invocation scores many networks).
 ```json
 {"acrSpecies":[],"conservationLawDim":1,"deficiency":0,"hasSiphon":true,
  "minimalSiphons":[[0,1]],"numComplexes":2,"numLinkageClasses":1,"numReactions":2,
- "numSpecies":2,"numStrongLinkageClasses":1,"stoichRank":1,"version":5,
- "weaklyReversible":true}
+ "numSpecies":2,"numStrongLinkageClasses":1,"srSignConsistent":false,"stoichRank":1,
+ "version":6,"weaklyReversible":true}
 ```
 
 The fields, in their declaration order on the `Analysis` structure:
@@ -65,6 +66,7 @@ The fields, in their declaration order on the `Analysis` structure:
 | `acrSpecies` | int[] | species with a structural Shinar–Feinberg ACR witness | `acrSpecies` (`HasShinarFeinbergPair`) |
 | `hasSiphon` | bool | a nonempty siphon exists | `IsSiphon` (powerset search) |
 | `minimalSiphons` | int[][] | support-minimal siphons, each an ascending index array | `IsMinimalSiphon` |
+| `srSignConsistent` | bool | consistent signed species–reaction cover condition holds | `decide ConsistentSRSign` |
 
 `Analysis` derives `FromJson, ToJson, Repr, DecidableEq`; the `ToJson` instance is what serializes the
 record.
@@ -87,6 +89,15 @@ on its support, so the consumer runs its own feasibility (LP) check on each mini
 criticality. Enumeration tests minimality across the powerset (`~4^numSpecies` in the worst case —
 fine for the small networks evaluated here).
 
+`srSignConsistent` is `decide ConsistentSRSign`: the consistent signed species–reaction cover
+condition, the decidable sign fragment of the Craciun–Feinberg species–reaction graph injectivity
+criterion. Over every restricted species set, every reaction-choice cover carries a nonnegative
+signed-incidence weight, read in `ℤ` where the order is decidable. It is **not** a full injectivity
+verdict: discharging mass-action injectivity (and monostationarity) on a positive compatibility
+class additionally requires the chart-box, positivity, positive-diagonal, and coordinate-selection
+hypotheses, which the consumer supplies. When `true`, the network satisfies the verdict's sign
+hypothesis (`hweight_of_consistentSRSign`).
+
 The deficiency assembly `δ = n − ℓ − s` is owned by the library (`computableDeficiency`), not the
 consumer: `computeNumLinkageClasses` supplies a computable `ℓ` (the quotient `numLinkageClasses` does
 not evaluate), and `deficiency_eq_computableDeficiency` bridges the assembly to the propositional
@@ -94,7 +105,7 @@ not evaluate), and `deficiency_eq_computableDeficiency` bridges the assembly to 
 
 ## Versioning
 
-`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `5`. It tags the
+`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `6`. It tags the
 field set and increments whenever a field is added or its meaning changes, so a consumer can detect a
 contract it does not understand. A new per-property companion raises the version when it joins the
 record.
@@ -118,6 +129,8 @@ never yields a structural verdict.
 - `CRNT/Decision/ACRCheck.lean`: `HasShinarFeinbergPair`, `acrSpecies`, and `mem_acrSpecies`.
 - `CRNT/Dynamics/Siphon.lean`: `IsSiphon`, `IsMinimalSiphon`, `minimalSiphons`, `HasNoCriticalSiphon`,
   and the exclusion lemma `hasNoCriticalSiphon_of_forall_not_isSiphon`.
+- `CRNT/Multistationarity/SRSignDecidable.lean`: `ConsistentSRSign`, its `Decidable` instance, and
+  `hweight_of_consistentSRSign` (the SR-sign injectivity fragment).
 - `CRNT/LinearAlgebra/OrthogonalComplement.lean`: `orthSum` and `finrank_orthSum` (conservation laws).
 - `Analyze.lean`: the `lake exe analyze` entry point.
 

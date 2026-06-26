@@ -107,6 +107,15 @@ example (d : NetworkData) (arr : Array Nat) :
         d.toNetwork.IsMinimalSiphon l.toFinset ∧ arr = (l.map Fin.val).toArray :=
   NetworkData.mem_analyze_minimalSiphons d arr
 
+-- The data-driven reversible pair does not satisfy the consistent signed SR-cover condition.
+example : interopRevData.analyze.srSignConsistent = false := by decide
+
+-- The reported SR-sign-consistency flag is `true` exactly when the network satisfies the
+-- decidable consistent signed species–reaction cover condition.
+example (d : NetworkData) :
+    d.analyze.srSignConsistent = true ↔ d.toNetwork.ConsistentSRSign :=
+  NetworkData.analyze_srSignConsistent_eq d
+
 -- The `crnt_deficiency_zero` tactic certifies deficiency zero from an explicit minor witness:
 -- a 1×1 minor for the reversible pair, a 2×2 minor for the irreversible chain.
 example : Examples.ReversiblePair.N.DeficiencyZero := by

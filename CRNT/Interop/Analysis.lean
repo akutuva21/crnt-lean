@@ -4,6 +4,7 @@ import CRNT.Decision.DirectedReachability
 import CRNT.Decision.ACRCheck
 import CRNT.Dynamics.Siphon
 import CRNT.LinearAlgebra.OrthogonalComplement
+import CRNT.Multistationarity.SRSignDecidable
 
 /-!
 # One-call structural analysis
@@ -25,6 +26,10 @@ supplied by the consumer. `hasSiphon` flags the existence of a nonempty siphon
 (`analyze_hasNoCriticalSiphon_of_hasSiphon_false`), the Farkas-free persistence design filter.
 `minimalSiphons` lists the support-minimal siphons as ascending species-index arrays
 (`mem_analyze_minimalSiphons`) — the species sets a consumer's criticality feasibility check tests.
+`srSignConsistent` is `decide N.ConsistentSRSign` (`analyze_srSignConsistent_eq`), the decidable
+signed species–reaction cover fragment of the Craciun–Feinberg injectivity criterion; it is not a
+full injectivity verdict, which additionally needs the consumer's chart-box, positivity, and
+positive-diagonal hypotheses.
 
 `version` tags the JSON contract; bump it whenever the field set changes.
 
@@ -38,7 +43,7 @@ open Lean (FromJson ToJson)
 open CRNT.GaussianRank
 
 /-- The version of the `Analysis` JSON contract. Bump on any field-set change. -/
-def analysisVersion : Nat := 5
+def analysisVersion : Nat := 6
 
 /-- The structural invariants of a network, as a JSON-serializable record. The numeric fields are
 the computable companions of the library theory; `deficiency` is `n − ℓ − s` assembled here. -/
@@ -73,6 +78,12 @@ structure Analysis where
   /-- The support-minimal siphons, each as an ascending array of species indices. These are the
   candidate critical siphons a persistence/extinction analysis tests for feasibility. -/
   minimalSiphons : Array (Array Nat)
+  /-- Whether the network satisfies the consistent signed species–reaction cover condition
+  (`ConsistentSRSign`): the decidable sign fragment of the Craciun–Feinberg species–reaction graph
+  injectivity criterion. When `true`, the network discharges the verdict's sign hypothesis; a full
+  injectivity verdict additionally needs the chart-box, positivity, and positive-diagonal
+  hypotheses the consumer supplies. -/
+  srSignConsistent : Bool
   deriving FromJson, ToJson, Repr, DecidableEq
 
 namespace NetworkData
@@ -95,7 +106,8 @@ def analyze (d : NetworkData) : Analysis :=
     hasSiphon := decide (∃ P : Finset (Fin d.numSpecies), P.Nonempty ∧ N.IsSiphon P)
     minimalSiphons := (((List.finRange d.numSpecies).sublists.filter
       (fun l => decide (N.IsMinimalSiphon l.toFinset))).map
-      (fun l => (l.map Fin.val).toArray)).toArray }
+      (fun l => (l.map Fin.val).toArray)).toArray
+    srSignConsistent := decide N.ConsistentSRSign }
 
 /-- The reported deficiency is the network's deficiency. -/
 theorem analyze_deficiency_eq (d : NetworkData) :
@@ -173,6 +185,14 @@ theorem mem_analyze_minimalSiphons (d : NetworkData) (arr : Array Nat) :
     exact ⟨l, hl, hmin, harr.symm⟩
   · rintro ⟨l, hl, hmin, harr⟩
     exact ⟨l, ⟨hl, hmin⟩, harr.symm⟩
+
+/-- The reported SR-sign-consistency flag is `true` exactly when the network satisfies the
+consistent signed species–reaction cover condition. It exposes only the decidable sign fragment of
+the Craciun–Feinberg injectivity criterion; the chart-box, positivity, and positive-diagonal
+hypotheses for a full injectivity verdict are supplied by the consumer. -/
+theorem analyze_srSignConsistent_eq (d : NetworkData) :
+    (d.analyze).srSignConsistent = true ↔ d.toNetwork.ConsistentSRSign :=
+  decide_eq_true_iff
 
 end NetworkData
 
