@@ -5,6 +5,7 @@ import CRNT.Examples.GACReversiblePair
 import CRNT.Examples.IrreversibleChain
 import CRNT.Examples.GeneExpression
 import CRNT.Examples.Enzyme
+import CRNT.Examples.HopfOscillator3
 
 /-!
 # Smoke tests
@@ -2633,3 +2634,10 @@ example (rate : ℝ) (hrate : 0 < rate) (Km Vmax : ℝ) (hKm : 0 < Km)
     ‖CRNT.MichaelisMenten.mmRegSlavedVelocity rate hrate Km Vmax hKm (s t₀) (s' t₀)‖
       ≤ (L / rate) * (ε * G) :=
   CRNT.MichaelisMenten.mmRegSlavedVelocity_le rate hrate Km Vmax hKm hL hε hG hlip hspeed hs
+-- Concrete non-vacuity of Hopf admissibility: the explicit block-diagonal family `J` (a hyperbolic
+-- real eigenvalue and a planar rotation-scaling block with conjugate pair `μ ± i`) is genuinely
+-- Hopf-admissible at `μ₀ = 0`, so every field of `hopfAdmissible` — the eigenvalue-side algebraic
+-- gates and the center-manifold seed — is simultaneously satisfiable on a real object.
+noncomputable example :
+    CRNT.hopfAdmissible CRNT.Examples.HopfOscillator3.J CRNT.Examples.HopfOscillator3.μ₀ :=
+  CRNT.Examples.HopfOscillator3.admissible
