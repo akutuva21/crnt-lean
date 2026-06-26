@@ -281,7 +281,7 @@ solvability of every cell's membership constraint by one monotone curve.
 What is cleanly provable *once the normals are in hand* is the **local compatibility** of consecutive
 segments: if every normal in the list is a common attracting direction at the point, then each
 consecutive pair shares a support certificate from one toric-field value (`consecutive_chain` below).
-This is the local rung the global angular sort must arrange into a single curve.
+This is the local result the global angular sort must arrange into a single curve.
 
 Taken as a hypothesis is the *global production* of the normal list:
 
@@ -305,7 +305,7 @@ field at `X` and any two consecutive segment normals (`cd.normals[k]` and `cd.no
 `k + 1` in range), *both* their faces are support faces of the single constant
 field `fun _ => v`: the velocity points into the region across both adjacent segments simultaneously.
 
-This is the local rung the global angular sort must arrange: consecutive segments chain in the sense
+This is the local result the global angular sort must arrange: consecutive segments chain in the sense
 that one toric-field value certifies subtangency on both. The *global* production of a normal list
 whose consecutive slope intervals are nonempty and overlapping is taken as a hypothesis. -/
 theorem consecutive_chain

@@ -4,7 +4,7 @@ import Mathlib.Data.Fintype.Option
 /-!
 # Two-dimensional Sperner lemma: the door-graph handshaking framework
 
-This module climbs one rung on the Sperner→Brouwer ladder, from the one-dimensional parity
+This module advances one step from the one-dimensional parity
 double-count in `CRNT.Analysis.Sperner` toward the two-dimensional Sperner lemma over a
 triangulation. The classical proof of two-dimensional Sperner counts *doors* — triangle edges
 colored `{0, 1}` — and runs the handshaking lemma on the *door graph* whose vertices are the
@@ -44,7 +44,7 @@ fully proved at the combinatorial level.
 
 ## What is deferred
 
-The full two-dimensional Sperner lemma over a *concrete* triangulated grid is the next rung and is
+The full two-dimensional Sperner lemma over a *concrete* triangulated grid is the next step and is
 too large to land `sorry`-free on top of this one. It requires a concrete triangulation datatype
 with a sub-edge incidence relation, a proof that every interior `{0, 1}` sub-edge is shared by
 exactly two triangles (the geometric crux), the bridge `G.degree (some t) = doorCount …`

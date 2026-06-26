@@ -8,7 +8,7 @@ import CRNT.Analysis.Sperner2D
 This module begins the *arbitrary-N* barycentric subdivision of the 2-simplex, generalizing the fixed
 four-cell `N = 2` triangulation of `CRNT.Analysis.SpernerGridGeometric`. It supplies the geometric
 data — lattice points, the up/down triangles, their vertex sets, and the Sperner coloring abstraction
-— on which the later rungs (the lattice-edge incidence lemma, the door-degree bijection, the
+— on which the later steps (the lattice-edge incidence lemma, the door-degree bijection, the
 multi-outer assembly) will build toward a fully general two-dimensional Sperner lemma.
 
 ## Lattice points and cells

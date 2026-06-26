@@ -39,7 +39,7 @@ the open orthant only when its threshold sits below every reference coordinate
 start of a single-linkage-class network — is Anderson's theorem and the global attractor
 conjecture, beyond Mathlib's current dynamical-systems footing (no siphon/trap Petri-net theory,
 no toric differential inclusions). This module lands the strongest *unconditional-on-closeness*
-rung: persistence as a clean genuine-field certificate, with full convergence proved from it.
+result: persistence as a clean genuine-field certificate, with full convergence proved from it.
 
 ## Main results
 

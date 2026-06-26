@@ -24,7 +24,7 @@ rate vanishes — the genuine boundary of the embedded chain, where the real-val
 is identically zero. The measurability obligation is discharged instantly by
 `measurable_from_top` since the domain σ-algebra is `⊤`.
 
-The load-bearing result is `instIsMarkovKernel_jumpKernel`: the kernel is a Markov kernel
+The central result is `instIsMarkovKernel_jumpKernel`: the kernel is a Markov kernel
 *everywhere on the lattice*, including the boundary. On the positive-exit part each row mass
 is `∑_r ENNReal.ofReal (jumpProb κ n r) = 1` via `sum_jumpProb_eq_one`; on the boundary the
 holding Dirac is itself a probability measure. The total mass `jumpKernel_univ_eq_one`
@@ -115,7 +115,7 @@ theorem jumpKernel_univ_eq_one (N : Network S) (κ : RateConstants N) (n : S →
       N.sum_jumpProb_eq_one κ n hpos, ENNReal.ofReal_one]
 
 /-- The embedded jump kernel is a genuine Markov kernel on the whole count lattice: every
-row is a probability measure, via `jumpKernel_univ_eq_one`. This is the load-bearing
+row is a probability measure, via `jumpKernel_univ_eq_one`. This is the central
 measure-theoretic content — a row-stochastic measurable kernel over `S → ℕ` ready for
 Mathlib's `Kernel.Invariant`/`Kernel.IsReversible`/composition API. -/
 instance instIsMarkovKernel_jumpKernel (N : Network S) (κ : RateConstants N) :
@@ -134,7 +134,7 @@ theorem jumpKernel_self_eq_one_of_exitRate_zero (N : Network S) (κ : RateConsta
 lattice as a single finite sum over reactions of lifted jump probabilities, exposing the
 link between the kernel's Dirac masses and the real-valued jump chain. Each measurable target
 set `s` receives `∑_r ofReal (jumpProb κ n r)` restricted to the reactions whose post-firing
-count lands in `s`. The honest gap above this rung is a *predecessor*-indexed
+count lands in `s`. The honest gap above this result is a *predecessor*-indexed
 `bind`-to-sum identity matching the complex-indexed `jumpGlobalBalance_of_complexBalanced`. -/
 theorem jumpKernel_apply_of_exitRate_pos (N : Network S) (κ : RateConstants N) (n : S → ℕ)
     (h : N.exitRate κ n ≠ 0) (s : Set (S → ℕ)) :

@@ -5,7 +5,7 @@ import Mathlib.Topology.MetricSpace.HausdorffDistance
 /-!
 # Closed-set Nagumo invariance via the distance function
 
-The general closed-set form of the Nagumo invariance rung, generalizing the sublevel case
+The general closed-set form of the Nagumo invariance result, generalizing the sublevel case
 beyond level sets. A closed constraint region `R` is recovered as the zero level set of the
 distance function `x ↦ Metric.infDist x R`; forward invariance of `R` for a curve `γ` is then
 the statement that this distance, which starts at `0`, never becomes positive. Any condition

@@ -12,7 +12,7 @@ whose orbit is bounded, the zero set `Z(w) = {s | w s = 0}` of any ω-limit poin
 once it holds, ruling out *critical* siphons rules out boundary ω-limit points, which is exactly
 persistence.
 
-The proof assembles the two preceding rungs. Suppose `Z(w)` is **not** a siphon. Then
+The proof assembles the two preceding results. Suppose `Z(w)` is **not** a siphon. Then
 `massActionVectorField_pos_of_not_isSiphon` gives an empty species `s` (`w s = 0`) with strictly
 positive inflow `0 < ẋ_s(w)`. By `omegaLimit_negInvariant` there is `w' ∈ ω` with `ϕ 1 w' = w`,
 so the genuine orbit `t ↦ γ w' t` reaches `w` at `t = 1` with derivative `ẋ(w)` there. Its

@@ -8,7 +8,7 @@ import Mathlib.Tactic.Ring
 
 Sperner's lemma is the combinatorial heart of the Brouwer fixed-point theorem and is absent
 from this Mathlib tree (along with the triangulation/barycentric-subdivision machinery it
-needs in dimension `≥ 2`). The reachable, fully proved rung is the one-dimensional case, an
+needs in dimension `≥ 2`). The reachable, fully proved case is the one-dimensional one, an
 honest parity double-count rather than a corollary of the analytic one-dimensional fixed
 point in `CRNT.Analysis.FixedPoint`.
 

@@ -16,7 +16,7 @@ weakly-reversible velocity lies in `Cᵒ`.
 
 ## What lands here
 
-The load-bearing closure step is `sum_mem_polarCone`: a `Finset.sum` of polar-cone members
+The central closure step is `sum_mem_polarCone`: a `Finset.sum` of polar-cone members
 is a polar-cone member, because `polarCone C` is a `PointedCone`, i.e. an `AddSubmonoid`
 closed under finite sums (`Submodule.sum_mem`).
 
@@ -62,7 +62,7 @@ variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
 /-- **Item 1 — polar-cone sum closure.** If every term `v j` of a finite family lies in the
 polar cone `polarCone s`, then their sum `∑ j ∈ t, v j` lies in `polarCone s`. A pointed
-cone is an `AddSubmonoid`, hence closed under finite `Finset.sum`; this is the load-bearing
+cone is an `AddSubmonoid`, hence closed under finite `Finset.sum`; this is the central
 step of the multi-cycle assembly. -/
 theorem sum_mem_polarCone {ι : Type*} {s : Set E} (t : Finset ι) (v : ι → E)
     (hv : ∀ j ∈ t, v j ∈ polarCone s) : (∑ j ∈ t, v j) ∈ polarCone s :=

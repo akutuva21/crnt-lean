@@ -17,7 +17,7 @@ the curve away from the origin is forward-invariant for the inclusion and its cl
 separating every persistent trajectory from extinction.
 
 Craciun's curve is **piecewise-linear**, so the boundary of its region is only Lipschitz, never
-`C¹`. The connection to invariance is therefore the *distance-based* closed-set Nagumo rung
+`C¹`. The connection to invariance is therefore the *distance-based* closed-set Nagumo result
 `CRNT.invariant_of_infDist_antitoneOn` (and the first-exit form
 `invariant_of_no_infDist_increase_at_exit`) of `ClosedSetNagumo.lean`, which handles closed
 regions without any `C¹` boundary — **not** the `C¹` sublevel form used by
@@ -62,7 +62,7 @@ Proved, sorry-free and axiom-clean:
 * the half-plane / closed-region geometry and its closedness;
 * the separation geometry — the region excludes a ball about `0`, the start lies in it;
 * the subtangency *definitions* and the directional lemma `attractingDirection_isSupport`;
-* the wiring from a supplied distance-nonincreasing hypothesis into the closed-set Nagumo rung.
+* the wiring from a supplied distance-nonincreasing hypothesis into the closed-set Nagumo result.
 
 Taken as hypotheses, not derived here:
 
@@ -232,7 +232,7 @@ theorem constField_isSupport {v : E} {faces : List (E × ℝ)}
     IsSupportField (fun _ => v) faces :=
   fun nf hnf => attractingDirection_isSupport (hv nf hnf)
 
-/-! ## Persistence wiring into the closed-set Nagumo rung -/
+/-! ## Persistence wiring into the closed-set Nagumo result -/
 
 /-- **Persistence of the polygonal region (away from `0`).** Let `γ` be a genuine curve with
 `γ 0 ∈ polyRegion faces`, and suppose the support ⇒ distance-nonincreasing bridge has been

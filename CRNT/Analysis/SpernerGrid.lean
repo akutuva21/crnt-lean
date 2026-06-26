@@ -17,7 +17,7 @@ triple `(0, 1, 2)`, with the outer region `none` and the cell `some Cell.tri` jo
 door. The colored boundary side is the one-edge segment `0, 1` with `bc 0 = false`, `bc 1 = true`,
 the minimal one-dimensional Sperner coloring (one rainbow edge).
 
-The two load-bearing geometric incidence fields are proved by direct degree computation on the
+The two key geometric incidence fields are proved by direct degree computation on the
 two-vertex door graph `Option Cell`:
 
 * `cell_degree`: the cell's door degree is `1`, matching `doorCount 0 1 2 = 1`;

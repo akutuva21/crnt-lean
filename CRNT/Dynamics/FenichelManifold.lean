@@ -33,13 +33,13 @@ algebraic estimate from the contraction inequality and Cauchy–Schwarz: writing
 by `‖fast y q - fast y' q‖ · ‖q - p‖`; dividing by `‖q - p‖` and applying the Lipschitz bound
 yields `‖q - p‖ ≤ (L / rate) · dist y y'`.
 
-**Out of scope (the next dependencies).** Two tiers sit strictly above this rung. (1) *C¹
+**Out of scope (the next dependencies).** Two tiers sit strictly above this result. (1) *C¹
 regularity of `h`*: differentiability of `manifoldMap` is not reachable from the one-sided
 contraction alone — it needs an invertible fibre-derivative hypothesis
 (`D_z fast y (manifoldMap y)` invertible) together with joint `C¹` dependence of `fast` on
 `(y, z)`, fed to Mathlib's implicit function theorem
 (`HasStrictFDerivAt.localInverse` / `ImplicitFunctionData`); that is strictly more input data and
-a separate, larger rung. The one-sided contraction yields only Lipschitz/continuous `h`. (2)
+a separate, larger development. The one-sided contraction yields only Lipschitz/continuous `h`. (2)
 *ε-positive Fenichel persistence*: perturbing the exact `ε = 0` invariant graph `{(y, h y)}` to a
 nearby invariant manifold for `ε > 0` requires a uniform-in-`ε` normally-hyperbolic
 invariant-manifold construction, absent from Mathlib v4.31; the contraction supplies only the

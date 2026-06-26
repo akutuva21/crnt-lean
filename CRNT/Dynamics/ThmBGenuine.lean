@@ -6,7 +6,7 @@ import Mathlib.Analysis.InnerProductSpace.PiL2
 /-!
 # Zero-separating away-from-origin invariance for the genuine flow in dimension `≥ 2`
 
-This assembles the viability rungs into a zero-separating, away-from-origin invariant region for
+This assembles the viability results into a zero-separating, away-from-origin invariant region for
 the **genuine (single-valued) flow** `ẋ = f x`, extending the zero-separating-region result of
 Craciun, _Toric differential inclusions and a proof of the global attractor conjecture_, from the
 1-D base case of `ZeroSeparating.lean` to all dimensions for the genuine dynamics. The persistence

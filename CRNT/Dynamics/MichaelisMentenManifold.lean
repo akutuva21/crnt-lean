@@ -56,7 +56,7 @@ reachable. (3) Infinite-horizon shadowing is unavailable: `gronwallBound δ K ε
 slaving (the right-derivative and defect hypotheses) are inputs; closing the loop — proving the full
 trajectory's substrate component actually solves the reduced scalar MM ODE `ṡ = -Vmax·s/(Km+s)` —
 needs a parametrised slow-drift field coupled to `manifoldMap` and its own scalar Grönwall closure,
-the next rung above this one.
+the next step above this one.
 
 This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.FenichelManifold,
 CRNT.Dynamics.MichaelisMenten, CRNT.Dynamics.QSSA, Mathlib.Analysis.InnerProductSpace.PiL2.
@@ -104,7 +104,7 @@ lemma mmFastField_oneSidedContraction (rate Km Vmax s : ℝ) (_h : 0 ≤ rate) :
 
 /-- The Michaelis–Menten slow-manifold **seed**: the parametrised substrate fast field, its
 positive contraction rate, per-fibre existence of the equilibrium, and per-fibre one-sided
-contraction toward any equilibrium. This is the load-bearing consumption of the constructed
+contraction toward any equilibrium. This is the central consumption of the constructed
 slow-manifold machinery. -/
 noncomputable def mmSlowManifoldSeed (rate : ℝ) (hrate : 0 < rate) (Km Vmax : ℝ) :
     ODE.SlowManifoldSeed ℝ E where

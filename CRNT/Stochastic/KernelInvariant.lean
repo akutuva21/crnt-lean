@@ -99,7 +99,7 @@ theorem jumpStationaryMeasure_singleton (N : Network S) (κ : RateConstants N)
 /-- The predecessor-indexed `bind`-to-sum identity for the candidate stationary measure: its
 pushforward under the embedded jump kernel evaluates on every measurable set as the countable
 sum, over source counts, of stationary weight times the kernel's per-set transition mass. This
-is the honest top rung of the embedded-chain kernel ladder — the bridge from the
+is the final result of the embedded-chain kernel development — the bridge from the
 complex-indexed real-arithmetic global balance to a source-indexed measure statement. -/
 theorem jumpStationaryMeasure_bind_apply (N : Network S) (κ : RateConstants N)
     (c : Concentration S) (s : Set (S → ℕ)) :

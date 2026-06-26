@@ -16,7 +16,7 @@ The interval-relative solution predicate `IsInclusionSolutionOn F γ s` asks for
 `s`; the unrestricted predicate `IsInclusionSolution F γ` is the same with `HasDerivAt`.
 
 **Selection.** If `γ` solves the ODE `ẋ = f(x)` and `f x ∈ F x` pointwise, then `γ` solves
-the inclusion `F`. This is the easy, load-bearing direction: it embeds a mass-action flow
+the inclusion `F`. This is the easy, central direction: it embeds a mass-action flow
 into a toric differential inclusion.
 
 **Monotonicity.** A field can only acquire more solutions as it grows: if `F x ⊆ G x`

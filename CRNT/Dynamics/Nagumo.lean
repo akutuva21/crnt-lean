@@ -27,7 +27,7 @@ mean-value / exponential-modulus machinery.
 
 The general Nagumo viability theorem over an arbitrary closed convex set, with a Bouligand
 subtangent-cone hypothesis, is out of reach here: Mathlib has no tangent-cone-to-a-set
-apparatus. The dissipative coordinate-halfspace form is the checkable rung the persistence
+apparatus. The dissipative coordinate-halfspace form is the checkable form the persistence
 and confinement arguments consume.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Kinetics.Concentration`,

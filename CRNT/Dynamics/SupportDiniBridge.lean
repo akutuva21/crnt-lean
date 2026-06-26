@@ -198,7 +198,7 @@ theorem sub_le_infDist_polyRegion {faces : List (E × ℝ)} {n : E} {a : ℝ}
     _ ≤ Metric.infDist x (polyRegion faces) :=
       Metric.infDist_le_infDist_of_subset hsub hne
 
-/-! ## Persistence wiring into the closed-set Nagumo rung -/
+/-! ## Persistence wiring into the closed-set Nagumo step -/
 
 /-- **Persistence of the convex region.** Given that `t ↦ Metric.infDist (γ t) (polyRegion faces)`
 is antitone on `[0, ∞)` (the assembled support ⇒ distance-nonincreasing bridge) and `γ 0` is in the

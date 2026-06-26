@@ -14,7 +14,7 @@ inclusions and a proof of the global attractor conjecture_.
 
 ## The reaction-cone inclusion
 
-`massActionVectorField_mem_reactionCone` is the load-bearing geometric fact: at any nonnegative
+`massActionVectorField_mem_reactionCone` is the central geometric fact: at any nonnegative
 concentration `x`,
 
 ```

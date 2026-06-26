@@ -1,11 +1,11 @@
 import CRNT.Dynamics.Tikhonov
 
 /-!
-# Slow-variable-dependent attracting fast fibres (Fenichel slow manifold, reachable rung)
+# Slow-variable-dependent attracting fast fibres (Fenichel slow manifold, reachable case)
 
 This module lifts the flat boundary-layer fibre `z = equil` of `CRNT.Dynamics.Tikhonov` to a
 *slow-variable-dependent* fast equilibrium `z = h y`, the graph of a manifold map `h : Y → E`.
-It is the first genuinely-nontrivial rung of Fenichel / normally-hyperbolic invariant-manifold
+It is the first genuinely-nontrivial case of Fenichel / normally-hyperbolic invariant-manifold
 theory: the attracting slow manifold of a singularly-perturbed system `ẏ = ε g(y, z)`,
 `ż = fast y z` is exactly the graph `{(y, h y)}` of the fast-fibre equilibria, and this module
 proves its three defining geometric properties — per-fibre exponential attraction, per-fibre
@@ -35,7 +35,7 @@ inequality at `w` reads `0 = ⟪fast y w - fast y (h y), w - h y⟫ ≤ -rate ·
 constant curve `z ≡ h y` is an integral curve of the frozen fast field `fast y`: the graph is
 invariant under the layer flow, the foundational invariance half of a Fenichel manifold.
 
-**Out of scope (the next dependencies).** Three pieces sit strictly above this rung and are
+**Out of scope (the next dependencies).** Three pieces sit strictly above this result and are
 absent from Mathlib v4.31. (1) *Smoothness / existence of `h` from data*: a parametrised
 contraction / implicit-function theorem giving `h` as a derived `C¹` function of `y` is not
 available, so `h` is supplied as data (its values are pinned uniquely by `eq_of_stationary`, but

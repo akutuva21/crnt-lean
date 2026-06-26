@@ -3,7 +3,7 @@ import Mathlib.Analysis.Calculus.Deriv.MeanValue
 /-!
 # Forward-invariance of a sublevel set from a Lyapunov-descent condition
 
-This is the abstract Nagumo rung underlying the relative-entropy confinement argument: a scalar
+This is the abstract Nagumo step underlying the relative-entropy confinement argument: a scalar
 `V` that never increases along forward time keeps every sublevel set forward-invariant.
 
 * `antitoneOn_of_deriv_nonpos_Ici`: a scalar `V : ℝ → ℝ`, continuous on `[0, ∞)`, differentiable

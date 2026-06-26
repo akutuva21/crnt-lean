@@ -43,7 +43,7 @@ which is exactly the `hbox` that `siphonFace_forwardInvariant_confined` consumes
   not positive (it vanishes on `P`), so the two regimes do not overlap: a self-contained theorem
   combining face confinement with a complex-balanced reference and no positivity input would need
   the relative-entropy descent extended to the boundary, or a separate boundary-face dissipation
-  certificate — neither present here. The general `_of_relEntropy_le` form is the load-bearing
+  certificate — neither present here. The general `_of_relEntropy_le` form is the central
   export: it discharges `hbox` from any relative-entropy bound, however that bound is obtained
   (cutoff-orbit `orbit_relEntropy_le`, or genuine-orbit descent), which is the persistence input
   that feeds GAC.

@@ -37,7 +37,7 @@ law, and the lifted curve are now *derived* from the constructed `σ`: the expli
 derivative is `γᵣ' t = (Vmax·Km/(Km+σ t)² · (-mmComplexEquil Km Vmax (σ t))) • e0`
 (`mmReducedComplex_hasDerivAt`).
 
-**Out of scope (the remaining ceilings — unchanged from the rung below).** (1) The slaving defect
+**Out of scope (the remaining ceilings — unchanged from the result below).** (1) The slaving defect
 `εf` and the initial mismatch `δ` are still inputs; deriving `εf = O(ε)` from a singular-perturbation
 small parameter `ε` needs an ε-quantified normally-hyperbolic persistence theorem absent from
 Mathlib v4.31. (2) The horizon stays compact: `gronwallBound δ K εf T` diverges as `T → ∞` for

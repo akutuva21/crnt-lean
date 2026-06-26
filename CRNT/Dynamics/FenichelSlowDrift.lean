@@ -22,7 +22,7 @@ velocity is genuinely `O(ε)`.
 
 The bound is stated as a displacement (the Lipschitz tier) rather than a velocity, because
 `manifoldMap` is only Lipschitz, not yet `C¹` (see `CRNT.Dynamics.FenichelManifold`'s named next
-rung: differentiability of `manifoldMap` via an invertible fibre derivative and the implicit
+step: differentiability of `manifoldMap` via an invertible fibre derivative and the implicit
 function theorem). Promoting `O(ε)` *displacement* to an `O(ε)` *velocity* of the reduced flow, and
 extending it past bounded time, is exactly the ε-positive normally-hyperbolic persistence theorem
 absent from Mathlib v4.31.

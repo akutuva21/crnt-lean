@@ -7,10 +7,10 @@ import Mathlib.Topology.Algebra.Module.FiniteDimension
 import Mathlib.Analysis.Calculus.InverseFunctionTheorem.FDeriv
 
 /-!
-# Gale–Nikaido: P-matrix Jacobian ⇒ injectivity (foundational rungs)
+# Gale–Nikaido: P-matrix Jacobian ⇒ injectivity (foundational results)
 
 The degree-free route to the Gale–Nikaido theorem (a `C¹` map whose Jacobian is a P-matrix
-everywhere is injective). This module establishes the two foundational rungs:
+everywhere is injective). This module establishes the two foundational results:
 
 * `isLocalHomeomorph_of_pmatrix_fderiv` — a map with an everywhere-strict derivative whose Jacobian
   matrix is a P-matrix at every point is a **local homeomorphism**. A P-matrix has nonzero

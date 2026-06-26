@@ -20,7 +20,7 @@ The structure `DoorIncidence Cell` packages, for an abstract finite triangle typ
   `doorCount` (`cell_degree`), and the outer region's door degree equals the number of rainbow
   edges along the colored boundary side (`outer_degree`).
 
-From these the module discharges the two hypotheses that the abstract rung-2 handshaking conclusion
+From these the module discharges the two hypotheses that the abstract two-dimensional handshaking conclusion
 `Sperner2D.doorGraph_odd_rainbow` defers — `hcell` (via the local door-count parity
 `Sperner2D.doorCount_odd_iff`) and `houter` (via the one-dimensional `Sperner.sperner_odd_rainbowEdges`
 on the colored boundary side) — and assembles `odd_rainbow` (the rainbow-triangle count is odd) and
@@ -36,7 +36,7 @@ constructing them over a *concrete* triangulated grid is the named next dependen
   `2`-simplex, with its `Fintype` instance (the natural inductive does not support
   `deriving Fintype`, so a manual instance is required);
 * the `{0,1}`-door sub-edge incidence relation building `G` via `SimpleGraph.fromRel`;
-* the load-bearing geometric incidence lemma — every *interior* `{0,1}` sub-edge is shared by
+* the key geometric incidence lemma — every *interior* `{0,1}` sub-edge is shared by
   exactly two triangles and every *boundary* `{0,1}` sub-edge bounds exactly one triangle — which
   discharges `cell_degree` through a finset bijection between a triangle's three edges and its
   door-graph neighbors;

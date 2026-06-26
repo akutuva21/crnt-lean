@@ -4,7 +4,7 @@ import Mathlib.Data.Nat.Factorial.BigOperators
 /-!
 # Predecessor-summation and measure invariance of the embedded jump kernel
 
-This module closes the embedded-jump-chain kernel ladder by proving the
+This module completes the embedded-jump-chain kernel development by proving the
 predecessor-summation lemma the kernel modules name as their honest gap and lifting it to
 genuine measure invariance `Kernel.Invariant (jumpKernel κ) (jumpStationaryMeasure κ c)`.
 
@@ -15,7 +15,7 @@ expands `(μ.bind (jumpKernel κ)) {m}` into a tsum over *source* counts. Equati
 on every singleton is exactly measure invariance, since singletons generate the discrete
 σ-algebra on the count lattice.
 
-The load-bearing content is `predecessor_sum_eq`:
+The central content is `predecessor_sum_eq`:
 
 `∑' n, ofReal (jumpStationaryMass κ c n) * jumpKernel κ n {m} = ofReal (jumpStationaryMass κ c m)`.
 
@@ -34,7 +34,7 @@ reaction-indexed sum collapses by `jumpGlobalBalance_of_complexBalanced`.
 The honest hypotheses are an explicit **no-boundary / enabled-everywhere** assumption: every
 count has positive exit rate and dominates every reaction's target complex. The
 `exitRate = 0` holding states are absorbing, where strict pointwise balance fails, so
-invariance is stated under their exclusion — the strongest sound rung. Under those hypotheses
+invariance is stated under their exclusion — the strongest sound statement. Under those hypotheses
 `Kernel.Invariant (jumpKernel κ) (jumpStationaryMeasure κ c)` holds.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.KernelInvariant`,
@@ -198,7 +198,7 @@ theorem tsum_reaction_term_eq_generatorInflow (N : Network S) (κ : RateConstant
           zero_mul, mul_zero]
     · rw [Set.indicator_of_notMem (by simpa using hind), mul_zero, mul_zero]
 
-/-- The predecessor-summation lemma — the honest top rung of the embedded-chain kernel ladder.
+/-- The predecessor-summation lemma — the final result of the embedded-chain kernel development.
 Under the no-boundary / enabled-everywhere hypotheses, the countable sum over source counts of
 the lifted stationary weight times the kernel's transition mass into `{m}` equals the lifted
 stationary weight at `m`. The reaction sum is swapped past the lattice tsum, each reaction
@@ -241,7 +241,7 @@ agree on every singleton: the pushforward singleton mass is the predecessor tsum
 lifted stationary weight, and that is the candidate measure's own singleton mass
 (`jumpStationaryMeasure_singleton`). Singletons determine a measure on the countable count
 lattice with its discrete σ-algebra (`Measure.ext_of_singleton`), so the measures coincide.
-This is the top rung of the embedded-chain kernel ladder. -/
+This is the final result of the embedded-chain kernel development. -/
 theorem jumpKernel_invariant_jumpStationaryMeasure (N : Network S) (κ : RateConstants N)
     (c : Concentration S) (hc : c.Nonnegative) (hcb : N.IsComplexBalanced κ c)
     (hexit : ∀ n, N.exitRate κ n ≠ 0)

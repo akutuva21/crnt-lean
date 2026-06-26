@@ -17,7 +17,7 @@ stoichiometric subspace.
 * `exists_signCompatible_of_hasMultistationarityCapacity` — hence multistationarity capacity yields
   a nonzero sign-compatible `μ`.
 
-This is the first rung of the forward direction. Bridging from "a nonzero sign-compatible `μ`" to a
+This is the first step of the forward direction. Bridging from "a nonzero sign-compatible `μ`" to a
 full **signature** — that `μ` solves some shelf partition's constraint system (`DOAAffirmsCapacity`)
 — is the deficiency-one structural analysis (Feinberg 1995) and is not carried out here.
 

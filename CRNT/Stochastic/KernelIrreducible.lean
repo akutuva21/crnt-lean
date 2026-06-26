@@ -37,7 +37,7 @@ region-restricted predecessor tsum (`restrictedStationaryMeasure_bind_apply`), a
 agree by `restricted_predecessor_sum_eq` inside the region and
 `restricted_predecessor_sum_eq_zero` outside it (closure forces no inbound mass).
 
-The honest ceiling: this is the strongest sound rung short of *characterizing* a canonical
+The honest ceiling: this is the strongest sound statement short of *characterizing* a canonical
 closed enabled region of a given network — e.g. proving that the set of counts above all
 reaction targets with positive exit rate is forward/backward closed for a specific class of
 networks, or identifying the irreducible communicating class as a `Kernel.Irreducible`

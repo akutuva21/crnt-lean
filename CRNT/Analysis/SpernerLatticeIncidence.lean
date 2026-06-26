@@ -3,7 +3,7 @@ import CRNT.Analysis.SpernerLattice
 /-!
 # The lattice-edge incidence lemma (diagonal edges)
 
-This module proves the load-bearing geometric fact of the `N`-subdivision for its **diagonal** edges,
+This module proves the key geometric fact of the `N`-subdivision for its **diagonal** edges,
 uniform in `N`: a diagonal edge `{(i+1, j), (i, j+1)}` borders **exactly two** triangles when it is
 interior, and **exactly one** when it lies on the boundary. This is the diagonal case of the
 incidence lemma the PLAN names — "every interior `{0,1}` sub-edge is shared by exactly two triangles;
@@ -21,7 +21,7 @@ The diagonal `{(i+1, j), (i, j+1)}` is shared by the up triangle `up(i, j)` and 
 Each proof is uniform in `N`: a case split on the cell (up vs down), the three-element membership of
 its vertex set unfolded by `simp`, and the resulting coordinate constraints discharged by `omega`.
 The same pattern handles the horizontal and vertical edge orientations (with the partner down
-triangle at a shifted index), left to a follow-on rung.
+triangle at a shifted index), left to a follow-on step.
 
 ## Main results
 
