@@ -1983,6 +1983,28 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     N.ClosedEnabledRegion κ (N.maximalClosedEnabledRegion κ) :=
   N.closedEnabledRegion_maximal κ
 
+-- Ladder 5 (CTMC semigroup): the uniformized transition kernel P_t = exp(tQ) on a finite region is
+-- a Markov kernel for every time t.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {T : Set (S → ℕ)} (hTfin : T.Finite) (t : ℝ≥0) :
+    ProbabilityTheory.IsMarkovKernel (N.cmeSemigroup κ hTfin t) :=
+  N.instIsMarkovKernel_cmeSemigroup κ hTfin t
+
+-- Ladder 5 (CTMC semigroup): the semigroup starts at the identity kernel, P_0 = id.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {T : Set (S → ℕ)} (hTfin : T.Finite) :
+    N.cmeSemigroup κ hTfin 0 = ProbabilityTheory.Kernel.id :=
+  N.cmeSemigroup_zero κ hTfin
+
+-- Ladder 5 (CTMC semigroup): the normalized product-Poisson law is invariant under every P_t — the
+-- process-level companion of the generator stationarity πQ = 0.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (c : Concentration S) (hc : c.Nonnegative) (hcb : N.IsComplexBalanced κ c)
+    {T : Set (S → ℕ)} (hTfin : T.Finite) (hT : N.ClosedEnabledRegion κ T) (t : ℝ≥0) :
+    ProbabilityTheory.Kernel.Invariant (N.cmeSemigroup κ hTfin t)
+      ((Network.cmeStationaryMeasure c T Set.univ)⁻¹ • Network.cmeStationaryMeasure c T) :=
+  N.cmeSemigroup_preserves_stationarity κ c hc hcb hTfin hT t
+
 -- An isolated invariant set cannot trap an ω-limit set without containing it (the Butler–McGehee
 -- escape core) — here the ω-limit set is invariant.
 open Filter in
