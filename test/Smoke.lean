@@ -7,6 +7,7 @@ import CRNT.Examples.GeneExpression
 import CRNT.Examples.Enzyme
 import CRNT.Examples.HopfOscillator3
 import CRNT.Examples.HopfNetwork3
+import CRNT.Examples.HopfNetwork3Branches
 
 /-!
 # Smoke tests
@@ -2809,3 +2810,8 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.Consistent
       0 ≤ ((CRNT.coverCoeff σ : ℤ) : ℝ) *
         ((∏ a : s, N.signedEdge ((σ a : S)) (ρ a) : SignType) : ℝ) :=
   N.hweight_of_consistentSRSign h
+-- The C¹ eigenvalue branches of the network Jacobian, built by the implicit function theorem, give
+-- the eigenvalue-real-part crossing speed: the conjugate pair crosses the imaginary axis
+-- transversally, p'(μ₀) ≠ 0, for the genuine three-species autocatalytic network.
+example : ((-1 - CRNT.Examples.HopfNetwork3Branches.r') / 2 : ℝ) ≠ 0 :=
+  CRNT.Examples.HopfNetwork3Branches.eigenvalue_real_part_transversal

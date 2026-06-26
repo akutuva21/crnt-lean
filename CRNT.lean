@@ -160,6 +160,7 @@ import CRNT.Dynamics.HopfGate3Matrix
 import CRNT.Dynamics.HopfTransversality3
 import CRNT.Examples.HopfOscillator3
 import CRNT.Examples.HopfNetwork3
+import CRNT.Examples.HopfNetwork3Branches
 import CRNT.Dynamics.HurwitzGershgorin
 import CRNT.Dynamics.HurwitzGershgorinColumn
 import CRNT.Dynamics.QSSA
