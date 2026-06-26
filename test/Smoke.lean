@@ -1889,6 +1889,13 @@ example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [PseudoMe
     ‖γᵣ' t₀‖ ≤ (L / S.rate) * ε :=
   S.manifoldMap_slowDrift_velocity_le hL hε hlip hy t₀ hd
 
+-- Fenichel C¹: a jointly-C¹ fast field with invertible fibre derivative makes the constructed
+-- slow-manifold map genuinely C¹ via the implicit function theorem.
+example {Y E : Type*} [NormedAddCommGroup Y] [NormedSpace ℝ Y] [CompleteSpace Y]
+    [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    (S : ODE.SlowManifoldC1Seed Y E) : ContDiff ℝ 1 S.manifoldMap :=
+  S.contDiff_manifoldMap
+
 -- Ladder 3 (Fenichel/QSSA): composing the derived O(ε) defect with the Grönwall QSSA engine, the
 -- full integral curve tracks the slaved slow-manifold curve within a Grönwall ball on [0, T].
 example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [PseudoMetricSpace Y]

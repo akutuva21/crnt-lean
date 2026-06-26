@@ -160,6 +160,7 @@ import CRNT.Dynamics.MichaelisMenten
 import CRNT.Dynamics.Fenichel
 import CRNT.Dynamics.FenichelManifold
 import CRNT.Dynamics.FenichelSlowDrift
+import CRNT.Dynamics.FenichelC1Manifold
 import CRNT.Dynamics.MichaelisMentenManifold
 import CRNT.Dynamics.MichaelisMentenReduced
 import CRNT.Dynamics.MichaelisMentenDepletion
