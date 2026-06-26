@@ -2386,3 +2386,9 @@ example (M : Matrix (Fin 2) (Fin 2) ℝ) :
     (∀ z : ℂ, z * z + (-M.trace : ℂ) * z + (M.det : ℂ) = 0 → z.re < 0) ↔
       (M.trace < 0 ∧ 0 < M.det) :=
   hurwitz_matrix_fin_two_iff M
+-- Stampacchia variational inequality for mass action: on a nonempty compact convex set of
+-- concentrations the mass-action field lies in the outward normal cone at some point.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {K : Set (CRNT.Concentration S)} (hne : K.Nonempty) (hconv : Convex ℝ K) (hcomp : IsCompact K) :
+    ∃ x ∈ K, ∀ w ∈ K, 0 ≤ ∑ s, N.massActionVectorField κ x s * (w s - x s) :=
+  N.exists_steadyState_normalCone_of_compact κ hne hconv hcomp

@@ -134,6 +134,7 @@ import CRNT.Equilibria.SteadyState
 import CRNT.Equilibria.CompatibilityClass
 import CRNT.Equilibria.ComplexBalanced
 import CRNT.Equilibria.BrouwerSteadyState
+import CRNT.Equilibria.BrouwerNormalCone
 
 -- Dynamics: algebraic (complex-space) form of mass-action kinetics; ODE regularity and
 -- local existence; LaSalle invariance
