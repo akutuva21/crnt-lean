@@ -1852,6 +1852,16 @@ example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     ODE.QssaDefect full (fun t => S.manifoldMap (y t)) γᵣ' a b (εv + εr) :=
   S.manifoldMap_qssaDefect_le full hvel hres
 
+-- Ladder 3 (Fenichel/QSSA): when the slaved slow-manifold curve is differentiable, the converse
+-- mean-value inequality derives an O(ε) velocity bound ‖γᵣ'‖ ≤ (L / rate) · ε.
+example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [PseudoMetricSpace Y]
+    (S : ODE.SlowManifoldSeed Y E) {L ε : ℝ} (hL : 0 ≤ L) (hε : 0 ≤ ε)
+    (hlip : ∀ y y' z, ‖S.fast y z - S.fast y' z‖ ≤ L * dist y y')
+    {y : ℝ → Y} (hy : ∀ t t', dist (y t) (y t') ≤ ε * |t - t'|)
+    {γᵣ' : ℝ → E} (t₀ : ℝ) (hd : HasDerivAt (fun t => S.manifoldMap (y t)) (γᵣ' t₀) t₀) :
+    ‖γᵣ' t₀‖ ≤ (L / S.rate) * ε :=
+  S.manifoldMap_slowDrift_velocity_le hL hε hlip hy t₀ hd
+
 -- Ladder 3 (Fenichel/MM): the constructed Michaelis-Menten substrate curve is monotonically depleted
 -- (antitone) — a qualitative property of the reduced flow.
 example (Km Vmax : ℝ) (hKm : 0 < Km) (hV : 0 ≤ Vmax) (s₀ : ℝ) :
