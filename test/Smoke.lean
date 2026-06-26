@@ -1634,6 +1634,14 @@ example (n : ℕ) (f : (Fin n → ℝ) → (Fin n → ℝ)) (hf : ContinuousOn f
     (hhi : ∀ x ∈ Set.Icc (0 : Fin n → ℝ) 1, ∀ i, x i = 1 → 0 ≤ f x i) :
     ∃ x ∈ Set.Icc (0 : Fin n → ℝ) 1, f x = 0 :=
   CRNT.Analysis.poincare_miranda f hf hlo hhi
+-- **Brouwer for compact convex sets**: every continuous self-map of a nonempty compact convex
+-- subset of `EuclideanSpace ℝ (Fin n)` has a fixed point.
+example {n : ℕ} {K : Set (EuclideanSpace ℝ (Fin n))} (hne : K.Nonempty)
+    (hconv : Convex ℝ K) (hcomp : IsCompact K)
+    (f : EuclideanSpace ℝ (Fin n) → EuclideanSpace ℝ (Fin n))
+    (hf : ContinuousOn f K) (hmaps : Set.MapsTo f K K) :
+    ∃ x ∈ K, f x = x :=
+  CRNT.Analysis.brouwer_compact_convex hne hconv hcomp f hf hmaps
 
 -- n-D Kuhn-triangulation framework: every cell has exactly n+1 vertices; lattice points realize
 -- into the standard n-simplex; the corners realize to the basis vectors.
