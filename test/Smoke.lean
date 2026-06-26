@@ -2414,3 +2414,12 @@ example {n : Type*} [Fintype n] [DecidableEq n] (A : Matrix n n ℂ)
     (h : ∀ k, (A k k).re + ∑ i ∈ Finset.univ.erase k, ‖A i k‖ < 0) :
     ∀ μ : ℂ, Module.End.HasEigenvalue (Matrix.toLin' A) μ → μ.re < 0 :=
   hurwitz_of_strict_col_diag_dominance A h
+
+-- Routh–Hurwitz, degree 3 (matrix form): a real 3×3 matrix has all three characteristic-polynomial
+-- roots in the open left half-plane iff the four Routh–Hurwitz coefficient conditions on its trace,
+-- second invariant, and determinant hold.
+example (M : Matrix (Fin 3) (Fin 3) ℝ) :
+    (∀ z : ℂ, z ^ 3 + (-M.trace : ℂ) * z ^ 2 + (M.c₂Fin3 : ℂ) * z + (-M.det : ℂ) = 0 →
+        z.re < 0) ↔
+      (0 < -M.trace ∧ 0 < M.c₂Fin3 ∧ 0 < -M.det ∧ -M.det < (-M.trace) * M.c₂Fin3) :=
+  hurwitz_matrix_fin_three_iff M

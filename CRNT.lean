@@ -150,6 +150,7 @@ import CRNT.Dynamics.RouthHurwitz4
 import CRNT.Dynamics.RouthHurwitz4Suff
 import CRNT.Dynamics.HopfGate4
 import CRNT.Dynamics.Hurwitz2Matrix
+import CRNT.Dynamics.Hurwitz3Matrix
 import CRNT.Dynamics.HurwitzGershgorin
 import CRNT.Dynamics.HurwitzGershgorinColumn
 import CRNT.Dynamics.QSSA
