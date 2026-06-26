@@ -2621,3 +2621,15 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     (hdiag : ∀ i : S, 0 < (N.massActionJacobian κ x) i i) :
     (N.massActionJacobian κ x).IsPMatrix :=
   N.isPMatrix_massActionJacobian_of_consistentSRSign κ hx hweight hdiag
+-- ε-coupled Michaelis–Menten slow drift: along the slow flow ṡ = ε·g(s, z) of the globally C¹
+-- regularized fast subsystem, the slaved complex curve has O(ε) velocity — derived from the
+-- seed's global C¹ regularity, with only the substrate path assumed differentiable.
+example (rate : ℝ) (hrate : 0 < rate) (Km Vmax : ℝ) (hKm : 0 < Km)
+    {L ε G : ℝ} (hL : 0 ≤ L) (hε : 0 ≤ ε) (hG : 0 ≤ G)
+    (hlip : ∀ s s' z, ‖CRNT.MichaelisMenten.mmRegFastField rate Km Vmax s z
+        - CRNT.MichaelisMenten.mmRegFastField rate Km Vmax s' z‖ ≤ L * dist s s')
+    {s : ℝ → ℝ} (hspeed : ∀ t t', dist (s t) (s t') ≤ (ε * G) * |t - t'|)
+    {s' : ℝ → ℝ} {t₀ : ℝ} (hs : HasDerivAt s (s' t₀) t₀) :
+    ‖CRNT.MichaelisMenten.mmRegSlavedVelocity rate hrate Km Vmax hKm (s t₀) (s' t₀)‖
+      ≤ (L / rate) * (ε * G) :=
+  CRNT.MichaelisMenten.mmRegSlavedVelocity_le rate hrate Km Vmax hKm hL hε hG hlip hspeed hs
