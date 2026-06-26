@@ -2532,3 +2532,12 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (P : Finset S) :
       P.Nonempty ∧ N.IsSiphon P ∧
         ∃ s ∈ P, ¬ ∃ w : S → ℝ, N.SupportedConservationVector P w ∧ 0 < w s :=
   N.isCriticalSiphon_iff_exists_pointwise P
+-- Jacobian cycle-sign bridge: a one-reaction cover product of the factored mass-action Jacobian
+-- splits into its nonnegative rate-and-gradient magnitude times the real cast of the product of
+-- the cover's signed SR-graph incidence signs.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    (x : Concentration S) (σ : Equiv.Perm S) (ρ : S → N.R) :
+    N.coverProductSingle κ x σ ρ =
+      N.coverMagnitudeSingle κ x σ ρ *
+        ((∏ i, N.signedEdge (σ i) (ρ i) : SignType) : ℝ) :=
+  N.coverProductSingle_eq_magnitude_mul_sign κ x σ ρ
