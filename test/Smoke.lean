@@ -2570,3 +2570,14 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
       N.coverMagnitudeSingle κ x σ ρ *
         ((∏ i, N.signedEdge (σ i) (ρ i) : SignType) : ℝ) :=
   N.coverProductSingle_eq_magnitude_mul_sign κ x σ ρ
+-- Consistent signed SR-cover criterion: at a positive concentration, if every reaction-choice cover
+-- of the mass-action Jacobian has a nonnegative signed-incidence weight and the diagonal cover term
+-- is strictly positive, then the Jacobian determinant is nonzero.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    {x : Concentration S} (hx : x.Positive)
+    (hweight : ∀ (σ : Equiv.Perm S) (ρ : S → N.R),
+      0 ≤ ((CRNT.coverCoeff σ : ℤ) : ℝ) *
+        ((∏ i, N.signedEdge (σ i) (ρ i) : SignType) : ℝ))
+    (hdiag : 0 < CRNT.coverTerm (N.massActionJacobian κ x) (1 : Equiv.Perm S)) :
+    (N.massActionJacobian κ x).det ≠ 0 :=
+  N.det_massActionJacobian_ne_zero_of_consistentSRSign κ hx hweight hdiag

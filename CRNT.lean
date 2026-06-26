@@ -248,6 +248,7 @@ import CRNT.Multistationarity.SignedSRGraph
 import CRNT.Multistationarity.SRGraphCycleDict
 import CRNT.Multistationarity.JacobianDeterminantSign
 import CRNT.Multistationarity.JacobianCycleSign
+import CRNT.Multistationarity.JacobianCycleSelection
 import CRNT.Multistationarity.Injectivity
 import CRNT.Multistationarity.Concordance
 import CRNT.Multistationarity.Capacity
