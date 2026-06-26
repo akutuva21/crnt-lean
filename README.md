@@ -64,7 +64,10 @@ Grouped by area; the precise statements and module names are in each linked doc.
 **[Dynamics & stability](docs/dynamics.md)**
 - The complex-space factorization `ẋ = Y(A_k(Ψ x))` and the forward semiflow
 - The relative-entropy Lyapunov function, LaSalle's invariance principle, and local asymptotic stability
-- A Michaelis–Menten quasi-steady-state reduction
+- A Michaelis–Menten quasi-steady-state reduction, error-quantified on compact time: the full
+  trajectory tracks the slow-manifold reduction within an O(ε) Grönwall bound (ε the timescale separation)
+- Routh–Hurwitz stability to degree 4 (Liénard–Chipart) with the degree-4 Hopf crossing gate, and a
+  dimension-free Gershgorin test certifying mass-action Jacobian stability (so oscillation is excluded)
 
 **[Persistence & global attraction](docs/persistence-gac.md)**
 - The reduction GAC ⟺ persistence, and unconditional convergence for the no-critical-siphon class
@@ -74,6 +77,8 @@ Grouped by area; the precise statements and module names are in each linked doc.
 **[Stochastic CRN](docs/stochastic.md)**
 - The chemical-master-equation generator on `ℕ^S`
 - The Anderson–Craciun–Kurtz product-form stationary distribution
+- A normalized invariant probability measure on any finite closed enabled region, with product-form
+  singleton ratios
 
 **[Multistationarity & robustness](docs/multistationarity-robustness.md)**
 - Degree-free Gale–Nikaido univalence, bound to class injectivity
@@ -114,7 +119,8 @@ unlocks the CRN results noted, and questions where the mathematics itself is sti
   switch verdict)
 - Persistence theory (facet repulsion, Butler–McGehee): global attraction for broad weakly-reversible
   classes
-- Fenichel / singular-perturbation theory: error-quantified, infinite-horizon time-scale reduction
+- Fenichel normally-hyperbolic invariant-manifold persistence: lifting the O(ε) reduction (now proven
+  on compact time) to the infinite-horizon regime
 - Continuous-time Markov chains: process-level stochastics and the deterministic (Kurtz) scaling limit
 - Center-manifold reduction and Hopf bifurcation: sustained oscillation (the clock verdict)
 
