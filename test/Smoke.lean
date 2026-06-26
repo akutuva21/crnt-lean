@@ -2019,6 +2019,20 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
       ((Network.cmeStationaryMeasure c T Set.univ)⁻¹ • Network.cmeStationaryMeasure c T) :=
   N.cmeSemigroup_preserves_stationarity κ c hc hcb hTfin hT t
 
+-- The uniformized CME semigroup obeys the Chapman–Kolmogorov composition law P_{s+t} = P_s ∘ₖ P_t.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {T : Set (S → ℕ)} (hTfin : T.Finite) (s t : ℝ≥0) :
+    N.cmeSemigroup κ hTfin (s + t) =
+      ProbabilityTheory.Kernel.comp (N.cmeSemigroup κ hTfin s) (N.cmeSemigroup κ hTfin t) :=
+  N.cmeSemigroup_comp κ hTfin s t
+
+-- The Poisson point masses convolve over the step-count antidiagonal.
+example (r₁ r₂ : ℝ≥0) (m : ℕ) :
+    ∑ p ∈ Finset.antidiagonal m,
+        ProbabilityTheory.poissonMeasure r₁ {p.1} * ProbabilityTheory.poissonMeasure r₂ {p.2} =
+      ProbabilityTheory.poissonMeasure (r₁ + r₂) {m} :=
+  Network.poissonMeasure_singleton_conv r₁ r₂ m
+
 -- An isolated invariant set cannot trap an ω-limit set without containing it (the Butler–McGehee
 -- escape core) — here the ω-limit set is invariant.
 open Filter in

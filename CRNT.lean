@@ -322,6 +322,7 @@ import CRNT.Stochastic.KernelSupport
 import CRNT.Stochastic.KernelProductForm
 import CRNT.Stochastic.KernelMaximalRegion
 import CRNT.Stochastic.Semigroup
+import CRNT.Stochastic.SemigroupComposition
 
 -- Network composition
 import CRNT.Compose.Interconnect
