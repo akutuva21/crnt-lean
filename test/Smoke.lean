@@ -2592,3 +2592,20 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     (hdiag : 0 < CRNT.coverTerm (N.massActionJacobian κ x) (1 : Equiv.Perm S)) :
     (N.massActionJacobian κ x).det ≠ 0 :=
   N.det_massActionJacobian_ne_zero_of_consistentSRSign κ hx hweight hdiag
+
+-- CTMC ergodicity: on a finite closed enabled region that is a single communicating class, the
+-- embedded jump chain has a unique invariant probability measure supported on the region — any
+-- such measure equals the canonical normalized stationary measure, via finite-state
+-- Perron–Frobenius standing in for the absent general Meyn–Tweedie ergodicity.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (c : Concentration S) (hc : c.Positive) (hcb : N.IsComplexBalanced κ c)
+    {T : Set (S → ℕ)} [Fintype ↥T] (hT : N.ClosedEnabledRegion κ T) (hne : T.Nonempty)
+    (hirr : N.regionStronglyConnected κ T)
+    (μ : @MeasureTheory.Measure (S → ℕ) CRNT.Network.instMeasurableSpaceCount)
+    (hμprob :
+      @MeasureTheory.IsProbabilityMeasure (S → ℕ) CRNT.Network.instMeasurableSpaceCount μ)
+    (hμsupp : μ Tᶜ = 0)
+    (hμinv : ProbabilityTheory.Kernel.Invariant (N.jumpKernel κ) μ) :
+    μ = N.stationaryProbabilityMeasure κ c T := by
+  haveI := hμprob
+  exact N.invariant_probabilityMeasure_unique_on_region κ c hc hcb hT hne hirr μ hμsupp hμinv

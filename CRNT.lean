@@ -328,6 +328,7 @@ import CRNT.Stochastic.KernelNormalized
 import CRNT.Stochastic.KernelSupport
 import CRNT.Stochastic.KernelProductForm
 import CRNT.Stochastic.KernelMaximalRegion
+import CRNT.Stochastic.Ergodicity
 import CRNT.Stochastic.Semigroup
 import CRNT.Stochastic.SemigroupComposition
 
