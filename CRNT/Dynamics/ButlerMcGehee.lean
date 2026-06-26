@@ -54,6 +54,47 @@ theorem omegaLimit_isInvariant_two_sided (ϕ : Flow ℝ≥0 α) (x₀ : α) :
   Flow.isInvariant_omegaLimit atTop ϕ {x₀}
     (fun _ => tendsto_atTop_mono (fun _ => le_add_self) tendsto_id)
 
+/-- The ω-limit set of an orbit absorbed by a compact set is compact. The orbit is absorbed by
+`K` when, eventually, the closure of the forward image lies in `K`; the ω-limit set is contained
+in that closure (`omegaLimit_subset_closure_image2`) and is closed (`isClosed_omegaLimit`), so it
+is a closed subset of the compact `K`. -/
+theorem isCompact_omegaLimit_of_absorbing (ϕ : Flow ℝ≥0 α) (x₀ : α) {K : Set α}
+    (hK : IsCompact K) (habs : ∃ v ∈ (Filter.atTop : Filter ℝ≥0),
+      closure (Set.image2 ϕ v {x₀}) ⊆ K) :
+    IsCompact (omegaLimit Filter.atTop ϕ {x₀}) := by
+  obtain ⟨v, hv, hvK⟩ := habs
+  exact hK.of_isClosed_subset (isClosed_omegaLimit _ _ _)
+    ((omegaLimit_subset_closure_image2 _ _ _ hv).trans hvK)
+
+/-- The ω-limit set of an orbit absorbed by a compact set is a compact invariant set: it is
+compact by `isCompact_omegaLimit_of_absorbing` and invariant by
+`omegaLimit_isInvariant_two_sided`. -/
+theorem isCompact_isInvariant_omegaLimit (ϕ : Flow ℝ≥0 α) (x₀ : α) {K : Set α}
+    (hK : IsCompact K) (habs : ∃ v ∈ (Filter.atTop : Filter ℝ≥0),
+      closure (Set.image2 ϕ v {x₀}) ⊆ K) :
+    IsCompact (omegaLimit Filter.atTop ϕ {x₀}) ∧
+      IsInvariant ϕ (omegaLimit Filter.atTop ϕ {x₀}) :=
+  ⟨isCompact_omegaLimit_of_absorbing ϕ x₀ hK habs, omegaLimit_isInvariant_two_sided ϕ x₀⟩
+
+/-- An ω-limit set is its own maximal invariant subset, since it is invariant
+(`omegaLimit_isInvariant_two_sided`) and `maximalInvariantSubset_self` applies to invariant
+sets. -/
+theorem maximalInvariantSubset_omegaLimit_self (ϕ : Flow ℝ≥0 α) (x₀ : α) :
+    maximalInvariantSubset ϕ (omegaLimit Filter.atTop ϕ {x₀})
+      = omegaLimit Filter.atTop ϕ {x₀} :=
+  maximalInvariantSubset_self ϕ (omegaLimit_isInvariant_two_sided ϕ x₀)
+
+/-- An invariant ω-limit set lying in the interior of a compact set whose maximal invariant subset
+it exhausts is an isolated invariant set. Its invariance comes from
+`omegaLimit_isInvariant_two_sided`, and `isIsolatedInvariant_of_maximalInvariantSubset_eq`
+supplies the isolating neighborhood. -/
+theorem isIsolatedInvariant_omegaLimit (ϕ : Flow ℝ≥0 α) (x₀ : α) {N : Set α}
+    (hNc : IsCompact N) (hint : omegaLimit Filter.atTop ϕ {x₀} ⊆ interior N)
+    (hmax : maximalInvariantSubset ϕ N = omegaLimit Filter.atTop ϕ {x₀}) :
+    IsIsolatedInvariant ϕ (omegaLimit Filter.atTop ϕ {x₀}) :=
+  isIsolatedInvariant_of_maximalInvariantSubset_eq ϕ
+    (omegaLimit_isInvariant_two_sided ϕ x₀) hNc hint hmax
+
 /-- If an invariant set `Ω` is contained in an isolating neighborhood `N` of an isolated
 invariant set `M`, then `Ω ⊆ M`. Reason: `Ω` is an invariant subset of `N`, and `M` is the
 maximal invariant subset of `N`, so `Ω ⊆ maximalInvariantSubset ϕ N = M`. -/

@@ -976,6 +976,13 @@ example {α : Type} [TopologicalSpace α] [T2Space α] (ϕ : Flow ℝ≥0 α) (x
     ∃ w' ∈ omegaLimit atTop ϕ {x₀}, ϕ t w' = w :=
   CRNT.omegaLimit_negInvariant ϕ x₀ hK hmaps t hw
 
+-- Compactness of the ω-limit set of an orbit absorbed by a compact set.
+example {α : Type*} [TopologicalSpace α] (ϕ : Flow ℝ≥0 α) (x₀ : α) {K : Set α}
+    (hK : IsCompact K) (habs : ∃ v ∈ (Filter.atTop : Filter ℝ≥0),
+      closure (Set.image2 ϕ v {x₀}) ⊆ K) :
+    IsCompact (omegaLimit Filter.atTop ϕ {x₀}) :=
+  (CRNT.isCompact_isInvariant_omegaLimit ϕ x₀ hK habs).1
+
 -- Strict inflow at a non-siphon zero set: if the zero set of a nonnegative concentration is not
 -- a siphon, the mass-action field is strictly positive at some empty species.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
