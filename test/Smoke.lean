@@ -1174,6 +1174,14 @@ example {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {f : E → 
     ∀ t, 0 ≤ t → ‖z t - zstar‖ ≤ ‖z 0 - zstar‖ * Real.exp (-lam * t) :=
   ODE.norm_sub_le_exp_neg_mul hz hstat hcon hlam
 
+-- Dissipative (logarithmic-norm) tracking: a transverse gap obeying `u' ≤ -λ·u + δ` with `λ > 0`
+-- and defect `δ ≥ 0` stays below a horizon-uniform ceiling `u 0 · e^{-λt} + δ/λ` (no `e^{KT}` growth).
+example {u u' : ℝ → ℝ} {lam δ T : ℝ} (hlam : 0 < lam) (hδ : 0 ≤ δ)
+    (hu : ContinuousOn u (Set.Icc 0 T)) (hu' : ∀ x ∈ Set.Ico 0 T, HasDerivWithinAt u (u' x) (Set.Ici x) x)
+    (hbound : ∀ x ∈ Set.Ico 0 T, u' x ≤ -lam * u x + δ) :
+    ∀ t ∈ Set.Icc 0 T, u t ≤ u 0 * Real.exp (-lam * t) + δ / lam :=
+  ODE.le_dissipative_of_deriv_le hlam hδ hu hu' hbound
+
 -- Computable matrix rank over ℚ agrees with Mathlib's `Matrix.rank`.
 example {m n : Type} [Fintype m] [Fintype n] [DecidableEq m] [DecidableEq n] (A : Matrix m n ℚ) :
     CRNT.GaussianRank.computeRank A = A.rank :=

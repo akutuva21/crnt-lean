@@ -177,6 +177,7 @@ import CRNT.Dynamics.MichaelisMentenSlowDrift
 import CRNT.Dynamics.MichaelisMentenSlowDriftSpeed
 import CRNT.Dynamics.MichaelisMentenDepletion
 import CRNT.Dynamics.MichaelisMentenCertified
+import CRNT.Dynamics.DissipativeTracking
 
 -- Deficiency
 import CRNT.Deficiency.Definition
