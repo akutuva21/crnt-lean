@@ -2287,3 +2287,23 @@ example {S : Type} [Fintype S] {K : Set (CRNT.Concentration S)} (hne : K.Nonempt
     (v : CRNT.Concentration S → CRNT.Concentration S) (hv : ContinuousOn v K)
     (hmaps : Set.MapsTo (fun x => x - v x) K K) : ∃ x ∈ K, v x = 0 :=
   CRNT.Analysis.exists_zero_of_displacement_mapsTo_concentration hne hconv hcomp v hv hmaps
+-- The forward limit of an omega-point is contained in the omega-limit set, and every boundary
+-- point of it carries a critical siphon on its zero set.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S} (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    {K : Set (Concentration S)} (hK : IsCompact K) (hKcl : IsClosed K)
+    (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hωnn : ∀ y ∈ omegaLimit Filter.atTop ϕ {x₀}, (y : Concentration S).Nonnegative)
+    (hgenω : ∀ y ∈ omegaLimit Filter.atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      HasDerivAt (γ y) (N.massActionVectorField κ (γ y t)) t)
+    (hωaff : ∀ z ∈ omegaLimit Filter.atTop ϕ {x₀},
+      (z - x₀ : Concentration S) ∈ N.stoichSubspace)
+    (hx0pos : x₀.Positive) {q : Concentration S}
+    (hq : q ∈ omegaLimit Filter.atTop ϕ {x₀}) :
+    omegaLimit Filter.atTop ϕ {q} ⊆ omegaLimit Filter.atTop ϕ {x₀} ∧
+      ∀ w ∈ omegaLimit Filter.atTop ϕ {q}, ∀ P : Finset S,
+        (∀ s, s ∈ P ↔ w s = 0) → P.Nonempty → N.IsCriticalSiphon P :=
+  let ⟨_, _, _, hsub, hface⟩ := N.forwardLimit_subOmega_criticalSiphonFace κ hϕγ hK hKcl hmaps
+    hωnn hgenω hωaff hx0pos hq
+  ⟨hsub, hface⟩
