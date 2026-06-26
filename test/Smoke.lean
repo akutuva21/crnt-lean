@@ -2691,3 +2691,24 @@ example (rate : ℝ) (hrate : 0 < rate) (Km Vmax : ℝ) (hKm : 0 < Km)
     ‖CRNT.MichaelisMenten.mmRegSlavedVelocity rate hrate Km Vmax hKm (s t₀)
         (CRNT.MichaelisMenten.mmRegSlowDrift ε g (s t₀) (z t₀))‖ ≤ (L / rate) * (ε * G) :=
   CRNT.MichaelisMenten.mmRegSlavedVelocity_le_of_drift rate hrate Km Vmax hKm hL hε hG hlip hg hs
+
+-- CTMC ergodic convergence: on a finite closed enabled region whose restricted transition matrix
+-- is strictly positive (primitivity at the first step — the strongest finite-state aperiodicity),
+-- the embedded jump chain mixes geometrically. The singleton-mass vector of the n-step matrix
+-- evolution converges entrywise to the canonical stationary singleton masses, via the
+-- finite-state Perron–Frobenius / Doeblin convergence theorem.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (c : Concentration S) (hc : c.Positive) (hcb : N.IsComplexBalanced κ c)
+    {T : Set (S → ℕ)} [Fintype ↥T] (hT : N.ClosedEnabledRegion κ T) (hne : T.Nonempty)
+    (hpos : N.regionPositive κ T)
+    (μ : @MeasureTheory.Measure (S → ℕ) CRNT.Network.instMeasurableSpaceCount)
+    (hμprob :
+      @MeasureTheory.IsProbabilityMeasure (S → ℕ) CRNT.Network.instMeasurableSpaceCount μ)
+    (hμsupp : μ Tᶜ = 0) (i : ↥T) :
+    Filter.Tendsto
+        (fun n => ((N.regionMatrix κ T) ^ n).mulVec (CRNT.Network.stationaryVec (T := T) μ) i)
+        Filter.atTop
+        (nhds (CRNT.Network.stationaryVec (T := T)
+          (N.stationaryProbabilityMeasure κ c T) i)) := by
+  haveI := hμprob
+  exact N.regionMatrix_pow_mulVec_tendsto_stationaryVec κ c hc hcb hT hne hpos μ hμsupp i
