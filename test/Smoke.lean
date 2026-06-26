@@ -1468,6 +1468,12 @@ example (Km Vmax s : ℝ) :
     CRNT.MichaelisMenten.mmReducedField Km Vmax s = (if 0 ≤ s then -(Vmax * s / (Km + s)) else 0) :=
   rfl
 
+-- Certified Michaelis–Menten reduction: the constructed substrate flow is confined to `[0, s₀]` for
+-- all forward time by its monotone depletion, the all-time bound resting on no horizon.
+example (Km Vmax : ℝ) (hKm : 0 < Km) (hV : 0 ≤ Vmax) {s₀ : ℝ} (hs0 : 0 ≤ s₀) {t : ℝ} (ht : 0 ≤ t) :
+    CRNT.MichaelisMenten.mmSubstrate Km Vmax hKm hV s₀ t ∈ Set.Icc (0 : ℝ) s₀ :=
+  CRNT.MichaelisMenten.mmSubstrate_mem_Icc Km Vmax hKm hV hs0 ht
+
 -- Concrete 2-D Sperner: the explicitly-constructed single-cell triangulation has a rainbow triangle
 -- (the full DoorIncidence → rainbow pipeline on a genuine `Fintype` cell type).
 example : ∃ t : CRNT.Analysis.SpernerGrid.Cell,
