@@ -2406,3 +2406,11 @@ example {n : Type*} [Fintype n] [DecidableEq n] (A : Matrix n n ℂ)
     (h : ∀ k, (A k k).re + ∑ j ∈ Finset.univ.erase k, ‖A k j‖ < 0) :
     ∀ μ : ℂ, Module.End.HasEigenvalue (Matrix.toLin' A) μ → μ.re < 0 :=
   hurwitz_of_strict_diag_dominance A h
+
+-- Column form of the Gershgorin diagonal-dominance Hurwitz test: strict column diagonal dominance
+-- with negative diagonal forces every eigenvalue into the open left half-plane, in any finite
+-- dimension.
+example {n : Type*} [Fintype n] [DecidableEq n] (A : Matrix n n ℂ)
+    (h : ∀ k, (A k k).re + ∑ i ∈ Finset.univ.erase k, ‖A i k‖ < 0) :
+    ∀ μ : ℂ, Module.End.HasEigenvalue (Matrix.toLin' A) μ → μ.re < 0 :=
+  hurwitz_of_strict_col_diag_dominance A h
