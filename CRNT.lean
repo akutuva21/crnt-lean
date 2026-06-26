@@ -272,6 +272,7 @@ import CRNT.Multistationarity.ReducedJacobian
 import CRNT.Multistationarity.ReducedJacobianSign
 import CRNT.Multistationarity.SRCycleInjectivity
 import CRNT.Multistationarity.SRInjectivityClass
+import CRNT.Multistationarity.SRSignDecidable
 import CRNT.Multistationarity.Toric
 
 -- Design: robustness and special equilibria

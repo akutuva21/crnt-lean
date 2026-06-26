@@ -2790,3 +2790,22 @@ example {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι] (P : Matrix ι �
     (hP : ∀ i j, 0 ≤ P i j) (hsc : ∀ i j, CRNT.supportReaches P i j) {s : ι} (hs : 0 < P s s) :
     ∃ N : ℕ, 0 < N ∧ ∀ i j, 0 < (P ^ N) i j :=
   CRNT.primitive_of_stronglyConnected_self_loop P hP hsc hs
+-- The computable signed incidence agrees with the real reaction-vector incidence sign.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (s : S) (r : N.R) :
+    N.intSignedEdge s r = N.signedEdge s r :=
+  N.intSignedEdge_eq s r
+
+-- A single-species production `A → 2A` discharges the consistent signed SR-cover certificate by
+-- `decide`: its only cover is the positive singleton, so the sign condition holds.
+example :
+    (⟨Unit, inferInstance, inferInstance,
+      fun _ => { source := fun _ => 1, target := fun _ => 2 }⟩ :
+        Network (Fin 1)).ConsistentSRSign := by decide
+
+-- The decidable certificate's real-cast image is exactly the weight hypothesis the
+-- species–reaction graph injectivity verdict consumes.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.ConsistentSRSign) :
+    ∀ (s : Finset S) (σ : Equiv.Perm s) (ρ : s → N.R),
+      0 ≤ ((CRNT.coverCoeff σ : ℤ) : ℝ) *
+        ((∏ a : s, N.signedEdge ((σ a : S)) (ρ a) : SignType) : ℝ) :=
+  N.hweight_of_consistentSRSign h
