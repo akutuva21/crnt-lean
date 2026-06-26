@@ -2111,6 +2111,17 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
       ≤ N.massActionVectorField κ x sstar :=
   N.massActionVectorField_singleton_facet_ge κ hsiph hxnn hxM
 
+-- Integrating the singleton near-facet influx bound by a one-sided Grönwall step keeps the vanishing
+-- coordinate strictly positive: from a positive start a confined trajectory never reaches the facet
+-- {s* ↦ 0} in finite time (Anderson–Shiu singleton facet escape).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    {sstar : S} (hsiph : N.IsSiphon ({sstar} : Finset S)) {M : ℝ} {γ : ℝ → Concentration S}
+    (hγd : ∀ t, 0 ≤ t → HasDerivAt γ (N.massActionVectorField κ (γ t)) t)
+    (hγnn : ∀ t, 0 ≤ t → (γ t).Nonnegative) (hγM : ∀ t, 0 ≤ t → ∀ s, γ t s ≤ M)
+    (hpos0 : 0 < γ 0 sstar) {t : ℝ} (ht : 0 ≤ t) :
+    γ t ∉ N.SiphonFace ({sstar} : Finset S) :=
+  N.massActionTrajectory_notMem_singletonFacet κ hsiph hγd hγnn hγM hpos0 ht
+
 -- The monomial-ordered cyclic velocity lies in the polar cone of any cone for which the cycle's base
 -- vertex is minimal (single-cycle toric embedding).
 example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {C : Set E}
