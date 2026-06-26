@@ -1814,6 +1814,15 @@ example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [PseudoMe
     ‖S.manifoldMap (y t) - S.manifoldMap (y t')‖ ≤ (L / S.rate) * ε * |t - t'| :=
   S.manifoldMap_slowDrift_le hL hlip hy t t'
 
+-- Ladder 3 (Fenichel/QSSA): the slaved slow-manifold curve's QSSA slaving defect decomposes into a
+-- curve-velocity bound plus the full field's manifold residual, bounded by their sum εv + εr.
+example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    (S : ODE.SlowManifoldSeed Y E) (full : E → E) {y : ℝ → Y} {γᵣ' : ℝ → E} {a b εv εr : ℝ}
+    (hvel : ∀ t ∈ Set.Ico a b, ‖γᵣ' t‖ ≤ εv)
+    (hres : ∀ t ∈ Set.Ico a b, ‖full (S.manifoldMap (y t))‖ ≤ εr) :
+    ODE.QssaDefect full (fun t => S.manifoldMap (y t)) γᵣ' a b (εv + εr) :=
+  S.manifoldMap_qssaDefect_le full hvel hres
+
 -- Ladder 3 (Fenichel/MM): the constructed Michaelis-Menten substrate curve is monotonically depleted
 -- (antitone) — a qualitative property of the reduced flow.
 example (Km Vmax : ℝ) (hKm : 0 < Km) (hV : 0 ≤ Vmax) (s₀ : ℝ) :

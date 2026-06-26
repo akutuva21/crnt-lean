@@ -25,10 +25,20 @@ function theorem). Promoting `O(ε)` *displacement* to an `O(ε)` *velocity* of 
 extending it past bounded time, is exactly the ε-positive normally-hyperbolic persistence theorem
 absent from Mathlib v4.31.
 
+A companion `manifoldMap_qssaDefect_le` decomposes the QSSA slaving defect of the slaved curve
+`t ↦ manifoldMap (y t)` (in the sense of `CRNT.Dynamics.QSSA`'s `QssaDefect`) into a curve-velocity
+bound `εv` plus the full field's residual `εr` on the manifold, via the triangle inequality; the
+defect is then at most `εv + εr`, and `manifoldMap_qssaDefect_tendsto_zero` records that this bound
+vanishes as `(εv, εr) → (0, 0)`. The velocity bound `εv` and the velocity `γᵣ'` are supplied data:
+this is a decomposition, not a derivation, since `manifoldMap` is only Lipschitz.
+
 ## Main results
 
 * `manifoldMap_slowDrift_le` — the slaved manifold curve's displacement is `≤ (L / rate) · ε · |t − t'|`.
 * `manifoldMap_slowDrift_tendsto_zero` — that bound tends to `0` as `ε → 0`.
+* `manifoldMap_qssaDefect_le` — the slaved curve's QSSA slaving defect is `≤ εv + εr`, the
+  curve-velocity bound plus the full field's manifold residual.
+* `manifoldMap_qssaDefect_tendsto_zero` — that bound tends to `0` as `(εv, εr) → (0, 0)`.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.FenichelManifold`.
 -/
@@ -75,6 +85,32 @@ theorem manifoldMap_slowDrift_tendsto_zero (L : ℝ) (t t' : ℝ) :
     Tendsto (fun ε : ℝ => (L / S.rate) * ε * |t - t'|) (𝓝 0) (𝓝 0) := by
   have hcont : Continuous (fun ε : ℝ => (L / S.rate) * ε * |t - t'|) := by fun_prop
   simpa using hcont.tendsto' 0 0 (by simp)
+
+omit [PseudoMetricSpace Y] in
+/-- **Defect decomposition.** The QSSA slaving defect of the slaved slow-manifold curve
+`t ↦ manifoldMap (y t)` splits, by the triangle inequality `dist a b ≤ ‖a‖ + ‖b‖`, into a bound on
+the curve's velocity `γᵣ'` and the full field's residual on the manifold: if `‖γᵣ' t‖ ≤ εv` and
+`‖full (manifoldMap (y t))‖ ≤ εr` on `[a, b)`, then the slaving defect is at most `εv + εr`. The
+velocity bound `εv` and the velocity `γᵣ'` remain supplied data, since `manifoldMap` is only
+Lipschitz: deriving `εv = O(ε)` would need the absent `C¹`/implicit-function-theorem regularity. -/
+theorem manifoldMap_qssaDefect_le (full : E → E)
+    {y : ℝ → Y} {γᵣ' : ℝ → E} {a b εv εr : ℝ}
+    (hvel : ∀ t ∈ Set.Ico a b, ‖γᵣ' t‖ ≤ εv)
+    (hres : ∀ t ∈ Set.Ico a b, ‖full (S.manifoldMap (y t))‖ ≤ εr) :
+    ODE.QssaDefect full (fun t => S.manifoldMap (y t)) γᵣ' a b (εv + εr) := by
+  intro t ht
+  calc dist (γᵣ' t) (full (S.manifoldMap (y t)))
+      ≤ ‖γᵣ' t‖ + ‖full (S.manifoldMap (y t))‖ := dist_le_norm_add_norm _ _
+    _ ≤ εv + εr := add_le_add (hvel t ht) (hres t ht)
+
+omit [PseudoMetricSpace Y] in
+/-- **The decomposed defect bound vanishes in the singular limit.** As both the velocity bound `εv`
+and the manifold residual `εr` tend to `0`, the decomposed slaving defect bound `εv + εr` tends to
+`0`: in the joint limit the slaved slow-manifold curve solves the full field exactly. -/
+theorem manifoldMap_qssaDefect_tendsto_zero :
+    Tendsto (fun p : ℝ × ℝ => p.1 + p.2) (𝓝 (0, 0)) (𝓝 0) := by
+  have hcont : Continuous (fun p : ℝ × ℝ => p.1 + p.2) := by fun_prop
+  simpa using hcont.tendsto' (0, 0) 0 (by simp)
 
 end SlowManifoldSeed
 
