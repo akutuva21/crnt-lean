@@ -2777,3 +2777,9 @@ example :
     CRNT.Examples.HopfNetwork3.boundaryFn CRNT.Examples.HopfNetwork3.μ₀ = 0
       ∧ deriv CRNT.Examples.HopfNetwork3.boundaryFn CRNT.Examples.HopfNetwork3.μ₀ ≠ 0 :=
   CRNT.Examples.HopfNetwork3.boundary_crossing_transversal
+
+-- Fourier–Motzkin elimination of the last variable preserves rational feasibility.
+example (sys : List (CRNT.RationalFarkas.Ineq (1 + 1))) :
+    CRNT.RationalFarkas.Feasible (CRNT.RationalFarkas.eliminateLast sys)
+      ↔ CRNT.RationalFarkas.Feasible sys :=
+  CRNT.RationalFarkas.feasible_eliminateLast_iff sys
