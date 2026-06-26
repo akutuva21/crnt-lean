@@ -278,6 +278,7 @@ import CRNT.Dynamics.DifferentialInclusion
 import CRNT.Dynamics.DissipationBound
 import CRNT.Dynamics.ButlerMcGehee
 import CRNT.Dynamics.EscapeSiphonFace
+import CRNT.Dynamics.MinimalInvariant
 import CRNT.Dynamics.ToricInclusion
 import CRNT.Dynamics.ToricEmbedding
 import CRNT.Dynamics.ToricEmbeddingOrder

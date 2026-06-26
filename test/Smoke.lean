@@ -2371,3 +2371,12 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     (hmaps : Set.MapsTo (fun x => x - N.massActionVectorField κ x) K K) :
     ∃ x ∈ K, N.IsMassActionSteadyState κ x :=
   N.exists_isMassActionSteadyState_of_displacement_mapsTo κ hne hconv hcomp hmaps
+-- The ω-limit set of a precompact orbit contains a minimal compact invariant subset: a nonempty
+-- compact closed invariant set with no proper nonempty compact closed invariant subset.
+open Filter in
+example {α : Type} [TopologicalSpace α] [T2Space α] (ϕ : Flow ℝ≥0 α) (x₀ : α) {K : Set α}
+    (hK : IsCompact K)
+    (habs : ∃ v ∈ (Filter.atTop : Filter ℝ≥0), closure (Set.image2 ϕ v {x₀}) ⊆ K) :
+    ∃ M, M ⊆ omegaLimit atTop ϕ {x₀} ∧
+      Minimal (fun C => C.Nonempty ∧ IsCompact C ∧ IsClosed C ∧ IsInvariant ϕ C) M :=
+  CRNT.exists_minimal_compact_invariant_subOmega ϕ x₀ hK habs
