@@ -6,6 +6,7 @@ import CRNT.Examples.IrreversibleChain
 import CRNT.Examples.GeneExpression
 import CRNT.Examples.Enzyme
 import CRNT.Examples.HopfOscillator3
+import CRNT.Examples.HopfNetwork3
 
 /-!
 # Smoke tests
@@ -2747,3 +2748,24 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
           (N.stationaryProbabilityMeasure κ c T) i)) := by
   haveI := hμprob
   exact N.regionMatrix_primitive_pow_mulVec_tendsto_stationaryVec κ c hc hcb hT hne hprim μ hμsupp i
+-- A genuine three-species mass-action network on the Hopf boundary: at `x = (1,1,1)` (a positive
+-- steady state for every rate) the actual `Network.massActionJacobian` at the crossing rate `μ₀`
+-- has a purely-imaginary conjugate eigenvalue pair and a strictly negative real eigenvalue.
+example (hμ : 3 < CRNT.Examples.HopfNetwork3.μ₀) :
+    (((-9 : ℂ)).re < 0) ∧ ((Real.sqrt 12 * Complex.I).re = 0)
+      ∧ ((Real.sqrt 12 * Complex.I).im ≠ 0)
+      ∧ (Real.sqrt 12 * Complex.I).im ^ 2
+        = (CRNT.Examples.HopfNetwork3.N.massActionJacobian
+            (CRNT.Examples.HopfNetwork3.κ CRNT.Examples.HopfNetwork3.μ₀ hμ)
+            CRNT.Examples.HopfNetwork3.xeq).c₂Fin3 :=
+  CRNT.Examples.HopfNetwork3.hopf_crossing_at_μ₀ hμ
+-- The chosen point is a genuine steady state of the network for every rate.
+example (μ : ℝ) (hμ : 3 < μ) :
+    CRNT.Examples.HopfNetwork3.N.massActionVectorField
+      (CRNT.Examples.HopfNetwork3.κ μ hμ) CRNT.Examples.HopfNetwork3.xeq = 0 :=
+  CRNT.Examples.HopfNetwork3.equilibrium μ hμ
+-- The network Jacobian crosses the Hurwitz (Hopf) boundary transversally in the autocatalytic rate.
+example :
+    CRNT.Examples.HopfNetwork3.boundaryFn CRNT.Examples.HopfNetwork3.μ₀ = 0
+      ∧ deriv CRNT.Examples.HopfNetwork3.boundaryFn CRNT.Examples.HopfNetwork3.μ₀ ≠ 0 :=
+  CRNT.Examples.HopfNetwork3.boundary_crossing_transversal

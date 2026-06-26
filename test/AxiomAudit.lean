@@ -86,6 +86,14 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Examples.HopfOscillator3.admissible
 
+/-- info: 'CRNT.Examples.HopfNetwork3.hopf_crossing_at_μ₀' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.HopfNetwork3.hopf_crossing_at_μ₀
+
+/-- info: 'CRNT.Examples.HopfNetwork3.boundary_crossing_transversal' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.HopfNetwork3.boundary_crossing_transversal
+
 /-- info: 'CRNT.Network.coverProductSingle_eq_magnitude_mul_sign' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.coverProductSingle_eq_magnitude_mul_sign
