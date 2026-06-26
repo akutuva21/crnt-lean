@@ -2465,6 +2465,15 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     (N.massActionKinetics κ).InjectiveOnClass x₀ :=
   N.massActionInjectiveOnClass_of_consistentSRSign κ x₀ hf hbox hpos hweight hdiag hsub
 
+-- For a general stoichiometric chart the reduced Jacobian is the oblique compression P · M · B of
+-- the full mass-action Jacobian, with P · B = 1 — the Cauchy–Binet matrix scaffolding for the
+-- general-chart species–reaction graph injectivity verdict.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (x₀ : Concentration S) (y : Fin N.stoichRank → ℝ) :
+    N.reducedJacobian κ x₀ y
+      = N.stoichProjMatrix * N.massActionJacobian κ (N.affineChart x₀ y) * N.stoichChartMatrix :=
+  N.reducedJacobian_eq_mul κ x₀ y
+
 -- Brouwer zero-of-field in concentration space: an inward-displacement-preserving continuous
 -- vector field on a nonempty compact convex set of concentrations has a zero there.
 example {S : Type} [Fintype S] {K : Set (CRNT.Concentration S)} (hne : K.Nonempty)
