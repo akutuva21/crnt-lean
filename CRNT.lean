@@ -154,6 +154,7 @@ import CRNT.Dynamics.RouthHurwitz4Suff
 import CRNT.Dynamics.HopfGate4
 import CRNT.Dynamics.Hurwitz2Matrix
 import CRNT.Dynamics.Hurwitz3Matrix
+import CRNT.Dynamics.HopfAdmissible
 import CRNT.Dynamics.HopfGate3Matrix
 import CRNT.Dynamics.HopfTransversality3
 import CRNT.Dynamics.HurwitzGershgorin

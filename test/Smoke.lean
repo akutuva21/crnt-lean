@@ -2523,6 +2523,13 @@ example {r p q : ℝ → ℝ} {μ₀ r' p' q' : ℝ}
     (hg : deriv (fun μ => CRNT.hopfBoundaryFn (r μ) (p μ) (q μ)) μ₀ ≠ 0) :
     p' ≠ 0 :=
   CRNT.hopf_transversal_crossing hr hp hq hp0 hqnn H₀ hg
+-- Hopf admissibility: a one-parameter mass-action Jacobian family that crosses the cubic Hurwitz
+-- boundary transversally, with a center-manifold seed supplied, satisfies the planar Hopf theorem's
+-- input hypotheses — purely-imaginary non-hyperbolic spectrum (p μ₀ = 0, 0 < q μ₀, r μ₀ < 0) and a
+-- transversal crossing (p' ≠ 0) — without asserting the (out-of-scope) periodic-orbit conclusion.
+example {J : ℝ → Matrix (Fin 3) (Fin 3) ℝ} {μ₀ : ℝ} (h : CRNT.hopfAdmissible J μ₀) :
+    h.p μ₀ = 0 ∧ 0 < h.q μ₀ ∧ h.r μ₀ < 0 ∧ h.p' ≠ 0 :=
+  h.planarHopfHypotheses
 -- Critical-siphon feasibility under Farkas duality: a species vector lies in the conservation cone
 -- (nonnegative, orthogonal to the stoichiometric subspace) iff every direction nonnegative on the
 -- cone is nonnegative on it.
