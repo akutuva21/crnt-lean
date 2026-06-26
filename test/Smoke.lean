@@ -1658,6 +1658,11 @@ example {n : ℕ} {K : Set (EuclideanSpace ℝ (Fin n))} (hne : K.Nonempty)
     (hf : ContinuousOn f K) (hmaps : Set.MapsTo f K K) :
     ∃ x ∈ K, f x = x :=
   CRNT.Analysis.brouwer_compact_convex hne hconv hcomp f hf hmaps
+example {n : ℕ} {K : Set (EuclideanSpace ℝ (Fin n))} (hne : K.Nonempty)
+    (hconv : Convex ℝ K) (hcomp : IsCompact K)
+    (v : EuclideanSpace ℝ (Fin n) → EuclideanSpace ℝ (Fin n)) (hv : ContinuousOn v K)
+    (hmaps : Set.MapsTo (fun x => x - v x) K K) : ∃ x ∈ K, v x = 0 :=
+  CRNT.Analysis.exists_zero_of_displacement_mapsTo hne hconv hcomp v hv hmaps
 
 -- n-D Kuhn-triangulation framework: every cell has exactly n+1 vertices; lattice points realize
 -- into the standard n-simplex; the corners realize to the basis vectors.

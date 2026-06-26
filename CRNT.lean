@@ -112,6 +112,7 @@ import CRNT.Analysis.SpernerNClose
 import CRNT.Analysis.SpernerBrouwerN
 import CRNT.Analysis.BrouwerConvex
 import CRNT.Analysis.ConvexProjection
+import CRNT.Analysis.BrouwerZero
 import CRNT.Analysis.SpernerGrid
 
 -- Kinetics: concentrations, mass action, and the general kinetics abstraction
