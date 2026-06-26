@@ -2365,3 +2365,9 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
   let ⟨_, _, _, hsub, hface⟩ := N.forwardLimit_subOmega_criticalSiphonFace κ hϕγ hK hKcl hmaps
     hωnn hgenω hωaff hx0pos hq
   ⟨hsub, hface⟩
+
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {K : Set (CRNT.Concentration S)} (hne : K.Nonempty) (hconv : Convex ℝ K) (hcomp : IsCompact K)
+    (hmaps : Set.MapsTo (fun x => x - N.massActionVectorField κ x) K K) :
+    ∃ x ∈ K, N.IsMassActionSteadyState κ x :=
+  N.exists_isMassActionSteadyState_of_displacement_mapsTo κ hne hconv hcomp hmaps
