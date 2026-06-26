@@ -2486,3 +2486,11 @@ example {n : Type*} [Fintype n] [DecidableEq n] (M : Matrix n n ℝ)
     (hd : 0 < CRNT.coverTerm M (1 : Equiv.Perm n)) :
     M.det ≠ 0 :=
   CRNT.det_ne_zero_of_coverTerm_signDefinite M (Or.inl ⟨hnn, hd⟩)
+-- Stiemke/Gordan strict alternative: a critical siphon is a nonempty siphon for which some species
+-- of it admits no supported conservation vector positive there — the strict-support feasibility
+-- obstruction recast as a finite conjunction of single-coordinate Farkas problems.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (P : Finset S) :
+    N.IsCriticalSiphon P ↔
+      P.Nonempty ∧ N.IsSiphon P ∧
+        ∃ s ∈ P, ¬ ∃ w : S → ℝ, N.SupportedConservationVector P w ∧ 0 < w s :=
+  N.isCriticalSiphon_iff_exists_pointwise P

@@ -35,6 +35,7 @@ import CRNT.Decision.DeficiencyOneConditionsDecide
 import CRNT.Decision.MinorSearch
 import CRNT.Decision.DeficiencyZeroTactic
 import CRNT.Decision.IsCriticalSiphonDecidable
+import CRNT.Decision.ConservationConeStrict
 
 -- Stoichiometry: reaction vectors, subspace, rank
 import CRNT.Stoich.Vector
