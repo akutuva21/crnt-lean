@@ -2727,3 +2727,23 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
           (N.stationaryProbabilityMeasure κ c T) i)) := by
   haveI := hμprob
   exact N.regionMatrix_pow_mulVec_tendsto_stationaryVec κ c hc hcb hT hne hpos μ hμsupp i
+
+-- CTMC ergodic convergence under the general primitivity hypothesis: on a finite closed enabled
+-- region whose restricted transition matrix has some strictly positive power (regionPrimitive — the
+-- standard finite-state irreducibility-and-aperiodicity condition, weaker than first-step
+-- positivity), the embedded jump chain still mixes geometrically to the canonical stationary law.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (c : Concentration S) (hc : c.Positive) (hcb : N.IsComplexBalanced κ c)
+    {T : Set (S → ℕ)} [Fintype ↥T] (hT : N.ClosedEnabledRegion κ T) (hne : T.Nonempty)
+    (hprim : N.regionPrimitive κ T)
+    (μ : @MeasureTheory.Measure (S → ℕ) CRNT.Network.instMeasurableSpaceCount)
+    (hμprob :
+      @MeasureTheory.IsProbabilityMeasure (S → ℕ) CRNT.Network.instMeasurableSpaceCount μ)
+    (hμsupp : μ Tᶜ = 0) (i : ↥T) :
+    Filter.Tendsto
+        (fun n => ((N.regionMatrix κ T) ^ n).mulVec (CRNT.Network.stationaryVec (T := T) μ) i)
+        Filter.atTop
+        (nhds (CRNT.Network.stationaryVec (T := T)
+          (N.stationaryProbabilityMeasure κ c T) i)) := by
+  haveI := hμprob
+  exact N.regionMatrix_primitive_pow_mulVec_tendsto_stationaryVec κ c hc hcb hT hne hprim μ hμsupp i
