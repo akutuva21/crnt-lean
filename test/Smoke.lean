@@ -2089,6 +2089,16 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     0 < N.massActionVectorField κ w sstar :=
   N.massActionVectorField_pos_on_facet_of_not_isSiphon κ hns hwnn hzero
 
+-- A singleton critical-siphon facet has a linear near-facet influx bound: on a region bounded by M,
+-- the s*-component of the field is at least -(c · x s*) (Anderson–Shiu near-facet estimate).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    {sstar : S} (hsiph : N.IsSiphon ({sstar} : Finset S)) {x : Concentration S}
+    (hxnn : x.Nonnegative) {M : ℝ} (hxM : ∀ s, x s ≤ M) :
+    -((∑ r : N.R, κ.k r * ((N.reaction r).source sstar : ℝ)
+          * (max M 1) ^ ((∑ s, (N.reaction r).source s) - 1)) * x sstar)
+      ≤ N.massActionVectorField κ x sstar :=
+  N.massActionVectorField_singleton_facet_ge κ hsiph hxnn hxM
+
 -- The monomial-ordered cyclic velocity lies in the polar cone of any cone for which the cycle's base
 -- vertex is minimal (single-cycle toric embedding).
 example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {C : Set E}
