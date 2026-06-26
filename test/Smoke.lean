@@ -2452,6 +2452,17 @@ example (M : Matrix (Fin 3) (Fin 3) ℝ) :
         z.re < 0) ↔
       (0 < -M.trace ∧ 0 < M.c₂Fin3 ∧ 0 < -M.det ∧ -M.det < (-M.trace) * M.c₂Fin3) :=
   hurwitz_matrix_fin_three_iff M
+-- Spatial Hopf eigenvalue-crossing gate: a real 3×3 matrix on the boundary of the cubic Hurwitz
+-- region carries a purely imaginary conjugate eigenvalue pair (im² = c₂Fin3) and a negative real
+-- eigenvalue — the algebraic precondition for a Hopf bifurcation.
+example (M : Matrix (Fin 3) (Fin 3) ℝ) (z₁ z₂ : ℂ)
+    (hz₁im : z₁.im = 0)
+    (e₂ : (-M.trace : ℂ) = -(z₁ + z₂ + (starRingEnd ℂ) z₂))
+    (e₁ : (M.c₂Fin3 : ℂ) = z₁ * z₂ + z₁ * ((starRingEnd ℂ) z₂) + z₂ * ((starRingEnd ℂ) z₂))
+    (e₀ : (-M.det : ℂ) = -(z₁ * z₂ * ((starRingEnd ℂ) z₂)))
+    (H₂ : 0 < -M.trace) (H₀ : 0 < -M.det) (HΔ : (-M.det) = (-M.trace) * M.c₂Fin3) :
+    z₁.re < 0 ∧ z₂.re = 0 ∧ z₂.im ≠ 0 ∧ z₂.im ^ 2 = M.c₂Fin3 :=
+  CRNT.hurwitz_matrix_fin_three_hopf_crossing M z₁ z₂ hz₁im e₂ e₁ e₀ H₂ H₀ HΔ
 -- Critical-siphon feasibility under Farkas duality: a species vector lies in the conservation cone
 -- (nonnegative, orthogonal to the stoichiometric subspace) iff every direction nonnegative on the
 -- cone is nonnegative on it.
