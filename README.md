@@ -25,8 +25,10 @@ mass-action kinetics, linkage classes, deficiency. The mathematics layer beneath
 results Mathlib lacks as of v4.31 (Sperner's lemma and Brouwer's theorem in every dimension, Gale–Nikaido
 univalence, forward semiflows with LaSalle).
 
-- **Package:** `crnt-lean` · **Namespace:** `CRNT`
-- **Lean:** 4.31.0 · **Mathlib:** v4.31.0
+- **Package:** `crnt-lean`
+- **Namespace:** `CRNT`
+- **Lean:** 4.31.0
+- **Mathlib:** v4.31.0
 - The default import (`import CRNT`) is **`sorry`-free** and introduces **no axioms beyond Mathlib's**
   (`[propext, Classical.choice, Quot.sound]`).
 
@@ -45,43 +47,43 @@ univalence, forward semiflows with LaSalle).
 - A decidable, certificate-emitting core: check deficiency, reachability, and siphons, with
   kernel-checked certificates and a stable JSON contract for external tools.
 
-## What's proven
+## What's Proven
 
 Grouped by area; the precise statements and module names are in each linked doc.
 
 **[Foundations & decidability](docs/foundations.md)**
-- the network, reaction-graph, and stoichiometry core
-- decidable reachability, weak reversibility, and linkage, plus the `crnt_check` tactic
-- exact rational-rank and deficiency certificates, and a versioned `analyze` JSON contract
+- The network, reaction-graph, and stoichiometry core
+- Decidable reachability, weak reversibility, and linkage, plus the `crnt_check` tactic
+- Exact rational-rank and deficiency certificates, and a versioned `analyze` JSON contract
 
 **[Equilibria & deficiency](docs/deficiency.md)**
-- complex balancing and the toric structure of steady states
+- Complex balancing and the toric structure of steady states
 - Birch's theorem, and Perron–Frobenius for column-stochastic matrices
-- the deficiency-zero theorem, and deficiency-one uniqueness (single- and multi-class)
+- The deficiency-zero theorem, and deficiency-one uniqueness (single- and multi-class)
 
 **[Dynamics & stability](docs/dynamics.md)**
-- the complex-space factorization `ẋ = Y(A_k(Ψ x))` and the forward semiflow
-- the relative-entropy Lyapunov function, LaSalle's invariance principle, and local asymptotic stability
-- a Michaelis–Menten quasi-steady-state reduction
+- The complex-space factorization `ẋ = Y(A_k(Ψ x))` and the forward semiflow
+- The relative-entropy Lyapunov function, LaSalle's invariance principle, and local asymptotic stability
+- A Michaelis–Menten quasi-steady-state reduction
 
 **[Persistence & global attraction](docs/persistence-gac.md)**
-- the reduction GAC ⟺ persistence, and unconditional convergence for the no-critical-siphon class
-- the sharp "one positive ω-limit point ⇒ convergence" reduction
-- a development of the toric-differential-inclusion approach
+- The reduction GAC ⟺ persistence, and unconditional convergence for the no-critical-siphon class
+- The sharp "one positive ω-limit point ⇒ convergence" reduction
+- A development of the toric-differential-inclusion approach
 
 **[Stochastic CRN](docs/stochastic.md)**
-- the chemical-master-equation generator on `ℕ^S`
-- the Anderson–Craciun–Kurtz product-form stationary distribution
+- The chemical-master-equation generator on `ℕ^S`
+- The Anderson–Craciun–Kurtz product-form stationary distribution
 
 **[Multistationarity & robustness](docs/multistationarity-robustness.md)**
-- degree-free Gale–Nikaido univalence, bound to class injectivity
-- concordance ⇒ kinetics-independent monostationarity
-- the signed species–reaction graph and the determinant cycle-cover expansion
-- absolute concentration robustness, antithetic integral feedback, open (CFSTR) systems, and composition
+- Degree-free Gale–Nikaido univalence, bound to class injectivity
+- Concordance ⇒ kinetics-independent monostationarity
+- The signed species–reaction graph and the determinant cycle-cover expansion
+- Absolute concentration robustness, antithetic integral feedback, open (CFSTR) systems, and composition
 
-Every abstraction is exercised by at least one worked example network in `CRNT/Examples/`.
+Every abstraction is exercised by at least one worked example network in [`CRNT/Examples/`](./CRNT/Examples/).
 
-### General mathematics (not in Mathlib v4.31)
+### General Mathematics (not in Mathlib v4.31)
 
 The CRN results above rest on general-purpose mathematics built here.
 
@@ -94,35 +96,53 @@ The CRN results above rest on general-purpose mathematics built here.
 **[Univalence & matrices](CRNT/Multistationarity)**
 - Gale–Nikaido global univalence, degree-free: Stiemke's alternative, an order-monotonicity theorem,
   and ±1 sign-conjugation over a P-matrix calculus (Schur complements, signature invariance)
-- computable exact rational matrix rank with a nonsingular-minor certificate
+- Computable exact rational matrix rank with a nonsingular-minor certificate
 
 **[Dynamical systems](CRNT/Dynamics)**
-- forward semiflows, Lyapunov stability, and LaSalle's principle, with the flow of a bounded Lipschitz
+- Forward semiflows, Lyapunov stability, and LaSalle's principle, with the flow of a bounded Lipschitz
   field and backward invariance of ω-limit sets
-- single-valued Nagumo invariance (subtangency ⇒ forward invariance) via first-exit arguments
+- Single-valued Nagumo invariance (subtangency ⇒ forward invariance) via first-exit arguments
 
-## Scope & open problems
+## Scope & Open Problems
 
 The library proves the classical canon and a large decidable fraction of the design-relevant criteria.
 What remains is of two kinds: established mathematics Mathlib does not yet have, where building it
 unlocks the CRN results noted, and questions where the mathematics itself is still open.
 
 **General mathematics still to build**
-- topological degree: unconditional steady-state existence and the multistationarity converse (the
+- Topological degree: unconditional steady-state existence and the multistationarity converse (the
   switch verdict)
-- persistence theory (facet repulsion, Butler–McGehee): global attraction for broad weakly-reversible
+- Persistence theory (facet repulsion, Butler–McGehee): global attraction for broad weakly-reversible
   classes
 - Fenichel / singular-perturbation theory: error-quantified, infinite-horizon time-scale reduction
-- continuous-time Markov chains: process-level stochastics and the deterministic (Kurtz) scaling limit
-- center-manifold reduction and Hopf bifurcation: sustained oscillation (the clock verdict)
+- Continuous-time Markov chains: process-level stochastics and the deterministic (Kurtz) scaling limit
+- Center-manifold reduction and Hopf bifurcation: sustained oscillation (the clock verdict)
 
 **Open research**
-- the global attractor conjecture in full generality (Horn's 1974 conjecture, still open; proven here
-  for the no-critical-siphon class and reduced to persistence in all cases)
-- the correctness of the higher-deficiency (Deficiency One and Advanced Deficiency) algorithms
-- unconditional absolute concentration robustness
+- The global attractor conjecture (Horn's 1974 conjecture, open in general):
+  - Proven unconditionally for the no-critical-siphon class of complex-balanced networks, and reduced
+    to persistence in all cases (GAC ⟺ persistence)
+  - Craciun's toric-differential-inclusion architecture is formalized sorry-free, with the steps it
+    rests on isolated as explicit hypotheses: set-valued viability, the n-dimensional surface
+    construction, the weak-reversibility cycle cover, the polyhedral-fan axioms, and arbitrary-fan
+    faithful-curve existence
+  - No theorem assembles those hypotheses into a proof of the conjecture
+- The correctness of the higher-deficiency (Deficiency One and Advanced Deficiency) algorithms:
+  - The apparatus is formalized (network consistency via Stiemke, cut pairs, regularity, confluence
+    vectors with their proven antisymmetry, shelves, signatures, colinearity classes), and the
+    exclusion direction is proven: an injective network has no capacity for multiple steady states
+  - The correctness equivalences themselves (a network has that capacity iff the algorithm affirms it)
+    are stated as propositions but proved in neither direction; this is the Feinberg 1995 content,
+    including the forward step from a sign-compatible log-ratio to a full shelf signature
+- Unconditional absolute concentration robustness (Shinar–Feinberg):
+  - The discrete reduction is proven, including that the monomial ratio is constant on each linkage
+    class, which narrows the whole question to forcing one scalar to zero (the robust species' log-ratio
+    between two positive steady states)
+  - That scalar is supplied as a hypothesis today; the natural algebraic route through the deficiency
+    mode is vacuous, so closing it needs the deficiency-one sign argument from the steady-state
+    equations at the non-terminal cut, which is not yet formalized and likely needs new infrastructure
 
-## Getting started
+## Getting Started
 
 ```bash
 lake exe cache get   # fetch prebuilt Mathlib oleans

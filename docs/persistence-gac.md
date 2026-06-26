@@ -74,10 +74,12 @@ Built and proven:
   (`coneDual`) with bipolar and Farkas duality; the δ-uncertainty field `F_{F,δ}(X)` (`toricField`,
   monotone in δ) and the inclusion `ẋ ∈ F_{F,δ}(logCoords x)`. The full fan axioms (covering, closure
   under faces) are not imposed; `Geometry/ConeFace.lean` has the exposed-face and lattice fragments.
-- **The embedding** (`Dynamics/{ToricEmbedding,ToricEmbeddingOrder,ToricEmbeddingWR}.lean`): a
-  toric system's velocity lies in the polar cone, by ordering complexes along an interior direction
-  and summing consecutive differences (Abel summation), assembled over a cycle cover of a weakly
-  reversible network.
+- **The embedding** (`Dynamics/{ToricEmbedding,ToricEmbeddingOrder,ToricEmbeddingWR}.lean`): a single
+  cycle's velocity lies in the polar cone, by ordering complexes along an interior direction and
+  summing consecutive differences (Abel summation). The assembly over a weakly-reversible network is
+  conditional on a cycle cover (`NetworkCycleDecomposition`), which is taken as a graph-theoretic
+  hypothesis: weak reversibility is defined through `Relation.ReflTransGen`, and no cycle-extraction
+  lemma derives the cover from it.
 - **Zero-separating surfaces** (`Dynamics/ZeroSeparating.lean`, `Geometry/{ZeroSeparatingCurve2D,
   ZeroSeparatingSurface,FaithfulCurve,FaithfulCurve2D,FaithfulCurve2DFan,FaithfulCurveExistence,
   FaithfulCurveGeneral}.lean`, `Dynamics/{PolyRegionInvariant,PolyRegionStrictInvariant,
@@ -101,17 +103,38 @@ Built and proven:
     over-determination is a feature of the naive construction, not an obstruction.
 - **Viability** (`Dynamics/{Viability,FirstExit,SublevelInvariant,SublevelNagumo,ClosedSetNagumo}.lean`,
   `Dynamics/ThmBGenuine.lean`): for the genuine (Lipschitz) dynamics, solution existence is free
-  (Picard–Lindelöf), so only invariance must be shown; single-valued Nagumo invariance from a
-  sublevel surface with neighborhood-descent and ball-separation is proven (`genuine_away_from_origin`,
-  `massAction_genuine_away_from_origin`).
+  (Picard–Lindelöf), so only invariance must be shown. The single-valued Nagumo step is proven: given a
+  sublevel surface with a neighborhood-descent band and ball-separation, the genuine trajectory stays a
+  fixed distance from the origin (`genuine_away_from_origin`, `massAction_genuine_away_from_origin`).
+  That surface is supplied as input. The set-valued Nagumo theorem (subtangency implies invariance for a
+  set-valued field) is itself taken as a hypothesis.
 
-What is **not** verified: the explicit construction that decomposes a neighborhood into ruled patches
-and produces the refined fan and surface is carried as a hypothesis (`inductionStep_of_ruledBuild`
-takes it as input), and the two-dimensional construction assumes a sector bound and strict
-transversality rather than deriving them for an arbitrary fan. Consequently the general
-toric-differential-inclusion proof is not closed here: the architecture is machine-checked and the
-most-cited difficulty (dimension four) is understood, but the load-bearing geometric construction
-remains an interface, and the global attractor conjecture remains open.
+What is **not** verified are the analytic and geometric steps the proof rests on. Each is carried as an
+explicit hypothesis (a `Prop`, a structure, or a supplied argument), never a `sorry`:
+
+1. **Set-valued viability / Nagumo.** Subtangency implies forward invariance for a set-valued field.
+   `Dynamics/Viability.lean` defines the subtangency predicates (`Subtangent`, `PosSubtangent`) and
+   proves the easy direction; the converse enters as a solution-existence argument, and the general
+   theorem is absent from Mathlib.
+2. **The n-dimensional surface construction.** The decomposition of a neighborhood into ruled patches
+   and the simplicial gluing is the predicate `InductionStepHypothesis`; `inductionStep_of_ruledBuild`
+   returns its assumed witness unchanged. The descent band and ball-separation feeding
+   `genuine_away_from_origin` are likewise supplied.
+3. **The weak-reversibility cycle cover.** `NetworkCycleDecomposition` packages the cycle-cover data
+   and is assumed; no lemma extracts a cover from `WeaklyReversible`.
+4. **The polyhedral-fan axioms.** `IsPolyhedralFan` (closure under exposed faces, pairwise intersection
+   a common face, covering) is a hypothesis; `Fan` is bare cone data.
+5. **Arbitrary-fan faithful-curve existence.** The global slope-interval chaining is the `ChainingData`
+   interface; the two-dimensional results assume a sector bound and strict subtangency
+   (`IsStrictSupportField`), discharged only for worked instances such as the first-quadrant `crossFan`.
+6. **The support-to-`infDist` bridge.** For a Lipschitz polygonal boundary, the step from edgewise
+   support to a nonincreasing distance to the region is supplied as a hypothesis (`hanti`).
+
+No theorem assembles these into a conclusion of persistence or the global attractor conjecture for the
+toric-inclusion approach. Its persistence-style results are the one-dimensional base case
+(unconditional) and genuine-flow distance bounds conditional on a supplied surface. The architecture is
+machine-checked and the dimension-four over-determination is understood, but the conjecture is not
+closed here.
 
 ## What is complete, and what is open
 
@@ -122,8 +145,9 @@ remains an interface, and the global attractor conjecture remains open.
   single-valued-Nagumo machinery above.
 - **Open:** persistence in general (the remaining gap: interior orbits repelled from critical-siphon
   faces), which needs the analytic boundary-repulsion estimates (Anderson & Shiu near-facet dynamics;
-  Anderson's single-linkage tier argument) and the feasibility test for critical siphons; and the
-  geometric zero-separating-surface construction in the toric-inclusion approach.
+  Anderson's single-linkage tier argument) and the feasibility test for critical siphons; and, in the
+  toric-inclusion approach, the six explicit hypotheses enumerated above, none of which is assembled
+  into a persistence or GAC conclusion.
 
 ## Modules
 
