@@ -173,6 +173,7 @@ import CRNT.Dynamics.MichaelisMentenReduced
 import CRNT.Dynamics.MichaelisMentenC1
 import CRNT.Dynamics.MichaelisMentenRegularized
 import CRNT.Dynamics.MichaelisMentenSlowDrift
+import CRNT.Dynamics.MichaelisMentenSlowDriftSpeed
 import CRNT.Dynamics.MichaelisMentenDepletion
 
 -- Deficiency

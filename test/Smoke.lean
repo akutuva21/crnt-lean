@@ -2653,3 +2653,23 @@ example (rate : ℝ) (hrate : 0 < rate) (Km Vmax : ℝ) (hKm : 0 < Km)
 noncomputable example :
     CRNT.hopfAdmissible CRNT.Examples.HopfOscillator3.J CRNT.Examples.HopfOscillator3.μ₀ :=
   CRNT.Examples.HopfOscillator3.admissible
+-- The substrate-path speed bound dist (s t) (s t') ≤ (ε·G)·|t - t'| is derived from the coupled
+-- drift law ṡ = ε·g(s, z) with ‖g‖ ≤ G, by the one-dimensional mean-value inequality, removing it
+-- as a hypothesis of the O(ε) slaved-velocity bound.
+example {ε G : ℝ} (hε : 0 ≤ ε) {g : ℝ → CRNT.MichaelisMenten.E → ℝ}
+    (hg : ∀ a b, ‖g a b‖ ≤ G) {s : ℝ → ℝ} {z : ℝ → CRNT.MichaelisMenten.E}
+    (hs : ∀ τ, HasDerivAt s (CRNT.MichaelisMenten.mmRegSlowDrift ε g (s τ) (z τ)) τ) :
+    ∀ t t', dist (s t) (s t') ≤ (ε * G) * |t - t'| :=
+  CRNT.MichaelisMenten.mmRegSubstrate_speed_le hε hg hs
+-- The O(ε) slaved complex velocity bound now rests only on the drift bound ‖g‖ ≤ G and the
+-- fast-field substrate Lipschitz constant L, with the speed hypothesis discharged.
+example (rate : ℝ) (hrate : 0 < rate) (Km Vmax : ℝ) (hKm : 0 < Km)
+    {L ε G : ℝ} (hL : 0 ≤ L) (hε : 0 ≤ ε) (hG : 0 ≤ G)
+    (hlip : ∀ s s' z, ‖CRNT.MichaelisMenten.mmRegFastField rate Km Vmax s z
+        - CRNT.MichaelisMenten.mmRegFastField rate Km Vmax s' z‖ ≤ L * dist s s')
+    {g : ℝ → CRNT.MichaelisMenten.E → ℝ} (hg : ∀ a b, ‖g a b‖ ≤ G)
+    {s : ℝ → ℝ} {z : ℝ → CRNT.MichaelisMenten.E}
+    (hs : ∀ τ, HasDerivAt s (CRNT.MichaelisMenten.mmRegSlowDrift ε g (s τ) (z τ)) τ) {t₀ : ℝ} :
+    ‖CRNT.MichaelisMenten.mmRegSlavedVelocity rate hrate Km Vmax hKm (s t₀)
+        (CRNT.MichaelisMenten.mmRegSlowDrift ε g (s t₀) (z t₀))‖ ≤ (L / rate) * (ε * G) :=
+  CRNT.MichaelisMenten.mmRegSlavedVelocity_le_of_drift rate hrate Km Vmax hKm hL hε hG hlip hg hs
