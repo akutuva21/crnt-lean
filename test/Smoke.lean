@@ -2123,6 +2123,18 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     γ t ∉ N.SiphonFace ({sstar} : Finset S) :=
   N.massActionTrajectory_notMem_singletonFacet κ hsiph hγd hγnn hγM hpos0 ht
 
+-- Lifting the singleton influx+escape to a general species set P via the aggregate P-mass: the
+-- aggregate near-facet influx bound, integrated by the same one-sided Grönwall step, keeps the total
+-- P-mass strictly positive, so from a positive-P-mass start a confined trajectory never reaches the
+-- full siphon face SiphonFace P in finite time (Anderson–Shiu general-siphon facet escape).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    (P : Finset S) {M : ℝ} {γ : ℝ → Concentration S}
+    (hγd : ∀ t, 0 ≤ t → HasDerivAt γ (N.massActionVectorField κ (γ t)) t)
+    (hγnn : ∀ t, 0 ≤ t → (γ t).Nonnegative) (hγM : ∀ t, 0 ≤ t → ∀ s, γ t s ≤ M)
+    (hpos0 : 0 < ∑ s ∈ P, γ 0 s) {t : ℝ} (ht : 0 ≤ t) :
+    γ t ∉ N.SiphonFace P :=
+  N.massActionTrajectory_notMem_siphonFacet κ P hγd hγnn hγM hpos0 ht
+
 -- The monomial-ordered cyclic velocity lies in the polar cone of any cone for which the cycle's base
 -- vertex is minimal (single-cycle toric embedding).
 example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {C : Set E}

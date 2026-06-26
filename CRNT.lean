@@ -317,6 +317,7 @@ import CRNT.Dynamics.EndotacticPermanence
 import CRNT.Dynamics.FacetRepulsion
 import CRNT.Dynamics.CriticalSiphonNearFacetInflux
 import CRNT.Dynamics.SingletonFacetEscape
+import CRNT.Dynamics.SiphonFacetEscape
 
 -- Stochastic CRN: Anderson–Craciun–Kurtz product-form objects
 import CRNT.Stochastic.ProductForm
