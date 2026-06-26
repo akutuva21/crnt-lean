@@ -44,6 +44,7 @@ import CRNT.Stoich.Subspace
 -- finrank subadditivity over finite suprema; sign vectors of subspaces)
 import CRNT.LinearAlgebra.PerronFrobenius
 import CRNT.LinearAlgebra.DetCycleCover
+import CRNT.LinearAlgebra.CauchyBinet
 import CRNT.LinearAlgebra.OrthogonalComplement
 import CRNT.LinearAlgebra.FinrankSup
 import CRNT.LinearAlgebra.SignVector

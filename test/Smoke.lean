@@ -2438,3 +2438,10 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (b : EuclideanSpa
     b ∈ N.conservationCone ↔
       ∀ y : EuclideanSpace ℝ S, (∀ x ∈ N.conservationCone, 0 ≤ ⟪x, y⟫) → 0 ≤ ⟪b, y⟫ :=
   N.mem_conservationCone_iff_farkas b
+-- Cauchy–Binet formula: the determinant of a product of rectangular matrices expands as a sum
+-- over the m-element subsets of the inner index set, one minor-product per subset.
+example {m n : ℕ} (A : Matrix (Fin m) (Fin n) ℝ) (B : Matrix (Fin n) (Fin m) ℝ) :
+    (A * B).det = ∑ S ∈ ((Finset.univ : Finset (Fin n)).powersetCard m).attach,
+      (A.submatrix id (S.1.orderEmbOfFin (Finset.mem_powersetCard.mp S.2).2)).det *
+        (B.submatrix (S.1.orderEmbOfFin (Finset.mem_powersetCard.mp S.2).2) id).det :=
+  Matrix.det_mul_eq_sum_powersetCard A B
