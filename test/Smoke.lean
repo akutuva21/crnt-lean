@@ -2853,3 +2853,14 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.Consistent
 -- transversally, p'(μ₀) ≠ 0, for the genuine three-species autocatalytic network.
 example : ((-1 - CRNT.Examples.HopfNetwork3Branches.r') / 2 : ℝ) ≠ 0 :=
   CRNT.Examples.HopfNetwork3Branches.eigenvalue_real_part_transversal
+-- The horizon-uniform Michaelis–Menten tracking ceiling: under the coupled transverse one-sided
+-- contraction at rate `λ` and an `O(ε)` reference defect `δ`, the transverse gap between the exact
+-- trajectory and the moving slow-manifold reference is bounded by `gap 0 + δ/λ` for all forward time.
+example {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    {full : E → E} {x m m' : ℝ → E} {lam δ : ℝ} (hlam : 0 < lam) (hδ : 0 ≤ δ)
+    (hx : ∀ t, HasDerivAt x (full (x t)) t) (hm : ∀ t, HasDerivAt m (m' t) t)
+    (hcon : ∀ t, 0 ≤ t →
+      inner ℝ (full (x t) - full (m t)) (x t - m t) ≤ -lam * ‖x t - m t‖ ^ 2)
+    (hdef : ∀ t, 0 ≤ t → ‖full (m t) - m' t‖ ≤ δ) :
+    ∀ t, 0 ≤ t → ‖x t - m t‖ ≤ ‖x 0 - m 0‖ + δ / lam :=
+  ODE.coupled_dissipative_ceiling hlam hδ hx hm hcon hdef
