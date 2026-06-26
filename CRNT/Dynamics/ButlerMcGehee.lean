@@ -28,7 +28,10 @@ subset of `N`. The key sound facts are:
   inside `Ω`.
 
 These are the boundary-repulsion engine: an isolated invariant set cannot trap an ω-limit
-set without containing it. The stable/unstable-manifold formulation
+set without containing it. For any ω-point `q ∈ Ω`, its own forward limit
+`omegaLimit atTop ϕ {q}` is a nonempty compact invariant subset of `Ω`
+(`isCompact_isInvariant_nonempty_omegaLimit_of_mem`); combined with the escaping point this
+yields `exists_omegaLimit_escape_subOmega`. The stable/unstable-manifold formulation
 (`Ω` meets `Wˢ(M) \ M` and `Wᵘ(M) \ M`) and the connectedness route to it lie beyond what
 Mathlib supplies: Mathlib v4.31 has **no** ω-limit connectedness lemma and **no**
 stable/unstable-set API, so those refinements are not attempted here.
@@ -152,5 +155,56 @@ theorem backward_orbit_mem_omegaLimit [T2Space α] (ϕ : Flow ℝ≥0 α) (x₀ 
     (hq : q ∈ omegaLimit atTop ϕ {x₀}) :
     ∃ q' ∈ omegaLimit atTop ϕ {x₀}, ϕ t q' = q :=
   omegaLimit_negInvariant ϕ x₀ hK hmaps t hq
+
+/-- The forward limit of any point of a compact ω-limit set is a nonempty compact invariant
+subset of that ω-limit set. -/
+theorem isCompact_isInvariant_nonempty_omegaLimit_of_mem
+    (ϕ : Flow ℝ≥0 α) (x₀ : α) {K : Set α} (hK : IsCompact K)
+    (habs : ∃ v ∈ (Filter.atTop : Filter ℝ≥0), closure (Set.image2 ϕ v {x₀}) ⊆ K)
+    {q : α} (hq : q ∈ omegaLimit Filter.atTop ϕ {x₀}) :
+    (omegaLimit Filter.atTop ϕ {q}).Nonempty
+      ∧ IsCompact (omegaLimit Filter.atTop ϕ {q})
+      ∧ IsInvariant ϕ (omegaLimit Filter.atTop ϕ {q})
+      ∧ omegaLimit Filter.atTop ϕ {q} ⊆ omegaLimit Filter.atTop ϕ {x₀} := by
+  set Ω := omegaLimit Filter.atTop ϕ {x₀} with hΩ
+  have hf : ∀ t : ℝ≥0, Tendsto (t + ·) atTop atTop :=
+    fun _ => tendsto_atTop_mono (fun _ => le_add_self) tendsto_id
+  have hΩcompact : IsCompact Ω := isCompact_omegaLimit_of_absorbing ϕ x₀ hK habs
+  have hΩinv : IsInvariant ϕ Ω := omegaLimit_isInvariant_two_sided ϕ x₀
+  have hΩclosed : closure Ω = Ω := (isClosed_omegaLimit _ _ _).closure_eq
+  -- `Ω` itself absorbs the orbit of `q`: `image2 ϕ univ {q} ⊆ Ω`, and `closure Ω = Ω`.
+  have habsq' : closure (Set.image2 ϕ (Set.univ : Set ℝ≥0) {q}) ⊆ Ω := by
+    rw [← hΩclosed]
+    refine closure_mono ?_
+    rintro y ⟨t, _, p, hp, rfl⟩
+    rw [Set.mem_singleton_iff.mp hp]
+    exact hΩinv t hq
+  have habsq : ∃ v ∈ (Filter.atTop : Filter ℝ≥0),
+      closure (Set.image2 ϕ v {q}) ⊆ Ω := ⟨Set.univ, Filter.univ_mem, habsq'⟩
+  -- The ω-limit of `{q}` lies in the closure of the absorbing image, hence in `Ω`.
+  have hsubset : omegaLimit Filter.atTop ϕ {q} ⊆ Ω :=
+    (omegaLimit_subset_closure_image2 atTop ϕ {q} Filter.univ_mem).trans habsq'
+  refine ⟨?_, ?_, ?_, hsubset⟩
+  · exact nonempty_omegaLimit_of_isCompact_absorbing atTop ϕ {q} hΩcompact habsq
+      (Set.singleton_nonempty q)
+  · exact hΩcompact.of_isClosed_subset (isClosed_omegaLimit _ _ _) hsubset
+  · exact Flow.isInvariant_omegaLimit atTop ϕ {q} hf
+
+/-- Butler–McGehee escape: if `Ω ⊄ M` (the maximal invariant subset of `N`), some ω-point
+escapes `M` and its forward limit is a nonempty compact invariant subset of `Ω`. -/
+theorem exists_omegaLimit_escape_subOmega
+    (ϕ : Flow ℝ≥0 α) (x₀ : α) {K : Set α} (hK : IsCompact K)
+    (habs : ∃ v ∈ (Filter.atTop : Filter ℝ≥0), closure (Set.image2 ϕ v {x₀}) ⊆ K)
+    {M N : Set α} (hMisol : maximalInvariantSubset ϕ N = M) (hMN : M ⊆ N)
+    (hΩM : ¬ omegaLimit Filter.atTop ϕ {x₀} ⊆ M) :
+    ∃ q ∈ omegaLimit Filter.atTop ϕ {x₀}, q ∉ M ∧
+      (omegaLimit Filter.atTop ϕ {q}).Nonempty ∧ IsCompact (omegaLimit Filter.atTop ϕ {q})
+        ∧ IsInvariant ϕ (omegaLimit Filter.atTop ϕ {q})
+        ∧ omegaLimit Filter.atTop ϕ {q} ⊆ omegaLimit Filter.atTop ϕ {x₀} := by
+  obtain ⟨q, hqΩ, _, hqM⟩ :=
+    exists_mem_omegaLimit_notMem_isolating ϕ x₀ hMisol hMN hΩM
+  obtain ⟨hne, hcompact, hinv, hsub⟩ :=
+    isCompact_isInvariant_nonempty_omegaLimit_of_mem ϕ x₀ hK habs hqΩ
+  exact ⟨q, hqΩ, hqM, hne, hcompact, hinv, hsub⟩
 
 end CRNT

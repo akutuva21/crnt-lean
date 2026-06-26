@@ -1915,6 +1915,14 @@ example {α : Type} [TopologicalSpace α] (ϕ : Flow ℝ≥0 α) (x₀ : α) :
     IsInvariant ϕ (omegaLimit atTop ϕ {x₀}) :=
   omegaLimit_isInvariant_two_sided ϕ x₀
 
+-- The forward limit of any ω-point of a compact ω-limit set is again contained in it.
+open Filter in
+example {α : Type} [TopologicalSpace α] (ϕ : Flow ℝ≥0 α) (x₀ : α) {K : Set α} (hK : IsCompact K)
+    (habs : ∃ v ∈ (atTop : Filter ℝ≥0), closure (Set.image2 ϕ v {x₀}) ⊆ K)
+    {q : α} (hq : q ∈ omegaLimit atTop ϕ {x₀}) :
+    omegaLimit atTop ϕ {q} ⊆ omegaLimit atTop ϕ {x₀} :=
+  (CRNT.isCompact_isInvariant_nonempty_omegaLimit_of_mem ϕ x₀ hK habs hq).2.2.2
+
 -- Strongly endotactic networks are endotactic.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.StronglyEndotactic) :
     N.Endotactic :=
