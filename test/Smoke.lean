@@ -2491,6 +2491,16 @@ example (M : Matrix (Fin 3) (Fin 3) ℝ) (z₁ z₂ : ℂ)
     (H₂ : 0 < -M.trace) (H₀ : 0 < -M.det) (HΔ : (-M.det) = (-M.trace) * M.c₂Fin3) :
     z₁.re < 0 ∧ z₂.re = 0 ∧ z₂.im ≠ 0 ∧ z₂.im ^ 2 = M.c₂Fin3 :=
   CRNT.hurwitz_matrix_fin_three_hopf_crossing M z₁ z₂ hz₁im e₂ e₁ e₀ H₂ H₀ HΔ
+-- Hopf transversality: on the cubic Hopf boundary, with the eigenvalue real part p, real eigenvalue
+-- r, and squared imaginary part q differentiable at the crossing μ₀ (p μ₀ = 0, q μ₀ ≥ 0, a₀ > 0), a
+-- nonzero boundary-function velocity g'(μ₀) forces a transversal imaginary-axis crossing, p' ≠ 0.
+example {r p q : ℝ → ℝ} {μ₀ r' p' q' : ℝ}
+    (hr : HasDerivAt r r' μ₀) (hp : HasDerivAt p p' μ₀) (hq : HasDerivAt q q' μ₀)
+    (hp0 : p μ₀ = 0) (hqnn : 0 ≤ q μ₀)
+    (H₀ : 0 < -(r μ₀ * (p μ₀ ^ 2 + q μ₀)))
+    (hg : deriv (fun μ => CRNT.hopfBoundaryFn (r μ) (p μ) (q μ)) μ₀ ≠ 0) :
+    p' ≠ 0 :=
+  CRNT.hopf_transversal_crossing hr hp hq hp0 hqnn H₀ hg
 -- Critical-siphon feasibility under Farkas duality: a species vector lies in the conservation cone
 -- (nonnegative, orthogonal to the stoichiometric subspace) iff every direction nonnegative on the
 -- cone is nonnegative on it.

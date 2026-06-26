@@ -155,6 +155,7 @@ import CRNT.Dynamics.HopfGate4
 import CRNT.Dynamics.Hurwitz2Matrix
 import CRNT.Dynamics.Hurwitz3Matrix
 import CRNT.Dynamics.HopfGate3Matrix
+import CRNT.Dynamics.HopfTransversality3
 import CRNT.Dynamics.HurwitzGershgorin
 import CRNT.Dynamics.HurwitzGershgorinColumn
 import CRNT.Dynamics.QSSA
