@@ -1354,6 +1354,19 @@ example (z₁ z₂ : ℂ) (a₂ a₁ a₀ : ℝ) (hz₁im : z₁.im = 0)
     z₁.re < 0 ∧ z₂.re = 0 ∧ z₂.im ≠ 0 :=
   CRNT.hopf_crossing_gate z₁ z₂ a₂ a₁ a₀ hz₁im e₂ e₁ e₀ H₂ H₀ HΔ
 
+-- Degree-4 Hopf crossing gate: at the boundary of the quartic Hurwitz region (`Δ₃ = 0`) one
+-- conjugate pair goes purely imaginary while the other stays in the open left half-plane.
+example (z₁ z₃ : ℂ) (a₃ a₂ a₁ a₀ : ℝ)
+    (e₃ : (a₃ : ℂ) = -(z₁ + (starRingEnd ℂ) z₁ + z₃ + (starRingEnd ℂ) z₃))
+    (e₂ : (a₂ : ℂ) = z₁ * (starRingEnd ℂ) z₁ + z₁ * z₃ + z₁ * (starRingEnd ℂ) z₃
+      + (starRingEnd ℂ) z₁ * z₃ + (starRingEnd ℂ) z₁ * (starRingEnd ℂ) z₃ + z₃ * (starRingEnd ℂ) z₃)
+    (e₁ : (a₁ : ℂ) = -(z₁ * (starRingEnd ℂ) z₁ * z₃ + z₁ * (starRingEnd ℂ) z₁ * (starRingEnd ℂ) z₃
+      + z₁ * z₃ * (starRingEnd ℂ) z₃ + (starRingEnd ℂ) z₁ * z₃ * (starRingEnd ℂ) z₃))
+    (e₀ : (a₀ : ℂ) = z₁ * (starRingEnd ℂ) z₁ * z₃ * (starRingEnd ℂ) z₃)
+    (H₃ : 0 < a₃) (H₀ : 0 < a₀) (HΔ : a₁ ^ 2 + a₃ ^ 2 * a₀ = a₃ * a₂ * a₁) :
+    (z₁.re = 0 ∧ z₁.im ≠ 0 ∧ z₃.re < 0) ∨ (z₃.re = 0 ∧ z₃.im ≠ 0 ∧ z₁.re < 0) :=
+  CRNT.hopf_crossing_gate_quartic z₁ z₃ a₃ a₂ a₁ a₀ e₃ e₂ e₁ e₀ H₃ H₀ HΔ
+
 -- One-dimensional Sperner lemma: a Sperner-colored path (false at 0, true at n) has a
 -- color-change edge — the base case of the Sperner→Brouwer ladder.
 example {n : ℕ} {c : ℕ → Bool} (h : CRNT.Analysis.Sperner.IsSpernerColoring n c) :
