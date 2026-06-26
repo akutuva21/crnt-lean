@@ -2800,6 +2800,35 @@ example {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι] (P : Matrix ι �
     (hP : ∀ i j, 0 ≤ P i j) (hsc : ∀ i j, CRNT.supportReaches P i j) {s : ι} (hs : 0 < P s s) :
     ∃ N : ℕ, 0 < N ∧ ∀ i j, 0 < (P ^ N) i j :=
   CRNT.primitive_of_stronglyConnected_self_loop P hP hsc hs
+-- Strong connectivity of the region discharged from network jump-reachability: forward
+-- positive-probability enabled jumps connecting every pair of region states (count-level
+-- irreducibility) reverse to matrix support walks, giving the abstract regionStronglyConnected.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {T : Set (S → ℕ)} [Fintype ↥T] (h : N.RegionJumpStronglyConnected κ T) :
+    N.regionStronglyConnected κ T :=
+  N.regionStronglyConnected_of_jumpReaches κ h
+-- Unconditional geometric convergence to the stationary law for a concrete structural class: a
+-- jump-strongly-connected closed enabled region carrying a holding reaction. Both the irreducibility
+-- and the aperiodicity are discharged from the network's enabled-reaction structure — no abstract
+-- regionStronglyConnected or regionPrimitive assumption remains.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (c : Concentration S) (hc : c.Positive) (hcb : N.IsComplexBalanced κ c)
+    {T : Set (S → ℕ)} [Fintype ↥T] (hT : N.ClosedEnabledRegion κ T) (hne : T.Nonempty)
+    (hjsc : N.RegionJumpStronglyConnected κ T)
+    {n : S → ℕ} (hn : n ∈ T) (hexit : N.exitRate κ n ≠ 0)
+    {r : N.R} (hr : N.jumpNextCount n r = n) (hprob : 0 < N.jumpProb κ n r)
+    (μ : @MeasureTheory.Measure (S → ℕ) CRNT.Network.instMeasurableSpaceCount)
+    (hμprob :
+      @MeasureTheory.IsProbabilityMeasure (S → ℕ) CRNT.Network.instMeasurableSpaceCount μ)
+    (hμsupp : μ Tᶜ = 0) (i : ↥T) :
+    Filter.Tendsto
+        (fun k => ((N.regionMatrix κ T) ^ k).mulVec (CRNT.Network.stationaryVec (T := T) μ) i)
+        Filter.atTop
+        (nhds (CRNT.Network.stationaryVec (T := T)
+          (N.stationaryProbabilityMeasure κ c T) i)) := by
+  haveI := hμprob
+  exact N.jumpStronglyConnected_pow_mulVec_tendsto_stationaryVec κ c hc hcb hT hne hjsc
+    hn hexit hr hprob μ hμsupp i
 -- The computable signed incidence agrees with the real reaction-vector incidence sign.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (s : S) (r : N.R) :
     N.intSignedEdge s r = N.signedEdge s r :=

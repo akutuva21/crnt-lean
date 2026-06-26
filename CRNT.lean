@@ -345,6 +345,7 @@ import CRNT.Stochastic.Ergodicity
 import CRNT.Stochastic.ErgodicConvergence
 import CRNT.Stochastic.ErgodicConvergenceGeneral
 import CRNT.Stochastic.RegionPrimitive
+import CRNT.Stochastic.RegionStronglyConnected
 import CRNT.Stochastic.Semigroup
 import CRNT.Stochastic.SemigroupComposition
 
