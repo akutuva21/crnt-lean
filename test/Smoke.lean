@@ -2467,3 +2467,11 @@ example {m n : ℕ} (A : Matrix (Fin m) (Fin n) ℝ) (B : Matrix (Fin n) (Fin m)
       (A.submatrix id (S.1.orderEmbOfFin (Finset.mem_powersetCard.mp S.2).2)).det *
         (B.submatrix (S.1.orderEmbOfFin (Finset.mem_powersetCard.mp S.2).2) id).det :=
   Matrix.det_mul_eq_sum_powersetCard A B
+-- Sign-definiteness from cycle-cover terms: if every Leibniz cycle-cover term of a real square
+-- matrix is nonnegative and its diagonal (identity-permutation) term is strictly positive, the
+-- determinant is nonzero — the determinant-level form of the consistent-cycle-sign criterion.
+example {n : Type*} [Fintype n] [DecidableEq n] (M : Matrix n n ℝ)
+    (hnn : ∀ σ : Equiv.Perm n, 0 ≤ CRNT.coverTerm M σ)
+    (hd : 0 < CRNT.coverTerm M (1 : Equiv.Perm n)) :
+    M.det ≠ 0 :=
+  CRNT.det_ne_zero_of_coverTerm_signDefinite M (Or.inl ⟨hnn, hd⟩)
