@@ -2783,3 +2783,10 @@ example (sys : List (CRNT.RationalFarkas.Ineq (1 + 1))) :
     CRNT.RationalFarkas.Feasible (CRNT.RationalFarkas.eliminateLast sys)
       ↔ CRNT.RationalFarkas.Feasible sys :=
   CRNT.RationalFarkas.feasible_eliminateLast_iff sys
+-- Region primitivity from strong connectivity and a self-loop: the abstract finite-state
+-- Perron–Frobenius criterion (irreducibility plus a period-one self-loop) yields a strictly
+-- positive matrix power, discharging the primitivity hypothesis of the convergence theorem.
+example {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι] (P : Matrix ι ι ℝ)
+    (hP : ∀ i j, 0 ≤ P i j) (hsc : ∀ i j, CRNT.supportReaches P i j) {s : ι} (hs : 0 < P s s) :
+    ∃ N : ℕ, 0 < N ∧ ∀ i j, 0 < (P ^ N) i j :=
+  CRNT.primitive_of_stronglyConnected_self_loop P hP hsc hs
