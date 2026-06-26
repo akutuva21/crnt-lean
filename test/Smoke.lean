@@ -2380,3 +2380,9 @@ example {α : Type} [TopologicalSpace α] [T2Space α] (ϕ : Flow ℝ≥0 α) (x
     ∃ M, M ⊆ omegaLimit atTop ϕ {x₀} ∧
       Minimal (fun C => C.Nonempty ∧ IsCompact C ∧ IsClosed C ∧ IsInvariant ϕ C) M :=
   CRNT.exists_minimal_compact_invariant_subOmega ϕ x₀ hK habs
+-- Planar trace–determinant stability test: a real 2×2 matrix has both characteristic-polynomial
+-- roots in the open left half-plane iff its trace is negative and its determinant is positive.
+example (M : Matrix (Fin 2) (Fin 2) ℝ) :
+    (∀ z : ℂ, z * z + (-M.trace : ℂ) * z + (M.det : ℂ) = 0 → z.re < 0) ↔
+      (M.trace < 0 ∧ 0 < M.det) :=
+  hurwitz_matrix_fin_two_iff M
