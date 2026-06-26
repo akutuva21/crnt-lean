@@ -1839,6 +1839,16 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
       ((N.restrictedStationaryMeasure κ c T Set.univ)⁻¹ • N.restrictedStationaryMeasure κ c T) :=
   (N.jumpKernel_normalized_isInvariant_probabilityMeasure κ c hc hcb hT hTfin hpos).2
 
+-- Ladder 4 (CTMC): at a positive concentration on a nonempty finite closed enabled region the
+-- positive-mass gate is discharged, so the normalized restricted stationary measure is an
+-- unconditional invariant probability measure for the embedded jump kernel.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (c : Concentration S) (hc : c.Positive) (hcb : N.IsComplexBalanced κ c)
+    {T : Set (S → ℕ)} (hT : N.ClosedEnabledRegion κ T) (hTfin : T.Finite) (hne : T.Nonempty) :
+    MeasureTheory.IsProbabilityMeasure
+      ((N.restrictedStationaryMeasure κ c T Set.univ)⁻¹ • N.restrictedStationaryMeasure κ c T) :=
+  (N.jumpKernel_isInvariant_probabilityMeasure_of_nonempty κ c hc hcb hT hTfin hne).2
+
 -- Ladder 4 (CTMC): the canonical maximal closed enabled region is itself a closed enabled region
 -- (arbitrary union of such regions is one), so it carries the invariant restricted stationary measure.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N) :
