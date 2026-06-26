@@ -2441,6 +2441,24 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     (N.massActionKinetics κ).InjectiveOnClass x₀ :=
   N.massActionInjectiveOnClass_of_jacobian_pmatrix κ x₀ hbox hpm
 
+-- A consistent signed species–reaction cover, with positive Jacobian diagonal and a coordinate
+-- selection presenting the reduced Jacobian as a principal submatrix, ⇒ mass-action injectivity
+-- on the compatibility class: the Craciun–Feinberg SR-graph injectivity verdict.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (x₀ : Concentration S) {lo hi : Fin N.stoichRank → ℝ}
+    {f : Fin N.stoichRank → S} (hf : Function.Injective f)
+    (hbox : ∀ x ∈ N.positiveCompatibilityClass x₀, N.chartCoord x₀ x ∈ Set.Icc lo hi)
+    (hpos : ∀ y ∈ Set.Icc lo hi, Concentration.Positive (N.affineChart x₀ y))
+    (hweight : ∀ y ∈ Set.Icc lo hi, ∀ (s : Finset S) (σ : Equiv.Perm s) (ρ : s → N.R),
+      0 ≤ ((CRNT.coverCoeff σ : ℤ) : ℝ) *
+        ((∏ a : s, N.signedEdge ((σ a : S)) (ρ a) : SignType) : ℝ))
+    (hdiag : ∀ y ∈ Set.Icc lo hi, ∀ i : S,
+      0 < (N.massActionJacobian κ (N.affineChart x₀ y)) i i)
+    (hsub : ∀ y ∈ Set.Icc lo hi, N.reducedJacobian κ x₀ y
+      = (N.massActionJacobian κ (N.affineChart x₀ y)).submatrix f f) :
+    (N.massActionKinetics κ).InjectiveOnClass x₀ :=
+  N.massActionInjectiveOnClass_of_consistentSRSign κ x₀ hf hbox hpos hweight hdiag hsub
+
 -- Brouwer zero-of-field in concentration space: an inward-displacement-preserving continuous
 -- vector field on a nonempty compact convex set of concentrations has a zero there.
 example {S : Type} [Fintype S] {K : Set (CRNT.Concentration S)} (hne : K.Nonempty)

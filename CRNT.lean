@@ -266,6 +266,7 @@ import CRNT.Multistationarity.GaleNikaidoUniv
 import CRNT.Multistationarity.StoichChart
 import CRNT.Multistationarity.ReducedJacobian
 import CRNT.Multistationarity.SRCycleInjectivity
+import CRNT.Multistationarity.SRInjectivityClass
 import CRNT.Multistationarity.Toric
 
 -- Design: robustness and special equilibria
