@@ -2279,3 +2279,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     (hpm : ∀ y ∈ Set.Icc lo hi, (N.reducedJacobian κ x₀ y).IsPMatrix) :
     (N.massActionKinetics κ).InjectiveOnClass x₀ :=
   N.massActionInjectiveOnClass_of_jacobian_pmatrix κ x₀ hbox hpm
+
+-- Brouwer zero-of-field in concentration space: an inward-displacement-preserving continuous
+-- vector field on a nonempty compact convex set of concentrations has a zero there.
+example {S : Type} [Fintype S] {K : Set (CRNT.Concentration S)} (hne : K.Nonempty)
+    (hconv : Convex ℝ K) (hcomp : IsCompact K)
+    (v : CRNT.Concentration S → CRNT.Concentration S) (hv : ContinuousOn v K)
+    (hmaps : Set.MapsTo (fun x => x - v x) K K) : ∃ x ∈ K, v x = 0 :=
+  CRNT.Analysis.exists_zero_of_displacement_mapsTo_concentration hne hconv hcomp v hv hmaps
