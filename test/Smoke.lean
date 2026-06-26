@@ -1876,6 +1876,30 @@ example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [PseudoMe
     ‖γᵣ' t₀‖ ≤ (L / S.rate) * ε :=
   S.manifoldMap_slowDrift_velocity_le hL hε hlip hy t₀ hd
 
+-- Ladder 3 (Fenichel/QSSA): composing the derived O(ε) defect with the Grönwall QSSA engine, the
+-- full integral curve tracks the slaved slow-manifold curve within a Grönwall ball on [0, T].
+example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [PseudoMetricSpace Y]
+    (S : ODE.SlowManifoldSeed Y E) (full : E → E) {K : ℝ≥0} (hl : LipschitzWith K full)
+    {L ε : ℝ} (hL : 0 ≤ L) (hε : 0 ≤ ε)
+    (hlip : ∀ y y' z, ‖S.fast y z - S.fast y' z‖ ≤ L * dist y y')
+    {y : ℝ → Y} (hcy : Continuous y) (hy : ∀ t t', dist (y t) (y t') ≤ ε * |t - t'|)
+    {γ γᵣ' : ℝ → E} {T εr δ : ℝ} (hT : 0 ≤ T) (hδ : 0 ≤ δ) (hεr : 0 ≤ εr)
+    (hγd : ∀ t, HasDerivAt γ (full (γ t)) t)
+    (hd : ∀ t ∈ Set.Ico (0:ℝ) T, HasDerivAt (fun u => S.manifoldMap (y u)) (γᵣ' t) t)
+    (hres : ∀ t ∈ Set.Ico (0:ℝ) T, ‖full (S.manifoldMap (y t))‖ ≤ εr)
+    (h0 : dist (γ 0) (S.manifoldMap (y 0)) ≤ δ) :
+    ∀ t ∈ Set.Icc (0:ℝ) T,
+      dist (γ t) (S.manifoldMap (y t)) ≤ gronwallBound δ K ((L / S.rate) * ε + εr) T :=
+  S.manifoldMap_qssa_tracking_le full hl hL hε hlip hcy hy hT hδ hεr hγd hd hres h0
+
+-- Ladder 3 (Fenichel/QSSA): the compact-time tracking ball vanishes as (δ, ε, εr) → (0, 0, 0).
+example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    (S : ODE.SlowManifoldSeed Y E) (L : ℝ) (K : ℝ≥0) (T : ℝ) :
+    Filter.Tendsto
+      (fun p : ℝ × ℝ × ℝ => gronwallBound p.1 K ((L / S.rate) * p.2.1 + p.2.2) T)
+      (nhds (0, 0, 0)) (nhds 0) :=
+  S.manifoldMap_qssa_tracking_tendsto_zero L K T
+
 -- Ladder 3 (Fenichel/MM): the constructed Michaelis-Menten substrate curve is monotonically depleted
 -- (antitone) — a qualitative property of the reduced flow.
 example (Km Vmax : ℝ) (hKm : 0 < Km) (hV : 0 ≤ Vmax) (s₀ : ℝ) :

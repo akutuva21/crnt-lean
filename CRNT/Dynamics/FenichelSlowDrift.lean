@@ -1,5 +1,6 @@
 import CRNT.Dynamics.FenichelManifold
 import Mathlib.Analysis.Calculus.Deriv.Basic
+import Mathlib.Analysis.ODE.Gronwall
 
 /-!
 # ε-quantified slow drift of the constructed slow-manifold curve
@@ -32,6 +33,14 @@ bound `εv` plus the full field's residual `εr` on the manifold, via the triang
 defect is then at most `εv + εr`, and `manifoldMap_qssaDefect_tendsto_zero` records that this bound
 vanishes as `(εv, εr) → (0, 0)`.
 
+Composing the derived defect with the compact-time Grönwall QSSA engine of `CRNT.Dynamics.QSSA`
+closes an end-to-end tracking statement (`manifoldMap_qssa_tracking_le`): the full integral curve
+shadows the slaved slow-manifold curve on `[0, T]` to within `gronwallBound δ K ((L / rate) · ε + εr) T`,
+which vanishes as `(δ, ε, εr) → (0, 0, 0)`. The differentiability of the slaved curve (`hd`) and the
+manifold residual `εr` remain hypotheses; the full ε-positive normally-hyperbolic Fenichel
+persistence theorem and the infinite-horizon statement (the Grönwall bound diverges as `T → ∞`)
+remain absent from Mathlib v4.31.
+
 When the slaved curve is differentiable, the velocity bound `εv` is *derived* rather than supplied:
 `manifoldMap_slowDrift_velocity_le` upgrades the `O(ε)` displacement to an `O(ε)` velocity
 `‖γᵣ'‖ ≤ (L / rate) · ε` through the converse mean-value inequality (`HasDerivAt.le_of_lip'`), the
@@ -52,12 +61,18 @@ feeds this derived `εv = (L / rate) · ε` into the decomposition, leaving only
   `O(ε)`: `‖γᵣ'‖ ≤ (L / rate) · ε`, derived from the displacement bound.
 * `manifoldMap_qssaDefect_velocity_le` — end-to-end defect `≤ (L / rate) · ε + εr` with the
   velocity bound derived, leaving only the manifold residual `εr` as data.
+* `manifoldMap_qssa_tracking_le` — closed compact-time tracking: on `[0, T]` the full `K`-Lipschitz
+  integral curve stays within `gronwallBound δ K ((L / rate) · ε + εr) T` of the slaved
+  slow-manifold curve, composing the derived defect with the Grönwall QSSA error engine.
+* `manifoldMap_qssa_tracking_tendsto_zero` — that tracking ball tends to `0` as
+  `(δ, ε, εr) → (0, 0, 0)`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.FenichelManifold`.
+This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.FenichelManifold`,
+`CRNT.Dynamics.QSSA`.
 -/
 
 open Filter Set
-open scoped Topology
+open scoped Topology NNReal
 
 namespace ODE
 
@@ -159,6 +174,70 @@ theorem manifoldMap_qssaDefect_velocity_le (full : E → E) {L ε : ℝ} (hL : 0
   refine S.manifoldMap_qssaDefect_le full (εv := (L / S.rate) * ε) ?_ hres
   intro t ht
   exact S.manifoldMap_slowDrift_velocity_le hL hε hlip hy t (hd t ht)
+
+/-- Closed compact-time tracking of the slaved slow-manifold curve by the full trajectory.
+
+On a fixed horizon `[0, T]`, the full integral curve `γ` of a `K`-Lipschitz field `full` stays
+within a Grönwall ball of the slaved slow-manifold curve `t ↦ manifoldMap (y t)`: the gap is at
+most `gronwallBound δ K ((L / rate) · ε + εr) T`. The slaving defect fed into Grönwall is the
+end-to-end `manifoldMap_qssaDefect_velocity_le` bound — the derived `O(ε)` curve velocity
+`(L / rate) · ε` plus the full field's manifold residual `εr` — and the manifold curve is
+continuous via `continuous_manifoldMap`.
+
+This is the quantitative Fenichel/Tikhonov tracking statement at the Lipschitz tier: on a compact
+time interval the full trajectory shadows the slaved slow-manifold curve to within `O(ε)` of the
+initial mismatch `δ` and residual `εr`. The derivative-existence data `hd` (the slaved curve is
+`HasDerivAt`) and the residual `εr` remain hypotheses, since `manifoldMap` is only Lipschitz, not
+yet `C¹`. The full ε-positive normally-hyperbolic persistence theorem and the infinite-horizon
+statement (`gronwallBound` diverges as `T → ∞`) are absent from Mathlib v4.31. -/
+theorem manifoldMap_qssa_tracking_le (full : E → E) {K : ℝ≥0} (hl : LipschitzWith K full)
+    {L ε : ℝ} (hL : 0 ≤ L) (hε : 0 ≤ ε)
+    (hlip : ∀ y y' z, ‖S.fast y z - S.fast y' z‖ ≤ L * dist y y')
+    {y : ℝ → Y} (hcy : Continuous y) (hy : ∀ t t', dist (y t) (y t') ≤ ε * |t - t'|)
+    {γ γᵣ' : ℝ → E} {T εr δ : ℝ} (_hT : 0 ≤ T) (hδ : 0 ≤ δ) (hεr : 0 ≤ εr)
+    (hγd : ∀ t, HasDerivAt γ (full (γ t)) t)
+    (hd : ∀ t ∈ Set.Ico (0:ℝ) T, HasDerivAt (fun u => S.manifoldMap (y u)) (γᵣ' t) t)
+    (hres : ∀ t ∈ Set.Ico (0:ℝ) T, ‖full (S.manifoldMap (y t))‖ ≤ εr)
+    (h0 : dist (γ 0) (S.manifoldMap (y 0)) ≤ δ) :
+    ∀ t ∈ Set.Icc (0:ℝ) T,
+      dist (γ t) (S.manifoldMap (y t)) ≤ gronwallBound δ K ((L / S.rate) * ε + εr) T := by
+  have hεf : (0 : ℝ) ≤ (L / S.rate) * ε + εr :=
+    add_nonneg (mul_nonneg (div_nonneg hL S.rate_pos.le) hε) hεr
+  have hcurve : ContinuousOn (fun t => S.manifoldMap (y t)) (Set.Icc 0 T) :=
+    ((S.continuous_manifoldMap hL hlip).comp hcy).continuousOn
+  have hdef := S.manifoldMap_qssaDefect_velocity_le full hL hε hlip hy hd hres
+  have hγᵣ' : ∀ t ∈ Set.Ico (0:ℝ) T,
+      HasDerivWithinAt (fun u => S.manifoldMap (y u)) (γᵣ' t) (Set.Ici t) t :=
+    fun t ht => (hd t ht).hasDerivWithinAt
+  intro t ht
+  have hbound := ODE.qssa_error_bound hl hγd hcurve hγᵣ' hdef h0 t ht
+  rw [sub_zero] at hbound
+  have hmono := gronwallBound_mono (δ := δ) (K := (K : ℝ))
+    (ε := (L / S.rate) * ε + εr) hδ hεf K.coe_nonneg
+  have htle : t ≤ T := ht.2
+  exact hbound.trans (hmono htle)
+
+omit [PseudoMetricSpace Y] in
+/-- **The tracking bound vanishes as `(δ, ε, εr) → (0, 0, 0)`.** Reparametrizing the joint limit
+through the affine map `p ↦ (p.1, (L / rate) · p.2.1 + p.2.2)` and precomposing with the joint
+continuity of `gronwallBound` in `(δ, εf)` (`gronwallBound_continuous_δε`), the tracking ball
+`gronwallBound δ K ((L / rate) · ε + εr) T` tends to its base value `gronwallBound 0 K 0 T = 0`
+(`gronwallBound_ε0_δ0`): in the singular limit the full trajectory coincides with the slaved
+slow-manifold curve over the whole compact horizon `[0, T]`. -/
+theorem manifoldMap_qssa_tracking_tendsto_zero (L : ℝ) (K : ℝ≥0) (T : ℝ) :
+    Tendsto
+      (fun p : ℝ × ℝ × ℝ => gronwallBound p.1 K ((L / S.rate) * p.2.1 + p.2.2) T)
+      (𝓝 (0, 0, 0)) (𝓝 0) := by
+  have hcont : Continuous
+      (fun p : ℝ × ℝ × ℝ => gronwallBound p.1 K ((L / S.rate) * p.2.1 + p.2.2) T) := by
+    have hg : Continuous fun q : ℝ × ℝ => gronwallBound q.1 (K : ℝ) q.2 T :=
+      gronwallBound_continuous_δε (K : ℝ) T
+    have hrepar : Continuous
+        (fun p : ℝ × ℝ × ℝ => (p.1, (L / S.rate) * p.2.1 + p.2.2)) := by fun_prop
+    exact hg.comp hrepar
+  have hval : gronwallBound (0 : ℝ) (K : ℝ) ((L / S.rate) * 0 + 0) T = 0 := by
+    rw [mul_zero, add_zero]; exact gronwallBound_ε0_δ0 (K : ℝ) T
+  exact hcont.tendsto' (0, 0, 0) 0 hval
 
 end SlowManifoldSeed
 
