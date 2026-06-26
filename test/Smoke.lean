@@ -2609,3 +2609,15 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     μ = N.stationaryProbabilityMeasure κ c T := by
   haveI := hμprob
   exact N.invariant_probabilityMeasure_unique_on_region κ c hc hcb hT hne hirr μ hμsupp hμinv
+-- P-matrix from consistent signed SR-cycles: at a positive concentration, if every signed-incidence
+-- cover weight over every restricted species set is nonnegative and every Jacobian diagonal entry is
+-- positive, then the mass-action Jacobian is a P-matrix — every principal minor positive, the form the
+-- box Gale–Nikaido univalence chain consumes.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    {x : Concentration S} (hx : x.Positive)
+    (hweight : ∀ (s : Finset S) (σ : Equiv.Perm s) (ρ : s → N.R),
+      0 ≤ ((CRNT.coverCoeff σ : ℤ) : ℝ) *
+        ((∏ a : s, N.signedEdge ((σ a : S)) (ρ a) : SignType) : ℝ))
+    (hdiag : ∀ i : S, 0 < (N.massActionJacobian κ x) i i) :
+    (N.massActionJacobian κ x).IsPMatrix :=
+  N.isPMatrix_massActionJacobian_of_consistentSRSign κ hx hweight hdiag
