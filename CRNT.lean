@@ -169,6 +169,7 @@ import CRNT.Dynamics.FenichelC1Manifold
 import CRNT.Dynamics.MichaelisMentenManifold
 import CRNT.Dynamics.MichaelisMentenReduced
 import CRNT.Dynamics.MichaelisMentenC1
+import CRNT.Dynamics.MichaelisMentenRegularized
 import CRNT.Dynamics.MichaelisMentenDepletion
 
 -- Deficiency

@@ -1434,6 +1434,18 @@ example (rate : ℝ) (hrate : 0 < rate) (Km Vmax s : ℝ) :
       (CRNT.MichaelisMenten.mmComplexEquil Km Vmax s • CRNT.MichaelisMenten.e0) :=
   CRNT.MichaelisMenten.mmFastField_hasFDerivAt_fibre rate hrate Km Vmax s
 
+-- The globally-C¹ regularized Michaelis–Menten seed has its constructed slow manifold C¹ over the
+-- whole substrate line, through the abstract implicit-function API, agreeing with the true MM
+-- complex-equilibrium curve on the physical ray `s ≥ 0`.
+example (rate : ℝ) (hrate : 0 < rate) (Km Vmax : ℝ) (hKm : 0 < Km) :
+    ContDiff ℝ 1 (CRNT.MichaelisMenten.mmRegSlowManifoldSeed rate hrate Km Vmax hKm).manifoldMap :=
+  CRNT.MichaelisMenten.mmRegManifoldMap_contDiff rate hrate Km Vmax hKm
+
+example (rate : ℝ) (hrate : 0 < rate) (Km Vmax : ℝ) (hKm : 0 < Km) {s : ℝ} (hs : 0 ≤ s) :
+    (CRNT.MichaelisMenten.mmRegSlowManifoldSeed rate hrate Km Vmax hKm).manifoldMap s
+      = CRNT.MichaelisMenten.mmComplexEquil Km Vmax s • CRNT.MichaelisMenten.e0 :=
+  CRNT.MichaelisMenten.mmRegManifoldMap_eq_mm rate hrate Km Vmax hKm hs
+
 -- Full 2-D Sperner over any door incidence: a Sperner-colored triangulation has a rainbow triangle.
 example {Cell : Type*} [Fintype Cell] (D : CRNT.Analysis.SpernerTriangulation.DoorIncidence Cell) :
     ∃ t : Cell, D.IsRainbowCell t :=
