@@ -2380,6 +2380,13 @@ example {α : Type} [TopologicalSpace α] [T2Space α] (ϕ : Flow ℝ≥0 α) (x
     ∃ M, M ⊆ omegaLimit atTop ϕ {x₀} ∧
       Minimal (fun C => C.Nonempty ∧ IsCompact C ∧ IsClosed C ∧ IsInvariant ϕ C) M :=
   CRNT.exists_minimal_compact_invariant_subOmega ϕ x₀ hK habs
+-- Two minimal nonempty compact closed invariant sets are either equal or disjoint: the minimal
+-- sets form a pairwise-disjoint antichain.
+example {α : Type} [TopologicalSpace α] [T2Space α] (ϕ : Flow ℝ≥0 α) {M₁ M₂ : Set α}
+    (h₁ : Minimal (fun C => C.Nonempty ∧ IsCompact C ∧ IsClosed C ∧ IsInvariant ϕ C) M₁)
+    (h₂ : Minimal (fun C => C.Nonempty ∧ IsCompact C ∧ IsClosed C ∧ IsInvariant ϕ C) M₂) :
+    M₁ = M₂ ∨ Disjoint M₁ M₂ :=
+  CRNT.eq_or_disjoint_of_minimal_compact_invariant ϕ h₁ h₂
 -- Planar trace–determinant stability test: a real 2×2 matrix has both characteristic-polynomial
 -- roots in the open left half-plane iff its trace is negative and its determinant is positive.
 example (M : Matrix (Fin 2) (Fin 2) ℝ) :
