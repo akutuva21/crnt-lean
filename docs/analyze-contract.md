@@ -11,11 +11,12 @@ symbol names.
 
 `analyze` uses **compiled evaluation** (compiler trust), so it sits outside the `CRNT` library's
 axiom-clean guarantee. Each reported field is a computable companion of the library theory, and the
-library carries a bridge relating it to the propositional definition: `analyze_deficiency_eq`,
-`analyze_stoichRank_eq`, `analyze_numLinkageClasses_eq`, `analyze_conservationLawDim_eq`,
-`analyze_weaklyReversible_eq`, `analyze_acrSpecies_eq`, `analyze_hasSiphon_eq`, and
-`mem_analyze_minimalSiphons` (`CRNT/Interop/Analysis.lean`). When a result needs an axiom-clean kernel certificate for a specific
-network, use the codegen contract instead.
+derived fields each have a bridge in `CRNT/Interop/Analysis.lean` relating the reported value to its
+propositional definition: `analyze_deficiency_eq`, `analyze_stoichRank_eq`,
+`analyze_numLinkageClasses_eq`, `analyze_conservationLawDim_eq`, `analyze_weaklyReversible_eq`,
+`analyze_acrSpecies_eq`, `analyze_hasSiphon_eq`, and `mem_analyze_minimalSiphons`. The one-sided
+exclusion `analyze_hasNoCriticalSiphon_of_hasSiphon_false` is proved there too. When a result needs an
+axiom-clean kernel certificate for a specific network, use the codegen contract instead.
 
 ## Input: `NetworkData`
 
@@ -38,23 +39,16 @@ their analyses (the bulk path: one process invocation scores many networks).
 
 ## Output: `Analysis`
 
+`analyze` writes the record with `Json.compress`, which sorts the object keys alphabetically:
+
 ```json
-{
-  "version": 3,
-  "numSpecies": 2,
-  "numComplexes": 2,
-  "numReactions": 2,
-  "numLinkageClasses": 1,
-  "numStrongLinkageClasses": 1,
-  "stoichRank": 1,
-  "conservationLawDim": 1,
-  "deficiency": 0,
-  "weaklyReversible": true,
-  "acrSpecies": [],
-  "hasSiphon": true,
-  "minimalSiphons": [[0, 1]]
-}
+{"acrSpecies":[],"conservationLawDim":1,"deficiency":0,"hasSiphon":true,
+ "minimalSiphons":[[0,1]],"numComplexes":2,"numLinkageClasses":1,"numReactions":2,
+ "numSpecies":2,"numStrongLinkageClasses":1,"stoichRank":1,"version":5,
+ "weaklyReversible":true}
 ```
+
+The fields, in their declaration order on the `Analysis` structure:
 
 | Field | Type | Meaning | Companion |
 |---|---|---|---|
@@ -71,6 +65,9 @@ their analyses (the bulk path: one process invocation scores many networks).
 | `acrSpecies` | int[] | species with a structural Shinar–Feinberg ACR witness | `acrSpecies` (`HasShinarFeinbergPair`) |
 | `hasSiphon` | bool | a nonempty siphon exists | `IsSiphon` (powerset search) |
 | `minimalSiphons` | int[][] | support-minimal siphons, each an ascending index array | `IsMinimalSiphon` |
+
+`Analysis` derives `FromJson, ToJson, Repr, DecidableEq`; the `ToJson` instance is what serializes the
+record.
 
 `acrSpecies` reports the decidable structural fragment of Shinar–Feinberg ACR (two non-terminal
 complexes in distinct linkage classes differing in exactly one species). The deficiency-one side
@@ -97,9 +94,10 @@ not evaluate), and `deficiency_eq_computableDeficiency` bridges the assembly to 
 
 ## Versioning
 
-`version` tags the field set. It is bumped whenever fields are added or their meaning changes, so a
-consumer can detect a contract it does not understand. New per-property companions (multistationarity
-capacity, ACR, deficiency-one) join the record as they land, raising the version.
+`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `5`. It tags the
+field set and increments whenever a field is added or its meaning changes, so a consumer can detect a
+contract it does not understand. A new per-property companion raises the version when it joins the
+record.
 
 ## Usage
 

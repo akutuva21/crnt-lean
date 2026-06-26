@@ -69,6 +69,15 @@ proofs are exactly the mass-action lemmas, and its induced field is the mass-act
 *definitionally* (`massActionKinetics_vectorField : (massActionKinetics κ).vectorField = massActionVectorField κ`).
 Mass-action steady states are exactly its kinetic steady states (`isMassActionSteadyState_iff_kinetic`).
 
+The mass-action field is differentiable, and its derivative is available as data. Each monomial
+is differentiable (`massActionMonomial_differentiable`) with an explicit gradient
+(`massActionMonomialGrad`, `massActionMonomial_hasFDerivAt`); each rate
+(`massActionRate_differentiable`) and the whole field (`massActionVectorField_differentiable`)
+inherit this. `Network.massActionJacobianCLM` is the Fréchet derivative as a continuous linear
+map (`massActionVectorField_hasFDerivAt`), and `Network.massActionJacobian` its matrix
+(`massActionJacobianCLM_apply`: the map acts by `mulVec`). This Jacobian is the linearization the
+Routh–Hurwitz stability test below reads.
+
 ### Generalized mass action
 
 Müller–Regensburger generalized mass-action kinetics separates two subspaces of `ι → ℝ`: the
@@ -208,6 +217,31 @@ each ω-point complex-balanced, hence equal to `x*` by the deficiency-zero uniqu
 complex-balanced equilibrium in a positive class. That uniqueness input is the Birch / deficiency
 material documented in [`deficiency.md`](deficiency.md).
 
+**Global asymptotic stability under persistence.**
+`omegaLimit_eq_singleton_of_persistent` removes the closeness bound and replaces it with
+**persistence**: for a weakly reversible network with positive complex-balanced reference `x*` and
+a positive start `x₀` in the same class, if the genuine orbit is absorbed by a compact set `K₀` of
+strictly positive concentrations, then `ω(x₀) = {x*}`. Persistence is exactly what the closeness
+bound was for in the local theorem — it keeps the ω-limit set off the orthant boundary — and it is
+isolated as the single hypothesis. This is the persistence-conditional form of single-linkage-class
+global asymptotic stability (Anderson, "A Proof of the Global Attractor Conjecture in the Single
+Linkage Class Case"). Persistence itself, the no-boundary-attraction estimate, is the open input;
+its decidable sufficient cases are in [`persistence-gac.md`](persistence-gac.md).
+
+**Forward confinement of the orthant.** The semiflow is forward-only because the nonnegative orthant
+is forward invariant for mass action but not backward invariant. The orthant invariance is a
+single-valued Nagumo argument: `nagumo_halfspace_scalar` is the scalar dissipative form (a
+differentiable `g` with `g 0 ≥ 0` and the inward inequality `−L·g ≤ g'` where `g < 0` stays
+nonnegative on `[0, ∞)`), `forwardInvariant_nonnegOrthant` lifts it coordinatewise, and
+`Network.massAction_forwardInvariant_nonneg` specializes it: the boundary inward condition on each
+face `{x_s = 0}` is discharged by `massActionVectorField_nonneg_of_zero`
+(`massActionVectorField_inwardOnBoundary`), and the caller supplies the per-coordinate dissipativity
+bound. The general Nagumo viability theorem over an arbitrary closed convex set, with a Bouligand
+subtangent-cone hypothesis, is out of reach: Mathlib has no tangent-cone-to-a-set apparatus, so
+`CRNT/Dynamics/Viability.lean` proves only the scalar-halfspace closure and the easy direction
+(invariance ⇒ subtangency, `mem_tangentConeAt_of_solution`). The siphon-boundary refinements of this
+invariance story live in [`persistence-gac.md`](persistence-gac.md).
+
 ## Time-scale separation and Michaelis–Menten
 
 This is the quasi-steady-state / singular-perturbation development. It is honest about its ceiling:
@@ -282,36 +316,68 @@ infinite-horizon behavior are out of scope.
 
 ## Routh–Hurwitz and the Hopf crossing gate
 
-The stability of linearizations, in low degree. A real polynomial is **Hurwitz**
+The stability of linearizations, through degree 4. A real polynomial is **Hurwitz**
 (`CRNT.IsHurwitz`) when all complex roots lie in the open left half-plane: exactly the
 characteristic polynomial of a linear system whose every mode decays.
 
-- `hurwitz_quadratic_iff` / `hurwitz_quadratic_root_iff`, the **degree-2** Routh–Hurwitz criterion:
+**Degree 2 and 3.**
+
+- `hurwitz_quadratic_iff` / `hurwitz_quadratic_root_iff`, the **degree-2** criterion:
   `z² + a₁z + a₀` is Hurwitz iff `0 < a₁` and `0 < a₀`;
 - `hurwitz_cubic_necessary`, the **degree-3 necessity** direction: a Hurwitz monic real cubic
   satisfies `0 < a₂`, `0 < a₁`, `0 < a₀`, and `a₀ < a₂·a₁`;
 - `hurwitz_cubic_sufficient_allReal` / `hurwitz_cubic_sufficient_conjPair` and
   `hurwitz_cubic_root_iff`, the **degree-3 sufficiency** cores and the full degree-3 criterion as a
   root-predicate `iff` (given the Vieta identities and the real-coefficient conjugation dichotomy);
-- `hurwitzMatrix` / `hurwitzDet`, the general Hurwitz matrix and its leading principal minors, with
-  `hurwitzDet_two_cubic : hurwitzDet a 3 2 _ = a₂·a₁ − a₀` tying the `2×2` minor to the determinant
-  condition;
 - `cubic_conj_dichotomy` and `hurwitz_cubic_root_iff_coeff` discharge the conjugation dichotomy
   from the reality of the coefficients alone, giving the **coefficient-only** degree-3 criterion
   (no structural hypothesis).
 
+**Degree 4 (Liénard–Chipart).** For the monic real quartic `X⁴ + a₃X³ + a₂X² + a₁X + a₀` the
+Liénard–Chipart form of Routh–Hurwitz tests the coefficients together with the single third Hurwitz
+determinant `Δ₃ = a₃a₂a₁ − a₁² − a₃²a₀`, not the whole determinant sequence:
+
+- `hurwitz_quartic_necessary` (with cores `hurwitz_quartic_necessary_allReal`,
+  `_oneConjPair`, `_twoConjPair`): a Hurwitz monic real quartic satisfies `0 < a₃`, `0 < a₂`,
+  `0 < a₁`, `0 < a₀`, and `a₁² + a₃²a₀ < a₃a₂a₁` (the strict `Δ₃ > 0`);
+- `hurwitz_quartic_sufficient_allReal` / `_oneConjPair` / `_twoConjPair` and
+  `hurwitz_quartic_root_iff`, the sufficiency cores and the **full degree-4 criterion** in
+  root-predicate form: those five conditions hold iff every root lies in the open left half-plane.
+
+The conjugate-pair cores rest on a factored form of `Δ₃` in the root parameters
+(`2p(r+s)((r+p)²+q)((s+p)²+q)` for one pair, `4pu(((p+u)²+q+v)² − 4qv)` for two), which reads the
+sign of each real part off the determinant condition.
+
+**The Hurwitz matrix and the eigenvalue bridge.** `hurwitzMatrix` / `hurwitzDet` are the general
+`n × n` Hurwitz matrix and its leading principal minors. The low-degree minors are tied to the
+scalar determinant conditions: `hurwitzDet_two_cubic : hurwitzDet a 3 2 _ = a₂·a₁ − a₀` and
+`hurwitzDet_three_quartic : hurwitzDet a 4 3 _ = a₃a₂a₁ − a₁² − a₃²a₀`. The criteria above are
+stated about polynomial coefficients; `CRNT/Dynamics/Hurwitz2Matrix.lean` makes the planar case a
+genuine statement about eigenvalues. A real `2 × 2` matrix has characteristic polynomial
+`X² − (tr M)X + (det M)` over `ℂ` (`hurwitz_matrix_fin_two_charpoly`), so
+`hurwitz_matrix_fin_two_iff` reads the degree-2 criterion as the classical trace–determinant test:
+every eigenvalue is in the open left half-plane iff `tr M < 0` and `0 < det M`. Applied to the
+mass-action Jacobian, `massActionJacobian_fin_two_hurwitz_iff` is a no-oscillation gate at a state
+`x` for a two-species network: the linearization `N.massActionJacobian κ x` is a stable
+linearization iff its trace is negative and its determinant positive.
+
 **The Hopf crossing gate.** On the boundary of the Hurwitz region, where the penultimate Hurwitz
-determinant vanishes (`a₂·a₁ = a₀`) while the lower data stay positive:
+determinant vanishes while the lower data stay positive, an eigenvalue pair reaches the imaginary
+axis:
 
-- `hopf_crossing_gate` (with core `hopf_crossing_core`): the cubic carries a **purely imaginary
-  conjugate eigenvalue pair** (two roots with zero real part and nonzero imaginary part) and the
-  remaining real root is negative. This is the algebraic eigenvalue-crossing condition under which a
-  Hopf bifurcation can occur.
+- `hopf_crossing_gate` (core `hopf_crossing_core`), **degree 3**: at `a₂·a₁ = a₀` with `0 < a₁`,
+  `0 < a₀`, the cubic carries a **purely imaginary conjugate eigenvalue pair** (zero real part,
+  nonzero imaginary part) and the remaining real root is negative;
+- `hopf_crossing_gate_quartic` (core `hopf_crossing_core_quartic`), **degree 4**: at `Δ₃ = 0` with
+  `0 < a₃`, `0 < a₀`, exactly one conjugate pair lands on the imaginary axis while the other stays
+  in the open left half-plane.
 
-The full Hopf bifurcation theorem (limit-cycle existence, center-manifold reduction) and the
-general-degree Routh–Hurwitz converse (positivity of all `n` Hurwitz determinants implies Hurwitz,
-via Hermite–Biehler / Routh-array continued fractions) are **not formalized**: the gate states only
-the algebraic crossing condition, and the criterion is complete only through degree 3.
+These are the algebraic eigenvalue-crossing conditions under which a Hopf bifurcation can occur. The
+dynamical Hopf bifurcation theorem (limit-cycle existence, center-manifold reduction) is **not
+formalized**: it needs center-manifold theory Mathlib does not provide. The general-degree
+Routh–Hurwitz converse (positivity of all `n` Hurwitz determinants implies Hurwitz, via
+Hermite–Biehler / Routh-array continued fractions) is likewise **not formalized**; the
+root-predicate criterion is complete through degree 4.
 
 ## Modules
 
@@ -319,6 +385,8 @@ Kinetics:
 - `CRNT/Kinetics/Concentration.lean`: concentrations, nonnegativity/positivity, mass-action
   monomial.
 - `CRNT/Kinetics/MassAction.lean`: rate constants, mass-action rate and vector field.
+- `CRNT/Kinetics/MassActionJacobian.lean`: differentiability of the field; the Jacobian as a
+  continuous linear map and as a matrix.
 - `CRNT/Kinetics/General.lean`: the `Kinetics` abstraction; boundary non-attraction and
   conservation; mass action as an instance.
 - `CRNT/Kinetics/Generalized.lean`: generalized (Müller–Regensburger) mass action.
@@ -329,14 +397,20 @@ Dynamics:
 - `CRNT/Dynamics/FlowConstruction.lean`: the `Flow ℝ≥0` of a bounded Lipschitz field.
 - `CRNT/Dynamics/LaSalle.lean`: LaSalle's invariance principle for forward semiflows.
 - `CRNT/Dynamics/Monotone.lean`: order-preserving flows and scalar comparison.
+- `CRNT/Dynamics/Nagumo.lean`: single-valued Nagumo invariance of the nonnegative orthant.
 - `CRNT/Dynamics/QSSA.lean`: the compact-time quasi-steady-state error bound.
 - `CRNT/Dynamics/Tikhonov.lean`: boundary-layer exponential attraction; the derived defect.
 - `CRNT/Dynamics/Fenichel.lean`, `FenichelManifold.lean`, `FenichelSlowDrift.lean`: the slow
   manifold, its manifold map, and slow-drift bounds.
 - `CRNT/Dynamics/MichaelisMenten.lean`, `MichaelisMentenManifold.lean`, `MichaelisMentenReduced.lean`,
   `MichaelisMentenDepletion.lean`: the Michaelis–Menten reduction and depletion.
-- `CRNT/Dynamics/RouthHurwitz.lean`, `Hurwitz.lean`, `HopfGate.lean`: the Routh–Hurwitz criterion
-  and the Hopf crossing gate.
+- `CRNT/Dynamics/RouthHurwitz.lean`, `Hurwitz.lean`: the degree-2 and degree-3 criteria and the
+  Hurwitz matrix.
+- `CRNT/Dynamics/RouthHurwitz4.lean`, `RouthHurwitz4Suff.lean`: degree-4 Liénard–Chipart necessity
+  and sufficiency.
+- `CRNT/Dynamics/Hurwitz2Matrix.lean`: the planar trace–determinant test from the characteristic
+  polynomial, and the two-species mass-action Jacobian gate.
+- `CRNT/Dynamics/HopfGate.lean`, `HopfGate4.lean`: the degree-3 and degree-4 Hopf crossing gates.
 
 Lyapunov / stability stack:
 - `CRNT/Theorems/DeficiencyZero/Lyapunov.lean`: `relEntropy` and its positive definiteness.
@@ -344,6 +418,8 @@ Lyapunov / stability stack:
 - `CRNT/Theorems/DeficiencyZero/Stability.lean`: descent along solutions.
 - `CRNT/Theorems/DeficiencyZero/Confinement.lean`: the `clampBox` cutoff and coercivity.
 - `CRNT/Theorems/DeficiencyZero/AsymptoticStability.lean`: `omegaLimit_eq_singleton_of_local`.
+- `CRNT/Dynamics/GlobalStability.lean`: `omegaLimit_eq_singleton_of_persistent`, the
+  persistence-conditional global form.
 
 ## Related documents
 
@@ -352,5 +428,3 @@ Lyapunov / stability stack:
   deficiency theorems (the uniqueness input to local asymptotic stability).
 - [`persistence-gac.md`](persistence-gac.md): global dynamics, siphons, persistence, and the global
   attractor conjecture.
-</content>
-</invoke>

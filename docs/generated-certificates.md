@@ -55,8 +55,10 @@ def N : Network Species :=
 
 ## JSON interchange schema
 
-The recommended pipeline is *codegen*, not in-Lean parsing: a tool consumes JSON/SBML
-and emits the Lean file above. A minimal JSON network:
+The recommended pipeline is *codegen*, not in-Lean parsing: a tool consumes its own
+JSON (or SBML/SBOL) and emits the Lean file above. The shape below is an example of
+what such a tool might read; it is the generator's concern, not a schema the `CRNT`
+library defines or parses.
 
 ```json
 {
@@ -74,6 +76,10 @@ and emits the Lean file above. A minimal JSON network:
 
 Each `species` entry becomes a `Species` constructor, each `complexes` entry a complex
 `def`, and each `reactions` entry a `Rxn` constructor and a `reaction` arm.
+
+The library *does* define one JSON shape: `NetworkData` (`CRNT/Interop/NetworkData.lean`),
+a species count and reactions as nonnegative coefficient vectors. That is the input to
+the bulk `analyze` path below, not to codegen.
 
 ## Throughput path: the `analyze` contract
 

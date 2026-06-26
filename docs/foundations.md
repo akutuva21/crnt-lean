@@ -70,9 +70,11 @@ the elementary boundary argument used by the sign/excess analysis of the reactio
 ## Weak reversibility, linkage, and strong connectivity
 
 - **`Network.WeaklyReversible N`** (`CRNT/Graph/WeakReversibility.lean`) holds when, for every
-  reaction `y → y'`, the source `y` is reachable from the target `y'`; equivalently, every reaction
-  lies on a directed cycle (`weaklyReversible_iff`). Weak reversibility is a central hypothesis of
-  the deficiency-zero theorem. `WeaklyReversible.reaches_symm` records that the source and target of
+  reaction `y → y'`, the source `y` is reachable from the target `y'`. Equivalently, every reaction
+  lies on a directed cycle; the cycle-cover form `weaklyReversible_iff_onDirectedCycle` is in
+  `CRNT/Graph/CycleCover.lean`, while `weaklyReversible_iff` here records the definitional
+  reachability statement directly. Weak reversibility is a central hypothesis of the
+  deficiency-zero theorem. `WeaklyReversible.reaches_symm` records that the source and target of
   each reaction then reach each other in both directions.
 
 - **`Network.Linked N c d`** (`CRNT/Graph/LinkageClass.lean`) is *undirected* connectivity: the
@@ -90,9 +92,11 @@ the elementary boundary argument used by the sign/excess analysis of the reactio
   `Network.OnDirectedCycle N r` says reaction `r` lies on a directed cycle (its target reaches its
   source); `WeaklyReversible.onDirectedCycle` and `weaklyReversible_iff_onDirectedCycle` show weak
   reversibility is exactly the property that every reaction is so covered. The closed-walk forms
-  `WeaklyReversible.reaches_self_through` and `…_target` show each reaction's endpoints reach
-  themselves through it, and `WeaklyReversible.reaches_comm` proves reachability is *symmetric* under
-  weak reversibility, the strong-connectivity characterization. This cycle-cover is what the toric
+  `WeaklyReversible.reaches_self_through` and `WeaklyReversible.reaches_self_through_target` show
+  each reaction's source (resp. target) reaches itself through that reaction.
+  `WeaklyReversible.reaches_comm` proves directed reachability is *symmetric* under weak
+  reversibility, so each component is strongly connected; `WeaklyReversible.reaches_both` recovers
+  the two-directional endpoint statement as a corollary. This cycle-cover is what the toric
   embedding of Gheorghe Craciun, _Toric Differential Inclusions and a Proof of the Global Attractor
   Conjecture_, consumes downstream.
 

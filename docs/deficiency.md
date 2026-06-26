@@ -14,9 +14,12 @@ mass-action network *independently of the rate constants*. When `δ = 0` the net
 positive choice of rate constants, exactly one equilibrium per positive compatibility class, and
 that equilibrium is complex-balanced (Feinberg, *Chemical reaction network structure and the
 stability of complex isothermal reactors: the deficiency-zero and deficiency-one theorems*). When
-`δ = 1`, under additional graph hypotheses, uniqueness persists. Everything reported here is
-machine-checked under the default `import CRNT`, which is `sorry`-free and introduces no axioms
-beyond Mathlib's.
+`δ = 1`, under additional graph hypotheses, uniqueness persists. The deficiency-one and
+advanced-deficiency algorithms that decide the capacity for multiple steady states from this same
+structure sit at the end of this document: the apparatus and the exclusion direction are proven,
+while the algorithm correctness equivalences are stated as named propositions but not proved. Every
+proven result reported here is machine-checked under the default `import CRNT`, which is `sorry`-free
+and introduces no axioms beyond Mathlib's.
 
 ## Complex balancing and the toric structure of equilibria
 
@@ -70,9 +73,19 @@ comes in three pieces, all `sorry`-free:
 
 Applied to a network, this yields **weak reversibility ⇒ a strictly positive kernel vector of the
 kinetic matrix** `A_k`. The kinetic matrix is rescaled to a column-stochastic matrix `P = 1 + d⁻¹
-A_k` (`smat`); `P` is block-diagonal across linkage classes (`smat_blockdiag`), each of which weak
-reversibility makes strongly connected (`reaches_supportReaches`). The headline result is
+A_k` (`smat`, with `d = dscale = 1 + ∑_r κ_r`); `P` is block-diagonal across linkage classes
+(`smat_blockdiag`), each of which weak reversibility makes strongly connected
+(`reaches_supportReaches`). The headline result is
 `weaklyReversible_exists_positive_kernelVector` (`CRNT/Theorems/DeficiencyZero/PositiveKernel.lean`).
+
+A companion is the **substochastic** Perron–Frobenius input
+(`CRNT/LinearAlgebra/Substochastic.lean`). A nonnegative matrix with column sums at most one and at
+least one strict deficit ("leak") has *no* nonzero fixed vector when every index can reach a leak
+along the support digraph. The closed-set form `mulVec_fixed_eq_zero_of_substochastic_of_closed`
+quantifies over sets closed under reverse support edges; the reachability corollary is
+`mulVec_fixed_eq_zero_of_substochastic`. Both are `sorry`-free, proved by a single mass-balance
+pinch. This is the trivial-kernel fact behind drainage arguments, where a transient block of a
+Markov-type generator loses all its mass to absorbing classes.
 
 ## Birch's theorem (existence + uniqueness per positive class)
 
@@ -184,21 +197,86 @@ constancy `DeficientClassRatioConst` (`CRNT/Theorems/DeficiencyOne/ToricReductio
 `deficiencyOneUniqueness_of_logRatio` reduces it to the toric characterization
 `LogRatioCharacterization` (`CRNT/Theorems/DeficiencyOne/LogRatioUniqueness.lean`).
 
-**Existence (partial).** The existence statement `DeficiencyOneExistence`
-(`CRNT/Theorems/DeficiencyOne/Statement.lean`) is **not proven in general**; the bare implication
-"weakly reversible + deficiency-one hypotheses ⇒ existence" is not asserted, because the generic
-argument needs a degree-theoretic fixed-point input (Brouwer / Poincaré–Miranda / Sperner) that
-Mathlib does not yet supply. What is proven, `sorry`-free, are sound reductions and special cases:
-`deficiencyOneExistence_iff_exists_steadyState` and `deficiencyOneExistence_of_existsSteadyState`
-reduce it to per-class steady-state existence (`CRNT/Theorems/DeficiencyOne/Existence.lean`);
-`deficiencyOneExistence_of_complexBalanced` discharges it for networks admitting a positive
-complex-balanced concentration; and a degree-free **dynamical route** gives
-`deficiencyOneExistence_of_complexBalancedExistence` from relative-entropy dissipation plus a LaSalle
-ω-limit argument (`omegaLimit_relEntropy_const_of_absorbed`,
-`CRNT/Theorems/DeficiencyOne/ExistenceDynamical.lean`). And `deficiencyOneUniqueness_of_existence`
-records that existence refines uniqueness into existence-and-uniqueness. Boros's structural results
-on deficiency-one networks (Boros, *Existence of positive steady states for weakly reversible
-mass-action systems*) sit on this same boundary.
+**Existence (partial).** Both conclusions are recorded as `def` propositions in
+`CRNT/Theorems/DeficiencyOne/Statement.lean`: `DeficiencyOneUniqueness` (any two positive steady
+states in a positive class coincide) and `DeficiencyOneExistence` (each positive class carries a
+unique positive steady state). The bare implication "weakly reversible + deficiency-one hypotheses ⇒
+existence" is **not proven**, because the generic argument needs a degree-theoretic fixed-point
+input (Brouwer / Poincaré–Miranda / Sperner) that Mathlib v4.31 does not supply. What is proven,
+`sorry`-free, are sound reductions and special cases. `deficiencyOneExistence_iff_exists_steadyState`
+and `deficiencyOneExistence_of_existsSteadyState` reduce it to per-class steady-state existence,
+taken as a hypothesis (`CRNT/Theorems/DeficiencyOne/Existence.lean`).
+`deficiencyOneExistence_of_complexBalanced` discharges it for networks whose every rate-constant
+choice admits a positive complex-balanced concentration, that hypothesis supplied as an argument. A
+degree-free **dynamical brick**, `omegaLimit_relEntropy_const_of_absorbed`, confines a positive
+mass-action orbit by relative-entropy dissipation to a compact sublevel set and applies LaSalle to
+produce a nonempty invariant ω-limit on which the relative entropy is constant;
+`deficiencyOneExistence_of_complexBalancedExistence` packages the complex-balanced corollary on top
+of it (`CRNT/Theorems/DeficiencyOne/ExistenceDynamical.lean`). `deficiencyOneUniqueness_of_existence`
+records that existence refines uniqueness into existence-and-uniqueness. The general,
+non-complex-balanced half stays open for the same degree-theoretic reason: a generic positive steady
+state is not complex-balanced, so the relative entropy is not a Lyapunov function adapted to it, and
+turning a nonempty ω-limit into an equilibrium still needs positivity of the ω-limit. Boros's
+structural results on deficiency-one networks (Boros, *Existence of positive steady states for
+weakly reversible mass-action systems*) sit on this same boundary.
+
+## The deficiency-one and advanced-deficiency algorithms
+
+A network **has the capacity for multiple steady states** when some positive rate constants admit
+two distinct positive steady states in one compatibility class: `Network.HasMultistationarityCapacity`
+(`CRNT/Multistationarity/Capacity.lean`). The deficiency-one and advanced-deficiency algorithms
+(Feinberg, *The existence and uniqueness of steady states for a class of chemical reaction
+networks*; Ji, *Uniqueness of equilibria for complex chemical reaction networks*, Ohio State
+University, 2011) are parameter-independent linear feasibility tests designed to decide this
+capacity from network structure alone. The library
+formalizes the apparatus and proves the **exclusion direction**; the algorithm correctness
+*equivalences* are recorded but not proved.
+
+**The structural apparatus (proven, `sorry`-free).** A network is **consistent** when its
+reaction vectors admit a strictly positive linear combination summing to zero (`Network.IsConsistent`,
+`CRNT/Deficiency/Consistent.lean`), a Stiemke-alternative condition; weak reversibility implies it
+(`isConsistent_of_weaklyReversible`, `CRNT/Deficiency/ConsistentWR.lean`). A `RegularNetwork`
+(`CRNT/Deficiency/Regular.lean`) bundles consistency, one terminal strong linkage class per linkage
+class, and the cut-pair condition (`CutPair`, `CRNT/Deficiency/CutPair.lean`). A **confluence
+vector** is a member of the incidence image (`Network.IsConfluenceVector`, `CRNT/Deficiency/Confluence.lean`);
+its defining structural property, the cut-sum **antisymmetry** `cutSum_antisymm`, is a complete
+theorem. **Shelves** partition reactions into upper/middle/lower tiers (`Shelf`, `ShelfPartition`,
+`ShelfPartition.imposes`, `CRNT/Deficiency/Shelf.lean`); a **signature** is a nonzero vector
+sign-compatible with the stoichiometric subspace that solves a shelf system (`SignCompatibleWithStoich`,
+`DOASystem`, `IsSignature`, `CRNT/Deficiency/Signature.lean`). **Colinearity classes** group
+reactions whose reaction vectors are scalar multiples (`ColinearVec`, `ColinearReactions`,
+`colinearityClasses`, `CRNT/Deficiency/Colinearity.lean`, `ColinearityClasses.lean`), the discrete
+index of the advanced-deficiency extension. Each of these carries proven supporting lemmas and incurs
+no `sorry`.
+
+**The exclusion direction (proven).** `not_hasMultistationarityCapacity_of_injective`
+(`CRNT/Multistationarity/Capacity.lean`) is the Craciun–Feinberg exclusion direction: if the
+mass-action kinetics is injective for every rate constant, the network has no capacity for multiple
+steady states. This is the half on which the injectivity and species–reaction-graph criteria rest.
+The forward direction's **entry step** is also proven: from two distinct positive compatible
+concentrations the log-ratio `μ = ln y − ln x` is nonzero and sign-compatible with the
+stoichiometric subspace (`signCompatible_logRatio`,
+`exists_signCompatible_of_hasMultistationarityCapacity`, `CRNT/Deficiency/DOAForward.lean`). Bridging
+from such a `μ` to a full shelf signature is Feinberg's structural analysis (Feinberg, *The
+existence and uniqueness of steady states for a class of chemical reaction networks*) and is not
+carried out.
+
+**The correctness equivalences (stated, not proved).** The Deficiency One Algorithm affirms capacity
+when some nonzero confluence vector and shelf partition admit a nonzero sign-compatible `μ` meeting
+the placement constraints (`DOAAffirmsCapacity`); its correctness, for a regular deficiency-one
+network, is `DeficiencyOneAlgorithmStatement`: `HasMultistationarityCapacity ↔ DOAAffirmsCapacity`
+(`CRNT/Deficiency/DeficiencyOneAlgorithm.lean`). The Advanced Deficiency Algorithm adds a per-class
+unknown `Mᵢ` and shelves reactions against it (`ADAData`, `ADAData.imposes`, `ADAAffirmsCapacity`),
+with correctness `AdvancedDeficiencyAlgorithmStatement` for a regular network
+(`CRNT/Deficiency/AdvancedDeficiencyAlgorithm.lean`). Both correctness statements are written as
+`def` propositions — named targets, **proved in neither direction** — so the modules stay `sorry`-free
+and axiom-clean. They are Feinberg's deficiency-one theorem (Feinberg, *The existence and uniqueness
+of steady states for a class of chemical reaction networks*) and its higher-deficiency successor.
+What is proven of each is **non-vacuity**: affirming capacity exhibits a nonzero stoichiometric vector
+(`stoichSubspace_ne_bot_of_doaAffirmsCapacity`, `stoichSubspace_ne_bot_of_adaAffirmsCapacity`). The
+advanced-deficiency module captures the per-class `Mᵢ` variables and shelf constraints but omits the
+within-class sign comparisons and coplanar-set `Mᵢ`-orderings of Ji's advanced-deficiency system,
+which only enlarges the set of runs considered.
 
 ## Modules
 
@@ -208,11 +286,15 @@ Equilibria:
 - `CRNT/Equilibria/CompatibilityClass.lean`: stoichiometric compatibility (an equivalence relation)
   and the positive compatibility class.
 - `CRNT/Equilibria/ComplexBalanced.lean`: inflow, outflow, and the complex-balanced predicate.
+- `CRNT/Equilibria/BrouwerSteadyState.lean`: a mass-action steady state on a nonempty compact convex
+  set whose inward displacement maps it into itself.
 
 Linear algebra:
 
 - `CRNT/LinearAlgebra/PerronFrobenius.lean`: Perron–Frobenius for column-stochastic matrices
   (existence, positivity, uniqueness of a positive fixed vector).
+- `CRNT/LinearAlgebra/Substochastic.lean`: column-substochastic matrices with no trapped mass have
+  trivial fixed space.
 
 Deficiency-zero theorem:
 
@@ -241,7 +323,21 @@ Deficiency-one theorem:
 - `CRNT/Theorems/DeficiencyOne/ToricReduction.lean`, `LogRatioUniqueness.lean`: reductions to the
   toric/log-ratio obligation.
 - `CRNT/Theorems/DeficiencyOne/Existence.lean`, `ExistenceDynamical.lean`: partial existence: sound
-  reductions, the complex-balanced special case, and the degree-free dynamical route.
+  reductions, the complex-balanced special case, and the degree-free dynamical brick.
+
+Deficiency-one and advanced-deficiency algorithms:
+
+- `CRNT/Multistationarity/Capacity.lean`: the capacity for multiple steady states and the
+  injective-exclusion direction.
+- `CRNT/Deficiency/Consistent.lean`, `ConsistentWR.lean`: network consistency via Stiemke, and weak
+  reversibility ⇒ consistency.
+- `CRNT/Deficiency/CutPair.lean`, `Regular.lean`: cut pairs and the regular-network bundle.
+- `CRNT/Deficiency/Confluence.lean`: confluence vectors and cut-sum antisymmetry.
+- `CRNT/Deficiency/Shelf.lean`, `Signature.lean`: shelves and signatures.
+- `CRNT/Deficiency/Colinearity.lean`, `ColinearityClasses.lean`: colinearity classes.
+- `CRNT/Deficiency/DOAForward.lean`: the proven entry step of the forward direction.
+- `CRNT/Deficiency/DeficiencyOneAlgorithm.lean`, `AdvancedDeficiencyAlgorithm.lean`: the verdicts,
+  the correctness equivalences stated as `def` propositions (not proved), and their non-vacuity.
 
 ## Related documents
 
