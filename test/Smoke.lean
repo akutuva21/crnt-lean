@@ -1420,6 +1420,20 @@ example (Km Vmax s : ℝ) :
     CRNT.MichaelisMenten.mmComplexEquil Km Vmax s = Vmax * s / (Km + s) :=
   rfl
 
+-- The constructed Michaelis–Menten slow manifold is C¹ on the substrate ray `s ≥ 0`.
+example (rate : ℝ) (hrate : 0 < rate) (Km Vmax : ℝ) (hKm : 0 < Km) :
+    ContDiffOn ℝ 1 (CRNT.MichaelisMenten.mmSlowManifoldSeed rate hrate Km Vmax).manifoldMap
+      (Set.Ici 0) :=
+  CRNT.MichaelisMenten.mmManifoldMap_contDiffOn rate hrate Km Vmax hKm
+
+-- The Michaelis–Menten fast field has the invertible fibre derivative `-rate • id`.
+example (rate : ℝ) (hrate : 0 < rate) (Km Vmax s : ℝ) :
+    HasFDerivAt (CRNT.MichaelisMenten.mmFastField rate Km Vmax s)
+      (CRNT.MichaelisMenten.mmFibreDeriv rate hrate : CRNT.MichaelisMenten.E →L[ℝ]
+        CRNT.MichaelisMenten.E)
+      (CRNT.MichaelisMenten.mmComplexEquil Km Vmax s • CRNT.MichaelisMenten.e0) :=
+  CRNT.MichaelisMenten.mmFastField_hasFDerivAt_fibre rate hrate Km Vmax s
+
 -- Full 2-D Sperner over any door incidence: a Sperner-colored triangulation has a rainbow triangle.
 example {Cell : Type*} [Fintype Cell] (D : CRNT.Analysis.SpernerTriangulation.DoorIncidence Cell) :
     ∃ t : Cell, D.IsRainbowCell t :=
