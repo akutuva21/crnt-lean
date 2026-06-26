@@ -188,9 +188,10 @@ def coeffDesc (a : ℕ → ℝ) (n k : ℕ) : ℝ :=
 /-- The `n × n` **Hurwitz matrix** of a real coefficient sequence `a`, encoding the monic
 degree-`n` polynomial `Xⁿ + a (n-1) X^{n-1} + ⋯ + a 0`. The entry in row `i`, column `j`
 (both `0`-indexed) is the descending coefficient at index `2 * i - j + 1`, with the standard
-out-of-range `= 0` and leading-coefficient `= 1` conventions. -/
+out-of-range `= 0` and leading-coefficient `= 1` conventions. A column index `j` exceeding
+`2 * i + 1` corresponds to a negative descending index and gives `0`. -/
 def hurwitzMatrix (a : ℕ → ℝ) (n : ℕ) : Matrix (Fin n) (Fin n) ℝ :=
-  Matrix.of fun i j => coeffDesc a n (2 * i.val + 1 - j.val)
+  Matrix.of fun i j => if j.val ≤ 2 * i.val + 1 then coeffDesc a n (2 * i.val + 1 - j.val) else 0
 
 /-- The `k`-th **Hurwitz determinant** of the monic degree-`n` polynomial encoded by `a`:
 the determinant of the leading `k × k` principal submatrix of the `n × n` Hurwitz matrix
