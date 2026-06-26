@@ -150,6 +150,7 @@ import CRNT.Dynamics.RouthHurwitz4
 import CRNT.Dynamics.RouthHurwitz4Suff
 import CRNT.Dynamics.HopfGate4
 import CRNT.Dynamics.Hurwitz2Matrix
+import CRNT.Dynamics.HurwitzGershgorin
 import CRNT.Dynamics.QSSA
 import CRNT.Dynamics.Nagumo
 import CRNT.Dynamics.Tikhonov

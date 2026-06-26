@@ -2399,3 +2399,10 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     {K : Set (CRNT.Concentration S)} (hne : K.Nonempty) (hconv : Convex ℝ K) (hcomp : IsCompact K) :
     ∃ x ∈ K, ∀ w ∈ K, 0 ≤ ∑ s, N.massActionVectorField κ x s * (w s - x s) :=
   N.exists_steadyState_normalCone_of_compact κ hne hconv hcomp
+
+-- Gershgorin diagonal-dominance Hurwitz test: strict row diagonal dominance with negative diagonal
+-- forces every eigenvalue into the open left half-plane, in any finite dimension.
+example {n : Type*} [Fintype n] [DecidableEq n] (A : Matrix n n ℂ)
+    (h : ∀ k, (A k k).re + ∑ j ∈ Finset.univ.erase k, ‖A k j‖ < 0) :
+    ∀ μ : ℂ, Module.End.HasEigenvalue (Matrix.toLin' A) μ → μ.re < 0 :=
+  hurwitz_of_strict_diag_dominance A h
