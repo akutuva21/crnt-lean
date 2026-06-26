@@ -2430,3 +2430,11 @@ example (M : Matrix (Fin 3) (Fin 3) ℝ) :
         z.re < 0) ↔
       (0 < -M.trace ∧ 0 < M.c₂Fin3 ∧ 0 < -M.det ∧ -M.det < (-M.trace) * M.c₂Fin3) :=
   hurwitz_matrix_fin_three_iff M
+-- Critical-siphon feasibility under Farkas duality: a species vector lies in the conservation cone
+-- (nonnegative, orthogonal to the stoichiometric subspace) iff every direction nonnegative on the
+-- cone is nonnegative on it.
+open scoped RealInnerProductSpace in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (b : EuclideanSpace ℝ S) :
+    b ∈ N.conservationCone ↔
+      ∀ y : EuclideanSpace ℝ S, (∀ x ∈ N.conservationCone, 0 ≤ ⟪x, y⟫) → 0 ≤ ⟪b, y⟫ :=
+  N.mem_conservationCone_iff_farkas b
