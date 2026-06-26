@@ -2864,3 +2864,16 @@ example {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     (hdef : ∀ t, 0 ≤ t → ‖full (m t) - m' t‖ ≤ δ) :
     ∀ t, 0 ≤ t → ‖x t - m t‖ ≤ ‖x 0 - m 0‖ + δ / lam :=
   ODE.coupled_dissipative_ceiling hlam hδ hx hm hcon hdef
+
+-- Rational linear feasibility decides by Fourier–Motzkin elimination (`decide`, not
+-- `native_decide`). At the `Fin 0` base case feasibility is the nonnegativity of every
+-- bound: an empty system and one with a nonnegative bound are feasible; one with a
+-- negative bound is not.
+example : CRNT.RationalFarkas.Feasible ([] : List (CRNT.RationalFarkas.Ineq 0)) := by decide
+example :
+    CRNT.RationalFarkas.Feasible
+      [({ coeff := ![], bound := 3 } : CRNT.RationalFarkas.Ineq 0),
+       { coeff := ![], bound := 0 }] := by decide
+example :
+    ¬ CRNT.RationalFarkas.Feasible
+      [({ coeff := ![], bound := -1 } : CRNT.RationalFarkas.Ineq 0)] := by decide
