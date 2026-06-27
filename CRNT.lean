@@ -201,6 +201,7 @@ import CRNT.Dynamics.MichaelisMentenCertified
 import CRNT.Dynamics.DissipativeTracking
 import CRNT.Dynamics.MichaelisMentenCertifiedUniform
 import CRNT.Dynamics.MichaelisMentenCoupledContraction
+import CRNT.Dynamics.MichaelisMentenFenichel
 import CRNT.Dynamics.MichaelisMentenLipschitz
 import CRNT.Dynamics.CertifiedReduction
 

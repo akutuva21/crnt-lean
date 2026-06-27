@@ -3424,3 +3424,19 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
       N.EnabledStrictlyInwardFace κ faces n₀ nf.2) :
     CRNT.ZeroSeparatingCurve2D.IsStrictSupportField (N.toricMassActionField κ) faces :=
   N.toricMassActionField_isStrictSupportField κ h
+
+-- Fenichel ε-persistence of the genuinely substrate-varying Michaelis–Menten slow manifold: the
+-- coupled-flow graph transform whose fibre relaxes toward the moving target `mmRegEquil Km Vmax s · e0`
+-- over the substrate interval `[0, s₀]`, with the operator-from-flow `flow_mapsTo` proved from the
+-- closed-form moving-target contracting flow. The persisted manifold is the substrate-varying
+-- equilibrium graph (a genuinely base-varying manifold), forward-invariant under the iterate coupled
+-- semiflow, sitting within the honest `O(ε)` slaved-velocity ceiling of the base section.
+example :
+    let G' := CRNT.MichaelisMenten.mmFenichelData 3 (by norm_num) 2 5 (by norm_num) 10
+      (1 : NNReal) (by norm_num) (L := 4) (ε := 1) (G := 6) (by norm_num) (by norm_num) (by norm_num)
+    let F := CRNT.MichaelisMenten.mmCoupledFlowGraphTransform 3 2 5 (by norm_num) 10 (1 : NNReal)
+    IsInvariant (fun n : ℕ => F.flow.toFun (n • F.τ))
+        (ODE.graphSet (G'.manifold : CRNT.MichaelisMenten.SubstrateIcc 10 → CRNT.MichaelisMenten.E)) ∧
+      dist G'.base G'.manifold ≤ G'.defect / (1 - G'.factor) :=
+  CRNT.MichaelisMenten.mmFenichelPersistence 3 (by norm_num) 2 5 (by norm_num) 10 (1 : NNReal)
+    (by norm_num) (by norm_num) (by norm_num) (by norm_num)
