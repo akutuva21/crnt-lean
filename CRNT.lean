@@ -275,6 +275,7 @@ import CRNT.Multistationarity.PMatrixUnivalence
 import CRNT.Multistationarity.GaleNikaidoUniv
 import CRNT.Multistationarity.StoichChart
 import CRNT.Multistationarity.ReducedJacobian
+import CRNT.Multistationarity.ReducedCoverSign
 import CRNT.Multistationarity.ReducedJacobianSign
 import CRNT.Multistationarity.ReducedSRGraph
 import CRNT.Multistationarity.SRCycleInjectivity

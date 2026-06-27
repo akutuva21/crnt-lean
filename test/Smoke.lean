@@ -2503,6 +2503,17 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
       = N.massActionJacobian κ (N.affineChart x₀ y) * N.stoichChartMatrix :=
   N.stoichChartMatrix_mul_reducedJacobian κ x₀ y
 
+-- A consistent reduced-cover sign condition in the chart makes the reduced Jacobian a P-matrix, and
+-- when it holds throughout the chart box it yields an hsub-free general-chart injectivity verdict:
+-- the reduced-coordinate Craciun-Feinberg monostationarity conclusion, with no coordinate-selection
+-- hypothesis on the chart.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (x₀ : Concentration S) {lo hi : Fin N.stoichRank → ℝ}
+    (hbox : ∀ x ∈ N.positiveCompatibilityClass x₀, N.chartCoord x₀ x ∈ Set.Icc lo hi)
+    (hsign : ∀ y ∈ Set.Icc lo hi, N.ReducedConsistentSRSign κ x₀ y) :
+    (N.massActionKinetics κ).InjectiveOnClass x₀ :=
+  N.massActionInjectiveOnClass_of_reducedConsistentSRSign κ x₀ hbox hsign
+
 -- Brouwer zero-of-field in concentration space: an inward-displacement-preserving continuous
 -- vector field on a nonempty compact convex set of concentrations has a zero there.
 example {S : Type} [Fintype S] {K : Set (CRNT.Concentration S)} (hne : K.Nonempty)
