@@ -3204,3 +3204,11 @@ example (A : Matrix (Fin 2) (Fin 2) ℝ)
     ‖CRNT.ExponentialDecay.act (NormedSpace.exp (t • A)) x‖
       ≤ Real.sqrt (cert.C₀ / cert.c₀) * Real.exp (-(1 / (2 * cert.C₀)) * t) * ‖x‖ :=
   cert.norm_exp_smul_le x ht
+-- Point-independence of the consistent-SR-cover P-matrix verdict: the point-free signed-incidence
+-- weight and diagonal-drive conditions make the full mass-action Jacobian a P-matrix at every
+-- positive concentration of a set, so one check of the incidence data discharges the box.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (C : Set (CRNT.Concentration S)) (hC : ∀ x ∈ C, x.Positive)
+    (hweight : N.SignCoverWeightNonneg) (hdrive : N.PositiveDiagonalDrive) :
+    ∀ x ∈ C, (N.massActionJacobian κ x).IsPMatrix :=
+  N.isPMatrix_massActionJacobian_box_of_pointIndep κ C hC hweight hdrive
