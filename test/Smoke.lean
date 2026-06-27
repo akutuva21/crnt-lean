@@ -3846,6 +3846,15 @@ example {R : Type} [Fintype R] {Ω : Type} [MeasurableSpace Ω] (μ : MeasureThe
     ProbabilityTheory.variance (∑ r, X r) μ = (∑ r, c r) / V :=
   CRNT.Stochastic.variance_aggregate hmem hindep hvar
 
+-- The concrete independent Poisson clock family discharges the carried hypotheses: on the product
+-- law `⊗_r Po(V · a_r)`, the total weighted scaled count `∑_r weight_r · (N_r / V)` has the
+-- self-contained aggregate `O(1/V)` variance `(∑_r weight_r² · a_r) / V`.
+example {R : Type} [Fintype R] (a : R → ℝ≥0) (weight : R → ℝ) {V : ℝ} (hV : 0 < V) :
+    ProbabilityTheory.variance (∑ r, CRNT.Stochastic.scaledClock weight V r)
+        (CRNT.Stochastic.clockMeasure hV a)
+      = (∑ r, weight r ^ 2 * (a r : ℝ)) / V :=
+  CRNT.Stochastic.variance_aggregate_scaledClock hV a weight
+
 -- The degree of an invertible continuous linear map is the orientation sign of its
 -- determinant: the preimage is a single point and the derivative is the map itself.
 example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]

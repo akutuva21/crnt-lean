@@ -255,3 +255,19 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.regularDegree_comp_continuousLinearMap' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.regularDegree_comp_continuousLinearMap
+
+/-- info: 'CRNT.Stochastic.indepFun_scaledClock' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Stochastic.indepFun_scaledClock
+
+/-- info: 'CRNT.Stochastic.variance_scaledClock' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Stochastic.variance_scaledClock
+
+/-- info: 'CRNT.Stochastic.variance_aggregate_scaledClock' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Stochastic.variance_aggregate_scaledClock
+
+/-- info: 'CRNT.Stochastic.tendsto_meas_aggregate_scaledClock' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Stochastic.tendsto_meas_aggregate_scaledClock

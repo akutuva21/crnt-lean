@@ -409,6 +409,7 @@ import CRNT.Stochastic.KurtzScaling
 import CRNT.Stochastic.KurtzFluidLimit
 import CRNT.Stochastic.PoissonFluctuation
 import CRNT.Stochastic.MultiPoissonFluctuation
+import CRNT.Stochastic.PoissonClockFamily
 
 -- Network composition
 import CRNT.Compose.Interconnect
