@@ -3964,3 +3964,14 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional
           ∑ x ∈ hfin₀.toFinset,
             ((SignType.sign (LinearMap.det (fderiv ℝ f x).toLinearMap) : SignType) : ℤ) :=
   eventually_regularDegree_eq f hf hdet hfin₀ hconf
+-- Continuous-time non-constant moving-target Fenichel mapping property: for EVERY time `t` and
+-- EVERY candidate section `h`, the time-`t` product semiflow over a base injective at every time
+-- carries the graph of `h` into the graph of the time-`t` moving target `movingRegraphAt`. The
+-- genuinely non-constant moving-target mapping property along the whole forward semiflow, with the
+-- "only at multiples of τ" restriction removed.
+example {Y E : Type} [NormedAddCommGroup Y] [NormedSpace ℝ Y] [CompleteSpace Y]
+    [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    (B : ODE.AllTimeInjectiveBaseFlow Y) (rate : ℝ) (c : E) (t : ℝ≥0) (h : Y → E) :
+    Set.MapsTo ((ODE.productContractFlow B.slowFlow rate c).toFun t) (ODE.graphSet h)
+      (ODE.graphSet (ODE.movingRegraphAt B rate c t h)) :=
+  ODE.movingFlowAt_mapsTo B rate c t h
