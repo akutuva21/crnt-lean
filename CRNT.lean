@@ -84,6 +84,7 @@ import CRNT.Geometry.FanActiveWalls
 import CRNT.Geometry.FanSeparationWitness
 import CRNT.Geometry.FanFaceProperness
 import CRNT.Geometry.ReactionFanGeneration
+import CRNT.Geometry.SimplicialConeClosed
 import CRNT.Geometry.ZeroSeparatingInduction
 import CRNT.Geometry.FanRefinement
 import CRNT.LinearAlgebra.LogSumInj

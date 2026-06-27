@@ -3939,3 +3939,9 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional
       regularDegree (⇑T) y (finite_preimage_of_det_ne_zero T hT y) *
         regularDegree (⇑U) y (finite_preimage_of_det_ne_zero U hU y) :=
   regularDegree_comp_continuousLinearMap T U hT hU y
+
+-- A simplicial cone is closed: the nonnegative span of the two standard basis vectors of `Fin 2 → ℝ`
+-- — a linearly independent family — is a closed set, the first case of finitely-generated cones being
+-- closed.
+example : IsClosed (CRNT.nonnegSpan (Pi.basisFun ℝ (Fin 2))) :=
+  CRNT.isClosed_nonnegSpan_of_linearIndependent _ (Pi.basisFun ℝ (Fin 2)).linearIndependent
