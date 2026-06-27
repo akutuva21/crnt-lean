@@ -2927,6 +2927,17 @@ example (rate Km Vmax s : ℝ) (z w : CRNT.MichaelisMenten.E) :
       = -rate * ‖z - w‖ ^ 2 :=
   CRNT.MichaelisMenten.mmRegFastField_coupled_contraction rate Km Vmax s z w
 
+-- The regularized Michaelis–Menten fast field is substrate-Lipschitz with the explicit constant
+-- `rate · 6 · |Vmax| / Km` read off the model parameters: this discharges the `hlip` hypothesis of the
+-- coupled tracking ceiling as a theorem, leaving the certified `O(ε)` reduction to depend only on the
+-- positivity of `rate, Km`, the non-negativity of `ε`, and the physical drift bound `‖g‖ ≤ G`.
+example (rate Km Vmax : ℝ) (hrate : 0 ≤ rate) (hKm : 0 < Km) (s s' : ℝ)
+    (z : CRNT.MichaelisMenten.E) :
+    ‖CRNT.MichaelisMenten.mmRegFastField rate Km Vmax s z
+        - CRNT.MichaelisMenten.mmRegFastField rate Km Vmax s' z‖
+      ≤ CRNT.MichaelisMenten.mmRegFastFieldLipConst rate Km Vmax * dist s s' :=
+  CRNT.MichaelisMenten.mmRegFastField_substrate_lipschitz rate Km Vmax hrate hKm s s' z
+
 -- Rational linear feasibility decides by Fourier–Motzkin elimination (`decide`, not
 -- `native_decide`). At the `Fin 0` base case feasibility is the nonnegativity of every
 -- bound: an empty system and one with a nonnegative bound are feasible; one with a
