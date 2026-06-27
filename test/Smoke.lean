@@ -4094,6 +4094,7 @@ example (rate : ℝ) (y₀ : ℝ × ℝ) (t : ℝ≥0) :
 -- endpoint slices `H(0, ·)` and `H(1, ·)`. The parameter local-constancy data is the trivial
 -- one-piece cover by the whole space, whose local degree is the orientation sign `+1` of the
 -- identity's derivative.
+set_option linter.unnecessarySimpa false in
 example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
     [CompleteSpace E] (y : E) :
     regularDegree (fun x => (fun p : ℝ × E => p.2) (0, x)) y (by simpa using finite_preimage_id y) =
