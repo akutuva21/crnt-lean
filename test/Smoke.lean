@@ -1506,6 +1506,18 @@ example {Y E : Type*} [TopologicalSpace Y] [NormedAddCommGroup E] [CompleteSpace
     G.op G.manifold = G.manifold ∧ dist G.base G.manifold ≤ G.defect / (1 - G.factor) :=
   ⟨G.manifold_isFixedPt, G.manifold_dist_base_le⟩
 
+-- Fenichel ε-persistence (flow invariance): for graph-transform data realized by a coupled slow–fast
+-- flow at a fixed point of the flow-then-regraph operator, the graph of the persisted manifold M_ε is
+-- forward-invariant under the coupled flow and O(ε)-C⁰-close to the unperturbed M_0 — the two halves
+-- of persistence.
+open scoped BoundedContinuousFunction in
+example {Y E : Type*} [TopologicalSpace Y] [NormedAddCommGroup E] [CompleteSpace E] [NormedSpace ℝ E]
+    (G : ODE.GraphTransformData Y E) (F : ODE.CoupledFlowGraphTransform Y E)
+    (hfix : F.op (G.manifold : Y → E) = (G.manifold : Y → E)) :
+    IsInvariant (fun n : ℕ => F.flow.toFun (n • F.τ)) (ODE.graphSet (G.manifold : Y → E)) ∧
+      dist G.base G.manifold ≤ G.defect / (1 - G.factor) :=
+  ODE.fenichel_persistence G F hfix
+
 -- Confined invariance closed: a genuine mass-action orbit with bounded relative entropy that starts
 -- on a siphon face stays on it for all forward time (the box hypothesis is discharged).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
