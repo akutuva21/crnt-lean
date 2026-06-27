@@ -2967,3 +2967,12 @@ example (A : Module.End ℂ (Fin 1 → ℂ)) :
     Set.MapsTo A (CRNT.SpectralSplitting.centerSubspace A)
       (CRNT.SpectralSplitting.centerSubspace A) :=
   CRNT.SpectralSplitting.mapsTo_centerSubspace A
+
+-- A complex-shift region discharges the count-level irreducibility hypothesis with no count
+-- reachability assumed: its reaction-graph-reachable offset complexes lift to fireable reaction
+-- lists between every pair of region counts (`fireablePairs_of_complexShiftRegion`).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    {T : Set (S → ℕ)} (hR : N.ComplexShiftRegion κ T) :
+    ∀ n ∈ T, ∀ m ∈ T, ∃ rs : List N.R,
+      N.FireableList κ T n rs ∧ N.fireListTarget n rs = m :=
+  N.fireablePairs_of_complexShiftRegion κ hR

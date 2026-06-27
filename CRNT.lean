@@ -350,6 +350,7 @@ import CRNT.Stochastic.KernelProductForm
 import CRNT.Stochastic.KernelMaximalRegion
 import CRNT.Stochastic.Ergodicity
 import CRNT.Stochastic.ErgodicConvergence
+import CRNT.Stochastic.CountWitnessPath
 import CRNT.Stochastic.ErgodicConvergenceGeneral
 import CRNT.Stochastic.JumpReachabilityLift
 import CRNT.Stochastic.RegionPrimitive
