@@ -3538,3 +3538,30 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
           Concentration.Positive (CRNT.toEuclid.symm p))) :
     CRNT.ZeroSeparatingCurve2D.IsStrictSupportField (N.toricMassActionField κ) faces :=
   N.toricMassActionField_isStrictSupportField_of_wallsCrossed κ hfaces
+-- An active wall of a weakly-reversible network is crossed by a directed path: non-constancy of the
+-- wall potential on a strongly-connected component plus symmetric reachability gives a directed
+-- uphill path straddling a threshold.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    {n : S → ℝ} (h : N.ActiveWall n) : N.WallCrossedByPath n :=
+  hwr.wallCrossedByPath_of_activeWall h
+-- An active wall of a weakly-reversible network has a strictly-inward reaction, with the crossing
+-- discharged from weak reversibility rather than assumed.
+open scoped InnerProductSpace in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    {n : S → ℝ} (h : N.ActiveWall n) :
+    ∃ r : N.R, 0 < ⟪CRNT.toEuclid n, CRNT.toEuclid (N.reactionVector r)⟫_ℝ :=
+  hwr.exists_strictlyInward_of_activeWall h
+-- The full discharge from weak reversibility: every wall active (non-constant potential), every
+-- reaction non-strictly inward (fan cone geometry), every boundary point a strictly-positive
+-- concentration. The crossing clause is no longer assumed.
+open scoped InnerProductSpace in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (κ : Network.RateConstants N) {faces : List (EuclideanSpace ℝ S × ℝ)}
+    (hfaces : ∀ nf ∈ faces, ∃ n₀ : S → ℝ, nf.1 = CRNT.toEuclid n₀ ∧
+      N.ActiveWall n₀ ∧
+      (∀ r : N.R, 0 ≤ ⟪CRNT.toEuclid n₀, CRNT.toEuclid (N.reactionVector r)⟫_ℝ) ∧
+      (∀ p : EuclideanSpace ℝ S,
+        CRNT.ZeroSeparatingCurve2D.OnFaceBoundary faces (CRNT.toEuclid n₀) nf.2 p →
+          Concentration.Positive (CRNT.toEuclid.symm p))) :
+    CRNT.ZeroSeparatingCurve2D.IsStrictSupportField (N.toricMassActionField κ) faces :=
+  hwr.toricMassActionField_isStrictSupportField_of_activeWalls κ hfaces

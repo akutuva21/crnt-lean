@@ -220,3 +220,7 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'ODE.fenichel_persistence_contracting' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms ODE.fenichel_persistence_contracting
+
+/-- info: 'CRNT.Network.WeaklyReversible.toricMassActionField_isStrictSupportField_of_activeWalls' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.WeaklyReversible.toricMassActionField_isStrictSupportField_of_activeWalls
