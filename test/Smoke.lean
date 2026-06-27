@@ -3485,3 +3485,26 @@ example (κ : Network.RateConstants Examples.ReversiblePair.N)
       -(κ.k Examples.ReversiblePair.Rxn.fwd * x Examples.ReversiblePair.Species.A)
         + κ.k Examples.ReversiblePair.Rxn.bwd * x Examples.ReversiblePair.Species.B :=
   Examples.ReversiblePair.massActionVectorField_A κ x
+-- The strictly-inward reaction per active wall, discharged from weak reversibility: a wall whose
+-- complex potential is straddled by a directed reaction path (a WR cycle through it) has a reaction
+-- whose reaction vector points strictly into the region, `0 < ⟪n, reactionVector r⟫`.
+open scoped InnerProductSpace in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {n : S → ℝ}
+    (h : N.WallCrossedByPath n) :
+    ∃ r : N.R, 0 < ⟪CRNT.toEuclid n, CRNT.toEuclid (N.reactionVector r)⟫_ℝ :=
+  N.exists_strictlyInward_of_wallCrossed h
+-- The full discharge: with every wall crossed (WR cycle through it), every reaction
+-- non-strictly inward (fan cone geometry), and every boundary point a strictly-positive
+-- concentration (enabling), the genuine toric field is a strict support field with no assumed
+-- `EnabledStrictlyInwardFace`.
+open scoped InnerProductSpace in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {faces : List (EuclideanSpace ℝ S × ℝ)}
+    (hfaces : ∀ nf ∈ faces, ∃ n₀ : S → ℝ, nf.1 = CRNT.toEuclid n₀ ∧
+      N.WallCrossedByPath n₀ ∧
+      (∀ r : N.R, 0 ≤ ⟪CRNT.toEuclid n₀, CRNT.toEuclid (N.reactionVector r)⟫_ℝ) ∧
+      (∀ p : EuclideanSpace ℝ S,
+        CRNT.ZeroSeparatingCurve2D.OnFaceBoundary faces (CRNT.toEuclid n₀) nf.2 p →
+          Concentration.Positive (CRNT.toEuclid.symm p))) :
+    CRNT.ZeroSeparatingCurve2D.IsStrictSupportField (N.toricMassActionField κ) faces :=
+  N.toricMassActionField_isStrictSupportField_of_wallsCrossed κ hfaces
