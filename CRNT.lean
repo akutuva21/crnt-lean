@@ -358,6 +358,7 @@ import CRNT.Dynamics.ForwardInvariance
 import CRNT.Dynamics.PersistenceGAC
 import CRNT.Dynamics.GACConfinement
 import CRNT.Dynamics.GACSeparatingRegion
+import CRNT.Dynamics.GACSeparatingRegionNagumo
 import CRNT.Dynamics.PersistenceTheorem
 import CRNT.Dynamics.PersistenceConfined
 import CRNT.Dynamics.ConfinedInvariance
