@@ -4088,3 +4088,35 @@ example (rate : ℝ) (y₀ : ℝ × ℝ) (t : ℝ≥0) :
     (fun y : ℝ × ℝ => y.2) ODE.continuous_snd_section
     (fun t => by
       rw [ODE.affineAllTimeBase_slowFlow, ODE.affineBaseFlow_toFun]; simp) t
+
+-- Homotopy invariance of the regular-value degree on the constant homotopy `H(s, x) = x`: every
+-- slice is the identity, with single-point preimage `{y}`, and the degree at `y` agrees at the
+-- endpoint slices `H(0, ·)` and `H(1, ·)`. The parameter local-constancy data is the trivial
+-- one-piece cover by the whole space, whose local degree is the orientation sign `+1` of the
+-- identity's derivative.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    [CompleteSpace E] (y : E) :
+    regularDegree (fun x => (fun p : ℝ × E => p.2) (0, x)) y (by simpa using finite_preimage_id y) =
+      regularDegree (fun x => (fun p : ℝ × E => p.2) (1, x)) y
+        (by simpa using finite_preimage_id y) := by
+  refine regularDegree_homotopy_invariant (fun p : ℝ × E => p.2) y
+    (fun s _ => by simpa using finite_preimage_id y) ?_
+  intro s₀ _ hfin₀
+  refine Filter.Eventually.of_forall (fun s => ?_)
+  refine ⟨by simpa using finite_preimage_id y, fun _ => Set.univ, ?_, ?_, ?_⟩
+  · intro z _
+    exact Set.mem_iUnion.2 ⟨⟨y, by simp⟩, Set.mem_univ z⟩
+  · intro a b hab z _ _
+    apply hab; apply Subtype.ext
+    have ha : (a : E) = y := Set.mem_singleton_iff.mp (by simpa using a.2)
+    have hb : (b : E) = y := Set.mem_singleton_iff.mp (by simpa using b.2)
+    rw [ha, hb]
+  · intro x
+    rw [localDegree_univ]
+    have hrd : regularDegree (fun x => (fun p : ℝ × E => p.2) (s, x)) y
+        (by simpa using finite_preimage_id y) = 1 := regularDegree_id y
+    rw [hrd]
+    show (1 : ℤ) = ((SignType.sign (LinearMap.det (fderiv ℝ (id : E → E) (x : E)).toLinearMap)
+      : SignType) : ℤ)
+    rw [fderiv_id, ContinuousLinearMap.coe_id, LinearMap.det_id, sign_one]
+    rfl

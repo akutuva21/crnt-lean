@@ -317,3 +317,11 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.isLocallyConstant_regularDegree_of_isProperMap' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.isLocallyConstant_regularDegree_of_isProperMap
+
+/-- info: 'CRNT.regularDegree_param_eq_of_disjointCover' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.regularDegree_param_eq_of_disjointCover
+
+/-- info: 'CRNT.regularDegree_homotopy_invariant' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.regularDegree_homotopy_invariant
