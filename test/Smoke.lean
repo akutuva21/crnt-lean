@@ -3224,3 +3224,22 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     (hweight : N.SignCoverWeightNonneg) (hdrive : N.PositiveDiagonalDrive) :
     ∀ x ∈ C, (N.massActionJacobian κ x).IsPMatrix :=
   N.isPMatrix_massActionJacobian_box_of_pointIndep κ C hC hweight hdrive
+
+-- Genuinely non-vacuous convergence on a real network: on the `A ⇌ B` conservation class
+-- `{n : n_A + n_B = K}` (`1 ≤ K`), a relaxed finite region that exists where no closed enabled
+-- region can, the uniformized powers `U^{∘n}` converge geometrically to the unique stationary law —
+-- unconditionally, with every hypothesis discharged from network structure.
+example (κ : Network.RateConstants CRNT.Examples.StochasticConvergenceExample.N) (K : ℕ)
+    (hK : 1 ≤ K) (x : ↥(CRNT.Examples.ConservationClassRegion.conservationClass K) → ℝ)
+    (hx : ∑ i, x i = 1) :
+    ∃ b : ↥(CRNT.Examples.ConservationClassRegion.conservationClass K) → ℝ,
+      (∀ i, 0 < b i) ∧ (∑ i, b i = 1) ∧
+      (Network.uRegionMatrix _ κ
+        (CRNT.Examples.ConservationClassRegion.conservationClass_finite K)).mulVec b = b ∧
+      Filter.Tendsto (fun n => CRNT.l1Dist ((Network.uRegionMatrix _ κ
+        (CRNT.Examples.ConservationClassRegion.conservationClass_finite K) ^ n).mulVec x) b)
+        Filter.atTop (nhds 0) ∧
+      ∀ i, Filter.Tendsto (fun n => (Network.uRegionMatrix _ κ
+        (CRNT.Examples.ConservationClassRegion.conservationClass_finite K) ^ n).mulVec x i)
+        Filter.atTop (nhds (b i)) :=
+  CRNT.Examples.ConservationClassRegion.conservationClass_pow_mulVec_tendsto κ K hK x hx
