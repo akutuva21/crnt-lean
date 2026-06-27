@@ -3678,6 +3678,23 @@ example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} (hwr : N.WeaklyRe
           Concentration.Positive (CRNT.toEuclid.symm p))) :
     CRNT.ZeroSeparatingCurve2D.IsStrictSupportField (N.toricMassActionField κ) faces :=
   hF.toricMassActionField_isStrictSupportField_of_separatingWalls hwr κ hfaces
+-- The fully-structural deliverable: the genuine toric field is a strict support field from the
+-- polyhedral-fan geometry and weak reversibility alone. Each wall is a fan exposed-face wall carrying
+-- a strictly-inward reaction (its non-triviality); the separation witness is that reaction's
+-- mutually-reachable endpoints, so no `SeparatesComplexes` hypothesis is supplied by hand.
+open scoped InnerProductSpace in
+example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} (hwr : N.WeaklyReversible)
+    {F : CRNT.Fan (EuclideanSpace ℝ S)} (hF : CRNT.IsPolyhedralFan F) (κ : Network.RateConstants N)
+    {faces : List (EuclideanSpace ℝ S × ℝ)}
+    (hfaces : ∀ nf ∈ faces, ∃ (n₀ : S → ℝ) (D C : ProperCone ℝ (EuclideanSpace ℝ S)) (r : N.R),
+      nf.1 = CRNT.toEuclid n₀ ∧
+      N.IsFanWall F D C n₀ ∧ 0 < ⟪CRNT.toEuclid n₀, CRNT.toEuclid (N.reactionVector r)⟫_ℝ ∧
+      (∀ r : N.R, 0 ≤ ⟪CRNT.toEuclid n₀, CRNT.toEuclid (N.reactionVector r)⟫_ℝ) ∧
+      (∀ p : EuclideanSpace ℝ S,
+        CRNT.ZeroSeparatingCurve2D.OnFaceBoundary faces (CRNT.toEuclid n₀) nf.2 p →
+          Concentration.Positive (CRNT.toEuclid.symm p))) :
+    CRNT.ZeroSeparatingCurve2D.IsStrictSupportField (N.toricMassActionField κ) faces :=
+  hF.toricMassActionField_isStrictSupportField_of_fan hwr κ hfaces
 
 -- Deterministic skeleton of the Kurtz fluid limit: the limiting reaction-rate ODE
 -- `ẋ = F(x)` admits a local solution from every start (Picard–Lindelöf via the C¹
