@@ -188,6 +188,7 @@ import CRNT.Dynamics.DissipativeTracking
 import CRNT.Dynamics.MichaelisMentenCertifiedUniform
 import CRNT.Dynamics.MichaelisMentenCoupledContraction
 import CRNT.Dynamics.MichaelisMentenLipschitz
+import CRNT.Dynamics.CertifiedReduction
 
 -- Deficiency
 import CRNT.Deficiency.Definition

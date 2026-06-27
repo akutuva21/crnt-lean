@@ -146,3 +146,11 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.Network.massActionInjectiveOnClass_of_compressionSRSign' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.massActionInjectiveOnClass_of_compressionSRSign
+
+/-- info: 'ODE.SlowManifoldC1Seed.certified_reduction' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms ODE.SlowManifoldC1Seed.certified_reduction
+
+/-- info: 'CRNT.MichaelisMenten.mmReg_tracking_ceiling_via_abstract' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.MichaelisMenten.mmReg_tracking_ceiling_via_abstract

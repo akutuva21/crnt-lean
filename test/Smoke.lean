@@ -3058,3 +3058,39 @@ example (A : Matrix (Fin 2) (Fin 2) ℝ) :
     Set.MapsTo A.mulVec (CRNT.SpectralSplittingReal.realCenterSubspace A)
       (CRNT.SpectralSplittingReal.realCenterSubspace A) :=
   CRNT.SpectralSplittingReal.mulVec_mapsTo_realCenterSubspace A
+
+-- The abstract certified reduction: for any C¹ slow-manifold seed, the substrate-Lipschitz bound `L`,
+-- the `O(ε)` slow drift, and the coupled transverse contraction at the fibre rate `λ = S.rate` give
+-- the horizon-uniform `O(ε)` tracking ceiling `‖x t - m t‖ ≤ ‖x 0 - m 0‖ + (L/λ)·ε/λ` for all
+-- forward time, the slaved velocity derived from the implicit-function regularity of `manifoldMap`.
+example {Y : Type*} [NormedAddCommGroup Y] [NormedSpace ℝ Y] [CompleteSpace Y]
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    (S : ODE.SlowManifoldC1Seed Y E) {L ε : ℝ} (hL : 0 ≤ L) (hε : 0 ≤ ε)
+    (hlip : ∀ y y' z, ‖S.fast y z - S.fast y' z‖ ≤ L * dist y y')
+    {s : ℝ → Y} {s' : ℝ → Y} {x : ℝ → E}
+    (hspeed : ∀ t t', dist (s t) (s t') ≤ ε * |t - t'|)
+    (hsd : ∀ t, HasDerivAt s (s' t) t)
+    (hx : ∀ t, HasDerivAt x (S.fast (s t) (x t)) t)
+    (hcon : ∀ t, 0 ≤ t →
+      inner ℝ (S.fast (s t) (x t) - S.fast (s t) (S.manifoldMap (s t)))
+          (x t - S.manifoldMap (s t))
+        ≤ -S.rate * ‖x t - S.manifoldMap (s t)‖ ^ 2) :
+    ∀ t, 0 ≤ t →
+      ‖x t - S.manifoldMap (s t)‖
+        ≤ ‖x 0 - S.manifoldMap (s 0)‖ + (L / S.rate) * ε / S.rate :=
+  S.certified_reduction hL hε hlip hspeed hsd hx hcon
+
+-- The Michaelis–Menten horizon-uniform tracking ceiling re-derived as an instance of the abstract
+-- certified reduction: the regularized seed's three abstract inputs are discharged from model data,
+-- recovering the bespoke `O(ε)` ceiling with `L = mmRegFastFieldLipConst rate Km Vmax`.
+example (rate : ℝ) (hrate : 0 < rate) (Km Vmax : ℝ) (hKm : 0 < Km) {ε G : ℝ}
+    (hε : 0 ≤ ε) (hG : 0 ≤ G) {g : ℝ → CRNT.MichaelisMenten.E → ℝ} (hg : ∀ a b, ‖g a b‖ ≤ G)
+    {x : ℝ → CRNT.MichaelisMenten.E} {s : ℝ → ℝ} {z : ℝ → CRNT.MichaelisMenten.E}
+    (hx : ∀ t, HasDerivAt x (CRNT.MichaelisMenten.mmRegFastField rate Km Vmax (s t) (x t)) t)
+    (hs : ∀ τ, HasDerivAt s (CRNT.MichaelisMenten.mmRegSlowDrift ε g (s τ) (z τ)) τ) :
+    ∀ t, 0 ≤ t →
+      ‖x t - (CRNT.MichaelisMenten.mmRegSlowManifoldSeed rate hrate Km Vmax hKm).manifoldMap (s t)‖
+        ≤ ‖x 0
+            - (CRNT.MichaelisMenten.mmRegSlowManifoldSeed rate hrate Km Vmax hKm).manifoldMap (s 0)‖
+          + (CRNT.MichaelisMenten.mmRegFastFieldLipConst rate Km Vmax / rate) * (ε * G) / rate :=
+  CRNT.MichaelisMenten.mmReg_tracking_ceiling_via_abstract rate hrate Km Vmax hKm hε hG hg hx hs
