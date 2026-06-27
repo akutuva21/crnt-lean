@@ -363,6 +363,7 @@ import CRNT.Stochastic.RegionPrimitive
 import CRNT.Stochastic.RegionStronglyConnected
 import CRNT.Stochastic.Semigroup
 import CRNT.Stochastic.SemigroupComposition
+import CRNT.Stochastic.UniformizedConvergence
 
 -- Network composition
 import CRNT.Compose.Interconnect

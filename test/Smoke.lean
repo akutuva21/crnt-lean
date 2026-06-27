@@ -3100,3 +3100,25 @@ example (A : Matrix (Fin 2) (Fin 2) ℝ) (t : ℝ) :
       (CRNT.SpectralSplittingReal.realStableSubspace A)
       (CRNT.SpectralSplittingReal.realStableSubspace A) :=
   CRNT.ExponentialDichotomy.mulVec_exp_smul_mapsTo_realStableSubspace A t
+-- Non-vacuous convergence via the uniformized kernel: on a finite strongly connected closed enabled
+-- region the uniformized region matrix is primitive — its diagonal holding mass `1 − w > 0` supplies
+-- the aperiodicity self-loop the embedded jump chain lacks — so the powers `U^{∘n}` converge
+-- geometrically to the unique stationary law, entrywise and in `ℓ¹`.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {T : Set (S → ℕ)} (hTfin : T.Finite) [Fintype ↥T] [Nonempty ↥T]
+    (hT : N.ClosedEnabledRegion κ T) (hsc : N.regionStronglyConnected κ T)
+    (x : ↥T → ℝ) (hx : ∑ i, x i = 1) :
+    ∃ b : ↥T → ℝ, (∀ i, 0 < b i) ∧ (∑ i, b i = 1) ∧
+      (N.uRegionMatrix κ hTfin).mulVec b = b ∧
+      Filter.Tendsto (fun n => CRNT.l1Dist ((N.uRegionMatrix κ hTfin ^ n).mulVec x) b)
+        Filter.atTop (nhds 0) ∧
+      ∀ i, Filter.Tendsto (fun n => (N.uRegionMatrix κ hTfin ^ n).mulVec x i)
+        Filter.atTop (nhds (b i)) :=
+  N.uRegionMatrix_pow_mulVec_tendsto κ hTfin hT hsc x hx
+
+-- The uniformized region matrix has a strictly positive diagonal at every region state: the
+-- self-loop supplied by `U`'s holding term, absent from the embedded jump chain.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {T : Set (S → ℕ)} (hTfin : T.Finite) [Fintype ↥T] (j : ↥T) :
+    0 < N.uRegionMatrix κ hTfin j j :=
+  N.uRegionMatrix_diag_pos κ hTfin j
