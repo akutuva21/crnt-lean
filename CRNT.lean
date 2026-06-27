@@ -164,6 +164,7 @@ import CRNT.Dynamics.HopfGate4
 import CRNT.Dynamics.Hurwitz2Matrix
 import CRNT.Dynamics.Hurwitz3Matrix
 import CRNT.Dynamics.HopfAdmissible
+import CRNT.Dynamics.HopfNormalForm
 import CRNT.Dynamics.SpectralSplitting
 import CRNT.Dynamics.SpectralSplittingReal
 import CRNT.Dynamics.ExponentialDichotomy

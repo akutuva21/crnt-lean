@@ -2825,6 +2825,25 @@ example {r p q : ℝ → ℝ} {μ₀ r' p' q' : ℝ}
 example {J : ℝ → Matrix (Fin 3) (Fin 3) ℝ} {μ₀ : ℝ} (h : CRNT.hopfAdmissible J μ₀) :
     h.p μ₀ = 0 ∧ 0 < h.q μ₀ ∧ h.r μ₀ < 0 ∧ h.p' ≠ 0 :=
   h.planarHopfHypotheses
+-- Planar Hopf normal form: with first Lyapunov coefficient ℓ₁ ≠ 0, a positive equilibrium of the
+-- radial amplitude field Ṙ = α R + ℓ₁ R³ is the bifurcating-orbit amplitude R² = −α/ℓ₁; when α/ℓ₁ < 0
+-- it exists and equals √(−α/ℓ₁), the √|μ−μ₀| amplitude law of the Hopf–Andronov theorem.
+example (H : CRNT.PlanarHopfData) {μ : ℝ} (hℓ : H.firstLyapunov ≠ 0)
+    (hsign : H.α μ / H.firstLyapunov < 0) :
+    ∃ Rstar : ℝ, 0 < Rstar ∧ Rstar = Real.sqrt (-H.α μ / H.firstLyapunov)
+      ∧ H.radialField μ Rstar = 0 :=
+  H.radial_equilibrium hℓ hsign
+-- Hopf–Andronov bifurcation (conditional): a transversal crossing (α' ≠ 0) with nondegenerate first
+-- Lyapunov coefficient (ℓ₁ ≠ 0) and a periodic-orbit seed yields a one-parameter family of
+-- nonconstant periodic orbits emerging from the crossing with the √(−α/ℓ₁) amplitude law.
+example (H : CRNT.PlanarHopfData) (htrans : H.α' ≠ 0) (hℓ : H.firstLyapunov ≠ 0)
+    (seed : H.PeriodicOrbitSeed) :
+    H.μ₀ ∈ closure seed.branch ∧
+      ∀ μ ∈ seed.branch, 0 < seed.T μ
+        ∧ Function.Periodic (seed.orbit μ) (seed.T μ)
+        ∧ (∃ s t, seed.orbit μ s ≠ seed.orbit μ t)
+        ∧ (∃ s, ‖seed.orbit μ s‖ = Real.sqrt (-H.α μ / H.firstLyapunov)) :=
+  H.hopf_andronov_periodic_orbits htrans hℓ seed
 -- Critical-siphon feasibility under Farkas duality: a species vector lies in the conservation cone
 -- (nonnegative, orthogonal to the stoichiometric subspace) iff every direction nonnegative on the
 -- cone is nonnegative on it.
