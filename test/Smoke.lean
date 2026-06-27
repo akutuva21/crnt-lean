@@ -2976,3 +2976,28 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     ∀ n ∈ T, ∀ m ∈ T, ∃ rs : List N.R,
       N.FireableList κ T n rs ∧ N.fireListTarget n rs = m :=
   N.fireablePairs_of_complexShiftRegion κ hR
+
+-- The critical-siphon verdict is decidable: the encoded rational system's feasibility matches the
+-- single-coordinate supported-positivity test, and `IsCriticalSiphon`, `HasCriticalSiphon`, and
+-- `HasNoCriticalSiphon` all carry `Decidable` instances.
+example {S : Type} [DecidableEq S] [Fintype S] (N : CRNT.Network S) (P : Finset S) (s₀ : S) :
+    CRNT.RationalFarkas.Feasible (N.supportedFeasSystem P s₀)
+      ↔ ∃ w : S → ℝ, N.SupportedConservationVector P w ∧ 0 < w s₀ :=
+  N.feasible_supportedFeasSystem_iff P s₀
+
+example {S : Type} [DecidableEq S] [Fintype S] (N : CRNT.Network S) (P : Finset S) :
+    Nonempty (Decidable (N.IsCriticalSiphon P)) :=
+  ⟨inferInstance⟩
+
+example {S : Type} [DecidableEq S] [Fintype S] (N : CRNT.Network S) :
+    Nonempty (Decidable N.HasCriticalSiphon) :=
+  ⟨inferInstance⟩
+
+example {S : Type} [DecidableEq S] [Fintype S] (N : CRNT.Network S) :
+    N.HasNoCriticalSiphon ↔ ¬ N.HasCriticalSiphon :=
+  N.hasNoCriticalSiphon_iff_not_hasCriticalSiphon
+
+-- The rational–real feasibility bridge: a rational `Ineq` system is real-feasible iff feasible.
+example {n : ℕ} (sys : List (CRNT.RationalFarkas.Ineq n)) :
+    CRNT.RationalFarkas.Feasibleℝ sys ↔ CRNT.RationalFarkas.Feasible sys :=
+  CRNT.RationalFarkas.feasibleℝ_iff_feasible sys

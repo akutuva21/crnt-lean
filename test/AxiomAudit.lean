@@ -132,3 +132,10 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.Network.complexShiftRegion_pow_mulVec_tendsto_stationaryVec' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexShiftRegion_pow_mulVec_tendsto_stationaryVec
+/-- info: 'CRNT.Network.feasible_supportedFeasSystem_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.feasible_supportedFeasSystem_iff
+
+/-- info: 'CRNT.RationalFarkas.feasibleℝ_iff_feasible' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.RationalFarkas.feasibleℝ_iff_feasible
