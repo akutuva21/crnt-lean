@@ -3594,3 +3594,41 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
           Concentration.Positive (CRNT.toEuclid.symm p))) :
     CRNT.ZeroSeparatingCurve2D.IsStrictSupportField (N.toricMassActionField κ) faces :=
   hwr.toricMassActionField_isStrictSupportField_of_activeWalls κ hfaces
+
+-- Deterministic skeleton of the Kurtz fluid limit: the limiting reaction-rate ODE
+-- `ẋ = F(x)` admits a local solution from every start (Picard–Lindelöf via the C¹
+-- mass-action field), instantiated on the reversible pair `A ⇌ B`.
+example (κ : Network.RateConstants Examples.ReversiblePair.N)
+    (x₀ : Concentration Examples.ReversiblePair.Species) (t₀ : ℝ) :
+    ∃ x : ℝ → Concentration Examples.ReversiblePair.Species, x t₀ = x₀ ∧ ∃ ε > (0 : ℝ),
+      ∀ t ∈ Set.Ioo (t₀ - ε) (t₀ + ε),
+        HasDerivAt x (Examples.ReversiblePair.N.massActionVectorField κ (x t)) t :=
+  Examples.ReversiblePair.exists_fluidODE_local_reversiblePair κ x₀ t₀
+
+-- The mass-action field is locally Lipschitz: on a convex region where its Fréchet
+-- derivative is bounded by `K`, it is `K`-Lipschitz — the uniqueness input for the
+-- limiting ODE.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {s : Set (Concentration S)} (hs : Convex ℝ s) {K : ℝ≥0}
+    (hK : ∀ x ∈ s, ‖fderiv ℝ (N.massActionVectorField κ) x‖₊ ≤ K) :
+    LipschitzOnWith K (N.massActionVectorField κ) s :=
+  N.massActionVectorField_lipschitzOnWith_of_fderiv_le κ hs hK
+
+-- Conditional Grönwall fluid limit: a scaled trajectory `X` whose drift matches the
+-- deterministic field up to a fluctuation residual `η` stays within the Grönwall
+-- envelope of the ODE solution `x`. The residual `η` is the isolated probabilistic
+-- (martingale/Poisson) hypothesis.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {r : Set (Concentration S)} {K : ℝ≥0}
+    (hK : LipschitzOnWith K (N.massActionVectorField κ) r)
+    {x X X' : ℝ → Concentration S} {a b δ η : ℝ}
+    (hx : ContinuousOn x (Set.Icc a b))
+    (hx' : ∀ t ∈ Set.Ico a b, HasDerivWithinAt x (N.massActionVectorField κ (x t)) (Set.Ici t) t)
+    (hxr : ∀ t ∈ Set.Ico a b, x t ∈ r)
+    (hX : ContinuousOn X (Set.Icc a b))
+    (hX' : ∀ t ∈ Set.Ico a b, HasDerivWithinAt X (X' t) (Set.Ici t) t)
+    (hXr : ∀ t ∈ Set.Ico a b, X t ∈ r)
+    (hfluct : ∀ t ∈ Set.Ico a b, dist (X' t) (N.massActionVectorField κ (X t)) ≤ η)
+    (ha : dist (X a) (x a) ≤ δ) :
+    ∀ t ∈ Set.Icc a b, dist (X t) (x t) ≤ gronwallBound δ K (η + 0) (t - a) :=
+  N.fluidLimit_dist_le κ hK hx hx' hxr hX hX' hXr hfluct ha

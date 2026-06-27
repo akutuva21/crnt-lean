@@ -390,6 +390,7 @@ import CRNT.Stochastic.UniformizedConvergence
 import CRNT.Stochastic.ConservationClassRegion
 import CRNT.Stochastic.SemigroupConvergence
 import CRNT.Stochastic.KurtzScaling
+import CRNT.Stochastic.KurtzFluidLimit
 
 -- Network composition
 import CRNT.Compose.Interconnect
