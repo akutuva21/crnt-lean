@@ -3801,6 +3801,17 @@ example (a : ℝ≥0) {V : ℝ} (hV : 0 < V) :
       (ProbabilityTheory.poissonMeasure (⟨V, hV.le⟩ * a)) = (a : ℝ) / V :=
   CRNT.Stochastic.variance_scaled_intensity_poissonMeasure hV a
 
+-- Aggregate multi-reaction fluctuation: for a finite family of pairwise independent scaled
+-- clocks with per-term variance `c r / V`, the total scaled fluctuation `∑_r X r` has the
+-- aggregate `O(1/V)` variance `(∑_r c r) / V` with constant `C = ∑_r c r`.
+example {R : Type} [Fintype R] {Ω : Type} [MeasurableSpace Ω] (μ : MeasureTheory.Measure Ω)
+    {X : R → Ω → ℝ} {c : R → ℝ} {V : ℝ}
+    (hmem : ∀ r, MeasureTheory.MemLp (X r) 2 μ)
+    (hindep : Pairwise fun r s => ProbabilityTheory.IndepFun (X r) (X s) μ)
+    (hvar : ∀ r, ProbabilityTheory.variance (X r) μ = c r / V) :
+    ProbabilityTheory.variance (∑ r, X r) μ = (∑ r, c r) / V :=
+  CRNT.Stochastic.variance_aggregate hmem hindep hvar
+
 -- The degree of an invertible continuous linear map is the orientation sign of its
 -- determinant: the preimage is a single point and the derivative is the map itself.
 example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]

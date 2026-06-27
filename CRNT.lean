@@ -404,6 +404,7 @@ import CRNT.Stochastic.SemigroupConvergence
 import CRNT.Stochastic.KurtzScaling
 import CRNT.Stochastic.KurtzFluidLimit
 import CRNT.Stochastic.PoissonFluctuation
+import CRNT.Stochastic.MultiPoissonFluctuation
 
 -- Network composition
 import CRNT.Compose.Interconnect
