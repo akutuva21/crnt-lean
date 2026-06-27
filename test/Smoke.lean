@@ -3783,3 +3783,11 @@ example (y : EuclideanSpace ℝ (Fin 1)) :
     regularDegree (⇑(-ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin 1)))) y
       (finite_preimage_of_det_ne_zero _ det_neg_id_fin_one_ne_zero y) = -1 :=
   regularDegree_neg_id_eq_neg_one y
+
+-- Poincaré first-return map: the return map `P(x) = Φ x (τ x)` lands every nearby state back on
+-- the transversal section, and the base returns to the section's seed point — the fixed-point
+-- compatibility whose orbit is the periodic solution the Hopf rotation-closure step needs.
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    (Sec : CRNT.TransversalSection (E := E)) :
+    Sec.returnMap Sec.base = Sec.point :=
+  Sec.returnMap_base

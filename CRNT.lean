@@ -172,6 +172,7 @@ import CRNT.Dynamics.HopfNormalForm
 import CRNT.Dynamics.HopfLimitCycle
 import CRNT.Dynamics.HopfPersistentOrbit
 import CRNT.Dynamics.TransversalCrossingTime
+import CRNT.Dynamics.PoincareReturnMap
 import CRNT.Dynamics.SpectralSplitting
 import CRNT.Dynamics.SpectralSplittingReal
 import CRNT.Dynamics.ExponentialDichotomy
