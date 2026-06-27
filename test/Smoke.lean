@@ -1518,6 +1518,17 @@ example {Y E : Type*} [TopologicalSpace Y] [NormedAddCommGroup E] [CompleteSpace
       dist G.base G.manifold ≤ G.defect / (1 - G.factor) :=
   ODE.fenichel_persistence G F hfix
 
+-- Local center manifold (Lyapunov–Perron): when the spectral gap K·δ < α between center and
+-- hyperbolic directions dominates the nonlinearity's Lipschitz constant, the center-manifold operator
+-- contracts, and its unique fixed-point section h is locally invariant (op h = h) and C⁰-close to the
+-- center subspace (the zero section), the C⁰ form of tangency.
+open scoped BoundedContinuousFunction in
+example {Ec Eh : Type*} [TopologicalSpace Ec] [NormedAddCommGroup Eh] [CompleteSpace Eh]
+    (M : ODE.CenterManifoldData Ec Eh) :
+    M.op M.manifold = M.manifold ∧
+      dist M.base M.manifold ≤ M.defect / (1 - M.lpConst * M.lip / M.rate) :=
+  ⟨M.manifold_isFixedPt, M.manifold_dist_zero_le⟩
+
 -- Confined invariance closed: a genuine mass-action orbit with bounded relative entropy that starts
 -- on a siphon face stays on it for all forward time (the box hypothesis is discharged).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
