@@ -1049,6 +1049,21 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
       omegaLimit atTop ϕ {x₀} = {xstar} :=
   N.singleLinkageClass_gac hwr hslc κ hxs hcb hx0 hx0compat hpers
 
+-- Decision-driven single-linkage GAC: the structural single-linkage hypothesis is discharged from
+-- the Boolean filter `computeNumLinkageClasses = 1`; the complex-balanced reference and Anderson's
+-- single-linkage persistence implication are carried unchanged.
+open Filter in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (κ : N.RateConstants) (hslc : N.computeNumLinkageClasses = 1) {xstar x₀ : Concentration S}
+    (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar) (hx0 : x₀.Positive)
+    (hx0compat : N.StoichCompatible x₀ xstar)
+    (hpers : N.SingleLinkageClass → N.PersistentFrom κ x₀) :
+    ∃ (ϕ : Flow ℝ≥0 (Concentration S)) (γ : Concentration S → ℝ → Concentration S),
+      (∀ x, γ x 0 = x) ∧ (∀ x (t : ℝ≥0), ϕ t x = γ x t) ∧
+      (∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t) ∧
+      omegaLimit atTop ϕ {x₀} = {xstar} :=
+  N.gac_of_singleLinkage_decide hwr κ hslc hxs hcb hx0 hx0compat hpers
+
 -- The reversible pair `A ⇌ B` has a single linkage class.
 example : Examples.ReversiblePair.N.SingleLinkageClass :=
   Examples.ReversiblePair.numLinkageClasses_eq

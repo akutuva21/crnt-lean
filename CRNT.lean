@@ -40,6 +40,7 @@ import CRNT.Decision.ConservationConeStrict
 import CRNT.Decision.CriticalSiphonDecide
 import CRNT.Decision.PersistenceVerdict
 import CRNT.Decision.PersistenceCertified
+import CRNT.Decision.PersistenceSingleLinkage
 import CRNT.Decision.RationalFarkas
 import CRNT.Decision.RationalFarkasDecide
 import CRNT.Decision.RationalFarkasStrict
