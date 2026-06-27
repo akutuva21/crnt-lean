@@ -325,3 +325,10 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.regularDegree_homotopy_invariant' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.regularDegree_homotopy_invariant
+/-- info: 'ODE.tendsto_flow_difference_quotient' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms ODE.tendsto_flow_difference_quotient
+
+/-- info: 'ODE.hasDerivAt_flow_initial' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms ODE.hasDerivAt_flow_initial

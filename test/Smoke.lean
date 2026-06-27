@@ -4120,3 +4120,18 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional
       : SignType) : ℤ)
     rw [fderiv_id, ContinuousLinearMap.coe_id, LinearMap.det_id, sign_one]
     rfl
+
+-- Differentiability of the flow in its initial condition (fixed direction): the time-`t` flow
+-- `h ↦ Φ (x₀ + h • v) t`, packaged as the family `Y` with `Y 0 = x`, has derivative the
+-- variational solution `W t` at `h = 0`, extracted from the Grönwall variational error bound as
+-- the modulus `ρ h → 0`. The `→ 0` directional-derivative limit underlying smooth dependence on
+-- initial conditions.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {x W : ℝ → E} {v : E} {K T t : ℝ} {ρ : ℝ → ℝ}
+    (hK : 0 ≤ K) (ht : t ∈ Set.Icc (0 : ℝ) T)
+    {Y : ℝ → ℝ → E} (hY0 : Y 0 = x)
+    (hρ0 : ∀ h, 0 ≤ ρ h) (hρlim : Filter.Tendsto ρ (nhdsWithin 0 {0}ᶜ) (nhds 0))
+    (herr : ∀ h, ‖(Y h t - x t) - h • W t‖ ≤
+      gronwallBound 0 K (ρ h * (|h| * ‖v‖ * Real.exp (K * T))) t) :
+    HasDerivAt (fun h => Y h t) (W t) 0 :=
+  ODE.hasDerivAt_flow_initial (v := v) hK ht hY0 hρ0 hρlim herr
