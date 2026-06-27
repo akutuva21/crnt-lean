@@ -3716,3 +3716,17 @@ example (y : EuclideanSpace ℝ (Fin 3)) :
     (id ⁻¹' {y} : Set (EuclideanSpace ℝ (Fin 3))).Nonempty :=
   preimage_nonempty_of_regularDegree_ne_zero (id : EuclideanSpace ℝ (Fin 3) → _) y
     (finite_preimage_id y) (by rw [regularDegree_id]; norm_num)
+-- Transversal first-crossing time: from a Poincaré section whose flow crosses transversally
+-- at a base state, the crossing time `τ(x)` makes the flow line of every nearby `x` meet the
+-- section (the implicit-function content underlying the first-return map).
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    (Sec : CRNT.TransversalSection (E := E)) :
+    ∀ᶠ x in nhds Sec.base, Sec.sectionCoord x (Sec.crossingTime x) = 0 :=
+  Sec.crossingTime_isCrossing
+
+-- The crossing time emerges from the known crossing: `τ(x) → time` as `x → base`. With the
+-- strict Fréchet derivative this is the C¹ dependence of the first-crossing time on the state.
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    (Sec : CRNT.TransversalSection (E := E)) :
+    Filter.Tendsto Sec.crossingTime (nhds Sec.base) (nhds Sec.time) :=
+  Sec.crossingTime_tendsto
