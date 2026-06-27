@@ -77,6 +77,7 @@ import CRNT.Geometry.FaithfulCurveExistence
 import CRNT.Geometry.FaithfulCurveGeneral
 import CRNT.Geometry.FaithfulCurve2D
 import CRNT.Geometry.FaithfulCurve2DFan
+import CRNT.Geometry.ToricStrictSupport
 import CRNT.Geometry.ZeroSeparatingInduction
 import CRNT.Geometry.FanRefinement
 import CRNT.LinearAlgebra.LogSumInj

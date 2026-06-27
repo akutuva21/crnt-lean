@@ -3396,3 +3396,12 @@ example :
     IsInvariant (fun n : ℕ => F.flow.toFun (n • F.τ)) (ODE.graphSet (G.manifold : ℝ → ℝ)) ∧
       dist G.base G.manifold ≤ G.defect / (1 - G.factor) :=
   ODE.fenichel_persistence_contracting 3 (7 : ℝ) (1 : NNReal) (by norm_num) (by norm_num)
+-- Strict boundary support for the GENUINE toric mass-action field, discharged from the dynamics:
+-- the fan cone geometry gives only `0 ≤ ⟪n, v⟫`; an enabled strictly-inward reaction per active
+-- wall upgrades it to the strict `IsStrictSupportField` the persistence engine consumes.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {faces : List (EuclideanSpace ℝ S × ℝ)}
+    (h : ∀ nf ∈ faces, ∃ n₀ : S → ℝ, nf.1 = CRNT.toEuclid n₀ ∧
+      N.EnabledStrictlyInwardFace κ faces n₀ nf.2) :
+    CRNT.ZeroSeparatingCurve2D.IsStrictSupportField (N.toricMassActionField κ) faces :=
+  N.toricMassActionField_isStrictSupportField κ h
