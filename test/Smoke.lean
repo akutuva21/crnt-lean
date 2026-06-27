@@ -1163,6 +1163,22 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
       omegaLimit atTop ϕ {x₀} = {xstar} :=
   N.gac_of_hasNoCriticalSiphon hwr κ hncs hxs hcb hx0 hx0compat
 
+-- GAC from confinement: a compact region plus a positive per-facet floor on every coordinate
+-- discharges persistence, yielding ω = {x*}.
+open Filter in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (κ : N.RateConstants) {xstar x₀ : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar) (hx0 : x₀.Positive) (hx0compat : N.StoichCompatible x₀ xstar)
+    {B : Set (Concentration S)} (hBcpt : IsCompact B) {ε : S → ℝ} (hε : ∀ s, 0 < ε s)
+    (hconfine : ∀ Γ : ℝ → Concentration S, Γ 0 = x₀ →
+      (∀ t, 0 ≤ t → HasDerivAt Γ (N.massActionVectorField κ (Γ t)) t) →
+      ∀ t, 0 ≤ t → Γ t ∈ B ∧ ∀ s, ε s ≤ Γ t s) :
+    ∃ (ϕ : Flow ℝ≥0 (Concentration S)) (γ : Concentration S → ℝ → Concentration S),
+      (∀ x, γ x 0 = x) ∧ (∀ x (t : ℝ≥0), ϕ t x = γ x t) ∧
+      (∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t) ∧
+      omegaLimit atTop ϕ {x₀} = {xstar} :=
+  N.gac_of_confinement hwr κ hxs hcb hx0 hx0compat hBcpt hε hconfine
+
 -- Broader reduction: a single positive ω-limit point forces ω = {x*} (no structural hypothesis).
 open Filter in
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
