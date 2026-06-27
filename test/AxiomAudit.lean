@@ -294,3 +294,14 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.Stochastic.exists_timeChanged_fluct_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Stochastic.exists_timeChanged_fluct_bound
+/-- info: 'CRNT.eventually_confinement_of_isProperMap' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.eventually_confinement_of_isProperMap
+
+/-- info: 'CRNT.eventually_regularDegree_eq_of_isProperMap' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.eventually_regularDegree_eq_of_isProperMap
+
+/-- info: 'CRNT.isLocallyConstant_regularDegree_of_isProperMap' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.isLocallyConstant_regularDegree_of_isProperMap

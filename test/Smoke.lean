@@ -4006,3 +4006,19 @@ example {Y E : Type} [NormedAddCommGroup Y] [NormedSpace ℝ Y] [CompleteSpace Y
     Set.MapsTo ((ODE.productContractFlow B.slowFlow rate c).toFun t) (ODE.graphSet h)
       (ODE.graphSet (ODE.movingRegraphAt B rate c t h)) :=
   ODE.movingFlowAt_mapsTo B rate c t h
+
+-- Confinement is automatic for a proper map: at a regular value `y₀` of a proper C¹ map the
+-- regular degree at nearby values is the constant `∑ x ∈ f⁻¹{y₀}, sign (det (Df x))`, with no
+-- analytic side condition carried. Solutions cannot escape to infinity because the preimage of a
+-- compact neighbourhood of `y₀` is compact.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    [CompleteSpace E] (f : E → E) (hfp : IsProperMap f) {y₀ : E}
+    (hf : ∀ x ∈ f ⁻¹' {y₀}, ContDiffAt ℝ 1 f x)
+    (hdet : ∀ x ∈ f ⁻¹' {y₀}, LinearMap.det (fderiv ℝ f x).toLinearMap ≠ 0)
+    (hfin₀ : (f ⁻¹' {y₀}).Finite) :
+    ∀ᶠ y in nhds y₀,
+      ∀ (hfin : (f ⁻¹' {y}).Finite),
+        regularDegree f y hfin =
+          ∑ x ∈ hfin₀.toFinset,
+            ((SignType.sign (LinearMap.det (fderiv ℝ f x).toLinearMap) : SignType) : ℤ) :=
+  eventually_regularDegree_eq_of_isProperMap f hfp hf hdet hfin₀
