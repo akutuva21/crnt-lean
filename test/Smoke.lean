@@ -3122,3 +3122,15 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     {T : Set (S → ℕ)} (hTfin : T.Finite) [Fintype ↥T] (j : ↥T) :
     0 < N.uRegionMatrix κ hTfin j j :=
   N.uRegionMatrix_diag_pos κ hTfin j
+-- Computable rational stoichiometric chart: an explicit nonsingular maximal minor selection
+-- yields a computable rational chart `B` and projection `P` with `P · B = 1`.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    {k : ℕ} (ρ : Fin k → S) (γ : Fin k → N.R)
+    (hdet : (N.stoichMatrixQ.submatrix ρ γ).det ≠ 0) :
+    N.chartProjQ ρ γ * N.chartBasisQ γ = 1 :=
+  N.chartProjQ_mul_chartBasisQ ρ γ hdet
+-- The reduced-compression cover-sign certificate at a rational chart point is decidable.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    {k : ℕ} (ρ : Fin k → S) (γ : Fin k → N.R) (kq : N.R → ℚ) (xq : S → ℚ) :
+    Decidable (N.CompressionCoverSignQ ρ γ kq xq) :=
+  inferInstance
