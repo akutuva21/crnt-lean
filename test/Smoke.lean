@@ -3564,6 +3564,20 @@ example :
           (n • (1 : NNReal))) (ODE.graphSet (G.manifold : ℝ → ℝ)) ∧
       dist G.base G.manifold ≤ G.defect / (1 - G.factor) :=
   ODE.fenichel_persistence_affineBase (5 : ℝ) 3 (7 : ℝ) (1 : NNReal) (by norm_num) (by norm_num)
+-- End-to-end Fenichel ε-persistence of a MOVING slow manifold over the genuinely CURVED logistic base
+-- `ẏ = ε·sin y` on `ℝ × ℝ`, with NO explicit inverse supplied: the time-τ base map's left-inverse
+-- comes from injectivity alone (`logisticDriftFlow_injective`, via integral-curve uniqueness), bundled
+-- abstractly as `Function.invFun`. The non-constant fibre is regraphed through this abstract back-map;
+-- the persisted manifold is the attracting fibre `z = c`, its graph forward-invariant under the
+-- iterate product semiflow over the curved base and `M_ε` within the O(ε) ceiling.
+example :
+    let G := ODE.contractGapData (Y := ℝ) (E := ℝ) 3 (7 : ℝ) (1 : NNReal)
+      (by norm_num) (by norm_num)
+    let F := ODE.movingCoupled (ODE.logisticInjectiveBase (5 : ℝ) (1 : NNReal)) 3 (7 : ℝ)
+    IsInvariant (fun n : ℕ => F.flow.toFun (n • F.τ)) (ODE.graphSet (G.manifold : ℝ → ℝ)) ∧
+      dist G.base G.manifold ≤ G.defect / (1 - G.factor) :=
+  ODE.fenichel_persistence_logisticMovingBase (5 : ℝ) 3 (7 : ℝ) (1 : NNReal)
+    (by norm_num) (by norm_num)
 -- Strict boundary support for the GENUINE toric mass-action field, discharged from the dynamics:
 -- the fan cone geometry gives only `0 ≤ ⟪n, v⟫`; an enabled strictly-inward reaction per active
 -- wall upgrades it to the strict `IsStrictSupportField` the persistence engine consumes.

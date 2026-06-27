@@ -204,6 +204,7 @@ import CRNT.Dynamics.FenichelPersistenceContracting
 import CRNT.Dynamics.FenichelCoupledBase
 import CRNT.Dynamics.FenichelGeneralDrift
 import CRNT.Dynamics.FenichelMovingGeneralDrift
+import CRNT.Dynamics.FenichelLogisticInstance
 import CRNT.Dynamics.MichaelisMentenManifold
 import CRNT.Dynamics.MichaelisMentenReduced
 import CRNT.Dynamics.MichaelisMentenC1
