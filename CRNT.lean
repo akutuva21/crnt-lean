@@ -274,6 +274,7 @@ import CRNT.Multistationarity.GaleNikaidoUniv
 import CRNT.Multistationarity.StoichChart
 import CRNT.Multistationarity.ReducedJacobian
 import CRNT.Multistationarity.ReducedJacobianSign
+import CRNT.Multistationarity.ReducedSRGraph
 import CRNT.Multistationarity.SRCycleInjectivity
 import CRNT.Multistationarity.SRInjectivityClass
 import CRNT.Multistationarity.SRSignDecidable

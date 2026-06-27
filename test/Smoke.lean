@@ -2493,6 +2493,16 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
       = N.stoichProjMatrix * N.massActionJacobian κ (N.affineChart x₀ y) * N.stoichChartMatrix :=
   N.reducedJacobian_eq_mul κ x₀ y
 
+-- The mass-action Jacobian lands in the stoichiometric subspace, so the chart matrix conjugates
+-- the reduced Jacobian onto the full Jacobian: B · reducedJacobian = M · B. The reduced determinant
+-- is thus the chart-independent restriction determinant of the full Jacobian to S(N), with no
+-- coordinate-selection hypothesis on the chart.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (x₀ : Concentration S) (y : Fin N.stoichRank → ℝ) :
+    N.stoichChartMatrix * N.reducedJacobian κ x₀ y
+      = N.massActionJacobian κ (N.affineChart x₀ y) * N.stoichChartMatrix :=
+  N.stoichChartMatrix_mul_reducedJacobian κ x₀ y
+
 -- Brouwer zero-of-field in concentration space: an inward-displacement-preserving continuous
 -- vector field on a nonempty compact convex set of concentrations has a zero there.
 example {S : Type} [Fintype S] {K : Set (CRNT.Concentration S)} (hne : K.Nonempty)
