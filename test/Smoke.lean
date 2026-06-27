@@ -1544,6 +1544,22 @@ example {Ec Eh : Type*} [TopologicalSpace Ec] [NormedAddCommGroup Eh] [CompleteS
       dist M.base M.manifold ≤ M.defect / (1 - M.lpConst * M.lip / M.rate) :=
   ⟨M.manifold_isFixedPt, M.manifold_dist_zero_le⟩
 
+-- Center-manifold reduction principle (Carr): the transverse gap of a full orbit to the center
+-- manifold graph obeys the horizon-uniform dissipative ceiling g 0 + δ/λ (attraction to the
+-- manifold), and the reduced field on the center subspace is the center projection of the full field
+-- on the manifold, so an on-manifold orbit's center component solves ċ = reducedField c.
+example {Ec Eh : Type*} [NormedAddCommGroup Ec] [InnerProductSpace ℝ Ec]
+    [NormedAddCommGroup Eh] [InnerProductSpace ℝ Eh]
+    (R : ODE.ReductionData Ec Eh) {c : ℝ → Ec} {y : ℝ → Eh} {T : ℝ}
+    (g g' : ℝ → ℝ) (hg_def : ∀ t, g t = ‖y t - R.graph (c t)‖)
+    (hg : ContinuousOn g (Set.Icc 0 T))
+    (hg' : ∀ x ∈ Set.Ico 0 T, HasDerivWithinAt g (g' x) (Set.Ici x) x)
+    (hbound : ∀ x ∈ Set.Ico 0 T, g' x ≤ -R.rate * g x + R.defect)
+    {t : ℝ} (hc : HasDerivAt c (R.field (c t, R.graph (c t))).1 t) :
+    (∀ s ∈ Set.Icc 0 T, g s ≤ g 0 + R.defect / R.rate) ∧
+      HasDerivAt c (R.reducedField (c t)) t :=
+  ⟨R.transverse_gap_ceiling g g' hg_def hg hg' hbound, R.onManifold_center_velocity hc⟩
+
 -- Confined invariance closed: a genuine mass-action orbit with bounded relative entropy that starts
 -- on a siphon face stays on it for all forward time (the box hypothesis is discharged).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)

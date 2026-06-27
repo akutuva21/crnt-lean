@@ -184,6 +184,7 @@ import CRNT.Dynamics.FenichelSlowDrift
 import CRNT.Dynamics.FenichelC1Manifold
 import CRNT.Dynamics.GraphTransform
 import CRNT.Dynamics.CenterManifold
+import CRNT.Dynamics.CenterManifoldReduction
 import CRNT.Dynamics.FenichelPersistence
 import CRNT.Dynamics.FenichelPersistenceConcrete
 import CRNT.Dynamics.MichaelisMentenManifold
