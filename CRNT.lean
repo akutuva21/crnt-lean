@@ -82,6 +82,7 @@ import CRNT.Geometry.ToricWRStrictInward
 import CRNT.Geometry.FanWallsCrossed
 import CRNT.Geometry.FanActiveWalls
 import CRNT.Geometry.FanSeparationWitness
+import CRNT.Geometry.FanFaceProperness
 import CRNT.Geometry.ZeroSeparatingInduction
 import CRNT.Geometry.FanRefinement
 import CRNT.LinearAlgebra.LogSumInj

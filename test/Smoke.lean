@@ -3695,6 +3695,23 @@ example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} (hwr : N.WeaklyRe
           Concentration.Positive (CRNT.toEuclid.symm p))) :
     CRNT.ZeroSeparatingCurve2D.IsStrictSupportField (N.toricMassActionField κ) faces :=
   hF.toricMassActionField_isStrictSupportField_of_fan hwr κ hfaces
+-- Face-properness alone drives the toric strict-support verdict: each wall is a fan exposed-face wall
+-- whose cone `D` is a proper subcone (`D ⊊ C`) of its reaction-generated ambient cone, and the
+-- strictly-inward reaction is extracted from that properness rather than supplied by hand.
+open scoped InnerProductSpace in
+example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} (hwr : N.WeaklyReversible)
+    {F : CRNT.Fan (EuclideanSpace ℝ S)} (hF : CRNT.IsPolyhedralFan F) (κ : Network.RateConstants N)
+    {faces : List (EuclideanSpace ℝ S × ℝ)}
+    (hfaces : ∀ nf ∈ faces, ∃ (n₀ : S → ℝ) (D C : ProperCone ℝ (EuclideanSpace ℝ S)),
+      nf.1 = CRNT.toEuclid n₀ ∧
+      N.IsFanWall F D C n₀ ∧ N.GeneratedByReactions C ∧
+      (D : Set (EuclideanSpace ℝ S)) ⊂ (C : Set (EuclideanSpace ℝ S)) ∧
+      (∀ r : N.R, 0 ≤ ⟪CRNT.toEuclid n₀, CRNT.toEuclid (N.reactionVector r)⟫_ℝ) ∧
+      (∀ p : EuclideanSpace ℝ S,
+        CRNT.ZeroSeparatingCurve2D.OnFaceBoundary faces (CRNT.toEuclid n₀) nf.2 p →
+          Concentration.Positive (CRNT.toEuclid.symm p))) :
+    CRNT.ZeroSeparatingCurve2D.IsStrictSupportField (N.toricMassActionField κ) faces :=
+  hF.toricMassActionField_isStrictSupportField_of_properFan hwr κ hfaces
 
 -- Deterministic skeleton of the Kurtz fluid limit: the limiting reaction-rate ODE
 -- `ẋ = F(x)` admits a local solution from every start (Picard–Lindelöf via the C¹
