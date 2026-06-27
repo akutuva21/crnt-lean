@@ -233,6 +233,18 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 #guard_msgs (whitespace := lax) in
 #print axioms ODE.fenichel_persistence_contracting
 
+/-- info: 'ODE.slowManifold_reduction_conjugacy' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms ODE.slowManifold_reduction_conjugacy
+
+/-- info: 'ODE.equilibrium_lift_of_baseEquilibrium' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms ODE.equilibrium_lift_of_baseEquilibrium
+
+/-- info: 'ODE.invariantSet_lift_of_baseInvariant' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms ODE.invariantSet_lift_of_baseInvariant
+
 /-- info: 'CRNT.Network.WeaklyReversible.toricMassActionField_isStrictSupportField_of_activeWalls' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.WeaklyReversible.toricMassActionField_isStrictSupportField_of_activeWalls

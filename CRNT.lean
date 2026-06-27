@@ -211,6 +211,7 @@ import CRNT.Dynamics.FenichelMovingGeneralDrift
 import CRNT.Dynamics.FenichelLogisticInstance
 import CRNT.Dynamics.FenichelContinuousMovingTarget
 import CRNT.Dynamics.FenichelComovingManifold
+import CRNT.Dynamics.FenichelReductionPrinciple
 import CRNT.Dynamics.MichaelisMentenManifold
 import CRNT.Dynamics.MichaelisMentenReduced
 import CRNT.Dynamics.MichaelisMentenC1

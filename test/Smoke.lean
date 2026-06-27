@@ -4061,3 +4061,15 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
     ∀ t ∈ Set.Icc (0 : ℝ) T,
       ‖(y t - x t) - h • W t‖ ≤ gronwallBound 0 K (ρ * (|h| * ‖v‖ * Real.exp (K * T))) t :=
   ODE.norm_flow_variational_error_le (v := v) hK hρ hx hy hW hxc hyc hWc hDfK hmod hsep h0
+-- Fenichel reduction principle, equilibrium lift: over the stationary affine base (drift 0) on
+-- ℝ × ℝ every base point y₀ is an equilibrium of the slow flow, so its lift incl σ y₀ = (y₀, σ y₀)
+-- is an equilibrium of the full comoving-contract flow at every time t ≥ 0. The reduction conjugacy
+-- transports the base steady state up to the slow manifold.
+example (rate : ℝ) (y₀ : ℝ × ℝ) (t : ℝ≥0) :
+    (ODE.comovingContractFlow (ODE.affineAllTimeBase ((0, 0) : ℝ × ℝ)) rate (fun y : ℝ × ℝ => y.2)
+          ODE.continuous_snd_section).toFun t (ODE.incl (fun y : ℝ × ℝ => y.2) y₀)
+      = ODE.incl (fun y : ℝ × ℝ => y.2) y₀ :=
+  ODE.equilibrium_lift_of_baseEquilibrium (ODE.affineAllTimeBase ((0, 0) : ℝ × ℝ)) rate
+    (fun y : ℝ × ℝ => y.2) ODE.continuous_snd_section
+    (fun t => by
+      rw [ODE.affineAllTimeBase_slowFlow, ODE.affineBaseFlow_toFun]; simp) t
