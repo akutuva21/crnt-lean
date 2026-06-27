@@ -2419,6 +2419,22 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {faces : Lis
     {t : ℝ} (ht : 0 ≤ t) : γ t ∈ ZeroSeparatingCurve2D.polyRegion faces :=
   ZeroSeparatingCurve2D.stays_in_polyRegion_of_support h0 hanti ht
 
+-- A polygonal separating region for the genuine field, fed the subtangency-to-distance bridge,
+-- keeps the genuine trajectory a fixed positive distance from the origin.
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {f : E → E} {x₀ : E}
+    (h : ZeroSeparatingCurve2D.PolyZeroSeparatingExists f x₀) {γ : ℝ → E} (hstart : γ 0 = x₀)
+    (hbridge : ∀ faces : List (E × ℝ), ZeroSeparatingCurve2D.IsSupportField f faces →
+      AntitoneOn (fun t => Metric.infDist (γ t) (ZeroSeparatingCurve2D.polyRegion faces)) (Set.Ici 0)) :
+    ∃ r : ℝ, 0 < r ∧ ∀ t, 0 ≤ t → r ≤ dist (γ t) 0 :=
+  h.away_from_origin hstart hbridge
+
+-- The polygonal separating predicate is inhabited: a constant field into the diagonal half-plane.
+open scoped InnerProductSpace in
+example {v x₀ : EuclideanSpace ℝ (Fin 2)} (hv : 0 ≤ ⟪ZeroSeparatingCurve2D.diagNormal, v⟫_ℝ)
+    (hx₀ : x₀ ∈ ZeroSeparatingCurve2D.polyRegion ZeroSeparatingCurve2D.diagFaces) :
+    ZeroSeparatingCurve2D.PolyZeroSeparatingExists (fun _ => v) x₀ :=
+  ZeroSeparatingCurve2D.polyZeroSeparatingExists_diag hv hx₀
+
 -- The diagonal direction is attracting for every cell of the cross-fan — a worked instance of the
 -- support-segment geometry.
 example (δ : ℝ) (X : FaithfulCurveExample.Plane) :
