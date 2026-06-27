@@ -133,8 +133,34 @@ example (d : NetworkData) :
     d.analyze.hasCriticalSiphon = true ↔ d.toNetwork.HasCriticalSiphon :=
   NetworkData.analyze_hasCriticalSiphon_eq d
 
+-- The structural-persistence flag is the conjunction `weaklyReversible ∧ ¬hasCriticalSiphon`, and
+-- when `true` it certifies the structural half of the global-attractor persistence hypothesis:
+-- weak reversibility plus no critical siphon (not a full persistence proof — a positive
+-- complex-balanced reference is still supplied to `gac_of_hasNoCriticalSiphon`).
+example (d : NetworkData) :
+    d.analyze.persistenceStructural
+      = (d.analyze.weaklyReversible && !d.analyze.hasCriticalSiphon) :=
+  NetworkData.analyze_persistenceStructural_eq d
+example (d : NetworkData) (h : d.analyze.persistenceStructural = true) :
+    d.toNetwork.WeaklyReversible ∧ d.toNetwork.HasNoCriticalSiphon :=
+  NetworkData.hasNoCriticalSiphon_of_persistenceStructural d h
+
+-- The decidable critical-siphon verdict drives the global-attractor persistence conclusion: when
+-- `decide N.HasCriticalSiphon = false`, a weakly reversible, complex-balanced network converges to
+-- the unique equilibrium of any positive compatibility class.
+open Filter in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (κ : N.RateConstants) (hdec : decide N.HasCriticalSiphon = false)
+    {xstar x₀ : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    (hx0 : x₀.Positive) (hx0compat : N.StoichCompatible x₀ xstar) :
+    ∃ (ϕ : Flow ℝ≥0 (Concentration S)) (γ : Concentration S → ℝ → Concentration S),
+      (∀ x, γ x 0 = x) ∧ (∀ x (t : ℝ≥0), ϕ t x = γ x t) ∧
+      (∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t) ∧
+      omegaLimit atTop ϕ {x₀} = {xstar} :=
+  N.gac_of_decide hwr κ hdec hxs hcb hx0 hx0compat
+
 -- The analysis tags the current contract version.
-example : interopRevData.analyze.version = 7 := by decide
+example : interopRevData.analyze.version = 8 := by decide
 
 -- The `crnt_deficiency_zero` tactic certifies deficiency zero from an explicit minor witness:
 -- a 1×1 minor for the reversible pair, a 2×2 minor for the irreversible chain.

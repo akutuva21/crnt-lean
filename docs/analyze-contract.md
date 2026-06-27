@@ -15,8 +15,10 @@ derived fields each have a bridge in `CRNT/Interop/Analysis.lean` relating the r
 propositional definition: `analyze_deficiency_eq`, `analyze_stoichRank_eq`,
 `analyze_numLinkageClasses_eq`, `analyze_conservationLawDim_eq`, `analyze_weaklyReversible_eq`,
 `analyze_acrSpecies_eq`, `analyze_hasSiphon_eq`, `mem_analyze_minimalSiphons`,
-`analyze_srSignConsistent_eq`, and `analyze_hasCriticalSiphon_eq`. The one-sided
-exclusion `analyze_hasNoCriticalSiphon_of_hasSiphon_false` is proved there too. When a result needs an
+`analyze_srSignConsistent_eq`, `analyze_hasCriticalSiphon_eq`, and
+`analyze_persistenceStructural_eq`. The one-sided exclusion
+`analyze_hasNoCriticalSiphon_of_hasSiphon_false` and the structural-persistence bridge
+`hasNoCriticalSiphon_of_persistenceStructural` are proved there too. When a result needs an
 axiom-clean kernel certificate for a specific network, use the codegen contract instead.
 
 ## Input: `NetworkData`
@@ -45,8 +47,8 @@ their analyses (the bulk path: one process invocation scores many networks).
 ```json
 {"acrSpecies":[],"conservationLawDim":1,"deficiency":0,"hasCriticalSiphon":false,
  "hasSiphon":true,"minimalSiphons":[[0,1]],"numComplexes":2,"numLinkageClasses":1,
- "numReactions":2,"numSpecies":2,"numStrongLinkageClasses":1,"srSignConsistent":false,
- "stoichRank":1,"version":7,"weaklyReversible":true}
+ "numReactions":2,"numSpecies":2,"numStrongLinkageClasses":1,"persistenceStructural":true,
+ "srSignConsistent":false,"stoichRank":1,"version":8,"weaklyReversible":true}
 ```
 
 The fields, in their declaration order on the `Analysis` structure:
@@ -68,6 +70,7 @@ The fields, in their declaration order on the `Analysis` structure:
 | `minimalSiphons` | int[][] | support-minimal siphons, each an ascending index array | `IsMinimalSiphon` |
 | `srSignConsistent` | bool | consistent signed species–reaction cover condition holds | `decide ConsistentSRSign` |
 | `hasCriticalSiphon` | bool | a critical siphon exists (no positive conservation law on its support) | `decide HasCriticalSiphon` |
+| `persistenceStructural` | bool | structural persistence precondition: `weaklyReversible ∧ ¬hasCriticalSiphon` | `hasNoCriticalSiphon_of_persistenceStructural` |
 
 `Analysis` derives `FromJson, ToJson, Repr, DecidableEq`; the `ToJson` instance is what serializes the
 record.
@@ -92,6 +95,14 @@ from the `Fintype` and the decision lifted through the subsingleton of `Decidabl
 computable. It is two-sided: `false` soundly establishes the absence of a critical siphon, hence —
 with weak reversibility and complex balancing — persistence.
 
+`persistenceStructural` is `weaklyReversible ∧ ¬hasCriticalSiphon`: the decidable *structural*
+precondition of the global-attractor persistence verdict. When `true` it certifies exactly
+`WeaklyReversible ∧ HasNoCriticalSiphon` (`hasNoCriticalSiphon_of_persistenceStructural`), the
+structural half of the hypothesis of `gac_of_hasNoCriticalSiphon` (the decision-driven form
+`gac_of_decide` discharges the criticality exclusion from `decide`). It is **not** a full persistence
+proof: the global-attraction conclusion additionally needs a positive complex-balanced reference,
+which the consumer supplies and the contract cannot certify from structure alone.
+
 `minimalSiphons` lists the support-minimal siphons (each as an ascending species-index array). These
 are the candidate critical siphons: a siphon is critical iff it carries no positive conservation law
 on its support. Enumeration tests minimality across the powerset (`~4^numSpecies` in the worst case —
@@ -113,7 +124,7 @@ not evaluate), and `deficiency_eq_computableDeficiency` bridges the assembly to 
 
 ## Versioning
 
-`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `7`. It tags the
+`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `8`. It tags the
 field set and increments whenever a field is added or its meaning changes, so a consumer can detect a
 contract it does not understand. A new per-property companion raises the version when it joins the
 record.
@@ -141,6 +152,8 @@ never yields a structural verdict.
   `hweight_of_consistentSRSign` (the SR-sign injectivity fragment).
 - `CRNT/Decision/CriticalSiphonDecide.lean`: `HasCriticalSiphon`, its computable `Decidable`
   instance (rational feasibility by Fourier–Motzkin elimination), and `supportedFeasSystem`.
+- `CRNT/Decision/PersistenceVerdict.lean`: `gac_of_decide`, the decision-driven global-attractor
+  persistence verdict composing the critical-siphon test with `gac_of_hasNoCriticalSiphon`.
 - `CRNT/LinearAlgebra/OrthogonalComplement.lean`: `orthSum` and `finrank_orthSum` (conservation laws).
 - `Analyze.lean`: the `lake exe analyze` entry point.
 

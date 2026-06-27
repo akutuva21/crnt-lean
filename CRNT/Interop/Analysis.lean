@@ -3,6 +3,7 @@ import CRNT.Decision.ComputableDeficiency
 import CRNT.Decision.DirectedReachability
 import CRNT.Decision.ACRCheck
 import CRNT.Decision.CriticalSiphonDecide
+import CRNT.Decision.PersistenceVerdict
 import CRNT.Dynamics.Siphon
 import CRNT.LinearAlgebra.OrthogonalComplement
 import CRNT.Multistationarity.SRSignDecidable
@@ -34,7 +35,13 @@ positive-diagonal hypotheses. `hasCriticalSiphon` is `decide N.HasCriticalSiphon
 (`analyze_hasCriticalSiphon_eq`), the full critical-siphon verdict: a nonempty siphon carrying no
 positive conservation law on its exact support, decided by rational feasibility (Fourier–Motzkin
 elimination). When `false` the network has no critical siphon, so (weakly reversible and complex
-balanced) it is persistent.
+balanced) it is persistent. `persistenceStructural` is `weaklyReversible ∧ ¬hasCriticalSiphon`
+(`analyze_persistenceStructural_eq`): the decidable *structural* precondition of the global-attractor
+persistence verdict. When `true` it certifies exactly `WeaklyReversible ∧ HasNoCriticalSiphon`
+(`hasNoCriticalSiphon_of_persistenceStructural`), the structural half of `gac_of_hasNoCriticalSiphon`'s
+hypothesis; it is **not** a full persistence proof — the global-attraction conclusion additionally
+needs a positive complex-balanced reference, which the consumer supplies and the contract cannot
+certify from structure alone.
 
 `version` tags the JSON contract; bump it whenever the field set changes.
 
@@ -48,7 +55,7 @@ open Lean (FromJson ToJson)
 open CRNT.GaussianRank
 
 /-- The version of the `Analysis` JSON contract. Bump on any field-set change. -/
-def analysisVersion : Nat := 7
+def analysisVersion : Nat := 8
 
 /-- The structural invariants of a network, as a JSON-serializable record. The numeric fields are
 the computable companions of the library theory; `deficiency` is `n − ℓ − s` assembled here. -/
@@ -94,6 +101,12 @@ structure Analysis where
   and complex balanced) it is persistent. The verdict is decided by rational feasibility
   (Fourier–Motzkin elimination), the constructive content of Farkas' lemma. -/
   hasCriticalSiphon : Bool
+  /-- Whether the network meets the decidable *structural* precondition of the global-attractor
+  persistence verdict: `weaklyReversible ∧ ¬hasCriticalSiphon`. When `true` it certifies
+  `WeaklyReversible ∧ HasNoCriticalSiphon` — the structural half of `gac_of_hasNoCriticalSiphon`'s
+  hypothesis. It is not a full persistence proof: the global-attraction conclusion additionally needs
+  a positive complex-balanced reference the consumer supplies. -/
+  persistenceStructural : Bool
   deriving FromJson, ToJson, Repr, DecidableEq
 
 namespace NetworkData
@@ -118,7 +131,8 @@ def analyze (d : NetworkData) : Analysis :=
       (fun l => decide (N.IsMinimalSiphon l.toFinset))).map
       (fun l => (l.map Fin.val).toArray)).toArray
     srSignConsistent := decide N.ConsistentSRSign
-    hasCriticalSiphon := decide N.HasCriticalSiphon }
+    hasCriticalSiphon := decide N.HasCriticalSiphon
+    persistenceStructural := decide N.WeaklyReversible && !decide N.HasCriticalSiphon }
 
 /-- The reported deficiency is the network's deficiency. -/
 theorem analyze_deficiency_eq (d : NetworkData) :
@@ -212,6 +226,26 @@ so with weak reversibility and complex balancing it is persistent. -/
 theorem analyze_hasCriticalSiphon_eq (d : NetworkData) :
     (d.analyze).hasCriticalSiphon = true ↔ d.toNetwork.HasCriticalSiphon :=
   decide_eq_true_iff
+
+/-- The reported structural-persistence flag is `weaklyReversible ∧ ¬hasCriticalSiphon`. -/
+theorem analyze_persistenceStructural_eq (d : NetworkData) :
+    (d.analyze).persistenceStructural
+      = ((d.analyze).weaklyReversible && !(d.analyze).hasCriticalSiphon) :=
+  rfl
+
+/-- **Structural persistence precondition.** When the structural-persistence flag is `true`, the
+network is weakly reversible and has no critical siphon — the structural half of the global-attractor
+persistence verdict's hypothesis. It is *not* a full persistence proof: the global-attraction
+conclusion additionally needs a positive complex-balanced reference (supplied to
+`gac_of_hasNoCriticalSiphon`), which the contract cannot certify from structure alone. -/
+theorem hasNoCriticalSiphon_of_persistenceStructural (d : NetworkData)
+    (h : (d.analyze).persistenceStructural = true) :
+    d.toNetwork.WeaklyReversible ∧ d.toNetwork.HasNoCriticalSiphon := by
+  rw [analyze_persistenceStructural_eq, Bool.and_eq_true, Bool.not_eq_true'] at h
+  refine ⟨(analyze_weaklyReversible_eq d).mp h.1, ?_⟩
+  rw [Network.hasNoCriticalSiphon_iff_not_hasCriticalSiphon, ← analyze_hasCriticalSiphon_eq d,
+    h.2]
+  exact Bool.false_ne_true
 
 end NetworkData
 
