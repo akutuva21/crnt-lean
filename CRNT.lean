@@ -183,6 +183,7 @@ import CRNT.Dynamics.MichaelisMentenDepletion
 import CRNT.Dynamics.MichaelisMentenCertified
 import CRNT.Dynamics.DissipativeTracking
 import CRNT.Dynamics.MichaelisMentenCertifiedUniform
+import CRNT.Dynamics.MichaelisMentenCoupledContraction
 
 -- Deficiency
 import CRNT.Deficiency.Definition

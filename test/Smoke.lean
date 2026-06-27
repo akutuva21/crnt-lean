@@ -2906,6 +2906,16 @@ example {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     ∀ t, 0 ≤ t → ‖x t - m t‖ ≤ ‖x 0 - m 0‖ + δ / lam :=
   ODE.coupled_dissipative_ceiling hlam hδ hx hm hcon hdef
 
+-- The regularized Michaelis–Menten fast field has the frozen-fibre exact transverse contraction at
+-- rate `rate`: at any fixed substrate `s`, the inner product of the field difference with the state
+-- difference equals `-rate · ‖z - w‖²` for every pair of complex states, the negative logarithmic-norm
+-- identity that discharges the coupled transverse contraction hypothesis.
+example (rate Km Vmax s : ℝ) (z w : CRNT.MichaelisMenten.E) :
+    inner ℝ (CRNT.MichaelisMenten.mmRegFastField rate Km Vmax s z
+        - CRNT.MichaelisMenten.mmRegFastField rate Km Vmax s w) (z - w)
+      = -rate * ‖z - w‖ ^ 2 :=
+  CRNT.MichaelisMenten.mmRegFastField_coupled_contraction rate Km Vmax s z w
+
 -- Rational linear feasibility decides by Fourier–Motzkin elimination (`decide`, not
 -- `native_decide`). At the `Fin 0` base case feasibility is the nonnegativity of every
 -- bound: an empty system and one with a nonnegative bound are feasible; one with a
