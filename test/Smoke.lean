@@ -3854,6 +3854,14 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpa
     (Sec : CRNT.TransversalSection (E := E)) :
     Sec.returnMap Sec.base = Sec.point :=
   Sec.returnMap_base
+-- Rotation closure: a fixed point `Φ x T = x` of the return map (a genuine return) closes the flow
+-- line of `x` into a periodic orbit of period the crossing time — the orbit-from-fixed-point bridge.
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    (Sec : CRNT.TransversalSection (E := E)) {x : E}
+    (hsemi : ∀ a b : ℝ, Sec.flow x (a + b) = Sec.flow (Sec.flow x a) b)
+    (hfix : Sec.returnMap x = x) :
+    Function.Periodic (Sec.flow x) (Sec.crossingTime x) :=
+  Sec.isPeriodic_returnMap_fixedPoint hsemi hfix
 -- Excision of a region with no solutions: a region disjoint from the preimage contributes
 -- nothing to the degree. The empty region around any value of `f` carries local degree `0`.
 example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : E → E) (y : E)
