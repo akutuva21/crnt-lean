@@ -3666,3 +3666,17 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     (ha : dist (X a) (x a) ≤ δ) :
     ∀ t ∈ Set.Icc a b, dist (X t) (x t) ≤ gronwallBound δ K (η + 0) (t - a) :=
   N.fluidLimit_dist_le κ hK hx hx' hxr hX hX' hXr hfluct ha
+
+-- Regular-value topological degree existence principle: a nonzero regular degree forces
+-- the value to be attained. On the identity map of a finite-dimensional real space the
+-- derivative is everywhere the identity (determinant `1 > 0`), so the degree at any value
+-- is `1`, and the existence principle recovers a preimage.
+example (y : EuclideanSpace ℝ (Fin 3)) :
+    regularDegree (id : EuclideanSpace ℝ (Fin 3) → EuclideanSpace ℝ (Fin 3)) y
+      (finite_preimage_id y) = 1 :=
+  regularDegree_id y
+
+example (y : EuclideanSpace ℝ (Fin 3)) :
+    (id ⁻¹' {y} : Set (EuclideanSpace ℝ (Fin 3))).Nonempty :=
+  preimage_nonempty_of_regularDegree_ne_zero (id : EuclideanSpace ℝ (Fin 3) → _) y
+    (finite_preimage_id y) (by rw [regularDegree_id]; norm_num)

@@ -312,6 +312,7 @@ import CRNT.Multistationarity.SRCycleInjectivity
 import CRNT.Multistationarity.SRInjectivityClass
 import CRNT.Multistationarity.SRSignDecidable
 import CRNT.Multistationarity.Toric
+import CRNT.Multistationarity.RegularValueDegree
 
 -- Design: robustness and special equilibria
 import CRNT.Design.ACR
