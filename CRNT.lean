@@ -320,6 +320,7 @@ import CRNT.Multistationarity.SRSignDecidable
 import CRNT.Multistationarity.Toric
 import CRNT.Multistationarity.RegularValueDegree
 import CRNT.Multistationarity.LinearDegree
+import CRNT.Multistationarity.DegreeAdditivity
 
 -- Design: robustness and special equilibria
 import CRNT.Design.ACR

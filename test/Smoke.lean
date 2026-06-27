@@ -3791,3 +3791,16 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpa
     (Sec : CRNT.TransversalSection (E := E)) :
     Sec.returnMap Sec.base = Sec.point :=
   Sec.returnMap_base
+-- Excision of a region with no solutions: a region disjoint from the preimage contributes
+-- nothing to the degree. The empty region around any value of `f` carries local degree `0`.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : E → E) (y : E)
+    (hfin : (f ⁻¹' {y}).Finite) :
+    localDegree f y hfin (∅ : Set E) = 0 :=
+  localDegree_eq_zero_of_preimage_inter_empty f y hfin (Set.inter_empty _)
+
+-- Additivity: the local degree over the whole space recovers the global regular degree —
+-- the trivial one-region cover. Splitting the preimage into local pieces is exact.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : E → E) (y : E)
+    (hfin : (f ⁻¹' {y}).Finite) :
+    localDegree f y hfin Set.univ = regularDegree f y hfin :=
+  localDegree_univ f y hfin
