@@ -4033,3 +4033,11 @@ example (rate : ℝ) :
         ODE.continuous_snd_section).toFun
       (ODE.graphSet (fun y : ℝ × ℝ => y.2)) :=
   ODE.affineComovingManifold_isInvariant rate
+
+-- A finitely-generated cone is closed without any independence hypothesis: the conical hull of the
+-- three vectors `(1,0)`, `(0,1)`, `(1,1)` in `Fin 2 → ℝ` — a linearly dependent family — is closed.
+example :
+    IsClosed (PointedCone.hull ℝ
+      (({![1, 0], ![0, 1], ![1, 1]} : Finset (Fin 2 → ℝ)) : Set (Fin 2 → ℝ)) :
+      Set (Fin 2 → ℝ)) :=
+  CRNT.isClosed_coe_hull_of_finite _
