@@ -141,6 +141,10 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.massActionInjectiveOnClass_of_concretePivotChart
 
+/-- info: 'CRNT.Network.isPMatrix_pivotReducedJacobian_of_pivotCoverSignQ' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.isPMatrix_pivotReducedJacobian_of_pivotCoverSignQ
+
 /-- info: 'CRNT.NetworkData.analyze_hasCriticalSiphon_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.NetworkData.analyze_hasCriticalSiphon_eq

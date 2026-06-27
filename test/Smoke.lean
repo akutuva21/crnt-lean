@@ -3377,6 +3377,22 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     {k : ℕ} (ρ : Fin k → S) (γ : Fin k → N.R) (kq : N.R → ℚ) (xq : S → ℚ) :
     Decidable (N.CompressionCoverSignQ ρ γ kq xq) :=
   inferInstance
+-- The reduced-pivot cover-sign certificate (matching the pivot-reduced Jacobian) is decidable.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    {k : ℕ} (ρ : Fin k → S) (γ : Fin k → N.R) (kq : N.R → ℚ) (xq : S → ℚ) :
+    Decidable (N.PivotCoverSignQ ρ γ kq xq) :=
+  inferInstance
+-- Pointwise reduced-P-matrix bridge: at a rational data point whose chart point is the cast of a
+-- rational concentration, the decidable rational cover-sign certificate makes the pivot-reduced
+-- Jacobian a P-matrix there. The reduced cover-sign pattern is concentration dependent, so this is a
+-- pointwise verdict, not a box-quantified one.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (x₀ : Concentration S) {k : ℕ} (ρ : Fin k → S) (γ : Fin k → N.R) (y : Fin k → ℝ)
+    (kq : N.R → ℚ) (xq : S → ℚ) (hk : ∀ r, κ.k r = (kq r : ℝ))
+    (hpt : Network.pivotAffineChart x₀ (N.concretePivotChart ρ γ) y = fun s => ((xq s : ℝ)))
+    (h : N.PivotCoverSignQ ρ γ kq xq) :
+    (N.pivotReducedJacobian κ x₀ ρ (N.concretePivotChart ρ γ) y).IsPMatrix :=
+  N.isPMatrix_pivotReducedJacobian_of_pivotCoverSignQ κ x₀ ρ γ y kq xq hk hpt h
 -- Exponential decay from a Lyapunov certificate: a Hurwitz generator's flow contracts at an
 -- exponential rate `‖exp (t • A) x‖ ≤ √(C₀/c₀) · e^{-t/(2 C₀)} · ‖x‖` on the stable directions.
 example (A : Matrix (Fin 2) (Fin 2) ℝ)
