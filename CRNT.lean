@@ -356,6 +356,7 @@ import CRNT.Dynamics.ConservationLaw
 import CRNT.Dynamics.Persistence
 import CRNT.Dynamics.GlobalStability
 import CRNT.Dynamics.ForwardInvariance
+import CRNT.Dynamics.GenuineConfinement
 import CRNT.Dynamics.PersistenceGAC
 import CRNT.Dynamics.GACConfinement
 import CRNT.Dynamics.GACSeparatingRegion
@@ -373,6 +374,7 @@ import CRNT.Dynamics.NoCriticalSiphonPersistence
 import CRNT.Dynamics.GACNoCriticalSiphon
 import CRNT.Dynamics.GACOmegaPositive
 import CRNT.Dynamics.SingleLinkageGAC
+import CRNT.Dynamics.GACSeparatingWitness
 import CRNT.Dynamics.IsolatedInvariant
 import CRNT.Dynamics.DifferentialInclusion
 import CRNT.Dynamics.DissipationBound

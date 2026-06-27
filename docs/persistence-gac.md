@@ -41,6 +41,47 @@ This reduction is fully formalized:
   are nonnegative and affinely invariant) are supplied as arguments and discharged inside the
   no-critical-siphon assembly below.
 
+## The separating-confinement predicate, constructed
+
+For weakly reversible complex-balanced networks the whole conjecture collapses, through the chain
+`surface → region → confinement → persistence → GAC`, onto one geometric predicate
+`Network.SeparatingConfinement κ x₀` (`Dynamics/GACSeparatingCapstone.lean`): the genuine orbit
+through `x₀` is forward-invariant in a bounded region held a fixed positive distance above every
+species facet. `gac_of_separatingConfinement` discharges everything from that predicate to the
+`{x*}` conclusion. The predicate is the mass-action form of Craciun's zero-separating surface
+(*Toric differential inclusions and a proof of the global attractor conjecture*).
+
+That predicate is **exactly persistence**, and it is **realized**, not merely hypothesized
+(`Dynamics/GACSeparatingWitness.lean`):
+
+- `persistentFrom_of_separatingConfinement` / `separatingConfinement_of_persistentFrom`: the
+  predicate is logically equivalent to the absorbing certificate `Network.PersistentFrom` (the
+  reverse for a positive start). Closing a separating region into the open orthant gives a compact
+  positive absorbing set; adjoining the start to such a set gives a separating region. The
+  geometric reduction target and the persistence certificate consumed elsewhere are the same content.
+- `separatingConfinement_of_local`: when the start's relative entropy lies below every reference
+  coordinate, the relative-entropy sublevel set is a compact region inside the open orthant that the
+  genuine orbit never leaves, and compactness gives the uniform per-facet floor. The predicate holds
+  outright near equilibrium.
+- `separatingConfinement_of_hasNoCriticalSiphon`: on the decidable no-critical-siphon class the
+  predicate holds for every positive start, with the orbit free to approach a facet at finite times
+  — only its closure is held off, since the ω-limit set is interior.
+
+The genuine-orbit inputs these constructions rest on are proven once, for the genuine (unclamped)
+field, in `Dynamics/GenuineConfinement.lean`: `genuineOrbit_pos` (a positive start stays positive,
+the box bound recovered from compactness on each finite interval), `genuineOrbit_relEntropy_le` (the
+relative entropy never rises — Horn & Jackson, *General mass action kinetics*), and
+`genuineOrbit_unique_of_box` (uniqueness inside a box, via Mathlib's interval ODE-uniqueness on the
+Lipschitz cutoff). They are the genuine-field counterparts of the cutoff-orbit `orbit_pos` /
+`orbit_relEntropy_le`, and they discharge the genuine-confinement hypotheses of
+`gac_of_genuine_persistence` and `gac_of_confinement` directly.
+
+In particular `persistentFrom_of_hasNoCriticalSiphon` supplies the `Network.PersistentFrom`
+certificate for the no-critical-siphon class — the absorbing certificate the ω-limit assembly of
+`gac_of_hasNoCriticalSiphon` does not itself expose. What stays open is unchanged: constructing
+`SeparatingConfinement` for the curved mass-action case past critical siphons, refereed only up to
+stoichiometric dimension three.
+
 ## Siphons and the boundary (Angeli–De Leenheer–Sontag)
 
 The combinatorial control on boundary ω-limit points is the **Petri-net siphon**. Following Angeli,
@@ -230,6 +271,8 @@ form. The sign content of strong endotacticity along the relative-entropy dissip
 `PersistenceConfined`, `ConfinedInvariance`, `BoundaryDescent`, `GlobalStability`, `PersistenceGAC`,
 `ForwardInvariance`, `StrictInflow`, `NegativeInvariance`, `BoundaryOmegaSiphon`, `CriticalSiphonOmega`,
 `NoCriticalSiphonPersistence`, `GACNoCriticalSiphon`, `GACOmegaPositive`, `SingleLinkageGAC`,
+`GACConfinement`, `GACSeparatingRegion`, `GACSeparatingRegionNagumo`, `GACSeparatingCapstone`,
+`GenuineConfinement`, `GACSeparatingWitness`,
 `IsolatedInvariant`, `MinimalInvariant`, `ButlerMcGehee`, `EscapeSiphonFace`, `FacetRepulsion`,
 `EndotacticPermanence`, `DifferentialInclusion`, `ToricInclusion`, `ToricEmbedding`,
 `ToricEmbeddingOrder`, `ToricEmbeddingWR`, `ZeroSeparating`, `Viability`, `FirstExit`,

@@ -1224,6 +1224,45 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
       omegaLimit atTop ϕ {x₀} = {xstar} :=
   N.gac_of_separatingConfinement hwr κ hxs hcb hx0 hx0compat h
 
+-- The separating-confinement predicate is realizable, not merely hypothesized: near equilibrium
+-- (relative entropy of the start below every reference coordinate) it is constructed outright.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    (κ : N.RateConstants) {xstar x₀ : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar) (hx0 : x₀.Positive)
+    (hloc : ∀ s, relEntropy xstar x₀ < xstar s) :
+    N.SeparatingConfinement κ x₀ :=
+  N.separatingConfinement_of_local κ hxs hcb hx0 hloc
+
+-- The separating-confinement predicate is exactly the persistence certificate `PersistentFrom`.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    (κ : N.RateConstants) {x₀ : Concentration S} (hx0 : x₀.Positive) :
+    N.SeparatingConfinement κ x₀ ↔ N.PersistentFrom κ x₀ :=
+  ⟨N.persistentFrom_of_separatingConfinement κ, N.separatingConfinement_of_persistentFrom κ hx0⟩
+
+-- Structural realizability: on the (decidable) no-critical-siphon class the separating-confinement
+-- predicate is constructed outright — the orbit may approach the boundary, only its closure is held
+-- off every facet. This also yields the persistence certificate `PersistentFrom` the
+-- no-critical-siphon argument does not otherwise expose.
+open Filter in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (κ : N.RateConstants) (hncs : N.HasNoCriticalSiphon) {xstar x₀ : Concentration S}
+    (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar) (hx0 : x₀.Positive)
+    (hx0compat : N.StoichCompatible x₀ xstar) :
+    N.SeparatingConfinement κ x₀ ∧ N.PersistentFrom κ x₀ :=
+  ⟨N.separatingConfinement_of_hasNoCriticalSiphon hwr κ hncs hxs hcb hx0 hx0compat,
+    N.persistentFrom_of_hasNoCriticalSiphon hwr κ hncs hxs hcb hx0 hx0compat⟩
+
+-- Genuine-orbit confinement: a genuine positive-start orbit stays positive with nonincreasing
+-- relative entropy, the genuine-field forms of `orbit_pos` / `orbit_relEntropy_le`.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {Γ : ℝ → Concentration S} (hΓ0 : (Γ 0).Positive)
+    (hΓd : ∀ t, 0 ≤ t → HasDerivAt Γ (N.massActionVectorField κ (Γ t)) t) :
+    (∀ t, 0 ≤ t → (Γ t).Positive) ∧
+      (∀ t, 0 ≤ t → relEntropy xstar (Γ t) ≤ relEntropy xstar (Γ 0)) :=
+  let hpos := N.genuineOrbit_pos κ hΓ0 hΓd
+  ⟨hpos, N.genuineOrbit_relEntropy_le κ hxs hcb hpos hΓd⟩
+
 -- Broader reduction: a single positive ω-limit point forces ω = {x*} (no structural hypothesis).
 open Filter in
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)

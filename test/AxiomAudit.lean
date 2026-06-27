@@ -339,3 +339,19 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'ODE.asymptoticStability_lift' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms ODE.asymptoticStability_lift
+
+/-- info: 'CRNT.Network.separatingConfinement_of_local' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.separatingConfinement_of_local
+
+/-- info: 'CRNT.Network.separatingConfinement_of_persistentFrom' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.separatingConfinement_of_persistentFrom
+
+/-- info: 'CRNT.Network.persistentFrom_of_hasNoCriticalSiphon' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.persistentFrom_of_hasNoCriticalSiphon
+
+/-- info: 'CRNT.Network.separatingConfinement_of_hasNoCriticalSiphon' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.separatingConfinement_of_hasNoCriticalSiphon

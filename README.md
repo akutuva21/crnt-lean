@@ -80,6 +80,9 @@ Grouped by area; the precise statements and module names are in each linked doc.
   predicate, `SeparatingConfinement` (a bounded, forward-invariant region holding the orbit off every
   facet), proven sufficient for global convergence end to end; the affine separating surface is built
   in every dimension
+- That predicate shown equivalent to persistence and constructed outright on two classes — near
+  equilibrium, and the entire decidable no-critical-siphon class — so it is realized, not only assumed;
+  the construction supplies the no-critical-siphon persistence certificate as a by-product
 - A development of the toric-differential-inclusion approach
 
 **[Stochastic CRN](docs/stochastic.md)**
@@ -143,6 +146,13 @@ unlocks the CRN results noted, and questions where the mathematics itself is sti
     a bounded region that stays a fixed positive distance above every species facet. The implication
     `SeparatingConfinement ⇒ global convergence` is machine-checked end to end, and the affine
     (half-plane) zero-separating surface that realizes it is constructed in every dimension
+  - `SeparatingConfinement` is proven equivalent to the persistence certificate `PersistentFrom`, and
+    constructed outright on two classes: near equilibrium (relative entropy of the start below every
+    reference coordinate) and the entire decidable no-critical-siphon class (where the orbit may touch
+    a facet at finite times, but its closure stays interior). The no-critical-siphon construction also
+    discharges the `PersistentFrom` certificate that the ω-limit argument leaves implicit. The
+    genuine-orbit inputs — positivity, relative-entropy descent, and box uniqueness for the unclamped
+    field — are proven once and reused
   - Craciun's toric-differential-inclusion architecture is formalized sorry-free, with the steps it
     rests on isolated as explicit hypotheses: set-valued viability, the n-dimensional surface
     construction, the weak-reversibility cycle cover, the polyhedral-fan axioms, and arbitrary-fan
