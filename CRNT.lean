@@ -280,6 +280,7 @@ import CRNT.Multistationarity.ReducedJacobian
 import CRNT.Multistationarity.ReducedCoverSign
 import CRNT.Multistationarity.ReducedJacobianSign
 import CRNT.Multistationarity.ReducedSRGraph
+import CRNT.Multistationarity.ReducedSRGraphBridge
 import CRNT.Multistationarity.SRCycleInjectivity
 import CRNT.Multistationarity.SRInjectivityClass
 import CRNT.Multistationarity.SRSignDecidable

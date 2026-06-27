@@ -2514,6 +2514,17 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     (N.massActionKinetics κ).InjectiveOnClass x₀ :=
   N.massActionInjectiveOnClass_of_reducedConsistentSRSign κ x₀ hbox hsign
 
+-- The consistent reduced-cover sign condition, re-expressed on network data: when every
+-- principal-submatrix cover term of the chart-transported full Jacobian P · M · B is sign-consistent
+-- throughout the chart box, the hsub-free general-chart injectivity verdict holds, now checkable from
+-- the network's own data through the chart B/P.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (x₀ : Concentration S) {lo hi : Fin N.stoichRank → ℝ}
+    (hbox : ∀ x ∈ N.positiveCompatibilityClass x₀, N.chartCoord x₀ x ∈ Set.Icc lo hi)
+    (hsign : ∀ y ∈ Set.Icc lo hi, N.ReducedJacobianCompressionSRSign κ x₀ y) :
+    (N.massActionKinetics κ).InjectiveOnClass x₀ :=
+  N.massActionInjectiveOnClass_of_compressionSRSign κ x₀ hbox hsign
+
 -- Brouwer zero-of-field in concentration space: an inward-displacement-preserving continuous
 -- vector field on a nonempty compact convex set of concentrations has a zero there.
 example {S : Type} [Fintype S] {K : Set (CRNT.Concentration S)} (hne : K.Nonempty)

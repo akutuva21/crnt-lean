@@ -139,3 +139,6 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.RationalFarkas.feasibleℝ_iff_feasible' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.RationalFarkas.feasibleℝ_iff_feasible
+/-- info: 'CRNT.Network.massActionInjectiveOnClass_of_compressionSRSign' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionInjectiveOnClass_of_compressionSRSign
