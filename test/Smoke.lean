@@ -1035,6 +1035,21 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
       omegaLimit atTop ϕ {x₀} = {xstar} :=
   N.gac_of_local_confinement hwr κ hxs hcb hx0 hx0compat hloc
 
+-- Fenichel stability transfer over the stationary affine base: with rate > 0 the lifted
+-- equilibrium incl σ y₀ = (y₀, σ y₀) is fixed by the full comoving-contract flow at every t ≥ 0
+-- and attracts the full trajectory of any point (y₀, z₀) sharing its base coordinate. The slow
+-- manifold is normally attracting, so the reduced base equilibrium's stability transfers up to the
+-- full system.
+open Filter in
+example (z₀ : ℝ) (y₀ : ℝ × ℝ) :
+    (∀ t : ℝ≥0, (ODE.comovingContractFlow (ODE.affineAllTimeBase ((0, 0) : ℝ × ℝ)) 1
+          (fun y : ℝ × ℝ => y.2) ODE.continuous_snd_section).toFun t
+          (ODE.incl (fun y : ℝ × ℝ => y.2) y₀) = ODE.incl (fun y : ℝ × ℝ => y.2) y₀)
+      ∧ Tendsto (fun t : ℝ≥0 => (ODE.comovingContractFlow (ODE.affineAllTimeBase ((0, 0) : ℝ × ℝ)) 1
+          (fun y : ℝ × ℝ => y.2) ODE.continuous_snd_section).toFun t (y₀, z₀)) atTop
+          (nhds (ODE.incl (fun y : ℝ × ℝ => y.2) y₀)) :=
+  ODE.affineStationaryStability_lift one_pos z₀ y₀
+
 -- Single-linkage-class GAC, conditional on single-linkage persistence: the conjecture for a
 -- single-linkage network reduces to the hypothesis `SingleLinkageClass → PersistentFrom`.
 open Filter in

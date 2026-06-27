@@ -332,3 +332,10 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'ODE.hasDerivAt_flow_initial' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms ODE.hasDerivAt_flow_initial
+/-- info: 'ODE.tendsto_dist_slowManifold_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms ODE.tendsto_dist_slowManifold_zero
+
+/-- info: 'ODE.asymptoticStability_lift' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms ODE.asymptoticStability_lift
