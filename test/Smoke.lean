@@ -2908,3 +2908,16 @@ example :
 example :
     ¬ CRNT.RationalFarkas.Feasible
       [({ coeff := ![], bound := -1 } : CRNT.RationalFarkas.Ineq 0)] := by decide
+
+-- Strict rational linear feasibility decides by the strict Fourier–Motzkin variant (`decide`, not
+-- `native_decide`). At the `Fin 0` base case strict feasibility is the positivity of every bound:
+-- an empty system and one with a strictly positive bound are strictly feasible; one with a
+-- zero bound is not (`0 < 0` fails).
+example : CRNT.RationalFarkas.FeasibleStrict ([] : List (CRNT.RationalFarkas.Ineq 0)) := by decide
+example :
+    CRNT.RationalFarkas.FeasibleStrict
+      [({ coeff := ![], bound := 3 } : CRNT.RationalFarkas.Ineq 0),
+       { coeff := ![], bound := 1 }] := by decide
+example :
+    ¬ CRNT.RationalFarkas.FeasibleStrict
+      [({ coeff := ![], bound := 0 } : CRNT.RationalFarkas.Ineq 0)] := by decide

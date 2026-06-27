@@ -38,6 +38,7 @@ import CRNT.Decision.IsCriticalSiphonDecidable
 import CRNT.Decision.ConservationConeStrict
 import CRNT.Decision.RationalFarkas
 import CRNT.Decision.RationalFarkasDecide
+import CRNT.Decision.RationalFarkasStrict
 
 -- Stoichiometry: reaction vectors, subspace, rank
 import CRNT.Stoich.Vector
