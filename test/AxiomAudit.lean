@@ -348,6 +348,10 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.separatingConfinement_of_persistentFrom
 
+/-- info: 'CRNT.Network.persistentFrom_of_omegaLimit_singleton' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.persistentFrom_of_omegaLimit_singleton
+
 /-- info: 'CRNT.Network.persistentFrom_of_hasNoCriticalSiphon' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.persistentFrom_of_hasNoCriticalSiphon

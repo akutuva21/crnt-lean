@@ -150,25 +150,29 @@ theorem separatingConfinement_of_persistentFrom (N : Network S) (κ : N.RateCons
   intro Γ hΓ0 hΓd t ht
   exact Set.mem_insert_of_mem _ (hconf Γ hΓ0 hΓd t ht)
 
-/-- **The no-critical-siphon class produces the persistence certificate.** For a weakly reversible
-network with no critical siphon, a positive complex-balanced reference `x*`, and a positive start
-`x₀` in its class, the genuine orbit's closure is a compact set inside the open positive orthant that
-absorbs every genuine orbit through `x₀` — exactly `Network.PersistentFrom`.
+/-- **The global attractor conclusion produces the persistence certificate.** Given the genuine
+semiflow `(ϕ, γ)` through a positive start `x₀` of a positive complex-balanced class, if its ω-limit
+set is the singleton `{x*}` then the absorbing certificate `Network.PersistentFrom` holds at `x₀`.
 
-The headline theorem `gac_of_hasNoCriticalSiphon` gives the genuine semiflow with ω-limit `{x*}`. The
-orbit lies in a compact relative-entropy sublevel set; its closure splits, at every cut time, into a
-compact initial arc and a tail whose closure is the ω-limit set, so every closure point is either an
-orbit point or `x*` — strictly positive in both cases. Uniqueness of the genuine orbit inside the
-confining box (`genuineOrbit_unique_of_box`) carries the confinement to an arbitrary integral curve.
+The orbit lies in a compact relative-entropy sublevel set; its closure splits, at every cut time,
+into a compact initial arc and a tail whose closure is the ω-limit set, so every closure point is
+either an orbit point or `x*` — strictly positive in both cases. Uniqueness of the genuine orbit
+inside the confining box (`genuineOrbit_unique_of_box`) carries the confinement to an arbitrary
+integral curve.
 
-This is the persistence certificate the no-critical-siphon argument does not otherwise expose. -/
-theorem persistentFrom_of_hasNoCriticalSiphon
-    (N : Network S) (hwr : N.WeaklyReversible) (κ : N.RateConstants) (hncs : N.HasNoCriticalSiphon)
+Read with `gac_of_separatingConfinement`, this makes the reduction tight: for these networks
+`SeparatingConfinement`, `PersistentFrom`, and the ω-limit-is-`{x*}` conclusion are mutually
+equivalent — the geometric predicate is neither weaker nor stronger than the conjecture's own
+conclusion. The remaining content is to *construct* any of them in the curved case. -/
+theorem persistentFrom_of_omegaLimit_singleton
+    (N : Network S) (κ : N.RateConstants)
     {xstar x₀ : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
-    (hx0 : x₀.Positive) (hx0compat : N.StoichCompatible x₀ xstar) :
+    (hx0 : x₀.Positive)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    (hγ0 : ∀ x, γ x 0 = x) (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    (hω : omegaLimit atTop ϕ {x₀} = {xstar}) :
     N.PersistentFrom κ x₀ := by
-  obtain ⟨ϕ, γ, hγ0, hϕγ, hsol, hω⟩ :=
-    N.gac_of_hasNoCriticalSiphon hwr κ hncs hxs hcb hx0 hx0compat
   set C₀ := relEntropy xstar x₀ with hC₀
   set B : ℝ := 1 + |C₀| + ∑ s, Real.exp 2 * xstar s with hBdef
   have hsumnn : 0 ≤ ∑ s, Real.exp 2 * xstar s :=
@@ -253,6 +257,35 @@ theorem persistentFrom_of_hasNoCriticalSiphon
       (hboxOf (γ x₀) hγ0x0 hsol) (by rw [hΓ0, hγ0x0]) t ht
   rw [heq]
   exact subset_closure ⟨t, ht, rfl⟩
+
+/-- **Separating confinement from the global attractor conclusion.** The same ω-limit-is-`{x*}`
+hypothesis yields the geometric predicate directly, by routing the persistence certificate through
+`separatingConfinement_of_persistentFrom`. With `gac_of_separatingConfinement` this is the reverse
+implication, so `SeparatingConfinement` is equivalent to the conjecture's own conclusion here. -/
+theorem separatingConfinement_of_omegaLimit_singleton
+    (N : Network S) (κ : N.RateConstants)
+    {xstar x₀ : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    (hx0 : x₀.Positive)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    (hγ0 : ∀ x, γ x 0 = x) (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    (hω : omegaLimit atTop ϕ {x₀} = {xstar}) :
+    N.SeparatingConfinement κ x₀ :=
+  N.separatingConfinement_of_persistentFrom κ hx0
+    (N.persistentFrom_of_omegaLimit_singleton κ hxs hcb hx0 hγ0 hϕγ hsol hω)
+
+/-- **The no-critical-siphon class produces the persistence certificate.** A corollary of
+`persistentFrom_of_omegaLimit_singleton`: `gac_of_hasNoCriticalSiphon` supplies the semiflow with
+ω-limit `{x*}`, which the general lemma turns into `Network.PersistentFrom`. This is the absorbing
+certificate the ω-limit argument of the no-critical-siphon theorem does not otherwise expose. -/
+theorem persistentFrom_of_hasNoCriticalSiphon
+    (N : Network S) (hwr : N.WeaklyReversible) (κ : N.RateConstants) (hncs : N.HasNoCriticalSiphon)
+    {xstar x₀ : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    (hx0 : x₀.Positive) (hx0compat : N.StoichCompatible x₀ xstar) :
+    N.PersistentFrom κ x₀ := by
+  obtain ⟨ϕ, γ, hγ0, hϕγ, hsol, hω⟩ :=
+    N.gac_of_hasNoCriticalSiphon hwr κ hncs hxs hcb hx0 hx0compat
+  exact N.persistentFrom_of_omegaLimit_singleton κ hxs hcb hx0 hγ0 hϕγ hsol hω
 
 /-- **The separating-confinement predicate holds on the no-critical-siphon class.** Combining
 `persistentFrom_of_hasNoCriticalSiphon` with the persistence-to-confinement direction: for a weakly

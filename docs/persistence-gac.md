@@ -76,11 +76,16 @@ Lipschitz cutoff). They are the genuine-field counterparts of the cutoff-orbit `
 `orbit_relEntropy_le`, and they discharge the genuine-confinement hypotheses of
 `gac_of_genuine_persistence` and `gac_of_confinement` directly.
 
-In particular `persistentFrom_of_hasNoCriticalSiphon` supplies the `Network.PersistentFrom`
-certificate for the no-critical-siphon class — the absorbing certificate the ω-limit assembly of
-`gac_of_hasNoCriticalSiphon` does not itself expose. What stays open is unchanged: constructing
-`SeparatingConfinement` for the curved mass-action case past critical siphons, refereed only up to
-stoichiometric dimension three.
+The construction is uniform in its input: `persistentFrom_of_omegaLimit_singleton` takes only the
+genuine semiflow and the conclusion that its ω-limit set is `{x*}`, and returns `PersistentFrom`.
+Read against `gac_of_separatingConfinement`, the reduction is therefore **tight** — for weakly
+reversible complex-balanced networks `SeparatingConfinement`, `PersistentFrom`, and the
+ω-limit-is-`{x*}` conclusion are mutually equivalent. The geometric predicate is neither weaker nor
+stronger than the conjecture's own conclusion, so reducing to it discards nothing.
+`persistentFrom_of_hasNoCriticalSiphon` is the corollary that feeds `gac_of_hasNoCriticalSiphon`'s
+ω-limit into this lemma, exposing the absorbing certificate the no-critical-siphon assembly does not
+itself surface. What stays open is unchanged: *constructing* any of the three for the curved
+mass-action case past critical siphons, refereed only up to stoichiometric dimension three.
 
 ## Siphons and the boundary (Angeli–De Leenheer–Sontag)
 

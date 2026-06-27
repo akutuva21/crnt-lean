@@ -1252,6 +1252,20 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
   ⟨N.separatingConfinement_of_hasNoCriticalSiphon hwr κ hncs hxs hcb hx0 hx0compat,
     N.persistentFrom_of_hasNoCriticalSiphon hwr κ hncs hxs hcb hx0 hx0compat⟩
 
+-- The reduction is tight: the global attractor conclusion (ω = {x*}) itself yields both the
+-- persistence certificate and the separating-confinement predicate, so the geometric predicate is
+-- equivalent to the conjecture's own conclusion for these networks.
+open Filter in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    {xstar x₀ : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    (hx0 : x₀.Positive) {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    (hγ0 : ∀ x, γ x 0 = x) (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    (hω : omegaLimit atTop ϕ {x₀} = {xstar}) :
+    N.SeparatingConfinement κ x₀ ∧ N.PersistentFrom κ x₀ :=
+  ⟨N.separatingConfinement_of_omegaLimit_singleton κ hxs hcb hx0 hγ0 hϕγ hsol hω,
+    N.persistentFrom_of_omegaLimit_singleton κ hxs hcb hx0 hγ0 hϕγ hsol hω⟩
+
 -- Genuine-orbit confinement: a genuine positive-start orbit stays positive with nonincreasing
 -- relative entropy, the genuine-field forms of `orbit_pos` / `orbit_relEntropy_le`.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
