@@ -3535,6 +3535,20 @@ example :
       dist G.base G.manifold ≤ G.defect / (1 - G.factor) :=
   ODE.fenichel_persistence_coupledDrift (5 : ℝ) (2 : ℝ) 3 (7 : ℝ) (1 : NNReal)
     (by norm_num) (by norm_num)
+-- End-to-end Fenichel ε-persistence over a GENERAL NONLINEAR slow base flow on `ℝ × ℝ`: the base
+-- evolves by the genuine `exists_flow` semiflow of the bounded Lipschitz nonlinear field `ε·sin y`
+-- (`logisticDriftFlow`), not a translation, while the fast fibre contracts onto `c`. The persisted
+-- manifold is the attracting fibre `z = c`, its graph forward-invariant under the iterate product
+-- semiflow over the nonlinear base and `M_ε` within the O(ε) ceiling, every hypothesis discharged via
+-- the contracting-manifold machinery, with NO base invertibility used.
+example :
+    let G := ODE.contractGapData (Y := ℝ) (E := ℝ) 3 (7 : ℝ) (1 : NNReal)
+      (by norm_num) (by norm_num)
+    IsInvariant
+        (fun n : ℕ => (ODE.productContractFlow (ODE.logisticDriftFlow (5 : ℝ)) 3 (7 : ℝ)).toFun
+          (n • (1 : NNReal))) (ODE.graphSet (G.manifold : ℝ → ℝ)) ∧
+      dist G.base G.manifold ≤ G.defect / (1 - G.factor) :=
+  ODE.fenichel_persistence_logisticDrift (5 : ℝ) 3 (7 : ℝ) (1 : NNReal) (by norm_num) (by norm_num)
 -- Strict boundary support for the GENUINE toric mass-action field, discharged from the dynamics:
 -- the fan cone geometry gives only `0 ≤ ⟪n, v⟫`; an enabled strictly-inward reaction per active
 -- wall upgrades it to the strict `IsStrictSupportField` the persistence engine consumes.
