@@ -4041,3 +4041,23 @@ example :
       (({![1, 0], ![0, 1], ![1, 1]} : Finset (Fin 2 → ℝ)) : Set (Fin 2 → ℝ)) :
       Set (Fin 2 → ℝ)) :=
   CRNT.isClosed_coe_hull_of_finite _
+-- Variational equation: along `[0, T]` the difference between the genuine flow separation
+-- `y t - x t` and its linear prediction `h • W t` (the solution of the linear variational ODE
+-- `Ẇ = Df (x t) · W`, `W 0 = v`) is controlled by Grönwall's growth function, with the driving
+-- term linear in `|h|` and vanishing with the `Df`-modulus `ρ`. The analytic core of smooth
+-- dependence of an ODE flow on its initial condition.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {f : E → E} {x y W : ℝ → E} {v : E} {h K ρ T : ℝ} (hK : 0 ≤ K) (hρ : 0 ≤ ρ)
+    (hx : ∀ t ∈ Set.Ico (0 : ℝ) T, HasDerivAt x (f (x t)) t)
+    (hy : ∀ t ∈ Set.Ico (0 : ℝ) T, HasDerivAt y (f (y t)) t)
+    (hW : ∀ t ∈ Set.Ico (0 : ℝ) T, HasDerivAt W ((fderiv ℝ f (x t)) (W t)) t)
+    (hxc : ContinuousOn x (Set.Icc 0 T)) (hyc : ContinuousOn y (Set.Icc 0 T))
+    (hWc : ContinuousOn W (Set.Icc 0 T))
+    (hDfK : ∀ t ∈ Set.Ico (0 : ℝ) T, ‖fderiv ℝ f (x t)‖ ≤ K)
+    (hmod : ∀ t ∈ Set.Ico (0 : ℝ) T,
+      ‖f (y t) - f (x t) - (fderiv ℝ f (x t)) (y t - x t)‖ ≤ ρ * ‖y t - x t‖)
+    (hsep : ∀ t ∈ Set.Ico (0 : ℝ) T, ‖y t - x t‖ ≤ |h| * ‖v‖ * Real.exp (K * t))
+    (h0 : (y 0 - x 0) - h • W 0 = 0) :
+    ∀ t ∈ Set.Icc (0 : ℝ) T,
+      ‖(y t - x t) - h • W t‖ ≤ gronwallBound 0 K (ρ * (|h| * ‖v‖ * Real.exp (K * T))) t :=
+  ODE.norm_flow_variational_error_le (v := v) hK hρ hx hy hW hxc hyc hWc hDfK hmod hsep h0
