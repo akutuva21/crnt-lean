@@ -159,8 +159,36 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
       omegaLimit atTop ϕ {x₀} = {xstar} :=
   N.gac_of_decide hwr κ hdec hxs hcb hx0 hx0compat
 
+-- The certified-persistence flag is `weaklyReversible ∧ deficiency = 0 ∧ ¬hasCriticalSiphon`; when
+-- `true` the deficiency-zero theorem supplies the complex-balanced reference, so every positive
+-- trajectory converges to the complex-balanced equilibrium in its own compatibility class.
+example (d : NetworkData) :
+    d.analyze.persistenceCertified
+      = (d.analyze.weaklyReversible && d.analyze.deficiency == 0
+          && !d.analyze.hasCriticalSiphon) :=
+  NetworkData.analyze_persistenceCertified_eq d
+example (d : NetworkData) (h : d.analyze.persistenceCertified = true) :
+    d.toNetwork.WeaklyReversible ∧ d.toNetwork.DeficiencyZero
+      ∧ d.toNetwork.HasNoCriticalSiphon :=
+  NetworkData.certifiedHypotheses_of_persistenceCertified d h
+
+-- Deficiency zero discharges the complex-balanced witness of the global-attractor verdict: weak
+-- reversibility, deficiency zero, and no critical siphon give, for any positive start, convergence
+-- to a complex-balanced equilibrium in the start's compatibility class.
+open Filter in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (κ : N.RateConstants) (hδ : N.DeficiencyZero) (hdec : decide N.HasCriticalSiphon = false)
+    {x₀ : Concentration S} (hx0 : x₀.Positive) :
+    ∃ xstar : Concentration S, xstar.Positive ∧ N.IsComplexBalanced κ xstar
+      ∧ N.StoichCompatible x₀ xstar ∧
+      ∃ (ϕ : Flow ℝ≥0 (Concentration S)) (γ : Concentration S → ℝ → Concentration S),
+        (∀ x, γ x 0 = x) ∧ (∀ x (t : ℝ≥0), ϕ t x = γ x t) ∧
+        (∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t) ∧
+        omegaLimit atTop ϕ {x₀} = {xstar} :=
+  N.gac_of_deficiencyZero_decide hwr κ hδ hdec hx0
+
 -- The analysis tags the current contract version.
-example : interopRevData.analyze.version = 8 := by decide
+example : interopRevData.analyze.version = 9 := by decide
 
 -- The `crnt_deficiency_zero` tactic certifies deficiency zero from an explicit minor witness:
 -- a 1×1 minor for the reversible pair, a 2×2 minor for the irreversible chain.

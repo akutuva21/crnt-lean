@@ -47,8 +47,9 @@ their analyses (the bulk path: one process invocation scores many networks).
 ```json
 {"acrSpecies":[],"conservationLawDim":1,"deficiency":0,"hasCriticalSiphon":false,
  "hasSiphon":true,"minimalSiphons":[[0,1]],"numComplexes":2,"numLinkageClasses":1,
- "numReactions":2,"numSpecies":2,"numStrongLinkageClasses":1,"persistenceStructural":true,
- "srSignConsistent":false,"stoichRank":1,"version":8,"weaklyReversible":true}
+ "numReactions":2,"numSpecies":2,"numStrongLinkageClasses":1,"persistenceCertified":true,
+ "persistenceStructural":true,"srSignConsistent":false,"stoichRank":1,"version":9,
+ "weaklyReversible":true}
 ```
 
 The fields, in their declaration order on the `Analysis` structure:
@@ -71,6 +72,7 @@ The fields, in their declaration order on the `Analysis` structure:
 | `srSignConsistent` | bool | consistent signed species–reaction cover condition holds | `decide ConsistentSRSign` |
 | `hasCriticalSiphon` | bool | a critical siphon exists (no positive conservation law on its support) | `decide HasCriticalSiphon` |
 | `persistenceStructural` | bool | structural persistence precondition: `weaklyReversible ∧ ¬hasCriticalSiphon` | `hasNoCriticalSiphon_of_persistenceStructural` |
+| `persistenceCertified` | bool | certified persistence: `weaklyReversible ∧ deficiency = 0 ∧ ¬hasCriticalSiphon` | `gac_of_persistenceCertified` |
 
 `Analysis` derives `FromJson, ToJson, Repr, DecidableEq`; the `ToJson` instance is what serializes the
 record.
@@ -103,6 +105,19 @@ structural half of the hypothesis of `gac_of_hasNoCriticalSiphon` (the decision-
 proof: the global-attraction conclusion additionally needs a positive complex-balanced reference,
 which the consumer supplies and the contract cannot certify from structure alone.
 
+`persistenceCertified` is `weaklyReversible ∧ deficiency = 0 ∧ ¬hasCriticalSiphon`: the full
+structural precondition under which the contract supplies the complex-balanced reference itself. When
+`true` the network is weakly reversible, of deficiency zero, and has no critical siphon
+(`certifiedHypotheses_of_persistenceCertified`), so the Feinberg–Horn–Jackson deficiency-zero theorem
+produces the positive complex-balanced equilibrium that `persistenceStructural` left to the consumer.
+The verdict `gac_of_persistenceCertified` then concludes, for any positive rate constants and any
+positive start `x₀`, that the mass-action semiflow through `x₀` converges to a complex-balanced
+equilibrium in `x₀`'s own compatibility class (its ω-limit set is exactly that point). The only input
+the contract cannot certify is the positive start `x₀` — a genuine per-trajectory hypothesis, not a
+structural one. In words: every positive trajectory converges to the network's complex-balanced
+equilibrium in its compatibility class. Deficiency zero is read off `deficiency` and bridged to
+`DeficiencyZero` by `deficiencyZero_iff_computableDeficiency_eq_zero`.
+
 `minimalSiphons` lists the support-minimal siphons (each as an ascending species-index array). These
 are the candidate critical siphons: a siphon is critical iff it carries no positive conservation law
 on its support. Enumeration tests minimality across the powerset (`~4^numSpecies` in the worst case —
@@ -124,7 +139,7 @@ not evaluate), and `deficiency_eq_computableDeficiency` bridges the assembly to 
 
 ## Versioning
 
-`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `8`. It tags the
+`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `9`. It tags the
 field set and increments whenever a field is added or its meaning changes, so a consumer can detect a
 contract it does not understand. A new per-property companion raises the version when it joins the
 record.

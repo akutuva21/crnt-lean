@@ -4,6 +4,7 @@ import CRNT.Decision.DirectedReachability
 import CRNT.Decision.ACRCheck
 import CRNT.Decision.CriticalSiphonDecide
 import CRNT.Decision.PersistenceVerdict
+import CRNT.Decision.PersistenceCertified
 import CRNT.Dynamics.Siphon
 import CRNT.LinearAlgebra.OrthogonalComplement
 import CRNT.Multistationarity.SRSignDecidable
@@ -53,9 +54,10 @@ namespace CRNT
 
 open Lean (FromJson ToJson)
 open CRNT.GaussianRank
+open scoped NNReal Topology
 
 /-- The version of the `Analysis` JSON contract. Bump on any field-set change. -/
-def analysisVersion : Nat := 8
+def analysisVersion : Nat := 9
 
 /-- The structural invariants of a network, as a JSON-serializable record. The numeric fields are
 the computable companions of the library theory; `deficiency` is `n − ℓ − s` assembled here. -/
@@ -107,6 +109,14 @@ structure Analysis where
   hypothesis. It is not a full persistence proof: the global-attraction conclusion additionally needs
   a positive complex-balanced reference the consumer supplies. -/
   persistenceStructural : Bool
+  /-- Whether the network meets the full structural precondition of the global-attractor verdict with
+  the complex-balanced reference supplied internally: `weaklyReversible ∧ deficiency = 0 ∧
+  ¬hasCriticalSiphon`. When `true`, the network is weakly reversible, of deficiency zero, and has no
+  critical siphon, so the Feinberg–Horn–Jackson deficiency-zero theorem provides the complex-balanced
+  reference and every positive trajectory converges to the complex-balanced equilibrium in its own
+  compatibility class. The only remaining input is the positive start — a per-trajectory hypothesis,
+  not a structural one. -/
+  persistenceCertified : Bool
   deriving FromJson, ToJson, Repr, DecidableEq
 
 namespace NetworkData
@@ -132,7 +142,9 @@ def analyze (d : NetworkData) : Analysis :=
       (fun l => (l.map Fin.val).toArray)).toArray
     srSignConsistent := decide N.ConsistentSRSign
     hasCriticalSiphon := decide N.HasCriticalSiphon
-    persistenceStructural := decide N.WeaklyReversible && !decide N.HasCriticalSiphon }
+    persistenceStructural := decide N.WeaklyReversible && !decide N.HasCriticalSiphon
+    persistenceCertified := decide N.WeaklyReversible && N.computableDeficiency == 0
+      && !decide N.HasCriticalSiphon }
 
 /-- The reported deficiency is the network's deficiency. -/
 theorem analyze_deficiency_eq (d : NetworkData) :
@@ -246,6 +258,57 @@ theorem hasNoCriticalSiphon_of_persistenceStructural (d : NetworkData)
   rw [Network.hasNoCriticalSiphon_iff_not_hasCriticalSiphon, ← analyze_hasCriticalSiphon_eq d,
     h.2]
   exact Bool.false_ne_true
+
+/-- The reported certified-persistence flag is
+`weaklyReversible ∧ deficiency = 0 ∧ ¬hasCriticalSiphon`. -/
+theorem analyze_persistenceCertified_eq (d : NetworkData) :
+    (d.analyze).persistenceCertified
+      = ((d.analyze).weaklyReversible && (d.analyze).deficiency == 0
+          && !(d.analyze).hasCriticalSiphon) :=
+  rfl
+
+/-- **Certified structural precondition.** When the certified-persistence flag is `true`, the network
+is weakly reversible, of deficiency zero, and has no critical siphon. These are exactly the structural
+hypotheses of `gac_of_deficiencyZero_decide`: the complex-balanced reference is then supplied by the
+Feinberg–Horn–Jackson deficiency-zero theorem, not by the consumer. -/
+theorem certifiedHypotheses_of_persistenceCertified (d : NetworkData)
+    (h : (d.analyze).persistenceCertified = true) :
+    d.toNetwork.WeaklyReversible ∧ d.toNetwork.DeficiencyZero
+      ∧ d.toNetwork.HasNoCriticalSiphon := by
+  rw [analyze_persistenceCertified_eq, Bool.and_eq_true, Bool.and_eq_true,
+    Bool.not_eq_true'] at h
+  obtain ⟨⟨hwr, hδ⟩, hcs⟩ := h
+  refine ⟨(analyze_weaklyReversible_eq d).mp hwr, ?_, ?_⟩
+  · rw [Network.deficiencyZero_iff_computableDeficiency_eq_zero]
+    exact beq_iff_eq.mp hδ
+  · rw [Network.hasNoCriticalSiphon_iff_not_hasCriticalSiphon, ← analyze_hasCriticalSiphon_eq d, hcs]
+    exact Bool.false_ne_true
+
+/-- **Certified global-attractor / no-extinction verdict.** When the certified-persistence flag is
+`true`, the network is weakly reversible, of deficiency zero, and has no critical siphon. For any
+positive rate constants and any positive start `x₀`, there is a positive complex-balanced
+concentration `x*` in `x₀`'s compatibility class such that the mass-action semiflow through `x₀`
+converges to it: its ω-limit set is exactly `{x*}`. The complex-balanced reference is supplied by the
+deficiency-zero theorem; the only input the contract cannot certify is the positive start, a genuine
+per-trajectory hypothesis. The verdict therefore reads: every positive trajectory converges to the
+network's complex-balanced equilibrium in its own compatibility class. -/
+theorem gac_of_persistenceCertified (d : NetworkData)
+    (h : (d.analyze).persistenceCertified = true) (κ : d.toNetwork.RateConstants)
+    {x₀ : Concentration (Fin d.numSpecies)} (hx0 : x₀.Positive) :
+    ∃ xstar : Concentration (Fin d.numSpecies), xstar.Positive
+      ∧ d.toNetwork.IsComplexBalanced κ xstar ∧ d.toNetwork.StoichCompatible x₀ xstar ∧
+      ∃ (ϕ : Flow ℝ≥0 (Concentration (Fin d.numSpecies)))
+        (γ : Concentration (Fin d.numSpecies) → ℝ → Concentration (Fin d.numSpecies)),
+        (∀ x, γ x 0 = x) ∧ (∀ x (t : ℝ≥0), ϕ t x = γ x t) ∧
+        (∀ t, 0 ≤ t →
+          HasDerivAt (γ x₀) (d.toNetwork.massActionVectorField κ (γ x₀ t)) t) ∧
+        omegaLimit Filter.atTop ϕ {x₀} = {xstar} := by
+  obtain ⟨hwr, hδ, _⟩ := certifiedHypotheses_of_persistenceCertified d h
+  have hcs : decide d.toNetwork.HasCriticalSiphon = false := by
+    rw [analyze_persistenceCertified_eq, Bool.and_eq_true, Bool.and_eq_true,
+      Bool.not_eq_true'] at h
+    exact h.2
+  exact d.toNetwork.gac_of_deficiencyZero_decide hwr κ hδ hcs hx0
 
 end NetworkData
 

@@ -178,3 +178,10 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.ExponentialDecay.LyapunovCertificate.norm_exp_smul_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.ExponentialDecay.LyapunovCertificate.norm_exp_smul_le
+/-- info: 'CRNT.Network.gac_of_deficiencyZero_decide' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.gac_of_deficiencyZero_decide
+
+/-- info: 'CRNT.NetworkData.gac_of_persistenceCertified' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.NetworkData.gac_of_persistenceCertified
