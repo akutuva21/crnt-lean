@@ -3168,3 +3168,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     {k : ℕ} (ρ : Fin k → S) (γ : Fin k → N.R) (kq : N.R → ℚ) (xq : S → ℚ) :
     Decidable (N.CompressionCoverSignQ ρ γ kq xq) :=
   inferInstance
+-- Exponential decay from a Lyapunov certificate: a Hurwitz generator's flow contracts at an
+-- exponential rate `‖exp (t • A) x‖ ≤ √(C₀/c₀) · e^{-t/(2 C₀)} · ‖x‖` on the stable directions.
+example (A : Matrix (Fin 2) (Fin 2) ℝ)
+    (cert : CRNT.ExponentialDecay.LyapunovCertificate (CRNT.ExponentialDecay.act A))
+    (x : CRNT.ExponentialDecay.Phase 2) {t : ℝ} (ht : 0 ≤ t) :
+    ‖CRNT.ExponentialDecay.act (NormedSpace.exp (t • A)) x‖
+      ≤ Real.sqrt (cert.C₀ / cert.c₀) * Real.exp (-(1 / (2 * cert.C₀)) * t) * ‖x‖ :=
+  cert.norm_exp_smul_le x ht

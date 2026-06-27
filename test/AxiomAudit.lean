@@ -174,3 +174,7 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'ODE.GraphTransformData.manifold_dist_base_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms ODE.GraphTransformData.manifold_dist_base_le
+
+/-- info: 'CRNT.ExponentialDecay.LyapunovCertificate.norm_exp_smul_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.ExponentialDecay.LyapunovCertificate.norm_exp_smul_le
