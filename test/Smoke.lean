@@ -2935,6 +2935,28 @@ example (H : CRNT.PlanarHopfData) (htrans : H.α' ≠ 0) (hℓ : H.firstLyapunov
         ∧ (∃ s t, orbit μ s ≠ orbit μ t)
         ∧ (∃ s, ‖orbit μ s‖ = Real.sqrt (-H.α μ / H.firstLyapunov))) :=
   H.hopf_andronov_full_field htrans hℓ F branch hclosure hpos hroot radialEq T hT orbit realizes
+-- Hopf–Andronov for the full field with `realizes` discharged: a return-map fixed point at the
+-- amplitude point of each branch parameter (carried as HopfRealizationData, the smooth-ODE-dependence
+-- the section records) supplies the rotation closure, so the full field carries the bifurcating
+-- family of nonconstant periodic orbits with the √(−α/ℓ₁) amplitude law — no realizes hypothesis.
+example (H : CRNT.PlanarHopfData) (htrans : H.α' ≠ 0) (hℓ : H.firstLyapunov ≠ 0)
+    {μ₁ R₀ : ℝ} (F : CRNT.PlanarHopfData.FullRadialField μ₁ R₀) (branch : Set ℝ)
+    (hclosure : H.μ₀ ∈ closure branch)
+    (hpos : ∀ ν ∈ branch, 0 < CRNT.PlanarHopfData.amplitudeBranch F ν)
+    (hroot : ∀ ν ∈ branch, F.G ν (CRNT.PlanarHopfData.amplitudeBranch F ν) = 0)
+    (radialEq : ∀ ν ∈ branch,
+      CRNT.PlanarHopfData.amplitudeBranch F ν = Real.sqrt (-H.α ν / H.firstLyapunov))
+    (uniq : ∀ ν ∈ branch, ∀ ρ, F.G ν ρ = 0 → 0 < ρ → ρ = CRNT.PlanarHopfData.amplitudeBranch F ν)
+    (data : ∀ ν ∈ branch, H.HopfRealizationData ν (CRNT.PlanarHopfData.amplitudeBranch F ν)) :
+    H.μ₀ ∈ closure branch ∧
+      (∀ μ ∈ branch, 0 < CRNT.PlanarHopfData.realizedPeriod H data μ
+        ∧ Function.Periodic (CRNT.PlanarHopfData.realizedOrbit H data μ)
+            (CRNT.PlanarHopfData.realizedPeriod H data μ)
+        ∧ (∃ s t, CRNT.PlanarHopfData.realizedOrbit H data μ s
+            ≠ CRNT.PlanarHopfData.realizedOrbit H data μ t)
+        ∧ (∃ s, ‖CRNT.PlanarHopfData.realizedOrbit H data μ s‖
+            = Real.sqrt (-H.α μ / H.firstLyapunov))) :=
+  H.hopf_andronov_full_field_realized htrans hℓ F branch hclosure hpos hroot radialEq uniq data
 -- Critical-siphon feasibility under Farkas duality: a species vector lies in the conservation cone
 -- (nonnegative, orthogonal to the stoichiometric subspace) iff every direction nonnegative on the
 -- cone is nonnegative on it.

@@ -90,6 +90,10 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.TransversalSection.hasFDerivAt_returnMap
 
+/-- info: 'CRNT.PlanarHopfData.hopf_andronov_full_field_realized' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.PlanarHopfData.hopf_andronov_full_field_realized
+
 /-- info: 'CRNT.Examples.HopfOscillator3.admissible' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Examples.HopfOscillator3.admissible
