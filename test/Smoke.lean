@@ -3751,3 +3751,18 @@ example (a : ℝ≥0) {V : ℝ} (hV : 0 < V) :
     ProbabilityTheory.variance (fun n : ℕ => (n : ℝ) / V)
       (ProbabilityTheory.poissonMeasure (⟨V, hV.le⟩ * a)) = (a : ℝ) / V :=
   CRNT.Stochastic.variance_scaled_intensity_poissonMeasure hV a
+
+-- The degree of an invertible continuous linear map is the orientation sign of its
+-- determinant: the preimage is a single point and the derivative is the map itself.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    (T : E →L[ℝ] E) (hdet : LinearMap.det T.toLinearMap ≠ 0) (y : E) :
+    regularDegree (⇑T) y (finite_preimage_of_det_ne_zero T hdet y) =
+      ((SignType.sign (LinearMap.det T.toLinearMap) : SignType) : ℤ) :=
+  regularDegree_continuousLinearMap T hdet y
+
+-- The orientation-reversing case: the negation `-id` of `EuclideanSpace ℝ (Fin 1)`
+-- reflects the single coordinate (determinant `-1`), so its regular degree is `-1`.
+example (y : EuclideanSpace ℝ (Fin 1)) :
+    regularDegree (⇑(-ContinuousLinearMap.id ℝ (EuclideanSpace ℝ (Fin 1)))) y
+      (finite_preimage_of_det_ne_zero _ det_neg_id_fin_one_ne_zero y) = -1 :=
+  regularDegree_neg_id_eq_neg_one y
