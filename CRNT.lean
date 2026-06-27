@@ -86,6 +86,7 @@ import CRNT.Geometry.FanFaceProperness
 import CRNT.Geometry.ReactionFanGeneration
 import CRNT.Geometry.SimplicialConeClosed
 import CRNT.Geometry.FiniteConeClosed
+import CRNT.Geometry.ReactionHullCone
 import CRNT.Geometry.ZeroSeparatingInduction
 import CRNT.Geometry.FanRefinement
 import CRNT.LinearAlgebra.LogSumInj
