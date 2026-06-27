@@ -2941,3 +2941,18 @@ example :
 example :
     ¬ CRNT.RationalFarkas.FeasibleStrict
       [({ coeff := ![], bound := 0 } : CRNT.RationalFarkas.Ineq 0)] := by decide
+-- Spectral splitting: a real linear endomorphism complexified into a finite-dimensional ℂ-space
+-- yields a center/stable/unstable internal direct sum. We exercise the abstract construction on a
+-- concrete endomorphism of `Fin 1 → ℂ`.
+example :
+    DirectSum.IsInternal
+      (fun i : Fin 3 =>
+        ![CRNT.SpectralSplitting.stableSubspace (V := Fin 1 → ℂ) 0,
+          CRNT.SpectralSplitting.centerSubspace (V := Fin 1 → ℂ) 0,
+          CRNT.SpectralSplitting.unstableSubspace (V := Fin 1 → ℂ) 0] i) :=
+  CRNT.SpectralSplitting.isInternal_stable_center_unstable (V := Fin 1 → ℂ) 0
+
+example (A : Module.End ℂ (Fin 1 → ℂ)) :
+    Set.MapsTo A (CRNT.SpectralSplitting.centerSubspace A)
+      (CRNT.SpectralSplitting.centerSubspace A) :=
+  CRNT.SpectralSplitting.mapsTo_centerSubspace A
