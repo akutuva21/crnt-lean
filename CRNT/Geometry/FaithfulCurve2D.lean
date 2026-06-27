@@ -31,6 +31,15 @@ This module formalizes the angle ↔ vector bridge and the monotonicity that dri
   oriented line with normal `dir θ` is `ρ · cos (θ − φ)`; the engine for placing the curve's vertices
   on the far side of each face.
 
+* `apexField_isStrictSupportField` — the constant field along an apex direction `ρ • dir φ` (`ρ > 0`),
+  whose angle is within `π/2` of every wall, is a *strict* support field for the angular faces. This
+  derives the strict boundary-local subtangency condition driving `polyRegion_invariant_of_strictSupport`
+  rather than assuming it: `⟪dir w.1, ρ • dir φ⟫_ℝ = ρ · cos (w.1 − φ) > 0` throughout the sector.
+
+* `apexField_region_persistent` — persistence away from `0` for a curve driven by the apex field,
+  taking **no** strict-support hypothesis: the strict support is produced from the same sector datum
+  that places the curve's interior start, closing the planar angular construction for that field.
+
 These are the foundational geometric facts; the convex-arc assembly (a polygonal curve with these
 monotone normals running axis-to-axis, separating `0`) is built on top.
 
@@ -160,16 +169,76 @@ theorem exists_faithful_separating_region (walls : List (ℝ × ℝ)) {φ θ₀ 
       polyRegion (facesOfAngles walls) ⊆ (Metric.ball (0 : Plane) a)ᶜ :=
   ⟨exists_mem_polyRegion walls hsector, facesOfAngles_subset_compl_ball hmem le_rfl⟩
 
+/-! ## The strict support field of the apex direction
+
+The persistence engine `polyRegion_invariant_of_strictSupport` needs the *strict* boundary-local
+support condition `IsStrictSupportField` — a velocity pairing *strictly positively* with the inward
+normal `dir w.1` at every active angular face. For the constant field pointing along an apex
+direction `dir φ` whose angle is within `< π/2` of every wall, this is no longer an assumption: it
+follows from the angle bridge `inner_dir_smul`, because `⟪dir w.1, ρ • dir φ⟫_ℝ = ρ · cos (w.1 − φ)`
+and the cosine is strictly positive throughout the sector. The constant apex field is exactly the
+field whose far-out strict interior point `exists_strict_interior` already produces, so the two halves
+of the construction — interior start and strict support — are now supplied by the same angular datum,
+none of it assumed. -/
+
+/-- **Apex-direction strict support face.** For a positive radius `ρ` and a wall `(θ₀, a)` whose
+angle is within a quarter turn of the apex angle `φ` (`|θ₀ − φ| < π/2`), the constant field pointing
+along the apex direction `ρ • dir φ` is a *strict* support face for the angular face `(dir θ₀, a)`:
+at every region-boundary point on that face the velocity pairs strictly positively with the inward
+normal `dir θ₀`, since `⟪dir θ₀, ρ • dir φ⟫_ℝ = ρ · cos (θ₀ − φ) > 0`. -/
+theorem apexField_isStrictSupportFace {walls : List (ℝ × ℝ)} {φ θ₀ a ρ : ℝ}
+    (hρ : 0 < ρ) (hsec : |θ₀ - φ| < π / 2) :
+    IsStrictSupportFace (E := Plane) (fun _ => ρ • dir φ)
+      (facesOfAngles walls) (dir θ₀) a := by
+  intro _ _
+  rw [inner_dir_smul]
+  have hcos : 0 < Real.cos (θ₀ - φ) := by
+    rw [← Real.cos_abs]
+    exact Real.cos_pos_of_mem_Ioo ⟨by linarith [abs_nonneg (θ₀ - φ), Real.pi_pos], hsec⟩
+  positivity
+
+/-- **The apex direction is a strict support field for the angular region.** Under the sector
+hypothesis `|w.1 − φ| < π/2` for every wall, the constant field `fun _ => ρ • dir φ` (`ρ > 0`) is a
+`IsStrictSupportField` for the whole angular face list `facesOfAngles walls`. This *derives* the
+strict boundary-local support condition that `faithful_region_persistent` otherwise takes as a
+hypothesis: it is a consequence of the angular chaining, not an additional assumption. -/
+theorem apexField_isStrictSupportField {walls : List (ℝ × ℝ)} {φ ρ : ℝ}
+    (hρ : 0 < ρ) (hsector : ∀ w ∈ walls, |w.1 - φ| < π / 2) :
+    IsStrictSupportField (E := Plane) (fun _ => ρ • dir φ) (facesOfAngles walls) := by
+  intro nf hnf
+  rw [facesOfAngles, List.mem_map] at hnf
+  obtain ⟨w, hw, rfl⟩ := hnf
+  exact apexField_isStrictSupportFace hρ (hsector w hw)
+
+/-- **Persistence under the apex field — strict support discharged.** A genuine curve `γ` driven by
+the constant apex field `ẋ = ρ • dir φ` (`ρ > 0`), started strictly inside the angular region, keeps
+a hard distance `r` from the origin for all forward time, given a separating wall `(θ₀, a)` with
+`a ≥ r` and the sector hypothesis `|w.1 − φ| < π/2`. Unlike `faithful_region_persistent`, this takes
+*no* strict-support hypothesis: the strict boundary-local support is produced by
+`apexField_isStrictSupportField` from the same sector datum that places the curve's interior start.
+The angular construction is self-contained for the apex field. -/
+theorem apexField_region_persistent (walls : List (ℝ × ℝ)) {φ θ₀ a r ρ : ℝ}
+    (hρ : 0 < ρ) (hsector : ∀ w ∈ walls, |w.1 - φ| < π / 2)
+    (hmem : (θ₀, a) ∈ walls) (har : r ≤ a)
+    {γ : ℝ → Plane}
+    (hγcont : Continuous γ) (hγ : ∀ t > 0, HasDerivAt γ (ρ • dir φ) t)
+    (hstart : ∀ nf ∈ facesOfAngles walls, nf.2 < ⟪nf.1, γ 0⟫_ℝ)
+    {t : ℝ} (ht : 0 ≤ t) :
+    r ≤ dist (γ t) 0 :=
+  stays_away_from_zero_of_strictSupport
+    (List.mem_map.mpr ⟨(θ₀, a), hmem, rfl⟩) (norm_dir θ₀) har hγcont
+    (fun s hs => hγ s hs) (apexField_isStrictSupportField hρ hsector) hstart ht
+
 /-- **Persistence on the constructed angular region.** A genuine curve `γ` solving `ẋ = f(γ)` whose
 field is strictly subtangent (boundary-locally) to the angular faces, started strictly inside the
 region, keeps a hard distance `r` from the origin for all forward time — given a separating wall
 `(θ₀, a)` with `a ≥ r`. This composes the angular face structure (unit normals, automatic
 separation) with the honest boundary-local invariance `polyRegion_invariant_of_strictSupport`.
 
-The remaining input `hsupp` — that the field strictly attracts toward the region across each
-angular face — is the fan-geometry connection (the per-wall attracting-direction analysis), the one
-piece still supplied as a hypothesis; everything else (the separating region, the interior start via
-`exists_strict_interior`) is constructed from the angular chaining. -/
+For the constant apex field the input `hsupp` is no longer needed — it is produced by
+`apexField_isStrictSupportField`. For a general field `f` it remains the fan-geometry connection (the
+per-wall attracting-direction analysis); everything else (the separating region, the interior start
+via `exists_strict_interior`) is constructed from the angular chaining. -/
 theorem faithful_region_persistent (walls : List (ℝ × ℝ)) {θ₀ a r : ℝ}
     (hmem : (θ₀, a) ∈ walls) (har : r ≤ a)
     {f : Plane → Plane} {γ : ℝ → Plane}

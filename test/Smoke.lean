@@ -2473,6 +2473,27 @@ example {θ₀ θ₁ θ₂ : ℝ} (h₀₁ : |θ₁ - θ₀| ≤ Real.pi / 2) (h
     (toricField (adjacentFan θ₀ θ₁ θ₂) δ X : Set Plane) ⊆ {y : Plane | 0 ≤ ⟪dir θ₁, y⟫_ℝ} :=
   toricField_subset_wall_halfPlane h₀₁ h₁₂ δ X
 
+-- The constant apex field (ρ • dir φ, ρ > 0) is a STRICT support field for the angular faces under
+-- the sector hypothesis — the per-wall strict attracting-direction condition derived, not assumed.
+open scoped InnerProductSpace in
+open FaithfulCurve2D ZeroSeparatingCurve2D in
+example (walls : List (ℝ × ℝ)) {φ ρ : ℝ} (hρ : 0 < ρ)
+    (hsector : ∀ w ∈ walls, |w.1 - φ| < Real.pi / 2) :
+    IsStrictSupportField (E := Plane) (fun _ => ρ • dir φ) (facesOfAngles walls) :=
+  apexField_isStrictSupportField hρ hsector
+
+-- Persistence under the apex field with NO strict-support hypothesis: the strict boundary-local
+-- support is produced from the same sector datum that places the interior start, so the angular
+-- planar construction is self-contained for the apex field.
+open scoped InnerProductSpace in
+open FaithfulCurve2D in
+example (walls : List (ℝ × ℝ)) {φ θ₀ a r ρ : ℝ} (hρ : 0 < ρ)
+    (hsector : ∀ w ∈ walls, |w.1 - φ| < Real.pi / 2) (hmem : (θ₀, a) ∈ walls) (har : r ≤ a)
+    {γ : ℝ → Plane} (hγcont : Continuous γ) (hγ : ∀ t > 0, HasDerivAt γ (ρ • dir φ) t)
+    (hstart : ∀ nf ∈ facesOfAngles walls, nf.2 < ⟪nf.1, γ 0⟫_ℝ) {t : ℝ} (ht : 0 ≤ t) :
+    r ≤ dist (γ t) 0 :=
+  apexField_region_persistent walls hρ hsector hmem har hγcont hγ hstart ht
+
 -- A ruled patch's surface normal must be orthogonal to its active tangency directions; below finrank
 -- such a normal exists (3 in ℝ⁴), once they span it is killed (4 in ℝ⁴). The threshold dichotomy for
 -- the surface-normal constraint system; whether a patch is forced to carry 4 directions is not decided here.

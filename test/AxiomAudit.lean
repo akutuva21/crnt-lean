@@ -38,6 +38,10 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.ZeroSeparatingCurve2D.polyRegion_invariant_of_strictSupport
 
+/-- info: 'CRNT.FaithfulCurve2D.apexField_region_persistent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.FaithfulCurve2D.apexField_region_persistent
+
 /-- info: 'CRNT.Analysis.SpernerN.sperner_exists_rainbow' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Analysis.SpernerN.sperner_exists_rainbow
