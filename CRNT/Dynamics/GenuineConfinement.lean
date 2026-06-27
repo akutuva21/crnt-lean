@@ -191,6 +191,45 @@ theorem genuineOrbit_unique_of_box (N : Network S) (κ : N.RateConstants) {B : �
       h0
   exact key (Set.right_mem_Icc.mpr hT)
 
+/-- **Uniqueness of the genuine orbit from a positive start.** For a positive complex-balanced
+reference `x*`, any two genuine mass-action solutions from the same positive start agree for all
+forward time. Each is confined by the relative entropy to the box past the coercivity bound of its
+initial sublevel set (`genuineOrbit_pos`, `genuineOrbit_relEntropy_le`, `relEntropy_coord_le`), where
+`genuineOrbit_unique_of_box` identifies them. This is the genuine-field counterpart of the
+clamped-field uniqueness `ODE.exists_flow` rests on. -/
+theorem genuineOrbit_unique (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {x₀ : Concentration S} (hx0 : x₀.Positive)
+    {Γ₁ Γ₂ : ℝ → Concentration S} (hΓ₁0 : Γ₁ 0 = x₀) (hΓ₂0 : Γ₂ 0 = x₀)
+    (hΓ₁d : ∀ t, 0 ≤ t → HasDerivAt Γ₁ (N.massActionVectorField κ (Γ₁ t)) t)
+    (hΓ₂d : ∀ t, 0 ≤ t → HasDerivAt Γ₂ (N.massActionVectorField κ (Γ₂ t)) t) :
+    ∀ t, 0 ≤ t → Γ₁ t = Γ₂ t := by
+  set C₀ := relEntropy xstar x₀ with hC₀
+  set B : ℝ := 1 + |C₀| + ∑ s, Real.exp 2 * xstar s with hBdef
+  have hsumnn : 0 ≤ ∑ s, Real.exp 2 * xstar s :=
+    Finset.sum_nonneg fun s _ => (mul_pos (Real.exp_pos 2) (hxs s)).le
+  have hBnn : 0 ≤ B := by rw [hBdef]; have := abs_nonneg C₀; linarith
+  have hBbig : ∀ s, max (Real.exp 2 * xstar s) C₀ < B := by
+    intro s
+    have hsum : Real.exp 2 * xstar s ≤ ∑ s', Real.exp 2 * xstar s' :=
+      Finset.single_le_sum (fun s' _ => (mul_pos (Real.exp_pos 2) (hxs s')).le) (Finset.mem_univ s)
+    rw [max_lt_iff, hBdef]
+    exact ⟨by linarith [abs_nonneg C₀], by linarith [le_abs_self C₀]⟩
+  have hboxOf : ∀ Γ : ℝ → Concentration S, Γ 0 = x₀ →
+      (∀ t, 0 ≤ t → HasDerivAt Γ (N.massActionVectorField κ (Γ t)) t) →
+      ∀ t, 0 ≤ t → ∀ s, |Γ t s| ≤ B := by
+    intro Γ hΓ0 hΓd t ht s
+    have hΓ0p : (Γ 0).Positive := by rw [hΓ0]; exact hx0
+    have hp := N.genuineOrbit_pos κ hΓ0p hΓd t ht
+    have hre : relEntropy xstar (Γ t) ≤ C₀ := by
+      have := N.genuineOrbit_relEntropy_le κ hxs hcb (N.genuineOrbit_pos κ hΓ0p hΓd) hΓd t ht
+      rwa [hΓ0] at this
+    rw [abs_le]
+    exact ⟨by linarith [hp s], le_of_lt (lt_of_le_of_lt
+      (relEntropy_coord_le hxs hp.nonnegative hre s) (hBbig s))⟩
+  exact N.genuineOrbit_unique_of_box κ hBnn hΓ₁d hΓ₂d
+    (hboxOf Γ₁ hΓ₁0 hΓ₁d) (hboxOf Γ₂ hΓ₂0 hΓ₂d) (by rw [hΓ₁0, hΓ₂0])
+
 end Network
 
 end CRNT

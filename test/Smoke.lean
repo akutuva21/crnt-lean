@@ -1277,6 +1277,16 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
   let hpos := N.genuineOrbit_pos κ hΓ0 hΓd
   ⟨hpos, N.genuineOrbit_relEntropy_le κ hxs hcb hpos hΓd⟩
 
+-- Uniqueness of the genuine mass-action orbit from a positive start (complex-balanced reference) —
+-- the genuine-field counterpart of the clamped-field uniqueness the flow construction rests on.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    {xstar x₀ : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    (hx0 : x₀.Positive) {Γ₁ Γ₂ : ℝ → Concentration S} (hΓ₁0 : Γ₁ 0 = x₀) (hΓ₂0 : Γ₂ 0 = x₀)
+    (hΓ₁d : ∀ t, 0 ≤ t → HasDerivAt Γ₁ (N.massActionVectorField κ (Γ₁ t)) t)
+    (hΓ₂d : ∀ t, 0 ≤ t → HasDerivAt Γ₂ (N.massActionVectorField κ (Γ₂ t)) t) :
+    ∀ t, 0 ≤ t → Γ₁ t = Γ₂ t :=
+  N.genuineOrbit_unique κ hxs hcb hx0 hΓ₁0 hΓ₂0 hΓ₁d hΓ₂d
+
 -- Broader reduction: a single positive ω-limit point forces ω = {x*} (no structural hypothesis).
 open Filter in
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)

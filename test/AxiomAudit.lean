@@ -359,3 +359,7 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.Network.separatingConfinement_of_hasNoCriticalSiphon' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.separatingConfinement_of_hasNoCriticalSiphon
+
+/-- info: 'CRNT.Network.genuineOrbit_unique' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.genuineOrbit_unique
