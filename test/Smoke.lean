@@ -1179,6 +1179,22 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
       omegaLimit atTop ϕ {x₀} = {xstar} :=
   N.gac_of_confinement hwr κ hxs hcb hx0 hx0compat hBcpt hε hconfine
 
+-- GAC from a forward-invariant separating region: bounded, floored off every facet, orbit-invariant.
+open Filter in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
+    (κ : N.RateConstants) {xstar x₀ : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar) (hx0 : x₀.Positive) (hx0compat : N.StoichCompatible x₀ xstar)
+    {R B : Set (Concentration S)} {ε : S → ℝ} (hBcpt : IsCompact B) (hε : ∀ s, 0 < ε s)
+    (hRB : R ⊆ B) (hRfloor : ∀ y ∈ R, ∀ s, ε s ≤ y s) (hx0R : x₀ ∈ R)
+    (hinv : ∀ Γ : ℝ → Concentration S, Γ 0 = x₀ →
+      (∀ t, 0 ≤ t → HasDerivAt Γ (N.massActionVectorField κ (Γ t)) t) →
+      ∀ t, 0 ≤ t → Γ t ∈ R) :
+    ∃ (ϕ : Flow ℝ≥0 (Concentration S)) (γ : Concentration S → ℝ → Concentration S),
+      (∀ x, γ x 0 = x) ∧ (∀ x (t : ℝ≥0), ϕ t x = γ x t) ∧
+      (∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t) ∧
+      omegaLimit atTop ϕ {x₀} = {xstar} :=
+  N.gac_of_separatingRegion hwr κ hxs hcb hx0 hx0compat hBcpt hε hRB hRfloor hx0R hinv
+
 -- Broader reduction: a single positive ω-limit point forces ω = {x*} (no structural hypothesis).
 open Filter in
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
