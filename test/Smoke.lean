@@ -3243,3 +3243,17 @@ example (κ : Network.RateConstants CRNT.Examples.StochasticConvergenceExample.N
         (CRNT.Examples.ConservationClassRegion.conservationClass_finite K) ^ n).mulVec x i)
         Filter.atTop (nhds (b i)) :=
   CRNT.Examples.ConservationClassRegion.conservationClass_pow_mulVec_tendsto κ K hK x hx
+-- A sound general injectivity verdict from point-free network data: on a coordinate-selection
+-- chart whose box covers the class and reads the full Jacobian on the pivot rows, the point-free
+-- signed-incidence weight and diagonal-drive conditions make mass-action kinetics injective on the
+-- positive compatibility class — no per-point or per-chart-cover assumption.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (x₀ : CRNT.Concentration S) {lo hi : Fin N.stoichRank → ℝ}
+    {f : Fin N.stoichRank → S} (hf : Function.Injective f)
+    (hbox : ∀ x ∈ N.positiveCompatibilityClass x₀, N.chartCoord x₀ x ∈ Set.Icc lo hi)
+    (hpos : ∀ y ∈ Set.Icc lo hi, Concentration.Positive (N.affineChart x₀ y))
+    (hsub : ∀ y ∈ Set.Icc lo hi, N.reducedJacobian κ x₀ y
+      = (N.massActionJacobian κ (N.affineChart x₀ y)).submatrix f f)
+    (hweight : N.SignCoverWeightNonneg) (hdrive : N.PositiveDiagonalDrive) :
+    (N.massActionKinetics κ).InjectiveOnClass x₀ :=
+  N.massActionInjectiveOnClass_of_pointIndep κ x₀ hf hbox hpos hsub hweight hdrive
