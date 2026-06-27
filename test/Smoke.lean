@@ -3035,3 +3035,17 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : CRNT.Network S) :
 example {n : ℕ} (sys : List (CRNT.RationalFarkas.Ineq n)) :
     CRNT.RationalFarkas.Feasibleℝ sys ↔ CRNT.RationalFarkas.Feasible sys :=
   CRNT.RationalFarkas.feasibleℝ_iff_feasible sys
+-- Real descent: complexifying a real matrix and pushing the sign-class subspaces back to `ℝⁿ`
+-- gives a real center/stable/unstable internal direct sum, each invariant under `A.mulVec`.
+example (A : Matrix (Fin 2) (Fin 2) ℝ) :
+    DirectSum.IsInternal
+      (fun i : Fin 3 =>
+        ![CRNT.SpectralSplittingReal.realStableSubspace A,
+          CRNT.SpectralSplittingReal.realCenterSubspace A,
+          CRNT.SpectralSplittingReal.realUnstableSubspace A] i) :=
+  CRNT.SpectralSplittingReal.isInternal_real_stable_center_unstable A
+
+example (A : Matrix (Fin 2) (Fin 2) ℝ) :
+    Set.MapsTo A.mulVec (CRNT.SpectralSplittingReal.realCenterSubspace A)
+      (CRNT.SpectralSplittingReal.realCenterSubspace A) :=
+  CRNT.SpectralSplittingReal.mulVec_mapsTo_realCenterSubspace A
