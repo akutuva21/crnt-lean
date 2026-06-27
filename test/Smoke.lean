@@ -3730,3 +3730,10 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpa
     (Sec : CRNT.TransversalSection (E := E)) :
     Filter.Tendsto Sec.crossingTime (nhds Sec.base) (nhds Sec.time) :=
   Sec.crossingTime_tendsto
+-- Discharge step of the fluctuation residual: with total intensity `r = V · a`, a single
+-- volume-scaled Poisson count has variance `a / V`, the `O(1/V)` decay that sends the
+-- martingale/Poisson fluctuation to zero as the volume grows.
+example (a : ℝ≥0) {V : ℝ} (hV : 0 < V) :
+    ProbabilityTheory.variance (fun n : ℕ => (n : ℝ) / V)
+      (ProbabilityTheory.poissonMeasure (⟨V, hV.le⟩ * a)) = (a : ℝ) / V :=
+  CRNT.Stochastic.variance_scaled_intensity_poissonMeasure hV a

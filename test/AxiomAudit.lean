@@ -228,3 +228,11 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.Network.WeaklyReversible.toricMassActionField_isStrictSupportField_of_activeWalls' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.WeaklyReversible.toricMassActionField_isStrictSupportField_of_activeWalls
+
+/-- info: 'CRNT.Stochastic.variance_id_poissonMeasure' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Stochastic.variance_id_poissonMeasure
+
+/-- info: 'CRNT.Stochastic.tendsto_meas_scaled_centered_poisson' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Stochastic.tendsto_meas_scaled_centered_poisson
