@@ -3881,3 +3881,30 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpa
             Sec.spaceCoordDeriv Sec.base Sec.time)))
       Sec.base :=
   Sec.hasFDerivAt_returnMap
+-- Local constancy of the degree in the value: near a nondegenerate preimage point `x₀` of a
+-- C¹ map, for every value `y` in a neighbourhood of `f x₀` the local degree on the
+-- inverse-function neighbourhood is the constant orientation sign `sign (det (Df x₀))`. This
+-- is the analytic heart of Brouwer-degree well-definedness on a connected set of regular values.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    [CompleteSpace E] (f : E → E) {x₀ : E} (hf : ContDiffAt ℝ 1 f x₀)
+    (hdet : LinearMap.det (fderiv ℝ f x₀).toLinearMap ≠ 0) :
+    ∀ᶠ y in nhds (f x₀),
+      ∀ (hfin : (f ⁻¹' {y}).Finite),
+        localDegree f y hfin
+            ((hasStrictFDerivAt_fderivEquiv f hf hdet).toOpenPartialHomeomorph f).source =
+          ((SignType.sign (LinearMap.det (fderiv ℝ f x₀).toLinearMap) : SignType) : ℤ) :=
+  eventually_localDegree_eq f hf hdet
+
+-- Composition multiplicativity (linear case): the degree of a composite of invertible
+-- continuous linear maps is the product of the degrees, `sign (det (T ∘ U))
+-- = sign (det T) · sign (det U)`, the linear shadow of the chain rule for the Jacobian.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    (T U : E →L[ℝ] E) (hT : LinearMap.det T.toLinearMap ≠ 0)
+    (hU : LinearMap.det U.toLinearMap ≠ 0) (y : E) :
+    regularDegree (⇑(T.comp U)) y
+        (finite_preimage_of_det_ne_zero (T.comp U)
+          (by rw [ContinuousLinearMap.toLinearMap_comp, LinearMap.det_comp]
+              exact mul_ne_zero hT hU) y) =
+      regularDegree (⇑T) y (finite_preimage_of_det_ne_zero T hT y) *
+        regularDegree (⇑U) y (finite_preimage_of_det_ne_zero U hU y) :=
+  regularDegree_comp_continuousLinearMap T U hT hU y

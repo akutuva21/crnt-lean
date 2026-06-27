@@ -324,6 +324,7 @@ import CRNT.Multistationarity.Toric
 import CRNT.Multistationarity.RegularValueDegree
 import CRNT.Multistationarity.LinearDegree
 import CRNT.Multistationarity.DegreeAdditivity
+import CRNT.Multistationarity.DegreeStability
 
 -- Design: robustness and special equilibria
 import CRNT.Design.ACR
