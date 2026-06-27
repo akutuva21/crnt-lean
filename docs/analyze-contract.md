@@ -15,8 +15,9 @@ derived fields each have a bridge in `CRNT/Interop/Analysis.lean` relating the r
 propositional definition: `analyze_deficiency_eq`, `analyze_stoichRank_eq`,
 `analyze_numLinkageClasses_eq`, `analyze_conservationLawDim_eq`, `analyze_weaklyReversible_eq`,
 `analyze_acrSpecies_eq`, `analyze_hasSiphon_eq`, `mem_analyze_minimalSiphons`,
-`analyze_srSignConsistent_eq`, `analyze_hasCriticalSiphon_eq`, and
-`analyze_persistenceStructural_eq`. The one-sided exclusion
+`analyze_srSignConsistent_eq`, `analyze_srPMatrixPointIndep_eq`, `analyze_hasCriticalSiphon_eq`, and
+`analyze_persistenceStructural_eq`. The point-free P-matrix bridge
+`isPMatrix_massActionJacobian_box_of_srPMatrixPointIndep` is proved there too. The one-sided exclusion
 `analyze_hasNoCriticalSiphon_of_hasSiphon_false` and the structural-persistence bridge
 `hasNoCriticalSiphon_of_persistenceStructural` are proved there too. When a result needs an
 axiom-clean kernel certificate for a specific network, use the codegen contract instead.
@@ -48,8 +49,8 @@ their analyses (the bulk path: one process invocation scores many networks).
 {"acrSpecies":[],"conservationLawDim":1,"deficiency":0,"hasCriticalSiphon":false,
  "hasSiphon":true,"minimalSiphons":[[0,1]],"numComplexes":2,"numLinkageClasses":1,
  "numReactions":2,"numSpecies":2,"numStrongLinkageClasses":1,"persistenceCertified":true,
- "persistenceStructural":true,"srSignConsistent":false,"stoichRank":1,"version":9,
- "weaklyReversible":true}
+ "persistenceStructural":true,"srPMatrixPointIndep":false,"srSignConsistent":false,
+ "stoichRank":1,"version":10,"weaklyReversible":true}
 ```
 
 The fields, in their declaration order on the `Analysis` structure:
@@ -70,6 +71,7 @@ The fields, in their declaration order on the `Analysis` structure:
 | `hasSiphon` | bool | a nonempty siphon exists | `IsSiphon` (powerset search) |
 | `minimalSiphons` | int[][] | support-minimal siphons, each an ascending index array | `IsMinimalSiphon` |
 | `srSignConsistent` | bool | consistent signed species–reaction cover condition holds | `decide ConsistentSRSign` |
+| `srPMatrixPointIndep` | bool | point-free full-Jacobian P-matrix precondition: `ConsistentSRSign ∧ ConsistentDiagonalDrive` | `isPMatrix_massActionJacobian_box_of_srPMatrixPointIndep` |
 | `hasCriticalSiphon` | bool | a critical siphon exists (no positive conservation law on its support) | `decide HasCriticalSiphon` |
 | `persistenceStructural` | bool | structural persistence precondition: `weaklyReversible ∧ ¬hasCriticalSiphon` | `hasNoCriticalSiphon_of_persistenceStructural` |
 | `persistenceCertified` | bool | certified persistence: `weaklyReversible ∧ deficiency = 0 ∧ ¬hasCriticalSiphon` | `gac_of_persistenceCertified` |
@@ -132,6 +134,21 @@ class additionally requires the chart-box, positivity, positive-diagonal, and co
 hypotheses, which the consumer supplies. When `true`, the network satisfies the verdict's sign
 hypothesis (`hweight_of_consistentSRSign`).
 
+`srPMatrixPointIndep` is `decide ConsistentSRSign && decide ConsistentDiagonalDrive`: the two
+decidable point-free conditions of the Craciun–Feinberg point-independence keystone — the consistent
+signed cover, and a per-species reaction that genuinely depends on and increases the species
+(`ConsistentDiagonalDrive`, the computable companion of `PositiveDiagonalDrive`). When `true`, the
+full mass-action Jacobian is a P-matrix at every positive concentration, for every positive rate
+constants, with no per-point hypothesis (`isPMatrix_massActionJacobian_box_of_srPMatrixPointIndep`).
+This is the sound point-free face of the injectivity criterion. It is still **not** a full
+injectivity verdict: carrying the full-Jacobian P-matrix property to compatibility-class injectivity
+needs a coordinate chart whose reduced Jacobian is a P-matrix on a box. The reduced Jacobian of any
+such chart is a Schur-style oblique compression of the full Jacobian, not a principal submatrix, so
+the full-Jacobian P-matrix property does not transport to it by submatrix selection; the chart-box
+reduced-Jacobian P-matrix hypothesis remains a consumer input to
+`massActionInjectiveOnClass_of_pivotReducedJacobian_pmatrix`, the non-vacuous pivot-chart injectivity
+theorem.
+
 The deficiency assembly `δ = n − ℓ − s` is owned by the library (`computableDeficiency`), not the
 consumer: `computeNumLinkageClasses` supplies a computable `ℓ` (the quotient `numLinkageClasses` does
 not evaluate), and `deficiency_eq_computableDeficiency` bridges the assembly to the propositional
@@ -139,7 +156,7 @@ not evaluate), and `deficiency_eq_computableDeficiency` bridges the assembly to 
 
 ## Versioning
 
-`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `9`. It tags the
+`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `10`. It tags the
 field set and increments whenever a field is added or its meaning changes, so a consumer can detect a
 contract it does not understand. A new per-property companion raises the version when it joins the
 record.

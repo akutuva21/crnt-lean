@@ -188,7 +188,7 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
   N.gac_of_deficiencyZero_decide hwr κ hδ hdec hx0
 
 -- The analysis tags the current contract version.
-example : interopRevData.analyze.version = 9 := by decide
+example : interopRevData.analyze.version = 10 := by decide
 
 -- The `crnt_deficiency_zero` tactic certifies deficiency zero from an explicit minor witness:
 -- a 1×1 minor for the reversible pair, a 2×2 minor for the irreversible chain.
@@ -2640,6 +2640,36 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
       = (N.massActionJacobian κ (N.affineChart x₀ y)).submatrix f f) :
     (N.massActionKinetics κ).InjectiveOnClass x₀ :=
   N.massActionInjectiveOnClass_of_consistentSRSign κ x₀ hf hbox hpos hweight hdiag hsub
+
+-- A P-matrix pivot-reduced Jacobian on the box ⇒ mass-action injectivity on the class, through a
+-- pivot-row coordinate chart: the box Gale–Nikaido theorem in pivot coordinates, a non-vacuous
+-- verdict on the genuine chart compression `pivotSel ρ ∘ J ∘ B` (Craciun–Feinberg via Gale–Nikaido).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (x₀ : Concentration S) (ρ : Fin N.stoichRank → S)
+    (B : (Fin N.stoichRank → ℝ) →L[ℝ] (S → ℝ))
+    (hBsec : ∀ w ∈ N.stoichSubspace, B (fun i => w (ρ i)) = w)
+    {lo hi : Fin N.stoichRank → ℝ}
+    (hbox : ∀ x ∈ N.positiveCompatibilityClass x₀, N.pivotChartCoord x₀ ρ x ∈ Set.Icc lo hi)
+    (hpm : ∀ y ∈ Set.Icc lo hi, (N.pivotReducedJacobian κ x₀ ρ B y).IsPMatrix) :
+    (N.massActionKinetics κ).InjectiveOnClass x₀ :=
+  N.massActionInjectiveOnClass_of_pivotReducedJacobian_pmatrix κ x₀ ρ B hBsec hbox hpm
+
+-- The decidable point-free certificate (consistent signed cover + positive diagonal drive) ⇒ the
+-- full mass-action Jacobian is a P-matrix at every positive concentration: the point-free keystone
+-- discharged by a kernel sign computation.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (C : Set (Concentration S)) (hC : ∀ x ∈ C, x.Positive)
+    (hsign : N.ConsistentSRSign) (hdrive : N.ConsistentDiagonalDrive) :
+    ∀ x ∈ C, (N.massActionJacobian κ x).IsPMatrix :=
+  N.isPMatrix_massActionJacobian_box_of_decide κ C hC hsign hdrive
+
+-- The reported point-independent P-matrix flag is `true` exactly when the network satisfies the two
+-- decidable point-free conditions; when `true` the full Jacobian is a P-matrix at every positive
+-- concentration.
+example (d : NetworkData) :
+    d.analyze.srPMatrixPointIndep = true ↔
+      d.toNetwork.ConsistentSRSign ∧ d.toNetwork.ConsistentDiagonalDrive :=
+  NetworkData.analyze_srPMatrixPointIndep_eq d
 
 -- For a general stoichiometric chart the reduced Jacobian is the oblique compression P · M · B of
 -- the full mass-action Jacobian, with P · B = 1 — the Cauchy–Binet matrix scaffolding for the

@@ -129,6 +129,14 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.NetworkData.analyze_srSignConsistent_eq
 
+/-- info: 'CRNT.NetworkData.isPMatrix_massActionJacobian_box_of_srPMatrixPointIndep' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.NetworkData.isPMatrix_massActionJacobian_box_of_srPMatrixPointIndep
+
+/-- info: 'CRNT.Network.massActionInjectiveOnClass_of_pivotReducedJacobian_pmatrix' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionInjectiveOnClass_of_pivotReducedJacobian_pmatrix
+
 /-- info: 'CRNT.NetworkData.analyze_hasCriticalSiphon_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.NetworkData.analyze_hasCriticalSiphon_eq

@@ -8,6 +8,7 @@ import CRNT.Decision.PersistenceCertified
 import CRNT.Dynamics.Siphon
 import CRNT.LinearAlgebra.OrthogonalComplement
 import CRNT.Multistationarity.SRSignDecidable
+import CRNT.Multistationarity.PointIndepDecidable
 
 /-!
 # One-call structural analysis
@@ -32,7 +33,15 @@ supplied by the consumer. `hasSiphon` flags the existence of a nonempty siphon
 `srSignConsistent` is `decide N.ConsistentSRSign` (`analyze_srSignConsistent_eq`), the decidable
 signed species–reaction cover fragment of the Craciun–Feinberg injectivity criterion; it is not a
 full injectivity verdict, which additionally needs the consumer's chart-box, positivity, and
-positive-diagonal hypotheses. `hasCriticalSiphon` is `decide N.HasCriticalSiphon`
+positive-diagonal hypotheses. `srPMatrixPointIndep` is
+`decide N.ConsistentSRSign && decide N.ConsistentDiagonalDrive`
+(`analyze_srPMatrixPointIndep_eq`), the decidable point-free precondition under which the full
+mass-action Jacobian is a P-matrix at every positive concentration
+(`isPMatrix_massActionJacobian_box_of_srPMatrixPointIndep`) — the point-free keystone of the
+Craciun–Feinberg criterion. It is still not a full injectivity verdict: carrying it to
+compatibility-class injectivity needs a coordinate chart whose reduced Jacobian is a P-matrix on a
+box (an oblique compression that the full-Jacobian P-matrix property does not transport to by
+submatrix selection), supplied to `massActionInjectiveOnClass_of_pivotReducedJacobian_pmatrix`. `hasCriticalSiphon` is `decide N.HasCriticalSiphon`
 (`analyze_hasCriticalSiphon_eq`), the full critical-siphon verdict: a nonempty siphon carrying no
 positive conservation law on its exact support, decided by rational feasibility (Fourier–Motzkin
 elimination). When `false` the network has no critical siphon, so (weakly reversible and complex
@@ -57,7 +66,7 @@ open CRNT.GaussianRank
 open scoped NNReal Topology
 
 /-- The version of the `Analysis` JSON contract. Bump on any field-set change. -/
-def analysisVersion : Nat := 9
+def analysisVersion : Nat := 10
 
 /-- The structural invariants of a network, as a JSON-serializable record. The numeric fields are
 the computable companions of the library theory; `deficiency` is `n − ℓ − s` assembled here. -/
@@ -98,6 +107,17 @@ structure Analysis where
   injectivity verdict additionally needs the chart-box, positivity, and positive-diagonal
   hypotheses the consumer supplies. -/
   srSignConsistent : Bool
+  /-- Whether the network meets the decidable point-free precondition of the full-Jacobian P-matrix
+  verdict: the consistent signed species–reaction cover condition together with a per-species
+  positively-driving reaction (`ConsistentSRSign ∧ ConsistentDiagonalDrive`). When `true`, the full
+  mass-action Jacobian is a P-matrix at every positive concentration, for every positive rate
+  constants, read off the signed species–reaction graph alone with no per-point hypothesis. This is
+  the point-free keystone of the Craciun–Feinberg injectivity criterion; it is **not** a full
+  injectivity verdict — carrying it to compatibility-class injectivity needs a coordinate chart whose
+  reduced Jacobian is a P-matrix on a box, a Schur-style oblique compression that the full-Jacobian
+  P-matrix property does not transport to by submatrix selection, so the chart-box reduced-Jacobian
+  P-matrix hypothesis remains a consumer input. -/
+  srPMatrixPointIndep : Bool
   /-- Whether the network has a critical siphon: a nonempty siphon carrying no positive conservation
   law on its exact support. When `false`, the network has no critical siphon, so (weakly reversible
   and complex balanced) it is persistent. The verdict is decided by rational feasibility
@@ -141,6 +161,7 @@ def analyze (d : NetworkData) : Analysis :=
       (fun l => decide (N.IsMinimalSiphon l.toFinset))).map
       (fun l => (l.map Fin.val).toArray)).toArray
     srSignConsistent := decide N.ConsistentSRSign
+    srPMatrixPointIndep := decide N.ConsistentSRSign && decide N.ConsistentDiagonalDrive
     hasCriticalSiphon := decide N.HasCriticalSiphon
     persistenceStructural := decide N.WeaklyReversible && !decide N.HasCriticalSiphon
     persistenceCertified := decide N.WeaklyReversible && N.computableDeficiency == 0
@@ -230,6 +251,31 @@ hypotheses for a full injectivity verdict are supplied by the consumer. -/
 theorem analyze_srSignConsistent_eq (d : NetworkData) :
     (d.analyze).srSignConsistent = true ↔ d.toNetwork.ConsistentSRSign :=
   decide_eq_true_iff
+
+/-- The reported point-independent P-matrix flag is `true` exactly when the network satisfies both
+the consistent signed species–reaction cover condition and the per-species positive-diagonal-drive
+condition (`ConsistentSRSign ∧ ConsistentDiagonalDrive`), the decidable point-free precondition of
+the full-Jacobian P-matrix verdict. -/
+theorem analyze_srPMatrixPointIndep_eq (d : NetworkData) :
+    (d.analyze).srPMatrixPointIndep = true ↔
+      d.toNetwork.ConsistentSRSign ∧ d.toNetwork.ConsistentDiagonalDrive := by
+  show (decide d.toNetwork.ConsistentSRSign && decide d.toNetwork.ConsistentDiagonalDrive) = true ↔ _
+  rw [Bool.and_eq_true, decide_eq_true_iff, decide_eq_true_iff]
+
+/-- **Point-free full-Jacobian P-matrix verdict.** When the point-independent P-matrix flag is
+`true`, the full mass-action Jacobian is a P-matrix at every positive concentration of any set, for
+every positive rate constants — read off the signed species–reaction graph alone, with no per-point
+hypothesis. This is the sound, decidable, point-free keystone of the Craciun–Feinberg injectivity
+criterion. It is *not* a full injectivity verdict: carrying it to compatibility-class injectivity
+needs a coordinate chart whose reduced Jacobian is a P-matrix on a box (a Schur-style oblique
+compression that the full-Jacobian P-matrix property does not transport to by submatrix selection),
+a hypothesis the consumer supplies to `massActionInjectiveOnClass_of_pivotReducedJacobian_pmatrix`. -/
+theorem isPMatrix_massActionJacobian_box_of_srPMatrixPointIndep (d : NetworkData)
+    (h : (d.analyze).srPMatrixPointIndep = true) (κ : d.toNetwork.RateConstants)
+    (C : Set (Concentration (Fin d.numSpecies))) (hC : ∀ x ∈ C, x.Positive) :
+    ∀ x ∈ C, (d.toNetwork.massActionJacobian κ x).IsPMatrix := by
+  obtain ⟨hsign, hdrive⟩ := (analyze_srPMatrixPointIndep_eq d).mp h
+  exact d.toNetwork.isPMatrix_massActionJacobian_box_of_decide κ C hC hsign hdrive
 
 /-- The reported critical-siphon flag is `true` exactly when the network has a critical siphon: a
 nonempty siphon carrying no positive conservation law on its exact support. The verdict is decided by

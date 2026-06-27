@@ -294,6 +294,8 @@ import CRNT.Multistationarity.ReducedCoverSign
 import CRNT.Multistationarity.ReducedJacobianSign
 import CRNT.Multistationarity.ReducedSRGraph
 import CRNT.Multistationarity.PivotChartInjectivity
+import CRNT.Multistationarity.PivotReducedInjectivity
+import CRNT.Multistationarity.PointIndepDecidable
 import CRNT.Multistationarity.ReducedSRGraphBridge
 import CRNT.Multistationarity.SRCoverPointIndependence
 import CRNT.Multistationarity.SRCycleInjectivity
