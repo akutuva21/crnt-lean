@@ -3283,3 +3283,14 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     (hweight : N.SignCoverWeightNonneg) (hdrive : N.PositiveDiagonalDrive) :
     (N.massActionKinetics κ).InjectiveOnClass x₀ :=
   N.massActionInjectiveOnClass_of_pointIndep κ x₀ hf hbox hpos hsub hweight hdrive
+
+-- End-to-end Fenichel ε-persistence for the explicit bounded constant fast-drift coupled field,
+-- with the operator-from-flow `flow_mapsTo` proved from a genuine `exists_flow` flow on `ℝ × ℝ`:
+-- the persisted manifold graph is forward-invariant under the iterate coupled semiflow and `M_ε`
+-- sits within `O(ε)` of `M_0` in the supremum metric, with every hypothesis discharged.
+example (τ : NNReal) :
+    let G := ODE.scaleGapData (Y := ℝ) (E := ℝ) 2 1 (by norm_num) (by norm_num) (by norm_num)
+    let F := ODE.constDriftCoupled (Y := ℝ) (E := ℝ) 0 τ
+    IsInvariant (fun n : ℕ => F.flow.toFun (n • F.τ)) (ODE.graphSet (G.manifold : ℝ → ℝ)) ∧
+      dist G.base G.manifold ≤ G.defect / (1 - G.factor) :=
+  ODE.fenichel_persistence_constDrift 2 1 (by norm_num) (by norm_num) (by norm_num) τ
