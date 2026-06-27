@@ -328,6 +328,7 @@ import CRNT.Multistationarity.RegularValueDegree
 import CRNT.Multistationarity.LinearDegree
 import CRNT.Multistationarity.DegreeAdditivity
 import CRNT.Multistationarity.DegreeStability
+import CRNT.Multistationarity.DegreeLocallyConstant
 
 -- Design: robustness and special equilibria
 import CRNT.Design.ACR

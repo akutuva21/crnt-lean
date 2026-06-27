@@ -3945,3 +3945,22 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional
 -- closed.
 example : IsClosed (CRNT.nonnegSpan (Pi.basisFun ℝ (Fin 2))) :=
   CRNT.isClosed_nonnegSpan_of_linearIndependent _ (Pi.basisFun ℝ (Fin 2)).linearIndependent
+-- Global local constancy of the regular degree in the value: for a regular value `y₀` of a
+-- C¹ map with finite nondegenerate preimage, and assuming solutions stay confined to the
+-- inverse-function neighbourhoods near `y₀`, the regular degree at nearby values is the
+-- constant `∑ x ∈ f⁻¹{y₀}, sign (det (Df x))`. This is the well-definedness backbone of the
+-- Brouwer degree on a connected set of regular values.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    [CompleteSpace E] (f : E → E) {y₀ : E} (hf : ∀ x ∈ f ⁻¹' {y₀}, ContDiffAt ℝ 1 f x)
+    (hdet : ∀ x ∈ f ⁻¹' {y₀}, LinearMap.det (fderiv ℝ f x).toLinearMap ≠ 0)
+    (hfin₀ : (f ⁻¹' {y₀}).Finite)
+    (hconf : ∀ᶠ y in nhds y₀, f ⁻¹' {y} ⊆
+      ⋃ x : (f ⁻¹' {y₀} : Set E),
+        ((hasStrictFDerivAt_fderivEquiv f (hf x x.2) (hdet x x.2)).toOpenPartialHomeomorph
+          f).source) :
+    ∀ᶠ y in nhds y₀,
+      ∀ (hfin : (f ⁻¹' {y}).Finite),
+        regularDegree f y hfin =
+          ∑ x ∈ hfin₀.toFinset,
+            ((SignType.sign (LinearMap.det (fderiv ℝ f x).toLinearMap) : SignType) : ℤ) :=
+  eventually_regularDegree_eq f hf hdet hfin₀ hconf

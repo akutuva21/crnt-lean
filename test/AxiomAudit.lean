@@ -271,3 +271,6 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.Stochastic.tendsto_meas_aggregate_scaledClock' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Stochastic.tendsto_meas_aggregate_scaledClock
+/-- info: 'CRNT.eventually_regularDegree_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.eventually_regularDegree_eq
