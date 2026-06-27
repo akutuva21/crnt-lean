@@ -14,8 +14,8 @@ axiom-clean guarantee. Each reported field is a computable companion of the libr
 derived fields each have a bridge in `CRNT/Interop/Analysis.lean` relating the reported value to its
 propositional definition: `analyze_deficiency_eq`, `analyze_stoichRank_eq`,
 `analyze_numLinkageClasses_eq`, `analyze_conservationLawDim_eq`, `analyze_weaklyReversible_eq`,
-`analyze_acrSpecies_eq`, `analyze_hasSiphon_eq`, `mem_analyze_minimalSiphons`, and
-`analyze_srSignConsistent_eq`. The one-sided
+`analyze_acrSpecies_eq`, `analyze_hasSiphon_eq`, `mem_analyze_minimalSiphons`,
+`analyze_srSignConsistent_eq`, and `analyze_hasCriticalSiphon_eq`. The one-sided
 exclusion `analyze_hasNoCriticalSiphon_of_hasSiphon_false` is proved there too. When a result needs an
 axiom-clean kernel certificate for a specific network, use the codegen contract instead.
 
@@ -43,10 +43,10 @@ their analyses (the bulk path: one process invocation scores many networks).
 `analyze` writes the record with `Json.compress`, which sorts the object keys alphabetically:
 
 ```json
-{"acrSpecies":[],"conservationLawDim":1,"deficiency":0,"hasSiphon":true,
- "minimalSiphons":[[0,1]],"numComplexes":2,"numLinkageClasses":1,"numReactions":2,
- "numSpecies":2,"numStrongLinkageClasses":1,"srSignConsistent":false,"stoichRank":1,
- "version":6,"weaklyReversible":true}
+{"acrSpecies":[],"conservationLawDim":1,"deficiency":0,"hasCriticalSiphon":false,
+ "hasSiphon":true,"minimalSiphons":[[0,1]],"numComplexes":2,"numLinkageClasses":1,
+ "numReactions":2,"numSpecies":2,"numStrongLinkageClasses":1,"srSignConsistent":false,
+ "stoichRank":1,"version":7,"weaklyReversible":true}
 ```
 
 The fields, in their declaration order on the `Analysis` structure:
@@ -67,6 +67,7 @@ The fields, in their declaration order on the `Analysis` structure:
 | `hasSiphon` | bool | a nonempty siphon exists | `IsSiphon` (powerset search) |
 | `minimalSiphons` | int[][] | support-minimal siphons, each an ascending index array | `IsMinimalSiphon` |
 | `srSignConsistent` | bool | consistent signed species–reaction cover condition holds | `decide ConsistentSRSign` |
+| `hasCriticalSiphon` | bool | a critical siphon exists (no positive conservation law on its support) | `decide HasCriticalSiphon` |
 
 `Analysis` derives `FromJson, ToJson, Repr, DecidableEq`; the `ToJson` instance is what serializes the
 record.
@@ -80,13 +81,20 @@ whether any nonempty siphon exists. It is one-sided: `false` soundly excludes an
 (`analyze_hasNoCriticalSiphon_of_hasSiphon_false`), hence — with weak reversibility and complex
 balancing — persistence; `true` is inconclusive. The exclusion is narrow in practice: for a closed
 network the full species set is always a siphon, so `hasSiphon = false` arises only with a synthesis
-reaction (`0 → y`). Deciding *criticality* directly is Farkas-blocked (sign-restricted kernel
-feasibility, absent in Mathlib v4.31), so `hasCriticalSiphon` is not offered.
+reaction (`0 → y`).
+
+`hasCriticalSiphon` is `decide HasCriticalSiphon`: the full critical-siphon verdict. A siphon is
+critical iff it carries no positive conservation law on its exact support; `hasCriticalSiphon` reports
+whether any nonempty siphon is critical. Each candidate's criticality reduces to a rational linear
+feasibility problem (sign-restricted conservation-cone membership), decided by Fourier–Motzkin
+elimination — the constructive content of Farkas' lemma. A species enumeration is drawn computably
+from the `Fintype` and the decision lifted through the subsingleton of `Decidable`, so the verdict is
+computable. It is two-sided: `false` soundly establishes the absence of a critical siphon, hence —
+with weak reversibility and complex balancing — persistence.
 
 `minimalSiphons` lists the support-minimal siphons (each as an ascending species-index array). These
 are the candidate critical siphons: a siphon is critical iff it carries no positive conservation law
-on its support, so the consumer runs its own feasibility (LP) check on each minimal siphon to decide
-criticality. Enumeration tests minimality across the powerset (`~4^numSpecies` in the worst case —
+on its support. Enumeration tests minimality across the powerset (`~4^numSpecies` in the worst case —
 fine for the small networks evaluated here).
 
 `srSignConsistent` is `decide ConsistentSRSign`: the consistent signed species–reaction cover
@@ -105,7 +113,7 @@ not evaluate), and `deficiency_eq_computableDeficiency` bridges the assembly to 
 
 ## Versioning
 
-`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `6`. It tags the
+`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `7`. It tags the
 field set and increments whenever a field is added or its meaning changes, so a consumer can detect a
 contract it does not understand. A new per-property companion raises the version when it joins the
 record.
@@ -131,6 +139,8 @@ never yields a structural verdict.
   and the exclusion lemma `hasNoCriticalSiphon_of_forall_not_isSiphon`.
 - `CRNT/Multistationarity/SRSignDecidable.lean`: `ConsistentSRSign`, its `Decidable` instance, and
   `hweight_of_consistentSRSign` (the SR-sign injectivity fragment).
+- `CRNT/Decision/CriticalSiphonDecide.lean`: `HasCriticalSiphon`, its computable `Decidable`
+  instance (rational feasibility by Fourier–Motzkin elimination), and `supportedFeasSystem`.
 - `CRNT/LinearAlgebra/OrthogonalComplement.lean`: `orthSum` and `finrank_orthSum` (conservation laws).
 - `Analyze.lean`: the `lake exe analyze` entry point.
 

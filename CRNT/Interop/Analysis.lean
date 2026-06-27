@@ -2,6 +2,7 @@ import CRNT.Interop.NetworkData
 import CRNT.Decision.ComputableDeficiency
 import CRNT.Decision.DirectedReachability
 import CRNT.Decision.ACRCheck
+import CRNT.Decision.CriticalSiphonDecide
 import CRNT.Dynamics.Siphon
 import CRNT.LinearAlgebra.OrthogonalComplement
 import CRNT.Multistationarity.SRSignDecidable
@@ -29,7 +30,11 @@ supplied by the consumer. `hasSiphon` flags the existence of a nonempty siphon
 `srSignConsistent` is `decide N.ConsistentSRSign` (`analyze_srSignConsistent_eq`), the decidable
 signed species–reaction cover fragment of the Craciun–Feinberg injectivity criterion; it is not a
 full injectivity verdict, which additionally needs the consumer's chart-box, positivity, and
-positive-diagonal hypotheses.
+positive-diagonal hypotheses. `hasCriticalSiphon` is `decide N.HasCriticalSiphon`
+(`analyze_hasCriticalSiphon_eq`), the full critical-siphon verdict: a nonempty siphon carrying no
+positive conservation law on its exact support, decided by rational feasibility (Fourier–Motzkin
+elimination). When `false` the network has no critical siphon, so (weakly reversible and complex
+balanced) it is persistent.
 
 `version` tags the JSON contract; bump it whenever the field set changes.
 
@@ -43,7 +48,7 @@ open Lean (FromJson ToJson)
 open CRNT.GaussianRank
 
 /-- The version of the `Analysis` JSON contract. Bump on any field-set change. -/
-def analysisVersion : Nat := 6
+def analysisVersion : Nat := 7
 
 /-- The structural invariants of a network, as a JSON-serializable record. The numeric fields are
 the computable companions of the library theory; `deficiency` is `n − ℓ − s` assembled here. -/
@@ -84,6 +89,11 @@ structure Analysis where
   injectivity verdict additionally needs the chart-box, positivity, and positive-diagonal
   hypotheses the consumer supplies. -/
   srSignConsistent : Bool
+  /-- Whether the network has a critical siphon: a nonempty siphon carrying no positive conservation
+  law on its exact support. When `false`, the network has no critical siphon, so (weakly reversible
+  and complex balanced) it is persistent. The verdict is decided by rational feasibility
+  (Fourier–Motzkin elimination), the constructive content of Farkas' lemma. -/
+  hasCriticalSiphon : Bool
   deriving FromJson, ToJson, Repr, DecidableEq
 
 namespace NetworkData
@@ -107,7 +117,8 @@ def analyze (d : NetworkData) : Analysis :=
     minimalSiphons := (((List.finRange d.numSpecies).sublists.filter
       (fun l => decide (N.IsMinimalSiphon l.toFinset))).map
       (fun l => (l.map Fin.val).toArray)).toArray
-    srSignConsistent := decide N.ConsistentSRSign }
+    srSignConsistent := decide N.ConsistentSRSign
+    hasCriticalSiphon := decide N.HasCriticalSiphon }
 
 /-- The reported deficiency is the network's deficiency. -/
 theorem analyze_deficiency_eq (d : NetworkData) :
@@ -192,6 +203,14 @@ the Craciun–Feinberg injectivity criterion; the chart-box, positivity, and pos
 hypotheses for a full injectivity verdict are supplied by the consumer. -/
 theorem analyze_srSignConsistent_eq (d : NetworkData) :
     (d.analyze).srSignConsistent = true ↔ d.toNetwork.ConsistentSRSign :=
+  decide_eq_true_iff
+
+/-- The reported critical-siphon flag is `true` exactly when the network has a critical siphon: a
+nonempty siphon carrying no positive conservation law on its exact support. The verdict is decided by
+rational feasibility (Fourier–Motzkin elimination). When `false`, the network has no critical siphon,
+so with weak reversibility and complex balancing it is persistent. -/
+theorem analyze_hasCriticalSiphon_eq (d : NetworkData) :
+    (d.analyze).hasCriticalSiphon = true ↔ d.toNetwork.HasCriticalSiphon :=
   decide_eq_true_iff
 
 end NetworkData

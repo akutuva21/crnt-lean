@@ -18,7 +18,10 @@ is nonnegative, vanishes off `P`, is orthogonal to every reaction, and equals `1
 rational system of linear inequalities (each equality split into a `≤`/`≥` pair).
 
 * `Network.supportedFeasSystem` — the encoded rational system `List (Ineq (Fintype.card S))` whose
-  feasibility is the scaled single-coordinate existence.
+  feasibility is the scaled single-coordinate existence. Its variables are indexed through an
+  explicit species enumeration `e : S ≃ Fin (Fintype.card S)` taken as data, keeping the encoding
+  computable; a concrete `e` is drawn from the `Fintype` and the resulting decision lifted through
+  the subsingleton of `Decidable`.
 * `feasibleℝ_iff_feasible` — **the rational–real feasibility bridge**: a rational `Ineq` system has a
   real solution iff it has a rational one. The rational solution casts to a real one; conversely a
   real solution projects through Fourier–Motzkin elimination (the division-free combination rows are
@@ -169,6 +172,16 @@ theorem feasibleℝ_iff_feasible : ∀ {n : ℕ} (sys : List (Ineq n)), Feasible
 
 end RationalFarkas
 
+/-- A computable enumeration of a finite type from an explicit equivalence with `Fin (card α)`: the
+images of `List.finRange (card α)` under `e.symm`. Every element appears (`mem_enumOfEquiv`). -/
+def enumOfEquiv {α : Type*} [Fintype α] (e : α ≃ Fin (Fintype.card α)) : List α :=
+  (List.finRange (Fintype.card α)).map e.symm
+
+/-- Every element of a finite type appears in its `enumOfEquiv` enumeration. -/
+theorem mem_enumOfEquiv {α : Type*} [Fintype α] (e : α ≃ Fin (Fintype.card α)) (a : α) :
+    a ∈ enumOfEquiv e :=
+  List.mem_map.2 ⟨e a, List.mem_finRange _, by rw [Equiv.symm_apply_apply]⟩
+
 namespace Network
 
 open RationalFarkas
@@ -184,22 +197,26 @@ def reactionCoeffQ (N : Network S) (r : N.R) (s : S) : ℚ :=
     ((N.reactionCoeffQ r s : ℚ) : ℝ) = N.reactionVector r s := by
   simp only [reactionCoeffQ, Rat.cast_sub, Rat.cast_natCast, reactionVector_apply]
 
-/-- A row of the encoded system from a rational coefficient function on species and a bound. The
-variable indexed by `i : Fin (Fintype.card S)` is the value at species `(Fintype.equivFin S).symm i`. -/
-noncomputable def encodeRow (c : S → ℚ) (b : ℚ) : Ineq (Fintype.card S) where
-  coeff := fun i => c ((Fintype.equivFin S).symm i)
+/-- A row of the encoded system from a rational coefficient function on species and a bound, indexing
+the variables through an explicit species enumeration `e : S ≃ Fin (Fintype.card S)`. The variable
+indexed by `i : Fin (Fintype.card S)` is the value at species `e.symm i`. Taking `e` as data keeps
+the encoding computable. -/
+def encodeRow (e : S ≃ Fin (Fintype.card S)) (c : S → ℚ) (b : ℚ) : Ineq (Fintype.card S) where
+  coeff := fun i => c (e.symm i)
   bound := b
 
 omit [DecidableEq S] in
-@[simp] theorem encodeRow_bound (c : S → ℚ) (b : ℚ) : (encodeRow (S := S) c b).bound = b := rfl
+@[simp] theorem encodeRow_bound (e : S ≃ Fin (Fintype.card S)) (c : S → ℚ) (b : ℚ) :
+    (encodeRow (S := S) e c b).bound = b := rfl
 
 omit [DecidableEq S] in
 /-- The real left-hand value of an encoded row reindexes to a sum over species of the corresponding
-real point `w s = x ((Fintype.equivFin S) s)`. -/
-theorem lhsℝ_encodeRow (c : S → ℚ) (b : ℚ) (x : Fin (Fintype.card S) → ℝ) :
-    (encodeRow c b).lhsℝ x = ∑ s, (c s : ℝ) * x (Fintype.equivFin S s) := by
+real point `w s = x (e s)`. -/
+theorem lhsℝ_encodeRow (e : S ≃ Fin (Fintype.card S)) (c : S → ℚ) (b : ℚ)
+    (x : Fin (Fintype.card S) → ℝ) :
+    (encodeRow e c b).lhsℝ x = ∑ s, (c s : ℝ) * x (e s) := by
   rw [Ineq.lhsℝ, encodeRow]
-  rw [← Equiv.sum_comp (Fintype.equivFin S) (fun i => ((c ((Fintype.equivFin S).symm i) : ℝ)) * x i)]
+  rw [← Equiv.sum_comp e (fun i => ((c (e.symm i) : ℝ)) * x i)]
   apply Finset.sum_congr rfl
   intro s _
   rw [Equiv.symm_apply_apply]
@@ -208,16 +225,17 @@ theorem lhsℝ_encodeRow (c : S → ℚ) (b : ℚ) (x : Fin (Fintype.card S) →
 `P`. Its rows are: nonnegativity `w s ≥ 0` at every species; `w s ≤ 0` off `P` (forcing the support
 into `P`); the reaction-orthogonality equalities `∑ₛ w s · (reaction r)ₛ = 0` as `≤`/`≥` pairs; and
 the normalization `w s₀ = 1` as a `≤`/`≥` pair. -/
-noncomputable def supportedFeasSystem (N : Network S) (P : Finset S) (s₀ : S) :
+def supportedFeasSystem (N : Network S) (e : S ≃ Fin (Fintype.card S))
+    (eR : N.R ≃ Fin (Fintype.card N.R)) (P : Finset S) (s₀ : S) :
     List (Ineq (Fintype.card S)) :=
-  (Finset.univ.toList.map fun s => encodeRow (fun t => if t = s then -1 else 0) 0) ++
-  (Finset.univ.toList.filter (fun s => s ∉ P)).map
-      (fun s => encodeRow (fun t => if t = s then 1 else 0) 0) ++
-  (Finset.univ.toList.flatMap fun r : N.R =>
-      [encodeRow (fun s => N.reactionCoeffQ r s) 0,
-       encodeRow (fun s => -(N.reactionCoeffQ r s)) 0]) ++
-  [encodeRow (fun t => if t = s₀ then 1 else 0) 1,
-   encodeRow (fun t => if t = s₀ then -1 else 0) (-1)]
+  ((enumOfEquiv e).map fun s => encodeRow e (fun t => if t = s then -1 else 0) 0) ++
+  ((enumOfEquiv e).filter (fun s => s ∉ P)).map
+      (fun s => encodeRow e (fun t => if t = s then 1 else 0) 0) ++
+  ((enumOfEquiv eR).flatMap fun r : N.R =>
+      [encodeRow e (fun s => N.reactionCoeffQ r s) 0,
+       encodeRow e (fun s => -(N.reactionCoeffQ r s)) 0]) ++
+  [encodeRow e (fun t => if t = s₀ then 1 else 0) 1,
+   encodeRow e (fun t => if t = s₀ then -1 else 0) (-1)]
 
 /-- The scaled single-coordinate conditions packaged on a real species vector: nonnegative, vanishing
 off `P`, orthogonal to every reaction, and normalized to `1` at `s₀`. -/
@@ -227,21 +245,21 @@ def NormalizedSupportedVector (N : Network S) (P : Finset S) (s₀ : S) (w : S �
 
 /-- **Real satisfaction of the encoded system equals the normalized conditions.** A real point
 satisfies `supportedFeasSystem` iff the species vector it represents is normalized-supported. -/
-theorem satℝ_supportedFeasSystem_iff (N : Network S) (P : Finset S) (s₀ : S)
-    (x : Fin (Fintype.card S) → ℝ) :
-    Satℝ (N.supportedFeasSystem P s₀) x ↔
-      N.NormalizedSupportedVector P s₀ (fun s => x (Fintype.equivFin S s)) := by
-  set w : S → ℝ := fun s => x (Fintype.equivFin S s) with hw
+theorem satℝ_supportedFeasSystem_iff (N : Network S) (e : S ≃ Fin (Fintype.card S))
+    (eR : N.R ≃ Fin (Fintype.card N.R)) (P : Finset S) (s₀ : S) (x : Fin (Fintype.card S) → ℝ) :
+    Satℝ (N.supportedFeasSystem e eR P s₀) x ↔
+      N.NormalizedSupportedVector P s₀ (fun s => x (e s)) := by
+  set w : S → ℝ := fun s => x (e s) with hw
   constructor
   · intro hx
     refine ⟨?_, ?_, ?_, ?_⟩
     · -- nonnegativity from the `-w s ≤ 0` rows
       intro s
-      have hmem : encodeRow (fun t => if t = s then (-1 : ℚ) else 0) 0
-          ∈ N.supportedFeasSystem P s₀ := by
+      have hmem : encodeRow e (fun t => if t = s then (-1 : ℚ) else 0) 0
+          ∈ N.supportedFeasSystem e eR P s₀ := by
         rw [supportedFeasSystem]
         refine List.mem_append.2 (Or.inl (List.mem_append.2 (Or.inl (List.mem_append.2 (Or.inl ?_)))))
-        exact List.mem_map.2 ⟨s, Finset.mem_toList.2 (Finset.mem_univ s), rfl⟩
+        exact List.mem_map.2 ⟨s, mem_enumOfEquiv e s, rfl⟩
       have := hx _ hmem
       rw [Ineq.holdsℝ, lhsℝ_encodeRow] at this
       have hsum : ∑ t, ((if t = s then (-1 : ℚ) else 0 : ℚ) : ℝ) * w t = - w s := by
@@ -255,11 +273,11 @@ theorem satℝ_supportedFeasSystem_iff (N : Network S) (P : Finset S) (s₀ : S)
     · -- vanishing off `P`: combine the `w s ≤ 0` row with nonnegativity
       intro s hs
       have hnn : 0 ≤ w s := by
-        have hmem : encodeRow (fun t => if t = s then (-1 : ℚ) else 0) 0
-            ∈ N.supportedFeasSystem P s₀ := by
+        have hmem : encodeRow e (fun t => if t = s then (-1 : ℚ) else 0) 0
+            ∈ N.supportedFeasSystem e eR P s₀ := by
           rw [supportedFeasSystem]
           refine List.mem_append.2 (Or.inl (List.mem_append.2 (Or.inl (List.mem_append.2 (Or.inl ?_)))))
-          exact List.mem_map.2 ⟨s, Finset.mem_toList.2 (Finset.mem_univ s), rfl⟩
+          exact List.mem_map.2 ⟨s, mem_enumOfEquiv e s, rfl⟩
         have := hx _ hmem
         rw [Ineq.holdsℝ, lhsℝ_encodeRow] at this
         have hsum : ∑ t, ((if t = s then (-1 : ℚ) else 0 : ℚ) : ℝ) * w t = - w s := by
@@ -269,13 +287,13 @@ theorem satℝ_supportedFeasSystem_iff (N : Network S) (P : Finset S) (s₀ : S)
           · intro h; exact absurd (Finset.mem_univ s) h
         rw [hsum] at this; simp only [encodeRow_bound, Rat.cast_zero] at this; linarith
       have hle : w s ≤ 0 := by
-        have hmem : encodeRow (fun t => if t = s then (1 : ℚ) else 0) 0
-            ∈ N.supportedFeasSystem P s₀ := by
+        have hmem : encodeRow e (fun t => if t = s then (1 : ℚ) else 0) 0
+            ∈ N.supportedFeasSystem e eR P s₀ := by
           rw [supportedFeasSystem]
           refine List.mem_append.2 (Or.inl (List.mem_append.2 (Or.inl (List.mem_append.2 (Or.inr ?_)))))
           refine List.mem_map.2 ⟨s, ?_, rfl⟩
-          rw [List.mem_filter, Finset.mem_toList]
-          exact ⟨Finset.mem_univ s, by simpa using hs⟩
+          rw [List.mem_filter]
+          exact ⟨mem_enumOfEquiv e s, by simpa using hs⟩
         have := hx _ hmem
         rw [Ineq.holdsℝ, lhsℝ_encodeRow] at this
         have hsum : ∑ t, ((if t = s then (1 : ℚ) else 0 : ℚ) : ℝ) * w t = w s := by
@@ -288,12 +306,12 @@ theorem satℝ_supportedFeasSystem_iff (N : Network S) (P : Finset S) (s₀ : S)
     · -- orthogonality from the `≤`/`≥` pair on each reaction
       intro r
       have hle : ∑ s, w s * N.reactionVector r s ≤ 0 := by
-        have hmem : encodeRow (fun s => N.reactionCoeffQ r s) 0
-            ∈ N.supportedFeasSystem P s₀ := by
+        have hmem : encodeRow e (fun s => N.reactionCoeffQ r s) 0
+            ∈ N.supportedFeasSystem e eR P s₀ := by
           rw [supportedFeasSystem]
           refine List.mem_append.2 (Or.inl (List.mem_append.2 (Or.inr ?_)))
           rw [List.mem_flatMap]
-          exact ⟨r, Finset.mem_toList.2 (Finset.mem_univ r), by simp⟩
+          exact ⟨r, mem_enumOfEquiv eR r, by simp⟩
         have := hx _ hmem
         rw [Ineq.holdsℝ, lhsℝ_encodeRow] at this
         simp only [encodeRow_bound, Rat.cast_zero] at this
@@ -302,12 +320,12 @@ theorem satℝ_supportedFeasSystem_iff (N : Network S) (P : Finset S) (s₀ : S)
           apply Finset.sum_congr rfl; intro s _; rw [cast_reactionCoeffQ]; ring
         rw [heq]; exact this
       have hge : 0 ≤ ∑ s, w s * N.reactionVector r s := by
-        have hmem : encodeRow (fun s => -(N.reactionCoeffQ r s)) 0
-            ∈ N.supportedFeasSystem P s₀ := by
+        have hmem : encodeRow e (fun s => -(N.reactionCoeffQ r s)) 0
+            ∈ N.supportedFeasSystem e eR P s₀ := by
           rw [supportedFeasSystem]
           refine List.mem_append.2 (Or.inl (List.mem_append.2 (Or.inr ?_)))
           rw [List.mem_flatMap]
-          exact ⟨r, Finset.mem_toList.2 (Finset.mem_univ r), by simp⟩
+          exact ⟨r, mem_enumOfEquiv eR r, by simp⟩
         have := hx _ hmem
         rw [Ineq.holdsℝ, lhsℝ_encodeRow] at this
         simp only [encodeRow_bound, Rat.cast_zero, Rat.cast_neg] at this
@@ -321,8 +339,8 @@ theorem satℝ_supportedFeasSystem_iff (N : Network S) (P : Finset S) (s₀ : S)
       linarith
     · -- normalization at `s₀`
       have hle : w s₀ ≤ 1 := by
-        have hmem : encodeRow (fun t => if t = s₀ then (1 : ℚ) else 0) 1
-            ∈ N.supportedFeasSystem P s₀ := by
+        have hmem : encodeRow e (fun t => if t = s₀ then (1 : ℚ) else 0) 1
+            ∈ N.supportedFeasSystem e eR P s₀ := by
           rw [supportedFeasSystem]
           refine List.mem_append.2 (Or.inr ?_)
           simp
@@ -335,8 +353,8 @@ theorem satℝ_supportedFeasSystem_iff (N : Network S) (P : Finset S) (s₀ : S)
           · intro h; exact absurd (Finset.mem_univ s₀) h
         rw [hsum] at this; simpa using this
       have hge : 1 ≤ w s₀ := by
-        have hmem : encodeRow (fun t => if t = s₀ then (-1 : ℚ) else 0) (-1)
-            ∈ N.supportedFeasSystem P s₀ := by
+        have hmem : encodeRow e (fun t => if t = s₀ then (-1 : ℚ) else 0) (-1)
+            ∈ N.supportedFeasSystem e eR P s₀ := by
           rw [supportedFeasSystem]
           refine List.mem_append.2 (Or.inr ?_)
           simp
@@ -367,7 +385,7 @@ theorem satℝ_supportedFeasSystem_iff (N : Network S) (P : Finset S) (s₀ : S)
     · -- vanish-off-`P` row
       rw [List.mem_map] at hI
       obtain ⟨s, hsf, rfl⟩ := hI
-      rw [List.mem_filter, Finset.mem_toList] at hsf
+      rw [List.mem_filter] at hsf
       have hsP : s ∉ P := by simpa using hsf.2
       rw [Ineq.holdsℝ, lhsℝ_encodeRow]
       have hsum : ∑ t, ((if t = s then (1 : ℚ) else 0 : ℚ) : ℝ) * w t = w s := by
@@ -433,32 +451,45 @@ conservation vector is strictly positive at `s₀` — the single-coordinate obs
 critical-siphon strict-support alternative. Feasibility passes through the rational–real bridge to
 real satisfaction, which the row-by-row characterization equates with the normalized conditions, and
 the scaling equivalence removes the normalization. -/
-theorem feasible_supportedFeasSystem_iff (N : Network S) (P : Finset S) (s₀ : S) :
-    Feasible (N.supportedFeasSystem P s₀) ↔
+theorem feasible_supportedFeasSystem_iff (N : Network S) (e : S ≃ Fin (Fintype.card S))
+    (eR : N.R ≃ Fin (Fintype.card N.R)) (P : Finset S) (s₀ : S) :
+    Feasible (N.supportedFeasSystem e eR P s₀) ↔
       (∃ w : S → ℝ, N.SupportedConservationVector P w ∧ 0 < w s₀) := by
   rw [← exists_normalized_iff_exists_pos]
   rw [← feasibleℝ_iff_feasible]
   constructor
   · rintro ⟨x, hx⟩
-    exact ⟨_, (N.satℝ_supportedFeasSystem_iff P s₀ x).mp hx⟩
+    exact ⟨_, (N.satℝ_supportedFeasSystem_iff e eR P s₀ x).mp hx⟩
   · rintro ⟨w, hw⟩
-    refine ⟨fun i => w ((Fintype.equivFin S).symm i), ?_⟩
-    rw [N.satℝ_supportedFeasSystem_iff P s₀]
-    have hfun : (fun s => w ((Fintype.equivFin S).symm (Fintype.equivFin S s))) = w := by
+    refine ⟨fun i => w (e.symm i), ?_⟩
+    rw [N.satℝ_supportedFeasSystem_iff e eR P s₀]
+    have hfun : (fun s => w (e.symm (e s))) = w := by
       funext s; rw [Equiv.symm_apply_apply]
     rw [hfun]; exact hw
 
-/-- The single-coordinate supported-positivity test at `s₀` is decidable: it is the feasibility of the
-encoded rational system. -/
-noncomputable instance decidableExistsSupportedPos (N : Network S) (P : Finset S) (s₀ : S) :
+/-- The single-coordinate supported-positivity test at `s₀`, decided through an explicit species
+enumeration `e`: it is the feasibility of the encoded rational system, evaluated by Fourier–Motzkin
+elimination. Taking `e` as data makes this instance computable. -/
+def decidableExistsSupportedPosOfEquiv (N : Network S) (e : S ≃ Fin (Fintype.card S))
+    (eR : N.R ≃ Fin (Fintype.card N.R)) (P : Finset S) (s₀ : S) :
     Decidable (∃ w : S → ℝ, N.SupportedConservationVector P w ∧ 0 < w s₀) :=
-  decidable_of_iff _ (N.feasible_supportedFeasSystem_iff P s₀)
+  decidable_of_iff _ (N.feasible_supportedFeasSystem_iff e eR P s₀)
+
+/-- The single-coordinate supported-positivity test at `s₀` is decidable. The decision is the
+feasibility of the encoded rational system; species and reaction enumerations are drawn computably
+from the `Fintype` instances and lifted through the subsingleton of `Decidable`, so the instance is
+computable and independent of the chosen enumerations. -/
+instance decidableExistsSupportedPos (N : Network S) (P : Finset S) (s₀ : S) :
+    Decidable (∃ w : S → ℝ, N.SupportedConservationVector P w ∧ 0 < w s₀) :=
+  Trunc.recOnSubsingleton (Fintype.truncEquivFin S) fun e =>
+    Trunc.recOnSubsingleton (Fintype.truncEquivFin N.R) fun eR =>
+      N.decidableExistsSupportedPosOfEquiv e eR P s₀
 
 /-- **Decidability of the critical-siphon verdict.** Via the strict-support alternative, `P` is a
 critical siphon iff it is a nonempty siphon and some species of `P` fails its single-coordinate
 supported-positivity test — each test being feasibility of the encoded rational system, decided by
 Fourier–Motzkin elimination. -/
-noncomputable instance decidableIsCriticalSiphon (N : Network S) (P : Finset S) :
+instance decidableIsCriticalSiphon (N : Network S) (P : Finset S) :
     Decidable (N.IsCriticalSiphon P) :=
   decidable_of_iff _ (N.isCriticalSiphon_iff_exists_pointwise P).symm
 
@@ -469,13 +500,13 @@ def HasCriticalSiphon (N : Network S) : Prop :=
 
 /-- The critical-siphon verdict is decidable: it ranges over the finitely many species subsets, each
 test decidable by `decidableIsCriticalSiphon`. -/
-noncomputable instance decidableHasCriticalSiphon (N : Network S) :
+instance decidableHasCriticalSiphon (N : Network S) :
     Decidable (N.HasCriticalSiphon) :=
   inferInstanceAs (Decidable (∃ P : Finset S, N.IsCriticalSiphon P))
 
 /-- Absence of a critical siphon is decidable, the negation of the critical-siphon verdict over the
 finitely many species subsets. -/
-noncomputable instance decidableHasNoCriticalSiphon (N : Network S) :
+instance decidableHasNoCriticalSiphon (N : Network S) :
     Decidable (N.HasNoCriticalSiphon) :=
   inferInstanceAs (Decidable (∀ P : Finset S, ¬ N.IsCriticalSiphon P))
 

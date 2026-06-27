@@ -128,6 +128,14 @@ example (d : NetworkData) :
     d.analyze.srSignConsistent = true ↔ d.toNetwork.ConsistentSRSign :=
   NetworkData.analyze_srSignConsistent_eq d
 
+-- The reported critical-siphon flag is `true` exactly when the network has a critical siphon.
+example (d : NetworkData) :
+    d.analyze.hasCriticalSiphon = true ↔ d.toNetwork.HasCriticalSiphon :=
+  NetworkData.analyze_hasCriticalSiphon_eq d
+
+-- The analysis tags the current contract version.
+example : interopRevData.analyze.version = 7 := by decide
+
 -- The `crnt_deficiency_zero` tactic certifies deficiency zero from an explicit minor witness:
 -- a 1×1 minor for the reversible pair, a 2×2 minor for the irreversible chain.
 example : Examples.ReversiblePair.N.DeficiencyZero := by
@@ -3014,10 +3022,11 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
 -- The critical-siphon verdict is decidable: the encoded rational system's feasibility matches the
 -- single-coordinate supported-positivity test, and `IsCriticalSiphon`, `HasCriticalSiphon`, and
 -- `HasNoCriticalSiphon` all carry `Decidable` instances.
-example {S : Type} [DecidableEq S] [Fintype S] (N : CRNT.Network S) (P : Finset S) (s₀ : S) :
-    CRNT.RationalFarkas.Feasible (N.supportedFeasSystem P s₀)
+example {S : Type} [DecidableEq S] [Fintype S] (N : CRNT.Network S)
+    (e : S ≃ Fin (Fintype.card S)) (eR : N.R ≃ Fin (Fintype.card N.R)) (P : Finset S) (s₀ : S) :
+    CRNT.RationalFarkas.Feasible (N.supportedFeasSystem e eR P s₀)
       ↔ ∃ w : S → ℝ, N.SupportedConservationVector P w ∧ 0 < w s₀ :=
-  N.feasible_supportedFeasSystem_iff P s₀
+  N.feasible_supportedFeasSystem_iff e eR P s₀
 
 example {S : Type} [DecidableEq S] [Fintype S] (N : CRNT.Network S) (P : Finset S) :
     Nonempty (Decidable (N.IsCriticalSiphon P)) :=
