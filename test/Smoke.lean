@@ -8,6 +8,7 @@ import CRNT.Examples.Enzyme
 import CRNT.Examples.HopfOscillator3
 import CRNT.Examples.HopfNetwork3
 import CRNT.Examples.HopfNetwork3Branches
+import CRNT.Examples.StochasticConvergenceExample
 
 /-!
 # Smoke tests
@@ -27,6 +28,17 @@ example : Examples.ReversiblePair.N.numComplexes = 2 := by decide
 example : Examples.IrreversibleChain.N.numComplexes = 3 := by decide
 example : Examples.Enzyme.N.numComplexes = 3 := by decide
 example : Examples.GeneExpression.N.numComplexes = 6 := by decide
+
+-- The stochastic reversible pair is weakly reversible, and the embedded-jump convergence
+-- interface's aperiodicity self-loop is unsatisfiable on it.
+example : Examples.StochasticConvergenceExample.N.WeaklyReversible :=
+  Examples.StochasticConvergenceExample.weaklyReversible
+example (κ : Network.RateConstants Examples.StochasticConvergenceExample.N)
+    (n : Examples.StochasticConvergenceExample.Species → ℕ)
+    (r : Examples.StochasticConvergenceExample.N.R)
+    (hr : Examples.StochasticConvergenceExample.N.jumpNextCount n r = n) :
+    ¬ 0 < Examples.StochasticConvergenceExample.N.jumpProb κ n r :=
+  Examples.StochasticConvergenceExample.pair_no_aperiodic_self_loop κ hr
 
 -- Weak reversibility holds for the reversible pair and fails for the chain.
 example : Examples.ReversiblePair.N.WeaklyReversible := Examples.ReversiblePair.weaklyReversible
