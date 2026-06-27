@@ -2871,6 +2871,36 @@ example (H : CRNT.PlanarHopfData) (htrans : H.α' ≠ 0) (hℓ : H.firstLyapunov
         ∧ (∃ s t, seed.orbit μ s ≠ seed.orbit μ t)
         ∧ (∃ s, ‖seed.orbit μ s‖ = Real.sqrt (-H.α μ / H.firstLyapunov)) :=
   H.hopf_andronov_periodic_orbits htrans hℓ seed
+-- Closed-form Hopf limit cycle: the truncated normal form ẇ = (α+iω)w + c₁w|w|² is solved exactly by
+-- the rotating curve w(t) = Rstar·exp(I(θ₀+Ωt)) at the radial equilibrium Rstar (radialField = 0),
+-- Ω = ω + (Im c₁)Rstar²: its derivative equals the field evaluated along the curve.
+example (H : CRNT.PlanarHopfData) {μ Rstar : ℝ} (θ₀ : ℝ) (hR : 0 ≤ Rstar)
+    (hrad : H.radialField μ Rstar = 0) (t : ℝ) :
+    HasDerivAt (H.hopfLimitCycle Rstar θ₀) (H.normalForm μ (H.hopfLimitCycle Rstar θ₀ t)) t :=
+  H.hopfLimitCycle_solves θ₀ hR hrad t
+-- The closed-form limit cycle is periodic with the positive period |2π/Ω| (Ω ≠ 0) and nonconstant
+-- (Rstar > 0): a genuine cycle of the truncated field, not the equilibrium.
+example (H : CRNT.PlanarHopfData) {Rstar : ℝ} (θ₀ : ℝ) (hR : 0 < Rstar)
+    (hΩ : H.cycleFreq Rstar ≠ 0) :
+    Function.Periodic (H.hopfLimitCycle Rstar θ₀) |2 * Real.pi / H.cycleFreq Rstar|
+      ∧ (∃ s t, H.hopfLimitCycle Rstar θ₀ s ≠ H.hopfLimitCycle Rstar θ₀ t) :=
+  ⟨H.hopfLimitCycle_periodic_abs θ₀ hΩ, H.hopfLimitCycle_nonconstant θ₀ hR hΩ⟩
+-- The periodic-orbit seed of the truncated normal form is CONSTRUCTED, not assumed: on a branch whose
+-- closure contains μ₀ with the sign and frequency conditions, hopf_andronov_periodic_orbits fires
+-- with the closed-form limit cycle supplying the seed.
+example (H : CRNT.PlanarHopfData) (htrans : H.α' ≠ 0) (hℓ : H.firstLyapunov ≠ 0) (branch : Set ℝ)
+    (hclosure : H.μ₀ ∈ closure branch)
+    (hbranch : ∀ ν ∈ branch, H.α ν / H.firstLyapunov < 0)
+    (hfreq : ∀ ν ∈ branch, H.cycleFreq (Real.sqrt (-H.α ν / H.firstLyapunov)) ≠ 0) :
+    H.μ₀ ∈ closure branch ∧
+      ∀ μ ∈ branch, (0 : ℝ) < |2 * Real.pi / H.cycleFreq (Real.sqrt (-H.α μ / H.firstLyapunov))|
+        ∧ Function.Periodic (H.hopfLimitCycle (Real.sqrt (-H.α μ / H.firstLyapunov)) 0)
+            |2 * Real.pi / H.cycleFreq (Real.sqrt (-H.α μ / H.firstLyapunov))|
+        ∧ (∃ s t, H.hopfLimitCycle (Real.sqrt (-H.α μ / H.firstLyapunov)) 0 s
+            ≠ H.hopfLimitCycle (Real.sqrt (-H.α μ / H.firstLyapunov)) 0 t)
+        ∧ (∃ s, ‖H.hopfLimitCycle (Real.sqrt (-H.α μ / H.firstLyapunov)) 0 s‖
+            = Real.sqrt (-H.α μ / H.firstLyapunov)) :=
+  H.hopf_andronov_truncated htrans hℓ branch hclosure hbranch hfreq
 -- Critical-siphon feasibility under Farkas duality: a species vector lies in the conservation cone
 -- (nonnegative, orthogonal to the stoichiometric subspace) iff every direction nonnegative on the
 -- cone is nonnegative on it.
