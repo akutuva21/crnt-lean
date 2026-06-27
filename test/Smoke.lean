@@ -3641,6 +3641,29 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
           Concentration.Positive (CRNT.toEuclid.symm p))) :
     CRNT.ZeroSeparatingCurve2D.IsStrictSupportField (N.toricMassActionField κ) faces :=
   hwr.toricMassActionField_isStrictSupportField_of_activeWalls κ hfaces
+-- A separating exposed-face wall of a polyhedral fan is active: the structural fan/separation data
+-- discharges the per-wall `ActiveWall` obligation from geometry, with no hand-supplied activity.
+open scoped InnerProductSpace in
+example {S : Type} [DecidableEq S] [Fintype S] {N : Network S}
+    {F : CRNT.Fan (EuclideanSpace ℝ S)} (hF : CRNT.IsPolyhedralFan F)
+    {D C : ProperCone ℝ (EuclideanSpace ℝ S)} {n : S → ℝ} {c d : Complex S}
+    (hwall : N.IsFanWall F D C n) (hsep : N.SeparatesComplexes n c d) : N.ActiveWall n :=
+  hF.activeWall_of_separatesComplexes hwall hsep
+-- The genuine toric field is a strict support field with the per-wall activity replaced by the
+-- structural fan/separation hypothesis: strict support rests on the fan geometry alone.
+open scoped InnerProductSpace in
+example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} (hwr : N.WeaklyReversible)
+    {F : CRNT.Fan (EuclideanSpace ℝ S)} (hF : CRNT.IsPolyhedralFan F) (κ : Network.RateConstants N)
+    {faces : List (EuclideanSpace ℝ S × ℝ)}
+    (hfaces : ∀ nf ∈ faces, ∃ (n₀ : S → ℝ) (D C : ProperCone ℝ (EuclideanSpace ℝ S))
+      (c d : Complex S), nf.1 = CRNT.toEuclid n₀ ∧
+      N.IsFanWall F D C n₀ ∧ N.SeparatesComplexes n₀ c d ∧
+      (∀ r : N.R, 0 ≤ ⟪CRNT.toEuclid n₀, CRNT.toEuclid (N.reactionVector r)⟫_ℝ) ∧
+      (∀ p : EuclideanSpace ℝ S,
+        CRNT.ZeroSeparatingCurve2D.OnFaceBoundary faces (CRNT.toEuclid n₀) nf.2 p →
+          Concentration.Positive (CRNT.toEuclid.symm p))) :
+    CRNT.ZeroSeparatingCurve2D.IsStrictSupportField (N.toricMassActionField κ) faces :=
+  hF.toricMassActionField_isStrictSupportField_of_separatingWalls hwr κ hfaces
 
 -- Deterministic skeleton of the Kurtz fluid limit: the limiting reaction-rate ODE
 -- `ẋ = F(x)` admits a local solution from every start (Picard–Lindelöf via the C¹
