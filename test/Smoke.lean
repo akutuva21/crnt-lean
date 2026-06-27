@@ -2654,6 +2654,33 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
     (N.massActionKinetics κ).InjectiveOnClass x₀ :=
   N.massActionInjectiveOnClass_of_pivotReducedJacobian_pmatrix κ x₀ ρ B hBsec hbox hpm
 
+-- The concrete pivot chart discharges the section identity `hBsec` automatically: for the explicit
+-- chart `B = concretePivotChart ρ γ` built from a nonsingular maximal minor, `B (w ∘ ρ) = w` for
+-- every `w ∈ S(N)` — the section law is a theorem, not an assumption.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    (ρ : Fin (CRNT.GaussianRank.computeRank N.stoichMatrixQ) → S)
+    (γ : Fin (CRNT.GaussianRank.computeRank N.stoichMatrixQ) → N.R)
+    (hdet : (N.stoichMatrixQ.submatrix ρ γ).det ≠ 0)
+    {w : S → ℝ} (hw : w ∈ N.stoichSubspace) :
+    N.concretePivotChart ρ γ (fun i => w (ρ i)) = w :=
+  N.concretePivotChart_section ρ γ hdet hw
+
+-- Concrete-chart mass-action injectivity with no section hypothesis: a nonsingular maximal minor
+-- gives the explicit chart, the box covers the class, and the pivot-reduced Jacobian is a P-matrix on
+-- the box; injectivity follows. The reduced P-matrix property is a genuine consumer input (the
+-- pivot-reduced Jacobian is an oblique compression, not a principal submatrix of `J`).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (x₀ : Concentration S)
+    (ρ : Fin (CRNT.GaussianRank.computeRank N.stoichMatrixQ) → S)
+    (γ : Fin (CRNT.GaussianRank.computeRank N.stoichMatrixQ) → N.R)
+    (hdet : (N.stoichMatrixQ.submatrix ρ γ).det ≠ 0)
+    {lo hi : Fin (CRNT.GaussianRank.computeRank N.stoichMatrixQ) → ℝ}
+    (hbox : ∀ x ∈ N.positiveCompatibilityClass x₀, N.pivotChartCoord x₀ ρ x ∈ Set.Icc lo hi)
+    (hpm : ∀ y ∈ Set.Icc lo hi,
+      (N.pivotReducedJacobian κ x₀ ρ (N.concretePivotChart ρ γ) y).IsPMatrix) :
+    (N.massActionKinetics κ).InjectiveOnClass x₀ :=
+  N.massActionInjectiveOnClass_of_concretePivotChart κ x₀ ρ γ hdet hbox hpm
+
 -- The decidable point-free certificate (consistent signed cover + positive diagonal drive) ⇒ the
 -- full mass-action Jacobian is a P-matrix at every positive concentration: the point-free keystone
 -- discharged by a kernel sign computation.

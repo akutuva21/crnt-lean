@@ -1,4 +1,5 @@
 import CRNT.Multistationarity.ReducedJacobian
+import CRNT.Decision.StoichBasisQ
 
 /-!
 # Mass-action injectivity through a pivot-row coordinate chart
@@ -39,6 +40,22 @@ transport to it by principal-submatrix selection; the P-matrix property of the p
 is carried here as a hypothesis on the chart, which is the satisfiable replacement for the
 unsatisfiable coordinate-selection identity of the basis chart.
 
+For the explicit chart `B = concretePivotChart ρ γ` built from a nonsingular maximal minor of the
+rational stoichiometric matrix (the real cast of `chartSectionQ = chartBasisQ · pivotBlockInvQ` of
+`CRNT.Decision.StoichBasisQ`, read through `Matrix.mulVecLin`), the section law `hBsec` is **not** an
+assumption but a theorem: `concretePivotChart_section` discharges `B (w ∘ ρ) = w` for every
+`w ∈ S(N)`, from the rational chart identity `selRow · (B · C⁻¹) = 1` (`chartSectionR_mulVec_pivotSel`)
+extended by linearity across the section columns, which span `S(N)`. The consequence
+`massActionInjectiveOnClass_of_concretePivotChart` is a concrete, no-section-hypothesis injectivity
+verdict whose only remaining input is the pivot-reduced-Jacobian P-matrix property on the box.
+
+That P-matrix property is genuinely a consumer input: the pivot-reduced Jacobian `pivotSel ρ ∘ J ∘ B`
+is an oblique compression of the full Jacobian, not a principal submatrix of it, so the decidable
+point-free full-Jacobian P-matrix verdict of `SRCoverPointIndependence`/`PointIndepDecidable` does not
+transport to it by submatrix selection. A fully structural, `decide`-driven `InjectiveOnClass` verdict
+is therefore not available from the point-free certificate alone; the box-membership and reduced
+P-matrix hypotheses remain consumer inputs.
+
 This is the species–reaction-graph injectivity route of Craciun and Feinberg ("Multiple equilibria in
 complex chemical reaction networks: I. The injectivity property" and "II. The species–reaction
 graph"), whose injectivity conclusion feeds the global-univalence theorem of Gale and Nikaido ("The
@@ -46,7 +63,7 @@ Jacobian matrix and global univalence of mappings"). The pivot chart is the rati
 `CRNT.Decision.StoichBasisQ`.
 
 This module is **stable** and `sorry`-free. Depends on:
-`CRNT.Multistationarity.ReducedJacobian`.
+`CRNT.Multistationarity.ReducedJacobian`, `CRNT.Decision.StoichBasisQ`.
 -/
 
 namespace CRNT
@@ -54,6 +71,7 @@ namespace CRNT
 namespace Network
 
 open scoped BigOperators Matrix
+open CRNT.GaussianRank
 
 variable {S : Type} [DecidableEq S] [Fintype S]
 
@@ -156,10 +174,10 @@ The pivot-reduced Jacobian is a genuine, satisfiable object — the chart-transp
 identity. This is the Craciun–Feinberg species–reaction-graph injectivity verdict carried through the
 Gale–Nikaido box theorem in pivot coordinates. -/
 theorem massActionInjectiveOnClass_of_pivotReducedJacobian_pmatrix (N : Network S)
-    (κ : N.RateConstants) (x₀ : Concentration S) (ρ : Fin N.stoichRank → S)
-    (B : (Fin N.stoichRank → ℝ) →L[ℝ] (S → ℝ))
+    (κ : N.RateConstants) (x₀ : Concentration S) {s : ℕ} (ρ : Fin s → S)
+    (B : (Fin s → ℝ) →L[ℝ] (S → ℝ))
     (hBsec : ∀ w ∈ N.stoichSubspace, B (fun i => w (ρ i)) = w)
-    {lo hi : Fin N.stoichRank → ℝ}
+    {lo hi : Fin s → ℝ}
     (hbox : ∀ x ∈ N.positiveCompatibilityClass x₀, N.pivotChartCoord x₀ ρ x ∈ Set.Icc lo hi)
     (hpm : ∀ y ∈ Set.Icc lo hi, (N.pivotReducedJacobian κ x₀ ρ B y).IsPMatrix) :
     (N.massActionKinetics κ).InjectiveOnClass x₀ := by
@@ -194,10 +212,10 @@ theorem massActionInjectiveOnClass_of_pivotReducedJacobian_pmatrix (N : Network 
 `x₀` carries at most one positive mass-action steady state — the Craciun–Feinberg monostationarity
 verdict carried through the pivot chart. -/
 theorem subsingleton_steadyState_of_pivotReducedJacobian_pmatrix (N : Network S)
-    (κ : N.RateConstants) (x₀ : Concentration S) (ρ : Fin N.stoichRank → S)
-    (B : (Fin N.stoichRank → ℝ) →L[ℝ] (S → ℝ))
+    (κ : N.RateConstants) (x₀ : Concentration S) {s : ℕ} (ρ : Fin s → S)
+    (B : (Fin s → ℝ) →L[ℝ] (S → ℝ))
     (hBsec : ∀ w ∈ N.stoichSubspace, B (fun i => w (ρ i)) = w)
-    {lo hi : Fin N.stoichRank → ℝ}
+    {lo hi : Fin s → ℝ}
     (hbox : ∀ x ∈ N.positiveCompatibilityClass x₀, N.pivotChartCoord x₀ ρ x ∈ Set.Icc lo hi)
     (hpm : ∀ y ∈ Set.Icc lo hi, (N.pivotReducedJacobian κ x₀ ρ B y).IsPMatrix)
     {x y : Concentration S}
@@ -206,6 +224,70 @@ theorem subsingleton_steadyState_of_pivotReducedJacobian_pmatrix (N : Network S)
   (N.massActionInjectiveOnClass_of_pivotReducedJacobian_pmatrix κ x₀ ρ B hBsec hbox hpm).subsingleton_steadyState
     hx hy ((N.isMassActionSteadyState_iff_kinetic κ x).mp hsx)
     ((N.isMassActionSteadyState_iff_kinetic κ y).mp hsy)
+
+/-! ## The concrete pivot chart, with the section identity discharged -/
+
+/-- **The concrete pivot chart `B` as a continuous linear map.** The real section chart
+`chartSectionR ρ γ = (B · C⁻¹) ⊗ ℝ` of `CRNT.Decision.StoichBasisQ`, read as a continuous linear map
+`(Fin k → ℝ) →L[ℝ] (S → ℝ)` through `Matrix.mulVecLin` (continuous because the spaces are
+finite-dimensional). This is the explicit, rational-pivot-minor chart of the stoichiometric subspace;
+unlike a generic section it satisfies the pivot-row section law with the pivot-row selection itself,
+with no change of coordinates. -/
+noncomputable def concretePivotChart (N : Network S) {k : ℕ} (ρ : Fin k → S) (γ : Fin k → N.R) :
+    (Fin k → ℝ) →L[ℝ] (S → ℝ) :=
+  LinearMap.toContinuousLinearMap (N.chartSectionR ρ γ).mulVecLin
+
+@[simp] theorem concretePivotChart_apply (N : Network S) {k : ℕ} (ρ : Fin k → S) (γ : Fin k → N.R)
+    (c : Fin k → ℝ) : N.concretePivotChart ρ γ c = (N.chartSectionR ρ γ).mulVec c := by
+  rfl
+
+/-- **The concrete pivot chart discharges the section identity `hBsec`.** For the explicit chart
+`concretePivotChart ρ γ` built from a nonsingular maximal minor, the pivot-row section law
+`B (w ∘ ρ) = w` holds for every `w` in the stoichiometric subspace — it is exactly the pivot-row
+section identity `chartSectionR_mulVec_pivotSel` of the rational chart. The hypothesis `hBsec` of
+`massActionInjectiveOnClass_of_pivotReducedJacobian_pmatrix` is therefore not an assumption for this
+chart but a theorem. -/
+theorem concretePivotChart_section (N : Network S)
+    (ρ : Fin (computeRank N.stoichMatrixQ) → S) (γ : Fin (computeRank N.stoichMatrixQ) → N.R)
+    (hdet : (N.stoichMatrixQ.submatrix ρ γ).det ≠ 0)
+    {w : S → ℝ} (hw : w ∈ N.stoichSubspace) :
+    N.concretePivotChart ρ γ (fun i => w (ρ i)) = w := by
+  rw [concretePivotChart_apply]
+  exact N.chartSectionR_mulVec_pivotSel ρ γ hdet hw
+
+/-- **Concrete-chart mass-action injectivity, with no section hypothesis.** Fix a nonsingular maximal
+minor of the rational stoichiometric matrix (pivot rows `ρ`, pivot columns `γ`,
+`(A.submatrix ρ γ).det ≠ 0`; `CRNT.Decision.StoichBasisQ.exists_pivotSelection` supplies one,
+`MinorSearch.findMinorWitness` computably). Build the concrete pivot chart `B = concretePivotChart ρ γ`.
+Then the section hypothesis `hBsec` is discharged automatically (`concretePivotChart_section`), and
+mass-action kinetics is injective on the positive compatibility class of `x₀` provided only that the
+pivot coordinates of the class lie in a box and the pivot-reduced Jacobian `pivotSel ρ ∘ J ∘ B` is a
+P-matrix throughout that box.
+
+The chart index is `Fin (computeRank A) = Fin (stoichRank N)` (`stoichRank_eq_computeRank`), the true
+dimension of the class. This is the Craciun–Feinberg species–reaction-graph monostationarity verdict
+through the explicit rational pivot chart, fed to the Gale–Nikaido box univalence theorem; the only
+remaining input is the pivot-reduced-Jacobian P-matrix property on the box, which — the pivot-reduced
+Jacobian being an oblique compression `P · J · B` rather than a principal submatrix of `J` — is
+genuinely basis-dependent and does not follow from the full Jacobian being a P-matrix. -/
+theorem massActionInjectiveOnClass_of_concretePivotChart (N : Network S) (κ : N.RateConstants)
+    (x₀ : Concentration S)
+    (ρ : Fin (computeRank N.stoichMatrixQ) → S) (γ : Fin (computeRank N.stoichMatrixQ) → N.R)
+    (hdet : (N.stoichMatrixQ.submatrix ρ γ).det ≠ 0)
+    {lo hi : Fin (computeRank N.stoichMatrixQ) → ℝ}
+    (hbox : ∀ x ∈ N.positiveCompatibilityClass x₀,
+      N.pivotChartCoord x₀ ρ x ∈ Set.Icc lo hi)
+    (hpm : ∀ y ∈ Set.Icc lo hi,
+      (N.pivotReducedJacobian κ x₀ ρ (N.concretePivotChart ρ γ) y).IsPMatrix) :
+    (N.massActionKinetics κ).InjectiveOnClass x₀ := by
+  refine N.massActionInjectiveOnClass_of_pivotReducedJacobian_pmatrix κ x₀ ρ
+    (N.concretePivotChart ρ γ) ?_ (lo := lo) (hi := hi) ?_ ?_
+  · intro w hw
+    exact N.concretePivotChart_section ρ γ hdet hw
+  · intro x hx
+    exact hbox x hx
+  · intro y hy
+    exact hpm y hy
 
 end Network
 
