@@ -3306,6 +3306,28 @@ example (κ : Network.RateConstants CRNT.Examples.StochasticConvergenceExample.N
         (CRNT.Examples.ConservationClassRegion.conservationClass_finite K) ^ n).mulVec x i)
         Filter.atTop (nhds (b i)) :=
   CRNT.Examples.ConservationClassRegion.conservationClass_pow_mulVec_tendsto κ K hK x hx
+-- The continuous-time companion: the uniformized chemical-master-equation semigroup on the `A ⇌ B`
+-- conservation class relaxes unconditionally to the stationary law as `t → ∞`. The Poisson mixture
+-- `P_t x = ∑_k Po(Λt){k} · (U^{∘k} x)` of the discrete powers converges entrywise to `b`, lifting the
+-- geometric discrete mixing to continuous-time relaxation by the Poisson-tail argument.
+example (κ : Network.RateConstants CRNT.Examples.StochasticConvergenceExample.N) (K : ℕ)
+    (hK : 1 ≤ K) (x : ↥(CRNT.Examples.ConservationClassRegion.conservationClass K) → ℝ)
+    (hx : ∑ i, x i = 1) :
+    ∃ b : ↥(CRNT.Examples.ConservationClassRegion.conservationClass K) → ℝ,
+      (∀ i, 0 < b i) ∧ (∑ i, b i = 1) ∧
+      (Network.uRegionMatrix _ κ
+        (CRNT.Examples.ConservationClassRegion.conservationClass_finite K)).mulVec b = b ∧
+      ∀ i, Filter.Tendsto (fun t : NNReal => Network.cmeRegionVec _ κ
+        (CRNT.Examples.ConservationClassRegion.conservationClass_finite K) x t i)
+        Filter.atTop (nhds (b i)) :=
+  CRNT.Examples.ConservationClassRegion.conservationClass_cmeRegionVec_tendsto κ K hK x hx
+-- The abstract Poisson-average lift in isolation: the Poisson average of any convergent real sequence
+-- relaxes to its limit as the rate tends to infinity.
+example {a : ℕ → ℝ} {L : ℝ} (ha : Filter.Tendsto a Filter.atTop (nhds L)) :
+    Filter.Tendsto
+      (fun r : NNReal => ∑' k, (ProbabilityTheory.poissonMeasure r {k}).toReal * a k)
+      Filter.atTop (nhds L) :=
+  CRNT.tendsto_poissonAverage_atTop ha
 -- A sound general injectivity verdict from point-free network data: on a coordinate-selection
 -- chart whose box covers the class and reads the full Jacobian on the pivot rows, the point-free
 -- signed-incidence weight and diagonal-drive conditions make mass-action kinetics injective on the

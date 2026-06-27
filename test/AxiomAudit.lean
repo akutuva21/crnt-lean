@@ -197,3 +197,11 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.Network.isPMatrix_massActionJacobian_box_of_pointIndep' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.isPMatrix_massActionJacobian_box_of_pointIndep
+
+/-- info: 'CRNT.tendsto_poissonAverage_atTop' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.tendsto_poissonAverage_atTop
+
+/-- info: 'CRNT.Examples.ConservationClassRegion.conservationClass_cmeRegionVec_tendsto' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.ConservationClassRegion.conservationClass_cmeRegionVec_tendsto
