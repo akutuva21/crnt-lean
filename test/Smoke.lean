@@ -2829,6 +2829,37 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.Rat
   haveI := hμprob
   exact N.jumpStronglyConnected_pow_mulVec_tendsto_stationaryVec κ c hc hcb hT hne hjsc
     hn hexit hr hprob μ hμsupp i
+-- Single-reaction lift: firing any reaction at a count of a closed enabled region is a region jump
+-- step. Enabledness gives positive propensity hence positive jump probability, and the region's
+-- forward closure keeps the post-firing count inside, so the complex-graph edge realizes a
+-- count-space step.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    {T : Set (S → ℕ)} (hT : N.ClosedEnabledRegion κ T) {n : S → ℕ} (hn : n ∈ T) (r : N.R) :
+    N.JumpStep κ T n (N.jumpNextCount n r) :=
+  N.jumpStep_of_mem_region κ hT hn r
+-- Convergence from weak reversibility plus fireable-list connectivity: with the count-level
+-- irreducibility hypothesis replaced by reaction lists realizing every pair of region counts, the
+-- embedded jump chain mixes geometrically to the stationary law for a weakly reversible network.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : Network.RateConstants N)
+    (c : Concentration S) (hc : c.Positive) (hcb : N.IsComplexBalanced κ c)
+    {T : Set (S → ℕ)} [Fintype ↥T] (hT : N.ClosedEnabledRegion κ T) (hne : T.Nonempty)
+    (hwr : N.WeaklyReversible)
+    (hpairs : ∀ n ∈ T, ∀ m ∈ T, ∃ rs : List N.R,
+      N.FireableList κ T n rs ∧ N.fireListTarget n rs = m)
+    {n : S → ℕ} (hn : n ∈ T) (hexit : N.exitRate κ n ≠ 0)
+    {r : N.R} (hr : N.jumpNextCount n r = n) (hprob : 0 < N.jumpProb κ n r)
+    (μ : @MeasureTheory.Measure (S → ℕ) CRNT.Network.instMeasurableSpaceCount)
+    (hμprob :
+      @MeasureTheory.IsProbabilityMeasure (S → ℕ) CRNT.Network.instMeasurableSpaceCount μ)
+    (hμsupp : μ Tᶜ = 0) (i : ↥T) :
+    Filter.Tendsto
+        (fun k => ((N.regionMatrix κ T) ^ k).mulVec (CRNT.Network.stationaryVec (T := T) μ) i)
+        Filter.atTop
+        (nhds (CRNT.Network.stationaryVec (T := T)
+          (N.stationaryProbabilityMeasure κ c T) i)) := by
+  haveI := hμprob
+  exact N.weaklyReversible_pow_mulVec_tendsto_stationaryVec κ c hc hcb hT hne hwr hpairs
+    hn hexit hr hprob μ hμsupp i
 -- The computable signed incidence agrees with the real reaction-vector incidence sign.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (s : S) (r : N.R) :
     N.intSignedEdge s r = N.signedEdge s r :=
