@@ -25,11 +25,15 @@ section is a periodic orbit of the flow, the object the Hopf rotation-closure st
   - **fixed-point compatibility** (`returnMap_base`): the base returns to the section's seed
     point, `P(base) = point`, because `τ base = time` and the base crosses at `point`;
   - **continuity** (`continuousAt_returnMap`): `P` is continuous at `base`, by joint continuity
-    of the flow composed with the continuous crossing time.
+    of the flow composed with the continuous crossing time;
+  - **`C¹` dependence** (`hasFDerivAt_returnMap`): `P` has a Fréchet derivative at `base`, the
+    joint flow derivative composed with the state-and-crossing-time pairing `(id, Dτ)` by the
+    chain rule — the differentiable Poincaré map whose derivative spectrum and fixed point discharge
+    the Hopf rotation-closure step.
 
-The differentiable (`C¹`) return map needs the *joint* Fréchet derivative of the flow in state and
-time at the crossing — the variational operator together with the field — which the section carries
-only as separate partials; assembling them into a joint derivative is left as residue.
+The differentiable return map consumes the *joint* Fréchet derivative of the flow in state and time
+at the crossing — the variational operator together with the field — which the section carries as
+the datum `jointFlowDeriv`.
 
 (Poincaré, *Les méthodes nouvelles de la mécanique céleste*, vol. I, on the section map;
 Hartman, *Ordinary Differential Equations*, IX.10, on the differentiable first-return map.)
@@ -116,6 +120,35 @@ theorem continuousAt_returnMap : ContinuousAt S.returnMap S.base := by
     S.cont_flow.continuousAt
   exact ContinuousAt.comp (x := S.base)
     (f := fun x => (x, S.crossingTime x)) (g := Function.uncurry S.flow) hflow hpair
+
+/-! ## The differentiable first-return map -/
+
+/-- **`C¹` dependence of the first-return map on the initial state.** The return map
+`returnMap x = Φ x (τ x)` is the composition of `x ↦ (x, τ x)` with the flow `(x, t) ↦ Φ x t`. By
+the chain rule its Fréchet derivative at the base is the joint flow derivative composed with the
+state-and-crossing-time pairing `(id, Dτ)`, where `Dτ` is the strict derivative of the crossing
+time. This upgrades the mere continuity of `continuousAt_returnMap` to genuine `C¹` dependence —
+the differentiable Poincaré map whose derivative spectrum and fixed point discharge the Hopf
+rotation-closure step. -/
+theorem hasFDerivAt_returnMap :
+    HasFDerivAt S.returnMap
+      ((S.jointFlowDeriv S.base S.time).comp
+        ((ContinuousLinearMap.id ℝ E).prod
+          (-(ContinuousLinearMap.toSpanSingleton ℝ ⟪S.field S.point, S.normal⟫).inverse ∘L
+            S.spaceCoordDeriv S.base S.time)))
+      S.base := by
+  have hpair :
+      HasFDerivAt (fun x => (x, S.crossingTime x))
+        ((ContinuousLinearMap.id ℝ E).prod
+          (-(ContinuousLinearMap.toSpanSingleton ℝ ⟪S.field S.point, S.normal⟫).inverse ∘L
+            S.spaceCoordDeriv S.base S.time))
+        S.base :=
+    (hasFDerivAt_id S.base).prodMk S.hasStrictFDerivAt_crossingTime.hasFDerivAt
+  have hflow :
+      HasFDerivAt (fun p : E × ℝ => S.flow p.1 p.2) (S.jointFlowDeriv S.base S.time)
+        (S.base, S.crossingTime S.base) := by
+    rw [S.crossingTime_base]; exact S.hasFDeriv_flow_joint
+  exact hflow.comp S.base hpair
 
 end TransversalSection
 

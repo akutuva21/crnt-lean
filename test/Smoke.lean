@@ -3836,3 +3836,17 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : E → E) (y :
     (hfin : (f ⁻¹' {y}).Finite) :
     localDegree f y hfin Set.univ = regularDegree f y hfin :=
   localDegree_univ f y hfin
+
+-- The C¹ first-return map: the Poincaré return map `P(x) = Φ x (τ x)` is Fréchet differentiable
+-- at the base, its derivative the joint flow derivative composed with the state-and-crossing-time
+-- pairing — the differentiable Poincaré map whose derivative spectrum closes the Hopf step.
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    (Sec : CRNT.TransversalSection (E := E)) :
+    HasFDerivAt Sec.returnMap
+      ((Sec.jointFlowDeriv Sec.base Sec.time).comp
+        ((ContinuousLinearMap.id ℝ E).prod
+          (-(ContinuousLinearMap.toSpanSingleton ℝ
+              (inner ℝ (Sec.field Sec.point) Sec.normal)).inverse ∘L
+            Sec.spaceCoordDeriv Sec.base Sec.time)))
+      Sec.base :=
+  Sec.hasFDerivAt_returnMap

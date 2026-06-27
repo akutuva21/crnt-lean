@@ -111,6 +111,15 @@ structure TransversalSection where
   hasFDeriv_space : ∀ᶠ v in 𝓝 (base, time), HasFDerivAt (flow · v.2) (spaceDeriv v.1 v.2) v.1
   /-- The spatial derivative is continuous at the base crossing. -/
   cont_spaceDeriv : ContinuousAt (Function.uncurry spaceDeriv) (base, time)
+  /-- The **joint** Fréchet derivative of the flow in state and time, `D Φ : E × ℝ →L[ℝ] E`. Its
+  restriction to the `E` factor is the spatial variational operator `spaceDeriv` and its
+  restriction to the `ℝ` factor is the field along the flow; the assembled joint operator is the
+  variational datum the differentiable first-return map consumes, which `Mathlib` does not furnish
+  for a general field. -/
+  jointFlowDeriv : E → ℝ → (E × ℝ →L[ℝ] E)
+  /-- `jointFlowDeriv` is the joint Fréchet derivative of the flow at the base crossing. -/
+  hasFDeriv_flow_joint :
+    HasFDerivAt (fun p : E × ℝ => flow p.1 p.2) (jointFlowDeriv base time) (base, time)
   /-- The flow of the base state meets `S` at `time`. -/
   isCrossing : flow base time = point
   /-- The crossing is **transversal**: the field is not tangent to `S` there. -/
