@@ -285,10 +285,28 @@ geometric properties are proved:
 `FenichelManifold` derives `manifoldMap` as data with proven uniqueness (`manifoldMap_unique`) and,
 under a contraction-rate bound, Lipschitz continuity and continuity (`manifoldMap_lipschitzWith`,
 `continuous_manifoldMap`); `FenichelSlowDrift` records the `O(ε)` slow-drift bounds
-(`manifoldMap_slowDrift_le`, `manifoldMap_slowDrift_tendsto_zero`). The full Fenichel theorem,
-smoothness/existence of `h` from data via a parametrised implicit-function theorem and ε-positive
-persistence of the perturbed invariant manifold, is **not formalized** (the invariance here is
-exact only for the layer `ε = 0` flow).
+(`manifoldMap_slowDrift_le`, `manifoldMap_slowDrift_tendsto_zero`).
+
+**Graph-transform persistence.** `GraphTransform` builds the Lyapunov–Perron graph transform on
+bounded sections `Y →ᵇ E`: `GraphTransformData` packages the supremum-metric contraction whose
+Banach fixed point `manifold = M_ε` is the persisted manifold, with `O(ε)` `C⁰`-closeness to the
+base section (`manifold_dist_base_le`) and the spectral-gap constructor `ofSpectralGap`.
+`FenichelPersistence` ties a fixed-point section of the flow-then-regraph operator
+(`CoupledFlowGraphTransform`) to forward-invariance of its graph under the coupled semiflow
+(`fenichel_persistence`). Two concrete instances discharge the operator-from-flow hypothesis from an
+explicit field:
+
+- `FenichelPersistenceConcrete`: the bounded constant fast-drift field `ż = v` whose flow comes from
+  `ODE.exists_flow`; its persisted manifold is the zero section, exact only at vanishing drift
+  (`fenichel_persistence_constDrift`).
+- `FenichelPersistenceContracting`: the genuinely contracting fast fibre `ż = −rate·(z − c)` whose
+  closed-form exponential flow `(y, z) ↦ (y, c + e^{−rate·t}·(z − c))` is built directly as a
+  `Flow`; the graph transform is an honest contraction with factor `e^{−rate·τ} < 1` and the
+  persisted manifold is the genuine attracting fibre `z = c`, a non-trivial moving manifold
+  (`fenichel_persistence_contracting`).
+
+The smoothness/existence of `h` from data via a parametrised implicit-function theorem remains out of
+scope.
 
 **Michaelis–Menten** instantiates this machinery on the enzyme system `E + S ⇌ ES → E + P`:
 

@@ -3383,3 +3383,16 @@ example (τ : NNReal) :
     IsInvariant (fun n : ℕ => F.flow.toFun (n • F.τ)) (ODE.graphSet (G.manifold : ℝ → ℝ)) ∧
       dist G.base G.manifold ≤ G.defect / (1 - G.factor) :=
   ODE.fenichel_persistence_constDrift 2 1 (by norm_num) (by norm_num) (by norm_num) τ
+
+-- End-to-end Fenichel ε-persistence for the genuinely contracting fast-fibre field on `ℝ × ℝ`
+-- (`ż = -rate·(z - c)`), with the operator-from-flow `flow_mapsTo` proved from the closed-form
+-- contracting flow: the persisted manifold is the genuine attracting fibre `z = c` (a non-trivial
+-- moving manifold, not the zero section), its graph forward-invariant under the iterate coupled
+-- semiflow and `M_ε` close to the base section, with every hypothesis discharged.
+example :
+    let G := ODE.contractGapData (Y := ℝ) (E := ℝ) 3 (7 : ℝ) (1 : NNReal)
+      (by norm_num) (by norm_num)
+    let F := ODE.contractingCoupled (Y := ℝ) (E := ℝ) 3 (7 : ℝ) (1 : NNReal)
+    IsInvariant (fun n : ℕ => F.flow.toFun (n • F.τ)) (ODE.graphSet (G.manifold : ℝ → ℝ)) ∧
+      dist G.base G.manifold ≤ G.defect / (1 - G.factor) :=
+  ODE.fenichel_persistence_contracting 3 (7 : ℝ) (1 : NNReal) (by norm_num) (by norm_num)
