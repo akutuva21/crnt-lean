@@ -390,12 +390,27 @@ axis:
   `0 < a₃`, `0 < a₀`, exactly one conjugate pair lands on the imaginary axis while the other stays
   in the open left half-plane.
 
-These are the algebraic eigenvalue-crossing conditions under which a Hopf bifurcation can occur. The
-dynamical Hopf bifurcation theorem (limit-cycle existence, center-manifold reduction) is **not
-formalized**: it needs center-manifold theory Mathlib does not provide. The general-degree
-Routh–Hurwitz converse (positivity of all `n` Hurwitz determinants implies Hurwitz, via
-Hermite–Biehler / Routh-array continued fractions) is likewise **not formalized**; the
-root-predicate criterion is complete through degree 4.
+These are the algebraic eigenvalue-crossing conditions under which a Hopf bifurcation can occur.
+
+**The dynamical Hopf bifurcation.** The planar Poincaré normal form `ẇ = (α + iω) w + c₁ w |w|²` and
+the first Lyapunov coefficient `ℓ₁ = Re c₁` are formalized in `HopfNormalForm.lean`, together with the
+radial amplitude law (a positive equilibrium amplitude `√(−α/ℓ₁)` exists when `α/ℓ₁ < 0`), sub/
+supercriticality, and the conditional Hopf–Andronov theorem `hopf_andronov_periodic_orbits` (the
+periodic-orbit existence carried as a `PeriodicOrbitSeed`, mirroring the center-manifold seed pattern).
+`HopfLimitCycle.lean` constructs the closed-form limit cycle `Rstar e^{i(θ₀ + Ω t)}` of the
+*truncated* normal form, proves it solves the truncated field, is periodic and nonconstant, and
+assembles it into the seed, so `hopf_andronov_truncated` fires unconditionally for the truncation.
+`HopfPersistentOrbit.lean` discharges the persistence of that cycle under the `O(|w|⁴)` tail: the
+scalar Lyapunov–Schmidt reduction — the implicit function theorem applied to the full averaged radial
+field at the nondegenerate root `2ℓ₁ Rstar² ≠ 0` — produces a persistent amplitude branch
+(`amplitudeBranch`, `amplitudeBranch_isRoot`) varying continuously with the parameter; the remaining
+rotation-closure (turning a positive root into a genuine periodic orbit of the full planar field) is
+the one step needing Poincaré-return-map infrastructure Mathlib lacks, and is carried as the explicit
+hypothesis of `hopf_andronov_full_field`. The center-manifold reduction down to the planar field, and
+the averaging that produces the radial field, are recorded as data; Mathlib provides neither
+center-manifold theory nor a return-map construction. The general-degree Routh–Hurwitz converse
+(positivity of all `n` Hurwitz determinants implies Hurwitz, via Hermite–Biehler / Routh-array
+continued fractions) is **not formalized**; the root-predicate criterion is complete through degree 4.
 
 ## Modules
 
@@ -429,6 +444,12 @@ Dynamics:
 - `CRNT/Dynamics/Hurwitz2Matrix.lean`: the planar trace–determinant test from the characteristic
   polynomial, and the two-species mass-action Jacobian gate.
 - `CRNT/Dynamics/HopfGate.lean`, `HopfGate4.lean`: the degree-3 and degree-4 Hopf crossing gates.
+- `CRNT/Dynamics/HopfNormalForm.lean`: the planar Poincaré normal form, the first Lyapunov
+  coefficient, the radial amplitude law, and the conditional Hopf–Andronov theorem.
+- `CRNT/Dynamics/HopfLimitCycle.lean`: the closed-form limit cycle of the truncated normal form and
+  its constructed periodic-orbit seed.
+- `CRNT/Dynamics/HopfPersistentOrbit.lean`: the scalar Lyapunov–Schmidt reduction persisting the
+  limit-cycle amplitude through the `O(|w|⁴)` tail via the implicit function theorem.
 
 Lyapunov / stability stack:
 - `CRNT/Theorems/DeficiencyZero/Lyapunov.lean`: `relEntropy` and its positive definiteness.

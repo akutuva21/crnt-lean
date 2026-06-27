@@ -2901,6 +2901,40 @@ example (H : CRNT.PlanarHopfData) (htrans : H.α' ≠ 0) (hℓ : H.firstLyapunov
         ∧ (∃ s, ‖H.hopfLimitCycle (Real.sqrt (-H.α μ / H.firstLyapunov)) 0 s‖
             = Real.sqrt (-H.α μ / H.firstLyapunov)) :=
   H.hopf_andronov_truncated htrans hℓ branch hclosure hbranch hfreq
+-- Nondegeneracy of the truncated radial equilibrium: the R-partial α + 3ℓ₁R² of the radial field at a
+-- positive equilibrium collapses to 2ℓ₁R² ≠ 0, the implicit-function nondegeneracy that ℓ₁ ≠ 0 and
+-- R > 0 furnish for free.
+example (H : CRNT.PlanarHopfData) {μ Rstar : ℝ} (hℓ : H.firstLyapunov ≠ 0) (hR : 0 < Rstar)
+    (hrad : H.radialField μ Rstar = 0) :
+    H.α μ + 3 * H.firstLyapunov * Rstar ^ 2 ≠ 0 :=
+  H.radialDeriv_ne_zero hℓ hR hrad
+-- Persistence of the limit-cycle amplitude through the O(|w|⁴) tail: at a nondegenerate positive root
+-- of the full averaged radial field, the implicit function theorem furnishes an amplitude branch that
+-- remains a root of the full field for every nearby parameter.
+example {μ₁ R₀ : ℝ} (F : CRNT.PlanarHopfData.FullRadialField μ₁ R₀) :
+    ∀ᶠ μ in nhds μ₁, F.G μ (CRNT.PlanarHopfData.amplitudeBranch F μ) = 0 :=
+  CRNT.PlanarHopfData.amplitudeBranch_isRoot F
+-- Hopf–Andronov for the full field: with the persistent amplitude branch a positive root matching the
+-- radial equilibrium on a branch whose closure contains μ₀, and the rotation-closure realizing each
+-- root as a genuine nonconstant periodic orbit, the full field carries the bifurcating family.
+example (H : CRNT.PlanarHopfData) (htrans : H.α' ≠ 0) (hℓ : H.firstLyapunov ≠ 0)
+    {μ₁ R₀ : ℝ} (F : CRNT.PlanarHopfData.FullRadialField μ₁ R₀) (branch : Set ℝ)
+    (hclosure : H.μ₀ ∈ closure branch)
+    (hpos : ∀ ν ∈ branch, 0 < CRNT.PlanarHopfData.amplitudeBranch F ν)
+    (hroot : ∀ ν ∈ branch, F.G ν (CRNT.PlanarHopfData.amplitudeBranch F ν) = 0)
+    (radialEq : ∀ ν ∈ branch,
+      CRNT.PlanarHopfData.amplitudeBranch F ν = Real.sqrt (-H.α ν / H.firstLyapunov))
+    (T : ℝ → ℝ) (hT : ∀ ν ∈ branch, 0 < T ν) (orbit : ℝ → ℝ → ℂ)
+    (realizes : ∀ ν ∈ branch, ∀ ρ, F.G ν ρ = 0 → 0 < ρ →
+      Function.Periodic (orbit ν) (T ν)
+        ∧ (∃ s t, orbit ν s ≠ orbit ν t)
+        ∧ (∃ s, ‖orbit ν s‖ = ρ)) :
+    H.μ₀ ∈ closure branch ∧
+      (∀ μ ∈ branch, 0 < T μ
+        ∧ Function.Periodic (orbit μ) (T μ)
+        ∧ (∃ s t, orbit μ s ≠ orbit μ t)
+        ∧ (∃ s, ‖orbit μ s‖ = Real.sqrt (-H.α μ / H.firstLyapunov))) :=
+  H.hopf_andronov_full_field htrans hℓ F branch hclosure hpos hroot radialEq T hT orbit realizes
 -- Critical-siphon feasibility under Farkas duality: a species vector lies in the conservation cone
 -- (nonnegative, orthogonal to the stoichiometric subspace) iff every direction nonnegative on the
 -- cone is nonnegative on it.
