@@ -154,3 +154,6 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.MichaelisMenten.mmReg_tracking_ceiling_via_abstract' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.MichaelisMenten.mmReg_tracking_ceiling_via_abstract
+/-- info: 'CRNT.ExponentialDichotomy.mulVec_exp_smul_mapsTo_realStableSubspace' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.ExponentialDichotomy.mulVec_exp_smul_mapsTo_realStableSubspace

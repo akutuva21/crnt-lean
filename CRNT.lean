@@ -161,6 +161,7 @@ import CRNT.Dynamics.Hurwitz3Matrix
 import CRNT.Dynamics.HopfAdmissible
 import CRNT.Dynamics.SpectralSplitting
 import CRNT.Dynamics.SpectralSplittingReal
+import CRNT.Dynamics.ExponentialDichotomy
 import CRNT.Dynamics.HopfGate3Matrix
 import CRNT.Dynamics.HopfTransversality3
 import CRNT.Examples.HopfOscillator3

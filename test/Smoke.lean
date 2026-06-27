@@ -3094,3 +3094,9 @@ example (rate : ℝ) (hrate : 0 < rate) (Km Vmax : ℝ) (hKm : 0 < Km) {ε G : �
             - (CRNT.MichaelisMenten.mmRegSlowManifoldSeed rate hrate Km Vmax hKm).manifoldMap (s 0)‖
           + (CRNT.MichaelisMenten.mmRegFastFieldLipConst rate Km Vmax / rate) * (ε * G) / rate :=
   CRNT.MichaelisMenten.mmReg_tracking_ceiling_via_abstract rate hrate Km Vmax hKm hε hG hg hx hs
+-- Exponential invariance: the linear flow `exp (t • A)` preserves each real spectral subspace.
+example (A : Matrix (Fin 2) (Fin 2) ℝ) (t : ℝ) :
+    Set.MapsTo (NormedSpace.exp (t • A)).mulVec
+      (CRNT.SpectralSplittingReal.realStableSubspace A)
+      (CRNT.SpectralSplittingReal.realStableSubspace A) :=
+  CRNT.ExponentialDichotomy.mulVec_exp_smul_mapsTo_realStableSubspace A t
