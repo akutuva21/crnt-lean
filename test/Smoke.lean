@@ -2388,6 +2388,15 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {ι : Type} 
     (∑ j, v j) ∈ polarCone s :=
   sum_univ_mem_polarCone v hv
 
+-- An affine half-plane inward across its boundary band is a (C¹) zero-separating surface in any
+-- dimension, with no viability hypothesis.
+open scoped InnerProductSpace in
+example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] {f : E → E} {x₀ n : E} {a δ : ℝ}
+    (hn : ‖n‖ = 1) (ha : 0 < a) (hδ : 0 < δ) (hstart : a ≤ ⟪n, x₀⟫_ℝ)
+    (hinward : ∀ y, a - δ ≤ ⟪n, y⟫_ℝ → ⟪n, y⟫_ℝ ≤ a + δ → 0 ≤ ⟪n, f y⟫_ℝ) :
+    DifferentialInclusion.ZeroSeparatingSurfaceExists f x₀ :=
+  DifferentialInclusion.zeroSeparatingSurfaceExists_halfPlane hn ha hδ hstart hinward
+
 -- Before the first exit time, a curve stays in the closed set.
 example {α : Type} [TopologicalSpace α] {γ : ℝ → α} {R : Set α} {s : ℝ}
     (hs0 : 0 ≤ s) (hsτ : s < exitTime γ R) : γ s ∈ R :=
