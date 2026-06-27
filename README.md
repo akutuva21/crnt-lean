@@ -79,6 +79,8 @@ Grouped by area; the precise statements and module names are in each linked doc.
 - The Anderson–Craciun–Kurtz product-form stationary distribution
 - A normalized invariant probability measure on any finite closed enabled region, with product-form
   singleton ratios
+- The Kurtz density-dependent generator-convergence estimate: the volume-scaled generator of a
+  differentiable observable converges to its derivative along the deterministic mass-action field
 
 **[Multistationarity & robustness](docs/multistationarity-robustness.md)**
 - Degree-free Gale–Nikaido univalence, bound to class injectivity

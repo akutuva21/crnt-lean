@@ -384,6 +384,7 @@ import CRNT.Stochastic.SemigroupComposition
 import CRNT.Stochastic.UniformizedConvergence
 import CRNT.Stochastic.ConservationClassRegion
 import CRNT.Stochastic.SemigroupConvergence
+import CRNT.Stochastic.KurtzScaling
 
 -- Network composition
 import CRNT.Compose.Interconnect

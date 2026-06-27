@@ -3440,3 +3440,21 @@ example :
       dist G'.base G'.manifold ≤ G'.defect / (1 - G'.factor) :=
   CRNT.MichaelisMenten.mmFenichelPersistence 3 (by norm_num) 2 5 (by norm_num) 10 (1 : NNReal)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num)
+-- Kurtz density-dependent scaling: the volume-scaled generator of the reversible pair `A ⇌ B`,
+-- applied to any differentiable observable, converges as `V → ∞` to the derivative of the
+-- observable along the deterministic mass-action field `F`.
+example (κ : Network.RateConstants Examples.ReversiblePair.N)
+    {f : Concentration Examples.ReversiblePair.Species → ℝ}
+    {x : Concentration Examples.ReversiblePair.Species}
+    {L : Concentration Examples.ReversiblePair.Species →L[ℝ] ℝ} (hf : HasFDerivAt f L x) :
+    Filter.Tendsto (fun V : ℝ => Examples.ReversiblePair.N.scaledGenerator κ V f x) Filter.atTop
+      (nhds (L (Examples.ReversiblePair.N.massActionVectorField κ x))) :=
+  Examples.ReversiblePair.tendsto_scaledGenerator_reversiblePair κ hf
+
+-- The limit field's `A`-component is the linear law `ẋ_A = −κ_f x_A + κ_b x_B`.
+example (κ : Network.RateConstants Examples.ReversiblePair.N)
+    (x : Concentration Examples.ReversiblePair.Species) :
+    Examples.ReversiblePair.N.massActionVectorField κ x Examples.ReversiblePair.Species.A =
+      -(κ.k Examples.ReversiblePair.Rxn.fwd * x Examples.ReversiblePair.Species.A)
+        + κ.k Examples.ReversiblePair.Rxn.bwd * x Examples.ReversiblePair.Species.B :=
+  Examples.ReversiblePair.massActionVectorField_A κ x
