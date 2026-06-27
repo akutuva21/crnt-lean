@@ -3877,6 +3877,15 @@ example {R : Type} [Fintype R] (a : R → ℝ≥0) (weight : R → ℝ) {V : ℝ
       = (∑ r, weight r ^ 2 * (a r : ℝ)) / V :=
   CRNT.Stochastic.variance_aggregate_scaledClock hV a weight
 
+-- Time-changed fluctuation at a deterministic integrated intensity `Λ_r = V · A_r` along the limit
+-- trajectory: the total centered, volume-scaled, weighted increment `∑_r M_r` has the self-contained
+-- aggregate `O(1/V)` variance `(∑_r weight_r² · A_r) / V`, the compensated form of the scaled clocks.
+example {R : Type} [Fintype R] (A : R → ℝ≥0) (weight : R → ℝ) {V : ℝ} (hV : 0 < V) :
+    ProbabilityTheory.variance (∑ r, CRNT.Stochastic.centeredTimeChange weight V A r)
+        (CRNT.Stochastic.clockMeasure hV A)
+      = (∑ r, weight r ^ 2 * (A r : ℝ)) / V :=
+  CRNT.Stochastic.variance_aggregate_centeredTimeChange hV A weight
+
 -- The degree of an invertible continuous linear map is the orientation sign of its
 -- determinant: the preimage is a single point and the derivative is the map itself.
 example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]

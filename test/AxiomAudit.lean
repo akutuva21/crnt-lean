@@ -278,3 +278,19 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.eventually_regularDegree_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.eventually_regularDegree_eq
+
+/-- info: 'CRNT.Stochastic.variance_centeredTimeChange' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Stochastic.variance_centeredTimeChange
+
+/-- info: 'CRNT.Stochastic.variance_aggregate_centeredTimeChange' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Stochastic.variance_aggregate_centeredTimeChange
+
+/-- info: 'CRNT.Stochastic.tendsto_meas_aggregate_centeredTimeChange' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Stochastic.tendsto_meas_aggregate_centeredTimeChange
+
+/-- info: 'CRNT.Stochastic.exists_timeChanged_fluct_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Stochastic.exists_timeChanged_fluct_bound
