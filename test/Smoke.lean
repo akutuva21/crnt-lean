@@ -4022,3 +4022,14 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional
           ∑ x ∈ hfin₀.toFinset,
             ((SignType.sign (LinearMap.det (fderiv ℝ f x).toLinearMap) : SignType) : ℤ) :=
   eventually_regularDegree_eq_of_isProperMap f hfp hf hdet hfin₀
+-- A genuinely non-constant slow manifold invariant at EVERY continuous time: over the affine base on
+-- ℝ × ℝ with drift (1, 0), the second-coordinate section y ↦ y.2 is comoving and non-constant, and
+-- its graph {((y₁, y₂), y₂)} is invariant under the full continuous product semiflow that contracts
+-- onto the comoving section, for every t ≥ 0. The comoving property cancels the contraction's pull
+-- along the moving base, so the manifold persists without collapsing to a constant fibre.
+example (rate : ℝ) :
+    IsInvariant
+      (ODE.comovingContractFlow (ODE.affineAllTimeBase ((1, 0) : ℝ × ℝ)) rate (fun y : ℝ × ℝ => y.2)
+        ODE.continuous_snd_section).toFun
+      (ODE.graphSet (fun y : ℝ × ℝ => y.2)) :=
+  ODE.affineComovingManifold_isInvariant rate
