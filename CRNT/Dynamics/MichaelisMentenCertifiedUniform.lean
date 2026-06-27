@@ -48,7 +48,7 @@ field: a single constant `C = ‖x 0 - m 0‖ + (L / rate)·(ε·G) / rate`, ind
 within which the exact complex trajectory tracks the slaved manifold reference for all forward time.
 
 **The transverse hypothesis is the crux.** The coupled transverse one-sided contraction
-`⟪full (x t) - full (m t), x t - m t⟫ ≤ -λ·‖x t - m t‖²` is the load-bearing input: it asserts that the
+`⟪full (x t) - full (m t), x t - m t⟫ ≤ -λ·‖x t - m t‖²` is the key input: it asserts that the
 *full* enzyme field — not merely the frozen fast fibre — pulls the exact trajectory toward the moving
 manifold reference faster than the slow drift pushes them apart. For the affine regularized fast field
 this is the fibre contraction `mmRegFastField_oneSidedContraction` carried along the coupled flow when

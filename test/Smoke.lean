@@ -722,7 +722,7 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) :
     Decidable N.OneTerminalSLCPerLinkageClass :=
   inferInstance
 
--- Phase 2 localization: a mass-action steady state is complex-balanced on every
+-- Localization: a mass-action steady state is complex-balanced on every
 -- deficiency-zero linkage class (deficiency-one analysis localizes to the deficient class).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.DeficiencyOneConditions)
     (κ : Network.RateConstants N) {x : Concentration S} (hx : N.IsMassActionSteadyState κ x)
@@ -1388,7 +1388,7 @@ example (z₁ z₃ : ℂ) (a₃ a₂ a₁ a₀ : ℝ)
   CRNT.hopf_crossing_gate_quartic z₁ z₃ a₃ a₂ a₁ a₀ e₃ e₂ e₁ e₀ H₃ H₀ HΔ
 
 -- One-dimensional Sperner lemma: a Sperner-colored path (false at 0, true at n) has a
--- color-change edge — the base case of the Sperner→Brouwer ladder.
+-- color-change edge — the base case of the Sperner→Brouwer development.
 example {n : ℕ} {c : ℕ → Bool} (h : CRNT.Analysis.Sperner.IsSpernerColoring n c) :
     ∃ i < n, c (i + 1) ≠ c i :=
   CRNT.Analysis.Sperner.sperner_exists_rainbow h
@@ -2239,7 +2239,7 @@ example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpa
   exposedFace_zero C
 
 -- The polygonal zero-separating region (intersection of region-side half-planes) is closed — the
--- load-bearing property for the distance-based Nagumo invariance.
+-- property the distance-based Nagumo invariance rests on.
 example {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E] (faces : List (E × ℝ)) :
     IsClosed (ZeroSeparatingCurve2D.polyRegion faces) :=
   ZeroSeparatingCurve2D.isClosed_polyRegion faces
@@ -2383,27 +2383,27 @@ example {n : ℕ} (M : Matrix (Fin (n + 1)) (Fin (n + 1)) ℝ)
     M.det = M (Fin.last n) (Fin.last n) * (Matrix.schurLast M).det :=
   Matrix.det_schurLast M hd
 
--- Gale–Nikaido rung 1: a map with everywhere-strict derivative whose Jacobian is a P-matrix at every
+-- Gale–Nikaido step 1: a map with everywhere-strict derivative whose Jacobian is a P-matrix at every
 -- point is a local homeomorphism (local injectivity).
 example {n : ℕ} {f : (Fin n → ℝ) → (Fin n → ℝ)}
     {f' : (Fin n → ℝ) → ((Fin n → ℝ) →L[ℝ] (Fin n → ℝ))}
     (hf : ∀ x, HasStrictFDerivAt f (f' x) x)
     (hP : ∀ x, (CRNT.jacobianMatrix (f' x)).IsPMatrix) : IsLocalHomeomorph f :=
   CRNT.isLocalHomeomorph_of_pmatrix_fderiv hf hP
--- Gale–Nikaido rung 2: the one-dimensional base case — a P-matrix Jacobian on a 1-D box gives
+-- Gale–Nikaido step 2: the one-dimensional base case — a P-matrix Jacobian on a 1-D box gives
 -- injectivity.
 example {f : (Fin 1 → ℝ) → (Fin 1 → ℝ)} {f' : (Fin 1 → ℝ) → ((Fin 1 → ℝ) →L[ℝ] (Fin 1 → ℝ))}
     {a b : Fin 1 → ℝ} (hf : ∀ x ∈ Set.Icc a b, HasFDerivAt f (f' x) x)
     (hP : ∀ x ∈ Set.Icc a b, (CRNT.jacobianMatrix (f' x)).IsPMatrix) :
     Set.InjOn f (Set.Icc a b) :=
   CRNT.injOn_of_pmatrix_fderiv_dim_one hf hP
--- Gale–Nikaido rung 3: a P-matrix stays a P-matrix under ±1 diagonal (signature) conjugation —
+-- Gale–Nikaido step 3: a P-matrix stays a P-matrix under ±1 diagonal (signature) conjugation —
 -- the coordinatewise sign-flip reduction.
 example {n : ℕ} {M : Matrix (Fin n) (Fin n) ℝ} (h : M.IsPMatrix)
     {ε : Fin n → ℝ} (hε : ∀ i, ε i = 1 ∨ ε i = -1) :
     (Matrix.of (fun i j => ε i * M i j * ε j)).IsPMatrix :=
   h.signatureConj hε
--- Gale–Nikaido rung 4: the reduced map (last coordinate solved by `φ`) has Jacobian equal to the
+-- Gale–Nikaido step 4: the reduced map (last coordinate solved by `φ`) has Jacobian equal to the
 -- Schur complement of the full Jacobian — the dimension-drop step.
 example {n : ℕ} {Dφ : (Fin n → ℝ) →L[ℝ] ℝ}
     {L : (Fin (n + 1) → ℝ) →L[ℝ] (Fin (n + 1) → ℝ)}
