@@ -3513,6 +3513,19 @@ example :
       dist G'.base G'.manifold ≤ G'.defect / (1 - G'.factor) :=
   CRNT.MichaelisMenten.mmFenichelPersistence 3 (by norm_num) 2 5 (by norm_num) 10 (1 : NNReal)
     (by norm_num) (by norm_num) (by norm_num) (by norm_num)
+-- All-time continuous-semiflow Fenichel invariance of the Michaelis–Menten slow manifold: the graph
+-- of the substrate-varying equilibrium section is forward-invariant under the full continuous coupled
+-- semiflow `Φ t` at every forward time (not merely sampled at multiples of the horizon `τ`), paired
+-- with the unchanged honest `O(ε)` `C⁰`-closeness ceiling — the complete geometric Fenichel statement.
+example :
+    let G' := CRNT.MichaelisMenten.mmFenichelData 3 (by norm_num) 2 5 (by norm_num) 10
+      (1 : NNReal) (by norm_num) (L := 4) (ε := 1) (G := 6) (by norm_num) (by norm_num) (by norm_num)
+    let F := CRNT.MichaelisMenten.mmCoupledFlowGraphTransform 3 2 5 (by norm_num) 10 (1 : NNReal)
+    IsInvariant F.flow.toFun
+        (ODE.graphSet (G'.manifold : CRNT.MichaelisMenten.SubstrateIcc 10 → CRNT.MichaelisMenten.E)) ∧
+      dist G'.base G'.manifold ≤ G'.defect / (1 - G'.factor) :=
+  CRNT.MichaelisMenten.mmFenichelPersistence_allTime 3 (by norm_num) 2 5 (by norm_num) 10 (1 : NNReal)
+    (by norm_num) (by norm_num) (by norm_num) (by norm_num)
 -- Kurtz density-dependent scaling: the volume-scaled generator of the reversible pair `A ⇌ B`,
 -- applied to any differentiable observable, converges as `V → ∞` to the derivative of the
 -- observable along the deterministic mass-action field `F`.
