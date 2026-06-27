@@ -170,3 +170,7 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.NetworkData.hasNoCriticalSiphon_of_persistenceStructural' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.NetworkData.hasNoCriticalSiphon_of_persistenceStructural
+
+/-- info: 'ODE.GraphTransformData.manifold_dist_base_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms ODE.GraphTransformData.manifold_dist_base_le

@@ -1470,6 +1470,14 @@ example {Y E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] (M : ODE.
     (y : Y) : M.fast y (M.manifoldMap y) = 0 :=
   M.manifoldMap_stat y
 
+-- Fenichel ε-persistence (graph-transform core): the perturbed invariant manifold M_ε is the unique
+-- fixed-point section of the Lyapunov–Perron graph transform, O(ε)-C⁰-close to the unperturbed M_0.
+open scoped BoundedContinuousFunction in
+example {Y E : Type*} [TopologicalSpace Y] [NormedAddCommGroup E] [CompleteSpace E]
+    (G : ODE.GraphTransformData Y E) :
+    G.op G.manifold = G.manifold ∧ dist G.base G.manifold ≤ G.defect / (1 - G.factor) :=
+  ⟨G.manifold_isFixedPt, G.manifold_dist_base_le⟩
+
 -- Confined invariance closed: a genuine mass-action orbit with bounded relative entropy that starts
 -- on a siphon face stays on it for all forward time (the box hypothesis is discharged).
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
