@@ -38,6 +38,10 @@ univalence, forward semiflows with LaSalle).
   equilibria, for any rate constants.
 - Unconditional global convergence for no-critical-siphon networks: a decidable sufficient condition
   for the global attractor property.
+- The global attractor conjecture reduced to a single explicit hypothesis: for weakly-reversible
+  complex-balanced networks, global convergence follows from one geometric predicate (a bounded region
+  that confines the orbit a fixed distance away from every species facet), with every step from that
+  predicate to convergence machine-checked.
 - The Anderson–Craciun–Kurtz product form: the exact stationary distribution of a complex-balanced
   stochastic network.
 - Concordance forces at most one steady state per class, for every weakly-monotonic kinetics,
@@ -72,6 +76,10 @@ Grouped by area; the precise statements and module names are in each linked doc.
 **[Persistence & global attraction](docs/persistence-gac.md)**
 - The reduction GAC ⟺ persistence, and unconditional convergence for the no-critical-siphon class
 - The sharp "one positive ω-limit point ⇒ convergence" reduction
+- The global attractor conjecture for weakly-reversible complex-balanced networks reduced to a single
+  predicate, `SeparatingConfinement` (a bounded, forward-invariant region holding the orbit off every
+  facet), proven sufficient for global convergence end to end; the affine separating surface is built
+  in every dimension
 - A development of the toric-differential-inclusion approach
 
 **[Stochastic CRN](docs/stochastic.md)**
@@ -130,11 +138,18 @@ unlocks the CRN results noted, and questions where the mathematics itself is sti
 - The global attractor conjecture (Horn's 1974 conjecture, open in general):
   - Proven unconditionally for the no-critical-siphon class of complex-balanced networks, and reduced
     to persistence in all cases (GAC ⟺ persistence)
+  - For weakly-reversible complex-balanced networks the persistence requirement is reduced to a single
+    explicit predicate, `SeparatingConfinement`: the genuine mass-action orbit is forward-invariant in
+    a bounded region that stays a fixed positive distance above every species facet. The implication
+    `SeparatingConfinement ⇒ global convergence` is machine-checked end to end, and the affine
+    (half-plane) zero-separating surface that realizes it is constructed in every dimension
   - Craciun's toric-differential-inclusion architecture is formalized sorry-free, with the steps it
     rests on isolated as explicit hypotheses: set-valued viability, the n-dimensional surface
     construction, the weak-reversibility cycle cover, the polyhedral-fan axioms, and arbitrary-fan
     faithful-curve existence
-  - No theorem assembles those hypotheses into a proof of the conjecture
+  - Constructing `SeparatingConfinement` for the curved mass-action case is the open content: the
+    toric zero-separating surface, refereed in the literature only for stoichiometric dimension at most
+    three. No theorem constructs it in general
 - The correctness of the higher-deficiency (Deficiency One and Advanced Deficiency) algorithms:
   - The apparatus is formalized (network consistency via Stiemke, cut pairs, regularity, confluence
     vectors with their proven antisymmetry, shelves, signatures, colinearity classes), and the
