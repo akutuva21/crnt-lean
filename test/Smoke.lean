@@ -3522,6 +3522,19 @@ example :
     IsInvariant (fun n : ℕ => F.flow.toFun (n • F.τ)) (ODE.graphSet (G.manifold : ℝ → ℝ)) ∧
       dist G.base G.manifold ≤ G.defect / (1 - G.factor) :=
   ODE.fenichel_persistence_contracting 3 (7 : ℝ) (1 : NNReal) (by norm_num) (by norm_num)
+-- End-to-end Fenichel ε-persistence over a GENUINELY DRIFTING slow base on `ℝ × ℝ`
+-- (`ẏ = ε·b`, `ż = -rate·(z - c)`): the base coordinate honestly moves under the closed-form coupled
+-- flow `(y, z) ↦ (y + (ε·t)·b, c + e^{-rate·t}·(z - c))`, removing the frozen-base idealization. The
+-- persisted manifold is the attracting fibre `z = c`, its graph forward-invariant under the iterate
+-- coupled drifting-base semiflow and `M_ε` close to the base section, every hypothesis discharged.
+example :
+    let G := ODE.contractGapData (Y := ℝ) (E := ℝ) 3 (7 : ℝ) (1 : NNReal)
+      (by norm_num) (by norm_num)
+    let F := ODE.coupledDriftCoupled (Y := ℝ) (E := ℝ) (5 : ℝ) (2 : ℝ) 3 (7 : ℝ) (1 : NNReal)
+    IsInvariant (fun n : ℕ => F.flow.toFun (n • F.τ)) (ODE.graphSet (G.manifold : ℝ → ℝ)) ∧
+      dist G.base G.manifold ≤ G.defect / (1 - G.factor) :=
+  ODE.fenichel_persistence_coupledDrift (5 : ℝ) (2 : ℝ) 3 (7 : ℝ) (1 : NNReal)
+    (by norm_num) (by norm_num)
 -- Strict boundary support for the GENUINE toric mass-action field, discharged from the dynamics:
 -- the fan cone geometry gives only `0 ≤ ⟪n, v⟫`; an enabled strictly-inward reaction per active
 -- wall upgrades it to the strict `IsStrictSupportField` the persistence engine consumes.
