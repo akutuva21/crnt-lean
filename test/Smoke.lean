@@ -4346,3 +4346,10 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
       gronwallBound 0 K (ρ h * (|h| * ‖v‖ * Real.exp (K * T))) t) :
     HasDerivAt (fun h => Y h t) (W t) 0 :=
   ODE.hasDerivAt_flow_initial (v := v) hK ht hY0 hρ0 hρlim herr
+
+-- The computable terminal-strong-linkage-class count agrees with the cardinality definition and
+-- reduces by `decide` on a concrete network: the reversible pair `A ⇌ B` is a single terminal
+-- strong linkage class.
+example : interopRevData.toNetwork.computeNumTerminalSLC = 1 := by decide
+example (N : Network (Fin 2)) : N.computeNumTerminalSLC = N.numTerminalSLC :=
+  N.computeNumTerminalSLC_eq_numTerminalSLC

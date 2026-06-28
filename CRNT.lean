@@ -452,6 +452,7 @@ import CRNT.Interop.Certificates
 import CRNT.Interop.NetworkData
 import CRNT.Interop.Analysis
 import CRNT.Examples.StochasticConvergenceExample
+import CRNT.Decision.ComputableTerminalSLC
 
 /-!
 # `crnt-lean`: Chemical Reaction Network Theory in Lean 4

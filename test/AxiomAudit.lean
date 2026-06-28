@@ -383,3 +383,7 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.Network.siphonFacet_floor_of_nearFacet_dissipation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.siphonFacet_floor_of_nearFacet_dissipation
+
+/-- info: 'CRNT.Network.computeNumTerminalSLC_eq_numTerminalSLC' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.computeNumTerminalSLC_eq_numTerminalSLC
