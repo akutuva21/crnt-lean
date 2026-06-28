@@ -1,5 +1,6 @@
 import CRNT.Multistationarity.RegularValueDegree
 import CRNT.Multistationarity.ReducedJacobian
+import CRNT.Multistationarity.Capacity
 import CRNT.Equilibria.SteadyState
 
 /-!
@@ -50,18 +51,16 @@ theorem massActionVectorField_mem_stoichSubspace (N : Network S) (κ : N.RateCon
   exact Submodule.sum_mem _ fun r _ =>
     Submodule.smul_mem _ _ (N.reactionVector_mem_stoichSubspace r)
 
-/-- **Steady-state existence from a nonzero degree.** If the reduced field `reducedField κ x₀` has a
-nonzero regular degree at `0`, then the value `0` is attained, and the attaining chart point pulls
-back to a mass-action steady state in `x₀`'s stoichiometric compatibility class. -/
-theorem exists_isMassActionSteadyState_of_reducedDegree_ne_zero
-    (N : Network S) (κ : N.RateConstants) (x₀ : Concentration S)
-    (hfin : ((N.reducedField κ x₀) ⁻¹' {0}).Finite)
-    (hdeg : regularDegree (N.reducedField κ x₀) 0 hfin ≠ 0) :
-    ∃ x, N.StoichCompatible x₀ x ∧ N.IsMassActionSteadyState κ x := by
-  obtain ⟨y, hy⟩ :=
-    preimage_nonempty_of_regularDegree_ne_zero (N.reducedField κ x₀) 0 hfin hdeg
-  rw [Set.mem_preimage, Set.mem_singleton_iff] at hy
-  refine ⟨N.affineChart x₀ y, ?_, ?_⟩
+/-- **A zero of the reduced field is a steady state in the class.** If `reducedField κ x₀ y = 0`,
+its chart point `affineChart x₀ y` is stoichiometrically compatible with `x₀` and is a mass-action
+steady state. The projection `stoichProj` is injective on `S(N)`, where the field lives, so the
+vanishing of the projection forces the full field to vanish. -/
+theorem isMassActionSteadyState_affineChart_of_reducedField_eq_zero
+    (N : Network S) (κ : N.RateConstants) (x₀ : Concentration S) {y : Fin N.stoichRank → ℝ}
+    (hy : N.reducedField κ x₀ y = 0) :
+    N.StoichCompatible x₀ (N.affineChart x₀ y)
+      ∧ N.IsMassActionSteadyState κ (N.affineChart x₀ y) := by
+  refine ⟨?_, ?_⟩
   · show (N.affineChart x₀ y - x₀) ∈ N.stoichSubspace
     simp only [affineChart, add_sub_cancel_left]
     exact N.stoichChart_mem y
@@ -73,6 +72,51 @@ theorem exists_isMassActionSteadyState_of_reducedDegree_ne_zero
       rw [hrec, map_zero] at hcp
       exact hcp.symm
     exact fun s => congrFun hVeq0 s
+
+/-- **Steady-state existence from a nonzero degree.** If the reduced field `reducedField κ x₀` has a
+nonzero regular degree at `0`, then the value `0` is attained, and the attaining chart point pulls
+back to a mass-action steady state in `x₀`'s stoichiometric compatibility class. -/
+theorem exists_isMassActionSteadyState_of_reducedDegree_ne_zero
+    (N : Network S) (κ : N.RateConstants) (x₀ : Concentration S)
+    (hfin : ((N.reducedField κ x₀) ⁻¹' {0}).Finite)
+    (hdeg : regularDegree (N.reducedField κ x₀) 0 hfin ≠ 0) :
+    ∃ x, N.StoichCompatible x₀ x ∧ N.IsMassActionSteadyState κ x := by
+  obtain ⟨y, hy⟩ :=
+    preimage_nonempty_of_regularDegree_ne_zero (N.reducedField κ x₀) 0 hfin hdeg
+  rw [Set.mem_preimage, Set.mem_singleton_iff] at hy
+  exact ⟨N.affineChart x₀ y,
+    N.isMassActionSteadyState_affineChart_of_reducedField_eq_zero κ x₀ hy⟩
+
+/-- **Multistationarity from two positive zeros of the reduced field.** Two distinct chart points at
+which the reduced field vanishes, both with strictly positive concentrations, give two distinct
+positive steady states in one compatibility class — exactly the capacity for multiple steady states.
+The chart `affineChart x₀` is injective, so distinct chart points give distinct steady states. -/
+theorem hasMultistationarityCapacity_of_two_positive_zeros
+    (N : Network S) (κ : N.RateConstants) (x₀ : Concentration S) {y₁ y₂ : Fin N.stoichRank → ℝ}
+    (hy₁ : N.reducedField κ x₀ y₁ = 0) (hy₂ : N.reducedField κ x₀ y₂ = 0)
+    (hp₁ : Concentration.Positive (N.affineChart x₀ y₁)) (hp₂ : Concentration.Positive (N.affineChart x₀ y₂))
+    (hne : y₁ ≠ y₂) : N.HasMultistationarityCapacity := by
+  obtain ⟨hc₁, hs₁⟩ := N.isMassActionSteadyState_affineChart_of_reducedField_eq_zero κ x₀ hy₁
+  obtain ⟨hc₂, hs₂⟩ := N.isMassActionSteadyState_affineChart_of_reducedField_eq_zero κ x₀ hy₂
+  exact ⟨κ, x₀, N.affineChart x₀ y₁, N.affineChart x₀ y₂, ⟨hc₁, hp₁⟩, ⟨hc₂, hp₂⟩, hs₁, hs₂,
+    fun heq => hne (N.affineChart_injective x₀ heq)⟩
+
+/-- **Multistationarity from a sign-indefinite reduced Jacobian.** If the reduced field vanishes at
+two positive chart points whose reduced-Jacobian determinants have opposite signs, the network has
+the capacity for multiple steady states. Opposite determinant signs force the two points to be
+distinct, so the orientation-indefiniteness of the steady-state set is itself the multistationarity
+witness — the degree-theoretic (`∃`-side) counterpart of the consistent-sign P-matrix injectivity
+criterion. -/
+theorem hasMultistationarityCapacity_of_signIndefinite
+    (N : Network S) (κ : N.RateConstants) (x₀ : Concentration S) {y₁ y₂ : Fin N.stoichRank → ℝ}
+    (hy₁ : N.reducedField κ x₀ y₁ = 0) (hy₂ : N.reducedField κ x₀ y₂ = 0)
+    (hp₁ : Concentration.Positive (N.affineChart x₀ y₁)) (hp₂ : Concentration.Positive (N.affineChart x₀ y₂))
+    (hpos : 0 < (N.reducedJacobian κ x₀ y₁).det) (hneg : (N.reducedJacobian κ x₀ y₂).det < 0) :
+    N.HasMultistationarityCapacity := by
+  refine N.hasMultistationarityCapacity_of_two_positive_zeros κ x₀ hy₁ hy₂ hp₁ hp₂ ?_
+  intro heq
+  rw [heq] at hpos
+  exact absurd hpos (lt_asymm hneg)
 
 end Network
 

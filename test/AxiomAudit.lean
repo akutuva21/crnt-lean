@@ -423,3 +423,7 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.Network.exists_isMassActionSteadyState_of_reducedDegree_ne_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.exists_isMassActionSteadyState_of_reducedDegree_ne_zero
+
+/-- info: 'CRNT.Network.hasMultistationarityCapacity_of_signIndefinite' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.hasMultistationarityCapacity_of_signIndefinite

@@ -240,6 +240,18 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     ∃ x, N.StoichCompatible x₀ x ∧ N.IsMassActionSteadyState κ x :=
   N.exists_isMassActionSteadyState_of_reducedDegree_ne_zero κ x₀ hfin hdeg
 
+-- The ∃-side multistationarity criterion: a sign-indefinite reduced Jacobian at two positive zeros
+-- of the reduced field affirms the capacity for multiple steady states — the degree-theoretic
+-- counterpart of the consistent-sign P-matrix injectivity criterion (the mono/multi opposing pair).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    (x₀ : Concentration S) {y₁ y₂ : Fin N.stoichRank → ℝ}
+    (hy₁ : N.reducedField κ x₀ y₁ = 0) (hy₂ : N.reducedField κ x₀ y₂ = 0)
+    (hp₁ : Concentration.Positive (N.affineChart x₀ y₁))
+    (hp₂ : Concentration.Positive (N.affineChart x₀ y₂))
+    (hpos : 0 < (N.reducedJacobian κ x₀ y₁).det) (hneg : (N.reducedJacobian κ x₀ y₂).det < 0) :
+    N.HasMultistationarityCapacity :=
+  N.hasMultistationarityCapacity_of_signIndefinite κ x₀ hy₁ hy₂ hp₁ hp₂ hpos hneg
+
 -- The `crnt_deficiency_zero` tactic certifies deficiency zero from an explicit minor witness:
 -- a 1×1 minor for the reversible pair, a 2×2 minor for the irreversible chain.
 example : Examples.ReversiblePair.N.DeficiencyZero := by
