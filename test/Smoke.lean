@@ -222,6 +222,15 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional
     μ {y | ∃ x, f x = y ∧ (fderiv ℝ f x).det = 0} = 0 :=
   CRNT.measure_criticalValues_eq_zero μ f hf
 
+-- The regular values of a differentiable self-map are dense: near any value sits one at which every
+-- preimage point has invertible derivative, so the regular-value degree can be read off arbitrarily
+-- close to any value — the bridge from the regular-value degree toward a degree at arbitrary values.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    [MeasurableSpace E] [BorelSpace E] (μ : MeasureTheory.Measure E) [μ.IsAddHaarMeasure]
+    (f : E → E) (hf : Differentiable ℝ f) :
+    Dense {y | ∀ x, f x = y → (fderiv ℝ f x).det ≠ 0} :=
+  CRNT.dense_regularValues μ f hf
+
 -- The `crnt_deficiency_zero` tactic certifies deficiency zero from an explicit minor witness:
 -- a 1×1 minor for the reversible pair, a 2×2 minor for the irreversible chain.
 example : Examples.ReversiblePair.N.DeficiencyZero := by

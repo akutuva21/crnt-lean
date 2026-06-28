@@ -17,6 +17,9 @@ arbitrary values: the critical values are negligible, so a regular value can be 
 * `measure_image_critical_eq_zero` — the image of the critical set `{x | det (Df x) = 0}` is null.
 * `measure_criticalValues_eq_zero` — the critical values `{y | ∃ x, f x = y ∧ det (Df x) = 0}` are
   null.
+* `dense_regularValues` — the regular values `{y | ∀ x, f x = y → det (Df x) ≠ 0}` are dense: their
+  complement is null and a Haar measure charges every nonempty open set, so a regular value sits
+  arbitrarily close to any value.
 
 This module is `sorry`-free.
 -/
@@ -51,5 +54,22 @@ theorem measure_criticalValues_eq_zero (f : E → E) (hf : Differentiable ℝ f)
     exact ⟨fun ⟨x, hfx, hdet⟩ => ⟨x, hdet, hfx⟩, fun ⟨x, hdet, hfx⟩ => ⟨x, hfx, hdet⟩⟩
   rw [hset]
   exact measure_image_critical_eq_zero μ f hf
+
+include μ in
+/-- **Regular values are dense.** For a differentiable map `f : E → E`, the set of regular values —
+those `y` at which every preimage point has an invertible derivative (`det (Df x) ≠ 0`) — is dense.
+The complement, the critical values, is null (`measure_criticalValues_eq_zero`), and a Haar measure
+charges every nonempty open set, so the null set has empty interior and its complement is dense. -/
+theorem dense_regularValues (f : E → E) (hf : Differentiable ℝ f) :
+    Dense {y | ∀ x, f x = y → (fderiv ℝ f x).det ≠ 0} := by
+  have hcompl : {y | ∀ x, f x = y → (fderiv ℝ f x).det ≠ 0}
+      = {y | ∃ x, f x = y ∧ (fderiv ℝ f x).det = 0}ᶜ := by
+    ext y
+    simp only [mem_setOf_eq, mem_compl_iff, not_exists, not_and]
+  rw [hcompl, ← interior_eq_empty_iff_dense_compl]
+  by_contra hne
+  rw [← Set.not_nonempty_iff_eq_empty, not_not] at hne
+  exact absurd (measure_criticalValues_eq_zero μ f hf)
+    (ne_of_gt (MeasureTheory.Measure.measure_pos_of_nonempty_interior μ hne))
 
 end CRNT

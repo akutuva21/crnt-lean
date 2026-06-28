@@ -415,3 +415,7 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.measure_criticalValues_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.measure_criticalValues_eq_zero
+
+/-- info: 'CRNT.dense_regularValues' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.dense_regularValues
