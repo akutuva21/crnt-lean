@@ -455,6 +455,7 @@ import CRNT.Examples.StochasticConvergenceExample
 import CRNT.Decision.ComputableTerminalSLC
 import CRNT.Decision.InjectivityMargin
 import CRNT.Dynamics.HopfBoundaryQ
+import CRNT.Multistationarity.Sard
 
 /-!
 # `crnt-lean`: Chemical Reaction Network Theory in Lean 4

@@ -213,6 +213,15 @@ def interopTriData : NetworkData :=
                     { source := #[0, 0, 1], target := #[1, 0, 0] } ] }
 example : interopTriData.analyze.hopfBoundaryMargin.isSome = true := by decide
 
+-- Sard in equal dimension: the critical values of a differentiable self-map of a finite-dimensional
+-- space carry no measure, so almost every value is regular — the measure-theoretic input that lifts
+-- the regular-value degree to arbitrary values.
+example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional ℝ E]
+    [MeasurableSpace E] [BorelSpace E] (μ : MeasureTheory.Measure E) [μ.IsAddHaarMeasure]
+    (f : E → E) (hf : Differentiable ℝ f) :
+    μ {y | ∃ x, f x = y ∧ (fderiv ℝ f x).det = 0} = 0 :=
+  CRNT.measure_criticalValues_eq_zero μ f hf
+
 -- The `crnt_deficiency_zero` tactic certifies deficiency zero from an explicit minor witness:
 -- a 1×1 minor for the reversible pair, a 2×2 minor for the irreversible chain.
 example : Examples.ReversiblePair.N.DeficiencyZero := by

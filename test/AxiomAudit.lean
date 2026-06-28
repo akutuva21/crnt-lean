@@ -411,3 +411,7 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.NetworkData.analyze_hopfBoundaryMargin_eq_none_of_ne_three' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.NetworkData.analyze_hopfBoundaryMargin_eq_none_of_ne_three
+
+/-- info: 'CRNT.measure_criticalValues_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.measure_criticalValues_eq_zero
