@@ -4361,3 +4361,11 @@ example : interopRevData.toNetwork.numDiagonalDriveSpecies = 0 := by decide
 example (N : Network (Fin 2)) :
     N.numDiagonalDriveSpecies = Fintype.card (Fin 2) ↔ N.ConsistentDiagonalDrive :=
   N.numDiagonalDriveSpecies_eq_card_iff
+
+-- The rational Hopf-boundary scalar casts to the real Routh–Hurwitz Hopf-boundary combination
+-- `det − trace · c₂Fin3` of the cast matrix.
+example (M : Matrix (Fin 3) (Fin 3) ℚ) :
+    ((hopfBoundaryQ M : ℚ) : ℝ)
+      = (M.map (Rat.castHom ℝ)).det - (M.map (Rat.castHom ℝ)).trace
+          * (M.map (Rat.castHom ℝ)).c₂Fin3 :=
+  hopfBoundaryQ_cast M

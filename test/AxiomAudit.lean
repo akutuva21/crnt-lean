@@ -391,3 +391,11 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.Network.numDiagonalDriveSpecies_eq_card_iff' depends on axioms: [propext, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.numDiagonalDriveSpecies_eq_card_iff
+
+/-- info: 'CRNT.hopfBoundaryQ_cast' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.hopfBoundaryQ_cast
+
+/-- info: 'CRNT.Network.hopfBoundaryMarginQ_cast' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.hopfBoundaryMarginQ_cast
