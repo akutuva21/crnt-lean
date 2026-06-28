@@ -367,3 +367,11 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.IsPolyhedralFan.toricMassActionField_isStrictSupportField_of_inwardReactions' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.IsPolyhedralFan.toricMassActionField_isStrictSupportField_of_inwardReactions
+
+/-- info: 'CRNT.Network.gac_of_gacCertificate' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.gac_of_gacCertificate
+
+/-- info: 'CRNT.Network.gacCertificate_of_hasNoCriticalSiphon' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.gacCertificate_of_hasNoCriticalSiphon

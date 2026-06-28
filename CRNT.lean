@@ -376,6 +376,7 @@ import CRNT.Dynamics.GACNoCriticalSiphon
 import CRNT.Dynamics.GACOmegaPositive
 import CRNT.Dynamics.SingleLinkageGAC
 import CRNT.Dynamics.GACSeparatingWitness
+import CRNT.Dynamics.GACCertificate
 import CRNT.Dynamics.IsolatedInvariant
 import CRNT.Dynamics.DifferentialInclusion
 import CRNT.Dynamics.DissipationBound
