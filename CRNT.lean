@@ -374,6 +374,7 @@ import CRNT.Dynamics.CriticalSiphonOmega
 import CRNT.Dynamics.NoCriticalSiphonPersistence
 import CRNT.Dynamics.GACNoCriticalSiphon
 import CRNT.Dynamics.GACOmegaPositive
+import CRNT.Dynamics.SiphonDimensionDescent
 import CRNT.Dynamics.SingleLinkageGAC
 import CRNT.Dynamics.GACSeparatingWitness
 import CRNT.Dynamics.GACCertificate

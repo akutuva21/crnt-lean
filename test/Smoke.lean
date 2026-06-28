@@ -1308,6 +1308,16 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
   N.gac_of_gacCertificate hwr κ hxs hcb hx0 hx0compat
     (N.gacCertificate_of_hasNoCriticalSiphon hwr κ hncs hxs hcb hx0 hx0compat)
 
+-- Anderson siphon-dimension descent (skeleton): the carried comparable-growth descent walks a
+-- carried critical siphon down by cardinality to a strictly positive ω-limit point.
+open Filter in
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {x₀ : Concentration S}
+    (hdesc : N.ComparableGrowthDescent ϕ x₀) {P₀ : Finset S} (hne : P₀.Nonempty)
+    (hcrit : N.IsCriticalSiphon P₀) (hcarr : N.SiphonCarried ϕ x₀ P₀) :
+    ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive :=
+  N.omegaLimit_positive_of_descend hdesc hne hcrit hcarr
+
 -- Broader reduction: a single positive ω-limit point forces ω = {x*} (no structural hypothesis).
 open Filter in
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)

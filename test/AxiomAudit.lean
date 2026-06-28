@@ -375,3 +375,7 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.Network.gacCertificate_of_hasNoCriticalSiphon' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.gacCertificate_of_hasNoCriticalSiphon
+
+/-- info: 'CRNT.Network.omegaLimit_eq_singleton_of_comparableGrowthDescent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.omegaLimit_eq_singleton_of_comparableGrowthDescent
