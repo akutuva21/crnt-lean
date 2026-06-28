@@ -188,7 +188,30 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
   N.gac_of_deficiencyZero_decide hwr κ hδ hdec hx0
 
 -- The analysis tags the current contract version.
-example : interopRevData.analyze.version = 10 := by decide
+example : interopRevData.analyze.version = 11 := by decide
+
+-- Dense scalar companions of the v11 contract on the reversible pair `A ⇌ B`: one minimal siphon of
+-- size 2, no ACR species, one terminal strong linkage class, no positively-driven species, and no
+-- Hopf-boundary margin (only defined in dimension three).
+example : interopRevData.analyze.numMinimalSiphons = 1 := by decide
+example : interopRevData.analyze.minSiphonSize = 2 := by decide
+example : interopRevData.analyze.numACRSpecies = 0 := by decide
+example : interopRevData.analyze.numTerminalSLC = 1 := by decide
+example : interopRevData.analyze.numDiagonalDriveSpecies = 0 := by decide
+example : interopRevData.analyze.hopfBoundaryMargin = none := by decide
+example (d : NetworkData) :
+    d.analyze.numDiagonalDriveSpecies = d.numSpecies ↔ d.toNetwork.ConsistentDiagonalDrive :=
+  NetworkData.analyze_numDiagonalDriveSpecies_eq_card_iff d
+example (d : NetworkData) (h : d.numSpecies ≠ 3) : d.analyze.hopfBoundaryMargin = none :=
+  NetworkData.analyze_hopfBoundaryMargin_eq_none_of_ne_three d h
+
+-- A three-species network yields a Hopf-boundary margin: the field is non-vacuous in dimension three.
+def interopTriData : NetworkData :=
+  { numSpecies := 3,
+    reactions := #[ { source := #[1, 0, 0], target := #[0, 1, 0] },
+                    { source := #[0, 1, 0], target := #[0, 0, 1] },
+                    { source := #[0, 0, 1], target := #[1, 0, 0] } ] }
+example : interopTriData.analyze.hopfBoundaryMargin.isSome = true := by decide
 
 -- The `crnt_deficiency_zero` tactic certifies deficiency zero from an explicit minor witness:
 -- a 1×1 minor for the reversible pair, a 2×2 minor for the irreversible chain.

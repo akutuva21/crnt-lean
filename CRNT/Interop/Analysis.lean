@@ -9,6 +9,9 @@ import CRNT.Dynamics.Siphon
 import CRNT.LinearAlgebra.OrthogonalComplement
 import CRNT.Multistationarity.SRSignDecidable
 import CRNT.Multistationarity.PointIndepDecidable
+import CRNT.Decision.ComputableTerminalSLC
+import CRNT.Decision.InjectivityMargin
+import CRNT.Dynamics.HopfBoundaryQ
 
 /-!
 # One-call structural analysis
@@ -53,6 +56,19 @@ hypothesis; it is **not** a full persistence proof — the global-attraction con
 needs a positive complex-balanced reference, which the consumer supplies and the contract cannot
 certify from structure alone.
 
+`numMinimalSiphons`, `minSiphonSize`, and `numACRSpecies` are dense scalar companions of the siphon
+and ACR fields: the count of minimal siphons, the smallest minimal-siphon cardinality (with a
+`numSpecies + 1` sentinel when there are none — a smaller value is a tighter extinction obstruction),
+and the ACR-species count. `numTerminalSLC` is the terminal-strong-linkage-class count `t`
+(`analyze_numTerminalSLC_eq`). `numDiagonalDriveSpecies` counts the positively-driven species; it
+equals `numSpecies` exactly when `ConsistentDiagonalDrive` holds
+(`analyze_numDiagonalDriveSpecies_eq_card_iff`), the graded per-species half of the point-free
+P-matrix injectivity precondition. `hopfBoundaryMargin` is the `3 × 3` Routh–Hurwitz Hopf-boundary
+value `det − trace · c₂Fin3` of the rational mass-action Jacobian at the all-ones concentration with
+unit rate constants, a `(numerator, denominator)` pair and `none` unless `numSpecies = 3`
+(`analyze_hopfBoundaryMargin_eq_none_of_ne_three`); it is a graded proximity-to-oscillation signal at
+one chart point, not a bifurcation verdict.
+
 `version` tags the JSON contract; bump it whenever the field set changes.
 
 This module is **stable** and `sorry`-free. Depends on: `CRNT.Interop.NetworkData`,
@@ -66,7 +82,7 @@ open CRNT.GaussianRank
 open scoped NNReal Topology
 
 /-- The version of the `Analysis` JSON contract. Bump on any field-set change. -/
-def analysisVersion : Nat := 10
+def analysisVersion : Nat := 11
 
 /-- The structural invariants of a network, as a JSON-serializable record. The numeric fields are
 the computable companions of the library theory; `deficiency` is `n − ℓ − s` assembled here. -/
@@ -137,6 +153,27 @@ structure Analysis where
   compatibility class. The only remaining input is the positive start — a per-trajectory hypothesis,
   not a structural one. -/
   persistenceCertified : Bool
+  /-- The number of support-minimal siphons (`minimalSiphons.size`). -/
+  numMinimalSiphons : Nat
+  /-- The minimum cardinality among the support-minimal siphons, or the `numSpecies + 1` sentinel
+  when there are none. A smaller value is a tighter structural extinction obstruction; the sentinel
+  marks the absence of any minimal siphon (no obstruction). -/
+  minSiphonSize : Nat
+  /-- The number of species carrying a structural Shinar–Feinberg ACR witness (`acrSpecies.size`). -/
+  numACRSpecies : Nat
+  /-- The number of terminal strong linkage classes `t`. -/
+  numTerminalSLC : Nat
+  /-- The number of species carrying a positive diagonal drive: a reaction that depends on and
+  increases the species. Equals `numSpecies` exactly when `ConsistentDiagonalDrive` holds — the
+  per-species half of the point-free P-matrix injectivity precondition, exposed as a graded
+  robustness count. It does not grade the signed-cover half (`srSignConsistent`). -/
+  numDiagonalDriveSpecies : Nat
+  /-- The `3 × 3` Routh–Hurwitz Hopf-boundary value `det − trace · c₂Fin3` of the rational
+  mass-action Jacobian at the all-ones concentration with unit rate constants, as a
+  `(numerator, denominator)` pair; `none` unless `numSpecies = 3`. Zero exactly on the cubic Hopf
+  boundary — a graded proximity-to-oscillation signal at one chart point, not a bifurcation verdict
+  (the limit-cycle conclusion needs center-manifold theory). -/
+  hopfBoundaryMargin : Option (Int × Int)
   deriving FromJson, ToJson, Repr, DecidableEq
 
 namespace NetworkData
@@ -144,6 +181,11 @@ namespace NetworkData
 /-- **Analyze a data-driven network**: compute its structural invariants in one record. -/
 def analyze (d : NetworkData) : Analysis :=
   let N := d.toNetwork
+  let acr : Array Nat := (((List.finRange d.numSpecies).filter
+    (fun s => decide (N.HasShinarFeinbergPair s))).map Fin.val).toArray
+  let ms : Array (Array Nat) := (((List.finRange d.numSpecies).sublists.filter
+    (fun l => decide (N.IsMinimalSiphon l.toFinset))).map
+    (fun l => (l.map Fin.val).toArray)).toArray
   { version := analysisVersion
     numSpecies := d.numSpecies
     numComplexes := N.numComplexes
@@ -154,18 +196,25 @@ def analyze (d : NetworkData) : Analysis :=
     conservationLawDim := d.numSpecies - computeRank N.stoichMatrixQ
     deficiency := N.computableDeficiency
     weaklyReversible := decide N.WeaklyReversible
-    acrSpecies := (((List.finRange d.numSpecies).filter
-      (fun s => decide (N.HasShinarFeinbergPair s))).map Fin.val).toArray
+    acrSpecies := acr
     hasSiphon := decide (∃ P : Finset (Fin d.numSpecies), P.Nonempty ∧ N.IsSiphon P)
-    minimalSiphons := (((List.finRange d.numSpecies).sublists.filter
-      (fun l => decide (N.IsMinimalSiphon l.toFinset))).map
-      (fun l => (l.map Fin.val).toArray)).toArray
+    minimalSiphons := ms
     srSignConsistent := decide N.ConsistentSRSign
     srPMatrixPointIndep := decide N.ConsistentSRSign && decide N.ConsistentDiagonalDrive
     hasCriticalSiphon := decide N.HasCriticalSiphon
     persistenceStructural := decide N.WeaklyReversible && !decide N.HasCriticalSiphon
     persistenceCertified := decide N.WeaklyReversible && N.computableDeficiency == 0
-      && !decide N.HasCriticalSiphon }
+      && !decide N.HasCriticalSiphon
+    numMinimalSiphons := ms.size
+    minSiphonSize := ms.foldl (fun m a => min m a.size) (d.numSpecies + 1)
+    numACRSpecies := acr.size
+    numTerminalSLC := N.computeNumTerminalSLC
+    numDiagonalDriveSpecies := N.numDiagonalDriveSpecies
+    hopfBoundaryMargin :=
+      if h : d.numSpecies = 3 then
+        let q := (h ▸ N : Network (Fin 3)).hopfBoundaryMarginQ
+        some (q.num, (q.den : Int))
+      else none }
 
 /-- The reported deficiency is the network's deficiency. -/
 theorem analyze_deficiency_eq (d : NetworkData) :
@@ -355,6 +404,30 @@ theorem gac_of_persistenceCertified (d : NetworkData)
       Bool.not_eq_true'] at h
     exact h.2
   exact d.toNetwork.gac_of_deficiencyZero_decide hwr κ hδ hcs hx0
+
+/-- The reported terminal-strong-linkage-class count is the network's terminal-SLC count `t`. -/
+theorem analyze_numTerminalSLC_eq (d : NetworkData) :
+    (d.analyze).numTerminalSLC = d.toNetwork.numTerminalSLC :=
+  d.toNetwork.computeNumTerminalSLC_eq_numTerminalSLC
+
+/-- The reported diagonal-drive species count is the network's diagonal-drive species count. -/
+theorem analyze_numDiagonalDriveSpecies_eq (d : NetworkData) :
+    (d.analyze).numDiagonalDriveSpecies = d.toNetwork.numDiagonalDriveSpecies := rfl
+
+/-- **Graded injectivity precondition.** The diagonal-drive species count equals the species count
+exactly when every species is positively driven, i.e. the network satisfies `ConsistentDiagonalDrive`
+— the per-species half of the point-free P-matrix injectivity precondition. -/
+theorem analyze_numDiagonalDriveSpecies_eq_card_iff (d : NetworkData) :
+    (d.analyze).numDiagonalDriveSpecies = d.numSpecies ↔ d.toNetwork.ConsistentDiagonalDrive := by
+  have key := d.toNetwork.numDiagonalDriveSpecies_eq_card_iff
+  rw [Fintype.card_fin] at key
+  exact key
+
+/-- The Hopf-boundary margin is `none` for any network whose species count is not three: the cubic
+Routh–Hurwitz Hopf-boundary combination is defined only in dimension three. -/
+theorem analyze_hopfBoundaryMargin_eq_none_of_ne_three (d : NetworkData)
+    (h : d.numSpecies ≠ 3) : (d.analyze).hopfBoundaryMargin = none := by
+  simp only [analyze, dif_neg h]
 
 end NetworkData
 
