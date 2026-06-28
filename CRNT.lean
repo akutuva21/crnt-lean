@@ -456,6 +456,7 @@ import CRNT.Decision.ComputableTerminalSLC
 import CRNT.Decision.InjectivityMargin
 import CRNT.Dynamics.HopfBoundaryQ
 import CRNT.Multistationarity.Sard
+import CRNT.Multistationarity.SteadyStateDegree
 
 /-!
 # `crnt-lean`: Chemical Reaction Network Theory in Lean 4

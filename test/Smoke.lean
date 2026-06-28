@@ -231,6 +231,15 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E] [FiniteDimensional
     Dense {y | ∀ x, f x = y → (fderiv ℝ f x).det ≠ 0} :=
   CRNT.dense_regularValues μ f hf
 
+-- The ∃-side existence backbone: a nonzero regular degree of the reduced steady-state map forces a
+-- mass-action steady state in the compatibility class — the degree-theoretic counterpart of the
+-- injectivity (∀-side) reduction.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    (x₀ : Concentration S) (hfin : ((N.reducedField κ x₀) ⁻¹' {0}).Finite)
+    (hdeg : CRNT.regularDegree (N.reducedField κ x₀) 0 hfin ≠ 0) :
+    ∃ x, N.StoichCompatible x₀ x ∧ N.IsMassActionSteadyState κ x :=
+  N.exists_isMassActionSteadyState_of_reducedDegree_ne_zero κ x₀ hfin hdeg
+
 -- The `crnt_deficiency_zero` tactic certifies deficiency zero from an explicit minor witness:
 -- a 1×1 minor for the reversible pair, a 2×2 minor for the irreversible chain.
 example : Examples.ReversiblePair.N.DeficiencyZero := by
