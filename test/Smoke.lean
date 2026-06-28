@@ -1287,6 +1287,13 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     ∀ t, 0 ≤ t → Γ₁ t = Γ₂ t :=
   N.genuineOrbit_unique κ hxs hcb hx0 hΓ₁0 hΓ₂0 hΓ₁d hΓ₂d
 
+-- Toric route: a fan wall carrying an inward reaction separates that reaction's mutually-reachable
+-- endpoints, discharging the hand-named separation witness from a finite reaction search.
+example {S : Type} [DecidableEq S] [Fintype S] {N : Network S} (hwr : N.WeaklyReversible)
+    {n : S → ℝ} (r : N.R) (hr : N.InwardReaction n r) :
+    N.SeparatesComplexes n (N.reaction r).source (N.reaction r).target :=
+  N.separatesComplexes_of_hasInwardReaction hwr r hr
+
 -- Broader reduction: a single positive ω-limit point forces ω = {x*} (no structural hypothesis).
 open Filter in
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)

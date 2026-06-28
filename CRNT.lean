@@ -84,6 +84,7 @@ import CRNT.Geometry.ToricWRStrictInward
 import CRNT.Geometry.FanWallsCrossed
 import CRNT.Geometry.FanActiveWalls
 import CRNT.Geometry.FanSeparationWitness
+import CRNT.Geometry.FanWallActivityDecide
 import CRNT.Geometry.FanFaceProperness
 import CRNT.Geometry.ReactionFanGeneration
 import CRNT.Geometry.SimplicialConeClosed
