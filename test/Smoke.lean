@@ -4353,3 +4353,11 @@ example {E : Type} [NormedAddCommGroup E] [NormedSpace ℝ E]
 example : interopRevData.toNetwork.computeNumTerminalSLC = 1 := by decide
 example (N : Network (Fin 2)) : N.computeNumTerminalSLC = N.numTerminalSLC :=
   N.computeNumTerminalSLC_eq_numTerminalSLC
+
+-- The diagonal-drive species count equals the species count exactly when every species is
+-- positively driven (`ConsistentDiagonalDrive`); the reversible pair `A ⇌ B` has no positively
+-- self-driven species, so the count is 0.
+example : interopRevData.toNetwork.numDiagonalDriveSpecies = 0 := by decide
+example (N : Network (Fin 2)) :
+    N.numDiagonalDriveSpecies = Fintype.card (Fin 2) ↔ N.ConsistentDiagonalDrive :=
+  N.numDiagonalDriveSpecies_eq_card_iff

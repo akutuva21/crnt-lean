@@ -453,6 +453,7 @@ import CRNT.Interop.NetworkData
 import CRNT.Interop.Analysis
 import CRNT.Examples.StochasticConvergenceExample
 import CRNT.Decision.ComputableTerminalSLC
+import CRNT.Decision.InjectivityMargin
 
 /-!
 # `crnt-lean`: Chemical Reaction Network Theory in Lean 4
