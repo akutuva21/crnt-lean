@@ -1318,6 +1318,21 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S)
     ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive :=
   N.omegaLimit_positive_of_descend hdesc hne hcrit hcarr
 
+-- Asymptotic facet repulsion (the Anderson–Shiu mechanism, proven): the near-facet dissipation
+-- bound plus the field's linear lower bound give a uniform positive floor under a critical-siphon
+-- facet — the asymptotic statement the decaying finite-time Grönwall bound does not provide.
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {γ : ℝ → Concentration S} {sstar : S} {δ ε G : ℝ} (hδ : 0 < δ) (hε : 0 < ε) (hG : 0 ≤ G)
+    (hpos : ∀ t, 0 ≤ t → (γ t).Positive)
+    (hsol : ∀ t, 0 ≤ t → HasDerivAt γ (N.massActionVectorField κ (γ t)) t)
+    (hlog : ∀ t, 0 ≤ t → -(G * γ t sstar) ≤ N.massActionVectorField κ (γ t) sstar)
+    (hstart : δ ≤ γ 0 sstar)
+    (hnear : ∀ t, 0 ≤ t → γ t sstar ≤ δ →
+      ε ≤ -(∑ s, (Real.log (γ t s) - Real.log (xstar s)) * N.massActionVectorField κ (γ t) s)) :
+    ∀ t, 0 ≤ t → δ * Real.exp (-(G * (relEntropy xstar (γ 0) / ε))) ≤ γ t sstar :=
+  N.siphonFacet_floor_of_nearFacet_dissipation κ hxs hcb hδ hε hG hpos hsol hlog hstart hnear
+
 -- Broader reduction: a single positive ω-limit point forces ω = {x*} (no structural hypothesis).
 open Filter in
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyReversible)
