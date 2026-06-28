@@ -457,6 +457,7 @@ import CRNT.Decision.InjectivityMargin
 import CRNT.Dynamics.HopfBoundaryQ
 import CRNT.Multistationarity.Sard
 import CRNT.Multistationarity.SteadyStateDegree
+import CRNT.Deficiency.DOACapacityConstruction
 
 /-!
 # `crnt-lean`: Chemical Reaction Network Theory in Lean 4

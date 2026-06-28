@@ -252,6 +252,15 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (κ : N.RateConst
     N.HasMultistationarityCapacity :=
   N.hasMultistationarityCapacity_of_signIndefinite κ x₀ hy₁ hy₂ hp₁ hp₂ hpos hneg
 
+-- Toward the deficiency-one-algorithm forward correctness: a nonzero stoichiometric direction yields
+-- two distinct positive compatible concentrations whose log-ratio is sign-compatible with it — the
+-- positional half of the multistationarity witness (the constructive inverse of signCompatible_logRatio).
+example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) {w : S → ℝ}
+    (hw : w ∈ N.stoichSubspace) (hw0 : w ≠ 0) :
+    ∃ x y : Concentration S, x.Positive ∧ y.Positive ∧ N.StoichCompatible x y ∧ x ≠ y ∧
+      SameSign w (fun s => Real.log (y s) - Real.log (x s)) :=
+  N.exists_compatible_pair_sameSign_logRatio hw hw0
+
 -- The `crnt_deficiency_zero` tactic certifies deficiency zero from an explicit minor witness:
 -- a 1×1 minor for the reversible pair, a 2×2 minor for the irreversible chain.
 example : Examples.ReversiblePair.N.DeficiencyZero := by
