@@ -13,6 +13,7 @@ import CRNT.Decision.ComputableTerminalSLC
 import CRNT.Decision.InjectivityMargin
 import CRNT.Dynamics.HopfBoundaryQ
 import CRNT.Dynamics.GershgorinMarginQ
+import CRNT.Dynamics.GershgorinColumnMarginQ
 
 /-!
 # One-call structural analysis
@@ -74,7 +75,11 @@ Jacobian at the all-ones concentration with unit rate constants, a `(numerator, 
 `none` only when there are no species (`analyze_gershgorinStabilityMargin_eq_none_of_zero_species`).
 Negative exactly when the row diagonal-dominance test certifies the linearization there is Hurwitz, in
 any dimension; the magnitude grades stability robustness. It is a one-directional sufficient stability
-margin, not a full spectral verdict.
+margin, not a full spectral verdict. `gershgorinColStabilityMargin` is the column companion
+`max_k ( J k k + ∑_{i≠k} |J i k| )` of the same Jacobian
+(`analyze_gershgorinColStabilityMargin_eq_none_of_zero_species`); the row and column tests are distinct
+sufficient conditions, so it is an independent stability certificate, negative exactly when the column
+diagonal-dominance test certifies Hurwitz.
 
 `version` tags the JSON contract; bump it whenever the field set changes.
 
@@ -89,7 +94,7 @@ open CRNT.GaussianRank
 open scoped NNReal Topology
 
 /-- The version of the `Analysis` JSON contract. Bump on any field-set change. -/
-def analysisVersion : Nat := 12
+def analysisVersion : Nat := 13
 
 /-- The structural invariants of a network, as a JSON-serializable record. The numeric fields are
 the computable companions of the library theory; `deficiency` is `n − ℓ − s` assembled here. -/
@@ -189,6 +194,14 @@ structure Analysis where
   one-directional sufficient stability margin, not a full spectral verdict: it can fail for matrices
   that are nonetheless Hurwitz. -/
   gershgorinStabilityMargin : Option (Int × Int)
+  /-- The column-form Gershgorin local-stability spectral margin `max_k ( J k k + ∑_{i≠k} |J i k| )`
+  of the rational mass-action Jacobian at the all-ones concentration with unit rate constants, as a
+  `(numerator, denominator)` pair; `none` when there are no species. Negative exactly when the column
+  diagonal-dominance test certifies the linearization there is Hurwitz, in any number of species. It
+  is the column companion of `gershgorinStabilityMargin`: the row and column tests are distinct
+  sufficient conditions, so this is an independent stability certificate, not a full spectral
+  verdict. -/
+  gershgorinColStabilityMargin : Option (Int × Int)
   deriving FromJson, ToJson, Repr, DecidableEq
 
 namespace NetworkData
@@ -234,6 +247,12 @@ def analyze (d : NetworkData) : Analysis :=
       if h : 0 < d.numSpecies then
         haveI : Nonempty (Fin d.numSpecies) := ⟨⟨0, h⟩⟩
         let q := N.gershgorinStabilityMarginQ
+        some (q.num, (q.den : Int))
+      else none
+    gershgorinColStabilityMargin :=
+      if h : 0 < d.numSpecies then
+        haveI : Nonempty (Fin d.numSpecies) := ⟨⟨0, h⟩⟩
+        let q := N.gershgorinColStabilityMarginQ
         some (q.num, (q.den : Int))
       else none }
 
@@ -454,6 +473,14 @@ theorem analyze_hopfBoundaryMargin_eq_none_of_ne_three (d : NetworkData)
 taken over an empty index set. For any network with at least one species the field is a `some` pair. -/
 theorem analyze_gershgorinStabilityMargin_eq_none_of_zero_species (d : NetworkData)
     (h : d.numSpecies = 0) : (d.analyze).gershgorinStabilityMargin = none := by
+  have hlt : ¬ 0 < d.numSpecies := by omega
+  simp only [analyze, dif_neg hlt]
+
+/-- The column-form Gershgorin stability margin is `none` for a network with no species: the
+worst-column maximum is taken over an empty index set. For any network with at least one species the
+field is a `some` pair. -/
+theorem analyze_gershgorinColStabilityMargin_eq_none_of_zero_species (d : NetworkData)
+    (h : d.numSpecies = 0) : (d.analyze).gershgorinColStabilityMargin = none := by
   have hlt : ¬ 0 < d.numSpecies := by omega
   simp only [analyze, dif_neg hlt]
 
