@@ -455,6 +455,7 @@ import CRNT.Examples.StochasticConvergenceExample
 import CRNT.Decision.ComputableTerminalSLC
 import CRNT.Decision.InjectivityMargin
 import CRNT.Dynamics.HopfBoundaryQ
+import CRNT.Dynamics.GershgorinMarginQ
 import CRNT.Multistationarity.Sard
 import CRNT.Multistationarity.SteadyStateDegree
 import CRNT.Deficiency.DOACapacityConstruction

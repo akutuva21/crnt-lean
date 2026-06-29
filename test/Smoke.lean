@@ -4440,3 +4440,16 @@ example (M : Matrix (Fin 3) (Fin 3) ℚ) :
       = (M.map (Rat.castHom ℝ)).det - (M.map (Rat.castHom ℝ)).trace
           * (M.map (Rat.castHom ℝ)).c₂Fin3 :=
   hopfBoundaryQ_cast M
+
+-- The real cast of the Gershgorin row value is the row value of the cast matrix.
+example (M : Matrix (Fin 2) (Fin 2) ℚ) (k : Fin 2) :
+    ((gershgorinRowValueQ M k : ℚ) : ℝ)
+      = (M.map (Rat.castHom ℝ)) k k
+        + ∑ j ∈ Finset.univ.erase k, |(M.map (Rat.castHom ℝ)) k j| :=
+  gershgorinRowValueQ_cast M k
+
+-- The Gershgorin margin is negative exactly when every Gershgorin row value is negative — the strict
+-- row diagonal-dominance Hurwitz condition.
+example (M : Matrix (Fin 2) (Fin 2) ℚ) :
+    gershgorinMarginQ M < 0 ↔ ∀ k, gershgorinRowValueQ M k < 0 :=
+  gershgorinMarginQ_neg_iff M

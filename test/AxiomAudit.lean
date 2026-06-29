@@ -431,3 +431,11 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.Network.exists_compatible_pair_sameSign_logRatio' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.exists_compatible_pair_sameSign_logRatio
+
+/-- info: 'CRNT.gershgorinRowValueQ_cast' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.gershgorinRowValueQ_cast
+
+/-- info: 'CRNT.Network.gershgorinStabilityMarginQ_hurwitz' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.gershgorinStabilityMarginQ_hurwitz
