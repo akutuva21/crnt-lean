@@ -456,6 +456,7 @@ import CRNT.Decision.ComputableTerminalSLC
 import CRNT.Decision.InjectivityMargin
 import CRNT.Dynamics.HopfBoundaryQ
 import CRNT.Dynamics.GershgorinMarginQ
+import CRNT.Dynamics.GershgorinColumnMarginQ
 import CRNT.Multistationarity.Sard
 import CRNT.Multistationarity.SteadyStateDegree
 import CRNT.Deficiency.DOACapacityConstruction

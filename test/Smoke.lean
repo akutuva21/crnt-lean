@@ -4454,6 +4454,19 @@ example (M : Matrix (Fin 2) (Fin 2) ℚ) :
     gershgorinMarginQ M < 0 ↔ ∀ k, gershgorinRowValueQ M k < 0 :=
   gershgorinMarginQ_neg_iff M
 
+-- The real cast of the Gershgorin column value is the column value of the cast matrix.
+example (M : Matrix (Fin 2) (Fin 2) ℚ) (k : Fin 2) :
+    ((gershgorinColValueQ M k : ℚ) : ℝ)
+      = (M.map (Rat.castHom ℝ)) k k
+        + ∑ i ∈ Finset.univ.erase k, |(M.map (Rat.castHom ℝ)) i k| :=
+  gershgorinColValueQ_cast M k
+
+-- The column-form Gershgorin margin is negative exactly when every Gershgorin column value is
+-- negative — the strict column diagonal-dominance Hurwitz condition.
+example (M : Matrix (Fin 2) (Fin 2) ℚ) :
+    gershgorinColMarginQ M < 0 ↔ ∀ k, gershgorinColValueQ M k < 0 :=
+  gershgorinColMarginQ_neg_iff M
+
 -- The reversible pair `A ⇌ B` yields a Gershgorin stability margin: the field is non-vacuous for a
 -- network with species.
 example : interopRevData.analyze.gershgorinStabilityMargin.isSome = true := by decide
