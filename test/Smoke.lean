@@ -188,7 +188,7 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
   N.gac_of_deficiencyZero_decide hwr κ hδ hdec hx0
 
 -- The analysis tags the current contract version.
-example : interopRevData.analyze.version = 11 := by decide
+example : interopRevData.analyze.version = 12 := by decide
 
 -- Dense scalar companions of the v11 contract on the reversible pair `A ⇌ B`: one minimal siphon of
 -- size 2, no ACR species, one terminal strong linkage class, no positively-driven species, and no
@@ -4453,3 +4453,12 @@ example (M : Matrix (Fin 2) (Fin 2) ℚ) (k : Fin 2) :
 example (M : Matrix (Fin 2) (Fin 2) ℚ) :
     gershgorinMarginQ M < 0 ↔ ∀ k, gershgorinRowValueQ M k < 0 :=
   gershgorinMarginQ_neg_iff M
+
+-- The reversible pair `A ⇌ B` yields a Gershgorin stability margin: the field is non-vacuous for a
+-- network with species.
+example : interopRevData.analyze.gershgorinStabilityMargin.isSome = true := by decide
+
+-- The Gershgorin stability-margin field is `none` exactly for a network with no species.
+example (d : NetworkData) (h : d.numSpecies = 0) :
+    d.analyze.gershgorinStabilityMargin = none :=
+  NetworkData.analyze_gershgorinStabilityMargin_eq_none_of_zero_species d h

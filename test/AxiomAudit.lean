@@ -439,3 +439,7 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 /-- info: 'CRNT.Network.gershgorinStabilityMarginQ_hurwitz' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.gershgorinStabilityMarginQ_hurwitz
+
+/-- info: 'CRNT.NetworkData.analyze_gershgorinStabilityMargin_eq_none_of_zero_species' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.NetworkData.analyze_gershgorinStabilityMargin_eq_none_of_zero_species

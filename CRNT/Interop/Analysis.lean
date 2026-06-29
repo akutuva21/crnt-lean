@@ -12,6 +12,7 @@ import CRNT.Multistationarity.PointIndepDecidable
 import CRNT.Decision.ComputableTerminalSLC
 import CRNT.Decision.InjectivityMargin
 import CRNT.Dynamics.HopfBoundaryQ
+import CRNT.Dynamics.GershgorinMarginQ
 
 /-!
 # One-call structural analysis
@@ -67,7 +68,13 @@ P-matrix injectivity precondition. `hopfBoundaryMargin` is the `3 × 3` Routh–
 value `det − trace · c₂Fin3` of the rational mass-action Jacobian at the all-ones concentration with
 unit rate constants, a `(numerator, denominator)` pair and `none` unless `numSpecies = 3`
 (`analyze_hopfBoundaryMargin_eq_none_of_ne_three`); it is a graded proximity-to-oscillation signal at
-one chart point, not a bifurcation verdict.
+one chart point, not a bifurcation verdict. `gershgorinStabilityMargin` is the Gershgorin
+local-stability spectral margin `max_k ( J k k + ∑_{j≠k} |J k j| )` of the rational mass-action
+Jacobian at the all-ones concentration with unit rate constants, a `(numerator, denominator)` pair and
+`none` only when there are no species (`analyze_gershgorinStabilityMargin_eq_none_of_zero_species`).
+Negative exactly when the row diagonal-dominance test certifies the linearization there is Hurwitz, in
+any dimension; the magnitude grades stability robustness. It is a one-directional sufficient stability
+margin, not a full spectral verdict.
 
 `version` tags the JSON contract; bump it whenever the field set changes.
 
@@ -82,7 +89,7 @@ open CRNT.GaussianRank
 open scoped NNReal Topology
 
 /-- The version of the `Analysis` JSON contract. Bump on any field-set change. -/
-def analysisVersion : Nat := 11
+def analysisVersion : Nat := 12
 
 /-- The structural invariants of a network, as a JSON-serializable record. The numeric fields are
 the computable companions of the library theory; `deficiency` is `n − ℓ − s` assembled here. -/
@@ -174,6 +181,14 @@ structure Analysis where
   boundary — a graded proximity-to-oscillation signal at one chart point, not a bifurcation verdict
   (the limit-cycle conclusion needs center-manifold theory). -/
   hopfBoundaryMargin : Option (Int × Int)
+  /-- The Gershgorin local-stability spectral margin `max_k ( J k k + ∑_{j≠k} |J k j| )` of the
+  rational mass-action Jacobian at the all-ones concentration with unit rate constants, as a
+  `(numerator, denominator)` pair; `none` when there are no species. Negative exactly when the row
+  diagonal-dominance test certifies the linearization there is Hurwitz (locally stable, no
+  oscillation), in any number of species; the magnitude grades the stability robustness. It is a
+  one-directional sufficient stability margin, not a full spectral verdict: it can fail for matrices
+  that are nonetheless Hurwitz. -/
+  gershgorinStabilityMargin : Option (Int × Int)
   deriving FromJson, ToJson, Repr, DecidableEq
 
 namespace NetworkData
@@ -213,6 +228,12 @@ def analyze (d : NetworkData) : Analysis :=
     hopfBoundaryMargin :=
       if h : d.numSpecies = 3 then
         let q := (h ▸ N : Network (Fin 3)).hopfBoundaryMarginQ
+        some (q.num, (q.den : Int))
+      else none
+    gershgorinStabilityMargin :=
+      if h : 0 < d.numSpecies then
+        haveI : Nonempty (Fin d.numSpecies) := ⟨⟨0, h⟩⟩
+        let q := N.gershgorinStabilityMarginQ
         some (q.num, (q.den : Int))
       else none }
 
@@ -428,6 +449,13 @@ Routh–Hurwitz Hopf-boundary combination is defined only in dimension three. -/
 theorem analyze_hopfBoundaryMargin_eq_none_of_ne_three (d : NetworkData)
     (h : d.numSpecies ≠ 3) : (d.analyze).hopfBoundaryMargin = none := by
   simp only [analyze, dif_neg h]
+
+/-- The Gershgorin stability margin is `none` for a network with no species: the worst-row maximum is
+taken over an empty index set. For any network with at least one species the field is a `some` pair. -/
+theorem analyze_gershgorinStabilityMargin_eq_none_of_zero_species (d : NetworkData)
+    (h : d.numSpecies = 0) : (d.analyze).gershgorinStabilityMargin = none := by
+  have hlt : ¬ 0 < d.numSpecies := by omega
+  simp only [analyze, dif_neg hlt]
 
 end NetworkData
 
