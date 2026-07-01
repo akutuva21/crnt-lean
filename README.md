@@ -70,8 +70,12 @@ Grouped by area; the precise statements and module names are in each linked doc.
 - The relative-entropy Lyapunov function, LaSalle's invariance principle, and local asymptotic stability
 - A Michaelis–Menten quasi-steady-state reduction, error-quantified on compact time: the full
   trajectory tracks the slow-manifold reduction within an O(ε) Grönwall bound (ε the timescale separation)
-- Routh–Hurwitz stability to degree 4 (Liénard–Chipart) with the degree-4 Hopf crossing gate, and a
-  dimension-free Gershgorin test certifying mass-action Jacobian stability (so oscillation is excluded)
+- Routh–Hurwitz stability to degree 4 (Liénard–Chipart) with the degree-3 and degree-4 Hopf crossing
+  gates, and a dimension-free Gershgorin test certifying mass-action Jacobian stability (so oscillation
+  is excluded)
+- The planar Poincaré normal form with its first Lyapunov coefficient, and the closed-form limit cycle
+  of the truncated normal form; the sustained-oscillation verdict for the full field is reduced to
+  explicit center-manifold, averaging, and smooth-flow-dependence hypotheses (see Scope & Open Problems)
 
 **[Persistence & global attraction](docs/persistence-gac.md)**
 - The reduction GAC ⟺ persistence, and unconditional convergence for the no-critical-siphon class
@@ -97,6 +101,8 @@ Grouped by area; the precise statements and module names are in each linked doc.
 - Degree-free Gale–Nikaido univalence, bound to class injectivity
 - Concordance ⇒ kinetics-independent monostationarity
 - The signed species–reaction graph and the determinant cycle-cover expansion
+- Topological-degree steady-state existence (a nonzero reduced degree forces a steady state in the
+  compatibility class) and a multistationarity-capacity test from a sign-indefinite reduced Jacobian
 - Absolute concentration robustness, antithetic integral feedback, open (CFSTR) systems, and composition
 
 Every abstraction is exercised by at least one worked example network in [`CRNT/Examples/`](./CRNT/Examples/).
@@ -116,6 +122,11 @@ The CRN results above rest on general-purpose mathematics built here.
   and ±1 sign-conjugation over a P-matrix calculus (Schur complements, signature invariance)
 - Computable exact rational matrix rank with a nonsingular-minor certificate
 
+**[Topological degree](CRNT/Multistationarity)**
+- The Brouwer degree at a regular value, built as a finite signed sum of Jacobian-determinant signs:
+  Sard's theorem (critical values are null, regular values dense), degree additivity over disjoint
+  regions, homotopy invariance, and local constancy of the degree for proper maps
+
 **[Dynamical systems](CRNT/Dynamics)**
 - Forward semiflows, Lyapunov stability, and LaSalle's principle, with the flow of a bounded Lipschitz
   field and backward invariance of ω-limit sets
@@ -127,15 +138,25 @@ The library proves the classical canon and a large decidable fraction of the des
 What remains is of two kinds: established mathematics Mathlib does not yet have, where building it
 unlocks the CRN results noted, and questions where the mathematics itself is still open.
 
-**General mathematics still to build**
-- Topological degree: unconditional steady-state existence and the multistationarity converse (the
-  switch verdict)
-- Persistence theory (facet repulsion, Butler–McGehee): global attraction for broad weakly-reversible
-  classes
-- Fenichel normally-hyperbolic invariant-manifold persistence: lifting the O(ε) reduction (now proven
-  on compact time) to the infinite-horizon regime
-- Continuous-time Markov chains: process-level stochastics and the deterministic (Kurtz) scaling limit
-- Center-manifold reduction and Hopf bifurcation: sustained oscillation (the clock verdict)
+**General mathematics still to build.** The apparatus in each of these areas is in place; what
+remains is a specific missing piece.
+- The nonzero-degree input for topological-degree existence. The Brouwer degree, Sard's theorem, and
+  homotopy invariance are built, and a nonzero reduced degree forces a steady state; what is missing is
+  a theorem forcing the degree to be nonzero for a network class, which would make steady-state
+  existence unconditional and settle the multistationarity converse (the switch verdict)
+- Critical-siphon facet repulsion. The Butler–McGehee lemma and non-siphon (codimension-1) facet
+  repulsion are proven; the critical-siphon case needs a near-facet dissipation bound (an Anderson–Shiu
+  influx estimate), which would extend unconditional global attraction past the no-critical-siphon class
+- Fenichel normally-hyperbolic invariant-manifold persistence: lifting the O(ε) reduction (proven on
+  compact time) to the infinite-horizon regime
+- The stochastic process layer. The chemical-master-equation generator, the uniformized transition
+  semigroup, and the deterministic (Kurtz) scaling skeleton — the generator-convergence estimate and a
+  conditional fluid-limit bound — are built; what remains is the sample-path process itself and the
+  process-level (Skorokhod) law of large numbers, which rest on martingale/Poisson theory
+- The center-manifold gaps behind sustained oscillation. The Hopf crossing gates, the planar normal
+  form, and the truncated-normal-form limit cycle are proven; the full-field "clock verdict" is reduced
+  to three explicit hypotheses that are the genuine missing mathematics — center-manifold existence,
+  center-manifold averaging, and C¹ dependence of the flow on initial data (a return-map construction)
 
 **Open research**
 - The global attractor conjecture (Horn's 1974 conjecture, open in general):
