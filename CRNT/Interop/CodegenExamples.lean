@@ -16,8 +16,6 @@ properties. Reachability claims are discharged with the verified walk checker
 `reaches_of_walk`, whose `Bool` side closes by `decide` on the concrete network.
 
 See `docs/generated-certificates.md` for the emission contract.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Generated.Example

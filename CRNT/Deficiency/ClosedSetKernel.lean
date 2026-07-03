@@ -16,7 +16,7 @@ terminality), so this is the common engine behind the per-class and per-terminal
 modes. The terminal strong linkage class of a complex `c` whose class is terminal is recorded
 as `exists_nonneg_kernelVector_on_terminalSLC`.
 
-This module is **stable**. Depends on: `CRNT.Theorems.DeficiencyZero.PositiveKernel`,
+Depends on: `CRNT.Theorems.DeficiencyZero.PositiveKernel`,
 `CRNT.Deficiency.KineticBlock`.
 -/
 

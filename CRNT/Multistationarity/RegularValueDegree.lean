@@ -38,7 +38,6 @@ developed here.
 * `regularDegree_nonneg_of_det_pos` / `regularDegree_le_one_of_det_pos_of_subsingleton`
   — the nonnegativity and `≤ 1` bounds linking the degree to the injectivity side.
 
-This module is `sorry`-free.
 -/
 
 namespace CRNT

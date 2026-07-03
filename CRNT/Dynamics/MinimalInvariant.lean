@@ -31,7 +31,7 @@ of pairwise-disjoint pieces. Uniqueness of the minimal subset *within* a single 
 vertical persistence step — does not follow from this dichotomy: it needs ω-limit connectedness
 together with α-limit information, both absent from Mathlib v4.31, so it is not claimed here.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.ButlerMcGehee`.
+Depends on: `CRNT.Dynamics.ButlerMcGehee`.
 -/
 
 open Filter Set Topology

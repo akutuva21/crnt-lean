@@ -97,8 +97,7 @@ consumes.
 
 ## Module status
 
-`CRNT.lean` re-exports the stable core and brings in no axioms beyond Mathlib's
-(`[propext, Classical.choice, Quot.sound]`) and no `sorry`. Example and generated modules
+`CRNT.lean` re-exports the core. Example and generated modules
 `import CRNT` and are therefore not re-exported by it; they are still built and checked via the
 library's module glob.
 

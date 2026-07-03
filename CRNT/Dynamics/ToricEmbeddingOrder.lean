@@ -50,7 +50,7 @@ Taken as hypotheses: that `Monotone a` actually holds for the mass-action coeffi
 does, away from the `δ`-uncertainty region where `log x ∈ C`), and the full multi-cycle
 weakly-reversible assembly across cycles and uncertainty regions.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.ToricEmbedding`,
+Depends on: `CRNT.Dynamics.ToricEmbedding`,
 Mathlib pointed cones, inner-product spaces, and module big operators.
 -/
 

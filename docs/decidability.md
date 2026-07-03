@@ -15,22 +15,19 @@ theorem**. The companion is what `decide` or `#eval` evaluates; the bridging the
 soundness implication, or a two-sided `_iff` / `_eq`) transfers the machine computation back to
 the real mathematical statement.
 
-A second discipline governs *how* the companions are evaluated. The default import (`CRNT`) is
-`sorry`-free and **axiom-clean** — every headline result reduces to
-`[propext, Classical.choice, Quot.sound]` — and in particular it does **not** use
-`native_decide`, which would introduce the compiler-trust axiom. Two evaluation modes appear,
-and the modules state which applies:
+A second discipline governs *how* the companions are evaluated: the development uses kernel
+`decide`, not `native_decide` (which would introduce the compiler-trust axiom). Two evaluation
+modes appear, and the modules state which applies:
 
 - **Kernel `decide`.** The structural reachability and linkage predicates, the bounded
-  reachability companions, and the walk checker reduce inside the kernel. These stay strictly on
-  the axiom-clean path with no compiler trust.
+  reachability companions, and the walk checker reduce inside the kernel, with no compiler trust.
 - **Compiled `#eval`.** The exact rational rank and the deficiencies built on it do *not* reduce
   under kernel `decide`: the computable rank `computeRank` expands a determinant over a
-  permutation sum, which the kernel does not reduce. Their `Decidable` instances are total and
-  axiom-clean, but a concrete value is obtained through the equality/`iff` bridge or by `#eval`,
+  permutation sum, which the kernel does not reduce. Their `Decidable` instances are total, but a
+  concrete value is obtained through the equality/`iff` bridge or by `#eval`,
   not by `decide`. The `crnt_deficiency_zero` auto-search runs the determinant search under
   compiled evaluation purely to *find* a witness, then discharges the resulting goal on the
-  kernel path, so the finished certificate remains axiom-clean.
+  kernel path.
 
 ## Decidable reachability, weak reversibility, and linkage
 
@@ -190,8 +187,8 @@ class's stoichiometric submatrix by the same field-extension route, restricted t
 - `linkageStoichRank_eq_computeRank`: `linkageStoichRank q = computeRank (linkageStoichMatrixQ q)`.
 - `computeLinkageDeficiency` and `linkageDeficiency_eq_computeLinkageDeficiency`: the class
   deficiency in fully computable form.
-- `decidableLinkageDeficiency_le_one`: the resulting `Decidable (linkageDeficiency q ≤ 1)`, total
-  and axiom-clean, evaluated by `#eval` or the equality bridge rather than kernel `decide`.
+- `decidableLinkageDeficiency_le_one`: the resulting `Decidable (linkageDeficiency q ≤ 1)`, total,
+  evaluated by `#eval` or the equality bridge rather than kernel `decide`.
 
 `CRNT.Decision.DeficiencyOneConditionsDecide` then assembles a `Decidable` instance for
 `DeficiencyOneConditions`, the structure bundling conditions (i) and (ii) of the deficiency-one
@@ -199,8 +196,8 @@ theorem — `∀ θ, δ_θ ≤ 1` and the tightness identity `∑_θ δ_θ = δ`
 
 - `sum_linkageDeficiency_eq_deficiencyInt_iff_compute`: the tightness identity is equivalent to
   its fully computable form.
-- `decidableDeficiencyOneConditions`: the resulting `Decidable N.DeficiencyOneConditions`, total
-  and axiom-clean. It is `#eval`-evaluable but does not reduce under kernel `decide`, since
+- `decidableDeficiencyOneConditions`: the resulting `Decidable N.DeficiencyOneConditions`, total.
+  It is `#eval`-evaluable but does not reduce under kernel `decide`, since
   `computeRank` is a permutation sum and the `Subsingleton.elim` reconciliation between the
   computable and ambient `Fintype` instances on the linkage-class quotient does not reduce in the
   kernel.
@@ -226,8 +223,7 @@ linkage-class formulation. `acrSpecies` collects the species carrying such a wit
 macro "crnt_check" : tactic => `(tactic| decide)
 ```
 
-It closes a decidable structural goal about a concrete network by kernel reduction, so it stays
-on the axiom-clean path (`[propext, Classical.choice, Quot.sound]`). The decision procedures
+It closes a decidable structural goal about a concrete network by kernel reduction. The decision procedures
 above make the standard structural predicates decidable — directed and undirected reachability,
 weak reversibility, strong linkage, and the linkage- and strong-linkage-class counts — so a goal
 stating such a property of a concrete network reduces to `Bool` evaluation the kernel can settle.
@@ -262,7 +258,7 @@ The **argument-free** form `crnt_deficiency_zero` finds the witness itself: it m
 `k = n − ℓ`, runs the compiled search `findMinorWitness` (`CRNT.Decision.MinorSearch`) to locate
 a nonsingular minor — the determinant's permutation sum runs under compiled evaluation, which the
 kernel `decide` cannot reduce — then builds the selection and discharges as above. Both stay on
-the kernel path for the final discharge, so the certificate is axiom-clean. On the reversible
+the kernel path for the final discharge. On the reversible
 pair `A ⇌ B`:
 
 ```lean
@@ -336,7 +332,6 @@ primitive those generated certificates target.
 
 ## Related documents
 
-- [`architecture.md`](architecture.md): how this layer sits in the whole library and the
-  `sorry`-free / axiom-clean conventions.
+- [`architecture.md`](architecture.md): how this layer sits in the whole library.
 - [`generated-certificates.md`](generated-certificates.md): the external-tool emission contract
   and JSON interchange schema.

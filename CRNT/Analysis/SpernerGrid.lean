@@ -40,20 +40,19 @@ two-element `Option Cell`, decided pointwise) and rewriting through
 * `CRNT.Analysis.SpernerGrid.exists_rainbow_cell` — the concretely constructed door-incidence datum
   has a rainbow triangle.
 
-## What is deferred
+## Scope
 
-A *multi-triangle* grid (the up/down lattice split of `{(i, j) : i + j ≤ N}`) is not reachable
-`sorry`-free in one module, and not only for size: `DoorIncidence.G` is a `SimpleGraph`, so the
-outer vertex `none` collapses every one of a cell's boundary doors into a single adjacency. A
-boundary cell with two `{0,1}` boundary edges then cannot satisfy
+A *multi-triangle* grid (the up/down lattice split of `{(i, j) : i + j ≤ N}`) is not expressible
+with the single-outer-vertex `DoorIncidence`: `DoorIncidence.G` is a `SimpleGraph`, so the outer
+vertex `none` collapses every one of a cell's boundary doors into a single adjacency. A boundary
+cell with two `{0,1}` boundary edges then cannot satisfy
 `cell_degree : G.degree (some t) = doorCount … = 2` (its only extra neighbor on the boundary is
 `none`, one edge), and `outer_degree` requires each boundary rainbow edge to come from a distinct
-cell. Resolving this needs per-cell `≤ 1`-boundary-door bookkeeping together with the interior
-"every `{0,1}` sub-edge is shared by exactly two triangles" incidence lemma — the genuine geometric
-crux, and multi-module work that cannot edit the committed `DoorIncidence` structure. The
-single-cell datum here sidesteps the collapse (one cell, one door to `none`).
+cell. A multi-triangle grid needs per-cell `≤ 1`-boundary-door bookkeeping together with the
+interior "every `{0,1}` sub-edge is shared by exactly two triangles" incidence lemma — the genuine
+geometric crux. The single-cell datum here sidesteps the collapse (one cell, one door to `none`).
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.Combinatorics.SimpleGraph.Finite`, `Mathlib.Data.Fintype.Option`,
 `CRNT.Analysis.Sperner2D`, `CRNT.Analysis.Sperner`, `CRNT.Analysis.SpernerTriangulation`.
 -/

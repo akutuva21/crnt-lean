@@ -31,13 +31,13 @@ With `r(μ₀)² + q(μ₀) > 0` (automatic when `a₀(μ₀) > 0`, since `a₀ 
 * `CRNT.hopf_transversal_crossing` — the headline implication: `g'(μ₀) ≠ 0` forces transversal
   crossing of the imaginary axis by the conjugate pair, `p'(μ₀) ≠ 0`.
 
-This is the last algebraic precondition before center-manifold reduction. The reduction itself —
+The center-manifold reduction itself —
 turning the transversal crossing into a one-parameter family of limit cycles — is the analytic Hopf
 bifurcation theorem (Guckenheimer & Holmes, "Nonlinear Oscillations, Dynamical Systems, and
 Bifurcations of Vector Fields", §3.4), which needs center-manifold theory absent from `Mathlib` and
 stays out of scope.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.HopfGate3Matrix.
+Depends on: CRNT.Dynamics.HopfGate3Matrix.
 -/
 
 namespace CRNT

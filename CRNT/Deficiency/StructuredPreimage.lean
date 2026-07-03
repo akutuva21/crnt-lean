@@ -19,7 +19,7 @@ producing the required zero coordinate.
 
 * `exists_zeroCoord_preimage` — the structured preimage `y*` and its arg-min zero coordinate.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.MassActionAlgebra`, `CRNT.Decision.StrongLinkage`.
 -/
 

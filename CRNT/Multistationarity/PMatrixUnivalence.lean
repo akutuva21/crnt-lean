@@ -13,12 +13,12 @@ Corollaries 1–2 (theorem-of-the-alternative consequences) → Theorem 3 (order
 by dimension induction) → Theorem 4 (univalence, by signature normalization) — and uses no topological
 degree.
 
-This module starts with the linear-algebra foundation. The reductions consume the committed P-matrix
+This module starts with the linear-algebra foundation. The reductions consume the P-matrix
 API: principal-submatrix closure (`IsPMatrix.submatrix_isPMatrix`), signature-conjugation invariance
 (`IsPMatrix.signatureConj`), and positivity of determinants/diagonals (`IsPMatrix.det_pos`,
 `IsPMatrix.diag_pos`).
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Multistationarity.PMatrix`,
+Depends on: `CRNT.Multistationarity.PMatrix`,
 `CRNT.Multistationarity.PMatrixSchur`, `CRNT.Multistationarity.PMatrixSignature`.
 -/
 

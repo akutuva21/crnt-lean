@@ -7,7 +7,7 @@ import CRNT.Dynamics.FenichelGeneralDrift
 base flow `slowFlow : Flow ℝ≥0 Y`, and `CRNT.Dynamics.FenichelCoupledBase` persists a *moving* fibre
 `h(y)` but only over the affine translation base `ẏ = ε·b`. This module removes both idealizations at
 once: a genuinely **non-constant** slow manifold `z = h(y)` persisting over a genuinely **nonlinear**
-drifting base — the last idealization removed from the Fenichel core.
+drifting base.
 
 The base flows by `slowFlow` and the fast fibre contracts onto the constant target `c` at rate `rate`,
 so the product semiflow is `CRNT.Dynamics.FenichelGeneralDrift`'s `productContractFlow slowFlow rate c`,
@@ -32,7 +32,7 @@ time `0`).
 the base motion so the fibre value lands correctly. `flow_mapsTo` (`movingFlow_mapsTo`) proves the
 time-`τ` product semiflow sends `graphSet h` into `graphSet (movingRegraph h)` for *any* section `h`,
 discharging the structural hypothesis of `CRNT.Dynamics.FenichelPersistence`'s
-`CoupledFlowGraphTransform` from the explicit flow over the injective general base — axiom-clean, no
+`CoupledFlowGraphTransform` from the explicit flow over the injective general base — no
 base smoothness beyond injectivity of the time-`τ` map.
 
 ## End-to-end persistence
@@ -48,15 +48,15 @@ non-constant candidate section through `movingFlow_mapsTo`.
 
 `affineBaseFlow` instantiates `slowFlow` with the genuine constant-velocity translation semiflow
 `ẏ = v` on a normed space, whose time-`τ` map `y ↦ y + τ·v` has the explicit left-inverse
-`y ↦ y - τ·v` (`affineBaseInjective`); `fenichel_persistence_affineBase` is the resulting axiom-clean
+`y ↦ y - τ·v` (`affineBaseInjective`); `fenichel_persistence_affineBase` is the resulting
 instance over a genuinely moving base.
 
 Defined by Fenichel, "Geometric singular perturbation theory for ordinary differential equations": a
 normally attracting invariant manifold of the unperturbed layer system persists, for small `ε`, as a
 nearby invariant manifold. Here the slow manifold is genuinely non-constant and the base flows by a
-general nonlinear field — the honest completion of the coupled slow–fast coupling.
+general nonlinear field.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.FenichelGeneralDrift`.
+Depends on: `CRNT.Dynamics.FenichelGeneralDrift`.
 -/
 
 open Function Set
@@ -263,7 +263,7 @@ omit [CompleteSpace Y] in
 `fenichel_persistence_movingGeneralDrift` to the explicit constant-velocity base flow `affineBaseFlow`,
 whose time-`τ` translation has the explicit left-inverse `y ↦ y - τ·v`. The persisted manifold is the
 attracting fibre `M_ε = c`, forward-invariant under the iterate product semiflow over the moving base
-and within the `O(ε)` closeness ceiling — an axiom-clean instance of the moving-target machinery over
+and within the `O(ε)` closeness ceiling — an instance of the moving-target machinery over
 a genuinely moving base. -/
 theorem fenichel_persistence_affineBase (v : Y) (rate : ℝ) (c : E) (τ : ℝ≥0)
     (hrate : 0 < rate) (hτ : 0 < (τ : ℝ)) :

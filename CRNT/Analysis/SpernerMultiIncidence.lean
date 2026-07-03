@@ -4,7 +4,7 @@ import CRNT.Analysis.Sperner2DMulti
 # The multi-outer-vertex door-incidence interface
 
 This module bundles the multi-outer-vertex handshaking conclusion `Sperner2D.multiDoorGraph_odd_rainbow`
-into a `MultiDoorIncidence` structure — the redesign of `CRNT.Analysis.SpernerTriangulation.DoorIncidence`
+into a `MultiDoorIncidence` structure — a variant of `CRNT.Analysis.SpernerTriangulation.DoorIncidence`
 that supports a boundary cell with *several* `{0, 1}`-doors. Where `DoorIncidence` carries a door graph
 on `Option Cell` (one collapsing outer region `none`), `MultiDoorIncidence` carries a door graph on
 `Cell ⊕ Outer`, with one outer vertex per boundary sub-edge, so each boundary door is a distinct
@@ -22,12 +22,12 @@ The structure packages the same two geometric incidence facts, now in the uncoll
 From these the module derives the **two-dimensional Sperner conclusion** for the uncollapsed door graph:
 `odd_rainbow` (the rainbow-triangle count is odd) and `exists_rainbow` (a rainbow triangle exists).
 
-## What is deferred
+## Scope
 
-`MultiDoorIncidence` takes `cell_degree` and `outer_odd` as hypothesis fields; constructing them over a
-concrete multi-triangle lattice grid is the named next dependency — the lattice-edge incidence lemma
-(every interior `{0,1}` sub-edge borders exactly two triangles; every boundary `{0,1}` sub-edge borders
-exactly one) discharges `cell_degree`, and the boundary-side reduction discharges `outer_odd` via the
+`MultiDoorIncidence` takes `cell_degree` and `outer_odd` as hypothesis fields. Constructing them over
+a concrete multi-triangle lattice grid requires the lattice-edge incidence lemma (every interior
+`{0,1}` sub-edge borders exactly two triangles; every boundary `{0,1}` sub-edge borders exactly one),
+which discharges `cell_degree`, and the boundary-side reduction, which discharges `outer_odd` via the
 one-dimensional `Sperner.sperner_odd_rainbowEdges`.
 
 ## Main results
@@ -35,7 +35,7 @@ one-dimensional `Sperner.sperner_odd_rainbowEdges`.
 * `MultiDoorIncidence` — the uncollapsed door-incidence interface over `Cell ⊕ Outer`.
 * `MultiDoorIncidence.exists_rainbow` — the two-dimensional Sperner conclusion from the bundled facts.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.Sperner2DMulti`.
+Depends on: `CRNT.Analysis.Sperner2DMulti`.
 -/
 
 namespace CRNT.Analysis.SpernerTriangulation

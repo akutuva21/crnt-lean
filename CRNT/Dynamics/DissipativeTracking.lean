@@ -49,7 +49,7 @@ downstream module. What is delivered here is the complete, field-agnostic dissip
 that such an instantiation plugs into, replacing the horizon-dependent `gronwallBound δ K εf T` by the
 uniform ceiling `δ / λ`.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.Fenichel.
+Depends on: CRNT.Dynamics.Fenichel.
 -/
 
 open Filter Set

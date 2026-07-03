@@ -7,8 +7,6 @@ import CRNT.Examples.ReversiblePair
 The reversible pair is strongly connected: `A` and `B` are mutually reachable in one step,
 so they are strongly linked, discharged by `decide` on the bounded companion. The single
 strong linkage class is terminal — no reaction leaves it.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Examples.DecideStrongLinkage

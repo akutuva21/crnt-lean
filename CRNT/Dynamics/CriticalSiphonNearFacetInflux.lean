@@ -28,7 +28,7 @@ non-attracting. This is the Anderson & Shiu influx bound that closes the singlet
 facet, supplying the quantitative subtangent estimate that `CRNT.Dynamics.FacetRepulsion` records
 as missing.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.Siphon`,
+Depends on: `CRNT.Dynamics.Siphon`,
 `CRNT.Dynamics.Persistence`.
 -/
 

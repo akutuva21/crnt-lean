@@ -28,7 +28,7 @@ The exact computable rank itself (Gaussian elimination over `ℚ` with a proof t
 `finrank ℝ stoichSubspace`) is not provided here; these one-sided certificates discharge the
 deficiency-zero hypothesis, which is what the structural theory consumes.
 
-This module is **stable**. Depends on: `CRNT.Stoich.Subspace`,
+Depends on: `CRNT.Stoich.Subspace`,
 `CRNT.Deficiency.KernelDimension`.
 -/
 

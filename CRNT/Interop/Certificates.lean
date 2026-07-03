@@ -12,7 +12,7 @@ an explicit walk (a list of complexes), and Lean verifies it with a computable
 Because `DirectlyReacts` is decidable, `reachesWalk` reduces by `decide` on concrete
 networks, so generated certificates close their goals automatically.
 
-This module is **stable**. Depends on: `CRNT.Graph.WeakReversibility`.
+Depends on: `CRNT.Graph.WeakReversibility`.
 -/
 
 namespace CRNT

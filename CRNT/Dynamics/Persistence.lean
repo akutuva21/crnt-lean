@@ -29,7 +29,7 @@ subtangential invariance, viability theory). The full persistence statement
 `HasNoCriticalSiphon N → boundary faces avoid ω-limits of interior trajectories` therefore
 remains beyond what is provable here; only its algebraic precondition is supplied.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.Siphon`,
+Depends on: `CRNT.Dynamics.Siphon`,
 `CRNT.Dynamics.MassActionField`.
 -/
 

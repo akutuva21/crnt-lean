@@ -46,7 +46,7 @@ graph transform. Here the slow base honestly evolves under the coupled flow — 
 persisted manifold is invariant over a *moving* base, the genuinely coupled companion to the
 frozen-base instances.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.FenichelPersistenceContracting`.
 -/
 

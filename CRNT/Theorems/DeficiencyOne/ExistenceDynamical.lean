@@ -33,7 +33,7 @@ is not a Lyapunov function adapted to it and LaSalle gives no handle; and turnin
 ω-limit into an equilibrium still requires positivity of the ω-limit (the persistence/boundary
 obstruction). Closing it needs degree theory, which is absent from Mathlib v4.31.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Theorems.DeficiencyOne.Existence`, `CRNT.Theorems.DeficiencyZero.AsymptoticStability`.
 -/
 

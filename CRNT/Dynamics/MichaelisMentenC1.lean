@@ -66,7 +66,7 @@ persistence of the invariant graph `{(s, h(s))}` remains unavailable in Mathlib 
 would need a globally `C¹` extension of the rate law agreeing with Michaelis–Menten on the substrate
 ray, which alters the model off that ray.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.MichaelisMentenReduced,
+Depends on: CRNT.Dynamics.MichaelisMentenReduced,
 CRNT.Dynamics.FenichelC1Manifold, Mathlib.Analysis.Calculus.ContDiff.Basic.
 -/
 

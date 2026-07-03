@@ -36,7 +36,7 @@ The conservation-law feasibility framing of (non)critical siphons is from Angeli
 Sontag, *A Petri net approach to the study of persistence in chemical reaction networks*; the
 feasibility reduction is the constructive content of Farkas' lemma by Fourier–Motzkin elimination.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Decision.ConservationConeStrict`,
+Depends on: `CRNT.Decision.ConservationConeStrict`,
 `CRNT.Decision.RationalFarkasDecide`.
 -/
 

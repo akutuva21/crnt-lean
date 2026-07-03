@@ -30,7 +30,7 @@ subtangent-cone hypothesis, is out of reach here: Mathlib has no tangent-cone-to
 apparatus. The dissipative coordinate-halfspace form is the checkable form the persistence
 and confinement arguments consume.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Kinetics.Concentration`,
+Depends on: `CRNT.Kinetics.Concentration`,
 `CRNT.Dynamics.MassActionField`, `Mathlib.Analysis.Calculus.Deriv.MeanValue`,
 `Mathlib.Analysis.SpecialFunctions.ExpDeriv`, `Mathlib.Topology.Order.Monotone`.
 -/

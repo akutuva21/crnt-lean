@@ -30,9 +30,6 @@ concrete Poisson clock family:
 * `meas_aggregate_scaledClock_ge_le` : the aggregate Chebyshev tail.
 * `tendsto_meas_aggregate_scaledClock` : convergence in probability of the total weighted scaled
   count to its mean as `V → ∞` — the realized fluctuation model driving `η_V → 0`.
-
-The random time change turning these clocks into the trajectory counting processes of the
-stochastic equation is a later development.
 -/
 
 namespace CRNT.Stochastic

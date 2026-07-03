@@ -17,7 +17,7 @@ is constant on its classes), strong linkage classes map to linkage classes
 (`strongToLinkage`), and `OneTerminalSLCPerLinkageClass` records that each linkage class has a
 unique terminal strong linkage class. `DeficiencyOneHypotheses` bundles all three.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.LinkageDeficiency`,
+Depends on: `CRNT.Deficiency.LinkageDeficiency`,
 `CRNT.Decision.StrongLinkage`.
 -/
 

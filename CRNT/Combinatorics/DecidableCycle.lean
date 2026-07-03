@@ -21,7 +21,7 @@ making it decidable too.
 These results are CRN-agnostic and apply to any finite simple graph, including the
 undirected linkage graph of a reaction network.
 
-This module is **stable**. Depends on: `Mathlib.Combinatorics.SimpleGraph.Acyclic`, `Mathlib.Combinatorics.SimpleGraph.Connectivity.Finite`.
+Depends on: `Mathlib.Combinatorics.SimpleGraph.Acyclic`, `Mathlib.Combinatorics.SimpleGraph.Connectivity.Finite`.
 -/
 
 namespace SimpleGraph

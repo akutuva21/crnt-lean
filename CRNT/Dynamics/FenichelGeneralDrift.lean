@@ -55,7 +55,7 @@ nearby invariant manifold. Here the slow base evolves under a general nonlinear 
 not the translation `ẏ = ε·b` — so the persisted manifold is invariant over a genuinely curved moving
 base, the honest completion of the coupled slow–fast coupling.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.FenichelPersistenceContracting`.
 -/
 

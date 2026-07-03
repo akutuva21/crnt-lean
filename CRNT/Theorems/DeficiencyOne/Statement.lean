@@ -7,10 +7,9 @@ import CRNT.Graph.WeakReversibility
 # Deficiency-one theorem: statement interface
 
 This module exposes the hypotheses and the conclusions of Feinberg's deficiency-one
-theorem as named definitions, giving downstream tools and proofs a stable API. It
-contains **no axioms and no `sorry`**: the theorem itself is not asserted here. Each
-conclusion is a `Prop`-valued definition that a future proof — or an explicit,
-clearly marked experimental hypothesis — can target.
+theorem as named definitions, giving downstream tools and proofs a stable API. The
+theorem itself is not asserted here: each conclusion is a `Prop`-valued definition that
+a future proof — or an explicit, clearly marked experimental hypothesis — can target.
 
 The hypotheses are `N.DeficiencyOneHypotheses` (`CRNT.Deficiency.DeficiencyOneHypotheses`):
 each linkage class has deficiency at most one, the class deficiencies sum to the network
@@ -26,7 +25,7 @@ Two conclusions are packaged:
 * `DeficiencyOneExistence` — for weakly reversible networks the class contains
   **exactly one** positive steady state.
 
-This module is **stable** (statement-only). Depends on the deficiency-one hypotheses,
+Depends on the deficiency-one hypotheses,
 the steady-state, compatibility-class, and weak-reversibility layers.
 -/
 
@@ -40,9 +39,8 @@ variable {S : Type} [DecidableEq S] [Fintype S]
 rate constants and every positive starting concentration, the positive stoichiometric
 compatibility class of the start contains at most one mass-action steady state.
 
-This is a `Prop`-valued *statement*, not an asserted theorem. Proving
-`∀ N, N.DeficiencyOneHypotheses → N.DeficiencyOneUniqueness` is the core target of the
-deficiency-one development; it is intentionally left unproved in the stable library. -/
+This is a `Prop`-valued *statement*, not an asserted theorem:
+`∀ N, N.DeficiencyOneHypotheses → N.DeficiencyOneUniqueness` is not proved here. -/
 def DeficiencyOneUniqueness (N : Network S) : Prop :=
   ∀ (κ : RateConstants N) (x₀ : Concentration S), x₀.Positive →
     ∀ ⦃x y : Concentration S⦄,
@@ -55,10 +53,9 @@ positive choice of rate constants and every positive starting concentration, the
 stoichiometric compatibility class of the start contains exactly one mass-action steady
 state.
 
-This is a `Prop`-valued *statement*, not an asserted theorem. Proving
-`∀ N, N.WeaklyReversible → N.DeficiencyOneHypotheses → N.DeficiencyOneExistence` is the
-weakly reversible form of the deficiency-one theorem; it is intentionally left unproved in
-the stable library. -/
+This is a `Prop`-valued *statement*, not an asserted theorem:
+`∀ N, N.WeaklyReversible → N.DeficiencyOneHypotheses → N.DeficiencyOneExistence` — the
+weakly reversible form of the deficiency-one theorem — is not proved here. -/
 def DeficiencyOneExistence (N : Network S) : Prop :=
   ∀ (κ : RateConstants N) (x₀ : Concentration S), x₀.Positive →
     ∃! x : Concentration S,

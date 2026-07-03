@@ -24,7 +24,7 @@ The affine-invariance hypothesis `hωaff` (`ω ⊆ x₀ + stoichSubspace`) and t
 nonnegativity / boundedness hypotheses are exactly what the mass-action semiflow construction
 supplies.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.BoundaryOmegaSiphon`,
+Depends on: `CRNT.Dynamics.BoundaryOmegaSiphon`,
 `CRNT.Dynamics.ConservationLaw`.
 -/
 

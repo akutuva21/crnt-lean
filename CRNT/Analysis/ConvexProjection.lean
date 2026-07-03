@@ -22,7 +22,7 @@ The proof combines two ingredients:
   cube. A cube fixed point of that conjugate, pulled back, lands in `K`, where `projK` is the
   identity, producing a fixed point of `f`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.BrouwerConvex`.
+Depends on: `CRNT.Analysis.BrouwerConvex`.
 -/
 
 namespace CRNT.Analysis

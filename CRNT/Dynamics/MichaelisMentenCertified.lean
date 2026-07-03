@@ -55,7 +55,7 @@ Lipschitz (logarithmic-norm) bound transverse to the manifold — which is absen
 What the depletion confinement does give is recorded above in full: all-time confinement of both the
 substrate and the reduced complex level, and an all-time `O(ε)` slaved velocity.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.MichaelisMentenDepletion`,
+Depends on: `CRNT.Dynamics.MichaelisMentenDepletion`,
 `CRNT.Dynamics.MichaelisMentenSlowDriftSpeed`.
 -/
 

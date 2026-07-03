@@ -39,7 +39,7 @@ discrete-to-continuous lift fires by `t → ∞`.
 * `conservationClass_cmeRegionVec_tendsto` — the unconditional continuous-time relaxation on the
   `A ⇌ B` conservation class, the non-vacuous deliverable.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Stochastic.ConservationClassRegion`.
 -/
 

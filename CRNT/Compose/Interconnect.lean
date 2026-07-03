@@ -12,7 +12,7 @@ The stoichiometric subspace composes as a join: the span of all reaction vectors
 interconnection is the supremum of the two component subspaces, so each component's
 stoichiometric subspace embeds into the interconnection's.
 
-This module is **stable**. Depends on: `CRNT.Stoich.Subspace`, Mathlib linear algebra.
+Depends on: `CRNT.Stoich.Subspace`, Mathlib linear algebra.
 -/
 
 namespace CRNT

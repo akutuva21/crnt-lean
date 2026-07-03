@@ -19,7 +19,7 @@ set identity turns the kinetic equations into balance statements across complex 
 * `excessVertex`, `excessSet` — the vertex and set excess.
 * `excessSet_eq_sum_excessVertex` — additivity over vertices.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.Algebra.BigOperators.Group.Finset.Basic`.
 -/
 

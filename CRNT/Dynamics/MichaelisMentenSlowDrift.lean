@@ -32,7 +32,7 @@ velocity by `(L / rate)·(ε·G)`. This is the certified `O(ε)` Michaelis–Men
 the whole substrate line, with the slaved curve's differentiability discharged by the seed's global
 `C¹` regularity rather than assumed.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.MichaelisMentenRegularized.
+Depends on: CRNT.Dynamics.MichaelisMentenRegularized.
 -/
 
 open scoped RealInnerProductSpace

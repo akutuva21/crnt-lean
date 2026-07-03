@@ -28,7 +28,7 @@ triangle at a shifted index), left to a follow-on step.
 * `diag_incidence_interior` — an interior diagonal borders exactly two triangles.
 * `diag_incidence_boundary` — a boundary diagonal borders exactly one triangle.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLattice`.
+Depends on: `CRNT.Analysis.SpernerLattice`.
 -/
 
 namespace CRNT.Analysis.SpernerLattice

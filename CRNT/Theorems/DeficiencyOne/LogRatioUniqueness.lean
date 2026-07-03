@@ -18,7 +18,7 @@ full uniqueness theorem to the log-ratio characterization `LogRatioCharacterizat
 deficiency-one hypotheses enter here: the reduction is unconditional, isolating the
 characterization as the single remaining obligation.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Theorems.DeficiencyOne.Statement`, `CRNT.Kinetics.Generalized`.
 -/
 

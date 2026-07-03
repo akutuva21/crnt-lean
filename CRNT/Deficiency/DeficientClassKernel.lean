@@ -21,7 +21,7 @@ restriction is a kernel vector supported on the class, hence `λ · b`. Pointwis
 * `exists_kernel_mode_of_deficiencyOne` — the per-class kernel mode (Lemma II.6).
 * `deficientClass_kernel_relation` — the pointwise relation.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Deficiency.DeficiencyOneLine`, `CRNT.Deficiency.TerminalSLCKernel`,
 `CRNT.Deficiency.SignedDrainage`.
 -/

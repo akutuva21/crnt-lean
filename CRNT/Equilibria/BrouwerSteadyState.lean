@@ -11,7 +11,7 @@ mass-action vector field. The field is `C^∞`, hence continuous, so the only re
 that its inward displacement `x ↦ x - massActionVectorField κ x` preserves a nonempty compact
 convex set of concentrations; on such a set a mass-action steady state exists.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.ConcentrationZero`,
+Depends on: `CRNT.Analysis.ConcentrationZero`,
 `CRNT.Dynamics.MassActionField`, `CRNT.Equilibria.SteadyState`.
 -/
 

@@ -10,7 +10,7 @@ defines the `Concentration` type, the nonnegativity and positivity predicates us
 explicit hypotheses throughout the kinetics and equilibrium layers, and the mass-
 action monomial `x ^ y` associated to a complex.
 
-This module is **stable**. Depends on: `CRNT.Basic.Complex`.
+Depends on: `CRNT.Basic.Complex`.
 -/
 
 namespace CRNT

@@ -7,8 +7,6 @@ import CRNT.Examples.ReversiblePair
 The decidable structural core lets concrete networks discharge their properties by reflection.
 For the reversible pair, weak reversibility and the strong-linkage-class count are closed by
 `crnt_check`.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Examples.CrntCheck

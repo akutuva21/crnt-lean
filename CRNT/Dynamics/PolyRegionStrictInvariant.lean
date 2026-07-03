@@ -31,7 +31,7 @@ per-half-plane route (`ZeroSeparatingCurve2D.polyRegion_invariant_of_support`), 
 `∀ na ∈ faces, ∀ t, 0 ≤ ⟪na.1, f (γ t)⟫_ℝ` demands every face inward at every point and so only
 covers the regime where a single velocity-cone is simultaneously inward for all faces.
 
-## What this module formalizes (sorry-free)
+## What this module formalizes
 
 * `eventually_forall_mem_list` — a finite-conjunction eventually lemma: if each member of a list
   satisfies a predicate eventually along a filter, the whole list does eventually (general).
@@ -57,7 +57,7 @@ setting, where the trajectory begins on the far side of the curve, strictly sepa
 also rules out an instantaneous exit from a starting boundary point, where only a right-derivative
 at `0` would be available.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.SupportDiniBridge`,
+Depends on: `CRNT.Dynamics.SupportDiniBridge`,
 `Mathlib.Analysis.Calculus.Deriv.Slope`.
 -/
 

@@ -41,7 +41,7 @@ The **boundary-only** Nagumo — descent merely on the level set `{g = c}`, not 
 band — is genuinely subtler: it requires proximal/Bony viscosity-subgradient machinery (absent from
 Mathlib) and can fail without it. It is not attempted here.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.Viability`,
+Depends on: `CRNT.Dynamics.Viability`,
 `CRNT.Dynamics.FirstExit`, `CRNT.Dynamics.SublevelInvariant`,
 `Mathlib.Analysis.Calculus.Deriv.Comp`.
 -/

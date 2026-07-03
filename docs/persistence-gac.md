@@ -232,7 +232,7 @@ an explicit hypothesis, never a `sorry`:
 No theorem assembles these into a conclusion of persistence or the global attractor conjecture for
 the toric-inclusion approach. Its persistence-style results are the one-dimensional base case
 (unconditional) and genuine-flow distance bounds conditional on a supplied surface. The architecture
-is machine-checked and the dimension-four over-determination is understood, but the conjecture is not
+is formalized and the dimension-four over-determination is understood, but the conjecture is not
 closed here.
 
 ## The permanence route (Gopalkrishnan–Miller–Shiu)

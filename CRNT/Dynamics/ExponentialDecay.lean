@@ -260,7 +260,7 @@ end LyapunovCertificate
 end CRNT.ExponentialDecay
 
 /-!
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.ExponentialDichotomy`, `Mathlib.Analysis.CStarAlgebra.Matrix`,
 `Mathlib.Analysis.InnerProductSpace.Calculus`, `Mathlib.Analysis.ODE.Gronwall`,
 `Mathlib.Analysis.SpecialFunctions.Exponential`.

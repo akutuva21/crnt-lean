@@ -9,18 +9,29 @@ symbol names.
 
 ## Trust boundary
 
-`analyze` uses **compiled evaluation** (compiler trust), so it sits outside the `CRNT` library's
-axiom-clean guarantee. Each reported field is a computable companion of the library theory, and the
+`analyze` uses **compiled evaluation** (compiler trust), so it sits outside the kernel-checked
+guarantees of the `CRNT` library. Each reported field is a computable companion of the library theory, and the
 derived fields each have a bridge in `CRNT/Interop/Analysis.lean` relating the reported value to its
 propositional definition: `analyze_deficiency_eq`, `analyze_stoichRank_eq`,
 `analyze_numLinkageClasses_eq`, `analyze_conservationLawDim_eq`, `analyze_weaklyReversible_eq`,
 `analyze_acrSpecies_eq`, `analyze_hasSiphon_eq`, `mem_analyze_minimalSiphons`,
-`analyze_srSignConsistent_eq`, `analyze_srPMatrixPointIndep_eq`, `analyze_hasCriticalSiphon_eq`, and
-`analyze_persistenceStructural_eq`. The point-free P-matrix bridge
-`isPMatrix_massActionJacobian_box_of_srPMatrixPointIndep` is proved there too. The one-sided exclusion
-`analyze_hasNoCriticalSiphon_of_hasSiphon_false` and the structural-persistence bridge
-`hasNoCriticalSiphon_of_persistenceStructural` are proved there too. When a result needs an
-axiom-clean kernel certificate for a specific network, use the codegen contract instead.
+`analyze_srSignConsistent_eq`, `analyze_srPMatrixPointIndep_eq`, `analyze_hasCriticalSiphon_eq`,
+`analyze_persistenceStructural_eq`, `analyze_numTerminalSLC_eq`, and
+`analyze_numDiagonalDriveSpecies_eq`. The point-free P-matrix bridge
+`isPMatrix_massActionJacobian_box_of_srPMatrixPointIndep` is proved there too, as is
+`analyze_numDiagonalDriveSpecies_eq_card_iff` (the diagonal-drive count reaches `numSpecies` exactly
+when `ConsistentDiagonalDrive` holds). The one-sided exclusion
+`analyze_hasNoCriticalSiphon_of_hasSiphon_false`, the structural-persistence bridge
+`hasNoCriticalSiphon_of_persistenceStructural`, and the certified-persistence verdict
+`gac_of_persistenceCertified` (with its precondition lemma `certifiedHypotheses_of_persistenceCertified`)
+are proved there too. The margin fields are the reported values of their `…Q` companions, characterized
+in the modules that define them (`GershgorinMarginQ`, `GershgorinColumnMarginQ`, `HopfBoundaryQ`), with
+`analyze` pinning the inapplicable cases (`analyze_hopfBoundaryMargin_eq_none_of_ne_three`,
+`analyze_gershgorinStabilityMargin_eq_none_of_zero_species`,
+`analyze_gershgorinColStabilityMargin_eq_none_of_zero_species`); the count fields
+`numMinimalSiphons`, `minSiphonSize`, and `numACRSpecies` are sizes/folds of the already-bridged
+`minimalSiphons` and `acrSpecies` arrays. When a result needs a kernel-checked certificate for a
+specific network, use the codegen contract instead.
 
 ## Input: `NetworkData`
 
@@ -46,11 +57,13 @@ their analyses (the bulk path: one process invocation scores many networks).
 `analyze` writes the record with `Json.compress`, which sorts the object keys alphabetically:
 
 ```json
-{"acrSpecies":[],"conservationLawDim":1,"deficiency":0,"hasCriticalSiphon":false,
- "hasSiphon":true,"minimalSiphons":[[0,1]],"numComplexes":2,"numLinkageClasses":1,
- "numReactions":2,"numSpecies":2,"numStrongLinkageClasses":1,"persistenceCertified":true,
- "persistenceStructural":true,"srPMatrixPointIndep":false,"srSignConsistent":false,
- "stoichRank":1,"version":10,"weaklyReversible":true}
+{"acrSpecies":[],"conservationLawDim":1,"deficiency":0,"gershgorinColStabilityMargin":[0,1],
+ "gershgorinStabilityMargin":[0,1],"hasCriticalSiphon":false,"hasSiphon":true,
+ "hopfBoundaryMargin":null,"minSiphonSize":2,"minimalSiphons":[[0,1]],"numACRSpecies":0,
+ "numComplexes":2,"numDiagonalDriveSpecies":0,"numLinkageClasses":1,"numMinimalSiphons":1,
+ "numReactions":2,"numSpecies":2,"numStrongLinkageClasses":1,"numTerminalSLC":1,
+ "persistenceCertified":true,"persistenceStructural":true,"srPMatrixPointIndep":false,
+ "srSignConsistent":false,"stoichRank":1,"version":13,"weaklyReversible":true}
 ```
 
 The fields, in their declaration order on the `Analysis` structure:
@@ -75,9 +88,18 @@ The fields, in their declaration order on the `Analysis` structure:
 | `hasCriticalSiphon` | bool | a critical siphon exists (no positive conservation law on its support) | `decide HasCriticalSiphon` |
 | `persistenceStructural` | bool | structural persistence precondition: `weaklyReversible ∧ ¬hasCriticalSiphon` | `hasNoCriticalSiphon_of_persistenceStructural` |
 | `persistenceCertified` | bool | certified persistence: `weaklyReversible ∧ deficiency = 0 ∧ ¬hasCriticalSiphon` | `gac_of_persistenceCertified` |
+| `numMinimalSiphons` | int | count of support-minimal siphons | `minimalSiphons.size` |
+| `minSiphonSize` | int | smallest minimal-siphon cardinality (`numSpecies + 1` sentinel when none) | derived from `minimalSiphons` |
+| `numACRSpecies` | int | count of species with a structural ACR witness | `acrSpecies.size` |
+| `numTerminalSLC` | int | terminal strong linkage classes `t` | `computeNumTerminalSLC` |
+| `numDiagonalDriveSpecies` | int | species with a positive diagonal drive (`= numSpecies` iff `ConsistentDiagonalDrive`) | `numDiagonalDriveSpecies` |
+| `hopfBoundaryMargin` | `[int,int]` or null | `3×3` Routh–Hurwitz Hopf-boundary value `det − trace·c₂` as a `[num, den]` rational; `null` unless `numSpecies = 3` | `hopfBoundaryMarginQ` |
+| `gershgorinStabilityMargin` | `[int,int]` or null | row Gershgorin spectral margin `max_k (J k k + ∑_{j≠k} \|J k j\|)` as `[num, den]`; `null` only with no species | `gershgorinStabilityMarginQ` |
+| `gershgorinColStabilityMargin` | `[int,int]` or null | column Gershgorin spectral margin `max_k (J k k + ∑_{i≠k} \|J i k\|)` as `[num, den]`; `null` only with no species | `gershgorinColStabilityMarginQ` |
 
 `Analysis` derives `FromJson, ToJson, Repr, DecidableEq`; the `ToJson` instance is what serializes the
-record.
+record. A rational margin field serializes as a two-element `[numerator, denominator]` array (an
+`Int × Int` tuple), and an inapplicable margin as JSON `null`.
 
 `acrSpecies` reports the decidable structural fragment of Shinar–Feinberg ACR (two non-terminal
 complexes in distinct linkage classes differing in exactly one species). The deficiency-one side
@@ -154,12 +176,99 @@ consumer: `computeNumLinkageClasses` supplies a computable `ℓ` (the quotient `
 not evaluate), and `deficiency_eq_computableDeficiency` bridges the assembly to the propositional
 `deficiency`.
 
+## Dense margins and counts
+
+Alongside the boolean and integer invariants, the record carries dense scalar fields: graded companions
+of the verdicts, whose value moves continuously and whose sign or threshold coincides with a boolean
+flip. They exist so a consumer has a gradient to follow, not only a pass/fail (see *Using the record
+downstream*).
+
+`numMinimalSiphons`, `minSiphonSize`, and `numACRSpecies` grade the siphon and ACR fields:
+`numMinimalSiphons` is `minimalSiphons.size`; `minSiphonSize` is the smallest support-minimal-siphon
+cardinality, with a `numSpecies + 1` sentinel when there is none (a smaller value is a tighter
+extinction obstruction, the sentinel marks no obstruction); `numACRSpecies` is `acrSpecies.size`.
+
+`numTerminalSLC` is the terminal-strong-linkage-class count `t` (`analyze_numTerminalSLC_eq`).
+`numDiagonalDriveSpecies` counts the species carrying a positive diagonal drive — a reaction that
+depends on and increases the species; it equals `numSpecies` exactly when `ConsistentDiagonalDrive`
+holds (`analyze_numDiagonalDriveSpecies_eq_card_iff`), so the gap `numSpecies − numDiagonalDriveSpecies`
+measures how far the network is from the per-species half of the point-free P-matrix injectivity
+precondition. It does not grade the signed-cover half (`srSignConsistent`).
+
+`hopfBoundaryMargin` is the `3 × 3` Routh–Hurwitz Hopf-boundary value `det − trace · c₂` of the
+rational mass-action Jacobian at the all-ones concentration with unit rate constants, a
+`[numerator, denominator]` rational, and `null` unless `numSpecies = 3`
+(`analyze_hopfBoundaryMargin_eq_none_of_ne_three`). It is zero exactly on the cubic Hopf boundary — a
+graded proximity-to-oscillation signal at one chart point, not a bifurcation verdict (the limit-cycle
+conclusion needs center-manifold theory).
+
+`gershgorinStabilityMargin` is the Gershgorin local-stability spectral margin
+`max_k ( J k k + ∑_{j≠k} |J k j| )` of that same Jacobian, a `[numerator, denominator]` rational, and
+`null` only when there are no species (`analyze_gershgorinStabilityMargin_eq_none_of_zero_species`). It
+is **negative exactly when the row diagonal-dominance test certifies the linearization there is
+Hurwitz** (locally stable, no oscillation), in any number of species; the magnitude grades the
+stability robustness. It is a one-directional sufficient stability margin, not a full spectral verdict:
+a nonnegative value can still belong to a Hurwitz matrix. `gershgorinColStabilityMargin` is the column
+companion `max_k ( J k k + ∑_{i≠k} |J i k| )`
+(`analyze_gershgorinColStabilityMargin_eq_none_of_zero_species`); the row and column tests are distinct
+sufficient conditions, so it is an independent stability certificate.
+
+## Using the record downstream
+
+The record serves two kinds of consumer, and the field types mark the split.
+
+**Boolean verdicts are hard design filters.** Each `Bool` (and the integer invariant it reads) settles
+a structural question for *every* positive rate constant at once, so a design tool can rule a candidate
+in or out before fitting a single parameter:
+
+- `weaklyReversible = true` together with `deficiency = 0` are the deficiency-zero theorem's
+  hypotheses: a unique, locally asymptotically stable equilibrium per positive compatibility class —
+  convergence to a single steady state (Feinberg–Horn–Jackson). Read the other way, `deficiency = 0`
+  alone *excludes* bistability and sustained oscillation, weakly reversible or not.
+- `persistenceCertified = true` upgrades that to a global no-extinction verdict: for any positive rate
+  constants and positive start, every trajectory converges to the network's complex-balanced
+  equilibrium in its own compatibility class (`gac_of_persistenceCertified`). `persistenceStructural =
+  true` is the same screen but leaves the positive complex-balanced reference for the consumer to
+  supply.
+- `hasCriticalSiphon = true` flags a species set that can be driven to extinction; `hasSiphon = false`
+  or `hasCriticalSiphon = false` rules extinction out — the former is what a kill-switch design wants,
+  the latter what a persistent/homeostatic design wants.
+- `srPMatrixPointIndep = true` discharges the point-free half of the Craciun–Feinberg injectivity
+  criterion (the full mass-action Jacobian is a P-matrix everywhere positive), the structural
+  precondition for monostationarity; `acrSpecies` names the species with a structural ACR witness, a
+  robust-output (homeostat) target.
+
+Because each boolean is a computable companion tied to its propositional definition by a bridge
+theorem, a `true` verdict is a signal the consumer re-derives, not one it trusts.
+
+**Dense margins are graded signals for search and learning.** A boolean gives a sparse pass/fail; a
+margin gives a continuous quantity whose sign or threshold flips exactly where the boolean does, so an
+optimizer or a reinforcement-learning loop can follow a gradient toward (or away from) a target region
+while the signal stays a verified companion rather than a learned proxy. Concretely:
+
+- drive `gershgorinStabilityMargin` (or its column form) *more negative* as a dense "make the
+  linearization more robustly stable" objective — it crosses zero into a certified-Hurwitz region, and
+  the magnitude reports the margin of safety. A nonnegative value is inconclusive (the test is
+  sufficient, not necessary), not evidence of instability. On the worked examples, `0 → A → 0` reports
+  `[-1,1] = −1` (certified stable) while the reversible pair `A ⇌ B` reports `[0,1] = 0` (on the
+  boundary).
+- move `hopfBoundaryMargin` *toward zero* to search for an oscillation onset, or *away from zero* to
+  keep a monostable design clear of one (3-species networks).
+- treat `minSiphonSize` and the counts (`numMinimalSiphons`, `numACRSpecies`, `numTerminalSLC`,
+  `numDiagonalDriveSpecies`) as graded companions of the siphon, ACR, and injectivity fields:
+  `numSpecies − numDiagonalDriveSpecies → 0` is a dense path toward `ConsistentDiagonalDrive`, and a
+  larger `minSiphonSize` (up to the sentinel) is a weaker extinction obstruction.
+
+All margins come through the compiled `analyze` path, so they carry compiler trust (the trust boundary
+above); for a kernel-checked certificate of a specific verdict, use the codegen contract.
+
 ## Versioning
 
-`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `10`. It tags the
+`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `13`. It tags the
 field set and increments whenever a field is added or its meaning changes, so a consumer can detect a
 contract it does not understand. A new per-property companion raises the version when it joins the
-record.
+record. A consumer should read fields by name and treat an absent field as undecided, so a record
+produced by a newer contract than it understands degrades gracefully rather than misreads.
 
 ## Usage
 
@@ -182,10 +291,21 @@ never yields a structural verdict.
   and the exclusion lemma `hasNoCriticalSiphon_of_forall_not_isSiphon`.
 - `CRNT/Multistationarity/SRSignDecidable.lean`: `ConsistentSRSign`, its `Decidable` instance, and
   `hweight_of_consistentSRSign` (the SR-sign injectivity fragment).
+- `CRNT/Multistationarity/PointIndepDecidable.lean`: `ConsistentDiagonalDrive` and the point-free
+  full-Jacobian P-matrix keystone `isPMatrix_massActionJacobian_box_of_decide`.
+- `CRNT/Decision/InjectivityMargin.lean`: `numDiagonalDriveSpecies` and
+  `numDiagonalDriveSpecies_eq_card_iff` (the graded diagonal-drive companion).
 - `CRNT/Decision/CriticalSiphonDecide.lean`: `HasCriticalSiphon`, its computable `Decidable`
   instance (rational feasibility by Fourier–Motzkin elimination), and `supportedFeasSystem`.
 - `CRNT/Decision/PersistenceVerdict.lean`: `gac_of_decide`, the decision-driven global-attractor
   persistence verdict composing the critical-siphon test with `gac_of_hasNoCriticalSiphon`.
+- `CRNT/Decision/PersistenceCertified.lean`: `gac_of_deficiencyZero_decide`, the certified-persistence
+  verdict that supplies the complex-balanced reference from the deficiency-zero theorem.
+- `CRNT/Decision/ComputableTerminalSLC.lean`: `computeNumTerminalSLC` and its bridge to `numTerminalSLC`.
+- `CRNT/Dynamics/HopfBoundaryQ.lean`: `hopfBoundaryMarginQ`, the rational `3×3` Hopf-boundary value.
+- `CRNT/Dynamics/GershgorinMarginQ.lean`, `CRNT/Dynamics/GershgorinColumnMarginQ.lean`:
+  `gershgorinStabilityMarginQ` / `gershgorinColStabilityMarginQ`, the rational row/column stability
+  margins negative exactly when the diagonal-dominance test certifies Hurwitz.
 - `CRNT/LinearAlgebra/OrthogonalComplement.lean`: `orthSum` and `finrank_orthSum` (conservation laws).
 - `Analyze.lean`: the `lake exe analyze` entry point.
 

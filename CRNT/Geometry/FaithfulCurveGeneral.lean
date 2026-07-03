@@ -26,7 +26,7 @@ single face and no slope-chaining occurs. This module supplies the genuinely *ch
   segments chain whenever every normal is a common attracting direction), with the full
   angular-sort / slope-interval-nonemptiness / separation construction taken as a hypothesis.
 
-## What this module formalizes (sorry-free)
+## What this module formalizes
 
 * `ChainingData` — the per-segment chaining record for a fan `F`, scale `δ`, point `X`, offset `a`:
   a `normals : List E` with `attracts : ∀ n ∈ normals, AttractsTowardAll F δ X n`. Its `faces` is
@@ -55,7 +55,7 @@ single face and no slope-chaining occurs. This module supplies the genuinely *ch
 
 ## What is proved here, and what is taken as a hypothesis
 
-Proved, sorry-free and axiom-clean:
+Proved here:
 
 * the `ChainingData` framework and its support certificate `ChainingData.isSupportField`;
 * the **general chained persistence theorem** `ChainingData.genuine_persistent`, an arbitrary
@@ -81,7 +81,7 @@ Taken as a hypothesis, not constructed here:
   `x₀`-separation) is not formalized here. The non-degenerate `twoWallFaces` witness shows the
   interface is genuinely inhabited by a chained (not collapsed) instance.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.FaithfulCurveExistence`.
+Depends on: `CRNT.Geometry.FaithfulCurveExistence`.
 -/
 
 namespace CRNT

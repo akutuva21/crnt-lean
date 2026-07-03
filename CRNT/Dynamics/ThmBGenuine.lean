@@ -40,13 +40,13 @@ stay in the region — *not* set-valued Filippov viability of the whole inclusio
 
 ## Scope
 
-What is **assembled here** is the genuine-flow invariance + away-from-origin conclusion, fully
-sorry-free, from the neighborhood-descent Nagumo lemma. The zero-separating-surface construction —
+What is **assembled here** is the genuine-flow invariance + away-from-origin conclusion, obtained
+from the neighborhood-descent Nagumo lemma. The zero-separating-surface construction —
 producing the function `g`, its descent band, and its separation from the origin out of the
 dimension induction — is not constructed here; the function `g`, its descent band, and the
 separation are supplied as hypotheses.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.SublevelNagumo`,
+Depends on: `CRNT.Dynamics.SublevelNagumo`,
 `CRNT.Dynamics.ZeroSeparating`, `CRNT.Kinetics.MassAction`,
 `Mathlib.Analysis.InnerProductSpace.PiL2`.
 -/

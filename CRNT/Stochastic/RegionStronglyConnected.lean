@@ -50,7 +50,7 @@ irreducibility and the aperiodicity are produced from the network's enabled-reac
 * `jumpStronglyConnected_pow_mulVec_tendsto_stationaryVec` — unconditional geometric convergence to
   the stationary law for a jump-strongly-connected region with a holding reaction.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.RegionPrimitive`.
+Depends on: `CRNT.Stochastic.RegionPrimitive`.
 -/
 
 open MeasureTheory ProbabilityTheory

@@ -7,8 +7,6 @@ import CRNT.Examples.ReversiblePair
 The reversible pair has a single linkage class. With the simple-graph model of the undirected
 reaction graph the count `ℓ` is the number of connected components, which is computable; the
 abstract identity then transports it to `numLinkageClasses`.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Examples.DecideLinkage

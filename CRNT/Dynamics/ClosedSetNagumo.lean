@@ -40,7 +40,7 @@ relating `tangentConeAt` to the one-sided derivative of `infDist`, which is deli
 absent from Mathlib. It is not constructed here; the distance-nonincreasing ⇒ invariance
 equivalence and the first-exit form are the content established in this module.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.SublevelInvariant`,
+Depends on: `CRNT.Dynamics.SublevelInvariant`,
 `CRNT.Dynamics.FirstExit`, `Mathlib.Topology.MetricSpace.HausdorffDistance`.
 -/
 

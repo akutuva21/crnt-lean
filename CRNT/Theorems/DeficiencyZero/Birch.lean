@@ -18,7 +18,6 @@ positive stoichiometric compatibility class `c + S` contains exactly one positiv
   convex relative-entropy `∑ᵢ (xᵢ log(xᵢ/x*ᵢ) − xᵢ + x*ᵢ)` over the compatibility class.
   This is the deep analytic half (strict convexity + coercivity + interior optimality).
 
-This module is **stable** and `sorry`-free.
 -/
 
 namespace CRNT

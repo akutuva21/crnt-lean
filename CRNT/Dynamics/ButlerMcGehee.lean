@@ -36,7 +36,7 @@ yields `exists_omegaLimit_escape_subOmega`. The stable/unstable-manifold formula
 Mathlib supplies: Mathlib v4.31 has **no** ω-limit connectedness lemma and **no**
 stable/unstable-set API, so those refinements are not attempted here.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.IsolatedInvariant`.
+Depends on: `CRNT.Dynamics.IsolatedInvariant`.
 -/
 
 open Filter Set Topology

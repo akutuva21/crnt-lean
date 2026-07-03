@@ -38,7 +38,7 @@ the signed-cycle structure to a Jacobian determinant sign — the full Craciun�
 criterion — additionally requires a determinant-via-cycle-cover expansion and the
 mass-action Jacobian, neither of which this module provides.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Multistationarity.SRGraphCriterion`, `CRNT.Stoich.Vector`,
 `Mathlib.Data.Sign.Basic`, `Mathlib.Algebra.BigOperators.Group.Finset.Basic`,
 `Mathlib.Combinatorics.SimpleGraph.Walk.Operations`,

@@ -14,7 +14,7 @@ when the sub-edge is a door. Its degree counts — `cell_degree` (every cell's d
 `doorCount`) and `outer_odd` (an odd number of outer vertices have odd degree) — are the two
 obligations of `MultiDoorIncidence`, whose `exists_rainbow` then yields a fully-colored triangle.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLatticeDoorGraph`.
+Depends on: `CRNT.Analysis.SpernerLatticeDoorGraph`.
 -/
 
 namespace CRNT.Analysis.SpernerLattice

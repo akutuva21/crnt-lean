@@ -47,7 +47,7 @@ needs the center-manifold and normal-form analysis absent from `Mathlib`. The ve
 the algebraic gates are proved, the manifold existence is carried as a seed, and the conclusion is
 the precondition set, never the bifurcation theorem's output.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.HopfTransversality3.
+Depends on: CRNT.Dynamics.HopfTransversality3.
 -/
 
 namespace CRNT

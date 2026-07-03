@@ -21,8 +21,7 @@ This module supplies one by routing each field through its computable bridge:
 * the `∀ q` and `∑ q` deciders force the *computable* `instFintypeQuotientLinkageClass`, so the
   terms compile and `#eval`, and reconcile with the structure fields (stated against the ambient
   noncomputable `Fintype`) through `Subsingleton.elim` on `Fintype`;
-* `decidableDeficiencyOneConditions` — the resulting `Decidable DeficiencyOneConditions`, total and
-  axiom-clean.
+* `decidableDeficiencyOneConditions` — the resulting `Decidable DeficiencyOneConditions`.
 
 As with the per-class `decidableLinkageDeficiency_le_one` and the whole-network
 `computableDeficiency`, the instance is `#eval`-evaluable but does **not** reduce under kernel
@@ -30,7 +29,7 @@ As with the per-class `decidableLinkageDeficiency_le_one` and the whole-network
 block over `Fintype` does not reduce in the kernel. Concrete decisions are obtained by compiled
 evaluation, not by `decide`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Decision.LinkageDeficiencyExact`,
+Depends on: `CRNT.Decision.LinkageDeficiencyExact`,
 `CRNT.Decision.ComputableDeficiency`, `CRNT.Deficiency.DeficiencyOne`.
 -/
 
@@ -54,7 +53,7 @@ theorem sum_linkageDeficiency_eq_deficiencyInt_iff_compute (N : Network S) :
 
 /-- **The per-class bound `∀ q, δ_θ ≤ 1` is decidable.** The decider forces the computable
 `instFintypeQuotientLinkageClass`; reconciliation with the ambient noncomputable `Fintype` of the
-field is by `Subsingleton.elim`. Total and axiom-clean, `#eval`-evaluable but not `decide`-reducing
+field is by `Subsingleton.elim`. It is `#eval`-evaluable but not `decide`-reducing
 (the underlying per-class test expands `computeRank`). -/
 instance decidableForallLinkageDeficiency_le_one (N : Network S) :
     Decidable (∀ q, N.linkageDeficiency q ≤ 1) :=
@@ -62,14 +61,14 @@ instance decidableForallLinkageDeficiency_le_one (N : Network S) :
     (fun q => N.decidableLinkageDeficiency_le_one q) (instFintypeQuotientLinkageClass N)
 
 /-- **The tightness identity is decidable**, through its computable form. Forces the computable
-`instFintypeQuotientLinkageClass` for the sum. Total and axiom-clean; `#eval`-evaluable but not
+`instFintypeQuotientLinkageClass` for the sum. `#eval`-evaluable but not
 `decide`-reducing. -/
 instance decidableSumLinkageDeficiency_eq (N : Network S) :
     Decidable (∑ q, N.linkageDeficiency q = N.deficiencyInt) :=
   decidable_of_iff _ (N.sum_linkageDeficiency_eq_deficiencyInt_iff_compute).symm
 
 /-- **The deficiency-one linkage conditions are decidable.** The structure is the conjunction of its
-two decidable fields. Total and axiom-clean; `#eval`-evaluable but not `decide`-reducing, since
+two decidable fields. `#eval`-evaluable but not `decide`-reducing, since
 `computeRank` is a determinant permutation-sum and the `Subsingleton.elim` reconciliation of the
 two `Fintype` instances does not reduce in the kernel. -/
 instance decidableDeficiencyOneConditions (N : Network S) :

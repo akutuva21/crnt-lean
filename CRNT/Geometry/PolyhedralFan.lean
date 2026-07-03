@@ -31,7 +31,7 @@ exponent vectors. It is convex (`newtonPolytope_convex`), compact
 nonempty (`newtonPolytope_nonempty`), and contains each generating exponent vector
 (`exponentVector_mem_newtonPolytope`).
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stoich.Vector`,
+Depends on: `CRNT.Stoich.Vector`,
 `CRNT.Basic.Complex`, Mathlib pointed/proper cones, convex hull and topology, and
 inner-product duality.
 -/

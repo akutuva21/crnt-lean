@@ -50,7 +50,7 @@ substrate-varying Michaelis–Menten quasi-steady-state level `Vmax·s/(Km+s)`, 
 manifold is the genuine moving equilibrium graph and the `O(ε)` defect is the slow-drift speed of that
 graph. The substrate-dependent target is the Michaelis–Menten/Briggs–Haldane quasi-steady-state level.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.FenichelPersistenceContracting`, `CRNT.Dynamics.MichaelisMentenCoupledContraction`.
 -/
 

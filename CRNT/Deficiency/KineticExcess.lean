@@ -20,7 +20,7 @@ combinatorics of the reaction graph.
 * `excessVertex_eq_neg_kineticMap` — `excessVertex c = −(A_k v)_c` (the flux/excess identity).
 * `excessSet_eq_neg_sum_kineticMap` — `excessSet U = −∑_{c ∈ U} (A_k v)_c`.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Combinatorics.DigraphExcess`, `CRNT.Dynamics.MassActionAlgebra`.
 -/
 

@@ -35,7 +35,6 @@ no solution runs off to infinity (or to the boundary of the domain) as the value
 * `eventually_regularDegree_eq` — **global local constancy**: under confinement, `regularDegree`
   in the value is eventually the constant `∑ i, sign (det (Df xᵢ))` near `y₀`.
 
-This module is `sorry`-free.
 -/
 
 namespace CRNT

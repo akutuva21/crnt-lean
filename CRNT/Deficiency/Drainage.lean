@@ -19,7 +19,7 @@ a terminal class (`exists_terminal_mem_of_closed`), so the transient support is 
 This is the structural input that pins `dim ker A_k` to the number of terminal strong linkage
 classes.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.TerminalReachable`,
+Depends on: `CRNT.Deficiency.TerminalReachable`,
 `CRNT.Deficiency.DeficiencyOneHypotheses`, `CRNT.Theorems.DeficiencyZero.PositiveKernel`.
 -/
 

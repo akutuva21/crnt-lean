@@ -7,7 +7,7 @@ import CRNT.Stochastic.KernelIrreducible
 density measure `restrictedStationaryMeasure κ c T` invariant over any closed enabled region `T`.
 For a *finite* region that measure is finite, so it normalizes to a genuine **invariant probability
 measure** — the stationary distribution of the jump chain on the region. This module supplies the
-normalization layer named as the next dependency of the kernel development (`IsProbabilityMeasure`).
+normalization layer (`IsProbabilityMeasure`).
 
 The core is general measure theory: scaling an invariant measure by a constant preserves invariance
 (`invariant_smul`, since `Measure.bind` is linear), so dividing a finite nonzero invariant measure
@@ -23,7 +23,7 @@ reweighted jump-chain weight is positive on the region (`jumpStationaryMass_pos`
 forcing the restricted measure's total mass positive (`restrictedStationaryMeasure_univ_pos`). The
 resulting capstone `jumpKernel_isInvariant_probabilityMeasure_of_nonempty` is unconditional in the
 mass. The *existence* of a finite closed enabled region for a given network — the canonical
-communicating-class characterization — remains the deeper outstanding dependency of this development.
+communicating-class characterization — is a separate network-structural question.
 
 ## Main results
 
@@ -40,7 +40,7 @@ communicating-class characterization — remains the deeper outstanding dependen
 * `jumpKernel_isInvariant_probabilityMeasure_of_nonempty` — the unconditional (mass-gate-free)
   invariant probability measure on a nonempty finite closed enabled region.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.KernelIrreducible`.
+Depends on: `CRNT.Stochastic.KernelIrreducible`.
 -/
 
 open MeasureTheory ProbabilityTheory

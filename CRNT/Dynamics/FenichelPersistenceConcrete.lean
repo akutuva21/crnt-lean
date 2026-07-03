@@ -49,7 +49,7 @@ remaining analytic step. What this module establishes is the concrete operator-f
 `flow_mapsTo` *proved* from an honest `exists_flow` flow, and a `fenichel_persistence` instance with
 zero remaining hypotheses.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.FenichelPersistence`.
+Depends on: `CRNT.Dynamics.FenichelPersistence`.
 -/
 
 open Function Set

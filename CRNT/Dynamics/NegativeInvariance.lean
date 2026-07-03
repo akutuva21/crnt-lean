@@ -17,7 +17,7 @@ stay in the compact set, hence cluster at some `w'`; that cluster point is itsel
 
 This is general dynamical-systems content over `Flow ℝ≥0`, independent of reaction networks.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.LaSalle`.
+Depends on: `CRNT.Dynamics.LaSalle`.
 -/
 
 open Filter Set Topology

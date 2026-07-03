@@ -28,7 +28,7 @@ one-directional **sufficient** condition for the Hurwitz property: it can fail f
 nonetheless stable, so it is not a full Routh–Hurwitz equivalence. The dynamical Hopf-bifurcation
 theorem is a separate analytic statement and stays out of scope here.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.HurwitzGershgorin`.
+Depends on: `CRNT.Dynamics.HurwitzGershgorin`.
 -/
 
 namespace CRNT

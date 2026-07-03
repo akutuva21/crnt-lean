@@ -30,7 +30,7 @@ The dictionary's **sign** half — matching a perm-cycle's sign to the signed-wa
 `walkSign` — is not provided here; it requires the labeled/signed SR-graph and the
 product structure of a factored Jacobian, which lie outside this module.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Multistationarity.SRGraphCriterion`.
 -/
 

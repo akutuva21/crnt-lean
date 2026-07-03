@@ -23,7 +23,6 @@ of `y₀` misses it. For every value `y` in that neighbourhood and inside `K`, n
 * `isLocallyConstant_regularDegree_of_isProperMap` — the regular degree is locally constant on the
   open set of regular values whose preimage stays nondegenerate, packaged as `IsLocallyConstant`.
 
-This module is `sorry`-free.
 -/
 
 namespace CRNT

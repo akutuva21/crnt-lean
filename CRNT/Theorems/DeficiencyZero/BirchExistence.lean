@@ -42,7 +42,6 @@ class `c + S`, and has `S`-orthogonal log-ratio. Combined with `birch_uniqueness
 full **Birch theorem** `birch` follows: each positive compatibility class contains a
 unique such point — the complex-balanced equilibrium.
 
-This module is **stable** and `sorry`-free.
 -/
 
 namespace CRNT

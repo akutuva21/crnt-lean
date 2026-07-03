@@ -18,13 +18,13 @@ vanishes as `ε → 0`: in the singular limit the fast variable is frozen on the
 bounded time interval. This is the QSSA content at the Lipschitz tier — the slaved variable's
 velocity is genuinely `O(ε)`.
 
-## What is deferred
+## Scope
 
 The bound is stated as a displacement (the Lipschitz tier) rather than a velocity, because
-`manifoldMap` is only Lipschitz, not yet `C¹` (see `CRNT.Dynamics.FenichelManifold`'s named next
-step: differentiability of `manifoldMap` via an invertible fibre derivative and the implicit
-function theorem). Promoting `O(ε)` *displacement* to an `O(ε)` *velocity* of the reduced flow, and
-extending it past bounded time, is exactly the ε-positive normally-hyperbolic persistence theorem
+`manifoldMap` is only Lipschitz, not `C¹` (differentiability of `manifoldMap` needs an invertible
+fibre derivative and the implicit function theorem, as in `CRNT.Dynamics.FenichelManifold`).
+Promoting `O(ε)` *displacement* to an `O(ε)` *velocity* of the reduced flow, and
+extending it past bounded time, is the ε-positive normally-hyperbolic persistence theorem
 absent from Mathlib v4.31.
 
 A companion `manifoldMap_qssaDefect_le` decomposes the QSSA slaving defect of the slaved curve
@@ -48,7 +48,7 @@ quantitative Fenichel/Tikhonov statement that on an attracting slow manifold the
 variable tracks the slow flow at speed `O(ε)`. The end-to-end `manifoldMap_qssaDefect_velocity_le`
 feeds this derived `εv = (L / rate) · ε` into the decomposition, leaving only the manifold residual
 `εr` as data. The differentiability of the slaved curve (`HasDerivAt`) remains a hypothesis, since
-`manifoldMap` is only known to be Lipschitz, not yet `C¹`.
+`manifoldMap` is only known to be Lipschitz, not `C¹`.
 
 ## Main results
 
@@ -67,7 +67,7 @@ feeds this derived `εv = (L / rate) · ε` into the decomposition, leaving only
 * `manifoldMap_qssa_tracking_tendsto_zero` — that tracking ball tends to `0` as
   `(δ, ε, εr) → (0, 0, 0)`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.FenichelManifold`,
+Depends on: `CRNT.Dynamics.FenichelManifold`,
 `CRNT.Dynamics.QSSA`.
 -/
 
@@ -188,7 +188,7 @@ This is the quantitative Fenichel/Tikhonov tracking statement at the Lipschitz t
 time interval the full trajectory shadows the slaved slow-manifold curve to within `O(ε)` of the
 initial mismatch `δ` and residual `εr`. The derivative-existence data `hd` (the slaved curve is
 `HasDerivAt`) and the residual `εr` remain hypotheses, since `manifoldMap` is only Lipschitz, not
-yet `C¹`. The full ε-positive normally-hyperbolic persistence theorem and the infinite-horizon
+`C¹`. The full ε-positive normally-hyperbolic persistence theorem and the infinite-horizon
 statement (`gronwallBound` diverges as `T → ∞`) are absent from Mathlib v4.31. -/
 theorem manifoldMap_qssa_tracking_le (full : E → E) {K : ℝ≥0} (hl : LipschitzWith K full)
     {L ε : ℝ} (hL : 0 ≤ L) (hε : 0 ≤ ε)

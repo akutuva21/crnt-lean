@@ -46,7 +46,7 @@ Differentialsystems*; Poincaré, *Les méthodes nouvelles de la mécanique céle
 section map; Kuznetsov, *Elements of Applied Bifurcation Theory*, §3.5 — the Poincaré-map closure of
 the bifurcating cycle.)
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.ReturnMapPeriodicOrbit`, `CRNT.Dynamics.HopfPersistentOrbit`.
 -/
 
@@ -203,6 +203,6 @@ end PlanarHopfData
 end CRNT
 
 /-!
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.ReturnMapPeriodicOrbit`, `CRNT.Dynamics.HopfPersistentOrbit`.
 -/

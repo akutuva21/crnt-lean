@@ -7,7 +7,7 @@ A concentration is *complex-balanced* when, at every complex, the total mass-act
 inflow equals the total outflow. Complex-balanced equilibria are the equilibria
 delivered by the deficiency-zero theorem.
 
-This module is **stable**. Depends on: `CRNT.Kinetics.MassAction`.
+Depends on: `CRNT.Kinetics.MassAction`.
 -/
 
 namespace CRNT

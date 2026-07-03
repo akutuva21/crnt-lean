@@ -27,7 +27,6 @@ compatibility class, *provided one complex-balanced equilibrium already exists*
 reversibility and deficiency zero, and the converse toric inclusion (which needs uniqueness
 of the positive kernel of `A_k`), remain.
 
-This module is **stable** and `sorry`-free.
 -/
 
 namespace CRNT

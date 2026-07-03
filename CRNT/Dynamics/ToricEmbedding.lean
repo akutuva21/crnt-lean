@@ -32,7 +32,7 @@ The projection-ordering step (choosing a direction `w` and sorting vertices by t
 assembly over many cycles and uncertainty regions are not constructed here; this module
 supplies the per-cycle algebraic kernel they are built from.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.PolyhedralFan`,
+Depends on: `CRNT.Geometry.PolyhedralFan`,
 `CRNT.Kinetics.MassAction`, Mathlib summation by parts.
 -/
 

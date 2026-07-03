@@ -26,7 +26,7 @@ to a closed set.
 * `isClosed_coe_hull_of_linearIndependent` — the conical hull `PointedCone.hull ℝ (range v)` is a
   closed subset of `E`.
 
-This module is **stable** and `sorry`-free. Depends on Mathlib's simplicial-cone and
+Depends on Mathlib's simplicial-cone and
 finite-dimensional closed-embedding API.
 -/
 

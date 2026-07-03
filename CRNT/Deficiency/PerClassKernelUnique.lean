@@ -13,7 +13,7 @@ spreading forces it to vanish throughout the class — and it already vanishes o
 This completes the per-class kernel structure: each strongly connected class (in particular
 each class of a weakly reversible network) contributes exactly one kernel mode of `A_k`.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.PerClassKernelPos`.
+Depends on: `CRNT.Deficiency.PerClassKernelPos`.
 -/
 
 namespace CRNT

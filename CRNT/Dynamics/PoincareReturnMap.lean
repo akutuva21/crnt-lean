@@ -38,7 +38,7 @@ the datum `jointFlowDeriv`.
 (Poincaré, *Les méthodes nouvelles de la mécanique céleste*, vol. I, on the section map;
 Hartman, *Ordinary Differential Equations*, IX.10, on the differentiable first-return map.)
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.TransversalCrossingTime`.
+Depends on: `CRNT.Dynamics.TransversalCrossingTime`.
 -/
 
 namespace CRNT

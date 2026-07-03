@@ -9,10 +9,8 @@ two-submodule bound `finrank (s ⊔ t) ≤ finrank s + finrank t`, itself a cons
 `finrank_sup_add_finrank_inf_eq`. When the submodules are independent (`iSupIndep`) the bound is
 an equality (`finrank_finset_sup_eq_sum_of_iSupIndep`, and the `Fintype` form
 `finrank_iSup_eq_sum_of_iSupIndep`). Mathlib has the two-submodule identity but neither the
-finite-family subadditivity nor the independent-family equality; both are domain-general and
-upstreamable.
+finite-family subadditivity nor the independent-family equality; both are domain-general.
 
-This module is **stable**.
 -/
 
 namespace CRNT

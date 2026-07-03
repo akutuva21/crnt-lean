@@ -12,7 +12,7 @@ The siphon condition — every reaction producing a species of `P` consumes a sp
 `P` — therefore quantifies over both components' reactions independently, splitting as a
 conjunction of the two component siphon conditions.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Compose.Interconnect`,
+Depends on: `CRNT.Compose.Interconnect`,
 `CRNT.Dynamics.Siphon`.
 -/
 

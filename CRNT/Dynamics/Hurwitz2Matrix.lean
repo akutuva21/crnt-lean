@@ -32,10 +32,10 @@ This module ties three statements together:
 The dynamical Hopf-bifurcation theorem (that loss of stability through a purely imaginary
 eigenvalue pair produces an oscillation) is a separate analytic statement and stays out of
 scope here. Degree `≥ 3` is likewise out of scope: `Mathlib` has no `charpoly_fin_three`,
-and the higher Routh–Hurwitz sufficiency directions require Hurwitz-matrix machinery not yet
+and the higher Routh–Hurwitz sufficiency directions require Hurwitz-matrix machinery not
 available.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.RouthHurwitz,
+Depends on: CRNT.Dynamics.RouthHurwitz,
 CRNT.Kinetics.MassActionJacobian.
 -/
 
@@ -83,6 +83,5 @@ theorem massActionJacobian_fin_two_hurwitz_iff (N : Network (Fin 2)) (κ : N.Rat
 end CRNT
 
 /-
-Footer: stable / sorry-free / Depends on: CRNT.Dynamics.RouthHurwitz,
-CRNT.Kinetics.MassActionJacobian.
+Depends on: CRNT.Dynamics.RouthHurwitz, CRNT.Kinetics.MassActionJacobian.
 -/

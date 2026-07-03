@@ -25,7 +25,7 @@ This module fixes a basis `stoichBasis` of `S(N)` and builds:
 These are the coordinate-reduction scaffolding for binding the box Gale–Nikaido theorem to CRN
 class-injectivity.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stoich.Subspace`,
+Depends on: `CRNT.Stoich.Subspace`,
 `CRNT.Equilibria.CompatibilityClass`, Mathlib finite-dimensional linear algebra.
 -/
 

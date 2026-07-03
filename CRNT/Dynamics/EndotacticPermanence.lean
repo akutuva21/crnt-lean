@@ -37,7 +37,7 @@ endotacticity to permanence, valid up to the orthant boundary — is taken as a 
 not constructed here: it requires the Newton-polytope / endotactic geometry not assembled
 in this layer.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.GACOmegaPositive`, `CRNT.Geometry.Endotactic`.
 -/
 

@@ -43,7 +43,6 @@ complex-balanced (`complexBalanced_of_dissipation_eq_zero`) in `x₀`'s positive
 equal to `x*` by deficiency-zero uniqueness (`isComplexBalanced_unique_in_positiveClass`).
 Thus `ω(x₀) = {x*}`.
 
-This module is **stable** and `sorry`-free.
 -/
 
 open scoped BigOperators NNReal ENNReal Topology

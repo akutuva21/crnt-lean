@@ -26,7 +26,7 @@ persistence, established by Anderson (_A proof of the global attractor conjectur
 linkage class case_, 2011). Supplying that implication closes the conjecture for the class; it is
 taken as a hypothesis here, isolated as the theorem's antecedent.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.PersistenceGAC`,
+Depends on: `CRNT.Dynamics.PersistenceGAC`,
 `CRNT.Graph.LinkageClass`.
 -/
 

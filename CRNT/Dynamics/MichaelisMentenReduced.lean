@@ -46,7 +46,7 @@ Mathlib v4.31. (2) The horizon stays compact: `gronwallBound δ K εf T` diverge
 scalar Michaelis–Menten ODE — and all of its slaving structure are now constructed and proved, not
 assumed.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.FlowConstruction,
+Depends on: CRNT.Dynamics.FlowConstruction,
 CRNT.Dynamics.MichaelisMentenManifold.
 -/
 

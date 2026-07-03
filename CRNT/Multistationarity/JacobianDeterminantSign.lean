@@ -34,7 +34,7 @@ chemical content — that the cycle-cover terms of the factored mass-action Jaco
 species–reaction-graph cycles — relates each `coverTerm` to a `walkSign` of an
 SR-graph cycle and is not carried out here.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.LinearAlgebra.DetCycleCover`.
 -/
 

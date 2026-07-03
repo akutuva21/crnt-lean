@@ -41,8 +41,8 @@ separately as `siphonCarried_of_escape`: an ω-limit set not contained in an iso
 yields an escaping ω-point whose forward limit carries a critical siphon, hence a `SiphonCarried`
 witness.
 
-This module is **stable** and `sorry`-free; the comparable-growth descent is the sole carried
-hypothesis. Depends on: `CRNT.Dynamics.EscapeSiphonFace`, `CRNT.Dynamics.GACOmegaPositive`.
+The comparable-growth descent is the sole carried hypothesis.
+Depends on: `CRNT.Dynamics.EscapeSiphonFace`, `CRNT.Dynamics.GACOmegaPositive`.
 -/
 
 open Filter Topology

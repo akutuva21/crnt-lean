@@ -27,7 +27,7 @@ alone, so the motif is a drop-in controller agnostic to the plant producing or
 consuming `X`. At steady state the two controller production rates are equal,
 `κ.sense * x_X = κ.ref`, which fixes the output `x_X = κ.ref / κ.sense`.
 
-This module is **stable**. Depends on: `CRNT.Kinetics.MassAction`,
+Depends on: `CRNT.Kinetics.MassAction`,
 `CRNT.Equilibria.SteadyState`.
 -/
 

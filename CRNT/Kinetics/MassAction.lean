@@ -10,7 +10,7 @@ the reaction vectors weighted by these rates gives the mass-action vector field 
 polynomial ODE induced by the network. This module is the bridge from discrete CRN
 structure to continuous dynamics.
 
-This module is **stable**. Rate constants are `ℝ`-valued with an explicit positivity
+Rate constants are `ℝ`-valued with an explicit positivity
 proof. Depends on: `CRNT.Kinetics.Concentration`, `CRNT.Stoich.Vector`.
 -/
 

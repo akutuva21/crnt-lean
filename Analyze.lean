@@ -9,7 +9,7 @@ writes the corresponding `Analysis` (or array) as JSON to stdout. Because it run
 elaboration — the throughput path for bulk scoring.
 
 **Trust boundary.** This executable uses compiled evaluation (compiler trust), so it lives outside
-the `CRNT` library's axiom-clean guarantee. The library's `analyze_*_eq` bridges relate each reported
+the kernel-checked guarantees of the `CRNT` library. The library's `analyze_*_eq` bridges relate each reported
 field to its propositional definition; for a kernel-checked certificate of a specific network, use
 the codegen contract (`docs/generated-certificates.md`) instead.
 

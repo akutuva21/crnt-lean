@@ -12,7 +12,7 @@ requires. Under that hypothesis the set of cells sharing the facet is exactly `{
 facet rigidity (`facet_eq_imp`) forces every sharer to be `c` or its flip, while `flipCell_facet` and
 `flipCell_ne` exhibit the flip as a genuine distinct second cell. Hence the share count is `2`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerNIncidence`,
+Depends on: `CRNT.Analysis.SpernerNIncidence`,
 `CRNT.Analysis.SpernerNFintype`.
 -/
 

@@ -18,7 +18,7 @@ A_k (Ψ x) = c_x · g.
 Two steady states therefore have kinetic images on a common line through the origin — the
 geometric hook for the deficiency-one uniqueness argument.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.SteadyStateKernel`,
+Depends on: `CRNT.Deficiency.SteadyStateKernel`,
 `CRNT.Deficiency.DeficiencyOne`.
 -/
 

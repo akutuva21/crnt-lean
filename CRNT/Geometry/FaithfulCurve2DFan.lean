@@ -19,7 +19,7 @@ normals are `dir θ₁` and `dir θ₂`. A vector `dir θ` lies in it precisely 
 with both generators, i.e. `0 ≤ cos (θ₁ − θ) ∧ 0 ≤ cos (θ₂ − θ)` (`mem_sectorCell`). This is a
 genuine member of the `Fan` type (a `ProperCone`), so it feeds the toric-field machinery directly.
 
-## What this module formalizes (sorry-free)
+## What this module formalizes
 
 * `sectorCell θ₁ θ₂` — the planar `ProperCone` cut out by the two wall normals `dir θ₁`, `dir θ₂`,
   with `mem_sectorCell` reducing membership to the two cosine inequalities.
@@ -57,7 +57,7 @@ an arbitrary increasing wall list — that the consecutive-gap conditions hold s
 whole fan and that the per-wall two-cell bridges combine into one global support certificate — is not
 constructed here; it is the full-fan traversal underlying the faithful curve.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.FaithfulCurve2D`,
+Depends on: `CRNT.Geometry.FaithfulCurve2D`,
 `CRNT.Geometry.FaithfulCurve`.
 -/
 

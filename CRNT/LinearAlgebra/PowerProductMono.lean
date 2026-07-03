@@ -16,7 +16,7 @@ with `d 1 < 0`, increments `a` with `a 0 > 0`, `∑ a = 0`, and the partial-sum 
 `i` and negative, for `β₁ < β₂`) turns this into the strict monotonicity
 (`powerProd_strictAntiOn`).
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.Algebra.BigOperators.Module`, `Mathlib.Analysis.SpecialFunctions.Pow.Real`.
 -/
 

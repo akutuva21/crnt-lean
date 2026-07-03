@@ -19,7 +19,7 @@ nonetheless Hurwitz.
 This is the classical diagonal-dominance stability test of Gershgorin's circle theorem, graded as an
 exact rational scalar.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Decision.StoichBasisQ`,
+Depends on: `CRNT.Decision.StoichBasisQ`,
 `CRNT.Dynamics.HurwitzGershgorin`.
 -/
 

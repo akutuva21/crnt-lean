@@ -29,7 +29,7 @@ The Gopalkrishnan–Miller–Shiu permanence theorem (strongly endotactic ⇒ pe
 and its consequence for the Global Attractor Conjecture are not constructed here: they
 require the Lyapunov / compactness machinery not yet present in the repo.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.PolyhedralFan`.
+Depends on: `CRNT.Geometry.PolyhedralFan`.
 -/
 
 namespace CRNT

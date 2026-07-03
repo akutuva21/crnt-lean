@@ -7,7 +7,7 @@ A network is *weakly reversible* when every reaction lies on a directed cycle:
 for each reaction `y → y'` there is a directed path from `y'` back to `y`.
 Weak reversibility is a central hypothesis of the deficiency-zero theorem.
 
-This module is **stable**. Weak reversibility is defined propositionally; example
+Weak reversibility is defined propositionally; example
 networks are shown weakly reversible (or not) by explicit witnesses. Depends on:
 `CRNT.Graph.Reachability`.
 -/

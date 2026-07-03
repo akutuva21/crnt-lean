@@ -25,7 +25,7 @@ boundedness (`hmaps`), nonnegativity of ω-points (`hωnn`), and that ω-orbits 
 field (`hgenω`). No persistence/positivity assumption is made — `w` is allowed on the boundary,
 which is the whole point.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.NegativeInvariance`,
+Depends on: `CRNT.Dynamics.NegativeInvariance`,
 `CRNT.Dynamics.StrictInflow`, `CRNT.Dynamics.GlobalStability`.
 -/
 

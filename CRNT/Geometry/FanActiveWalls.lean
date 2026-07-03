@@ -49,7 +49,7 @@ structural `IsFanWall` data. Distinguishing which exposed faces of an arbitrary 
 separate *some* reachable complex pair — rather than supplying that witness — is the remaining
 convex-geometry input, separate from this activity extraction.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.FanWallsCrossed`,
+Depends on: `CRNT.Geometry.FanWallsCrossed`,
 `CRNT.Geometry.ConeFace`.
 -/
 

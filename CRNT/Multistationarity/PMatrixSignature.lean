@@ -13,7 +13,7 @@ This is the linear-algebraic step behind the coordinatewise `a < b` reduction in
 Gale–Nikaido argument: replacing the map `F` by `D ∘ F ∘ D` flips chosen coordinate directions
 while preserving the everywhere-P-matrix Jacobian hypothesis.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Multistationarity.PMatrix`.
+Depends on: `CRNT.Multistationarity.PMatrix`.
 -/
 
 set_option linter.unusedSectionVars false

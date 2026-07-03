@@ -25,7 +25,7 @@ attracting direction; interior slopes in the *interior* of the interval bounded 
 attracting directions, so each interior point's region-normal lands in the unique cell whose
 interior it traverses.
 
-## What this module formalizes (sorry-free)
+## What this module formalizes
 
 * `AttractsToward` — the attracting-direction / cell-membership predicate `n ∈ C` for a single cell,
   and `AttractsTowardAll` — that `n` lies in *every* δ-near cell of the fan at `X` (the
@@ -55,7 +55,7 @@ interior it traverses.
 
 ## What is proved here, and what is taken as a hypothesis
 
-Proved, sorry-free and axiom-clean:
+Proved here:
 
 * the attracting-direction predicates and the half-plane = `coneDual {n}` identity;
 * the **uncertainty-crossing support lemma** `toricField_subset_dualHalfPlane_of_attractsAll` — the
@@ -78,7 +78,7 @@ Taken as hypotheses, not constructed here:
 * **Forward-invariance / persistence closure.** The support ⇒ `infDist`-nonincreasing bridge for the
   Lipschitz polygonal boundary, taken as a hypothesis in `ZeroSeparatingCurve2D` / `ClosedSetNagumo`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.ToricFieldPolar`.
+Depends on: `CRNT.Geometry.ToricFieldPolar`.
 -/
 
 namespace CRNT

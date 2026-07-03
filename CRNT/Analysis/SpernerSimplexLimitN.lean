@@ -15,7 +15,7 @@ limit `z`, where `(f z) i ≤ z i` for every coordinate; since both `f z` and `z
 This is the `Fin 3` lemma `brouwer_of_meshing_sequences` generalized to an arbitrary `Fintype`, using
 an arbitrary basepoint coordinate in place of the literal `0`.
 
-This module is **stable** and `sorry`-free. Depends on: Mathlib `Analysis.Convex.StdSimplex`,
+Depends on: Mathlib `Analysis.Convex.StdSimplex`,
 `Topology.Sequences`.
 -/
 

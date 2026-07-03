@@ -23,7 +23,7 @@ As consequences:
 * every complex-balanced concentration is a steady state
   (`IsComplexBalanced.isMassActionSteadyState`).
 
-This module is **stable**. Depends on the kinetics and equilibrium layers.
+Depends on the kinetics and equilibrium layers.
 -/
 
 namespace CRNT

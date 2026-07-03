@@ -16,7 +16,7 @@ join of its per-class parts (`deficiencySubspace_eq_iSup`). Its consequence — 
 state is complex-balanced on every deficiency-zero linkage class — localizes the deficiency-one
 steady-state analysis to a single linkage class.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.IncidenceBlock`,
+Depends on: `CRNT.Deficiency.IncidenceBlock`,
 `CRNT.Deficiency.DeficiencyOneStructure`, `CRNT.LinearAlgebra.FinrankSup`.
 -/
 

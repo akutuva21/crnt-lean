@@ -31,10 +31,10 @@ This is the scalar / order-preserving fragment of monotone-systems theory. The v
 **Kamke–Müller comparison principle** (componentwise comparison for cooperative vector fields)
 and the **Angeli–Sontag** input/output monotone-systems theory are out of scope: Mathlib lacks
 the supporting infrastructure (cooperative-field flows, quasimonotone vector ODE comparison).
-The content is chemistry-free, upstream-style dynamical-systems material, in the spirit of
+The content is chemistry-free dynamical-systems material, in the spirit of
 `CRNT/Dynamics/{LaSalle, FlowConstruction}.lean`.
 
-This module is **stable** and `sorry`-free. Depends on: `Mathlib.Dynamics.Flow`,
+Depends on: `Mathlib.Dynamics.Flow`,
 `Mathlib.Topology.Instances.NNReal.Lemmas`, `Mathlib.Analysis.Calculus.MeanValue`.
 -/
 

@@ -17,7 +17,7 @@ vertex correspondence `(bcell c).vertex k = (c.vertex k.succ)` projected. The `d
 correspondence then equates such a facet being a *door* with the projected cell being *rainbow* under
 the restricted coloring — the geometric heart of the dimension recursion.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerNBoundaryCell`,
+Depends on: `CRNT.Analysis.SpernerNBoundaryCell`,
 `CRNT.Analysis.SpernerNIncidence`, `CRNT.Analysis.SpernerNParity`.
 -/
 

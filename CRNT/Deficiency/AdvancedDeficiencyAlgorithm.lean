@@ -30,12 +30,12 @@ respectively, where `y` is the reactant complex.
 
 **Faithfulness note.** This module captures the distinctive ADA ingredient — the per-class `Mᵢ`
 variables and the shelf-versus-`Mᵢ` constraints. Two further constraint layers of §1.7 are *not*
-imposed here and are flagged as the remaining ADA work: the within-class sign comparisons of
+imposed here: the within-class sign comparisons of
 `y · μ` versus `y' · μ` driven by the chosen sign of `CCᵢ`, and the coplanar-set `Mᵢ`-orderings (for
 a coplanar triplet `cₖwₖ = cᵢwᵢ + cⱼwⱼ`, one of `Mᵢ > Mₖ > Mⱼ`, all-equal, or `Mᵢ < Mₖ < Mⱼ`).
 Omitting them only enlarges the set of `ADAData` considered.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Deficiency.Shelf`,
+Depends on: `CRNT.Deficiency.Shelf`,
 `CRNT.Deficiency.Colinearity`, `CRNT.Multistationarity.Capacity`.
 -/
 
@@ -73,7 +73,7 @@ def ADAAffirmsCapacity (N : Network S) : Prop :=
 
 /-- **The Advanced Deficiency Algorithm correctness statement.** For a regular network, the capacity
 for multiple steady states is equivalent to the advanced-deficiency verdict. Recorded as the target
-proposition (Feinberg/Ji); it is *not* proved and is written as a `def`, incurring no `sorry`. -/
+proposition (Feinberg/Ji); it is *not* proved and is written as a `def`. -/
 def AdvancedDeficiencyAlgorithmStatement (N : Network S) : Prop :=
   N.RegularNetwork → (N.HasMultistationarityCapacity ↔ N.ADAAffirmsCapacity)
 

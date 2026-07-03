@@ -43,7 +43,7 @@ the sign-definite Jacobian `M` (controlled by the signed SR-cover condition thro
 SR-cover condition does not by itself govern; establishing the cancellation that makes each
 principal minor positive is the remaining step and is not developed here.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Multistationarity.SRCycleInjectivity`, `CRNT.LinearAlgebra.CauchyBinet`.
 -/
 

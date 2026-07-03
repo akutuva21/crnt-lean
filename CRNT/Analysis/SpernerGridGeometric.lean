@@ -52,7 +52,7 @@ Sperner conclusion from a door graph built entirely from geometry.
 * `multiDoorIncidence` — the geometrically-derived four-cell `MultiDoorIncidence`.
 * `exists_rainbow_cell` — it has a rainbow triangle.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.Combinatorics.SimpleGraph.Finite`, `Mathlib.Data.Fintype.Sum`,
 `Mathlib.Tactic.DeriveFintype`, `CRNT.Analysis.SpernerMultiIncidence`.
 -/

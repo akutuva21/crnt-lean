@@ -14,7 +14,7 @@ linkage classes, written `ℓ` in the deficiency formula `δ = n - ℓ - s`, is 
 the cardinality of the quotient of the network's complexes by this relation. The
 definition is noncomputable; example counts are established by explicit proof.
 
-This module is **stable**. Depends on: `CRNT.Graph.Reachability`.
+Depends on: `CRNT.Graph.Reachability`.
 -/
 
 namespace CRNT

@@ -30,9 +30,8 @@ is `∑_r ENNReal.ofReal (jumpProb κ n r) = 1` via `sum_jumpProb_eq_one`; on th
 holding Dirac is itself a probability measure. The total mass `jumpKernel_univ_eq_one`
 records `(jumpKernel κ n) univ = 1`, and `jumpKernel_apply'` gives the explicit per-set mass.
 
-The honest ceiling is full-lattice measure invariance `Kernel.Invariant (jumpKernel κ) μ`
-(equivalently `μ.bind (jumpKernel κ) = μ`): it is **not** reachable from these assets and is
-deliberately not stated as proved. The proved global balance
+Full-lattice measure invariance `Kernel.Invariant (jumpKernel κ) μ`
+(equivalently `μ.bind (jumpKernel κ) = μ`) is not among the results here. The global balance
 `jumpGlobalBalance_of_complexBalanced` is complex/reaction-indexed with a downward shift and
 gated by an enabled-everywhere hypothesis, whereas measure invariance requires a
 predecessor-indexed `bind`-to-sum identity over source counts landing on each target, plus a
@@ -40,7 +39,7 @@ predecessor-indexed `bind`-to-sum identity over source counts landing on each ta
 exitRate = 0 holding states are absorbing, so strict invariance fails there unless the
 support avoids the boundary. `Kernel.IsReversible` additionally needs network reversibility.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.JumpKernel`,
+Depends on: `CRNT.Stochastic.JumpKernel`,
 `Mathlib.Probability.Kernel.Basic`, `Mathlib.Probability.Kernel.Invariance`,
 `Mathlib.MeasureTheory.Measure.Dirac`.
 -/
@@ -123,7 +122,7 @@ instance instIsMarkovKernel_jumpKernel (N : Network S) (κ : RateConstants N) :
   ⟨fun n => ⟨N.jumpKernel_univ_eq_one κ n⟩⟩
 
 /-- The absorbing/boundary states are holding: at a count with vanishing exit rate the kernel
-keeps all its mass on `{n}`, the honest boundary defect of the embedded chain at the
+keeps all its mass on `{n}`, the boundary defect of the embedded chain at the
 measure-theoretic level. -/
 theorem jumpKernel_self_eq_one_of_exitRate_zero (N : Network S) (κ : RateConstants N)
     (n : S → ℕ) (h : N.exitRate κ n = 0) :
@@ -134,8 +133,7 @@ theorem jumpKernel_self_eq_one_of_exitRate_zero (N : Network S) (κ : RateConsta
 lattice as a single finite sum over reactions of lifted jump probabilities, exposing the
 link between the kernel's Dirac masses and the real-valued jump chain. Each measurable target
 set `s` receives `∑_r ofReal (jumpProb κ n r)` restricted to the reactions whose post-firing
-count lands in `s`. The honest gap above this result is a *predecessor*-indexed
-`bind`-to-sum identity matching the complex-indexed `jumpGlobalBalance_of_complexBalanced`. -/
+count lands in `s`. -/
 theorem jumpKernel_apply_of_exitRate_pos (N : Network S) (κ : RateConstants N) (n : S → ℕ)
     (h : N.exitRate κ n ≠ 0) (s : Set (S → ℕ)) :
     N.jumpKernel κ n s =

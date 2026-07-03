@@ -8,8 +8,6 @@ This exercises the statement-level conclusions of the deficiency-one theorem on 
 reversible pair: the existence form refines the uniqueness form (`deficiencyOneUniqueness_of_existence`),
 and each conclusion unfolds to the expected quantified statement about positive steady
 states in a positive compatibility class.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Examples.DeficiencyOneStatementExample

@@ -19,7 +19,7 @@ and the two margins are independent stability certificates.
 This is the column form of the classical diagonal-dominance stability test of Gershgorin's circle
 theorem, graded as an exact rational scalar.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.GershgorinMarginQ`,
+Depends on: `CRNT.Dynamics.GershgorinMarginQ`,
 `CRNT.Dynamics.HurwitzGershgorinColumn`.
 -/
 

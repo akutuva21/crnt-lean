@@ -10,7 +10,7 @@ reaction graph: it produces, from reachability into a set, an explicit in-crossi
 
 * `exists_crossing_reaction` — a reaction crossing into a set, from `Reaches` into it.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Graph.Reachability`.
+Depends on: `CRNT.Graph.Reachability`.
 -/
 
 namespace CRNT

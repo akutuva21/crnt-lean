@@ -9,11 +9,10 @@ and undirected reachability, weak reversibility, strong linkage, linkage- and
 strong-linkage-class counts — decidable, so a goal stating such a property of a concrete
 network reduces to `Bool` evaluation.
 
-The tactic closes the goal by kernel reduction (`decide`), so it stays on the axiom-clean path
-(`[propext, Classical.choice, Quot.sound]`). Concrete networks whose structural `Bool` check
-the kernel can evaluate are settled directly.
+The tactic closes the goal by kernel reduction (`decide`). Concrete networks whose structural `Bool`
+check the kernel can evaluate are settled directly.
 
-This module is **stable**. Depends on: `CRNT.Decision.DirectedReachability`.
+Depends on: `CRNT.Decision.DirectedReachability`.
 -/
 
 namespace CRNT

@@ -54,7 +54,7 @@ This is the computable rational linear-algebra foundation (Gaussian elimination 
 the reduced-coordinate species–reaction-graph injectivity route of Craciun and Feinberg
 ("Multiple equilibria in complex chemical reaction networks: II. The species–reaction graph").
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Decision.ExactDeficiency`,
+Depends on: `CRNT.Decision.ExactDeficiency`,
 `CRNT.Kinetics.MassActionJacobian`, `CRNT.Multistationarity.JacobianDeterminantSign`,
 `Mathlib.LinearAlgebra.Matrix.Adjugate`, `Mathlib.LinearAlgebra.Matrix.NonsingularInverse`.
 -/

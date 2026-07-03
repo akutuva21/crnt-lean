@@ -22,8 +22,6 @@ It demonstrates source/target complexes, the zero complex, and the mass-action v
 field. As a structural (parameter-independent) fact we prove that the DNA concentration
 is conserved by the mass-action dynamics: `d[DNA]/dt = 0` for every rate choice and
 every concentration, because DNA appears catalytically.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Examples.GeneExpression

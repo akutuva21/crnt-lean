@@ -43,7 +43,7 @@ The lift of this closed-form orbit of the truncated field to the **full** field 
 `PeriodicOrbitSeed` of `CRNT.Dynamics.HopfNormalForm` carries as data for the full field, and is not
 formalized here.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.HopfNormalForm`.
+Depends on: `CRNT.Dynamics.HopfNormalForm`.
 -/
 
 namespace CRNT

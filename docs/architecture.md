@@ -11,9 +11,6 @@ results in detail.
   [`generated-certificates.md`](generated-certificates.md) and
   [`analyze-contract.md`](analyze-contract.md).
 
-The default import `import CRNT` is `sorry`-free and introduces no axioms beyond Mathlib's
-(`[propext, Classical.choice, Quot.sound]`); every result reported as proven is machine-checked.
-
 ## Two layers
 
 The library is built in two layers. The lower one is general-purpose mathematics that Mathlib
@@ -167,9 +164,6 @@ for every weakly-monotonic kinetics, independent of the rate constants.
 
 ## Conventions
 
-- **Sorry-free and axiom-clean.** The stable library uses no `sorry` and no `native_decide`; every
-  headline result is `[propext, Classical.choice, Quot.sound]`-clean. Unfinished proofs live in
-  clearly named modules that `CRNT.lean` does not re-export.
 - **Two axes of completeness.** Where applicable each notion has both a propositional definition and
   a decidable computable companion related by a theorem (see [`decidability.md`](decidability.md)).
 - **Each abstraction is exercised** by at least one worked example network (`CRNT/Examples/`).

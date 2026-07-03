@@ -41,7 +41,7 @@ graph transform. Here the fast fibre is *normally attracting* — it contracts t
 honest contraction with factor `e^{-rate·τ}`, the non-degenerate companion to the constant-drift
 instance of `CRNT.Dynamics.FenichelPersistenceConcrete`.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.FenichelPersistenceConcrete`.
 -/
 

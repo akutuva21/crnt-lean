@@ -43,7 +43,7 @@ on a differentiable observable. The process-level law of large numbers (Skorokho
 convergence of the rescaled trajectories to the solution of `ẋ = F(x)`) is separate and
 builds on this estimate together with a martingale/Gronwall argument.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Kinetics.MassAction`,
+Depends on: `CRNT.Kinetics.MassAction`,
 `CRNT.Examples.ReversiblePair`.
 -/
 

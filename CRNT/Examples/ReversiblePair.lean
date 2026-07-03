@@ -18,8 +18,6 @@ The canonical deficiency-zero network. It has two species, two complexes, two
 reactions, one linkage class, and stoichiometric rank one, hence deficiency
 `δ = 2 - 1 - 1 = 0`. This module proves all of these, including weak reversibility and
 deficiency zero.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Examples.ReversiblePair

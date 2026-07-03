@@ -24,7 +24,7 @@ balanced networks with no critical siphon is the unconditional global-attractor 
 (*A proof of the global attractor conjecture in the single linkage class case*) and Craciun
 (*Toric differential inclusions and a proof of the global attractor conjecture*) on this class.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Decision.CriticalSiphonDecide`,
+Depends on: `CRNT.Decision.CriticalSiphonDecide`,
 `CRNT.Dynamics.GACNoCriticalSiphon`.
 -/
 

@@ -52,9 +52,9 @@ uniformized region matrix is the holding mass `1 − w > 0`, untouched by that o
 The finite-region existence — exhibiting a finite strongly connected region of the genuine count
 lattice carrying `U` — is parameterized here as the hypotheses `Fintype ↥T`,
 `ClosedEnabledRegion`, `Nonempty`, and `regionStronglyConnected`; the convergence chain is proved
-under them. Constructing such a region for a relaxed/conservation-class lattice is the next step.
+under them.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Stochastic.RegionPrimitive`, `CRNT.Stochastic.Semigroup`.
 -/
 

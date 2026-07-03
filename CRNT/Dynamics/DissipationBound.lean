@@ -29,7 +29,7 @@ estimate underlying strongly-endotactic global stability) is taken as a hypothes
 constructed here: it requires the endotactic / Newton-polytope geometry, which is not assembled
 in this layer.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.GlobalStability.
+Depends on: CRNT.Dynamics.GlobalStability.
 -/
 
 open scoped BigOperators Topology

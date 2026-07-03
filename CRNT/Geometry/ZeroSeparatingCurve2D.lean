@@ -28,7 +28,7 @@ plane `EuclideanSpace ℝ (Fin 2)`); the half-plane normal is paired with veloci
 real inner product `⟪·,·⟫_ℝ`, whose Cauchy–Schwarz inequality drives the separation lemma and
 whose induced norm is the genuine Euclidean metric used by `infDist`/Nagumo.
 
-## What this module formalizes (sorry-free)
+## What this module formalizes
 
 * `dotHalfPlane` — the closed half-plane `{p | a ≤ ⟪n, p⟫_ℝ}` with inward normal `n`, the region
   side of an oriented edge; `isClosed_dotHalfPlane`, and `dotHalfPlane_subset_compl_ball`
@@ -57,7 +57,7 @@ whose induced norm is the genuine Euclidean metric used by `infDist`/Nagumo.
 
 ## What is proved here, and what is taken as a hypothesis
 
-Proved, sorry-free and axiom-clean:
+Proved here:
 
 * the half-plane / closed-region geometry and its closedness;
 * the separation geometry — the region excludes a ball about `0`, the start lies in it;
@@ -79,7 +79,7 @@ Taken as hypotheses, not derived here:
   proximal-normal / contingent-derivative-of-distance step recorded in `ClosedSetNagumo.lean`; it
   is supplied as a hypothesis to `stays_away_from_zero_of_support`, not discharged.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.ClosedSetNagumo`,
+Depends on: `CRNT.Dynamics.ClosedSetNagumo`,
 `CRNT.Geometry.ToricFan`, `Mathlib.Analysis.Convex.Segment`,
 `Mathlib.Topology.MetricSpace.HausdorffDistance`.
 -/

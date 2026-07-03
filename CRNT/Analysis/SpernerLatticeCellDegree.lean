@@ -19,7 +19,7 @@ its local `doorCount`):
 * **Down-triangle degree** — `down_cellDoor_iff` characterizes a down-triangle's cell-neighbours and
   `down_cell_degree` evaluates its degree to `doorCount`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLatticeFullGraph`,
+Depends on: `CRNT.Analysis.SpernerLatticeFullGraph`,
 `CRNT.Analysis.SpernerLatticeNeighbor`, `CRNT.Analysis.SpernerLatticeIncidence`,
 `CRNT.Analysis.SpernerLatticeIncidenceHV`.
 -/

@@ -23,7 +23,7 @@ where it is a constant plus `∑_c G_c · log(β · y*_c + b_c)`.
 * `powerProd_strictAntiOn_finset` — the order-free strict monotonicity.
 * `powerProd_logSum_strictAntiOn` — the log-sum form.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.Data.Fin.Tuple.Sort`, `CRNT.LinearAlgebra.PowerProductMono`.
 -/
 

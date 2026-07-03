@@ -13,7 +13,7 @@ Kuhn cell whose `n+1` vertices realize all `n+1` colors. As `N → ∞` the cell
 (mesh `≤ 1/N`), and the `n+1` vertex sequences collapse to a common limit `z` at which `f z = z`
 (`brouwer_of_meshing_sequences_fintype`).
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerNGeometric`,
+Depends on: `CRNT.Analysis.SpernerNGeometric`,
 `CRNT.Analysis.SpernerNClose`, `CRNT.Analysis.SpernerSimplexLimitN`.
 -/
 

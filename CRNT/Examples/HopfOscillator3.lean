@@ -38,7 +38,7 @@ The periodic-orbit conclusion of the Hopf theorem is *not* asserted here; only t
 satisfiability of the admissibility hypotheses is. See Guckenheimer & Holmes, "Nonlinear
 Oscillations, Dynamical Systems, and Bifurcations of Vector Fields", §3.4 (the planar Hopf theorem).
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.HopfAdmissible.
+Depends on: CRNT.Dynamics.HopfAdmissible.
 -/
 
 namespace CRNT.Examples.HopfOscillator3

@@ -9,7 +9,7 @@ spreads from the one coordinate the kernel vector must have to the whole class
 (`exists_pos_kernelVector_on_terminalSLC`): the kernel mode is strictly positive on the
 terminal strong linkage class and zero off it.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.ClosedSetKernel`.
+Depends on: `CRNT.Deficiency.ClosedSetKernel`.
 -/
 
 namespace CRNT

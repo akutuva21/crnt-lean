@@ -29,7 +29,7 @@ positive steady state per stoichiometric compatibility class
 monotonic, so the mass-action specialization follows. The converse direction — that a
 discordant network admits a noninjective weakly monotonic kinetics — is not developed here.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Multistationarity.Injectivity`, `CRNT.LinearAlgebra.SignVector`.
 -/
 

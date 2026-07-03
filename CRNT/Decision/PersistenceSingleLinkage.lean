@@ -40,7 +40,7 @@ conjecture in the single linkage class case*); the complex-balanced equilibrium 
 a compatibility class are Feinberg (*Chemical reaction network structure and the stability of complex
 isothermal reactors — I*) and Horn and Jackson (*General mass action kinetics*).
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.SingleLinkageGAC`,
+Depends on: `CRNT.Dynamics.SingleLinkageGAC`,
 `CRNT.Decision.ComputableDeficiency`.
 -/
 

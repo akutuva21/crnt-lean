@@ -83,7 +83,7 @@ diagonal-dominance test certifies Hurwitz.
 
 `version` tags the JSON contract; bump it whenever the field set changes.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Interop.NetworkData`,
+Depends on: `CRNT.Interop.NetworkData`,
 `CRNT.Decision.ComputableDeficiency`, `CRNT.Decision.DirectedReachability`.
 -/
 

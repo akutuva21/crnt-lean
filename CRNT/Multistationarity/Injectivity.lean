@@ -15,7 +15,7 @@ This module defines the per-class and global injectivity predicates over an arbi
 compatibility class — together with its mass-action corollary. The Jacobian-determinant
 sign criterion that *establishes* injectivity is a separate development.
 
-This module is **stable**. Depends on: `CRNT.Kinetics.General`,
+Depends on: `CRNT.Kinetics.General`,
 `CRNT.Equilibria.CompatibilityClass`.
 -/
 

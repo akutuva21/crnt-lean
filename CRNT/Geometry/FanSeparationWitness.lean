@@ -52,7 +52,7 @@ than carrying it as the non-triviality of each wall, is the remaining convex-geo
 which exposed faces of a given fan are walls touched by the reaction directions, separate from the
 extraction here of the separation witness from non-triviality.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.FanActiveWalls`.
+Depends on: `CRNT.Geometry.FanActiveWalls`.
 -/
 
 namespace CRNT

@@ -10,7 +10,7 @@ is known to be nonnegative, but Lean's natural-number subtraction truncates at z
 the canonical definition is over `ℤ` (`deficiencyInt`). `DeficiencyZero` is defined as
 `deficiencyInt = 0`, avoiding any truncated-subtraction pitfall.
 
-This module is **stable**. Depends on: `CRNT.Graph.LinkageClass`, `CRNT.Stoich.Subspace`.
+Depends on: `CRNT.Graph.LinkageClass`, `CRNT.Stoich.Subspace`.
 -/
 
 namespace CRNT

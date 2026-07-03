@@ -20,7 +20,6 @@ The proof factors through the complex space and is termwise over reactions, mirr
 `Toric.lean`: the only genuinely new ingredient is the scalar inequality
 `a·(log b − log a) ≤ b − a` (with equality iff `a = b`), a form of Gibbs' inequality.
 
-This module is **stable** and `sorry`-free.
 -/
 
 namespace CRNT

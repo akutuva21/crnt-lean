@@ -13,7 +13,7 @@ swap leaves every non-dropped vertex offset unchanged), the flipped cell, and th
 facet and is distinct. The full two-cell incidence count and the boundary-face reduction build on
 these.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLatticeN`.
+Depends on: `CRNT.Analysis.SpernerLatticeN`.
 -/
 
 namespace CRNT.Analysis.SpernerN

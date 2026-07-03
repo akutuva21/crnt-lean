@@ -16,7 +16,7 @@ Bounded weak reversibility `WeaklyReversibleWithin k` is then decidable and soun
 `WeaklyReversible`, so a concrete network discharges weak reversibility by exhibiting a
 depth and running `decide` rather than building path witnesses by hand.
 
-This module is **stable**. Depends on: `CRNT.Graph.WeakReversibility`.
+Depends on: `CRNT.Graph.WeakReversibility`.
 -/
 
 namespace CRNT

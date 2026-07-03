@@ -30,7 +30,7 @@ inside the support of any nonzero member, then assembles the full conformal sum.
 * `sameSign_of_confDom_support_eq` — a full-support conforming dominator is `SameSign` with `v`,
   bridging the conformal cone to the Müller sign condition.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.LinearAlgebra.OrientedMatroid`,
+Depends on: `CRNT.LinearAlgebra.OrientedMatroid`,
 `CRNT.Kinetics.Generalized`.
 -/
 

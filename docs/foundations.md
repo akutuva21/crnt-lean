@@ -9,8 +9,7 @@ is read off the structures defined here.
 The formalism follows Feinberg's reaction-network theory (Martin Feinberg, _Foundations of Chemical
 Reaction Network Theory_, Springer 2019; and his earlier _Lectures on Chemical Reaction Networks_).
 Species, complexes, reactions, the reaction graph, linkage classes, the stoichiometric subspace, and
-the deficiency invariant `δ = n − ℓ − s` are all in his sense. Everything documented here is
-machine-checked, `sorry`-free, and introduces no axioms beyond Mathlib's.
+the deficiency invariant `δ = n − ℓ − s` are all in his sense.
 
 For the computable companions of the propositional notions below (decidable directed reachability,
 decidable acyclicity, exact rational rank), see [decidability.md](decidability.md).

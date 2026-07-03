@@ -37,7 +37,6 @@ inverse function theorem exactly as on the value side, and carried here as data 
 * `regularDegree_homotopy_invariant` — the headline: equal regular-value degree at the endpoint
   slices `H(0, ·)` and `H(1, ·)`.
 
-This module is `sorry`-free.
 -/
 
 namespace CRNT

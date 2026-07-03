@@ -16,7 +16,7 @@ bifurcation verdict (the limit-cycle conclusion needs center-manifold theory).
 This follows the degree-3 Routh–Hurwitz combination of Liénard and Chipart and the matrix invariants
 of `Matrix.charpoly_fin_three`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Decision.StoichBasisQ`,
+Depends on: `CRNT.Decision.StoichBasisQ`,
 `CRNT.Dynamics.Hurwitz3Matrix`.
 -/
 

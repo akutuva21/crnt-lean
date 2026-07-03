@@ -29,10 +29,10 @@ polynomial and complex-analysis libraries:
   `nlinarith`.
 
 The general-degree converse (positivity of all minors implies Hurwitz) and degree-3
-sufficiency require Hurwitz-matrix / Hermite–Biehler machinery that `Mathlib` does not yet
+sufficiency require Hurwitz-matrix / Hermite–Biehler machinery that `Mathlib` does not
 provide, so they are out of scope here.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 Mathlib.Algebra.QuadraticDiscriminant, Mathlib.Analysis.Complex.Polynomial.Basic,
 Mathlib.Algebra.Polynomial.Splits, Mathlib.Algebra.Polynomial.Roots.
 -/

@@ -13,7 +13,7 @@ strong linkage classes `t` equals the number of linkage classes `ℓ`
 The bijection is the scaffold for the deficiency-one theorem proper, whose argument runs one
 terminal strong linkage class — equivalently one linkage class — at a time.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.DeficiencyOneHypotheses`.
+Depends on: `CRNT.Deficiency.DeficiencyOneHypotheses`.
 -/
 
 namespace CRNT

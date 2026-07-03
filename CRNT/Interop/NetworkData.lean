@@ -19,7 +19,7 @@ every computable companion (`numComplexes`, `computeNumLinkageClasses`, `compute
 Coefficient arrays are read with `Array.getD … 0`, so a reaction shorter than `numSpecies` pads with
 zeros and a longer one is truncated; reconstruction is therefore total.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Basic.Network`, `Mathlib.Lean.Json`.
+Depends on: `CRNT.Basic.Network`, `Mathlib.Lean.Json`.
 -/
 
 namespace CRNT

@@ -56,7 +56,7 @@ Hassard, Kazarinoff & Wan, *Theory and Applications of Hopf Bifurcation*; Kuznet
 Applied Bifurcation Theory*, §3.5 and §10.2 — the Lyapunov–Schmidt / Poincaré-map persistence of the
 cycle.)
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.HopfLimitCycle`,
+Depends on: `CRNT.Dynamics.HopfLimitCycle`,
 `Mathlib.Analysis.Calculus.ImplicitFunction.Bivariate`.
 -/
 
@@ -277,6 +277,6 @@ end PlanarHopfData
 end CRNT
 
 /-!
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.HopfLimitCycle`,
+Depends on: `CRNT.Dynamics.HopfLimitCycle`,
 `Mathlib.Analysis.Calculus.ImplicitFunction.Bivariate`.
 -/

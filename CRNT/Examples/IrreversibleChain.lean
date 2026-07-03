@@ -12,8 +12,6 @@ A linear, irreversible pathway. It has three species, three complexes, two react
 and one linkage class, but is **not** weakly reversible: nothing returns to `A` or `B`
 once `C` is reached. This module proves the complex count and the failure of weak
 reversibility.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Examples.IrreversibleChain

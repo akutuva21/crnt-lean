@@ -32,7 +32,7 @@ it **contains `Cᵒ`** whenever `dist(X, C) < δ` and `C ∈ F`
 with `Real.log` applied coordinatewise, as a `DifferentialInclusion.Field`, so it
 plugs directly into the inclusion-solution layer.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.PolyhedralFan`,
+Depends on: `CRNT.Geometry.PolyhedralFan`,
 `CRNT.Dynamics.DifferentialInclusion`, and Mathlib Hausdorff distance.
 -/
 

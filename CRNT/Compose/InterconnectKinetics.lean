@@ -15,7 +15,7 @@ components act on the shared species pool, and the reaction-vector of a summand 
 the component's own reaction vector, so summing the induced field over `N₁.R ⊕ N₂.R`
 splits as the sum over `N₁.R` plus the sum over `N₂.R`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Compose.Interconnect`,
+Depends on: `CRNT.Compose.Interconnect`,
 `CRNT.Kinetics.General`.
 -/
 

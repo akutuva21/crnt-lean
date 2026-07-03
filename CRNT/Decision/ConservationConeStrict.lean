@@ -38,7 +38,7 @@ convex averaging is Gordan's and Stiemke's theorem of the alternative; the conse
 feasibility framing of (non)critical siphons is from Angeli, De Leenheer, and Sontag, *A Petri net
 approach to the study of persistence in chemical reaction networks*.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Decision.IsCriticalSiphonDecidable`.
 -/
 

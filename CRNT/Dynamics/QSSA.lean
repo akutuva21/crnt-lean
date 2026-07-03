@@ -32,7 +32,7 @@ analysis to derive the defect `εf` from a small parameter `ε`, and no infinite
 tracking — the Grönwall bound diverges as `T → ∞` whenever `K > 0`. The defect `εf` is
 therefore supplied as a hypothesis and all claims are confined to a fixed compact interval.
 
-This module is **stable** and `sorry`-free. Depends on: Mathlib.Analysis.ODE.Gronwall.
+Depends on: Mathlib.Analysis.ODE.Gronwall.
 -/
 
 open Filter Set

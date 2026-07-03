@@ -18,7 +18,7 @@ reactions (`srGraph_isBipartiteWith`, `srGraph_isBipartite`). The adjacency is
 characterised by `srGraph_adj_iff`, and the absence of same-side edges by
 `srGraph_not_adj_species` and `srGraph_not_adj_reaction`.
 
-This module is **stable**. Depends on: `CRNT.Basic.Network`,
+Depends on: `CRNT.Basic.Network`,
 `Mathlib.Data.Fintype.Sum`, `Mathlib.Combinatorics.SimpleGraph.Bipartite`,
 `Mathlib.Logic.Equiv.Sum`.
 -/

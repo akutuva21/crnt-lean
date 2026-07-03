@@ -20,7 +20,7 @@ This is the abstract Nagumo step underlying the relative-entropy confinement arg
   `D s ≤ 0` there and continuity on `[0, ∞)`, membership in `{x | g x ≤ g (γ 0)}` is preserved
   along `γ` for all forward time: `g (γ t) ≤ g (γ 0)`.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.Analysis.Calculus.Deriv.MeanValue`.
 -/
 

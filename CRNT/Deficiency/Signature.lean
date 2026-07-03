@@ -23,7 +23,7 @@ subspace). Sign compatibility reuses the order relation `SameSign`.
 * `SignCompatibleWithStoich` — `μ` shares a sign pattern with a stoichiometric vector;
 * `IsSignature` — the system has a nonzero, sign-compatible solution.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stoich.Subspace`,
+Depends on: `CRNT.Stoich.Subspace`,
 `CRNT.Kinetics.Generalized`.
 -/
 

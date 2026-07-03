@@ -50,7 +50,7 @@ of Part B applies *simultaneously* to every generator `coneDual Cᵢ`. That slop
 attracting-direction analysis across the half-plane uncertainty piece is not formalized in this
 module.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.ToricFan`,
+Depends on: `CRNT.Geometry.ToricFan`,
 `CRNT.Geometry.ZeroSeparatingCurve2D`.
 -/
 

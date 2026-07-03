@@ -21,7 +21,7 @@ Del Vecchio–Ninfa–Sontag insulation condition, which concerns retroactivity 
 downstream module places on an upstream one through *shared species*) and is a distinct,
 stronger requirement not captured by stoichiometric independence alone.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Compose.InterconnectMonostationary`.
 -/
 

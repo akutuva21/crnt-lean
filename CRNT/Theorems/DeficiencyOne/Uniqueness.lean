@@ -25,7 +25,7 @@ discharges that obligation by Feinberg's argument, assembled from the bricks bui
 
 * `proportional_of_kineticImage_ne` — for `c_x ≠ 0`, `Ψx ∝ Ψy` on the deficient class.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Theorems.DeficiencyOne.ToricReduction`, `CRNT.Deficiency.StructuredPreimage`,
 `CRNT.Deficiency.ExcessPositivity`, `CRNT.Deficiency.LevelSetSign`,
 `CRNT.Deficiency.SignedDrainage`, `CRNT.Deficiency.DeficientClassKernel`,

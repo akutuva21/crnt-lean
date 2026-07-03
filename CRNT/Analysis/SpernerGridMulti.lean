@@ -41,7 +41,7 @@ door.
 * `CRNT.Analysis.SpernerN2.multiDoorIncidence` — the concrete four-cell `MultiDoorIncidence`.
 * `CRNT.Analysis.SpernerN2.exists_rainbow_cell` — it has a rainbow triangle.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.Combinatorics.SimpleGraph.Finite`, `Mathlib.Data.Fintype.Sum`,
 `Mathlib.Tactic.DeriveFintype`, `CRNT.Analysis.SpernerMultiIncidence`.
 -/

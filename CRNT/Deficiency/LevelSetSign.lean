@@ -22,7 +22,7 @@ no reaction leaves it — the `A_k w`-total is pure inflow, hence nonnegative fo
 * `sum_kineticMap_superlevel_nonneg` — `0 ≤ ∑_{c : v·y*_c < b_c} (A_k y*)_c` for `v > 0`.
 * `sum_kineticMap_closed_nonneg` — `0 ≤ ∑_{c ∈ U} (A_k w)_c` for `U` reaction-closed and `w ≥ 0`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Deficiency.KineticExcess`.
+Depends on: `CRNT.Deficiency.KineticExcess`.
 -/
 
 namespace CRNT

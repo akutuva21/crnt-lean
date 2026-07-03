@@ -36,7 +36,7 @@ geometry and the closed-set Nagumo result. The subtangency-to-distance bridge (s
 is taken as a hypothesis, matching the form consumed by `ZeroSeparatingCurve2D`; the construction of
 the region itself from a toric differential inclusion is not performed here.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.ZeroSeparatingCurve2D`.
+Depends on: `CRNT.Geometry.ZeroSeparatingCurve2D`.
 -/
 
 namespace CRNT

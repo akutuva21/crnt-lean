@@ -40,7 +40,7 @@ singular-perturbation small parameter, and infinite-horizon shadowing — all un
 (the Grönwall bound diverges as `T → ∞` for `K > 0`). Everything stated is fully proved on
 compact time.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.Tikhonov,
+Depends on: CRNT.Dynamics.Tikhonov,
 Mathlib.Analysis.InnerProductSpace.PiL2.
 -/
 

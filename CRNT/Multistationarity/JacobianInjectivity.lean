@@ -20,7 +20,7 @@ determinant-via-cycle-cover expansion behind the Craciun–Feinberg sign criteri
 `CRNT.LinearAlgebra.DetCycleCover` (`det_eq_sum_cycleCover_terms`); specializing it to the factored
 mass-action Jacobian to close that criterion is not yet done.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Kinetics.MassActionJacobian`, Mathlib
+Depends on: `CRNT.Kinetics.MassActionJacobian`, Mathlib
 `Analysis.Calculus.MeanValue`.
 -/
 

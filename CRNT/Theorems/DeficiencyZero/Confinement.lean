@@ -25,7 +25,6 @@ The analytic inputs to the confinement of mass-action trajectories.
   `Flow ℝ≥0` construction (`ODE.exists_flow`) applies to; on a `relEntropy`-sublevel set
   contained in the interior of the box it coincides with the genuine dynamics.
 
-This module is **stable** and `sorry`-free.
 -/
 
 open scoped NNReal ENNReal

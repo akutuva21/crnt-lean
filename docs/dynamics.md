@@ -14,9 +14,6 @@ global-attractor / persistence theory (siphons, the global attractor conjecture)
 [`persistence-gac.md`](persistence-gac.md). The overall picture and theorem dependency graph are
 in [`architecture.md`](architecture.md).
 
-As everywhere in the library, every result below is machine-checked, `sorry`-free, and clean of
-axioms beyond Mathlib's.
-
 ## Kinetics: the rate-law abstraction
 
 A **concentration** (`CRNT.Concentration S = S → ℝ`) assigns a real number to each species, with
@@ -132,7 +129,7 @@ Before any flow can be built, the field must be regular and the orthant must be 
 - `exists_local_solution`: local existence of solutions through every starting point.
 
 The general (chemistry-free) ODE-to-flow construction lives in the `ODE` namespace and is written
-Mathlib-style for upstreaming:
+Mathlib-style:
 
 - `ODE.dist_le_of_isIntegralCurve`, **continuous dependence**: two global solutions of the same
   autonomous Lipschitz ODE diverge at most exponentially in forward time (Grönwall);

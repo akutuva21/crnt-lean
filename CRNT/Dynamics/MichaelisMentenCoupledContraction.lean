@@ -55,7 +55,7 @@ genuinely horizon-uniform `O(ε)` tracking bound with no assumed contraction.
 all-time confinements together with the hypothesis-free horizon-uniform `O(ε)` tracking field, with
 the coupled transverse contraction discharged.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.MichaelisMentenCertifiedUniform`, `CRNT.Dynamics.MichaelisMentenSlowDriftSpeed`.
 -/
 

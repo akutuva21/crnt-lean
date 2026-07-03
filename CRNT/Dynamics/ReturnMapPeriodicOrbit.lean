@@ -42,7 +42,7 @@ Hopf-specific coordinate match — as the residue named in this module's frontie
 *Ordinary Differential Equations*, IX.10, on the first-return map; the periodicity of a return-map
 fixed point is the closing-of-the-orbit step of the Andronov–Hopf construction.)
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.PoincareReturnMap`.
+Depends on: `CRNT.Dynamics.PoincareReturnMap`.
 -/
 
 namespace CRNT
@@ -163,5 +163,5 @@ equilibrium — together with strict first-ness of the crossing time (no earlier
 return-time construction defers. Both are coordinate/ordering facts, separate from the rotation
 closure proved here.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.PoincareReturnMap`.
+Depends on: `CRNT.Dynamics.PoincareReturnMap`.
 -/

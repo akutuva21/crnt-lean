@@ -34,14 +34,14 @@ on the box. Summing against the absolute-value cover `|w_r|` gives the linear fa
   confined to a box `[0,B]^S` for all forward time, stays on `SiphonFace P` for all forward
   time. No dissipativity hypothesis: it is supplied internally by `faceSum_field_le`.
 
-HONEST CEILING. This delivers unconditional face invariance for *confined* orbits — the
+This delivers unconditional face invariance for *confined* orbits — the
 confinement-to-a-box hypothesis `hbox` is the residual input, exactly the certificate that
 `exists_field_lower_bound`-style box bounds need (and which `gac_of_genuine_persistence`
 supplies via a compact absorbing set). Removing confinement, or upgrading invariance to the
 repelling persistence estimate on *critical* siphons, still needs sign-restricted kernel /
 LP feasibility (decidability of `IsCriticalSiphon`) and ω-limit theory, absent here.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.PersistenceTheorem`.
+Depends on: `CRNT.Dynamics.PersistenceTheorem`.
 -/
 
 namespace CRNT

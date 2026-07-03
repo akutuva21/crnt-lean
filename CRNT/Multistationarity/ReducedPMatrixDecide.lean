@@ -53,7 +53,7 @@ whose injectivity conclusion feeds the global-univalence theorem of Gale and Nik
 matrix and global univalence of mappings"). The chart is the rational pivot minor of
 `CRNT.Decision.StoichBasisQ`.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Multistationarity.PivotReducedInjectivity`.
 -/
 

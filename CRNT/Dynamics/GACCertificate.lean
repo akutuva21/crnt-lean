@@ -7,7 +7,7 @@ The global attractor conjecture for weakly reversible complex-balanced networks 
 `gac_of_separatingConfinement`, to a single geometric predicate: that the genuine mass-action orbit
 through the start is confined to a bounded region holding a fixed positive distance above every
 coordinate facet (`Network.SeparatingConfinement`). This module packages that predicate as a
-per-network certificate with a `sorry`-free soundness theorem and constructors from the proven
+per-network certificate with a soundness theorem and constructors from the proven
 classes, so the conclusion becomes a checkable property of one bundled datum rather than a theorem
 to be reproved network by network.
 
@@ -48,7 +48,7 @@ general.
   reverse for a positive start), so the verifiable target and the single-linkage persistence input
   carry the same content.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.GACSeparatingWitness`.
+Depends on: `CRNT.Dynamics.GACSeparatingWitness`.
 -/
 
 open scoped BigOperators NNReal Topology

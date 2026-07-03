@@ -24,7 +24,7 @@ in the empty set, so the whole complement carries no mass.
 * `jumpKernel_invariantProb_compl_eq_zero` — null on the complement: the distribution is supported in
   the region.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.KernelNormalized`.
+Depends on: `CRNT.Stochastic.KernelNormalized`.
 -/
 
 open MeasureTheory ProbabilityTheory

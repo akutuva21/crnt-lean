@@ -21,7 +21,6 @@ These are the CRN-specific inputs to a future construction of the mass-action fo
 semiflow; the general ODE machinery (global existence from a priori bounds, continuous
 dependence on initial conditions, packaging as a `Flow`) is separate.
 
-This module is **stable** and `sorry`-free.
 -/
 
 namespace CRNT

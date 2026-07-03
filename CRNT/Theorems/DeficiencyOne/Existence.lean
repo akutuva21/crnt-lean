@@ -31,7 +31,7 @@ N.DeficiencyOneExistence` is not asserted: a generic deficiency-one positive ste
 not complex-balanced, and no degree-theoretic or global-persistence brick is available to
 produce one.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Theorems.DeficiencyOne.Uniqueness`, `CRNT.Theorems.DeficiencyOne.Statement`,
 `CRNT.Dynamics.MassActionAlgebra`, `CRNT.Theorems.DeficiencyZero.Existence`.
 -/

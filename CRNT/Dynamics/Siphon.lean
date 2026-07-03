@@ -24,7 +24,7 @@ feasibility over the stoichiometric matrix and is not provided here; neither is 
 persistence-soundness direction (no critical siphon ⇒ persistence), which needs an
 ω-limit forward-invariance argument absent from this layer.
 
-This module is **stable**. Depends on: `CRNT.Stoich.Vector`.
+Depends on: `CRNT.Stoich.Vector`.
 -/
 
 namespace CRNT

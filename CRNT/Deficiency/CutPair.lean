@@ -18,7 +18,7 @@ and `y'`, and the cut condition is the resulting non-reachability.
 * `CutPair y y'` — `y, y'` are adjacent and become unreachable once the edge `s(y, y')` is deleted;
 * `CutPair.symm` — the relation is symmetric (the deleted edge and reachability are both symmetric).
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Decision.Linkage`,
+Depends on: `CRNT.Decision.Linkage`,
 `Mathlib.Combinatorics.SimpleGraph.DeleteEdges`.
 -/
 

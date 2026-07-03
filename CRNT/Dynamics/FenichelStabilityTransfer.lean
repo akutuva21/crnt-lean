@@ -35,7 +35,7 @@ normal hyperbolicity makes the persisted slow manifold attracting, so the reduce
 governs the long-time behaviour of the full system. Reduced-model analysis of the slow base flow
 therefore controls asymptotic stability of the full network.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.FenichelReductionPrinciple`.
+Depends on: `CRNT.Dynamics.FenichelReductionPrinciple`.
 -/
 
 open Function Set Filter Topology

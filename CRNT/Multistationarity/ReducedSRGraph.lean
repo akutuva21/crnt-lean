@@ -40,7 +40,7 @@ matrix and global univalence of mappings").
 * `stoichChartMatrix_mul_reducedJacobian` — the intertwining `B · reducedJacobian = M · B`.
 * `det_reducedJacobian_chart_independent` — two charts present the same reduced determinant.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Multistationarity.ReducedJacobianSign`.
 -/
 

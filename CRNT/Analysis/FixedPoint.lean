@@ -23,7 +23,7 @@ the state space is an order interval.
 These supply the degree-free substitute for general Brouwer that a one-dimensional
 reduced-coordinate or monotone reaction-network existence argument can consume directly.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.Topology.Order.IntermediateValue`, `Mathlib.Analysis.Normed.Order.Lattice`,
 `Mathlib.Order.CompleteLatticeIntervals`, `Mathlib.Order.FixedPoints`.
 -/

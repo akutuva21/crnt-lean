@@ -49,7 +49,7 @@ now yields, with no domain restriction, that the seed's constructed `manifoldMap
 complex-equilibrium curve `Vmax·s/(Km+s) · e0` (`mmRegManifoldMap_eq_mm`). This is the certified
 `C¹` Michaelis–Menten reduction obtained through the abstract implicit-function API.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.MichaelisMentenC1,
+Depends on: CRNT.Dynamics.MichaelisMentenC1,
 Mathlib.Analysis.SpecialFunctions.ExpDeriv.
 -/
 

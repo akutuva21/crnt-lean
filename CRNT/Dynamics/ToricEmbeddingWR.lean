@@ -47,7 +47,7 @@ the velocity summing correctly. The reachability layer (`CRNT.Graph.Reachability
 `Relation.ReflTransGen` and supplies no cycle-extraction / cycle-cover lemma, so the cover
 is consumed here as input rather than derived.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.ToricEmbeddingOrder`.
 -/
 

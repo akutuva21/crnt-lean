@@ -30,16 +30,16 @@ theorem `Network.massAction_forwardInvariant_nonneg` uses.
   of a siphon, the sum over `P` of the field components — the natural derivative witness for
   `V` — is exactly zero, re-exporting `massActionVectorField_eq_zero_on_siphonFace`.
 
-HONEST CEILING. This delivers face forward-invariance, not persistence. Persistence is the
+This delivers face forward-invariance, not persistence. Persistence is the
 converse repelling estimate on critical siphons, which needs sign-restricted kernel / LP
 feasibility (decidability of `IsCriticalSiphon`, absent in Mathlib v4.31) together with
-ω-limit / Birkhoff-center theory. Moreover the dissipativity bound is taken here as a
+ω-limit / Birkhoff-center theory. The dissipativity bound is taken here as a
 hypothesis: making it unconditional needs a monomial-factoring estimate
 `∑_{s∈P} f(x) s ≤ C·∑_{s∈P} x s` on a confining compact box, a separate analytic brick.
 The non-circularity is structural: `V` is defined off the face and the scalar lemma only
 activates where `V > 0`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.Persistence`,
+Depends on: `CRNT.Dynamics.Persistence`,
 `CRNT.Dynamics.Nagumo`, `Mathlib.Analysis.Calculus.Deriv.MeanValue`,
 `Mathlib.Analysis.SpecialFunctions.ExpDeriv`, `Mathlib.Topology.Order.Monotone`.
 -/

@@ -16,7 +16,7 @@ claim of the faithful curve).
 
 This module formalizes the angle ↔ vector bridge and the monotonicity that drives the chaining.
 
-## What this module formalizes (sorry-free)
+## What this module formalizes
 
 * `dir θ` — the planar unit vector `(cos θ, sin θ)` at angle `θ` in `EuclideanSpace ℝ (Fin 2)`, with
   `norm_dir : ‖dir θ‖ = 1`.
@@ -43,7 +43,7 @@ This module formalizes the angle ↔ vector bridge and the monotonicity that dri
 These are the foundational geometric facts; the convex-arc assembly (a polygonal curve with these
 monotone normals running axis-to-axis, separating `0`) is built on top.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.PolyRegionStrictInvariant`,
+Depends on: `CRNT.Dynamics.PolyRegionStrictInvariant`,
 `Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic`.
 -/
 
@@ -233,7 +233,7 @@ theorem apexField_region_persistent (walls : List (ℝ × ℝ)) {φ θ₀ a r ρ
 field is strictly subtangent (boundary-locally) to the angular faces, started strictly inside the
 region, keeps a hard distance `r` from the origin for all forward time — given a separating wall
 `(θ₀, a)` with `a ≥ r`. This composes the angular face structure (unit normals, automatic
-separation) with the honest boundary-local invariance `polyRegion_invariant_of_strictSupport`.
+separation) with the boundary-local invariance `polyRegion_invariant_of_strictSupport`.
 
 For the constant apex field the input `hsupp` is no longer needed — it is produced by
 `apexField_isStrictSupportField`. For a general field `f` it remains the fan-geometry connection (the

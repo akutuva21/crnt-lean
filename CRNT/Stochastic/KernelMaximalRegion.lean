@@ -4,8 +4,8 @@ import CRNT.Stochastic.KernelIrreducible
 # The canonical maximal closed enabled region
 
 `CRNT.Stochastic.KernelIrreducible` proves support-restricted invariance of the embedded jump kernel
-over any `ClosedEnabledRegion`, but takes the region as a hypothesis. Its named next dependency is a
-*canonical* region characterization. This module supplies one: the family of closed enabled regions
+over any `ClosedEnabledRegion`, but takes the region as a hypothesis. This module supplies a
+*canonical* region: the family of closed enabled regions
 is closed under **arbitrary union** (`sUnion_closedEnabledRegion`), so the union of all of them is a
 closed enabled region — the **maximal** one (`maximalClosedEnabledRegion`,
 `closedEnabledRegion_maximal`), containing every closed enabled region
@@ -18,10 +18,10 @@ over the whole family `{T | ClosedEnabledRegion κ T}` yields a largest, network
 enabled region, on which the restricted stationary measure is invariant
 (`jumpKernel_invariant_maximalRegion`) with no region supplied by hand.
 
-The maximal region is the union of all forward-and-backward-closed enabled regions; pinning it down
+The maximal region is the union of all forward-and-backward-closed enabled regions. Pinning it down
 to a concrete count set (the irreducible communicating class — what survives repeated firing) for a
-given network remains the deeper outstanding dependency, but the canonical object now exists and
-carries the invariant measure.
+given network is a network-structural reachability question; the canonical object itself exists here
+and carries the invariant measure.
 
 ## Main results
 
@@ -32,7 +32,7 @@ carries the invariant measure.
 * `jumpKernel_invariant_maximalRegion` — the restricted stationary measure on the maximal region is
   invariant under the embedded jump kernel.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.KernelIrreducible`.
+Depends on: `CRNT.Stochastic.KernelIrreducible`.
 -/
 
 open MeasureTheory ProbabilityTheory

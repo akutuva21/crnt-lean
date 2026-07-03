@@ -10,7 +10,7 @@ subproblem to a genuine `n`-dimensional lattice. This is the geometric core of t
 `(n+1)`-dimensional door facet lands on this face, where it becomes an `n`-dimensional Sperner datum
 discharged by the inductive hypothesis.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLatticeN`.
+Depends on: `CRNT.Analysis.SpernerLatticeN`.
 -/
 
 namespace CRNT.Analysis.SpernerN

@@ -26,7 +26,7 @@ in finite time. The singleton critical-siphon facet `SiphonFace {s*}` carries no
 trajectory — the linear influx keeps the vanishing coordinate strictly positive along the whole
 forward orbit.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.CriticalSiphonNearFacetInflux`,
+Depends on: `CRNT.Dynamics.CriticalSiphonNearFacetInflux`,
 `CRNT.Dynamics.Persistence`.
 -/
 

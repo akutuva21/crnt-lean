@@ -9,7 +9,7 @@ the stoichiometric subspace; the dynamics of a mass-action system are confined t
 such classes. This module defines compatibility, the (positive) compatibility class
 of a concentration, and records that compatibility is an equivalence relation.
 
-This module is **stable**. Depends on: `CRNT.Stoich.Subspace`,
+Depends on: `CRNT.Stoich.Subspace`,
 `CRNT.Kinetics.Concentration`.
 -/
 

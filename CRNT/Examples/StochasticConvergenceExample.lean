@@ -26,7 +26,7 @@ firings are the truncated shifts `jumpNextCount n fwd = (n_A − 1, n_B + 1)` an
 
 ## Two structural obstructions to an unconditional instance
 
-The convergence interface, as it stands, cannot be fired unconditionally on this (or any genuine)
+The convergence interface cannot be fired unconditionally on this (or any genuine)
 network, for two independent reasons proved here.
 
 * **No aperiodicity self-loop.** A reaction with positive jump probability is enabled
@@ -67,7 +67,7 @@ truncated boundary dynamics, neither of which the finite-state holding-self-loop
 * `pair_not_closed_of_mem` — a closed enabled region of the pair contains no count with `n_A = 1`,
   so no nonempty conservation window is closed.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Basic.Network`, `CRNT.Graph.WeakReversibility`, `CRNT.Stochastic.CountWitnessPath`,
 `CRNT.Stochastic.RegionStronglyConnected`.
 -/

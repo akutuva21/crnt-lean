@@ -14,7 +14,7 @@ the predicate `δ_θ ≤ 1` carried no `Decidable` instance at all.
 This module supplies one, by the same field-extension route that `CRNT.Decision.ExactDeficiency`
 uses for the whole network, restricted to a single class: the class rank is pinned to the exact
 computable rational rank `computeRank` of the class's stoichiometric submatrix. As with the
-whole-network `computeDeficiency`, the resulting instance is total and axiom-clean, but it does
+whole-network `computeDeficiency`, the resulting instance does
 **not** reduce under kernel `decide` — `computeRank` evaluates a determinant over a permutation
 sum, which the kernel does not reduce — so concrete values are obtained through the equality bridge
 or compiled evaluation (`#eval`), not by `decide`. The columns of the class submatrix are indexed
@@ -29,10 +29,10 @@ by the reactions whose source lies in `θ`:
 * `computeLinkageDeficiency` / `linkageDeficiency_eq_computeLinkageDeficiency` — the class
   deficiency in fully computable form (the class complex-count `numComplexesIn` is recomputed with
   the computable linkage-class `DecidableEq`, equal by filter-instance independence);
-* `decidableLinkageDeficiency_le_one` — the resulting `Decidable (linkageDeficiency q ≤ 1)` (total
-  and axiom-clean; evaluated via `#eval` or the equality bridge, not kernel `decide`).
+* `decidableLinkageDeficiency_le_one` — the resulting `Decidable (linkageDeficiency q ≤ 1)`
+  (evaluated via `#eval` or the equality bridge, not kernel `decide`).
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Decision.ExactDeficiency`,
+Depends on: `CRNT.Decision.ExactDeficiency`,
 `CRNT.Deficiency.LinkageDeficiency`, `CRNT.Deficiency.DeficiencyOneDecide`.
 -/
 
@@ -178,7 +178,7 @@ theorem linkageDeficiency_eq_computeLinkageDeficiency (N : Network S)
     ← N.linkageStoichRank_eq_computeRank q]
 
 /-- **The per-linkage-class deficiency test `δ_θ ≤ 1` is decidable**, through the computable class
-deficiency. The instance is total and axiom-clean; like the whole-network `computeDeficiency` it is
+deficiency. Like the whole-network `computeDeficiency` it is
 evaluated via `#eval` or the equality bridge rather than kernel `decide`, since `computeRank`
 expands a determinant over a permutation sum. -/
 instance decidableLinkageDeficiency_le_one (N : Network S) (q : Quotient N.linkedSetoid) :

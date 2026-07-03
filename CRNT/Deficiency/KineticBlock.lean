@@ -16,7 +16,7 @@ one block per linkage class. Two consequences are recorded:
 This block decomposition is what lets the deficiency-one argument treat each linkage class
 independently.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.LinkageDeficiency`,
+Depends on: `CRNT.Deficiency.LinkageDeficiency`,
 `CRNT.Dynamics.MassActionAlgebra`.
 -/
 

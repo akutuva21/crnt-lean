@@ -17,7 +17,7 @@ dim ker A_k = ℓ.
 dim ker A_k`, the content here is the matching upper bound: every kernel vector is a
 combination of the per-class modes.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.PerClassKernelUnique`,
+Depends on: `CRNT.Deficiency.PerClassKernelUnique`,
 `CRNT.Deficiency.KernelDimensionBound`.
 -/
 

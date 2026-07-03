@@ -17,7 +17,7 @@ induction.
 The only Mathlib gap is the derivative of the `Fin.snoc` embedding `y ↦ Fin.snoc y (φ y)`, supplied
 here as `hasFDerivAt_snoc`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Multistationarity.GaleNikaido`,
+Depends on: `CRNT.Multistationarity.GaleNikaido`,
 `CRNT.Multistationarity.PMatrixSchur`, `CRNT.Multistationarity.PMatrixSignature`.
 -/
 

@@ -42,7 +42,7 @@ the reduction principle states that the flow on the persisted slow manifold is g
 vector field. Here that flow is conjugate, via the base parametrization `incl`/`π`, to the slow base
 flow, turning a `(dim Y + dim E)`-dimensional problem into a `dim Y`-dimensional one.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.FenichelComovingManifold`.
+Depends on: `CRNT.Dynamics.FenichelComovingManifold`.
 -/
 
 open Function Set

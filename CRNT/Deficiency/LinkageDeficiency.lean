@@ -20,7 +20,7 @@ stoichiometric subspace is the join of the per-class subspaces, so its rank is a
 of the per-class ranks (`stoichRank_le_sum`). Equality is exactly the deficiency-one theorem's
 condition `∑_θ δ_θ = δ`.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.DeficiencyOne`, `CRNT.Decision.Linkage`,
+Depends on: `CRNT.Deficiency.DeficiencyOne`, `CRNT.Decision.Linkage`,
 `CRNT.LinearAlgebra.FinrankSup`.
 -/
 

@@ -45,7 +45,7 @@ toward the convex polyhedral region, feeding the distance-based Nagumo invarianc
 
 ## Scope
 
-Established here, sorry-free and axiom-clean: the half-plane distance formula (item 1), the
+Established here: the half-plane distance formula (item 1), the
 half-plane Dini monotonicity (item 2) in full, the per-face slack lower bound for the convex region,
 and the Nagumo wiring.
 
@@ -56,7 +56,7 @@ is taken as a hypothesis, not constructed here. The per-half-plane distances bou
 distance from below cleanly; the matching upper control is the convex-intersection projection
 identity, which enters as the antitonicity hypothesis of `stays_away_from_zero_of_infDist_antitone`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.ClosedSetNagumo`,
+Depends on: `CRNT.Dynamics.ClosedSetNagumo`,
 `CRNT.Geometry.ZeroSeparatingCurve2D`.
 -/
 

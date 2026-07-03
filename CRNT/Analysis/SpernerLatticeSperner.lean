@@ -13,7 +13,7 @@ every proper Sperner coloring of the `N`-subdivision of the 2-simplex has a tria
 vertices carry all three colors, for **arbitrary `N`** — the constructive content of the
 two-dimensional Sperner lemma over a full triangular grid.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLatticeCellDegree`,
+Depends on: `CRNT.Analysis.SpernerLatticeCellDegree`,
 `CRNT.Analysis.SpernerLatticeBoundary`, `CRNT.Analysis.SpernerMultiIncidence`.
 -/
 

@@ -9,7 +9,7 @@ A *complex* is a formal finite linear combination of species with natural-number
 coefficients. A complex over a species type `S` is modelled directly as a function
 `S → ℕ` assigning a stoichiometric coefficient to each species.
 
-This module is **stable**. It defines the `Complex` abbreviation together with the
+It defines the `Complex` abbreviation together with the
 basic algebraic operations (`zero`, `add`, `smul`) and the conversions used by the
 stoichiometry and kinetics layers (`support`, `coeff`, `toRealVector`).
 

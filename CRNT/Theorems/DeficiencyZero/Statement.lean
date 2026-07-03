@@ -8,12 +8,12 @@ import CRNT.Equilibria.ComplexBalanced
 
 This module exposes the hypotheses and the conclusion of the deficiency-zero theorem
 as named definitions, so that downstream tools and proofs can refer to them by a
-stable API. It contains **no axioms and no `sorry`** and asserts no theorem itself: the
+stable API. It asserts no theorem itself: the
 proof against this interface is `Network.deficiencyZeroTheorem` in
 `CRNT.Theorems.DeficiencyZero.Existence`. The conclusion is packaged as a `Prop`-valued
 definition (`DeficiencyZeroConclusion`) that that proof targets.
 
-This module is **stable** (statement-only). Depends on the deficiency, weak-
+Depends on the deficiency, weak-
 reversibility, and equilibrium layers.
 -/
 

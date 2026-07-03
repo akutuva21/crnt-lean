@@ -1,9 +1,11 @@
 # Stochastic CRN
 
 This document describes the discrete-molecule regime of the `CRNT` library: the
-chemical master equation of stochastic mass-action kinetics and the Anderson–Craciun–Kurtz
-product-form stationary distribution for complex-balanced networks. It is one of the
-per-area documents linked from [`architecture.md`](architecture.md).
+chemical master equation of stochastic mass-action kinetics, the Anderson–Craciun–Kurtz
+product-form stationary distribution for complex-balanced networks, and the ergodic and
+scaling theory built on top of it — the embedded jump chain, the uniformized
+continuous-time transition semigroup, and the density-dependent (Kurtz) generator limit.
+It is one of the per-area documents linked from [`architecture.md`](architecture.md).
 
 When molecule counts are small, concentrations are not a faithful description: the state is
 a vector of nonnegative integer counts, one per species, and each reaction firing is a
@@ -25,13 +27,17 @@ deficiency-zero theory: complex balancing is the same notion `IsComplexBalanced`
 Kurtz, *Product-form stationary distributions for deficiency zero chemical reaction
 networks* (2010).
 
-The development is built bottom-up: the product-Poisson density and its algebra, the
+The layers run bottom-up: the product-Poisson density and its algebra, the
 master-equation generator and generator-level stationarity, the embedded discrete-time jump
 kernel and its measure invariance, the restriction of that invariant measure to a closed
 communicating region, its canonical maximal form, the normalized invariant probability
-measure, and the support and product-form proportionality of that probability measure. Every
-result below is machine-checked, `sorry`-free, and axiom-clean, and every module is
-re-exported by the default `import CRNT`.
+measure, and the support and product-form proportionality of that probability measure. On
+that base sits the ergodic theory of the region: uniqueness of the stationary law, geometric
+convergence of the embedded chain under primitivity, and — because the embedded chain of a
+genuine network carries no aperiodicity self-loop — the *uniformized* transition semigroup
+`P_t = exp(tQ)`, which supplies the missing self-loop, preserves the product-Poisson law for
+all time, and relaxes to it. A final layer is the density-dependent (Kurtz) scaling that ties
+this regime to the deterministic mass-action ODE.
 
 ## The product-form density
 
@@ -152,8 +158,8 @@ the `ℝ≥0∞`-density measure on the countable lattice. Its singleton mass is
 pushforward `μ.bind (jumpKernel κ)` on any set as the predecessor-indexed tsum
 `∑' n, ofReal (jumpStationaryMass κ c n) · jumpKernel κ n s`;
 `jumpStationaryMeasure_bind_singleton` is its singleton specialization with the kernel row
-expanded over reactions. This module states the predecessor `bind`-to-sum identity but does
-not yet close it into invariance.
+expanded over reactions. This module states the predecessor `bind`-to-sum identity; closing
+it into invariance is the content of `KernelStationary` below.
 
 `CRNT/Stochastic/KernelStationary.lean` closes this into genuine measure invariance. The
 unique source-dominating **`predecessorCount r m = m + source r − target r`** is the only
@@ -196,9 +202,9 @@ enabled regions is closed under arbitrary union (`sUnion_closedEnabledRegion`), 
 of all of them, **`maximalClosedEnabledRegion`**, is itself a closed enabled region
 (`closedEnabledRegion_maximal`) containing every other (`subset_maximalClosedEnabledRegion`).
 **`jumpKernel_invariant_maximalRegion`** carries the invariant measure on this canonical
-region with no region supplied by hand. The maximal region is an existence object: pinning it
-down to a concrete count set (the irreducible communicating class of a given network) is the
-deeper outstanding dependency and is not part of the library.
+region with no region supplied by hand. The maximal region is an existence object; pinning it
+down to a concrete count set for a given network is addressed, for the reversible pair, by the
+conservation-class construction below.
 
 ## Normalization, support, and product-form proportionality
 
@@ -237,28 +243,252 @@ positivity, the discrete shadow of the Anderson–Craciun–Kurtz product form. 
 biconditional `jumpKernel_invariantProb_singleton_ne_zero_iff` records that a singleton mass is
 nonzero exactly when the count lies in the region.
 
-## What is not here
+## Uniqueness and geometric convergence of the embedded jump chain
 
-The coverage is deliberately bounded, and the following are simply not part of the current
-library:
+Existence of a stationary law is not uniqueness, and invariance is not convergence. On a
+finite region the embedded jump chain is a finite-state Markov chain, and the finite-state
+Perron–Frobenius theory of `CRNT.LinearAlgebra.PerronFrobenius` supplies both. Mathlib's
+`ProbabilityTheory.Kernel.Irreducible` is a stub carrying no uniqueness, so the ergodic
+content is obtained through the restricted transition matrix rather than the kernel API.
 
-- **No continuous-time process layer.** Mathlib has no continuous-time Markov generator or
-  semigroup type, so the generator is an explicit pointwise-finite operator and the
-  probabilistic kernel content lives in the *embedded discrete-time jump chain*, not a
-  continuous-time semigroup or a path-space process. The statement "the semigroup
-  `e^{tQ}` preserves the law" is not phrased. The README lists process-level stochastics as
-  still to build.
-- **No Kurtz scaling limits.** The relation between the stochastic chain and the
-  deterministic mass-action ODE in the large-volume limit (Kurtz, *Solutions of ordinary
-  differential equations as limits of pure jump Markov processes*) is not formalized; the
-  README lists the deterministic (Kurtz) scaling limit as still to build.
-- **Unconditional invariance on the full lattice** is not proved. Measure invariance
-  (`jumpKernel_invariant_jumpStationaryMeasure`) requires global no-boundary hypotheses,
-  because absorbing low-count states break strict pointwise balance. Removing them is done
-  only by restricting to a closed enabled region; the resulting region-restricted invariance,
-  its maximal-region form, its normalization to an invariant probability measure, and that
-  measure's support are all unconditional. What stays open is pinning the maximal closed
-  enabled region down to a concrete count set for a given network — the communicating-class
-  characterization, which needs network-structural reachability analysis the library does not
-  yet supply. `Kernel.IsReversible` (which also needs network reversibility) is not
-  established.
+`CRNT/Stochastic/Ergodicity.lean` sets up the matrix bridge. **`regionMatrix κ T`** is the
+restricted transition matrix on the finite type `↥T`, entry `i, j` the kernel mass
+`(jumpKernel κ j {i}).toReal`; it is nonnegative (`regionMatrix_nonneg`) and, by
+forward-closure of a closed enabled region, column-stochastic (`regionMatrix_colStochastic`).
+**`stationaryVec μ`** is the real singleton-mass vector of a region-supported measure, and
+**`stationaryVec_mulVec_fixed`** reads invariance of a region-supported probability measure as
+the matrix fixed-point equation `regionMatrix · v = v`. The irreducibility hypothesis is
+**`regionStronglyConnected`**: the support digraph of `regionMatrix` is strongly connected.
+Under it, **`invariant_probabilityMeasure_unique_on_region`** proves that any two invariant
+probability measures supported on a finite strongly connected closed enabled region coincide —
+uniqueness via Perron–Frobenius, the finite-state replacement for general Meyn–Tweedie
+ergodicity.
+
+`CRNT/Stochastic/ErgodicConvergence.lean` and `CRNT/Stochastic/ErgodicConvergenceGeneral.lean`
+prove geometric mixing in the `ℓ¹` distance `l1Dist u v = ∑ i, |u i − v i|`. A column-stochastic
+matrix is `ℓ¹`-nonexpansive on mass-balanced differences (`colStochastic_l1_le`); a strictly
+positive one contracts by the Doeblin factor `1 − card · δ < 1` (`colStochastic_l1_contraction`).
+**`colStochastic_pow_mulVec_tendsto`** handles the strictly-positive (one-step primitive) case,
+and **`colStochastic_primitive_pow_mulVec_tendsto`** the general **primitivity** case — some
+fixed power `P^N` is entrywise strictly positive — by interleaving the `N`-step Doeblin
+contraction with per-step nonexpansiveness of the residual factor. The region-level payoff is
+**`regionMatrix_primitive_pow_mulVec_tendsto_stationaryVec`**: on a finite primitive closed
+enabled region, the `n`-step singleton masses of any region-supported initial law converge to
+the canonical stationary singleton masses (`stationaryProbabilityMeasure`).
+
+`CRNT/Stochastic/RegionPrimitive.lean` discharges primitivity from a checkable structural
+class: **`primitive_of_stronglyConnected_self_loop`** — a nonnegative matrix with strongly
+connected support digraph and a single self-loop (a state with positive diagonal) has a strictly
+positive fixed power, the standard irreducibility-plus-aperiodicity criterion; its region form
+is **`regionPrimitive_of_stronglyConnected_self_loop`**.
+
+The strong-connectivity hypothesis is itself reduced to network structure.
+`CRNT/Stochastic/RegionStronglyConnected.lean` defines **`RegionJumpStronglyConnected`** — every
+ordered pair of region counts joined by a forward walk of positive-probability enabled jumps —
+and **`regionStronglyConnected_of_jumpReaches`** discharges `regionStronglyConnected` from it.
+`CRNT/Stochastic/JumpReachabilityLift.lean` and `CRNT/Stochastic/CountWitnessPath.lean` lift
+reaction-graph reachability (`Reaches`) to count-level jump walks through a `FireableList`,
+discharging `RegionJumpStronglyConnected` on a *complex-shift region* (a region that is a base
+count shifted along reachable complexes) from weak reversibility alone
+(`weaklyReversible_pow_mulVec_tendsto_stationaryVec`,
+`complexShiftRegion_pow_mulVec_tendsto_stationaryVec`).
+
+### The self-loop obstruction
+
+The catch is aperiodicity. `CRNT/Examples/StochasticConvergenceExample.lean` proves two
+obstructions on the reversible pair `A ⇌ B`, generic to any genuine network:
+
+- **`no_aperiodic_self_loop`**: a positive-probability reaction is enabled, so its firing is the
+  exact untruncated shift `n − source + target`, which equals `n` only when `source = target`.
+  A reaction between distinct complexes therefore never holds, so the embedded jump chain has
+  **no** aperiodicity self-loop, and its restricted matrix is never primitive.
+- **`pair_not_closed_of_mem`**: enabled-everywhere forces every member of a closed enabled
+  region off the propensity-vanishing simplex boundary, while forward-closure drags boundary-
+  adjacent firings back onto it. No nonempty conservation window of `A ⇌ B` is a closed enabled
+  region.
+
+So the closed-enabled-region-plus-self-loop convergence interface, though sound, is jointly
+unsatisfiable on the genuine count lattice of a mass-action network. The resolution is
+uniformization.
+
+## The uniformized transition semigroup
+
+`CRNT/Stochastic/Semigroup.lean` builds the continuous-time transition semigroup
+`P_t = exp(tQ)` by **uniformization** (Jensen; Norris, *Markov Chains*). Over a finite region
+the exit rate is bounded by **`uniformizationRate`** `Λ = 1 + ∑_{n ∈ T} exitRate κ n`, so the
+generator factors through a single bounded stochastic kernel
+
+```
+uniformizedKernel  U = (1 − w)·δ_n + w·jumpKernel,   w = exitRate κ n / Λ ,
+```
+
+a genuine Markov kernel (`instIsMarkovKernel_uniformizedKernel`) that carries a **holding
+term** at every region state — the self-loop the embedded chain lacks. The semigroup is the
+Poisson-weighted superposition of its powers,
+
+```
+cmeSemigroup κ hTfin t (n, ·) = ∑_{k ≥ 0} e^{−Λt}(Λt)^k/k! · U^{∘k}(n, ·) ,
+```
+
+each **`cmeSemigroup t`** a Markov kernel (`instIsMarkovKernel_cmeSemigroup`). The structure of
+the semigroup:
+
+- **`cmeSemigroup_zero`**: `P_0 = id` (the rate-zero Poisson mass concentrates on `U^{∘0}`).
+- **`cmeSemigroup_comp`** (`CRNT/Stochastic/SemigroupComposition.lean`): the Chapman–Kolmogorov
+  law `P_{s+t} = P_s ∘ₖ P_t`, from the Poisson point-mass convolution
+  `∑_{j+k=m} Po(s){j}·Po(t){k} = Po(s+t){m}` (the binomial theorem) and the kernel power law
+  `U^{∘j} ∘ₖ U^{∘k} = U^{∘(j+k)}`.
+- **`cmeSemigroup_preserves_stationarity`**: the support-restricted, normalized product-Poisson
+  probability measure is invariant under every `P_t`, at a strictly positive complex-balanced
+  concentration. This is the process-level companion of the generator stationarity `πQ = 0`:
+  the continuous-time semigroup carries the Anderson–Craciun–Kurtz law to itself for all time.
+  The preserved law is the product-Poisson density **`cmeStationaryMeasure`** itself — *not* the
+  holding-rate-reweighted jump-chain law of `KernelNormalized`; the two differ by the `exitRate`
+  factor, and uniformization maps the density to itself through the embedded jump-chain balance.
+
+`CRNT/Stochastic/UniformizedConvergence.lean` proves convergence of the uniformized chain.
+Its region matrix **`uRegionMatrix`** is column-stochastic (`uRegionMatrix_colStochastic`) and,
+crucially, has a **strictly positive diagonal** (`uRegionMatrix_diag_pos`): the holding weight
+`1 − w > 0` supplies the aperiodicity self-loop from `U`, not from a network reaction, so the
+obstruction `no_aperiodic_self_loop` does not apply. Inheriting strong connectivity from the
+embedded chain (`uRegionMatrix_stronglyConnected_of_regionStronglyConnected`, since the jump
+term keeps every support edge), the matrix is primitive (`uRegionMatrix_primitive`) and its
+powers converge geometrically (**`uRegionMatrix_pow_mulVec_tendsto`**) — non-vacuous exactly
+where the embedded-chain theorem was empty.
+
+## The conservation-class realization and the `A ⇌ B` instance
+
+The closed-enabled-region hypothesis is still unsatisfiable on a genuine conservation window,
+so `CRNT/Stochastic/ConservationClassRegion.lean` relaxes it to precisely what column-
+stochasticity of `U` needs. A **`ConservationClassRegion`** requires only that no member is
+absorbing (`exit_ne`) and that every *positive-probability* firing lands in the region
+(`forward`) — no enabled-everywhere or target-domination demand, so boundary members belong.
+Every `ClosedEnabledRegion` is one (`ClosedEnabledRegion.toConservationClassRegion`). Under it,
+`U`'s region matrix is column-stochastic (`uRegionMatrix_colStochastic_of_conservationClass`)
+and primitive on a jump-strongly-connected region
+(`uRegionMatrix_primitive_of_conservationClass`), giving geometric convergence
+(**`uRegionMatrix_pow_mulVec_tendsto_of_conservationClass`**).
+
+The reversible pair `A ⇌ B` on a fixed conservation class `{n : n_A + n_B = K}` is exhibited as
+a genuine such region: finite (`conservationClass_finite`), non-absorbing and jump-forward-closed
+(`conservationClassRegion`), and jump-strongly-connected as a birth–death chain on `{0,…,K}`
+(`conservationClass_jumpStronglyConnected`, routed through the boundary count `(K,0)`). This
+discharges every hypothesis, giving unconditional discrete geometric convergence
+**`conservationClass_pow_mulVec_tendsto`** on a weakly reversible network — the aperiodicity
+self-loop supplied by the uniformized holding mass even at the simplex boundary where a closed
+enabled region cannot exist.
+
+`CRNT/Stochastic/SemigroupConvergence.lean` lifts this discrete mixing to continuous time. The
+analytic engine is **`tendsto_poissonAverage_atTop`**: if a real sequence `a_k → L`, its Poisson
+average `∑_k Po(r){k}·a_k → L` as the rate `r → ∞` (a Poisson-tail/dominated-convergence
+argument, from `x^k e^{−x} → 0`). Threading `r = Λt` with `Λ > 0` (`tendsto_poissonRate_atTop`),
+the continuous-time region vector **`cmeRegionVec`** `= P_t x` relaxes to the discrete stationary
+law: **`cmeRegionVec_tendsto_of_conservationClass`** gives `P_t x → π` as `t → ∞` on a jump-
+strongly-connected conservation-class region, and **`conservationClass_cmeRegionVec_tendsto`**
+delivers it **unconditionally** on the `A ⇌ B` conservation class — the process-level
+relaxation to the Anderson–Craciun–Kurtz product-Poisson law on a genuine network.
+
+## Density-dependent (Kurtz) scaling
+
+`CRNT/Stochastic/KurtzScaling.lean` relates the stochastic chain to the deterministic mass-action
+ODE in the large-volume limit (Kurtz, *Solutions of ordinary differential equations as limits of
+pure jump Markov processes*). The volume-scaled generator **`scaledGenerator κ V f x`** acts on an
+observable `f` by `∑_r V·massActionRate κ r x · (f(x + V⁻¹·reactionVector r) − f x)`, and
+**`tendsto_scaledGenerator`** proves its pointwise limit: for any Fréchet-differentiable `f`,
+`scaledGenerator κ V f x → f'(x)(massActionVectorField κ x)` as `V → ∞`. This is the
+generator-convergence estimate, unconditional apart from the differentiability of `f`, with a
+worked instance on `A ⇌ B` (`tendsto_scaledGenerator_reversiblePair`).
+
+`CRNT/Stochastic/KurtzFluidLimit.lean` is the deterministic skeleton of the fluid limit. The
+limiting reaction-rate ODE is well-posed on a bounded region (Picard–Lindelöf existence
+`exists_fluidODE_local`; Grönwall uniqueness `fluidODE_unique`, given a Lipschitz bound). The
+fluid-limit estimate **`fluidLimit_dist_le`** bounds the scaled trajectory against the ODE
+solution by a Grönwall envelope `gronwallBound δ K η (t − a)`, and
+**`fluidLimit_tendsto_uniformly`** sends that bound to zero, conditional on an explicit
+fluctuation-residual hypothesis `hfluct : dist(Ẋ^V, F(X^V)) ≤ η_V` with `η_V → 0`. The
+probabilistic content is carried in `η_V`; the theorem itself is a deterministic Grönwall
+argument.
+
+That fluctuation residual is studied probabilistically, at the level of a static Poisson-clock
+model, in `CRNT/Stochastic/{PoissonFluctuation,MultiPoissonFluctuation,PoissonClockFamily,
+TimeChangedFluctuation}.lean`. Mathlib carries no Poisson mean or variance, so both are proved
+there (`integral_id_poissonMeasure`, `variance_id_poissonMeasure`). The independent scaled-
+Poisson clock family `clockMeasure = ⊗_r Po(V·a_r)` is constructed with its independence and
+per-term variance proved (`indepFun_scaledClock`, `variance_scaledClock`), giving an
+**unconditional** aggregate law of large numbers: the total weighted scaled count converges to its
+mean in probability as `V → ∞`, with variance of order `1/V`
+(`variance_aggregate_scaledClock`, `tendsto_meas_aggregate_scaledClock`,
+`tendsto_meas_aggregate_centeredTimeChange`, `exists_timeChanged_fluct_bound`, the last packaged as
+the `η_V → 0` datum). The convergence is Chebyshev-based (in probability), and the time change is
+deterministic — each clock is evaluated at the integrated intensity `V·∫₀ᵗ λ_r(x_s) ds` along the
+*limit* ODE, the leading term of the genuine state-dependent time change.
+
+## Scope
+
+The probabilistic content lives in three objects: the generator as an explicit pointwise-finite
+operator, the embedded discrete-time jump chain as a Mathlib `Kernel`, and the uniformized
+continuous-time transition semigroup `P_t = exp(tQ)`. The following lie outside it:
+
+- **No sample-path stochastic process.** There is no path space (Skorokhod / càdlàg trajectories),
+  no filtration, no martingale object, and no strong Markov property. Statements are about
+  generators, kernels, transition semigroups, and static product-Poisson random variables, not
+  about trajectories of a constructed process.
+- **The continuous-time semigroup is region-scoped.** `cmeSemigroup` is built by uniformization,
+  which needs a bounded exit rate, so it is defined over a *finite* region, not on the full count
+  lattice where mass-action exit rates grow without bound.
+- **Full-lattice unconditional invariance requires region restriction.** Measure invariance
+  (`jumpKernel_invariant_jumpStationaryMeasure`) requires global no-boundary hypotheses, since
+  absorbing low-count states break strict pointwise balance; the unconditional forms restrict to a
+  closed enabled region (or, for `U`, a conservation-class region).
+- **The maximal communicating class is identified only for `A ⇌ B`.** `maximalClosedEnabledRegion`
+  is an existence object; its concrete count set — the complex-shift-orbit characterization — is
+  pinned down for the `A ⇌ B` conservation class, not for an arbitrary network.
+- **The Kurtz fluid limit is a conditional process-level statement.** The generator-convergence
+  estimate and the Poisson-clock aggregate law of large numbers are unconditional, but the
+  fluid-limit convergence `fluidLimit_tendsto_uniformly` is conditional on a supplied fluctuation-
+  residual bound; no theorem connects the Poisson-clock tail bound to that hypothesis, and the
+  state-dependent random time change and the Skorokhod-path convergence it supports are not present.
+- **No central-limit / diffusion limit.** The fluctuations carry a second-moment order
+  `Var = O(1/V)` and Chebyshev convergence in probability, not convergence in distribution to a
+  Gaussian or diffusion.
+- **Reversibility / detailed balance is not established.** `Kernel.IsReversible`, which needs
+  network reversibility, is not proved.
+
+## Modules
+
+Product form, generator, and the embedded jump chain:
+
+`CRNT/Stochastic/`: `ProductForm`, `Generator`, `CTMC`, `JumpKernel`, `Kernel`,
+`KernelInvariant`, `KernelStationary`, `KernelIrreducible`, `KernelMaximalRegion`,
+`KernelNormalized`, `KernelSupport`, `KernelProductForm`.
+
+Ergodic theory of the embedded chain:
+
+`CRNT/Stochastic/`: `Ergodicity` (`regionMatrix`, `stationaryVec`, `regionStronglyConnected`,
+uniqueness), `ErgodicConvergence` (strictly-positive Doeblin convergence),
+`ErgodicConvergenceGeneral` (`colStochastic_primitive_pow_mulVec_tendsto`, `regionPrimitive`),
+`RegionPrimitive` (primitivity from a self-loop), `RegionStronglyConnected`
+(`RegionJumpStronglyConnected`, irreducibility from jump-reachability),
+`JumpReachabilityLift`, `CountWitnessPath` (reaction-graph reachability lifted to count walks).
+
+Uniformized continuous-time semigroup and the conservation-class realization:
+
+`CRNT/Stochastic/`: `Semigroup` (`uniformizedKernel`, `cmeSemigroup`, stationarity preservation),
+`SemigroupComposition` (Chapman–Kolmogorov), `UniformizedConvergence` (`uRegionMatrix`
+primitivity and convergence), `ConservationClassRegion` (the relaxed region and the `A ⇌ B`
+conservation class), `SemigroupConvergence` (continuous-time relaxation `P_t x → π`).
+`CRNT/Examples/StochasticConvergenceExample.lean` records the self-loop and closed-region
+obstructions on `A ⇌ B`.
+
+Density-dependent (Kurtz) scaling and fluctuations:
+
+`CRNT/Stochastic/`: `KurtzScaling` (generator convergence), `KurtzFluidLimit` (the deterministic
+Grönwall skeleton, conditional on a fluctuation residual), `PoissonFluctuation`,
+`MultiPoissonFluctuation`, `PoissonClockFamily`, `TimeChangedFluctuation` (the Poisson-clock law of
+large numbers).
+
+## Related documents
+
+- [`architecture.md`](architecture.md): how this area fits the whole library.
+- [`deficiency.md`](deficiency.md): complex balancing and the deficiency-zero theory this regime
+  mirrors, with the complex-balanced equilibrium as the Poisson parameter.

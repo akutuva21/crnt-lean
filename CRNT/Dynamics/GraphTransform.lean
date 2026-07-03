@@ -57,15 +57,15 @@ geometric data: a fibre Lipschitz/drift constant `Lf` strictly below the rate `�
 `‖M_ε - M_0‖_∞ ≤ ε · C / (1 - Lf / λ)`. This is the genuine spectral-gap criterion: the rate `λ`
 dominating the perturbation Lipschitz term is exactly what closes the contraction.
 
-**Out of scope (the next dependency).** This builds the perturbed invariant manifold `M_ε` as the
+**Scope.** This builds the perturbed invariant manifold `M_ε` as the
 fixed-point section and proves its existence, uniqueness, and `O(ε)` `C⁰`-closeness to `M_0`. The
 remaining piece of the full Fenichel theorem is *local invariance of `M_ε` under the coupled
 ε-flow*: that the graph of the fixed-point section is forward-invariant under `ẏ = ε·g`, `ż = fast y z`.
 That conclusion needs the time-one (or short-time) flow map of the coupled field realized as the
 concrete graph-transform operator `T`, i.e. the ODE plumbing tying `T`'s fixed point to flow
-invariance, which is a separate development.
+invariance.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.FenichelC1Manifold`,
+Depends on: `CRNT.Dynamics.FenichelC1Manifold`,
 `Mathlib.Topology.MetricSpace.Contracting`, `Mathlib.Topology.ContinuousMap.Bounded.Normed`.
 -/
 

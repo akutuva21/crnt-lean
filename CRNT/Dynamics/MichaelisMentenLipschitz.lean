@@ -47,7 +47,7 @@ mmRegFastFieldLipConst rate Km Vmax · dist s s'` — the exact shape of the `hl
 reduction with the substrate-Lipschitz hypothesis discharged: the only remaining hypotheses are
 `0 < rate`, `0 < Km`, `0 ≤ ε`, and the drift bound `‖g‖ ≤ G`.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.MichaelisMentenCoupledContraction`, `Mathlib.Analysis.Calculus.MeanValue`.
 -/
 

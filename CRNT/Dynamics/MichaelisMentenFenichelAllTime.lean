@@ -38,7 +38,7 @@ fast fibre is normally attracting at rate `rate` toward the substrate-varying Mi
 quasi-steady-state level `Vmax·s/(Km+s)`, so the persisted manifold is the genuine moving equilibrium
 graph, invariant under the continuous coupled semiflow, with `O(ε)` slow-drift defect.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.MichaelisMentenFenichel`.
+Depends on: `CRNT.Dynamics.MichaelisMentenFenichel`.
 -/
 
 open Function Set

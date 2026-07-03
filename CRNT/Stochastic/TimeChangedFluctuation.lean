@@ -36,9 +36,9 @@ The bridge to the deterministic fluid-limit skeleton packages the in-probability
 * `exists_timeChanged_fluct_bound` : for each tolerance there is an eventual deviation bound, the
   `η_V → 0` data that the Grönwall envelope of `fluidLimit_tendsto_uniformly` collapses.
 
-The genuine state-dependent random time change — evaluating each clock at `V ∫₀ᵗ λ_r(X^V s) ds`
-along the random trajectory, controlling the difference by optional stopping of the compensated
-Poisson martingale — is the next development. Here the time-change point is deterministic.
+Here the time-change point is deterministic. The genuine state-dependent random time change —
+evaluating each clock at `V ∫₀ᵗ λ_r(X^V s) ds` along the random trajectory — requires optional
+stopping of the compensated Poisson martingale.
 -/
 
 namespace CRNT.Stochastic

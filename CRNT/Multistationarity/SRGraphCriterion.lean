@@ -34,7 +34,7 @@ foundation the Craciun–Feinberg criterion is built on; relating cycle parity t
 Jacobian determinant sign condition requires the signed/labeled SR-graph and a
 determinant-via-matchings expansion, which this module does not provide.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Multistationarity.SRGraph`, `Mathlib.Combinatorics.SimpleGraph.Paths`,
 `Mathlib.Combinatorics.SimpleGraph.Walk.Traversal`,
 `Mathlib.Combinatorics.SimpleGraph.Girth`.

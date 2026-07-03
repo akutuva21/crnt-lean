@@ -46,7 +46,7 @@ slow-variable-dependent `h(y)`; there is no infinite-horizon shadowing, so the s
 compact-time; and there is no parametrised uniform-in-`ε` attraction family, so the `ε → 0` limit
 is taken on the already-derived bound.
 
-This module is **stable** and `sorry`-free. Depends on: Mathlib.Analysis.ODE.Gronwall,
+Depends on: Mathlib.Analysis.ODE.Gronwall,
 Mathlib.Analysis.InnerProductSpace.Calculus, Mathlib.Analysis.Calculus.MeanValue,
 Mathlib.Analysis.SpecialFunctions.Exp, CRNT.Dynamics.QSSA.
 -/

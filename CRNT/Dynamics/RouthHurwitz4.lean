@@ -33,7 +33,7 @@ roots `r, s`, pair `p ± i√q`) it is `2p(r+s)((r+p)²+q)((s+p)²+q)`, and for 
 pairs (`p ± i√q`, `u ± i√v`) it is `4pu(((p+u)²+q+v)² − 4qv)`, both manifestly nonnegative
 under the left-half-plane sign hypotheses.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.Hurwitz.
+Depends on: CRNT.Dynamics.Hurwitz.
 -/
 
 namespace CRNT

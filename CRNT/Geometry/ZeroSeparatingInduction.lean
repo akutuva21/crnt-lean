@@ -92,7 +92,7 @@ four-dimensional instance. Not constructed here: the explicit decomposition of a
 ruled patches each crossing a single uncertainty region (carried as the `hbuild` witness of
 `inductionStep_of_ruledBuild`), and the analysis identifying the per-patch attracting directions.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.ZeroSeparatingSurface`,
+Depends on: `CRNT.Geometry.ZeroSeparatingSurface`,
 `CRNT.Geometry.FaithfulCurve2D`, `Mathlib.LinearAlgebra.Dimension.Constructions`,
 `Mathlib.Analysis.InnerProductSpace.Projection.Submodule`.
 -/

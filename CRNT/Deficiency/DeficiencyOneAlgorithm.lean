@@ -20,11 +20,11 @@ networks*, Ohio State University, 2011, §1.6; Feinberg, *Arch. Rational Mech. A
   deficiency-one network, `HasMultistationarityCapacity ↔ DOAAffirmsCapacity`. This is **stated as
   the target proposition, not proved** — it is Feinberg's deficiency-one theorem, a substantial
   analytic result outside the scope of this module. It is written as a `def` (a named proposition),
-  never asserted as a theorem, so the module remains `sorry`-free and axiom-clean.
+  never asserted as a theorem.
 * `stoichSubspace_ne_bot_of_doaAffirmsCapacity` — a genuine consequence of the verdict, proving the
   apparatus is non-vacuous: affirming capacity exhibits a nonzero stoichiometric vector.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Deficiency.Shelf`,
+Depends on: `CRNT.Deficiency.Shelf`,
 `CRNT.Deficiency.DeficiencyOne`, `CRNT.Multistationarity.Capacity`.
 -/
 
@@ -45,7 +45,7 @@ def DOAAffirmsCapacity (N : Network S) : Prop :=
 /-- **The Deficiency One Algorithm correctness statement.** For a regular deficiency-one network,
 the capacity for multiple positive steady states is equivalent to the existence of a signature.
 This is Feinberg's theorem (1995); it is recorded here as the target proposition and is *not*
-proved — neither direction is established, so no `sorry` is incurred. -/
+proved — neither direction is established. -/
 def DeficiencyOneAlgorithmStatement (N : Network S) : Prop :=
   N.RegularNetwork → N.DeficiencyOne →
     (N.HasMultistationarityCapacity ↔ N.DOAAffirmsCapacity)

@@ -16,7 +16,7 @@ and two parameters giving the same value of `H` coincide.
 
 * `eq_of_shiftedLogSum_eq` — `H β₁ = H β₂ ⟹ β₁ = β₂`.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.LinearAlgebra.PowerProductMonoFinset`.
 -/
 

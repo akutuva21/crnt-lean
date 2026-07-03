@@ -21,7 +21,7 @@ subspace, isolated from any chemistry and from any degree theory.
   `compose`, witnessed by the perturbation `u + t • v ∈ S`.
 * `realizable_zero`, `realizable_neg` — the symmetry (zero / negation) covector axioms.
 
-This module is **stable** and `sorry`-free. Depends on: `Mathlib.Data.Sign.Basic`,
+Depends on: `Mathlib.Data.Sign.Basic`,
 `CRNT.LinearAlgebra.SignVector`.
 -/
 

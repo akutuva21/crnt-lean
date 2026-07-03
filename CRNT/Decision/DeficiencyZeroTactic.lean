@@ -6,7 +6,7 @@ import Mathlib.Data.List.Sublists
 /-!
 # The `crnt_deficiency_zero` tactic
 
-An axiom-clean deficiency-zero certificate reduces, by `deficiencyZero_of_minor`, to two obligations:
+A deficiency-zero certificate reduces, by `deficiencyZero_of_minor`, to two obligations:
 a `k × k` stoichiometric minor with nonzero rational determinant (witnessing `s ≥ k`), and the count
 inequality `n ≤ k + ℓ`. Discharging these by hand is linear algebra an external tool will not write.
 
@@ -24,13 +24,13 @@ Both discharge each obligation on the kernel path: the determinant by `simp` wit
 determinant lemmas (`det_fin_one`/`two`/`three`, with a `det_succ_row_zero` cofactor fallback) under
 ground reduction — which evaluates the concrete reaction-vector entries in either the codegen
 (inductive `Species`) or the data-driven (`Fin n`) encoding — and the count by rewriting the
-noncomputable `numLinkageClasses` to the evaluable `computeNumLinkageClasses` and then `decide`. The
-certificate is axiom-clean; no `native_decide`.
+noncomputable `numLinkageClasses` to the evaluable `computeNumLinkageClasses` and then `decide`; no
+`native_decide`.
 
 `crnt_stoich_rank_ge f, σ` reuses the same determinant discharge to prove `k ≤ N.stoichRank` from a
 nonsingular-minor witness (`stoichRank_ge_of_det_ne_zero`).
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Decision.Rank`,
+Depends on: `CRNT.Decision.Rank`,
 `CRNT.Decision.ComputableDeficiency`, `CRNT.Decision.MinorSearch`.
 -/
 

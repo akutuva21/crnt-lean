@@ -78,7 +78,7 @@ polyhedral fan is crossed: identifying the crossed walls with the genuinely-acti
 the fan, for an arbitrary fan, is the per-wall geometry of the fan's normal structure, separate from
 this graph-theoretic extraction.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.ToricStrictSupport`,
+Depends on: `CRNT.Geometry.ToricStrictSupport`,
 `CRNT.Graph.Crossing`, `CRNT.Graph.CycleCover`.
 -/
 

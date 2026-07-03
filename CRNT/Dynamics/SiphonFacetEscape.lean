@@ -34,7 +34,7 @@ never reaches the full siphon face `SiphonFace P` in finite time. This is the An
 finite-time facet-escape conclusion for a general critical siphon. The ω-limit no-facet-point
 conclusion needs the second-order subtangent estimate and is out of scope here.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.SingletonFacetEscape`.
+Depends on: `CRNT.Dynamics.SingletonFacetEscape`.
 -/
 
 open Set

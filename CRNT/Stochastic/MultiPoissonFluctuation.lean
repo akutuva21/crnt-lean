@@ -21,9 +21,7 @@ turns pairwise independence into additivity of variance, so the aggregate inheri
   the aggregate scaled fluctuation to its mean, with constant `C = ∑_r c r = ∑_r weight_r² · a_r`.
 
 For the stoichiometric reading, `c r = weight_r ^ 2 · a_r` with `weight_r` the reaction's
-coefficient and `a_r` its per-volume rate; then `C = ∑_r weight_r² · a_r`. Assembling the
-independent Poisson family with the joint law that realizes `Var[X r] = weight_r² · a_r / V`
-(via the random time change of the clocks) is the next development.
+coefficient and `a_r` its per-volume rate; then `C = ∑_r weight_r² · a_r`.
 -/
 
 namespace CRNT.Stochastic

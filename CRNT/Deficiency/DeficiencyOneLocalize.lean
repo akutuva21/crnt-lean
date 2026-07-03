@@ -12,7 +12,7 @@ mass-action steady state is complex-balanced on every deficiency-zero linkage cl
 (`restrictToClass_kineticImage_eq_zero`): the deficiency-one analysis localizes to the single
 deficient class.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.DeficiencyOneDecomp`,
+Depends on: `CRNT.Deficiency.DeficiencyOneDecomp`,
 `CRNT.Deficiency.ClassConservation`, `CRNT.Deficiency.SteadyStateKernel`.
 -/
 

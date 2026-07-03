@@ -16,7 +16,7 @@ This is persistence stated at the ω-limit set: combined with the relative-entro
 structural condition `HasNoCriticalSiphon` to the global attractor conjecture for the no-critical-
 siphon class.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.CriticalSiphonOmega`.
+Depends on: `CRNT.Dynamics.CriticalSiphonOmega`.
 -/
 
 open Filter Topology

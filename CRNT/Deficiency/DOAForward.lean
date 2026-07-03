@@ -21,7 +21,7 @@ This is the first step of the forward direction. Bridging from "a nonzero sign-c
 full **signature** — that `μ` solves some shelf partition's constraint system (`DOAAffirmsCapacity`)
 — is the deficiency-one structural analysis (Feinberg 1995) and is not carried out here.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Multistationarity.Capacity`,
+Depends on: `CRNT.Multistationarity.Capacity`,
 `CRNT.Deficiency.Signature`.
 -/
 

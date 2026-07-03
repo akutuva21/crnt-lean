@@ -362,7 +362,7 @@ theorem mulVec_mapsTo_realUnstableSubspace (A : Matrix (Fin n) (Fin n) ℝ) :
 end CRNT.SpectralSplittingReal
 
 /-!
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.SpectralSplitting`, `Mathlib.LinearAlgebra.Matrix.ToLin`,
 `Mathlib.Analysis.Complex.Basic`.
 -/

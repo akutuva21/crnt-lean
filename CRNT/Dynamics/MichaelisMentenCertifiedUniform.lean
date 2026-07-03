@@ -56,7 +56,7 @@ the fast relaxation dominates; it is supplied here as an explicit hypothesis on 
 exactly the negative logarithmic-norm condition the Dahlquist theory requires and the engine of
 `CRNT.Dynamics.DissipativeTracking` consumes.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.DissipativeTracking`,
+Depends on: `CRNT.Dynamics.DissipativeTracking`,
 `CRNT.Dynamics.MichaelisMentenCertified`.
 -/
 

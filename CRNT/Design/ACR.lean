@@ -25,7 +25,7 @@ proof is not yet available in this development; `PinnedRatio` is therefore consu
 hypothesis rather than discharged. Everything else — the cross-multiplied monomial
 identity, the pinning lever, and the reduction of `HasACR` to `PinnedRatio` — is proved.
 
-This module is **stable**. Depends on: `CRNT.Equilibria.SteadyState`,
+Depends on: `CRNT.Equilibria.SteadyState`,
 `CRNT.Deficiency.DeficiencyOneHypotheses`.
 -/
 

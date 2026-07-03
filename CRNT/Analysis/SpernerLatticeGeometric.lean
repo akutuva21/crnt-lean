@@ -11,7 +11,7 @@ two vertices of the same triangle of the subdivision) map within sup-distance `2
 the mesh shrinks to `0`. This realization carries the discrete Sperner lemma to the analytic
 Brouwer fixed-point theorem.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLattice`, Mathlib
+Depends on: `CRNT.Analysis.SpernerLattice`, Mathlib
 `Analysis.Convex.StdSimplex`.
 -/
 

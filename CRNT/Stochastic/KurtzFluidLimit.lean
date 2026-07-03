@@ -35,10 +35,10 @@ needs no probability:
 
 The fluctuation residual `η V` is the only probabilistic input, isolated as a hypothesis. Its
 discharge — that the martingale term of the scaled jump process is `O(1/√V)` — needs Poisson
-processes and the Skorokhod path space, which are not in Mathlib; that is the frontier the
-process-level law of large numbers builds on top of this deterministic skeleton.
+processes and the Skorokhod path space, which are not in Mathlib; the process-level law of large
+numbers builds on this deterministic skeleton.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.MassActionField`,
+Depends on: `CRNT.Dynamics.MassActionField`,
 `CRNT.Stochastic.KurtzScaling`.
 -/
 
@@ -109,9 +109,9 @@ trajectory stays within the Grönwall envelope of the ODE solution:
 
   `dist (X t) (x t) ≤ gronwallBound δ K η (t − a)`  for all `t ∈ Icc a b`.
 
-This is the deterministic provable core of Kurtz's law of large numbers. The residual `η` is
+This is the deterministic core of Kurtz's law of large numbers. The residual `η` is
 the magnitude of the martingale/Poisson fluctuation term; bounding it (the `O(1/√V)` estimate)
-is the isolated probabilistic input deferred to the process level. -/
+is the isolated probabilistic input, supplied at the process level. -/
 theorem fluidLimit_dist_le (N : Network S) (κ : RateConstants N) {r : Set (Concentration S)}
     {K : ℝ≥0} (hK : LipschitzOnWith K (N.massActionVectorField κ) r)
     {x X : ℝ → Concentration S} {X' : ℝ → Concentration S} {a b δ η : ℝ}
@@ -156,7 +156,7 @@ volume filter `ℓ`. Concretely the supremal distance to the ODE solution is squ
 
 stated here in the pointwise-uniform form `Tendsto (fun V => sup over t of dist) ℓ (𝓝 0)` via
 the Grönwall envelope. This is the deterministic skeleton of Kurtz's LLN: the only inputs are
-the deterministic well-posedness and the (deferred, probabilistic) fluctuation decay
+the deterministic well-posedness and the probabilistic fluctuation decay
 `η V → 0`. -/
 theorem fluidLimit_tendsto_uniformly {ι : Type*} (N : Network S) (κ : RateConstants N)
     {r : Set (Concentration S)} {K : ℝ≥0}

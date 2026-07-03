@@ -14,7 +14,7 @@ nonnegative nonzero kernel vector of `A_k` supported on `θ`
 This is the existence half of the per-class kernel structure underlying the deficiency-one
 theorem: each linkage class carries its own equilibrium mode of `A_k`.
 
-This module is **stable**. Depends on: `CRNT.Theorems.DeficiencyZero.PositiveKernel`,
+Depends on: `CRNT.Theorems.DeficiencyZero.PositiveKernel`,
 `CRNT.Deficiency.KineticBlock`.
 -/
 

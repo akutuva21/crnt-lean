@@ -7,8 +7,6 @@ import CRNT.Examples.ReversiblePair
 The reversible pair has a single linkage class, so the per-class deficiency sum equals the
 network deficiency. With `δ = 0` the decomposition inequality `∑_θ δ_θ ≤ δ` reads
 `∑_θ δ_θ ≤ 0`.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Examples.LinkageDeficiencyExample

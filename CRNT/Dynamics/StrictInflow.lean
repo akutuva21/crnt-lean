@@ -19,7 +19,7 @@ This is the dynamical opposite of `massActionVectorField_eq_zero_on_siphonFace` 
 tangent to a *siphon* face). Combined with negative invariance of the ω-limit set, it forces the
 zero set of a boundary ω-point to be a siphon.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.Persistence`.
+Depends on: `CRNT.Dynamics.Persistence`.
 -/
 
 open scoped BigOperators

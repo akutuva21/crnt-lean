@@ -25,7 +25,7 @@ feasibility question — the entry point for deciding criticality and, downstrea
   `orthSum N.stoichSubspace`.
 * `isCriticalSiphon_iff_mem_orthSum` — `IsCriticalSiphon` reframed through that complement.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.Siphon`,
+Depends on: `CRNT.Dynamics.Siphon`,
 `CRNT.Stoich.Subspace`, `CRNT.LinearAlgebra.OrthogonalComplement`.
 -/
 

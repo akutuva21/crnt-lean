@@ -16,10 +16,10 @@ it gives a genuinely computable deficiency.
 
 The value still does not reduce under kernel `decide` — `computeRank` is a determinant
 permutation-sum — so the deficiency of a concrete network is obtained by compiled evaluation
-(`#eval`, or an external compiled analyzer), not by `decide`. The bridge theorem is the axiom-clean
-link back to the propositional `deficiency`.
+(`#eval`, or an external compiled analyzer), not by `decide`. The bridge theorem is the link back to
+the propositional `deficiency`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Decision.ExactDeficiency`,
+Depends on: `CRNT.Decision.ExactDeficiency`,
 `CRNT.Decision.Linkage`.
 -/
 

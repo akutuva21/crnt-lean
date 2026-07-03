@@ -12,7 +12,7 @@ under per-class restriction (`restrictToClass_mem_range_incidenceMap`).
 This is the incidence-side companion of the kinetic block structure, and a step toward
 decomposing the deficiency subspace `ker Y ⊓ Im ∂` over linkage classes.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.KineticBlock`,
+Depends on: `CRNT.Deficiency.KineticBlock`,
 `CRNT.Deficiency.KernelDimension`.
 -/
 

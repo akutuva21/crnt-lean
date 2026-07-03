@@ -28,7 +28,7 @@ chemical reaction networks*, Ohio State University, 2011, §1.6).
 * `cutSum_antisymm` — the full antisymmetry `[g, y→y', y] = − [g, y'→y, y']`, using that the two cut
   components partition the linkage class.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Deficiency.CutPair`,
+Depends on: `CRNT.Deficiency.CutPair`,
 `CRNT.Deficiency.ClassConservation`.
 -/
 

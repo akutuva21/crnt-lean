@@ -22,7 +22,7 @@ provides `decidableStronglyLinkedV`, the `Fintype` of strong linkage classes
 (`Fintype (Quotient N.stronglyLinkedSetoid)`), and the computable count `numStrongLinkageClasses`,
 through the directed path-length bound on a finite type.
 
-This module is **stable**. Depends on: `CRNT.Decision.Reachability`, `CRNT.Decision.Linkage`.
+Depends on: `CRNT.Decision.Reachability`, `CRNT.Decision.Linkage`.
 -/
 
 namespace CRNT

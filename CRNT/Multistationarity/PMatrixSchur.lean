@@ -18,7 +18,7 @@ complement is, up to the positive factor `M ω ω`, a principal minor of `M`, he
 The `Fin (n+1)` specialization `schurLast`/`IsPMatrix.schurLast` (Schur complement at the last
 coordinate, reindexed to `Fin n`) is the form the dimension induction consumes.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Multistationarity.PMatrix`,
+Depends on: `CRNT.Multistationarity.PMatrix`,
 `Mathlib.LinearAlgebra.Matrix.SchurComplement`.
 -/
 

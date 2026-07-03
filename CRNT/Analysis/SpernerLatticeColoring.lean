@@ -21,7 +21,7 @@ side restriction is a single clause of the proper-coloring condition.
 * `side_jk_ne_one`, `side_ik_ne_zero`, `side_ij_ne_two` — on the side `j = 0` the color is never `1`,
   on `i = 0` never `0`, and on `i + j = N` (the `k = 0` side) never `2`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLattice`.
+Depends on: `CRNT.Analysis.SpernerLattice`.
 -/
 
 namespace CRNT.Analysis.SpernerLattice

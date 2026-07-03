@@ -28,7 +28,7 @@ deficiency equals `dim(deficiencySubspace)` (`deficiencyInt_eq_finrank_deficienc
 using the graph identity `rank(∂) = n − ℓ` — the rank of the incidence map equals vertices
 minus connected components — established here as `incidenceRank_add_numLinkageClasses`.
 
-This module is **stable**. Depends on the dynamics and stoichiometry layers.
+Depends on the dynamics and stoichiometry layers.
 -/
 
 namespace CRNT

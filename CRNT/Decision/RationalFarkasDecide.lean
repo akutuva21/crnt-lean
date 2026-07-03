@@ -27,7 +27,7 @@ bound against `0`. For `n ≥ 1` the eliminated rows carry products and differen
 the kernel does not reduce `ℚ` multiplication during `decide`; such systems are decided by appeal to
 the instance rather than by kernel evaluation.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Decision.RationalFarkas`.
+Depends on: `CRNT.Decision.RationalFarkas`.
 -/
 
 open scoped BigOperators

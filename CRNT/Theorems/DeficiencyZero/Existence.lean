@@ -23,7 +23,6 @@ Since `Im(stoichᵀ) ⊆ Im(∂ᵀ)` always (`stoich = Y ∂`), equal dimensions
 complex-balanced. The toric machinery of `Toric.lean` then transports it to the class of
 the start and pins down uniqueness.
 
-This module is **stable** and `sorry`-free.
 -/
 
 namespace CRNT

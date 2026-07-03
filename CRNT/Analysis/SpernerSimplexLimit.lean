@@ -12,7 +12,7 @@ convergent subsequence collapses the three sequences to a common limit `z`, wher
 `(f z) i ≤ z i` for every coordinate; since both `f z` and `z` are simplex points (coordinates sum
 to `1`), the inequalities are equalities, so `f z = z`.
 
-This module is **stable** and `sorry`-free. Depends on: Mathlib `Analysis.Convex.StdSimplex`,
+Depends on: Mathlib `Analysis.Convex.StdSimplex`,
 `Topology.Sequences`.
 -/
 

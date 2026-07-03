@@ -19,12 +19,12 @@ not just for `Finset`-selected principal submatrices. From it follow nonsingular
 (`submatrix_isPMatrix`), and positivity of the diagonal (`diag_pos`). Over `ℝ` a symmetric
 positive-definite matrix is a P-matrix (`Matrix.PosDef.isPMatrix`).
 
-The declarations live in the `Matrix` namespace so that they read as a standalone,
-upstreamable layer with the usual dot-notation ergonomics. The Gale–Nikaido
+The declarations live in the `Matrix` namespace so that they read as a standalone
+layer with the usual dot-notation ergonomics. The Gale–Nikaido
 global-injectivity payoff — that a map with everywhere-P-matrix Jacobian is globally
 injective — is out of scope: it is not available in Mathlib.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.LinearAlgebra.Matrix.PosDef`, `Mathlib.Analysis.Matrix.PosDef`.
 -/
 

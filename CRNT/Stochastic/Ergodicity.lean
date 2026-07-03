@@ -26,7 +26,7 @@ uniqueness (`mulVec_fixed_unique_of_stronglyConnected`) then pins every invarian
 scalar multiple of it, and the shared unit total mass forces that scalar to be one. The geometric
 *irreducibility* of the chain — that the restricted transition digraph is strongly connected — is
 stated as an explicit hypothesis `regionStronglyConnected`, the single-communicating-class property
-of the region; identifying it for a concrete maximal region is the next dependency.
+of the region.
 
 ## Main results
 
@@ -41,7 +41,7 @@ of the region; identifying it for a concrete maximal region is the next dependen
 * `invariant_probabilityMeasure_unique_on_region` — any two invariant probability measures
   supported on a finite, strongly connected closed enabled region coincide.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.KernelNormalized`,
+Depends on: `CRNT.Stochastic.KernelNormalized`,
 `CRNT.LinearAlgebra.PerronFrobenius`.
 -/
 
@@ -209,8 +209,7 @@ theorem stationaryVec_nonneg {T : Set (S → ℕ)} [Fintype ↥T] (μ : Measure 
 /-- **Single-communicating-class hypothesis on the region.** The embedded jump chain restricted to
 `T` is irreducible: every state reaches every state along the support digraph of the restricted
 transition matrix. This is the irreducibility that finite-state Perron–Frobenius needs and that
-Mathlib's `Kernel.Irreducible` stub does not provide; identifying it for a concrete maximal region
-is the next dependency. -/
+Mathlib's `Kernel.Irreducible` stub does not provide. -/
 def regionStronglyConnected (N : Network S) (κ : RateConstants N) (T : Set (S → ℕ))
     [Fintype ↥T] : Prop :=
   ∀ i j : ↥T, supportReaches (N.regionMatrix κ T) i j

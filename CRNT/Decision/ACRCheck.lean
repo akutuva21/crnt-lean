@@ -21,7 +21,7 @@ together with the deficiency-one hypotheses reconstitutes the full
 `ShinarFeinbergHypotheses` (`ShinarFeinbergHypotheses.ofPair`). The deficiency-one condition
 itself is not a finite decision and is supplied externally.
 
-This module is **stable**. Depends on: `CRNT.Design.ACR`,
+Depends on: `CRNT.Design.ACR`,
 `CRNT.Decision.DirectedReachability`, `CRNT.Decision.Linkage`.
 -/
 

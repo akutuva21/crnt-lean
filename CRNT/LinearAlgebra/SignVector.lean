@@ -26,7 +26,7 @@ order-theoretic heart of Birch-type uniqueness, isolated from any chemistry.
 * `orthogonal_signVector_of_mem_orthSum` — the sign vectors of `S` and of `orthSum S` are
   orthogonal.
 
-This module is **stable** and `sorry`-free. Depends on: `Mathlib.Data.Sign.Basic`,
+Depends on: `Mathlib.Data.Sign.Basic`,
 `CRNT.LinearAlgebra.OrthogonalComplement`.
 -/
 

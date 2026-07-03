@@ -8,8 +8,6 @@ The reversible pair has stoichiometric rank at least one, witnessed by the `1 ×
 stoichiometric minor at species `A` and reaction `fwd`, whose rational determinant is `-1`.
 Together with `n = 2` complexes and `ℓ = 1` linkage class this forces deficiency zero by the
 certificate, discharged by exact rational arithmetic.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Examples.DecideRank

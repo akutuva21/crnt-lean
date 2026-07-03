@@ -26,7 +26,7 @@ everywhere is injective). This module establishes the two foundational results:
 The `jacobianMatrix` helper converts a continuous linear self-map of `ι → ℝ` to its standard matrix,
 with `jacobianMatrix_mulVec` and `jacobianMatrix_det` relating it back to the map.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Multistationarity.PMatrix`,
+Depends on: `CRNT.Multistationarity.PMatrix`,
 `CRNT.Multistationarity.JacobianInjectivity`, Mathlib finite-dimensional and inverse-function theory.
 -/
 

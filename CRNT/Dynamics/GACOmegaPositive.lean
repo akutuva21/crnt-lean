@@ -25,7 +25,7 @@ The hypotheses are the standard mass-action semiflow facts a LaSalle constructio
 (`hgenω` ω-orbits solve the genuine field, `hωc` constancy of the relative entropy on ω, `hωaff`
 affine invariance, `hposorbit` positivity of orbits from positive ω-points).
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.GlobalStability`.
+Depends on: `CRNT.Dynamics.GlobalStability`.
 -/
 
 open scoped BigOperators NNReal ENNReal Topology

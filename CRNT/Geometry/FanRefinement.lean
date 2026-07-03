@@ -49,7 +49,7 @@ explicit decomposition that produces the refined fan with each patch crossing a 
 region, and the analysis matching the per-patch attracting directions — the constructions these
 engines consume.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.ZeroSeparatingInduction`,
+Depends on: `CRNT.Geometry.ZeroSeparatingInduction`,
 `CRNT.Geometry.FaithfulCurve`.
 -/
 

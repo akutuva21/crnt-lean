@@ -15,7 +15,7 @@ polynomial map of the concentrations, hence differentiable everywhere on `Concen
 monomial, the per-reaction rate, and the assembled vector field are each `Differentiable ℝ`. It is
 the analytic foundation for the mass-action Jacobian used in the Craciun–Feinberg injectivity theory.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Kinetics.MassAction`, Mathlib
+Depends on: `CRNT.Kinetics.MassAction`, Mathlib
 `Analysis.Calculus.FDeriv`.
 -/
 

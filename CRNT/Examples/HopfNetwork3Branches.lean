@@ -49,7 +49,7 @@ one-parameter family of periodic orbits — is the analytic center-manifold redu
 & Holmes, "Nonlinear Oscillations, Dynamical Systems, and Bifurcations of Vector Fields", §3.4,
 which needs center-manifold theory absent from `Mathlib` and stays out of scope.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Examples.HopfNetwork3,
+Depends on: CRNT.Examples.HopfNetwork3,
 CRNT.Dynamics.HopfTransversality3, Mathlib.Analysis.Calculus.ImplicitFunction.Bivariate.
 -/
 

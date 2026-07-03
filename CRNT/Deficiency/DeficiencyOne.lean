@@ -14,7 +14,7 @@ The deficiency-one *theorem* (uniqueness of positive steady states under per-lin
 deficiency constraints) builds on this foundation and on the strong-linkage-class machinery in
 `CRNT.Decision.StrongLinkage`.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.KernelDimension`.
+Depends on: `CRNT.Deficiency.KernelDimension`.
 -/
 
 namespace CRNT

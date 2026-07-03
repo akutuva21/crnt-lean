@@ -29,7 +29,7 @@ does not provide and is out of scope; see Guckenheimer & Holmes, "Nonlinear Osci
 Dynamical Systems, and Bifurcations of Vector Fields" for the analytic theorem, and the
 Liénard–Chipart form of the Routh–Hurwitz criterion for the algebraic boundary.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.Hurwitz3Matrix.
+Depends on: CRNT.Dynamics.Hurwitz3Matrix.
 -/
 
 namespace CRNT

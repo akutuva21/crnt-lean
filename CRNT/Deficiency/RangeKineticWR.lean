@@ -15,7 +15,7 @@ Im A_k = Im ∂.
 
 (`range_kineticMap_eq_range_incidenceMap_of_weaklyReversible`).
 
-This module is **stable**. Depends on: `CRNT.Deficiency.KernelDimensionWR`,
+Depends on: `CRNT.Deficiency.KernelDimensionWR`,
 `CRNT.Deficiency.SteadyStateKernel`.
 -/
 

@@ -44,7 +44,7 @@ reduced Jacobian is a Schur-style compression of the full Jacobian rather than a
 submatrix of it, so the final wiring through `massActionInjectiveOnClass_of_jacobian_pmatrix`
 requires the compression-to-P-matrix bridge developed elsewhere and is not built here.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Multistationarity.JacobianCycleSelection`, `CRNT.Multistationarity.PMatrix`,
 `CRNT.Multistationarity.ReducedJacobian`.
 -/

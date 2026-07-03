@@ -64,10 +64,9 @@ What is carried as an explicit hypothesis rather than derived is that the genuin
 walls of a *concrete* polyhedral fan are exactly the walls whose normals are non-constant across the
 reaction complexes (`ActiveWall`). Identifying `IsPolyhedralFan`'s exposed-face walls with this
 potential-non-constancy condition for an arbitrary fan is the per-wall normal geometry of the fan,
-separate from this graph-theoretic crossing extraction; it is the next piece toward the full
-faithful-curve / zero-separating-surface assembly in arbitrary dimension.
+separate from this graph-theoretic crossing extraction.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.ToricWRStrictInward`.
+Depends on: `CRNT.Geometry.ToricWRStrictInward`.
 -/
 
 namespace CRNT

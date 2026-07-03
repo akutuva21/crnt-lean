@@ -29,7 +29,7 @@ This is the persistence-conditional form of single-linkage-class global asymptot
 (Anderson). Persistence itself — the no-boundary-attraction estimate — is the isolated
 hypothesis here.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 CRNT.Theorems.DeficiencyZero.AsymptoticStability, CRNT.Dynamics.LaSalle.
 -/
 

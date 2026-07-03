@@ -28,7 +28,6 @@ column-stochastic nonnegative matrix has a strictly positive fixed vector. In CR
 yields a strictly positive vector in the kernel of the (rescaled) kinetic matrix on a
 linkage class, since weak reversibility makes each linkage class strongly connected.
 
-This module is **stable**: it contains no `sorry`.
 -/
 
 namespace CRNT

@@ -34,9 +34,9 @@ upper bound, the combination rows guaranteeing that this interval is nonempty.
 
 This is the elimination step underlying a decision procedure for rational linear feasibility, the
 constructive content of Farkas' lemma; full decidability of an arbitrary system follows by
-iterating elimination down to zero variables, a later development.
+iterating elimination down to zero variables.
 
-This module is **stable** and `sorry`-free. Depends on: `Mathlib.Data.Rat.Defs`,
+Depends on: `Mathlib.Data.Rat.Defs`,
 `Mathlib.Data.Fin.Tuple.Basic`, `Mathlib.Algebra.BigOperators.Fin`,
 `Mathlib.Algebra.Order.Field.Basic`, `Mathlib.Tactic.Linarith`, `Mathlib.Tactic.Ring`,
 `Mathlib.Tactic.Positivity`.

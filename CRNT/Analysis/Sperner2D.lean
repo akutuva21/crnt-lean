@@ -4,9 +4,9 @@ import Mathlib.Data.Fintype.Option
 /-!
 # Two-dimensional Sperner lemma: the door-graph handshaking framework
 
-This module advances one step from the one-dimensional parity
-double-count in `CRNT.Analysis.Sperner` toward the two-dimensional Sperner lemma over a
-triangulation. The classical proof of two-dimensional Sperner counts *doors* — triangle edges
+This module provides the door-graph handshaking framework for the two-dimensional Sperner lemma
+over a triangulation, on top of the one-dimensional parity double-count in
+`CRNT.Analysis.Sperner`. The classical proof of two-dimensional Sperner counts *doors* — triangle edges
 colored `{0, 1}` — and runs the handshaking lemma on the *door graph* whose vertices are the
 triangles (plus one outer region) and whose edges join two triangles sharing a door. A triangle
 has odd door-degree exactly when it is *rainbow* (sees all three colors), and the outer region has
@@ -42,18 +42,16 @@ fully proved at the combinatorial level.
 * `doorGraph_odd_rainbow` — the abstract handshaking conclusion (odd rainbow count).
 * `doorGraph_exists_rainbow` — the existence corollary.
 
-## What is deferred
+## Scope
 
-The full two-dimensional Sperner lemma over a *concrete* triangulated grid is the next step and is
-too large to land `sorry`-free on top of this one. It requires a concrete triangulation datatype
-with a sub-edge incidence relation, a proof that every interior `{0, 1}` sub-edge is shared by
-exactly two triangles (the geometric crux), the bridge `G.degree (some t) = doorCount …`
-discharging `hcell` via `doorCount_odd_iff`, and the bridge discharging `houter` by reducing the
-boundary door count to `CRNT.Analysis.Sperner.sperner_odd_rainbowEdges` along the colored boundary
-side. Those incidence facts are the named next dependency; here `hcell` and `houter` remain
-hypotheses.
+`hcell` and `houter` remain hypotheses here. The full two-dimensional Sperner lemma over a
+*concrete* triangulated grid requires a concrete triangulation datatype with a sub-edge incidence
+relation, a proof that every interior `{0, 1}` sub-edge is shared by exactly two triangles (the
+geometric crux), the bridge `G.degree (some t) = doorCount …` discharging `hcell` via
+`doorCount_odd_iff`, and the bridge discharging `houter` by reducing the boundary door count to
+`CRNT.Analysis.Sperner.sperner_odd_rainbowEdges` along the colored boundary side.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.Combinatorics.SimpleGraph.DegreeSum`, `Mathlib.Data.Fintype.Option`.
 -/
 

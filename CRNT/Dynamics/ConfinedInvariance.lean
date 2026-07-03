@@ -37,7 +37,7 @@ which is exactly the `hbox` that `siphonFace_forwardInvariant_confined` consumes
   bound with `C = relEntropy x* (γ 0)` for free, yielding an unconditional (no `hbox`, no `hrele`)
   siphon-face invariance theorem.
 
-  HONEST CEILING. Lyapunov descent is available only where the orbit is positive (the relative
+  Lyapunov descent is available only where the orbit is positive (the relative
   entropy is differentiable only in the open orthant), so `siphonFace_forwardInvariant_of_complexBalanced`
   carries a positivity hypothesis on the orbit. A genuinely *face-confined* orbit is by definition
   not positive (it vanishes on `P`), so the two regimes do not overlap: a self-contained theorem
@@ -57,7 +57,7 @@ which is exactly the `hbox` that `siphonFace_forwardInvariant_confined` consumes
 * `Network.siphonFace_forwardInvariant_of_complexBalanced`: the same for a positive genuine orbit
   with a complex-balanced reference, with the relative-entropy bound supplied by Lyapunov descent.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.PersistenceConfined`,
+Depends on: `CRNT.Dynamics.PersistenceConfined`,
 `CRNT.Theorems.DeficiencyZero.AsymptoticStability`.
 -/
 

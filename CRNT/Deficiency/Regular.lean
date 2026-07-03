@@ -21,7 +21,7 @@ at the theorem (not folded into regularity).
 
 * `RegularNetwork` — the conjunction of the three conditions.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Deficiency.Consistent`,
+Depends on: `CRNT.Deficiency.Consistent`,
 `CRNT.Deficiency.CutPair`, `CRNT.Deficiency.DeficiencyOneHypotheses`, `CRNT.Decision.StrongLinkage`.
 -/
 

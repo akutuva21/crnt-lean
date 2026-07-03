@@ -26,7 +26,7 @@ same way, then read the sign of the real parts off the factored determinant cond
 `Δ₃ = a₃a₂a₁ − a₁² − a₃²a₀`: `2p(r + s)((r + p)² + q)((s + p)² + q)` for one pair and
 `4pu(((p + u)² + q + v)² − 4qv)` for two pairs.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.RouthHurwitz4.
+Depends on: CRNT.Dynamics.RouthHurwitz4.
 -/
 
 namespace CRNT

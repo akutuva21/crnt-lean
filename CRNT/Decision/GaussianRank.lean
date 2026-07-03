@@ -38,7 +38,7 @@ The column/row extraction is packaged by `exists_injOn_linearIndependent_of_le_f
 `k ≤ finrank K (span K (range v))` over a finite index type, it produces an injective `Fin k → ι`
 whose image under `v` is linearly independent.
 
-This module is **stable** and `sorry`-free. Depends on: `Mathlib.LinearAlgebra.Matrix.Rank`,
+Depends on: `Mathlib.LinearAlgebra.Matrix.Rank`,
 `Mathlib.LinearAlgebra.Matrix.NonsingularInverse`, `Mathlib.LinearAlgebra.Matrix.Determinant.Basic`,
 `Mathlib.LinearAlgebra.Dimension.Finite`, `Mathlib.LinearAlgebra.Dimension.Constructions`,
 `Mathlib.LinearAlgebra.LinearIndependent.Lemmas`.

@@ -39,7 +39,7 @@ power `P ^ N` and hence primitivity.
   `n` carrying a reaction that returns to `n` with positive jump probability has a positive diagonal
   entry.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Stochastic.ErgodicConvergenceGeneral`.
 -/
 

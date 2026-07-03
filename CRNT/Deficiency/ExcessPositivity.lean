@@ -19,7 +19,7 @@ power-product monotonicity lemma.
 * `sum_kineticMap_nonneg_of_vanishing` — the `A_k`-total over `U` is nonnegative.
 * `sum_kineticMap_pos_of_inflow` — it is positive given one entering reaction with `v(source) > 0`.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Deficiency.KineticExcess`, `CRNT.Graph.Crossing`.
 -/
 

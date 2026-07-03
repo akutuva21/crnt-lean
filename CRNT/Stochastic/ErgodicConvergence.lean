@@ -45,7 +45,7 @@ the singleton masses of the canonical stationary probability measure
   connected closed enabled region with strictly positive restricted transition matrix: the
   `n`-step singleton masses converge to the stationary singleton masses.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.Ergodicity`.
+Depends on: `CRNT.Stochastic.Ergodicity`.
 -/
 
 open MeasureTheory ProbabilityTheory

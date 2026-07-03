@@ -23,7 +23,7 @@ the genuine trajectory a fixed distance from the origin.
   viability content discharged: a genuine trajectory through `x₀` keeps a hard distance from the
   origin, with no distance-nonincreasing hypothesis carried.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.ZeroSeparatingSurface`,
+Depends on: `CRNT.Geometry.ZeroSeparatingSurface`,
 `Mathlib.Analysis.InnerProductSpace.Calculus`.
 -/
 

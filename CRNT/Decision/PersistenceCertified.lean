@@ -32,7 +32,7 @@ Craciun (*Toric differential inclusions and a proof of the global attractor conj
 persistence criterion via critical siphons is from Angeli, De Leenheer, and Sontag (*A Petri net
 approach to the study of persistence in chemical reaction networks*).
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Decision.PersistenceVerdict`,
+Depends on: `CRNT.Decision.PersistenceVerdict`,
 `CRNT.Decision.ComputableDeficiency`, `CRNT.Theorems.DeficiencyZero.Existence`,
 `CRNT.Theorems.DeficiencyZero.Toric`.
 -/

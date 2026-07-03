@@ -8,7 +8,7 @@ A finite chemical reaction network over a species type `S`. Reactions are indexe
 a finite type `R` so that parallel reactions (distinct reaction channels with the same
 source and target) are representable and duplicate-erasure is avoided.
 
-This module is **stable**. It defines `Network`, exposes the reaction index type's
+It defines `Network`, exposes the reaction index type's
 `Fintype`/`DecidableEq` instances, and computes the finite set of complexes
 together with its cardinality.
 

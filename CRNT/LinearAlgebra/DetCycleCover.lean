@@ -30,7 +30,7 @@ factorisation of any Jacobian and no product structure is assumed.
   product over its disjoint cycles, the cycle-factor decomposition
   (`Equiv.Perm.cycleFactorsFinset_noncommProd`) underlying the cover term.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.LinearAlgebra.Matrix.Determinant.Basic`,
 `Mathlib.GroupTheory.Perm.Cycle.Type`,
 `Mathlib.GroupTheory.Perm.Cycle.Factors`.

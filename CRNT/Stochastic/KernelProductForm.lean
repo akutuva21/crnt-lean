@@ -18,7 +18,7 @@ stationary distribution of the embedded jump chain.
 * `jumpKernel_invariantProb_singleton_ne_zero_iff` — the normalized invariant measure is nonzero on a
   singleton exactly when the count lies in the region.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.KernelSupport`.
+Depends on: `CRNT.Stochastic.KernelSupport`.
 -/
 
 open MeasureTheory ProbabilityTheory

@@ -31,7 +31,7 @@ face-membership clause; the covering and intersection-is-a-common-face clauses a
 as hypotheses, their substantive convex-geometry theory taken as given rather than
 constructed here.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.PolyhedralFan`,
+Depends on: `CRNT.Geometry.PolyhedralFan`,
 `CRNT.Geometry.ToricFan`.
 -/
 

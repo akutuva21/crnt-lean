@@ -39,7 +39,7 @@ Boolean/path procedure of `CRNT.Graph.Reachability`. The `mono`/`cmin` fields of
 `NetworkCycleDecomposition` are a separate analytic projection-ordering matter, not graph
 theory.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Graph.WeakReversibility`.
+Depends on: `CRNT.Graph.WeakReversibility`.
 -/
 
 namespace CRNT

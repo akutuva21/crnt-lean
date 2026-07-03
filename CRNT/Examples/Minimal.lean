@@ -12,8 +12,6 @@ import CRNT.Graph.WeakReversibility
 The smallest nontrivial network. It demonstrates building a `Network`, computing its
 complex count, evaluating reaction vectors, and reasoning about (the failure of)
 reachability. Being irreversible, it is **not** weakly reversible.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Examples.Minimal

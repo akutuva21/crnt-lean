@@ -10,7 +10,7 @@ lattice). On that face the top color `Fin.last (n+1)` cannot occur (it would for
 barycentric coordinate positive, contradicting membership in the face), so the colors land in
 `Fin (n+1)` and `restrictColoring` is a genuine `n`-dimensional Sperner coloring.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerNBoundary`,
+Depends on: `CRNT.Analysis.SpernerNBoundary`,
 `CRNT.Analysis.SpernerNDoor`.
 -/
 

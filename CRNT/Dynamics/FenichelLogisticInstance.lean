@@ -41,7 +41,7 @@ nearby invariant manifold. Here the slow manifold is genuinely non-constant and 
 genuinely curved nonlinear field with no inverse supplied — the Fenichel core fully de-idealized on a
 concrete curved example.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.FenichelMovingGeneralDrift`.
 -/
 

@@ -33,7 +33,7 @@ The development is pure topology: the order-topological field `ℝ` for the time
 arbitrary topological space `α` for the state. No reaction-network content, no metric, no
 separation axioms beyond what Mathlib's `frontier`/closure API supplies.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.Topology.Order.DenselyOrdered`, `Mathlib.Topology.Order.LeftRightNhds`,
 `Mathlib.Order.ConditionallyCompleteLattice.Basic`.
 -/

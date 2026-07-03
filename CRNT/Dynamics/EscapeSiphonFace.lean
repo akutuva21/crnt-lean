@@ -21,7 +21,6 @@ Under `HasNoCriticalSiphon` the face clause is vacuous, so the forward limit of 
 
 No stable/unstable-manifold, α-limit, or connectedness structure is asserted here.
 
-This module is **stable** and `sorry`-free.
 -/
 
 open Filter Topology
@@ -118,5 +117,4 @@ end Network
 
 end CRNT
 
--- stable / sorry-free
 -- Depends on: CRNT.Dynamics.ButlerMcGehee, CRNT.Dynamics.NoCriticalSiphonPersistence.

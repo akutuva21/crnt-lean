@@ -18,8 +18,8 @@ with the seed's rate and contraction data yields a genuine `ODE.SlowManifold`
 (`SlowManifoldSeed.toSlowManifold`) whose `h` field is `manifoldMap` — no longer free data.
 
 **Canonicity** (`SlowManifoldSeed.manifoldMap_eq_of_stationary`,
-`SlowManifoldSeed.manifoldMap_unique`). Through the constructed `SlowManifold` the committed
-uniqueness fires: any stationary point of `fast y` equals `manifoldMap y`, and the fibre
+`SlowManifoldSeed.manifoldMap_unique`). Through the constructed `SlowManifold` the uniqueness
+result applies: any stationary point of `fast y` equals `manifoldMap y`, and the fibre
 equilibrium set is exactly `{manifoldMap y}`. So the construction is independent of which
 equilibrium `exists_stat` happens to select.
 
@@ -33,20 +33,19 @@ algebraic estimate from the contraction inequality and Cauchy–Schwarz: writing
 by `‖fast y q - fast y' q‖ · ‖q - p‖`; dividing by `‖q - p‖` and applying the Lipschitz bound
 yields `‖q - p‖ ≤ (L / rate) · dist y y'`.
 
-**Out of scope (the next dependencies).** Two tiers sit strictly above this result. (1) *C¹
+**Scope.** Two results lie beyond the one-sided contraction. (1) *C¹
 regularity of `h`*: differentiability of `manifoldMap` is not reachable from the one-sided
 contraction alone — it needs an invertible fibre-derivative hypothesis
 (`D_z fast y (manifoldMap y)` invertible) together with joint `C¹` dependence of `fast` on
 `(y, z)`, fed to Mathlib's implicit function theorem
-(`HasStrictFDerivAt.localInverse` / `ImplicitFunctionData`); that is strictly more input data and
-a separate, larger development. The one-sided contraction yields only Lipschitz/continuous `h`. (2)
+(`HasStrictFDerivAt.localInverse` / `ImplicitFunctionData`), which is strictly more input data. The
+one-sided contraction yields only Lipschitz/continuous `h`. (2)
 *ε-positive Fenichel persistence*: perturbing the exact `ε = 0` invariant graph `{(y, h y)}` to a
 nearby invariant manifold for `ε > 0` requires a uniform-in-`ε` normally-hyperbolic
 invariant-manifold construction, absent from Mathlib v4.31; the contraction supplies only the
-layer (`ε = 0`) invariance. Downstream, the constructed continuous `h` enables a true
-Michaelis–Menten reduction at the continuity tier.
+layer (`ε = 0`) invariance.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.Fenichel.
+Depends on: CRNT.Dynamics.Fenichel.
 -/
 
 open Filter Set Classical
@@ -86,7 +85,7 @@ theorem manifoldMap_stat (y : Y) : S.fast y (S.manifoldMap y) = 0 :=
   (S.exists_stat y).choose_spec
 
 /-- The genuine `ODE.SlowManifold` built from the seed, with `h` field the **constructed**
-`manifoldMap` rather than free data. It consumes the committed `SlowManifold` structure. -/
+`manifoldMap` rather than free data. It consumes the `SlowManifold` structure. -/
 noncomputable def toSlowManifold : SlowManifold Y E where
   fast := S.fast
   h := S.manifoldMap

@@ -15,7 +15,7 @@ interconnection, any two steady states of the combined kinetics lying in that cl
 coincide: at most one positive steady state of the interconnection per class. This is the
 component-level injectivity-implies-monostationarity argument applied to the interconnection.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Compose.InterconnectKinetics`, `CRNT.Multistationarity.Injectivity`.
 -/
 

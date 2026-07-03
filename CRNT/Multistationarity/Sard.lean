@@ -21,7 +21,6 @@ arbitrary values: the critical values are negligible, so a regular value can be 
   complement is null and a Haar measure charges every nonempty open set, so a regular value sits
   arbitrarily close to any value.
 
-This module is `sorry`-free.
 -/
 
 namespace CRNT

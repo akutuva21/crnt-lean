@@ -21,7 +21,7 @@ A colinearity class carries no intrinsic orientation: collinear vectors may poin
 algorithm's *sign* of a class is a chosen orientation, handled in the extended-system enumeration
 rather than here.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stoich.Subspace`.
+Depends on: `CRNT.Stoich.Subspace`.
 -/
 
 namespace CRNT

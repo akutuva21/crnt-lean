@@ -34,7 +34,7 @@ The genuine Shinar–Feinberg derivation — forcing robustness from non-termina
 deficiency-one cut structure — is *not* established here; this module reduces it to the crisp
 statement `x s = y s` and proves everything surrounding it.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Design.ACRUnconditional`,
+Depends on: `CRNT.Design.ACRUnconditional`,
 `CRNT.Deficiency.LogMonomialRatio`, `CRNT.Graph.LinkageClass`, `CRNT.Stoich.Subspace`,
 `CRNT.LinearAlgebra.OrthogonalComplement`, `Mathlib.Analysis.SpecialFunctions.Log.Basic`.
 -/

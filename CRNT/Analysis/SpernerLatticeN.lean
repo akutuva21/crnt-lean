@@ -16,7 +16,7 @@ The maximal cells of the Kuhn (Freudenthal) triangulation are indexed by a base 
 permutation of the `n` simple-root directions `d j = e_{castSucc j} − e_{succ j}`: the `n+1` vertices
 are the partial sums `w_k = v + ∑_{l<k} d (σ l)`, valid where they stay nonnegative.
 
-This module is **stable** and `sorry`-free. Depends on: Mathlib `Analysis.Convex.StdSimplex`,
+Depends on: Mathlib `Analysis.Convex.StdSimplex`,
 `Algebra.BigOperators.Fin`, `GroupTheory.Perm.Basic`.
 -/
 

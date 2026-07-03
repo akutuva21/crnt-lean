@@ -42,9 +42,9 @@ and the defect jointly vanish (a direct application of `ODE.qssa_error_tendsto_z
 convenience corollary rewrites the bound against the explicit curve
 `t ↦ mmComplexEquil Km Vmax (σ t) • e0`, exhibiting that the manifold tracks the MM rate law.
 
-**Out of scope (the next dependencies).** The reduction here is substrate-dependent and
-compact-time, but it is not yet a fully ε-quantified Fenichel reduction. (1) The slaving defect
-`εf` and initial mismatch `δ` remain hypotheses, not quantities derived from a singular-perturbation
+**Scope.** The reduction here is substrate-dependent and
+compact-time; it is not a fully ε-quantified Fenichel reduction. (1) The slaving defect
+`εf` and initial mismatch `δ` are hypotheses, not quantities derived from a singular-perturbation
 small parameter `ε`: making `εf = O(ε)` needs the slow drift along the manifold to be genuinely
 `O(ε)` and derived from a coupled slow ODE `ṡ = ε g(s, z)` with a uniform-in-`ε` estimate. (2)
 ε-positive normally-hyperbolic invariant-manifold persistence is absent from Mathlib v4.31: there is
@@ -55,10 +55,9 @@ reachable. (3) Infinite-horizon shadowing is unavailable: `gronwallBound δ K ε
 `T → ∞` for `K > 0`, so all claims stay on compact `[0, T]`. (4) The substrate path `σ` and its
 slaving (the right-derivative and defect hypotheses) are inputs; closing the loop — proving the full
 trajectory's substrate component actually solves the reduced scalar MM ODE `ṡ = -Vmax·s/(Km+s)` —
-needs a parametrised slow-drift field coupled to `manifoldMap` and its own scalar Grönwall closure,
-the next step above this one.
+needs a parametrised slow-drift field coupled to `manifoldMap` and its own scalar Grönwall closure.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.FenichelManifold,
+Depends on: CRNT.Dynamics.FenichelManifold,
 CRNT.Dynamics.MichaelisMenten, CRNT.Dynamics.QSSA, Mathlib.Analysis.InnerProductSpace.PiL2.
 -/
 

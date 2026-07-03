@@ -23,7 +23,7 @@ that `omega` does not simplify on its own.
 * `horiz_incidence_interior`, `horiz_incidence_boundary` — horizontal-edge incidence.
 * `vert_incidence_interior`, `vert_incidence_boundary` — vertical-edge incidence.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLattice`.
+Depends on: `CRNT.Analysis.SpernerLattice`.
 -/
 
 namespace CRNT.Analysis.SpernerLattice

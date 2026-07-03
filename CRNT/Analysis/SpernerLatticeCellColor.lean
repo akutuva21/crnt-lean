@@ -36,7 +36,7 @@ vertical `{0,1}`-door edge is interior, so its incidence partner (from
   is not a door.
 * `bottom_H_not_door`, `left_V_not_door` — boundary doors avoid the bottom and left sides.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLatticeColoring`.
+Depends on: `CRNT.Analysis.SpernerLatticeColoring`.
 -/
 
 namespace CRNT.Analysis.SpernerLattice

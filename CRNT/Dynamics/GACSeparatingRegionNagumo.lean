@@ -21,7 +21,7 @@ here as the hypothesis `hanti`.
   coordinate facet, if `t ↦ Metric.infDist (Γ t) R` is nonincreasing along every genuine orbit `Γ`
   through `x₀`, then the ω-limit set through `x₀` is `{x*}`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.GACSeparatingRegion`,
+Depends on: `CRNT.Dynamics.GACSeparatingRegion`,
 `CRNT.Dynamics.ClosedSetNagumo`.
 -/
 

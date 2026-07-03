@@ -11,7 +11,7 @@ linkage class (`existsUnique_deficient_of_deficiencyOne`); every other class is
 deficiency-zero. This is the reduction that localizes the deficiency-one steady-state analysis
 to a single linkage class.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.LinkageDeficiency`.
+Depends on: `CRNT.Deficiency.LinkageDeficiency`.
 -/
 
 namespace CRNT

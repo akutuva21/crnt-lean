@@ -15,7 +15,7 @@ The inward-displacement hypothesis is genuine: it is the concentration-space for
 condition under which Brouwer's theorem produces a fixed point of the displacement map, hence a zero
 of the field.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.BrouwerZero`,
+Depends on: `CRNT.Analysis.BrouwerZero`,
 `CRNT.Kinetics.Concentration`.
 -/
 

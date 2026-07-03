@@ -12,7 +12,7 @@ import CRNT.Basic.Network
 The third structural hypothesis of the deficiency-one theorem,
 `OneTerminalSLCPerLinkageClass`, asks that each linkage class contain exactly one terminal
 strong linkage class. This module makes that condition fully `Decidable` and `decide`-reducible
-in the kernel, axiom-clean.
+in the kernel.
 
 The decision rests on a chain of computable instances over the finite vertex type of a
 network's complexes:
@@ -39,7 +39,7 @@ delivered.
 Every instance is supplied as an `inferInstanceAs`/term (never a tactic proof) so that no
 `Eq.rec` is injected and the kernel can reduce `decide`.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.DeficiencyOneHypotheses`,
+Depends on: `CRNT.Deficiency.DeficiencyOneHypotheses`,
 `CRNT.Decision.DirectedReachability`, `CRNT.Decision.Linkage`.
 -/
 

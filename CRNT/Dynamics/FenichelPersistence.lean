@@ -69,7 +69,7 @@ analytic step. The flow existence is free (single-valued Picard–Lindelöf, alr
 `CRNT.Dynamics.FlowConstruction`); what remains is the explicit `op`-from-coupled-field construction
 verifying `flow_mapsTo` and the contraction bound `op_dist_le` simultaneously.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.GraphTransform`,
+Depends on: `CRNT.Dynamics.GraphTransform`,
 `CRNT.Dynamics.FlowConstruction`.
 -/
 

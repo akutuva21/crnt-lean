@@ -32,7 +32,6 @@ constant `sign (det (Df x₀))` throughout a neighbourhood of `f x₀`.
 * `regularDegree_comp_continuousLinearMap` — **composition multiplicativity** in the linear
   case: `regularDegree (T ∘ U) = sign (det T) · sign (det U)`.
 
-This module is `sorry`-free.
 -/
 
 namespace CRNT

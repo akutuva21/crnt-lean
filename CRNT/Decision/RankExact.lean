@@ -21,7 +21,7 @@ exact computable rank) is not provided: it requires the theorem that a matrix ra
 maximal size of a square submatrix with nonzero determinant, which Mathlib lacks. These
 one-sided bounds are what the structural deficiency-zero theory consumes.
 
-This module is **stable**. Depends on: `CRNT.Decision.Rank`.
+Depends on: `CRNT.Decision.Rank`.
 -/
 
 namespace CRNT

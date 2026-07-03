@@ -11,7 +11,7 @@ A barycentric point has every coordinate bounded by `N` (the coordinates are non
 and permutation (`Cell.eq_of_base_perm`), so `Cell n N` injects into `Pt n N × Equiv.Perm (Fin n)`.
 Both targets are finite, giving the `Fintype` instances.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerNIncidence`.
+Depends on: `CRNT.Analysis.SpernerNIncidence`.
 -/
 
 namespace CRNT.Analysis.SpernerN

@@ -17,7 +17,7 @@ directions. The orientation `sign` of a class is the choice between the two half
 `a` relating two collinear nonzero vectors `v, w` (with `w = a • v`) is nonzero, and the dichotomy
 `0 < a ∨ a < 0` records which half-line `w` lies on relative to `v`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Deficiency.Colinearity`.
+Depends on: `CRNT.Deficiency.Colinearity`.
 -/
 
 namespace CRNT

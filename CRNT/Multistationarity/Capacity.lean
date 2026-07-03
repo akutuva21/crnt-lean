@@ -24,7 +24,7 @@ The converse — *affirming* the capacity by exhibiting the witnessing rate cons
 states, which the deficiency algorithms accomplish through a parameter-independent linear
 feasibility test — is a separate development.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Multistationarity.Injectivity`.
+Depends on: `CRNT.Multistationarity.Injectivity`.
 -/
 
 namespace CRNT

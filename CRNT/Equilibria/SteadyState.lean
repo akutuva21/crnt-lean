@@ -7,7 +7,7 @@ A steady state of a vector field is a concentration at which the field vanishes
 componentwise. This module defines the general predicate and its mass-action
 specialization.
 
-This module is **stable**. Depends on: `CRNT.Kinetics.MassAction`.
+Depends on: `CRNT.Kinetics.MassAction`.
 -/
 
 namespace CRNT

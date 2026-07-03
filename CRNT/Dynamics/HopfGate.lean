@@ -37,7 +37,7 @@ monic cubic `X³ + a₂X² + a₁X + a₀`.
   algebraic crossing condition under which a Hopf bifurcation can occur; the limit-cycle
   existence statement needs center-manifold theory absent from `Mathlib` and is out of scope.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 Mathlib.Data.Complex.Basic, Mathlib.Tactic.Linarith, Mathlib.Tactic.Polyrith,
 CRNT.Dynamics.Hurwitz.
 -/

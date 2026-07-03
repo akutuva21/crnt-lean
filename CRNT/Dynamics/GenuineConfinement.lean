@@ -29,7 +29,7 @@ These are the genuine-field forms of the persistence inputs that `gac_of_genuine
 * `Network.genuineOrbit_relEntropy_le` — the relative entropy of a genuine positive orbit never
   exceeds its initial value.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Theorems.DeficiencyZero.AsymptoticStability`, `CRNT.Dynamics.SublevelInvariant`.
 -/
 

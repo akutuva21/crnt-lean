@@ -245,7 +245,7 @@ theorem isInternal_center_hyperbolic (A : Module.End ℂ V) :
 end CRNT.SpectralSplitting
 
 /-!
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.LinearAlgebra.Eigenspace.Triangularizable`, `Mathlib.LinearAlgebra.Eigenspace.Minpoly`,
 `Mathlib.Order.SupIndep`, `Mathlib.Analysis.Complex.Polynomial.Basic`.
 -/

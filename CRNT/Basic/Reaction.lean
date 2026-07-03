@@ -7,7 +7,7 @@ A *reaction* is a directed edge from a source complex to a target complex. Self-
 reactions (`source = target`) are permitted in the raw structure; theorems that
 need to exclude them use the `Nontrivial` predicate.
 
-This module is **stable**. It defines `Reaction` and its stoichiometric reaction
+It defines `Reaction` and its stoichiometric reaction
 vector `vector`, which is the column of the stoichiometric matrix associated to the
 reaction.
 

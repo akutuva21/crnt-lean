@@ -31,7 +31,7 @@ grid needs; the single-outer-vertex `Sperner2D.doorGraph_odd_rainbow` is the spe
 * `multiDoorGraph_odd_rainbow` — the multi-outer-vertex handshaking conclusion (odd rainbow count).
 * `multiDoorGraph_exists_rainbow` — the existence corollary.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.Combinatorics.SimpleGraph.DegreeSum`, `Mathlib.Data.Fintype.BigOperators`,
 `CRNT.Analysis.Sperner2D`.
 -/

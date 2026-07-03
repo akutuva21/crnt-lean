@@ -20,7 +20,7 @@ inflow constant is strictly positive. Hence the field cannot vanish on any face:
 * `faceOf_fullyOpen_steadyState_eq_empty`: the only face carrying an equilibrium is the
   interior face `∅`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Open.Augmentation`,
+Depends on: `CRNT.Open.Augmentation`,
 `CRNT.Equilibria.SteadyState`.
 -/
 

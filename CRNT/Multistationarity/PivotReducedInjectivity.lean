@@ -62,7 +62,7 @@ graph"), whose injectivity conclusion feeds the global-univalence theorem of Gal
 Jacobian matrix and global univalence of mappings"). The pivot chart is the rational pivot minor of
 `CRNT.Decision.StoichBasisQ`.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Multistationarity.ReducedJacobian`, `CRNT.Decision.StoichBasisQ`.
 -/
 

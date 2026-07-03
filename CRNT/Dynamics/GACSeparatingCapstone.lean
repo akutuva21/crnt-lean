@@ -28,7 +28,7 @@ This is the reduction target: with this module, the global attractor conjecture 
 reversible complex-balanced networks rests entirely on `SeparatingConfinement`, the mass-action
 zero-separating region, and nothing else.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.GACSeparatingRegion`.
+Depends on: `CRNT.Dynamics.GACSeparatingRegion`.
 -/
 
 open scoped BigOperators NNReal Topology

@@ -11,7 +11,7 @@ dimension is the stoichiometric rank `s`, the third term in the deficiency formu
 `δ = n - ℓ - s`. The subspace is genuinely defined; the rank is noncomputable
 (`Module.finrank`). Exact computable rank over `ℚ` for certificates is future work.
 
-This module is **stable**. Depends on: `CRNT.Stoich.Vector`, Mathlib linear algebra.
+Depends on: `CRNT.Stoich.Vector`, Mathlib linear algebra.
 -/
 
 namespace CRNT

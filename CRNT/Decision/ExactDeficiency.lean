@@ -23,7 +23,7 @@ independence in both directions, so
 
 * `stoichRank_eq_computeRank : N.stoichRank = computeRank N.stoichMatrixQ`,
 
-upgrading `RankExact`'s one-sided bound to an exact, axiom-clean rank. The rank `computeRank
+upgrading `RankExact`'s one-sided bound to an exact rank. The rank `computeRank
 stoichMatrixQ` is exact and evaluates by compiled reduction (`#eval`), but it does **not** reduce
 under kernel `decide`: `computeRank` expands a determinant over a permutation sum, which the kernel
 does not reduce. The exact deficiency
@@ -43,7 +43,7 @@ to `Matrix _ _ ℚ`, so the `ℝ` side cannot reuse it. Instead, `(stoichMatrixQ
 = stoichMatrixQ.rank` follows from `LinearIndependent.restrict_scalars` and the injective
 `ℚ`-linear cast, together with `GaussianRank.exists_injOn_linearIndependent_of_le_finrank_span`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Decision.RankExact`,
+Depends on: `CRNT.Decision.RankExact`,
 `CRNT.Decision.GaussianRank`, `CRNT.Deficiency.DeficiencyOne`,
 `Mathlib.LinearAlgebra.Matrix.Rank`, `Mathlib.LinearAlgebra.Pi`, `Mathlib.Algebra.Algebra.Rat`.
 -/

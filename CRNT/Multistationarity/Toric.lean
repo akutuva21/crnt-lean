@@ -34,7 +34,7 @@ when sign-compatibility fails) is the degree-theoretic half and lies beyond this
   (uniqueness for all `κ`, recovering classical complex-balanced monostationarity via
   `signCompatible_self`).
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Kinetics.Generalized`,
+Depends on: `CRNT.Kinetics.Generalized`,
 `CRNT.Theorems.DeficiencyZero.BirchExistence`.
 -/
 

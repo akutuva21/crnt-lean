@@ -36,7 +36,7 @@ choices; the per-choice identity proved here is the factorization of a single su
 choice. The selection of a sign-consistent cover for an arbitrary network — the
 remaining combinatorial half of the dictionary — is not carried out here.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Multistationarity.JacobianDeterminantSign`,
 `CRNT.Multistationarity.SignedSRGraph`,
 `CRNT.Multistationarity.SRGraphCycleDict`, `CRNT.Kinetics.MassActionJacobian`.

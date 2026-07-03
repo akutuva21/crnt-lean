@@ -31,7 +31,7 @@ complex-balanced / Birch condition, recovered as `birch_uniqueness_of_self`; a d
 * `gen_birch_existence` — the single-subspace specialization of generalized existence,
   reusing `birch_existence`.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.Analysis.SpecialFunctions.Log.Basic`,
 `CRNT.LinearAlgebra.OrthogonalComplement`,
 `CRNT.LinearAlgebra.SignVector`,

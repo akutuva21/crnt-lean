@@ -33,7 +33,6 @@ argument, are not developed here; this is the finite, regular-value algebra only
 * `localDegree_congr_of_preimage_inter_eq` — excision: dependence only on `f⁻¹{y} ∩ U`.
 * `localDegree_eq_zero_of_preimage_inter_empty` — a region with no preimage point contributes `0`.
 
-This module is `sorry`-free.
 -/
 
 namespace CRNT

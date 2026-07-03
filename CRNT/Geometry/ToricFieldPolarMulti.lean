@@ -40,7 +40,7 @@ field value `v ∈ toricField F δ X` is a `ZeroSeparatingCurve2D.IsSupportFace`
 normal lies in every δ-near cell (`isSupportFace_of_mem_forall`), mirroring
 `ToricFieldPolar.isSupportFace_of_isolated_mem` for the multi-cell regime.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.ToricFan`,
+Depends on: `CRNT.Geometry.ToricFan`,
 `CRNT.Geometry.ToricFieldPolar`, `CRNT.Geometry.ZeroSeparatingCurve2D`.
 -/
 

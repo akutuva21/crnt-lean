@@ -24,7 +24,7 @@ exists by density of `ℚ` (`exists_between`).
 * `feasibleStrict_zero_iff` — a `Fin 0` system is strictly feasible iff every bound is positive.
 * `decidableFeasibleStrict` — `Decidable (FeasibleStrict sys)` for every `n`, by recursion on `n`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Decision.RationalFarkas`.
+Depends on: `CRNT.Decision.RationalFarkas`.
 -/
 
 open scoped BigOperators

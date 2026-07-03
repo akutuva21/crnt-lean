@@ -20,8 +20,7 @@ and Martin Feinberg, *Structural Sources of Robustness in Biochemical Reaction N
 antithetic integral feedback (Corentin Briat, Ankit Gupta, and Mustafa Khammash, *Antithetic
 Integral Feedback Ensures Robust Perfect Adaptation in Noisy Biomolecular Networks*).
 
-Everything reported here is machine-checked, `sorry`-free, and introduces no axioms beyond
-Mathlib's. The boundaries between what is proved unconditionally, what is reduced to a named
+The boundaries between what is proved unconditionally, what is reduced to a named
 hypothesis, and what needs mathematics absent from this development are stated as plain facts at the
 end of each section.
 
@@ -104,8 +103,7 @@ appeal to topological degree.
 
   a `C¹` map whose Jacobian is a P-matrix at every point of a box is injective on that box.
 
-**Coverage.** The P-matrix calculus and the box Gale–Nikaido univalence theorem are complete and
-stand as an upstreamable Mathlib unit. The theorem is stated on a box (an order interval), the form
+**Coverage.** The P-matrix calculus and the box Gale–Nikaido univalence theorem are complete. The theorem is stated on a box (an order interval), the form
 that binds to a compatibility class in the next section.
 
 ## From the reduced Jacobian to class injectivity

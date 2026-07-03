@@ -40,7 +40,7 @@ mass-action vector field additionally needs the box Gale–Nikaido P-matrix chai
 principal minors positive rather than only the full determinant nonzero; that bridge is
 not built here.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Multistationarity.JacobianCycleSign`.
 -/
 

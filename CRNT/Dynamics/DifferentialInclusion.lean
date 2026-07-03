@@ -29,7 +29,7 @@ The whole space is invariant, and an arbitrary intersection of invariant regions
 The deep theory — Filippov existence, viability, measurable selection — is **absent** from
 Mathlib and is not attempted here.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.Analysis.Calculus.Deriv.Basic`, `Mathlib.Topology.MetricSpace.Basic`.
 -/
 

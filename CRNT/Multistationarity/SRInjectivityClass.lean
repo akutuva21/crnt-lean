@@ -33,7 +33,7 @@ stoichiometric chart is a genuine Schur-style oblique compression `stoichProj âˆ
 not a principal submatrix, so its P-matrix property is not inherited by submatrix selection; it
 needs the signed SR-cover sign condition recast on the reduced covers and is not developed here.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Multistationarity.SRCycleInjectivity`.
 -/
 

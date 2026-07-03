@@ -19,7 +19,7 @@ shared by the deficiency-zero and deficiency-one steady-state theory: when `δ =
 deficiency subspace is `⊥`, forcing `A_k (Ψ x) = 0` — every steady state is complex-balanced
 (`isComplexBalanced_of_steadyState_of_deficiencyZero`); when `δ = 1` it is pinned to a line.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.KernelDimension`,
+Depends on: `CRNT.Deficiency.KernelDimension`,
 `CRNT.Equilibria.SteadyState`, `CRNT.Equilibria.ComplexBalanced`.
 -/
 

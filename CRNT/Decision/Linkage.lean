@@ -19,7 +19,7 @@ connected components:
 This gives a computable companion for the linkage count `ℓ` in `δ = n − ℓ − s`, and decidable
 linkage among complexes.
 
-This module is **stable**. Depends on: `CRNT.Graph.LinkageClass`, `CRNT.Decision.Reachability`.
+Depends on: `CRNT.Graph.LinkageClass`, `CRNT.Decision.Reachability`.
 -/
 
 namespace CRNT

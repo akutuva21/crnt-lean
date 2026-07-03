@@ -38,7 +38,7 @@ time-`s+t` weights, recovering `P_{s+t}` (`cmeSemigroup_comp`).
 * `tsum_sum_antidiagonal_eq_tsum_prod` — antidiagonal reindexing of an `ℝ≥0∞` two-index tsum.
 * `cmeSemigroup_comp` — the Chapman-Kolmogorov law `P_{s+t} = P_s ∘ₖ P_t`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.Semigroup`,
+Depends on: `CRNT.Stochastic.Semigroup`,
 `Mathlib.Data.Nat.Choose.Sum`, `Mathlib.Data.Nat.Choose.Basic`.
 -/
 

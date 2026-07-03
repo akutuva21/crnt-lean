@@ -27,7 +27,7 @@ diagonal attracting direction `diagNormal`), the single-face region
 `toricField crossFan δ`. The result `crossFan_genuine_persistent` shows the whole chain
 links from fan to persistence in a genuine instance.
 
-## What this module formalizes (sorry-free)
+## What this module formalizes
 
 * `crossFaces` / `crossField_support` — the single-face region for the worked fan and the support
   certificate that every value of `toricField crossFan δ` at every log-state points into the
@@ -51,7 +51,7 @@ links from fan to persistence in a genuine instance.
 
 ## What is proved here, and what is taken as a hypothesis
 
-Proved, sorry-free and axiom-clean:
+Proved here:
 
 * the **complete composition on the worked `crossFan`**: support
   (`crossField_subset_dualHalfPlane`) → invariance (`polyRegion_invariant_of_support`) →
@@ -74,7 +74,7 @@ Taken as a hypothesis, not constructed here:
   single-region degenerate instance where one attracting direction (`diagNormal`) serves every
   cell, so no chaining is needed; the general chaining is not formalized here.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.FaithfulCurve`,
+Depends on: `CRNT.Geometry.FaithfulCurve`,
 `CRNT.Dynamics.PolyRegionInvariant`.
 -/
 

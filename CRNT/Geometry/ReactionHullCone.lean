@@ -37,7 +37,7 @@ covering clauses of `IsPolyhedralFan` — rests on polytope face theory beyond t
 established here, so the deliverable carries `IsPolyhedralFan reactionFan` as a hypothesis while
 supplying reaction generation itself.
 
-This module is `sorry`-free. Depends on: `CRNT.Geometry.ReactionFanGeneration`,
+Depends on: `CRNT.Geometry.ReactionFanGeneration`,
 `CRNT.Geometry.FiniteConeClosed`.
 -/
 

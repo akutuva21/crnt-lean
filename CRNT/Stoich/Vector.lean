@@ -9,7 +9,7 @@ the stoichiometric matrix indexed by that reaction. This module collects the net
 level view of reaction vectors used by the stoichiometric subspace and the mass-
 action vector field.
 
-This module is **stable**. Depends on: `CRNT.Basic.Network`.
+Depends on: `CRNT.Basic.Network`.
 -/
 
 namespace CRNT

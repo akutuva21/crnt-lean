@@ -12,7 +12,7 @@ simple roots a coordinate is incremented by at most one direction and decremente
 Hence as `N → ∞` the cell diameters tend to `0` — the analytic input to the n-dimensional Brouwer
 fixed-point theorem.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLatticeN`, Mathlib
+Depends on: `CRNT.Analysis.SpernerLatticeN`, Mathlib
 `Analysis.Convex.StdSimplex`.
 -/
 

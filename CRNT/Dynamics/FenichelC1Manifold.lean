@@ -49,7 +49,7 @@ differentiable at `t₀` and moving at speed `O(ε)`, the slaved curve's velocit
 `(L / rate) · ε`, the `HasDerivAt` hypothesis now following from the `C¹` regularity of
 `manifoldMap`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.FenichelSlowDrift`,
+Depends on: `CRNT.Dynamics.FenichelSlowDrift`,
 `Mathlib.Analysis.Calculus.ImplicitContDiff`.
 -/
 

@@ -30,7 +30,7 @@ The results are:
 `DeficiencyOneConditions` implies `TightLinkageDeficiency` (`DeficiencyOneConditions.tight`), so
 every deficiency-one consumer factors through these statements.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Deficiency.DeficiencyOneDecomp`,
+Depends on: `CRNT.Deficiency.DeficiencyOneDecomp`,
 `CRNT.Deficiency.DeficiencyOneLocalize`.
 -/
 

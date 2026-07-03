@@ -21,7 +21,7 @@ neighborhood. Every compact invariant set is its own maximal invariant subset, a
 invariant set sitting inside the interior of a compact set that contains no strictly larger
 invariant set is isolated.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.NegativeInvariance`.
+Depends on: `CRNT.Dynamics.NegativeInvariance`.
 -/
 
 open Set Topology

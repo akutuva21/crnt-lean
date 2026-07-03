@@ -52,7 +52,7 @@ reduced field carries nonzero `ℓ₁` and a periodic-orbit seed discharges the 
 `CenterManifoldSeed` toward the periodic-orbit conclusion that `planarHopfHypotheses` stops short
 of.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.HopfAdmissible`.
+Depends on: `CRNT.Dynamics.HopfAdmissible`.
 -/
 
 namespace CRNT
@@ -285,5 +285,5 @@ end hopfAdmissible
 end CRNT
 
 /-!
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.HopfAdmissible`.
+Depends on: `CRNT.Dynamics.HopfAdmissible`.
 -/

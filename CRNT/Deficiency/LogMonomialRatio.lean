@@ -22,7 +22,7 @@ characterization of steady states to a constancy statement about `Φ`.
 * `logMonomialRatio_eq` — `Φ(c) = ∑ s, c_s · (log x_s − log y_s)`.
 * `logRatio_mem_orthSum_iff` — `μ ∈ orthSum S ↔ Φ` is constant along every reaction.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.Analysis.SpecialFunctions.Log.Basic`, `CRNT.Dynamics.MassActionAlgebra`,
 `CRNT.LinearAlgebra.OrthogonalComplement`, `CRNT.Stoich.Subspace`.
 -/

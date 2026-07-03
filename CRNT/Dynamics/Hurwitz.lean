@@ -39,7 +39,7 @@ The general-degree converse (positivity of all `n` Hurwitz determinants implies 
 needs Hermite–Biehler / Routh-array continued-fraction machinery absent from `Mathlib`, so
 degree-4+ sufficiency and the `n`-dimensional criterion remain out of scope.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 Mathlib.LinearAlgebra.Matrix.Determinant.Basic, Mathlib.Data.Matrix.Basic,
 Mathlib.Tactic.FinCases, Mathlib.Tactic.Linarith, Mathlib.Tactic.Polyrith,
 CRNT.Dynamics.RouthHurwitz.

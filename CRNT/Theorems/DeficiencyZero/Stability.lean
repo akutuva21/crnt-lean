@@ -21,7 +21,6 @@ into convergence (`γ t → x*`) additionally requires LaSalle's invariance prin
 Picard–Lindelöf (global forward existence and continuous dependence on initial conditions)
 is beyond the current Mathlib ODE library.
 
-This module is **stable** and `sorry`-free.
 -/
 
 namespace CRNT

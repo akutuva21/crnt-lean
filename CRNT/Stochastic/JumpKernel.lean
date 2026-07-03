@@ -27,7 +27,7 @@ mass. This is the discrete-time invariance statement at the real-arithmetic leve
 elementary generator; the measure-theoretic `Kernel.Invariant`/`Kernel.IsReversible` layer is
 built on top of it in `CRNT.Stochastic.Kernel` and `CRNT.Stochastic.KernelInvariant`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.CTMC`.
+Depends on: `CRNT.Stochastic.CTMC`.
 -/
 
 namespace CRNT

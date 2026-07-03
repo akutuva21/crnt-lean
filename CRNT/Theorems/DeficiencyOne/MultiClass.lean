@@ -32,7 +32,7 @@ class at a time:
   `deficiencyOneUniqueness_of_deficientClassRatioConst` closes the argument
   (`deficiencyOneUniqueness_multiClass`).
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Theorems.DeficiencyOne.Uniqueness`, `CRNT.Deficiency.DeficiencyOneLocalize`,
 `CRNT.LinearAlgebra.FinrankSup`.
 -/

@@ -13,7 +13,7 @@ decidable equality), so explicit reachability witnesses can be checked. Reachabi
 itself is defined propositionally via `Relation.ReflTransGen`; example properties are
 established by explicit path construction.
 
-This module is **stable**. Depends on: `CRNT.Basic.Network`, `Mathlib.Logic.Relation`.
+Depends on: `CRNT.Basic.Network`, `Mathlib.Logic.Relation`.
 -/
 
 namespace CRNT

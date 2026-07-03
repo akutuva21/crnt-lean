@@ -29,7 +29,6 @@ orientation-reversing map. The orientation-reversing case is exercised on the ne
 * `regularDegree_neg_id_eq_neg_one` — the orientation-reversing value `-1` on
   `EuclideanSpace ℝ (Fin 1)`.
 
-This module is `sorry`-free.
 -/
 
 namespace CRNT

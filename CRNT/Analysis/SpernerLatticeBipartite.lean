@@ -21,7 +21,7 @@ unfolded to their coordinate components and the index equality is discharged by 
 * `up_up_share_le_one`, `down_down_share_le_one` — same-orientation triangles share at most one vertex.
 * `not_cellDoor_inl_inl`, `not_cellDoor_inr_inr` — `CellDoor` holds only between opposite orientations.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLatticeDoorGraph`.
+Depends on: `CRNT.Analysis.SpernerLatticeDoorGraph`.
 -/
 
 namespace CRNT.Analysis.SpernerLattice

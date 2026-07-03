@@ -16,7 +16,7 @@ The proof transports `K` along the coordinate isometry
 projected fixed-point theorem to the conjugated field, and pulls the inequality back, rewriting the
 `EuclideanSpace` inner product as the coordinate sum over species.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.ConcentrationZero`,
+Depends on: `CRNT.Analysis.ConcentrationZero`,
 `CRNT.Dynamics.MassActionField`.
 -/
 

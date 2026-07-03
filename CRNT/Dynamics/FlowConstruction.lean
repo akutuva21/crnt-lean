@@ -7,7 +7,7 @@ import Mathlib.Dynamics.Flow
 
 This module collects the general dynamical-systems lemmas needed to package the solutions
 of an autonomous ODE `ẋ = f(x)` (with `f` Lipschitz) into a continuous `Flow`. It is
-CRN-free, Mathlib-style, written with an eye toward upstreaming.
+CRN-free, Mathlib-style.
 
 **Continuous dependence and uniqueness.** From Grönwall's inequality
 (`dist_le_of_trajectories_ODE`): two global solutions of the same autonomous Lipschitz ODE
@@ -27,7 +27,6 @@ supplies the orbits, uniqueness the semigroup law, and continuous dependence the
 continuity. For mass action this applies after a cutoff to a bounded field together with the
 `relEntropy` confinement (forward-invariant compact sublevel sets within a class).
 
-This module is **stable** and `sorry`-free.
 -/
 
 open Filter

@@ -7,8 +7,6 @@ import CRNT.Examples.ReversiblePair
 Exercises the `Kinetics` abstraction on the canonical network: mass action arises as the
 instance `massActionKinetics`, its induced field is the mass-action vector field, and the
 kinetics-agnostic stoichiometry lemmas (conservation, boundary non-attraction) apply.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Examples.GeneralKinetics
@@ -26,7 +24,7 @@ def K : Network.Kinetics N := N.massActionKinetics κ
 /-- The kinetics' rate is the mass-action rate. -/
 example : K.rate = N.massActionRate κ := rfl
 
-/-- The induced field is the mass-action vector field — the stable API is recovered
+/-- The induced field is the mass-action vector field — the API is recovered
 definitionally. -/
 example : K.vectorField = N.massActionVectorField κ :=
   N.massActionKinetics_vectorField κ

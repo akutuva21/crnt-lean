@@ -36,7 +36,7 @@ The conservation-law feasibility characterization of (non)critical siphons is fr
 Angeli, De Leenheer, and Sontag, *A Petri net approach to the study of persistence in chemical
 reaction networks*; the duality is Farkas' lemma.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.SiphonConservation`,
+Depends on: `CRNT.Dynamics.SiphonConservation`,
 `Mathlib.Analysis.Convex.Cone.InnerDual`,
 `Mathlib.Analysis.InnerProductSpace.Projection.Submodule`.
 -/

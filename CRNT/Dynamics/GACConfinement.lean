@@ -23,7 +23,7 @@ facts into the `K₀` of `gac_of_genuine_persistence`.
   every species `s` and every forward time, then the genuine semiflow's ω-limit set through `x₀` is
   exactly `{x*}`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.PersistenceGAC`.
+Depends on: `CRNT.Dynamics.PersistenceGAC`.
 -/
 
 open scoped BigOperators NNReal Topology

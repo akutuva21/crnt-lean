@@ -27,7 +27,7 @@ positive steady state, is exactly what remains to upgrade the reduction to an un
 theorem. The cross-class equality is consumed as input here; deriving it from non-terminality and
 the deficiency-one cut structure is the outstanding mathematical step.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Design.ACR`,
+Depends on: `CRNT.Design.ACR`,
 `CRNT.Theorems.DeficiencyOne.Uniqueness`, `CRNT.Deficiency.ComplexBalancedRatio`,
 `CRNT.Deficiency.LogMonomialRatio`, `CRNT.Deficiency.DeficiencyOneStructure`.
 -/

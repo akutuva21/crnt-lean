@@ -18,7 +18,7 @@ value, the expected behaviour of an enzyme reaction consuming its substrate.
 * `mmSubstrate_le_init` — from a nonnegative start it stays at or below `s₀` on the forward ray.
 * `mmSubstrate_tendsto_atTop` — the substrate curve converges as `t → ∞`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.MichaelisMentenReduced`.
+Depends on: `CRNT.Dynamics.MichaelisMentenReduced`.
 -/
 
 open Filter Set

@@ -43,7 +43,7 @@ and `l1Dist (P ^ n x) b → 0`; each coordinate is dominated by the `ℓ¹` dist
   primitive closed enabled region: the `n`-step singleton masses converge to the stationary
   singleton masses.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.ErgodicConvergence`.
+Depends on: `CRNT.Stochastic.ErgodicConvergence`.
 -/
 
 open MeasureTheory ProbabilityTheory

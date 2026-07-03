@@ -7,8 +7,6 @@ import CRNT.Examples.ReversiblePair
 The reversible pair `A ⇌ B` is weakly reversible: each reaction's source is reachable from
 its target in one step. With the decidable bounded-reachability companion this is closed by
 `decide` on `WeaklyReversibleWithin 1`, instead of building the return paths by hand.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Examples.DecideReachability

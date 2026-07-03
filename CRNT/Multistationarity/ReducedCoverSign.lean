@@ -48,7 +48,7 @@ and global univalence of mappings").
 * `subsingleton_steadyState_of_reducedConsistentSRSign` — the corresponding monostationarity
   conclusion.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Multistationarity.ReducedSRGraph`, `CRNT.Multistationarity.JacobianDeterminantSign`,
 `CRNT.Multistationarity.PMatrix`.
 -/

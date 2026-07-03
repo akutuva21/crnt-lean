@@ -21,7 +21,7 @@ positivity of every ω-limit point, which is exactly the no-boundary-attraction 
 convergence argument needs: vanishing dissipation forces each ω-point complex-balanced, hence
 equal to `x*` by deficiency-zero uniqueness.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.NoCriticalSiphonPersistence`, `CRNT.Dynamics.ForwardInvariance`.
 -/
 

@@ -8,8 +8,6 @@ With reachability restricted to the finite vertex type of complexes, full (unbou
 directed reachability is decidable, as is the strong-linkage-class count. The reversible
 pair is strongly connected: `A` and `B` reach each other, forming a single strong linkage
 class, all discharged by `decide`.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Examples.DecideDirectedReachability

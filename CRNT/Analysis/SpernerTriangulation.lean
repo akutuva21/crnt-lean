@@ -26,10 +26,10 @@ From these the module discharges the two hypotheses that the abstract two-dimens
 on the colored boundary side) — and assembles `odd_rainbow` (the rainbow-triangle count is odd) and
 `exists_rainbow` (the full two-dimensional Sperner conclusion).
 
-## What is deferred
+## Scope
 
-`DoorIncidence` takes the two incidence facts (`cell_degree`, `outer_degree`) as hypothesis fields;
-constructing them over a *concrete* triangulated grid is the named next dependency:
+`DoorIncidence` takes the two incidence facts (`cell_degree`, `outer_degree`) as hypothesis fields.
+Constructing them over a *concrete* triangulated grid requires:
 
 * a concrete triangle datatype `Cell` of up/down lattice triangles over the integer points
   `{(i, j, k) : i + j + k = N}` of the standard `N`-fold barycentric subdivision of the
@@ -43,7 +43,7 @@ constructing them over a *concrete* triangulated grid is the named next dependen
 * the boundary-side reduction discharging `outer_degree` by identifying the outer region's incident
   doors with the rainbow edges of the one-dimensional colored boundary segment.
 
-This module is **stable** and `sorry`-free. Depends on: `Mathlib.Combinatorics.SimpleGraph.DegreeSum`,
+Depends on: `Mathlib.Combinatorics.SimpleGraph.DegreeSum`,
 `Mathlib.Data.Fintype.Option`, `CRNT.Analysis.Sperner2D`, `CRNT.Analysis.Sperner`.
 -/
 

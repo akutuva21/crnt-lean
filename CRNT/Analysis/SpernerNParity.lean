@@ -12,7 +12,7 @@ the low colors `{0, …, n-1}` (`lowColors`); a facet (the cell with one vertex 
 `doorCount_odd_iff` states that the number of door facets is odd exactly when the cell is fully
 labeled (`c` is a bijection) — the engine of the handshaking/parity argument.
 
-This module is **stable** and `sorry`-free. Depends on: Mathlib finset/fintype.
+Depends on: Mathlib finset/fintype.
 -/
 
 namespace CRNT.Analysis.SpernerN

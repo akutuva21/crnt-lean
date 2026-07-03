@@ -39,7 +39,7 @@ existence on a moving constraint) that is **absent** from Mathlib, and is not at
 It is the gap to the zero-separating-surface result of Craciun, _Toric differential inclusions and
 a proof of the global attractor conjecture_, in dimension ≥ 2.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.DifferentialInclusion`,
+Depends on: `CRNT.Dynamics.DifferentialInclusion`,
 `CRNT.Dynamics.Nagumo`, `Mathlib.Analysis.Calculus.TangentCone.Basic`,
 `Mathlib.Analysis.Calculus.TangentCone.Real`, `Mathlib.Analysis.Calculus.Deriv.Slope`.
 -/

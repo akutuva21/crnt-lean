@@ -13,7 +13,7 @@ which the total-mass vector `v â‰¡ 1` is a strictly positive conservation law â€
 no-critical-siphon global-attraction theorem applies to it for every choice of rate
 constants. This exhibits a network meeting all hypotheses of the theorem simultaneously.
 
-This module is **stable** (example/test). It contains no `sorry`. Depends on:
+Depends on:
 `CRNT.Examples.ReversiblePair`, `CRNT.Dynamics.Siphon`, `CRNT.Dynamics.GACNoCriticalSiphon`,
 `CRNT.Theorems.DeficiencyZero.Existence`, `CRNT.Equilibria.CompatibilityClass`.
 -/

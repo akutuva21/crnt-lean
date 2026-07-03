@@ -60,7 +60,7 @@ as the forward/backward dichotomy integral of the flow — is the ODE plumbing l
 development, exactly as the Fenichel core of `CRNT.Dynamics.GraphTransform` leaves coupled-flow
 invariance to `CoupledFlowGraphTransform`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.GraphTransform`,
+Depends on: `CRNT.Dynamics.GraphTransform`,
 `CRNT.Dynamics.ExponentialDecay`.
 -/
 
@@ -178,6 +178,6 @@ theorem CenterManifoldData.manifold_apply_base (M : CenterManifoldData Ec Eh)
 end ODE
 
 /-!
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.GraphTransform`,
+Depends on: `CRNT.Dynamics.GraphTransform`,
 `CRNT.Dynamics.ExponentialDecay`.
 -/

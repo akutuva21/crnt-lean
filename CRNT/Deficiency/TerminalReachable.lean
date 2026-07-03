@@ -16,7 +16,7 @@ linkage class, i.e. `d` is terminal.
 A consequence: every nonempty reaction-closed set of complexes contains a terminal strong
 linkage class (`exists_terminal_mem_of_closed`).
 
-This module is **stable**. Depends on: `CRNT.Decision.StrongLinkage`,
+Depends on: `CRNT.Decision.StrongLinkage`,
 `CRNT.Dynamics.MassActionAlgebra`.
 -/
 

@@ -63,7 +63,7 @@ stationary distributions for deficiency zero chemical reaction networks") realiz
 conservation class, with the finite-state holding-self-loop aperiodicity of Norris, "Markov Chains",
 §1.8 supplied by uniformization rather than a network reaction.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Stochastic.UniformizedConvergence`, `CRNT.Stochastic.RegionStronglyConnected`,
 `CRNT.Examples.StochasticConvergenceExample`.
 -/

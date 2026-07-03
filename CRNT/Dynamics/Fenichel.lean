@@ -47,7 +47,7 @@ to bound the genuine `O(ε)` defect of the reduced flow requires the parametrise
 `CRNT.Dynamics.QSSA`'s compact-time estimate. Downstream, the substrate-dependent
 Michaelis–Menten complex equilibrium `h(s)` replaces Tikhonov's flat fibre directly here.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.Tikhonov.
+Depends on: CRNT.Dynamics.Tikhonov.
 -/
 
 open Filter Set

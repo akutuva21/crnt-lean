@@ -11,7 +11,7 @@ that face must be the one opposite the top color, i.e. `j = Fin.last n`: on any 
 low color including `j`. These are the structural facts feeding the boundary reduction of the
 dimension induction for the n-dimensional Sperner lemma.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerNParity`,
+Depends on: `CRNT.Analysis.SpernerNParity`,
 `CRNT.Analysis.SpernerNIncidence`.
 -/
 

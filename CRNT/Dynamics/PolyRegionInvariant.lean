@@ -30,7 +30,7 @@ The mechanism is the per-face slack `s ↦ a − ⟪n, γ s⟫_ℝ`. Along a cur
   the distance-form `stays_away_from_zero_of_infDist_antitone` but routed through
   `polyRegion_invariant_of_support` rather than an `infDist` antitone hypothesis.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.SupportDiniBridge`.
+Depends on: `CRNT.Dynamics.SupportDiniBridge`.
 -/
 
 namespace CRNT

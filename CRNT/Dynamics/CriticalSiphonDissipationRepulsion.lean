@@ -36,7 +36,7 @@ give.
   stays a fixed positive distance above the facet of `s*`, given the near-facet dissipation bound and
   the field's linear lower bound.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.GenuineConfinement`.
+Depends on: `CRNT.Dynamics.GenuineConfinement`.
 -/
 
 open scoped BigOperators NNReal Topology

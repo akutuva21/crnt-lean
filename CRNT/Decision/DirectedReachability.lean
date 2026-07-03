@@ -20,7 +20,7 @@ yields:
   `numStrongLinkageClasses`;
 * `Decidable (N.IsTerminalSLC a.val)`: terminality of a strong linkage class is decidable.
 
-This module is **stable**. Depends on: `CRNT.Decision.StrongLinkage`.
+Depends on: `CRNT.Decision.StrongLinkage`.
 -/
 
 namespace CRNT

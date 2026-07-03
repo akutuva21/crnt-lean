@@ -25,7 +25,7 @@ structural facts the `SimpleGraph` packaging and the neighbor-finset count build
 
 * `cellDoor_symm`, `cellDoor_irrefl` — symmetry and irreflexivity of the cell adjacency.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLatticeCellColor`.
+Depends on: `CRNT.Analysis.SpernerLatticeCellColor`.
 -/
 
 namespace CRNT.Analysis.SpernerLattice

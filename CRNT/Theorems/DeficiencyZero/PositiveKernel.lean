@@ -13,7 +13,7 @@ class strongly connected. Perron–Frobenius then gives a fixed vector positive 
 class, i.e. a strictly positive kernel vector of `A_k`
 (`weaklyReversible_exists_positive_kernelVector`).
 
-This module is **stable** and `sorry`-free. The helper matrices `kmat`/`smat` live in the
+The helper matrices `kmat`/`smat` live in the
 `CRNT.PositiveKernel` namespace to avoid polluting the root.
 -/
 

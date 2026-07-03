@@ -21,7 +21,7 @@ boundedness and the per-facet floor are the geometric facts a separating region 
   genuine orbit through `x₀` stays in `R` for all forward time, then the ω-limit set through `x₀` is
   `{x*}`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.GACConfinement`.
+Depends on: `CRNT.Dynamics.GACConfinement`.
 -/
 
 open scoped BigOperators NNReal Topology

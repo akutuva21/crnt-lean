@@ -40,7 +40,7 @@ an explicit pointwise-finite operator in `CRNT.Stochastic.CTMC`, where
 `productPoisson_isGeneratorStationary_of_complexBalanced` proves that the product-Poisson
 density is annihilated by the generator (`πQ = 0`) at a complex-balanced concentration.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Equilibria.ComplexBalanced`,
+Depends on: `CRNT.Equilibria.ComplexBalanced`,
 `CRNT.Kinetics.MassAction`, `CRNT.Kinetics.Concentration`, Mathlib Poisson and product
 measures.
 -/

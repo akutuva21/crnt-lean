@@ -62,7 +62,7 @@ the reaction cone meets the wall's strict-interior side. The combinatorial extra
 strictly-inward reaction from weak reversibility of an *arbitrary* fan is the per-wall
 attracting-direction analysis underlying the full-fan traversal, not reconstructed here.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.ToricInclusion`,
+Depends on: `CRNT.Dynamics.ToricInclusion`,
 `CRNT.Dynamics.PolyRegionStrictInvariant`, `CRNT.LinearAlgebra.OrthogonalComplement`,
 `CRNT.Geometry.FaithfulCurve2D`.
 -/

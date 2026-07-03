@@ -36,7 +36,7 @@ The dynamical Hopf-bifurcation theorem (that loss of stability through a purely 
 eigenvalue pair produces an oscillation) is a separate analytic statement and stays out of scope
 here.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.HopfGate,
+Depends on: CRNT.Dynamics.HopfGate,
 CRNT.Kinetics.MassActionJacobian.
 -/
 

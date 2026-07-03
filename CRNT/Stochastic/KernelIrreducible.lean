@@ -37,15 +37,14 @@ region-restricted predecessor tsum (`restrictedStationaryMeasure_bind_apply`), a
 agree by `restricted_predecessor_sum_eq` inside the region and
 `restricted_predecessor_sum_eq_zero` outside it (closure forces no inbound mass).
 
-The honest ceiling: this is the strongest sound statement short of *characterizing* a canonical
-closed enabled region of a given network — e.g. proving that the set of counts above all
-reaction targets with positive exit rate is forward/backward closed for a specific class of
-networks, or identifying the irreducible communicating class as a `Kernel.Irreducible`
-component. That characterization is the next dependency; it requires network-structural
-reachability analysis (which counts communicate under repeated firing) that the committed
-assets do not provide. Here the region is taken as a hypothesis with its closure verified.
+Characterizing a canonical closed enabled region of a given network — e.g. proving that the set
+of counts above all reaction targets with positive exit rate is forward/backward closed for a
+specific class of networks, or identifying the irreducible communicating class as a
+`Kernel.Irreducible` component — requires network-structural reachability analysis (which counts
+communicate under repeated firing) that the reaction structure does not provide. The region is
+taken as a hypothesis with its closure verified.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.KernelStationary`.
+Depends on: `CRNT.Stochastic.KernelStationary`.
 -/
 
 open MeasureTheory ProbabilityTheory

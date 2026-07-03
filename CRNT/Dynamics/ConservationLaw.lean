@@ -29,7 +29,7 @@ boundary-repelling (Butler & Waltman) analysis is not constructed here.
   law positive exactly on it.
 * `not_critical_conserved_along_solution` — that conserved total resists total depletion of the siphon.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Theorems.DeficiencyZero.AsymptoticStability`, `CRNT.Dynamics.SiphonConservation`.
 -/
 

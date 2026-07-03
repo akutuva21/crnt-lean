@@ -52,7 +52,7 @@ genuine network. See Wilhelm & Heinrich, "Smallest chemical reaction system with
 "Nonlinear Oscillations, Dynamical Systems, and Bifurcations of Vector Fields", §3.4, for the
 analytic theorem.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.HopfGate3Matrix,
+Depends on: CRNT.Dynamics.HopfGate3Matrix,
 CRNT.Kinetics.MassActionJacobian, CRNT.Examples.HopfOscillator3.
 -/
 

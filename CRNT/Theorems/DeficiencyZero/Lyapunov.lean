@@ -17,7 +17,6 @@ nonnegativity of relative entropy), and zero exactly at `x = x*`. These are the
 properties used to certify that a complex-balanced equilibrium is a strict local minimum
 of the energy, underlying both Birch's well-posedness and Milestone 5 (stability).
 
-This module is **stable** and `sorry`-free.
 -/
 
 namespace CRNT

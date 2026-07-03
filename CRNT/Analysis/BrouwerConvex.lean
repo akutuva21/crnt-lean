@@ -17,7 +17,7 @@ Two analytic corollaries of the `n`-dimensional Brouwer fixed-point theorem
   `x ↦ clamp (x - f x)`: a fixed point forces, coordinatewise, `f x i = 0`, the boundary sign
   conditions ruling out the clamped (face) alternatives.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerBrouwerN`.
+Depends on: `CRNT.Analysis.SpernerBrouwerN`.
 -/
 
 namespace CRNT.Analysis

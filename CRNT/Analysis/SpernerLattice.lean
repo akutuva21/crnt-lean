@@ -43,7 +43,7 @@ each boundary side to avoid the opposite color, the hypothesis the two-dimension
 
 * `triVerts_card` — every triangle has exactly three vertices.
 
-This module is **stable** and `sorry`-free. Depends on: `Mathlib.Data.Finset.Prod`,
+Depends on: `Mathlib.Data.Finset.Prod`,
 `Mathlib.Data.Finset.Card`, `CRNT.Analysis.Sperner2D`.
 -/
 

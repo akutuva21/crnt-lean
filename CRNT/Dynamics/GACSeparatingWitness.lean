@@ -40,7 +40,7 @@ weaker nor stronger than persistence — it is the same content in geometric dre
   `SeparatingConfinement` with the persistence certificate `PersistentFrom` (the reverse for a
   positive start).
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.GACSeparatingCapstone`,
+Depends on: `CRNT.Dynamics.GACSeparatingCapstone`,
 `CRNT.Dynamics.GenuineConfinement`, `CRNT.Dynamics.ForwardInvariance`,
 `CRNT.Dynamics.SingleLinkageGAC`.
 -/

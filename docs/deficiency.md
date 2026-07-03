@@ -17,9 +17,7 @@ stability of complex isothermal reactors: the deficiency-zero and deficiency-one
 `δ = 1`, under additional graph hypotheses, uniqueness persists. The deficiency-one and
 advanced-deficiency algorithms that decide the capacity for multiple steady states from this same
 structure sit at the end of this document: the apparatus and the exclusion direction are proven,
-while the algorithm correctness equivalences are stated as named propositions but not proved. Every
-proven result reported here is machine-checked under the default `import CRNT`, which is `sorry`-free
-and introduces no axioms beyond Mathlib's.
+while the algorithm correctness equivalences are stated as named propositions but not proved.
 
 ## Complex balancing and the toric structure of equilibria
 
@@ -269,8 +267,7 @@ network, is `DeficiencyOneAlgorithmStatement`: `HasMultistationarityCapacity ↔
 unknown `Mᵢ` and shelves reactions against it (`ADAData`, `ADAData.imposes`, `ADAAffirmsCapacity`),
 with correctness `AdvancedDeficiencyAlgorithmStatement` for a regular network
 (`CRNT/Deficiency/AdvancedDeficiencyAlgorithm.lean`). Both correctness statements are written as
-`def` propositions — named targets, **proved in neither direction** — so the modules stay `sorry`-free
-and axiom-clean. They are Feinberg's deficiency-one theorem (Feinberg, *The existence and uniqueness
+`def` propositions — named targets, **proved in neither direction**. They are Feinberg's deficiency-one theorem (Feinberg, *The existence and uniqueness
 of steady states for a class of chemical reaction networks*) and its higher-deficiency successor.
 What is proven of each is **non-vacuity**: affirming capacity exhibits a nonzero stoichiometric vector
 (`stoichSubspace_ne_bot_of_doaAffirmsCapacity`, `stoichSubspace_ne_bot_of_adaAffirmsCapacity`). The

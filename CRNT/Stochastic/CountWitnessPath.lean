@@ -39,8 +39,8 @@ when the path begins at a complex `c` dominated by the start count, the fold-tar
 
 ## Discharging `hpairs` on a characterized region
 
-The honest ceiling named in `JumpReachabilityLift` is matching arbitrary region counts to the
-reaction-graph complexes that connect them: the complex graph connects *complexes*, while
+Matching arbitrary region counts to the
+reaction-graph complexes that connect them is the crux: the complex graph connects *complexes*, while
 `RegionJumpStronglyConnected` must connect every pair of *counts*, and a generic region count need not
 sit over a complex. The clean characterized region for which the matching is exact is a *complex-shift
 orbit*: a region `T` carrying a base count `b ∈ T`, a complex `c₀` dominated by every region count, and
@@ -52,10 +52,10 @@ every pair of region counts, discharging `hpairs` with no count-level reachabili
 `weaklyReversible_pow_mulVec_tendsto_stationaryVec` yields unconditional geometric convergence on a
 complex-shift region (`complexShiftRegion_pow_mulVec_tendsto_stationaryVec`).
 
-The residual is the existence of a complex-shift structure for the *maximal* closed enabled region of a
-given network: identifying which counts communicate under repeated firing as a complex-shift orbit is
-the network-structural characterization the committed reachability assets do not provide. Here a region
-is taken to carry that structure as a hypothesis, with the lift and `hpairs` discharged from it.
+Identifying which counts communicate under repeated firing as a complex-shift orbit — a complex-shift
+structure for the *maximal* closed enabled region of a given network — is the network-structural
+characterization the reaction structure does not provide. A region is taken to carry that structure as
+a hypothesis, with the lift and `hpairs` discharged from it.
 
 This is the chemical-reaction-network recurrence picture (Anderson, Craciun & Kurtz, "Product-form
 stationary distributions for deficiency zero chemical reaction networks"): on a closed irreducible
@@ -77,7 +77,7 @@ structure of the complex graph) lifted to the count lattice.
 * `complexShiftRegion_pow_mulVec_tendsto_stationaryVec` — unconditional geometric convergence to the
   stationary law on a complex-shift region of a weakly reversible network.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Stochastic.JumpReachabilityLift`, `CRNT.Graph.Reachability`, `CRNT.Graph.CycleCover`.
 -/
 

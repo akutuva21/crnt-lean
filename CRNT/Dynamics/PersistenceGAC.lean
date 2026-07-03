@@ -50,7 +50,7 @@ result: persistence as a clean genuine-field certificate, with full convergence 
   nonnegative start stays nonnegative for all forward time (closed-orthant forward invariance,
   with the dissipativity bound supplied by `exists_field_lower_bound` on a confining box).
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.GlobalStability`,
+Depends on: `CRNT.Dynamics.GlobalStability`,
 `CRNT.Dynamics.ForwardInvariance`, `CRNT.Dynamics.Nagumo`.
 -/
 

@@ -13,7 +13,7 @@ three vertices coloured `0, 1, 2`. As `N → ∞` the triangles shrink (mesh `�
 sequences of vertices collapse to a common limit `z` at which `f z = z`
 (`brouwer_of_meshing_sequences`).
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLatticeGeometric`,
+Depends on: `CRNT.Analysis.SpernerLatticeGeometric`,
 `CRNT.Analysis.SpernerLatticeSperner`, `CRNT.Analysis.SpernerSimplexLimit`.
 -/
 

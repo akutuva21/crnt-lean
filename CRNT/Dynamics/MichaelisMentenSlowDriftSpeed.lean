@@ -31,7 +31,7 @@ left are the fast-field substrate Lipschitz constant `L` and the slow drift boun
 the certified `O(ε)` Michaelis–Menten slaving velocity resting on the drift bound alone, valid over
 the whole substrate line.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.MichaelisMentenSlowDrift,
+Depends on: CRNT.Dynamics.MichaelisMentenSlowDrift,
 Mathlib.Analysis.Calculus.MeanValue.
 -/
 

@@ -28,7 +28,7 @@ induction on the list (`jumpReaches_of_fireableList`). This is the count-space r
 reaction-graph path: each list entry is a reaction-graph edge, and the lift threads its count-level
 witness through the region's closure.
 
-The honest ceiling is the gap between *complex-graph* paths and *count-space* walks. A path in the
+There is a gap between *complex-graph* paths and *count-space* walks. A path in the
 reaction graph (`Reaches`, the reflexive-transitive closure of `DirectlyReacts`) connects complexes;
 its edges are reactions but it carries no count witness, so it does not by itself name the counts a
 walk passes through. Lifting it requires choosing, at each step, a reaction whose source matches the
@@ -58,7 +58,7 @@ replacement for the abstract irreducibility of general Meyn–Tweedie ergodicity
   for a weakly reversible network on a region connected by fireable reaction lists, with no
   count-level reachability hypothesis.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Stochastic.RegionStronglyConnected`, `CRNT.Graph.WeakReversibility`.
 -/
 

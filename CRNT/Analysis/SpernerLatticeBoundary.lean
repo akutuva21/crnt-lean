@@ -11,7 +11,7 @@ Sperner path — colored entirely with `{0,1}` (no point with `i+j=N` is colored
 color `0` at the corner `(N,0)` to color `1` at `(0,N)`. The one-dimensional Sperner lemma
 (`Sperner.sperner_odd_rainbowEdges`) then gives an odd number of door sub-edges.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLatticeFullGraph`,
+Depends on: `CRNT.Analysis.SpernerLatticeFullGraph`,
 `CRNT.Analysis.Sperner`.
 -/
 

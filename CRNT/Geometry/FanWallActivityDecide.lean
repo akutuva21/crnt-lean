@@ -73,7 +73,7 @@ faces of a given fan are the walls touched by the reaction directions. The finit
 the per-wall separation obligation once such a wall and its inward reaction are in hand; it does not
 manufacture the fan walls.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.FanSeparationWitness`,
+Depends on: `CRNT.Geometry.FanSeparationWitness`,
 `CRNT.Decision.DirectedReachability`.
 -/
 

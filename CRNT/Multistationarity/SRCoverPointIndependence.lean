@@ -50,7 +50,7 @@ in complex chemical reaction networks: I. The injectivity property" and "II. The
 graph"), whose injectivity conclusion feeds the global-univalence theorem of Gale and Nikaido ("The
 Jacobian matrix and global univalence of mappings").
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Multistationarity.SRCycleInjectivity`.
 -/
 

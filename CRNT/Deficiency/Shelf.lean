@@ -30,7 +30,7 @@ constraints on `μ` (`ShelfPartition.imposes`):
 of complexes, the literal reading of the rules. The algorithm's additional *nondegeneracy*
 conditions on the upper/lower shelves (depending on trivial terminal strong linkage classes), which
 restrict *which* partitions are enumerated, are not imposed here; omitting them only enlarges the
-set of partitions considered. Pinning that restriction is deferred to the headline statement.
+set of partitions considered. The headline statement pins that restriction.
 
 * `Shelf`, `Shelf.rank` — the three shelves and their height;
 * `ShelfPartition` — a shelf assignment meeting the two placement constraints;
@@ -38,7 +38,7 @@ set of partitions considered. Pinning that restriction is deferred to the headli
 * `ShelfPartition.ne_zero_of_imposes_of_higher` — a `μ` meeting a strict (height) constraint is
   nonzero.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Deficiency.Regular`,
+Depends on: `CRNT.Deficiency.Regular`,
 `CRNT.Deficiency.Confluence`, `CRNT.Deficiency.Signature`.
 -/
 

@@ -54,7 +54,7 @@ The differentiable `C¹` enrichment that *proves* `Dh(0) = 0` from a derivative-
 `CRNT.Dynamics.FenichelC1Manifold`'s `SlowManifoldC1Seed` enrichment of the Lipschitz manifold) is a
 separate development.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.CenterManifold`,
+Depends on: `CRNT.Dynamics.CenterManifold`,
 `CRNT.Dynamics.DissipativeTracking`.
 -/
 
@@ -305,6 +305,6 @@ noncomputable def reductionDataOfCenterManifold
 end ODE
 
 /-!
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.CenterManifold`,
+Depends on: `CRNT.Dynamics.CenterManifold`,
 `CRNT.Dynamics.DissipativeTracking`.
 -/

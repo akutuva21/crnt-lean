@@ -46,7 +46,7 @@ about how its cones arise from the reaction directions. Deriving that clause fro
 given fan are the reaction-generated ambient cones of walls — is the remaining convex-geometry input,
 separate from the properness ⇒ strict-reaction extraction performed here.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.FanSeparationWitness`.
+Depends on: `CRNT.Geometry.FanSeparationWitness`.
 -/
 
 namespace CRNT

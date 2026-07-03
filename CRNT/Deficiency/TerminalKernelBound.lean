@@ -17,7 +17,7 @@ t ≤ dim ker A_k
 linkage classes. This sharpens the linkage-class bound `ℓ ≤ dim ker A_k` (since `ℓ ≤ t`) and is
 the tight lower half of Feinberg's identity `dim ker A_k = t`.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.TerminalSLCKernel`,
+Depends on: `CRNT.Deficiency.TerminalSLCKernel`,
 `CRNT.Deficiency.TerminalSLC`, `CRNT.Deficiency.KernelDimensionBound`.
 -/
 

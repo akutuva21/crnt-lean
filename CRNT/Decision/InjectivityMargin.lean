@@ -12,7 +12,7 @@ fast to decide, and equals the species count exactly when `ConsistentDiagonalDri
 half of the Craciun–Feinberg injectivity precondition; it does **not** grade the signed-cover half
 (`ConsistentSRSign`), whose cover domain is too large for a small scalar.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Multistationarity.PointIndepDecidable`.
+Depends on: `CRNT.Multistationarity.PointIndepDecidable`.
 -/
 
 namespace CRNT

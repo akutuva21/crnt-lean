@@ -18,7 +18,7 @@ structure.
   `linked_singletonComplex_fullyOpen`). The open extension collapses the inflow and outflow
   material into a single hub class.
 
-This module is **stable**. Depends on: `CRNT.Open.Augmentation`,
+Depends on: `CRNT.Open.Augmentation`,
 `CRNT.Deficiency.DeficiencyOne`.
 -/
 

@@ -22,7 +22,7 @@ carries a door — discharged by the lattice-edge incidence lemmas.
 * `cellDoor_inl_isRight`, `cellDoor_inr_isLeft` — neighbors have the opposite orientation.
 * `up_down_share_two` — a shared edge pins the partner index to one of three.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.SpernerLatticeBipartite`.
+Depends on: `CRNT.Analysis.SpernerLatticeBipartite`.
 -/
 
 namespace CRNT.Analysis.SpernerLattice

@@ -16,7 +16,7 @@ field on a band around a sublevel value `c`, and the sublevel set `{g ≤ c}` is
 ball about the origin, then the genuine flow stays in `{g ≤ c}` and a fixed distance from `0`.
 The remaining task is to *construct* such a `g` out of a toric differential inclusion, by
 induction on dimension. This module packages the surface as a predicate and wires it to
-`ThmBGenuine`, proves the one-dimensional base case sorry-free, and states the induction step
+`ThmBGenuine`, proves the one-dimensional base case, and states the induction step
 precisely. The simplicial gluing that would discharge the induction step is taken as a hypothesis,
 not constructed here.
 
@@ -39,7 +39,7 @@ not constructed here.
   `F` and scale `δfan`, given a witness that the genuine field `f` is a pointwise selection of
   `toricInclusionField F δfan` together with the surface existence for `f`.
 
-* `zeroSeparatingSurfaceExists_one_dim` — the **1-D base case**, sorry-free. When the genuine
+* `zeroSeparatingSurfaceExists_one_dim` — the **1-D base case**. When the genuine
   field on `ℝ` is nonnegative near and beyond a far point (`f y ≥ 0` for `y ≥ P₀ − 1`, say via the
   toric inclusion being `⊆ Ici 0` there) the affine surface `g := fun x => P₀ − x` separates: the
   sublevel set `{g ≤ 0} = {x ≥ P₀}` is the far ray, descent is `g' · f = −f ≤ 0`, and the ray
@@ -52,7 +52,7 @@ not constructed here.
 
 ## What is proved here, and what is taken as a hypothesis
 
-Proved, sorry-free and axiom-clean:
+Proved here:
 
 * the surface-existence predicate and its wiring to `genuine_away_from_origin`;
 * the 1-D base case realizing the predicate.
@@ -77,7 +77,7 @@ These rest additionally on the set-valued viability (Nagumo) layer absent from M
 recorded in `ZeroSeparating.lean`; the genuine-flow wiring here needs only the single-valued
 descent lemma, which is why the predicate and base case land cleanly.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.ThmBGenuine`,
+Depends on: `CRNT.Dynamics.ThmBGenuine`,
 `CRNT.Dynamics.ZeroSeparating`, `CRNT.Geometry.ToricFan`.
 -/
 
@@ -188,7 +188,7 @@ the admissible velocities form the nonnegative ray. The genuine field `f` is the
 with `f y ≥ 0` on the sublevel band. The affine surface `g := fun x => P₀ − x` has constant
 derivative field `g' y = -(ContinuousLinearMap.id …)` evaluated as `g' y v = -v`, so descent is
 `g' y (f y) = -(f y) ≤ 0`. The sublevel set `{g ≤ 0} = {x ≥ P₀} = Set.Ici P₀` is the far ray,
-which misses `Metric.ball 0 P₀`. This realizes `ZeroSeparatingSurfaceExists` sorry-free. -/
+which misses `Metric.ball 0 P₀`. This realizes `ZeroSeparatingSurfaceExists`. -/
 
 namespace DifferentialInclusion
 

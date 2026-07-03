@@ -13,7 +13,7 @@ field `v`:
   fixed point in `K`, at which the projection variational inequality `∀ w ∈ K, ⟪v x, w - x⟫ ≤ 0`
   holds. This is the Stampacchia form needed when the displacement need not be inward.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Analysis.ConvexProjection`.
+Depends on: `CRNT.Analysis.ConvexProjection`.
 -/
 
 namespace CRNT.Analysis

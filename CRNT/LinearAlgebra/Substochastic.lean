@@ -24,7 +24,7 @@ index reaches a leak" along the support digraph. This is the substochastic Perro
 input behind drainage arguments: a transient block of a Markov-type generator (mass eventually
 escaping to absorbing classes) has trivial kernel.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.LinearAlgebra.PerronFrobenius`.
+Depends on: `CRNT.LinearAlgebra.PerronFrobenius`.
 -/
 
 namespace CRNT

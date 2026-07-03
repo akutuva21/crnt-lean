@@ -14,7 +14,7 @@ This per-class zero-mean is the conservation behind the deficiency-one sign argu
 nonzero deficiency vector restricted to a linkage class sums to zero, so it must take both
 signs there.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.KineticBlock`,
+Depends on: `CRNT.Deficiency.KineticBlock`,
 `CRNT.Deficiency.SteadyStateKernel`.
 -/
 

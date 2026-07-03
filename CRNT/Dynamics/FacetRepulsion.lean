@@ -41,7 +41,7 @@ The analysis splits on whether the vanishing-species set `{s*}` is a siphon.
   estimate, no Anderson & Shiu influx lemma); the precise missing statement is recorded in the note
   below.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.StrictInflow`,
+Depends on: `CRNT.Dynamics.StrictInflow`,
 `CRNT.Dynamics.BoundaryOmegaSiphon`, `CRNT.Dynamics.ButlerMcGehee`.
 -/
 

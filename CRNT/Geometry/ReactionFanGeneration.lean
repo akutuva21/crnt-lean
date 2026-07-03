@@ -44,7 +44,7 @@ about how its cones arise from the reaction directions. Deriving it from the abs
 cones of a given fan as subcones of the reaction hull — is the remaining convex-geometry input,
 separate from the fan-level packaging performed here.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Geometry.FanFaceProperness`.
+Depends on: `CRNT.Geometry.FanFaceProperness`.
 -/
 
 namespace CRNT

@@ -16,7 +16,7 @@ reaches such a leak, so the masked matrix has trivial fixed space. Hence any ker
 * `kineticMap_eq_zero_of_not_terminal` — a kernel vector of `A_k` is zero at every
   non-terminal complex (signed drainage).
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.LinearAlgebra.Substochastic`,
+Depends on: `CRNT.LinearAlgebra.Substochastic`,
 `CRNT.Deficiency.Drainage`.
 -/
 

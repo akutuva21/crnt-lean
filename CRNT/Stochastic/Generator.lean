@@ -25,7 +25,7 @@ reaction sums by complex (`target r ↦ complex` and `source r ↦ complex`), re
 balance to the complex-by-complex equation `inflow = outflow`, which is exactly
 `IsComplexBalanced`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.ProductForm`.
+Depends on: `CRNT.Stochastic.ProductForm`.
 -/
 
 namespace CRNT

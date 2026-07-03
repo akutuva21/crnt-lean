@@ -35,7 +35,7 @@ The full toric differential inclusion — the `x`-dependent assignment of dual c
 of a polyhedral fan, and the trapping of solutions inside invariant regions — is not constructed
 here. Only the constant reaction-cone inclusion and the selection embedding are built.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.DifferentialInclusion`,
+Depends on: `CRNT.Dynamics.DifferentialInclusion`,
 `CRNT.Geometry.PolyhedralFan`, `CRNT.Kinetics.MassAction`.
 -/
 

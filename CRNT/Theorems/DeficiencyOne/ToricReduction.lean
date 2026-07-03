@@ -19,7 +19,7 @@ deficient class's reactions — and proves it is the **sole remaining obligation
 deficiency-one uniqueness (`deficiencyOneUniqueness_of_deficientClassRatioConst`). The
 deficient-class constancy is the substantive sign-counting core of Feinberg's theorem.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Theorems.DeficiencyOne.LogRatioUniqueness`, `CRNT.Deficiency.ComplexBalancedRatio`.
 -/
 

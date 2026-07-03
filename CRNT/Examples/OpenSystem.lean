@@ -8,8 +8,6 @@ Exercises the open-network construction. Adjoining a synthesis and degradation f
 the two species turns the rank-one closed network into a fully open one whose
 stoichiometric subspace is all of `Species → ℝ` (rank `2`) and which has no nontrivial
 conservation law.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Examples.OpenSystem

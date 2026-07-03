@@ -123,7 +123,7 @@ theorem mulVec_exp_smul_mapsTo_realUnstableSubspace (A : Matrix (Fin n) (Fin n) 
 end CRNT.ExponentialDichotomy
 
 /-!
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.SpectralSplittingReal`, `Mathlib.Analysis.Normed.Algebra.MatrixExponential`,
 `Mathlib.Analysis.Matrix.Normed`, `Mathlib.Analysis.Normed.Module.FiniteDimension`.
 -/

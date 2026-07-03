@@ -7,8 +7,6 @@ import CRNT.Examples.ReversiblePair
 The reversible pair has `n = 2` complexes, `ℓ = 1` linkage class, stoichiometric rank `s = 1`,
 and deficiency `δ = 0`. This exercises the natural-number deficiency and the structural
 identity `n = ℓ + s + δ`, and confirms the network is not of deficiency one.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Examples.DeficiencyBookkeeping

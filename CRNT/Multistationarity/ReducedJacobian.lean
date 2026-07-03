@@ -21,7 +21,7 @@ class, the box Gale–Nikaido theorem (`injOn_of_pmatrix_fderiv`) makes `G` inje
 back through the injective affine chart, the mass-action vector field is injective on the class, so
 the class carries at most one positive steady state (Craciun–Feinberg monostationarity).
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Multistationarity.StoichChart`,
+Depends on: `CRNT.Multistationarity.StoichChart`,
 `CRNT.Multistationarity.GaleNikaidoUniv`, `CRNT.Kinetics.MassActionJacobian`.
 -/
 

@@ -46,12 +46,12 @@ stationary distributions for deficiency zero chemical reaction networks").
 * `uniformizedKernel_invariant_cmeStationaryMeasure` — `U`-invariance of the product-Poisson law.
 * `cmeSemigroup_preserves_stationarity` — the normalized product-Poisson law is `P_t`-invariant.
 
-The honest ceiling here is the Chapman–Kolmogorov composition law `P_{s+t} = P_s ∘ P_t`: it reduces
+The Chapman–Kolmogorov composition law `P_{s+t} = P_s ∘ P_t` reduces
 to the scalar Poisson convolution `∑_{j+k=m} poissonPMFReal s j · poissonPMFReal t k =
 poissonPMFReal (s+t) m` (the binomial theorem on `(s+t)^m`) threaded through `comp_sum_left` /
-`comp_sum_right`, and is the next dependency of this development.
+`comp_sum_right`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.KernelNormalized`,
+Depends on: `CRNT.Stochastic.KernelNormalized`,
 `Mathlib.Probability.Kernel.Composition.Comp`, `Mathlib.Probability.Distributions.Poisson.Basic`.
 -/
 

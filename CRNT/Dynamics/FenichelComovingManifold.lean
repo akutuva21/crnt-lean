@@ -52,7 +52,7 @@ nearby invariant manifold. Here the persisted manifold is genuinely non-constant
 every continuous time, the comoving section cancelling the contraction's pull along the moving base —
 the final de-idealization of the continuous-time Fenichel core.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.FenichelContinuousMovingTarget`.
 -/
 

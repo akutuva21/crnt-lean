@@ -26,7 +26,7 @@ This is the **algebraic** crossing condition only — the boundary of the Hurwit
 dynamical Hopf bifurcation / limit-cycle existence statement requires center-manifold theory
 that `Mathlib` does not provide and is out of scope.
 
-This module is **stable** and `sorry`-free. Depends on: CRNT.Dynamics.RouthHurwitz4.
+Depends on: CRNT.Dynamics.RouthHurwitz4.
 -/
 
 namespace CRNT

@@ -51,7 +51,7 @@ speed nonzero because the field rotates across the section. The first-return map
 (Poincaré, *Les méthodes nouvelles de la mécanique céleste*, vol. I, on the section map;
 Hartman, *Ordinary Differential Equations*, IX.10, on the differentiable first-return time.)
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.FlowConstruction`,
+Depends on: `CRNT.Dynamics.FlowConstruction`,
 `Mathlib.Analysis.InnerProductSpace.Calculus`,
 `Mathlib.Analysis.Calculus.ImplicitFunction.Bivariate`.
 -/

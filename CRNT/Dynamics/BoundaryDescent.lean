@@ -23,7 +23,7 @@ from `relEntropy_continuous` and the nonpositive derivative on the open interval
 `siphonFace_forwardInvariant_of_relEntropy_le` yields a siphon-face invariance theorem whose
 positivity hypothesis is weakened from positive-everywhere to positive-on-`(0,∞)`.
 
-## Honest ceiling
+## Scope
 
 This does **not** cover a genuinely face-confined orbit (one that vanishes on the siphon `P`,
 hence is not positive, at *all* times including positive `t`). Along such an orbit `relEntropy`
@@ -46,7 +46,7 @@ feasibility and ω-limit theory absent from the library).
   invariance for a complex-balanced-referenced orbit positive on `(0, ∞)`, with neither a box
   hypothesis, a relative-entropy bound, nor positivity at `t = 0` assumed.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.ConfinedInvariance`.
+Depends on: `CRNT.Dynamics.ConfinedInvariance`.
 -/
 
 open scoped BigOperators

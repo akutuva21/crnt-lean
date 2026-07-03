@@ -12,7 +12,7 @@ single positive coordinate it must have to the whole class.
 In particular, every linkage class of a weakly reversible network supports such a strictly
 positive kernel vector (`exists_pos_kernelVector_on_class_of_weaklyReversible`).
 
-This module is **stable**. Depends on: `CRNT.Deficiency.PerClassKernel`.
+Depends on: `CRNT.Deficiency.PerClassKernel`.
 -/
 
 namespace CRNT

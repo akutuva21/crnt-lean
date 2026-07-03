@@ -17,8 +17,7 @@ a strict dissipation `V̇ < 0` off an equilibrium set, this forces `ω(x)` into 
 standard route from a Lyapunov function to asymptotic stability.
 
 This module is general dynamical-systems content (no chemistry), Mathlib-style on
-`Mathlib.Dynamics.{Flow, OmegaLimit}`, written with an eye toward upstreaming. It is
-**stable** and `sorry`-free.
+`Mathlib.Dynamics.{Flow, OmegaLimit}`.
 -/
 
 open Filter Topology Set

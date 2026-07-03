@@ -37,7 +37,7 @@ count has positive exit rate and dominates every reaction's target complex. The
 invariance is stated under their exclusion — the strongest sound statement. Under those hypotheses
 `Kernel.Invariant (jumpKernel κ) (jumpStationaryMeasure κ c)` holds.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.KernelInvariant`,
+Depends on: `CRNT.Stochastic.KernelInvariant`,
 `Mathlib.Data.Nat.Factorial.BigOperators`.
 -/
 

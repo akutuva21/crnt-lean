@@ -23,7 +23,7 @@ inflow constant is strictly positive), so it cannot vanish at a steady state:
   the open set `O` — boundary equilibria live only on closed species;
 * `not_boundarySteadyState_on_open`: no boundary steady state vanishes on an open species.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Open.Boundary`.
+Depends on: `CRNT.Open.Boundary`.
 -/
 
 namespace CRNT

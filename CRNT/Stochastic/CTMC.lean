@@ -25,7 +25,7 @@ generator. The bridge `cmeGenerator_eq_ackResidual` rewrites the literal
 generator on the product-Poisson density into the ACK residual of `CRNT.Stochastic.Generator`
 via the per-reaction product-form substitution, after which complex balance closes it.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.Generator`.
+Depends on: `CRNT.Stochastic.Generator`.
 -/
 
 namespace CRNT

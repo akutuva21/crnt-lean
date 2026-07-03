@@ -32,7 +32,6 @@ finite, so the union is closed.
 * `isClosed_coe_hull_of_finite` — the conical hull of a `Finset` is closed.
 * `isClosed_coe_hull_of_set_finite` — the conical hull of a `Set.Finite` set is closed.
 
-This module is `sorry`-free.
 -/
 
 namespace CRNT

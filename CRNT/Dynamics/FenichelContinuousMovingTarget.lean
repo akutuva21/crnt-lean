@@ -48,7 +48,7 @@ nearby invariant manifold. Here the moving-target back-map is honest at every co
 non-constant moving-target invariance holds along the whole forward semiflow rather than only at
 multiples of the horizon.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.FenichelLogisticInstance`.
+Depends on: `CRNT.Dynamics.FenichelLogisticInstance`.
 -/
 
 open Function Set

@@ -53,7 +53,7 @@ substrate, and are taken as hypotheses rather than constructed here.
    dimension: 2-D polygonal zero-separating curves, then a simplicial construction in
    3-D/4-D/`n`-D. This geometric construction is not formalized.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Dynamics.DifferentialInclusion`, `Mathlib.Analysis.Calculus.MeanValue`,
 `Mathlib.Topology.MetricSpace.Basic`.
 -/
@@ -185,8 +185,7 @@ theorem field_le_Ici_forwardInvariant_Ici {F : Field ℝ} (P₀ : ℝ)
 /-- **1-D base-case zero-separating region.** For a nonnegative-ray inclusion `F` (`F y ⊆ Ici 0`)
 and a far point `0 < P₀`, the ray `Set.Ici P₀` is a zero-separating invariant region for `F`,
 `x₀ = P₀`, and margin `P₀`: invariant by `field_le_Ici_forwardInvariant_Ici`, separated from `0`
-by `ball_subset_compl_Ici`. This is the zero-separating region in dimension one, proved
-sorry-free. -/
+by `ball_subset_compl_Ici`. This is the zero-separating region in dimension one. -/
 theorem zeroSeparatingRegion_Ici {F : Field ℝ} {P₀ : ℝ} (hP₀ : 0 < P₀)
     (hF : ∀ y, F y ⊆ Set.Ici (0 : ℝ)) :
     ZeroSeparatingRegion F (Set.Ici P₀) P₀ P₀ where

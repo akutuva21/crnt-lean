@@ -38,7 +38,7 @@ property" and "II. The species–reaction graph").
   `subsingleton_steadyState_of_consistentSRSign_decide` — the verdict and its monostationarity
   payoff with the sign hypothesis replaced by the `decide`-friendly certificate.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Multistationarity.SRInjectivityClass`.
 -/
 

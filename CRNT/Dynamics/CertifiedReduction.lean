@@ -59,7 +59,7 @@ rate `λ = rate`, and its substrate-Lipschitz constant is the explicit
 the Michaelis–Menten horizon-uniform tracking ceiling as a corollary of the abstract theorem,
 demonstrating that the abstraction subsumes the bespoke chain.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Dynamics.DissipativeTracking`,
+Depends on: `CRNT.Dynamics.DissipativeTracking`,
 `CRNT.Dynamics.FenichelC1Manifold`, `CRNT.Dynamics.MichaelisMentenLipschitz`.
 -/
 

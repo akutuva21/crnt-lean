@@ -15,7 +15,7 @@ linearly independent. Collecting one per class gives `ℓ` independent kernel ve
 `dim ker A_k = t` (the number of terminal strong linkage classes); under the deficiency-one
 condition `t = ℓ`, the bound is tight.
 
-This module is **stable**. Depends on: `CRNT.Deficiency.PerClassKernel`.
+Depends on: `CRNT.Deficiency.PerClassKernel`.
 -/
 
 namespace CRNT

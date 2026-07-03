@@ -14,8 +14,6 @@ The Michaelis–Menten mechanism: an enzyme `E` binds substrate `S` to form a co
 enzyme. This module demonstrates complexes with multiple species and proves the total-
 enzyme conservation law `d([E] + [ES])/dt = 0`, a structural fact independent of the
 rate constants.
-
-This module is **stable** (example/test). It contains no `sorry`.
 -/
 
 namespace CRNT.Examples.Enzyme

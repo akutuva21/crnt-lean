@@ -24,7 +24,7 @@ deficiency-one steady states to the single deficient linkage class.
 * `logMonomialRatio_const_of_deficiencyZeroClass` — `Φ` is constant on a deficiency-zero
   linkage class.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Deficiency.DeficiencyOneLocalize`, `CRNT.Deficiency.DeficiencyOneHypotheses`,
 `CRNT.Deficiency.PerClassKernelUnique`, `CRNT.Deficiency.Drainage`,
 `CRNT.Deficiency.LogMonomialRatio`.

@@ -42,7 +42,7 @@ Craciun and Feinberg ("Multiple equilibria in complex chemical reaction networks
 property" and "II. The species–reaction graph"), whose conclusion feeds the global-univalence theorem
 of Gale and Nikaido ("The Jacobian matrix and global univalence of mappings").
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Multistationarity.SRSignDecidable`, `CRNT.Multistationarity.SRCoverPointIndependence`.
 -/
 

@@ -25,7 +25,6 @@ existence theorem, 1995).
 
 * `exists_compatible_pair_sameSign_logRatio` — the candidate compatible positive pair.
 
-This module is `sorry`-free.
 -/
 
 namespace CRNT

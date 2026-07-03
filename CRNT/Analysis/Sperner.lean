@@ -33,7 +33,7 @@ one rainbow edge exists.
 * `sperner_odd_rainbowEdges` — under the boundary condition the count is odd.
 * `sperner_exists_rainbow` / `rainbowEdges_nonempty` — existence of a rainbow edge.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.Algebra.BigOperators.Group.Finset.Basic`,
 `Mathlib.Algebra.BigOperators.Ring.Finset`, `Mathlib.Data.ZMod.Basic`,
 `Mathlib.Tactic.Ring`.

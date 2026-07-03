@@ -24,8 +24,8 @@ measurable, every singleton is measurable, and every function out of the lattice
 measurable, so all measurability obligations are discharged by `measurable_from_top` /
 `MeasurableSpace.measurableSet_top`.
 
-The exported content is the *predecessor-indexed* `bind`-to-sum identity that the kernel
-module names as its honest gap: the singleton weight `jumpStationaryMeasure_singleton`, the
+The exported content is the *predecessor-indexed* `bind`-to-sum identity: the singleton weight
+`jumpStationaryMeasure_singleton`, the
 pushforward of an arbitrary measurable set `jumpStationaryMeasure_bind_apply`,
 
 `(μ.bind (jumpKernel κ)) s = ∑' n, ofReal (jumpStationaryMass κ c n) · jumpKernel κ n s`,
@@ -35,9 +35,9 @@ sum via `jumpKernel_apply'`. This is the bridge from the complex-indexed real-ar
 global balance to a measure-theoretic statement indexed by the *source* counts whose mass
 flows into each target.
 
-The honest ceiling is full `Kernel.Invariant (jumpKernel κ) (jumpStationaryMeasure κ c)`,
-equivalently `μ.bind (jumpKernel κ) = μ`, which is **deliberately not stated as proved**: it
-is not soundly reachable from the committed assets. Two independent obstructions remain.
+Full `Kernel.Invariant (jumpKernel κ) (jumpStationaryMeasure κ c)`,
+equivalently `μ.bind (jumpKernel κ) = μ`, is not among the results here. Two independent
+obstructions separate it from the exported identities.
 First, an **index mismatch**: `jumpGlobalBalance_of_complexBalanced` is complex/reaction
 indexed with a downward shift (inflow weighted by the density at the reaction target), whereas
 invariance needs the predecessor tsum `∑' n, ofReal (jumpStationaryMass κ c n) · jumpKernel κ
@@ -51,7 +51,7 @@ theorem the downstream process-level Anderson–Craciun–Kurtz stationarity nee
 predecessor-summation lemma; combined with `jumpStationaryMeasure_bind_singleton` exported here
 it yields `μ.bind (jumpKernel κ) = μ` by `Measure.ext` on singletons.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Stochastic.Kernel`,
+Depends on: `CRNT.Stochastic.Kernel`,
 `CRNT.Stochastic.JumpKernel`, `Mathlib.Probability.Kernel.Invariance`,
 `Mathlib.MeasureTheory.Integral.Lebesgue.Countable`, `Mathlib.MeasureTheory.Measure.Dirac`.
 -/
@@ -99,7 +99,7 @@ theorem jumpStationaryMeasure_singleton (N : Network S) (κ : RateConstants N)
 /-- The predecessor-indexed `bind`-to-sum identity for the candidate stationary measure: its
 pushforward under the embedded jump kernel evaluates on every measurable set as the countable
 sum, over source counts, of stationary weight times the kernel's per-set transition mass. This
-is the final result of the embedded-chain kernel development — the bridge from the
+is the bridge from the
 complex-indexed real-arithmetic global balance to a source-indexed measure statement. -/
 theorem jumpStationaryMeasure_bind_apply (N : Network S) (κ : RateConstants N)
     (c : Concentration S) (s : Set (S → ℕ)) :

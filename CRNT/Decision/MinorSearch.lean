@@ -15,7 +15,7 @@ kernel `decide` cannot reduce; the witness it finds is then discharged on the ke
 tactic. Entries use `List.get?` (no `Inhabited` on the carrier), defaulting out-of-range positions to
 `0`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Basic.Network`.
+Depends on: `CRNT.Basic.Network`.
 -/
 
 namespace CRNT

@@ -28,7 +28,7 @@ being `det (A.submatrix id e_S) * det (B.submatrix e_S id)`.
   the image of an injective `p : Fin m → Fin n` to `p` itself.
 * `Matrix.det_mul_eq_sum_powersetCard` — the Cauchy–Binet formula.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `Mathlib.LinearAlgebra.Matrix.Determinant.Basic`, `Mathlib.Data.Finset.Sort`,
 `Mathlib.Order.Fin.Basic`.
 -/

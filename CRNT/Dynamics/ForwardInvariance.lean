@@ -28,7 +28,7 @@ a positive, stoichiometrically compatible start is exactly `{x*}`.
 * `gac_of_local_confinement`: confined global asymptotic convergence — under the local
   confinement hypothesis the ω-limit of the mass-action semiflow is the singleton `{x*}`.
 
-This module is **stable** and `sorry`-free. Depends on:
+Depends on:
 `CRNT.Theorems.DeficiencyZero.AsymptoticStability`.
 -/
 

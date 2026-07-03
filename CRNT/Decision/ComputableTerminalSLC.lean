@@ -11,7 +11,7 @@ quotient, with `computeNumTerminalSLC_eq_numTerminalSLC` proving the two agree. 
 linkage class is a strong linkage class with no reaction edge leaving it, and that terminality is
 decidable (`instDecidableIsTerminalSLClass`), so the filter is computable.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Deficiency.TerminalSLC`,
+Depends on: `CRNT.Deficiency.TerminalSLC`,
 `CRNT.Deficiency.DeficiencyOneDecide`.
 -/
 

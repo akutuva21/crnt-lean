@@ -28,7 +28,6 @@ field and reduced Jacobian.
 * `exists_isMassActionSteadyState_of_reducedDegree_ne_zero` — nonzero reduced regular degree at `0`
   forces a steady state in `x₀`'s compatibility class.
 
-This module is `sorry`-free.
 -/
 
 namespace CRNT

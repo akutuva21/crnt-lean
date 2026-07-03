@@ -18,7 +18,7 @@ complex matrix (`complexMap ∘ incidenceMap = stoichMap`), the flux satisfies
 
 * `isConsistent_of_weaklyReversible` — `WeaklyReversible → IsConsistent`.
 
-This module is **stable** and `sorry`-free. Depends on: `CRNT.Deficiency.Consistent`,
+Depends on: `CRNT.Deficiency.Consistent`,
 `CRNT.Deficiency.KernelDimension`, `CRNT.Theorems.DeficiencyZero.PositiveKernel`.
 -/
 
