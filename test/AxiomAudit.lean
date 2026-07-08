@@ -388,6 +388,10 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.omegaLimit_eq_singleton_of_comparableGrowthDescent
 
+/-- info: 'CRNT.Network.eq_of_periodic_solution' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.eq_of_periodic_solution
+
 /-- info: 'CRNT.Network.siphonFacet_floor_of_nearFacet_dissipation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.siphonFacet_floor_of_nearFacet_dissipation

@@ -294,6 +294,7 @@ import CRNT.Theorems.DeficiencyZero.Stability
 import CRNT.Theorems.DeficiencyZero.Confinement
 import CRNT.Theorems.DeficiencyZero.Lyapunov
 import CRNT.Theorems.DeficiencyZero.AsymptoticStability
+import CRNT.Theorems.DeficiencyZero.NoPeriodicOrbit
 import CRNT.Theorems.DeficiencyOne.Statement
 import CRNT.Theorems.DeficiencyOne.LogRatioUniqueness
 import CRNT.Theorems.DeficiencyOne.ToricReduction
