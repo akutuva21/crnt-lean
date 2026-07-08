@@ -157,6 +157,14 @@ The `(whitespace := lax)` mode makes the comparison insensitive to how long name
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.NetworkData.analyze_hasCriticalSiphon_eq
 
+/-- info: 'CRNT.NetworkData.singleLinkageHypotheses_of_persistenceSingleLinkage' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.NetworkData.singleLinkageHypotheses_of_persistenceSingleLinkage
+
+/-- info: 'CRNT.NetworkData.deficiencyOneConditions_of_analyze' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.NetworkData.deficiencyOneConditions_of_analyze
+
 /-- info: 'CRNT.RationalFarkas.feasibleStrict_eliminateLast_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.RationalFarkas.feasibleStrict_eliminateLast_iff

@@ -5,6 +5,8 @@ import CRNT.Decision.ACRCheck
 import CRNT.Decision.CriticalSiphonDecide
 import CRNT.Decision.PersistenceVerdict
 import CRNT.Decision.PersistenceCertified
+import CRNT.Decision.PersistenceSingleLinkage
+import CRNT.Decision.DeficiencyOneConditionsDecide
 import CRNT.Dynamics.Siphon
 import CRNT.LinearAlgebra.OrthogonalComplement
 import CRNT.Multistationarity.SRSignDecidable
@@ -94,7 +96,7 @@ open CRNT.GaussianRank
 open scoped NNReal Topology
 
 /-- The version of the `Analysis` JSON contract. Bump on any field-set change. -/
-def analysisVersion : Nat := 13
+def analysisVersion : Nat := 14
 
 /-- The structural invariants of a network, as a JSON-serializable record. The numeric fields are
 the computable companions of the library theory; `deficiency` is `n − ℓ − s` assembled here. -/
@@ -165,6 +167,22 @@ structure Analysis where
   compatibility class. The only remaining input is the positive start — a per-trajectory hypothesis,
   not a structural one. -/
   persistenceCertified : Bool
+  /-- Whether the network meets the decidable structural precondition of the single-linkage-class
+  global-attractor verdict: it is weakly reversible and has a single linkage class
+  (`weaklyReversible ∧ computeNumLinkageClasses = 1`). This is the *other* persistence mechanism from
+  `persistenceStructural` — Anderson's single-linkage-class global attractor rather than the
+  no-critical-siphon route. When `true` it discharges the structural hypotheses of
+  `gac_of_singleLinkage_decide`; it is not a full persistence proof, which additionally needs a
+  positive complex-balanced reference and Anderson's single-linkage persistence implication. -/
+  persistenceSingleLinkage : Bool
+  /-- Whether the network satisfies Feinberg's deficiency-one linkage conditions
+  (`DeficiencyOneConditions`): every linkage class has deficiency at most one and the per-class
+  deficiencies sum to the network deficiency — conditions (i) and (ii) of the deficiency-one theorem.
+  Decided by compiled evaluation (the per-class deficiencies route through `computeRank`), so unlike
+  the kernel-reducing flags this field is `#eval`-only and does not reduce under `by decide`. It is
+  not a full deficiency-one verdict: the theorem additionally requires each linkage class to have
+  exactly one terminal strong linkage class. -/
+  deficiencyOneConditions : Bool
   /-- The number of support-minimal siphons (`minimalSiphons.size`). -/
   numMinimalSiphons : Nat
   /-- The minimum cardinality among the support-minimal siphons, or the `numSpecies + 1` sentinel
@@ -233,6 +251,8 @@ def analyze (d : NetworkData) : Analysis :=
     persistenceStructural := decide N.WeaklyReversible && !decide N.HasCriticalSiphon
     persistenceCertified := decide N.WeaklyReversible && N.computableDeficiency == 0
       && !decide N.HasCriticalSiphon
+    persistenceSingleLinkage := decide N.WeaklyReversible && N.computeNumLinkageClasses == 1
+    deficiencyOneConditions := decide N.DeficiencyOneConditions
     numMinimalSiphons := ms.size
     minSiphonSize := ms.foldl (fun m a => min m a.size) (d.numSpecies + 1)
     numACRSpecies := acr.size
@@ -444,6 +464,45 @@ theorem gac_of_persistenceCertified (d : NetworkData)
       Bool.not_eq_true'] at h
     exact h.2
   exact d.toNetwork.gac_of_deficiencyZero_decide hwr κ hδ hcs hx0
+
+/-- The reported single-linkage persistence flag is `weaklyReversible ∧ numLinkageClasses = 1`. -/
+theorem analyze_persistenceSingleLinkage_eq (d : NetworkData) :
+    (d.analyze).persistenceSingleLinkage
+      = ((d.analyze).weaklyReversible && (d.analyze).numLinkageClasses == 1) :=
+  rfl
+
+/-- **Single-linkage persistence precondition.** When the single-linkage persistence flag is `true`,
+the network is weakly reversible and has a single linkage class — the structural hypotheses of the
+single-linkage-class global-attractor verdict `gac_of_singleLinkage_decide`. It is *not* a full
+persistence proof: that conclusion additionally needs a positive complex-balanced reference and
+Anderson's single-linkage persistence implication, neither of which the contract certifies from
+structure alone. -/
+theorem singleLinkageHypotheses_of_persistenceSingleLinkage (d : NetworkData)
+    (h : (d.analyze).persistenceSingleLinkage = true) :
+    d.toNetwork.WeaklyReversible ∧ d.toNetwork.SingleLinkageClass := by
+  rw [analyze_persistenceSingleLinkage_eq, Bool.and_eq_true, beq_iff_eq] at h
+  refine ⟨(analyze_weaklyReversible_eq d).mp h.1, ?_⟩
+  have h3 : d.toNetwork.computeNumLinkageClasses = 1 := h.2
+  exact d.toNetwork.singleLinkageClass_of_computeNumLinkageClasses_eq_one h3
+
+/-- The reported deficiency-one-conditions flag decides `DeficiencyOneConditions`. -/
+theorem analyze_deficiencyOneConditions_eq (d : NetworkData) :
+    (d.analyze).deficiencyOneConditions = decide d.toNetwork.DeficiencyOneConditions :=
+  rfl
+
+/-- **Deficiency-one linkage conditions.** When the flag is `true`, the network satisfies conditions
+(i) and (ii) of Feinberg's deficiency-one theorem: every linkage class has deficiency at most one and
+the per-class deficiencies sum to the network deficiency. A full deficiency-one verdict additionally
+requires each linkage class to have exactly one terminal strong linkage class. -/
+theorem deficiencyOneConditions_of_analyze (d : NetworkData)
+    (h : (d.analyze).deficiencyOneConditions = true) :
+    d.toNetwork.DeficiencyOneConditions :=
+  of_decide_eq_true h
+
+/-- The reported strong-linkage-class count is the network's strong-linkage-class count. -/
+theorem analyze_numStrongLinkageClasses_eq (d : NetworkData) :
+    (d.analyze).numStrongLinkageClasses = d.toNetwork.numStrongLinkageClasses :=
+  rfl
 
 /-- The reported terminal-strong-linkage-class count is the network's terminal-SLC count `t`. -/
 theorem analyze_numTerminalSLC_eq (d : NetworkData) :

@@ -188,7 +188,30 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
   N.gac_of_deficiencyZero_decide hwr κ hδ hdec hx0
 
 -- The analysis tags the current contract version.
-example : interopRevData.analyze.version = 13 := by decide
+example : interopRevData.analyze.version = 14 := by decide
+
+-- Single-linkage persistence and deficiency-one linkage conditions on the reversible pair `A ⇌ B`.
+-- The persistence flag equates to its two-field structural definition (the value's `decide` on weak
+-- reversibility need not kernel-reduce, so this exercises the bridge, not the raw value). The
+-- deficiency-one flag is `#eval`-only (`computeRank`), so it too is exercised through its bridge.
+example (d : NetworkData) :
+    d.analyze.persistenceSingleLinkage
+      = (d.analyze.weaklyReversible && d.analyze.numLinkageClasses == 1) :=
+  NetworkData.analyze_persistenceSingleLinkage_eq d
+example (d : NetworkData) (h : d.analyze.persistenceSingleLinkage = true) :
+    d.toNetwork.WeaklyReversible ∧ d.toNetwork.SingleLinkageClass :=
+  NetworkData.singleLinkageHypotheses_of_persistenceSingleLinkage d h
+example (d : NetworkData) :
+    d.analyze.deficiencyOneConditions = decide d.toNetwork.DeficiencyOneConditions :=
+  NetworkData.analyze_deficiencyOneConditions_eq d
+example (d : NetworkData) (h : d.analyze.deficiencyOneConditions = true) :
+    d.toNetwork.DeficiencyOneConditions :=
+  NetworkData.deficiencyOneConditions_of_analyze d h
+-- The strong-linkage-class count reduces under `decide`: `A ⇌ B` is a single strong linkage class.
+example : interopRevData.analyze.numStrongLinkageClasses = 1 := by decide
+example (d : NetworkData) :
+    d.analyze.numStrongLinkageClasses = d.toNetwork.numStrongLinkageClasses :=
+  NetworkData.analyze_numStrongLinkageClasses_eq d
 
 -- Dense scalar companions of the v11 contract on the reversible pair `A ⇌ B`: one minimal siphon of
 -- size 2, no ACR species, one terminal strong linkage class, no positively-driven species, and no
