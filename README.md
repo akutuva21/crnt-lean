@@ -1,5 +1,11 @@
 # Chemical Reaction Network Theory in Lean 4
 
+[![CI](https://github.com/marpaia/crnt-lean/actions/workflows/ci.yml/badge.svg)](https://github.com/marpaia/crnt-lean/actions/workflows/ci.yml)
+![Lean](https://img.shields.io/badge/Lean-4.31.0-blue)
+![Mathlib](https://img.shields.io/badge/Mathlib-v4.31.0-blue)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![axioms: Mathlib only](https://img.shields.io/badge/axioms-Mathlib%20only-brightgreen)
+
 A Lean 4 formalization of **Chemical Reaction Network Theory**, oriented toward synthetic biology,
 molecular programming, and biochemical design automation.
 
@@ -8,21 +14,22 @@ model behind gene regulatory circuits, metabolic pathways, and cell-signaling ca
 Reaction Network Theory studies how that structure (which species react, and into what) constrains the
 dynamics a network can produce, often independent of the reaction rates.
 
-That makes the theory valuable to anyone engineering biochemical systems. When you design a circuit such
-as a genetic toggle switch or a biochemical oscillator, the rate constants are usually unknown and can
-drift, so the guarantees worth having are the ones that depend only on the wiring. From the structure
-alone, the theory can often settle whether the network has a unique steady state, whether it can be
-bistable or oscillate, whether it returns to equilibrium from any starting point, and whether some
-species holds steady while others vary. You can rule a behavior out, or guarantee it, before you build the circuit.
+That makes the theory valuable to anyone engineering biochemical systems. When you design a circuit
+such as a genetic toggle switch or a biochemical oscillator, the rate constants are usually unknown and
+can drift, so the guarantees worth having are the ones that depend only on the wiring. From the
+structure alone, the theory can often settle whether the network has a unique steady state, whether it
+can be bistable or oscillate, whether it returns to equilibrium from any starting point, and whether
+some species holds steady while others vary. You can rule a behavior out, or guarantee it, before you
+build the circuit.
 
 This library makes that theory machine-checked. Every result is verified by Lean's kernel, and the
 structural criteria carry decidable procedures and exact certificates, so a design tool can hand it a
 candidate network and get back a checkable answer instead of a heuristic.
 
-Underneath, the library is built in two layers. The CRN layer formalizes the classical structural and
-dynamical theory over a small composable core: species, complexes, reactions, stoichiometry,
-mass-action kinetics, linkage classes, deficiency. The mathematics layer beneath it supplies general
-results Mathlib lacks as of v4.31 (Sperner's lemma and Brouwer's theorem in every dimension, Gale–Nikaido
+The library is built in two layers. The CRN layer formalizes the classical structural and dynamical
+theory over a small composable core: species, complexes, reactions, stoichiometry, mass-action
+kinetics, linkage classes, deficiency. The mathematics layer beneath it supplies general results
+Mathlib lacks as of v4.31 (Sperner's lemma and Brouwer's theorem in every dimension, Gale–Nikaido
 univalence, forward semiflows with LaSalle).
 
 - **Package:** `crnt-lean`
@@ -30,7 +37,76 @@ univalence, forward semiflows with LaSalle).
 - **Lean:** 4.31.0
 - **Mathlib:** v4.31.0
 - The default import (`import CRNT`) is **`sorry`-free** and introduces **no axioms beyond Mathlib's**
-  (`[propext, Classical.choice, Quot.sound]`).
+  (`[propext, Classical.choice, Quot.sound]`). CI enforces this with `test/AxiomAudit.lean`, which
+  pins `#print axioms` on the headline results.
+
+## Quick start
+
+```bash
+lake exe cache get   # fetch prebuilt Mathlib oleans (needs network)
+lake build           # build the library and examples
+lake test            # run the smoke tests and the axiom-cleanliness audit
+```
+
+**Score a network from the command line, no Lean required.** The `analyze` executable reads a network
+as JSON and returns its structural invariants as JSON:
+
+```bash
+echo '{"numSpecies":2,"reactions":[{"source":[1,0],"target":[0,1]},
+      {"source":[0,1],"target":[1,0]}]}' | lake exe analyze
+```
+
+For the reversible pair `A ⇌ B` the output includes, among about two dozen fields:
+
+```json
+{"deficiency": 0, "weaklyReversible": true, "persistenceCertified": true, "hasCriticalSiphon": false}
+```
+
+`A ⇌ B` is weakly reversible of deficiency zero, so `persistenceCertified` reports that for any rate
+constants every positive trajectory converges to the network's complex-balanced equilibrium in its
+compatibility class (Feinberg–Horn–Jackson). Each field is a computable companion of a proven theorem,
+tied to it by a bridge lemma; the full record is in [`docs/analyze-contract.md`](docs/analyze-contract.md).
+
+**Or state and check a network in Lean:**
+
+```lean
+import CRNT
+open CRNT
+
+inductive Species | A | B deriving DecidableEq, Fintype, Repr
+open Species
+
+def cA : Complex Species := fun s => match s with | A => 1 | B => 0
+def cB : Complex Species := fun s => match s with | A => 0 | B => 1
+
+inductive Rxn | fwd | bwd deriving DecidableEq, Fintype, Repr
+
+def rxn : Rxn → Reaction Species
+  | .fwd => { source := cA, target := cB }
+  | .bwd => { source := cB, target := cA }
+
+def N : Network Species :=
+  { R := Rxn, decEqR := inferInstance, fintypeR := inferInstance, reaction := rxn }
+
+example : N.numComplexes = 2 := by decide
+example : N.WeaklyReversible := by
+  intro r; cases r
+  · exact Network.Reaches.single ⟨Rxn.bwd, rfl, rfl⟩
+  · exact Network.Reaches.single ⟨Rxn.fwd, rfl, rfl⟩
+```
+
+`Complex S` is `S → ℕ` (stoichiometric coefficients). See
+[`docs/foundations.md`](docs/foundations.md) for the data model and
+[`docs/decidability.md`](docs/decidability.md) for `decide` / `crnt_check` and certificates.
+
+## Where to start
+
+- **Designing or screening networks** (synthetic biology, molecular programming): the `analyze`
+  contract in [`docs/analyze-contract.md`](docs/analyze-contract.md), and the per-network kernel-checked
+  Lean certificates in [`docs/generated-certificates.md`](docs/generated-certificates.md).
+- **Lean and formal methods:** [`docs/architecture.md`](docs/architecture.md) lays out the two layers,
+  the core abstractions, and how the theorems depend on one another.
+- **Chemical reaction network theory:** the per-area documents below, starting from the result you want.
 
 ## Highlights
 
@@ -86,9 +162,9 @@ Grouped by area; the precise statements and module names are in each linked doc.
   predicate, `SeparatingConfinement` (a bounded, forward-invariant region holding the orbit off every
   facet), proven sufficient for global convergence end to end; the affine separating surface is built
   in every dimension
-- That predicate shown equivalent to persistence and constructed outright on two classes — near
-  equilibrium, and the entire decidable no-critical-siphon class — so it is realized, not only assumed;
-  the construction supplies the no-critical-siphon persistence certificate as a by-product
+- That predicate shown equivalent to persistence and constructed outright on two classes (near
+  equilibrium, and the entire decidable no-critical-siphon class), so it is realized rather than only
+  assumed; the construction supplies the no-critical-siphon persistence certificate as a by-product
 - A development of the toric-differential-inclusion approach
 
 **[Stochastic CRN](docs/stochastic.md)**
@@ -111,28 +187,20 @@ Every abstraction is exercised by at least one worked example network in [`CRNT/
 
 ### General Mathematics (not in Mathlib v4.31)
 
-The CRN results above rest on general-purpose mathematics built here.
+The CRN results rest on general-purpose mathematics built here and cited by name from the CRN layer.
+[`docs/architecture.md`](docs/architecture.md) gives the full inventory; the four areas are:
 
-**[Fixed-point theory](CRNT/Analysis)**
-- Sperner's lemma in every dimension, via the Kuhn (Freudenthal) triangulation and a parity/handshake
-  involution on door incidences
-- Brouwer's fixed-point theorem for the standard `n`-simplex in every dimension, from Sperner by mesh
-  refinement
-
-**[Univalence & matrices](CRNT/Multistationarity)**
-- Gale–Nikaido global univalence, degree-free: Stiemke's alternative, an order-monotonicity theorem,
-  and ±1 sign-conjugation over a P-matrix calculus (Schur complements, signature invariance)
-- Computable exact rational matrix rank with a nonsingular-minor certificate
-
-**[Topological degree](CRNT/Multistationarity)**
-- The Brouwer degree at a regular value, built as a finite signed sum of Jacobian-determinant signs:
-  Sard's theorem (critical values are null, regular values dense), degree additivity over disjoint
-  regions, homotopy invariance, and local constancy of the degree for proper maps
-
-**[Dynamical systems](CRNT/Dynamics)**
-- Forward semiflows, Lyapunov stability, and LaSalle's principle, with the flow of a bounded Lipschitz
-  field and backward invariance of ω-limit sets
-- Single-valued Nagumo invariance (subtangency ⇒ forward invariance) via first-exit arguments
+- **Fixed-point theory** ([`CRNT/Analysis`](CRNT/Analysis)): Sperner's lemma and Brouwer's theorem for
+  the standard `n`-simplex in every dimension, via the Kuhn (Freudenthal) triangulation and mesh
+  refinement.
+- **Univalence & matrices** ([`CRNT/Multistationarity`](CRNT/Multistationarity)): degree-free
+  Gale–Nikaido global univalence over a P-matrix calculus (Schur complements, signature invariance),
+  and computable exact rational matrix rank with a nonsingular-minor certificate.
+- **Topological degree** ([`CRNT/Multistationarity`](CRNT/Multistationarity)): the Brouwer degree at a
+  regular value as a finite signed sum of Jacobian-determinant signs, with Sard's theorem, degree
+  additivity, homotopy invariance, and local constancy for proper maps.
+- **Dynamical systems** ([`CRNT/Dynamics`](CRNT/Dynamics)): forward semiflows, Lyapunov stability, and
+  LaSalle's principle, with the flow of a bounded Lipschitz field and single-valued Nagumo invariance.
 
 ## Scope & Open Problems
 
@@ -188,8 +256,8 @@ remains is a specific missing piece.
     reference coordinate) and the entire decidable no-critical-siphon class (where the orbit may touch
     a facet at finite times, but its closure stays interior). The no-critical-siphon construction also
     discharges the `PersistentFrom` certificate that the ω-limit argument leaves implicit. The
-    genuine-orbit inputs — positivity, relative-entropy descent, and box uniqueness for the unclamped
-    field — are proven once and reused
+    genuine-orbit inputs (positivity, relative-entropy descent, and box uniqueness for the unclamped
+    field) are proven once and reused
   - Craciun's toric-differential-inclusion architecture is formalized sorry-free, with the steps it
     rests on isolated as explicit hypotheses: set-valued viability, the n-dimensional surface
     construction, the weak-reversibility cycle cover, the polyhedral-fan axioms, and arbitrary-fan
@@ -212,44 +280,6 @@ remains is a specific missing piece.
     mode is vacuous, so closing it needs the deficiency-one sign argument from the steady-state
     equations at the non-terminal cut, which is not yet formalized and likely needs new infrastructure
 
-## Getting Started
-
-```bash
-lake exe cache get   # fetch prebuilt Mathlib oleans
-lake build           # build the library and examples
-lake test            # build and run the smoke tests
-```
-
-```lean
-import CRNT
-open CRNT
-
-inductive Species | A | B deriving DecidableEq, Fintype, Repr
-open Species
-
-def cA : Complex Species := fun s => match s with | A => 1 | B => 0
-def cB : Complex Species := fun s => match s with | A => 0 | B => 1
-
-inductive Rxn | fwd | bwd deriving DecidableEq, Fintype, Repr
-
-def rxn : Rxn → Reaction Species
-  | .fwd => { source := cA, target := cB }
-  | .bwd => { source := cB, target := cA }
-
-def N : Network Species :=
-  { R := Rxn, decEqR := inferInstance, fintypeR := inferInstance, reaction := rxn }
-
-example : N.numComplexes = 2 := by decide
-example : N.WeaklyReversible := by
-  intro r; cases r
-  · exact Network.Reaches.single ⟨Rxn.bwd, rfl, rfl⟩
-  · exact Network.Reaches.single ⟨Rxn.fwd, rfl, rfl⟩
-```
-
-`Complex S` is `S → ℕ` (stoichiometric coefficients). See
-[`docs/foundations.md`](docs/foundations.md) for the data model and
-[`docs/decidability.md`](docs/decidability.md) for `decide` / `crnt_check` and certificates.
-
 ## Documentation
 
 [`docs/architecture.md`](docs/architecture.md) is the hub: the mathematical layering, core
@@ -267,10 +297,20 @@ abstractions, and theorem dependency structure. From there:
 | [`generated-certificates.md`](docs/generated-certificates.md) · [`analyze-contract.md`](docs/analyze-contract.md) | the contract for external tools that emit checkable Lean |
 | [`design.md`](docs/design.md) | implementation and representation decisions |
 
+## Citing this work
+
+The accompanying paper is in preparation. Until it is published, cite the software directly: GitHub's
+"Cite this repository" button reads [`CITATION.cff`](CITATION.cff). This section and the citation
+metadata will be updated with the paper reference and a Zenodo DOI at the v1.0.0 release.
+
+## License
+
+Released under the MIT License. See [`LICENSE`](LICENSE).
+
 ## Contributing
 
 - Keep the default import (`CRNT`) `sorry`-free and axiom-clean (`[propext, Classical.choice,
-  Quot.sound]`); no `native_decide` (`decide` is fine).
+  Quot.sound]`); no `native_decide` (`decide` is fine). CI checks both.
 - Provide both a propositional definition and, where feasible, a decidable computable companion,
   related by a theorem.
 - Exercise every new abstraction with at least one example network and a `test/Smoke.lean` entry.

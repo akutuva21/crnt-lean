@@ -1,6 +1,6 @@
 {
-  "title": "crnt-lean: A Formalization of Chemical Reaction Network Theory in Lean 4",
-  "description": "A Lean 4 formalization of Chemical Reaction Network Theory, oriented toward synthetic biology, molecular programming, and biochemical design automation. Establishes the classical Feinberg-Horn-Jackson canon as machine-checked theorems and exposes each structural criterion as a decidable verdict via the companion tool crnt-gym.",
+  "title": "Chemical Reaction Network Theory in Lean 4: Verifiable Verdicts and a Formalized Frontier",
+  "description": "crnt-lean is the first formalization of Chemical Reaction Network Theory in a proof assistant. Developed in Lean 4, it establishes the classical Feinberg-Horn-Jackson canon as machine-checked theorems, from complex balancing and the deficiency theorems to the Lyapunov theory of convergence and the stochastic product form, atop a reusable layer of general-purpose mathematics: fixed-point and degree theory in every finite dimension, global univalence, and the dynamical-systems apparatus for stability and positivity. Where the theory is still open, it carries the frontier as typed hypotheses inside otherwise-complete arguments. Each structural criterion is decidable and tied to its definition by a proven bridge, so the released companion tool crnt-gym returns, for a candidate network, a verdict quantified over every rate constant. Every result reported as proven is checked by Lean's kernel and rests only on the three axioms of ordinary classical mathematics.",
   "upload_type": "software",
   "license": "MIT",
   "access_right": "open",

@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using these metadata."
+title: "crnt-lean: Chemical Reaction Network Theory in Lean 4"
+abstract: >-
+  A machine-checked Lean 4 formalization of Chemical Reaction Network Theory,
+  with decidable structural criteria and exact certificates aimed at biochemical
+  design automation.
+type: software
+authors:
+  - family-names: Arpaia
+    given-names: Mike
+version: 1.0.0
+license: MIT
+repository-code: "https://github.com/marpaia/crnt-lean"
+keywords:
+  - Lean 4
+  - formal verification
+  - chemical reaction network theory
+  - systems biology
+  - synthetic biology

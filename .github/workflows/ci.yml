@@ -23,7 +23,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Fast whole-tree backstop for the sorry-free / no-native_decide claim. The axiom-cleanliness
+      # guarantee (import CRNT depends on no axioms beyond propext, Classical.choice, Quot.sound) is
+      # enforced by test/AxiomAudit.lean, whose pinned `#print axioms` checks run under `lake test`
+      # below; this grep catches a stray `sorry`/`native_decide` anywhere, not only in audited cones.
+      - name: No sorry or native_decide in sources
+        run: |
+          if grep -rnP '(?<!`)\bsorry\b(?!`)' --include='*.lean' CRNT Analyze.lean CRNT.lean test; then
+            echo "::error::bare 'sorry' found in sources"; exit 1
+          fi
+          if grep -rnP '(?<!`)\bnative_decide\b(?!`)' --include='*.lean' CRNT Analyze.lean CRNT.lean test; then
+            echo "::error::'native_decide' found in sources"; exit 1
+          fi
+
       - uses: leanprover/lean-action@v1
         with:
+          # Builds CRNT and runs the test library, including test/AxiomAudit.lean (the pinned
+          # `#print axioms` regression guard) and test/Smoke.lean.
           test: true
           use-mathlib-cache: true
