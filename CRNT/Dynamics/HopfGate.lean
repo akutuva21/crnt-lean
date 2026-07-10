@@ -17,14 +17,13 @@ monic cubic `X³ + a₂X² + a₁X + a₀`.
 * `CRNT.cubic_vieta_isRoot` — each root satisfies the scalar cubic identity
   `z³ + a₂z² + a₁z + a₀ = 0`, obtained directly from the elementary symmetric (Vieta)
   identities.
-* `CRNT.cubic_conj_dichotomy` — for any three complex numbers `z₁, z₂, z₃` whose elementary
-  symmetric functions `-(z₁+z₂+z₃)`, `z₁z₂+z₁z₃+z₂z₃`, `-(z₁z₂z₃)` are **real**, the multiset
-  `{z₁, z₂, z₃}` is closed under complex conjugation in the form consumed downstream: either
-  all three roots are real, or there is a relabeling carrying the same symmetric Vieta data in
-  which the last two roots form a conjugate pair. This makes the `hstruct` hypothesis of
-  `hurwitz_cubic_root_iff` automatic. The argument conjugates the scalar cubic identity: the
-  conjugate of a non-real root is again a root, hence (the roots being exactly `z₁, z₂, z₃`)
-  equals one of them.
+* `CRNT.cubic_mem_roots_of_isRoot` — the converse membership fact: any `w` satisfying the monic
+  cubic `w³ + a₂w² + a₁w + a₀ = 0` with elementary symmetric (Vieta) coefficients
+  `a₂ = -(z₁+z₂+z₃)`, `a₁ = z₁z₂+z₁z₃+z₂z₃`, `a₀ = -(z₁z₂z₃)` equals one of `z₁, z₂, z₃`, since the
+  cubic factors as `(w-z₁)(w-z₂)(w-z₃)`. Conjugating the scalar identity then shows the conjugate of
+  a non-real root is again a root, hence one of the three; with real coefficients this closes
+  `{z₁, z₂, z₃}` under conjugation and discharges the `hstruct` dichotomy of
+  `hurwitz_cubic_root_iff` downstream.
 * `CRNT.hurwitz_cubic_root_iff_coeff` — the **coefficient-only** degree-3 criterion: with the
   complex Vieta identities for real `a₂, a₁, a₀`, the four Routh–Hurwitz conditions
   `0 < a₂`, `0 < a₁`, `0 < a₀`, `a₀ < a₂ * a₁` hold **iff** all three roots lie in the open

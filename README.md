@@ -68,8 +68,10 @@ Grouped by area; the precise statements and module names are in each linked doc.
 **[Dynamics & stability](docs/dynamics.md)**
 - The complex-space factorization `ẋ = Y(A_k(Ψ x))` and the forward semiflow
 - The relative-entropy Lyapunov function, LaSalle's invariance principle, and local asymptotic stability
-- A Michaelis–Menten quasi-steady-state reduction, error-quantified on compact time: the full
-  trajectory tracks the slow-manifold reduction within an O(ε) Grönwall bound (ε the timescale separation)
+- A Michaelis–Menten quasi-steady-state reduction, error-quantified in time: the full trajectory tracks
+  the slow-manifold reduction within an O(ε) Grönwall bound on compact time, and within a
+  horizon-uniform O(ε) ceiling for all time under a coupled contraction hypothesis (ε the timescale
+  separation)
 - Routh–Hurwitz stability to degree 4 (Liénard–Chipart) with the degree-3 and degree-4 Hopf crossing
   gates, and a dimension-free Gershgorin test certifying mass-action Jacobian stability (so oscillation
   is excluded)
@@ -145,18 +147,32 @@ remains is a specific missing piece.
   a theorem forcing the degree to be nonzero for a network class, which would make steady-state
   existence unconditional and settle the multistationarity converse (the switch verdict)
 - Critical-siphon facet repulsion. The Butler–McGehee lemma and non-siphon (codimension-1) facet
-  repulsion are proven; the critical-siphon case needs a near-facet dissipation bound (an Anderson–Shiu
-  influx estimate), which would extend unconditional global attraction past the no-critical-siphon class
-- Fenichel normally-hyperbolic invariant-manifold persistence: lifting the O(ε) reduction (proven on
-  compact time) to the infinite-horizon regime
+  repulsion are proven, as is the Anderson–Shiu influx estimate for a singleton critical siphon (a
+  linear lower bound on the mass-action field at the facet). From that bound together with a near-facet
+  relative-entropy dissipation bound, a uniform positive facet floor follows. What remains is the
+  dissipation bound itself, carried as a hypothesis, and its assembly into a persistence conclusion;
+  discharging it would extend unconditional global attraction past the no-critical-siphon class
+- Fenichel normally-hyperbolic invariant-manifold persistence. The O(ε) quasi-steady-state reduction
+  holds on compact time and lifts to the infinite horizon: all-time invariance of the substrate-varying
+  slow manifold with an O(ε) ceiling is proven for the closed-form contracting field, and a
+  horizon-uniform O(ε) tracking ceiling for the genuine coupled Michaelis–Menten trajectory is proven by
+  a dissipative (log-norm) Grönwall estimate. The latter assumes a coupled transverse contraction bound;
+  deriving that bound from the enzyme field itself is what remains
 - The stochastic process layer. The chemical-master-equation generator, the uniformized transition
-  semigroup, and the deterministic (Kurtz) scaling skeleton — the generator-convergence estimate and a
-  conditional fluid-limit bound — are built; what remains is the sample-path process itself and the
-  process-level (Skorokhod) law of large numbers, which rest on martingale/Poisson theory
+  semigroup, and the deterministic (Kurtz) scaling skeleton (the generator-convergence estimate and a
+  conditional fluid-limit bound) are built, together with a Poisson probability space (an independent
+  scaled-Poisson clock family) and an in-probability law of large numbers for the aggregate scaled
+  fluctuation. What remains is the continuous-time sample-path process itself, a time-indexed random
+  trajectory with its filtration, and the process-level (Skorokhod) law of large numbers, which rest on
+  the compensated-Poisson martingale theory Mathlib lacks
 - The center-manifold gaps behind sustained oscillation. The Hopf crossing gates, the planar normal
-  form, and the truncated-normal-form limit cycle are proven; the full-field "clock verdict" is reduced
-  to three explicit hypotheses that are the genuine missing mathematics — center-manifold existence,
-  center-manifold averaging, and C¹ dependence of the flow on initial data (a return-map construction)
+  form, and the truncated-normal-form limit cycle are proven, and the full-field "clock verdict" is
+  reduced to three explicit inputs: center-manifold existence, center-manifold averaging, and C¹
+  dependence of the flow on initial data (a return-map construction). Two of the three are discharged
+  independently: the center manifold is constructed as a Lyapunov–Perron fixed point, and the flow's C¹
+  dependence on its initial data is proven through the variational equation. The clock verdict still
+  consumes all three as inputs, and center-manifold averaging is the one piece Mathlib lacks and no
+  module yet supplies
 
 **Open research**
 - The global attractor conjecture (Horn's 1974 conjecture, open in general):

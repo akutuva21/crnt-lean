@@ -10,7 +10,7 @@ positive root of the averaged radial field is the amplitude of a genuine noncons
 of the full field. `CRNT.Dynamics.ReturnMapPeriodicOrbit.realizes_of_returnMap_fixedPoint` produces
 exactly that triple from a Poincaré return-map fixed point. This module wires the two together for
 the Hopf field, leaving the Andronov–Hopf theorem standing on its own modulo precisely the
-smooth-ODE-dependence fact `Mathlib` lacks.
+smooth-ODE-dependence fact carried as data in each section.
 
 ## The Hopf return-map datum
 
@@ -24,13 +24,15 @@ normal to the axis), so it is a `CRNT.TransversalSection`. After one full revolu
 through the amplitude point returns to it, a fixed point of the first-return map.
 
 `Mathlib` carries the flow of a bounded Lipschitz field but not its differentiable dependence on the
-initial state — the variational operator `D_x Φ` and the joint flow derivative `D Φ`. These are the
+initial state, the variational operator `D_x Φ` and the joint flow derivative `D Φ`. These are the
 `spaceDeriv`/`hasFDeriv_space`/`cont_spaceDeriv`/`jointFlowDeriv`/`hasFDeriv_flow_joint` fields of
-`CRNT.TransversalSection`, carried there as DATA exactly because `Mathlib` does not provide the
-smooth-ODE-dependence theorem. `HopfRealizationData` bundles such a section for the Hopf field at a
-branch parameter together with the amplitude point as a positive-time fixed point: the entire
-construction stands on `Mathlib`'s flow plus that one absent regularity fact, with the rotation
-closure, periodicity, nonconstancy, and amplitude identification all proved.
+`CRNT.TransversalSection`, carried there as DATA. `CRNT.Dynamics.VariationalEquation` and
+`CRNT.Dynamics.FlowDifferentiable` prove this differentiable dependence (`hasDerivAt_flow_initial`,
+the flow's derivative in its initial point), but that proof is not yet wired into this section
+interface. `HopfRealizationData` bundles such a section for the Hopf field at a branch parameter
+together with the amplitude point as a positive-time fixed point: the entire construction stands on
+`Mathlib`'s flow plus that one regularity input, with the rotation closure, periodicity, nonconstancy,
+and amplitude identification all proved.
 
 ## The realized theorem
 

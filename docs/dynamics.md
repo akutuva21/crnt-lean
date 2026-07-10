@@ -91,7 +91,7 @@ generalized equilibrium relative to a positive reference when `x − c ∈ S` an
   uniqueness;
 - `gen_birch_existence`: the single-subspace specialization of generalized existence.
 
-(The genuinely two-subspace existence, `S ≠ T`, is beyond this module's scope.)
+(The two-subspace existence with `S ≠ T` is beyond this module's scope.)
 
 ## The complex-space factorization
 
@@ -144,7 +144,7 @@ Mathlib-style:
   the semigroup law, continuous dependence the joint continuity.
 
 A forward semiflow is exactly `Flow ℝ≥0` (the `Flow` structure only requires the time monoid to be
-an additive monoid). Mass-action dynamics is genuinely *forward only*: solutions stay positive and
+an additive monoid). Mass-action dynamics is *forward only*: solutions stay positive and
 are confined forward, but the backward flow can leave the orthant in finite time, so there is no
 two-sided `Flow ℝ`.
 
@@ -247,7 +247,7 @@ the slaving defect is supplied as a hypothesis (or derived as a slow-drift magni
 Grönwall bounds diverge as the horizon `T → ∞`. There is no infinite-horizon shadowing.
 
 **Compact-time QSSA error bound** (Tikhonov-style, chemistry-free, in `ODE`). The
-`ODE.qssaDefect f γᵣ γᵣ' a b εf` predicate is the slaving defect: the reduced curve satisfies the
+`ODE.QssaDefect f γᵣ γᵣ' a b εf` predicate is the slaving defect: the reduced curve satisfies the
 full field up to a residual `εf`.
 
 - `ODE.qssa_error_bound`: the exact-versus-reduced gap is bounded by `gronwallBound δ K εf (t − a)`
@@ -296,7 +296,7 @@ explicit field:
 - `FenichelPersistenceConcrete`: the bounded constant fast-drift field `ż = v` whose flow comes from
   `ODE.exists_flow`; its persisted manifold is the zero section, exact only at vanishing drift
   (`fenichel_persistence_constDrift`).
-- `FenichelPersistenceContracting`: the genuinely contracting fast fibre `ż = −rate·(z − c)` whose
+- `FenichelPersistenceContracting`: the contracting fast fibre `ż = −rate·(z − c)` whose
   closed-form exponential flow `(y, z) ↦ (y, c + e^{−rate·t}·(z − c))` is built directly as a
   `Flow`; the graph transform is an honest contraction with factor `e^{−rate·τ} < 1` and the
   persisted manifold is the genuine attracting fibre `z = c`, a non-trivial moving manifold
@@ -344,7 +344,7 @@ characteristic polynomial of a linear system whose every mode decays.
 - `hurwitz_cubic_sufficient_allReal` / `hurwitz_cubic_sufficient_conjPair` and
   `hurwitz_cubic_root_iff`, the **degree-3 sufficiency** cores and the full degree-3 criterion as a
   root-predicate `iff` (given the Vieta identities and the real-coefficient conjugation dichotomy);
-- `cubic_conj_dichotomy` and `hurwitz_cubic_root_iff_coeff` discharge the conjugation dichotomy
+- `cubic_mem_roots_of_isRoot` and `hurwitz_cubic_root_iff_coeff` discharge the conjugation dichotomy
   from the reality of the coefficients alone, giving the **coefficient-only** degree-3 criterion
   (no structural hypothesis).
 

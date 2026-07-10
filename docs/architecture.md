@@ -125,7 +125,7 @@ A few types carry the whole development:
 
 ## Theorem dependency structure
 
-The headline results and what they rest on:
+The principal results and what they rest on:
 
 ```
 Network / reaction graph / stoichiometry  (foundations)

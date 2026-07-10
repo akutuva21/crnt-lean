@@ -167,7 +167,7 @@ count through the connected-component count, which evaluates:
 - `computeNumLinkageClasses N := Fintype.card N.linkageGraph.ConnectedComponent`, with
   `computeNumLinkageClasses_eq_numLinkageClasses`.
 - `computableDeficiency N := numComplexes − computeNumLinkageClasses − computeRank stoichMatrixQ`,
-  a genuinely computable `δ`, with `deficiency_eq_computableDeficiency` and
+  a computable `δ`, with `deficiency_eq_computableDeficiency` and
   `deficiencyZero_iff_computableDeficiency_eq_zero`.
 
 The value still does not reduce under kernel `decide` (the `computeRank` permutation sum), so the

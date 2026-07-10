@@ -51,7 +51,7 @@ species facet. `gac_of_separatingConfinement` discharges everything from that pr
 `{x*}` conclusion. The predicate is the mass-action form of Craciun's zero-separating surface
 (*Toric differential inclusions and a proof of the global attractor conjecture*).
 
-That predicate is **exactly persistence**, and it is **realized**, not merely hypothesized
+That predicate is **exactly persistence**, and it is **realized** rather than assumed
 (`Dynamics/GACSeparatingWitness.lean`):
 
 - `persistentFrom_of_separatingConfinement` / `separatingConfinement_of_persistentFrom`: the
@@ -76,12 +76,14 @@ Lipschitz cutoff). They are the genuine-field counterparts of the cutoff-orbit `
 `orbit_relEntropy_le`, and they discharge the genuine-confinement hypotheses of
 `gac_of_genuine_persistence` and `gac_of_confinement` directly.
 
-The construction is uniform in its input: `persistentFrom_of_omegaLimit_singleton` takes only the
-genuine semiflow and the conclusion that its ω-limit set is `{x*}`, and returns `PersistentFrom`.
+The construction is uniform in its input: beyond the standing positivity and complex-balance data
+(`x*` positive and complex-balanced, `x₀` positive), `persistentFrom_of_omegaLimit_singleton`
+depends only on the genuine semiflow and the conclusion that its ω-limit set is `{x*}` — it is
+agnostic to how that ω-limit was obtained — and returns `PersistentFrom`.
 Read against `gac_of_separatingConfinement`, the reduction is therefore **tight** — for weakly
 reversible complex-balanced networks `SeparatingConfinement`, `PersistentFrom`, and the
 ω-limit-is-`{x*}` conclusion are mutually equivalent. The geometric predicate is neither weaker nor
-stronger than the conjecture's own conclusion, so reducing to it discards nothing.
+stronger than the conjecture's own conclusion, so the reduction loses no generality.
 `persistentFrom_of_hasNoCriticalSiphon` is the corollary that feeds `gac_of_hasNoCriticalSiphon`'s
 ω-limit into this lemma, exposing the absorbing certificate the no-critical-siphon assembly does not
 itself surface. What stays open is unchanged: *constructing* any of the three for the curved
@@ -108,15 +110,17 @@ persistent. This chain is proven:
   `HasNoCriticalSiphon`, every ω-limit point is strictly positive.
 - **`gac_of_hasNoCriticalSiphon`** (`Dynamics/GACNoCriticalSiphon.lean`): **unconditional global
   attractor convergence for the no-critical-siphon class of complex-balanced networks**, with no
-  persistence or closeness hypothesis — `HasNoCriticalSiphon` supplies it. This is the headline
+  persistence or closeness hypothesis — `HasNoCriticalSiphon` supplies it. This is the strongest
   global-convergence theorem proven here. Its arguments are weak reversibility, a positive
   complex-balanced reference, and a positive start in that reference's compatibility class.
 
 Siphons themselves are defined in `Dynamics/Siphon.lean`: `IsSiphon` (every reaction producing a
 species in the set also consumes one), `IsCriticalSiphon` (a nonempty siphon whose face carries no
 conserved positive vector), and `HasNoCriticalSiphon`. `IsSiphon` is decidable (`decidableIsSiphon`,
-checkable by `decide`); `IsCriticalSiphon` and `HasNoCriticalSiphon` are not, since deciding
-criticality is a sign-restricted kernel-feasibility question. Forward invariance of siphon faces and
+checkable by `decide`); `IsCriticalSiphon` and `HasNoCriticalSiphon` are decidable too
+(`decidableIsCriticalSiphon`, `decidableHasNoCriticalSiphon` in `Decision/CriticalSiphonDecide.lean`),
+since criticality is a sign-restricted kernel-feasibility question settled constructively by
+Fourier–Motzkin elimination. Forward invariance of siphon faces and
 the supporting confinement, conservation, and descent results are in `Dynamics/{Persistence,
 PersistenceTheorem,PersistenceConfined,ConfinedInvariance,BoundaryDescent,ConservationLaw,
 SiphonConservation}.lean`.
@@ -138,7 +142,7 @@ system into a **toric differential inclusion** `ẋ ∈ F_{F,δ}(log x)`, whose 
 off the polyhedral fan of the reaction vectors, and constructs **zero-separating surfaces** bounding
 an invariant region that stays a fixed distance from the boundary. This is the approach of Craciun,
 *Toric differential inclusions and a proof of the global attractor conjecture*. The general proof is
-an unrefereed preprint; the formalization here machine-checks its architecture, and is candid about
+an unrefereed preprint; the formalization here machine-checks its architecture, and distinguishes
 which steps are theorems and which are interfaces awaiting a construction.
 
 Built and proven:
@@ -177,7 +181,7 @@ Built and proven:
   - the one-dimensional case is proven outright (`zeroSeparatingRegion_Ici`);
   - the invariance engine for a polygonal region is `polyRegion_invariant_of_strictSupport`: forward
     invariance from *boundary-local* strict subtangency (`IsStrictSupportField`), checked only at the
-    active faces at a curve's actual position, so genuinely distinct (even conflicting) edge normals
+    active faces at a curve's actual position, so distinct (even conflicting) edge normals
     are handled;
   - in two dimensions the faithful curve is constructed by **angular chaining**: edge normals are
     unit vectors at the fan-wall angles and rotate monotonically, so within a sector of width less
@@ -265,8 +269,8 @@ form. The sign content of strong endotacticity along the relative-entropy dissip
   as a hypothesis: there the field is tangent, so first-order repulsion gives nothing, and the
   near-facet quantitative estimate of Anderson & Shiu (*The dynamics of weakly reversible population
   processes near facets*, 2010) — together with Anderson's single-linkage tier argument — is not
-  formalized; it needs a near-facet differential inequality absent from this layer. Also open: the
-  feasibility test for critical siphons; in the toric-inclusion approach, the six explicit hypotheses
+  formalized; it needs a near-facet differential inequality absent from this layer. Also open: in the
+  toric-inclusion approach, the six explicit hypotheses
   enumerated above, none assembled into a persistence or GAC conclusion; and, in the permanence route,
   `StronglyEndotactic ⇒ permanent`.
 

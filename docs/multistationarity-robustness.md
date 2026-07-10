@@ -90,7 +90,7 @@ appeal to topological degree.
   (Gale–Nikaido Theorem 3), proved by induction on dimension via point isolation
   (`pmatrix_isolated`), a strict-descent direction (`pmatrix_descent`), the reduced-map Jacobian as a
   Schur complement (`jacobianMatrix_reduced_eq_schurLast`, `reduced_isPMatrix`), and a
-  boundary-coordinate face reduction. The headline result is
+  boundary-coordinate face reduction. The main result is
   **`injOn_of_pmatrix_fderiv`** (Gale–Nikaido Theorem 4):
 
   ```lean
@@ -272,7 +272,8 @@ constants.
 
 - The deficiency-one machinery bearing on the pinned ratio is in `CRNT/Design/ACRUnconditional.lean`.
   **`logMonomialRatio_eqOn_linkageClass`** is the keystone, and it is *proved*: the log-monomial ratio
-  `Φ` is constant on *every* linkage class of a deficiency-one network.
+  `Φ` is constant on *every* linkage class of a network satisfying the deficiency-one hypotheses
+  (`DeficiencyOneHypotheses`).
   **`monomialRatio_pinned_of_sameClass`** is its exponentiated *same-class* form. The remaining
   cross-class content — equality of the two a-priori-independent per-class constants for complexes in
   *distinct* classes — is isolated as **`ShinarFeinbergHypotheses.CrossClassRatioPinned`**, with
@@ -290,12 +291,12 @@ constants.
 
 **Coverage.** The complete chain is proved: the pinning lever, the same-class constancy of `Φ`, the
 toric per-reaction and per-class constancy, and the reduction of the cross-class equality to the
-crisp statement `x s = y s`. The single missing step is the cross-class equality itself — forcing
+statement `x s = y s`. The single missing step is the cross-class equality itself — forcing
 robustness from non-terminality and the deficiency-one cut structure. It is consumed as the named
 input `CrossClassRatioPinned` (equivalently the robustness hypothesis of `HasACR.of_speciesRobust`)
 rather than discharged, because it rests on the deficiency-one characterization of the positive
 steady-state set, which is not yet available here. The Shinar–Feinberg theorem is therefore present
-as an honest reduction to one bridging equality, not as an unconditional statement.
+as a reduction to one bridging equality, not as an unconditional statement.
 
 ## Antithetic integral feedback and perfect adaptation
 
@@ -340,7 +341,7 @@ reactor exchanges material with its surroundings. Adjoining a synthesis `0 → s
 - The boundary behavior is in `CRNT/Open/Boundary.lean`. **`Network.IsBoundary`** and
   **`Network.faceOf`** describe the orthant faces; **`Network.BoundarySteadyState`** is a nonnegative
   equilibrium on a face. **`massActionVectorField_fullyOpen_apply`** splits the open field into the
-  original part, the constant inflow, and the linear outflow. The headline results:
+  original part, the constant inflow, and the linear outflow. The main results:
   **`fullyOpen_steadyState_positive`**, every nonnegative steady state is strictly interior (a
   held-at-zero species sees nonnegative original contributions, a vanishing outflow, and a strictly
   positive inflow, so the field cannot vanish); **`not_boundarySteadyState_fullyOpen`**, the open

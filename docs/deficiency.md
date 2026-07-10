@@ -73,7 +73,8 @@ Applied to a network, this yields **weak reversibility ⇒ a strictly positive k
 kinetic matrix** `A_k`. The kinetic matrix is rescaled to a column-stochastic matrix `P = 1 + d⁻¹
 A_k` (`smat`, with `d = dscale = 1 + ∑_r κ_r`); `P` is block-diagonal across linkage classes
 (`smat_blockdiag`), each of which weak reversibility makes strongly connected
-(`reaches_supportReaches`). The headline result is
+(`reaches_supportReaches` lifts a reaction path to a support path; strong-connectedness is assembled
+from it and weak reversibility at the call site). The main result is
 `weaklyReversible_exists_positive_kernelVector` (`CRNT/Theorems/DeficiencyZero/PositiveKernel.lean`).
 
 A companion is the **substochastic** Perron–Frobenius input
@@ -211,7 +212,8 @@ mass-action orbit by relative-entropy dissipation to a compact sublevel set and 
 produce a nonempty invariant ω-limit on which the relative entropy is constant;
 `deficiencyOneExistence_of_complexBalancedExistence` packages the complex-balanced corollary on top
 of it (`CRNT/Theorems/DeficiencyOne/ExistenceDynamical.lean`). `deficiencyOneUniqueness_of_existence`
-records that existence refines uniqueness into existence-and-uniqueness. The general,
+(`CRNT/Theorems/DeficiencyOne/Statement.lean`) records that existence refines uniqueness into
+existence-and-uniqueness. The general,
 non-complex-balanced half stays open for the same degree-theoretic reason: a generic positive steady
 state is not complex-balanced, so the relative entropy is not a Lyapunov function adapted to it, and
 turning a nonempty ω-limit into an equilibrium still needs positivity of the ω-limit. Boros's

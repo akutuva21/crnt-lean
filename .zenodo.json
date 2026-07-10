@@ -1,0 +1,21 @@
+{
+  "title": "crnt-lean: A Formalization of Chemical Reaction Network Theory in Lean 4",
+  "description": "A Lean 4 formalization of Chemical Reaction Network Theory, oriented toward synthetic biology, molecular programming, and biochemical design automation. Establishes the classical Feinberg-Horn-Jackson canon as machine-checked theorems and exposes each structural criterion as a decidable verdict via the companion tool crnt-gym.",
+  "upload_type": "software",
+  "license": "MIT",
+  "access_right": "open",
+  "creators": [
+    {
+      "name": "Arpaia, Mike",
+      "orcid": "0000-0002-1779-2556"
+    }
+  ],
+  "keywords": [
+    "chemical reaction network theory",
+    "Lean 4",
+    "formal verification",
+    "interactive theorem proving",
+    "synthetic biology",
+    "Mathlib"
+  ]
+}

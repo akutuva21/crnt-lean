@@ -16,7 +16,8 @@ propositional definition: `analyze_deficiency_eq`, `analyze_stoichRank_eq`,
 `analyze_numLinkageClasses_eq`, `analyze_conservationLawDim_eq`, `analyze_weaklyReversible_eq`,
 `analyze_acrSpecies_eq`, `analyze_hasSiphon_eq`, `mem_analyze_minimalSiphons`,
 `analyze_srSignConsistent_eq`, `analyze_srPMatrixPointIndep_eq`, `analyze_hasCriticalSiphon_eq`,
-`analyze_persistenceStructural_eq`, `analyze_numTerminalSLC_eq`, and
+`analyze_persistenceStructural_eq`, `analyze_persistenceSingleLinkage_eq`,
+`analyze_deficiencyOneConditions_eq`, `analyze_numTerminalSLC_eq`, and
 `analyze_numDiagonalDriveSpecies_eq`. The point-free P-matrix bridge
 `isPMatrix_massActionJacobian_box_of_srPMatrixPointIndep` is proved there too, as is
 `analyze_numDiagonalDriveSpecies_eq_card_iff` (the diagonal-drive count reaches `numSpecies` exactly
@@ -24,7 +25,9 @@ when `ConsistentDiagonalDrive` holds). The one-sided exclusion
 `analyze_hasNoCriticalSiphon_of_hasSiphon_false`, the structural-persistence bridge
 `hasNoCriticalSiphon_of_persistenceStructural`, and the certified-persistence verdict
 `gac_of_persistenceCertified` (with its precondition lemma `certifiedHypotheses_of_persistenceCertified`)
-are proved there too. The margin fields are the reported values of their `…Q` companions, characterized
+are proved there too, as are the single-linkage precondition bridge
+`singleLinkageHypotheses_of_persistenceSingleLinkage` and the deficiency-one bridge
+`deficiencyOneConditions_of_analyze`. The margin fields are the reported values of their `…Q` companions, characterized
 in the modules that define them (`GershgorinMarginQ`, `GershgorinColumnMarginQ`, `HopfBoundaryQ`), with
 `analyze` pinning the inapplicable cases (`analyze_hopfBoundaryMargin_eq_none_of_ne_three`,
 `analyze_gershgorinStabilityMargin_eq_none_of_zero_species`,
@@ -57,13 +60,14 @@ their analyses (the bulk path: one process invocation scores many networks).
 `analyze` writes the record with `Json.compress`, which sorts the object keys alphabetically:
 
 ```json
-{"acrSpecies":[],"conservationLawDim":1,"deficiency":0,"gershgorinColStabilityMargin":[0,1],
- "gershgorinStabilityMargin":[0,1],"hasCriticalSiphon":false,"hasSiphon":true,
- "hopfBoundaryMargin":null,"minSiphonSize":2,"minimalSiphons":[[0,1]],"numACRSpecies":0,
- "numComplexes":2,"numDiagonalDriveSpecies":0,"numLinkageClasses":1,"numMinimalSiphons":1,
- "numReactions":2,"numSpecies":2,"numStrongLinkageClasses":1,"numTerminalSLC":1,
- "persistenceCertified":true,"persistenceStructural":true,"srPMatrixPointIndep":false,
- "srSignConsistent":false,"stoichRank":1,"version":13,"weaklyReversible":true}
+{"acrSpecies":[],"conservationLawDim":1,"deficiency":0,"deficiencyOneConditions":true,
+ "gershgorinColStabilityMargin":[0,1],"gershgorinStabilityMargin":[0,1],"hasCriticalSiphon":false,
+ "hasSiphon":true,"hopfBoundaryMargin":null,"minSiphonSize":2,"minimalSiphons":[[0,1]],
+ "numACRSpecies":0,"numComplexes":2,"numDiagonalDriveSpecies":0,"numLinkageClasses":1,
+ "numMinimalSiphons":1,"numReactions":2,"numSpecies":2,"numStrongLinkageClasses":1,
+ "numTerminalSLC":1,"persistenceCertified":true,"persistenceSingleLinkage":true,
+ "persistenceStructural":true,"srPMatrixPointIndep":false,"srSignConsistent":false,
+ "stoichRank":1,"version":14,"weaklyReversible":true}
 ```
 
 The fields, in their declaration order on the `Analysis` structure:
@@ -88,6 +92,8 @@ The fields, in their declaration order on the `Analysis` structure:
 | `hasCriticalSiphon` | bool | a critical siphon exists (no positive conservation law on its support) | `decide HasCriticalSiphon` |
 | `persistenceStructural` | bool | structural persistence precondition: `weaklyReversible ∧ ¬hasCriticalSiphon` | `hasNoCriticalSiphon_of_persistenceStructural` |
 | `persistenceCertified` | bool | certified persistence: `weaklyReversible ∧ deficiency = 0 ∧ ¬hasCriticalSiphon` | `gac_of_persistenceCertified` |
+| `persistenceSingleLinkage` | bool | single-linkage-class persistence precondition: `weaklyReversible ∧ numLinkageClasses = 1` | `singleLinkageHypotheses_of_persistenceSingleLinkage` |
+| `deficiencyOneConditions` | bool | Feinberg deficiency-one conditions (i)+(ii): each linkage class has deficiency ≤ 1 and the per-class deficiencies sum to the network deficiency | `deficiencyOneConditions_of_analyze` |
 | `numMinimalSiphons` | int | count of support-minimal siphons | `minimalSiphons.size` |
 | `minSiphonSize` | int | smallest minimal-siphon cardinality (`numSpecies + 1` sentinel when none) | derived from `minimalSiphons` |
 | `numACRSpecies` | int | count of species with a structural ACR witness | `acrSpecies.size` |
@@ -137,10 +143,25 @@ produces the positive complex-balanced equilibrium that `persistenceStructural` 
 The verdict `gac_of_persistenceCertified` then concludes, for any positive rate constants and any
 positive start `x₀`, that the mass-action semiflow through `x₀` converges to a complex-balanced
 equilibrium in `x₀`'s own compatibility class (its ω-limit set is exactly that point). The only input
-the contract cannot certify is the positive start `x₀` — a genuine per-trajectory hypothesis, not a
+the contract cannot certify is the positive start `x₀`, a per-trajectory hypothesis rather than a
 structural one. In words: every positive trajectory converges to the network's complex-balanced
 equilibrium in its compatibility class. Deficiency zero is read off `deficiency` and bridged to
 `DeficiencyZero` by `deficiencyZero_iff_computableDeficiency_eq_zero`.
+
+`persistenceSingleLinkage` is `weaklyReversible ∧ numLinkageClasses = 1`: the decidable structural
+precondition of the *other* persistence mechanism, Anderson's single-linkage-class global attractor,
+rather than the no-critical-siphon route behind `persistenceStructural`. When `true` it discharges the
+structural hypotheses of `gac_of_singleLinkage_decide`
+(`singleLinkageHypotheses_of_persistenceSingleLinkage`). It is **not** a full persistence proof: it
+additionally needs a positive complex-balanced reference and Anderson's single-linkage persistence
+implication, which the consumer supplies.
+
+`deficiencyOneConditions` is `decide DeficiencyOneConditions`: conditions (i) and (ii) of Feinberg's
+deficiency-one theorem — every linkage class has deficiency at most one, and the per-class deficiencies
+sum to the network deficiency. Its per-class deficiencies route through `computeRank`, so this field is
+compiled-evaluation only and does **not** reduce under `by decide`. It is **not** a full deficiency-one
+verdict: the theorem additionally requires each linkage class to have exactly one terminal strong
+linkage class (`deficiencyOneConditions_of_analyze`).
 
 `minimalSiphons` lists the support-minimal siphons (each as an ascending species-index array). These
 are the candidate critical siphons: a siphon is critical iff it carries no positive conservation law
@@ -158,7 +179,7 @@ hypothesis (`hweight_of_consistentSRSign`).
 
 `srPMatrixPointIndep` is `decide ConsistentSRSign && decide ConsistentDiagonalDrive`: the two
 decidable point-free conditions of the Craciun–Feinberg point-independence keystone — the consistent
-signed cover, and a per-species reaction that genuinely depends on and increases the species
+signed cover, and a per-species reaction that depends on and increases the species
 (`ConsistentDiagonalDrive`, the computable companion of `PositiveDiagonalDrive`). When `true`, the
 full mass-action Jacobian is a P-matrix at every positive concentration, for every positive rate
 constants, with no per-point hypothesis (`isPMatrix_massActionJacobian_box_of_srPMatrixPointIndep`).
@@ -264,7 +285,7 @@ above); for a kernel-checked certificate of a specific verdict, use the codegen 
 
 ## Versioning
 
-`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `13`. It tags the
+`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `14`. It tags the
 field set and increments whenever a field is added or its meaning changes, so a consumer can detect a
 contract it does not understand. A new per-property companion raises the version when it joins the
 record. A consumer should read fields by name and treat an absent field as undecided, so a record
@@ -301,6 +322,10 @@ never yields a structural verdict.
   persistence verdict composing the critical-siphon test with `gac_of_hasNoCriticalSiphon`.
 - `CRNT/Decision/PersistenceCertified.lean`: `gac_of_deficiencyZero_decide`, the certified-persistence
   verdict that supplies the complex-balanced reference from the deficiency-zero theorem.
+- `CRNT/Decision/PersistenceSingleLinkage.lean`: `gac_of_singleLinkage_decide`, the single-linkage-class
+  global-attractor verdict, and `singleLinkageClass_of_computeNumLinkageClasses_eq_one`.
+- `CRNT/Decision/DeficiencyOneConditionsDecide.lean`: `DeficiencyOneConditions` and its
+  `decidableDeficiencyOneConditions` instance (conditions (i) and (ii) of the deficiency-one theorem).
 - `CRNT/Decision/ComputableTerminalSLC.lean`: `computeNumTerminalSLC` and its bridge to `numTerminalSLC`.
 - `CRNT/Dynamics/HopfBoundaryQ.lean`: `hopfBoundaryMarginQ`, the rational `3×3` Hopf-boundary value.
 - `CRNT/Dynamics/GershgorinMarginQ.lean`, `CRNT/Dynamics/GershgorinColumnMarginQ.lean`:

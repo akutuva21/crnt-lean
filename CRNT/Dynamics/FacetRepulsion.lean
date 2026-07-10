@@ -29,17 +29,17 @@ The analysis splits on whether the vanishing-species set `{s*}` is a siphon.
   (`exists_omegaLimit_escape_of_not_subset_isolating`). An isolated boundary-facet invariant
   set cannot trap the ω-limit set.
 
-* **Critical-siphon facet (taken as a hypothesis, not constructed here).** When `{s*}` *is* a
-  critical siphon, the field's `s*`-component vanishes on the facet (the field is tangent there,
-  by `massActionVectorField_eq_zero_on_siphonFace`), so the first-order repulsion above gives
-  nothing. The Anderson & Shiu argument shows the facet is still repelled, but only through a
-  **quantitative higher-order near-facet estimate**: along a trajectory approaching the facet the
-  `s*`-coordinate is bounded below by a strictly positive influx that survives to second order in
-  the distance to the facet, so the time spent near the facet is integrably small and the ω-limit
-  set still escapes. Formalizing this needs a near-facet differential inequality / Lyapunov–exponent
-  bound on the mass-action field, which is not constructed in this layer (no quantitative subtangent
-  estimate, no Anderson & Shiu influx lemma); the precise missing statement is recorded in the note
-  below.
+* **Critical-siphon facet (not closed here).** When `{s*}` *is* a critical siphon, the field's
+  `s*`-component vanishes on the facet (the field is tangent there, by
+  `massActionVectorField_eq_zero_on_siphonFace`), so the first-order repulsion above gives nothing.
+  The Anderson & Shiu argument shows the facet is still repelled through a quantitative higher-order
+  near-facet estimate. Its influx half is available for a singleton siphon in
+  `CRNT.Dynamics.CriticalSiphonNearFacetInflux` (`massActionVectorField_singleton_facet_ge`, a linear
+  lower bound on the `s*`-component), and `CRNT.Dynamics.CriticalSiphonDissipationRepulsion` combines
+  it with a near-facet relative-entropy dissipation bound to yield a uniform positive facet floor. That
+  dissipation bound is carried as a hypothesis, and the floor is not yet assembled into an ω-limit /
+  persistence conclusion, so the critical-siphon codimension-1 case is not closed in this layer; the
+  precise remaining statement is recorded in the note below.
 
 Depends on: `CRNT.Dynamics.StrictInflow`,
 `CRNT.Dynamics.BoundaryOmegaSiphon`, `CRNT.Dynamics.ButlerMcGehee`.
@@ -103,15 +103,15 @@ theorem exists_omegaLimit_escape_of_not_subset_isolating (ϕ : Flow ℝ≥0 α) 
     ∃ q ∈ omegaLimit atTop ϕ {x₀}, q ∉ N ∧ q ∉ M :=
   exists_mem_omegaLimit_notMem_isolating ϕ x₀ hMisol hMN hΩM
 
-/- **Critical-siphon near-facet repulsion (taken as a hypothesis, not constructed here).** When the
-vanishing-species set `{s*}` is a critical siphon the first-order repulsion vanishes — the field is
-tangent to the facet. The Anderson & Shiu conclusion (the facet is still repelled, so it carries no
-ω-limit point) requires a quantitative higher-order near-facet estimate: a strictly positive lower
-bound on the `s*`-influx, surviving to second order in the distance to the facet, that makes
-trajectories spend only integrably-small time near the facet. The missing statement is a near-facet
-differential inequality on the mass-action field of the shape
-`∃ c > 0, ∀ x near the facet, 0 ≤ x → c * (dist x facet) ≤ N.massActionVectorField κ x s*`
-(an Anderson & Shiu influx bound). No quantitative subtangent / Lyapunov-exponent estimate for the
-mass-action field is constructed here, so the critical-siphon codimension-1 case is not closed. -/
+/- **Critical-siphon near-facet repulsion (not closed here).** When the vanishing-species set `{s*}`
+is a critical siphon the first-order repulsion vanishes: the field is tangent to the facet. The
+Anderson & Shiu conclusion (the facet is still repelled, so it carries no ω-limit point) requires a
+quantitative higher-order near-facet estimate. The influx lower bound of that shape,
+`-(c * x s*) ≤ N.massActionVectorField κ x s*`, is proven for a singleton siphon in
+`CRNT.Dynamics.CriticalSiphonNearFacetInflux`; combined with a near-facet relative-entropy dissipation
+bound it yields a uniform positive facet floor in `CRNT.Dynamics.CriticalSiphonDissipationRepulsion`.
+What remains is that dissipation bound, still carried as a hypothesis, and the assembly of the facet
+floor into an ω-limit / persistence conclusion, so the critical-siphon codimension-1 case is not
+closed. -/
 
 end CRNT

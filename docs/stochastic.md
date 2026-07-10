@@ -17,7 +17,7 @@ analogue of the deterministic monomial. The evolution of the law of the chain is
 **chemical master equation** `π̇ = πQ`, with generator `Q` assembling the inflow into and
 outflow out of each count.
 
-The headline result is that for a **complex-balanced** network the stationary law is a
+The main result is that for a **complex-balanced** network the stationary law is a
 product of independent Poissons, one per species, with rate the complex-balanced equilibrium
 concentration `c`. This is the discrete-state counterpart of the deterministic
 deficiency-zero theory: complex balancing is the same notion `IsComplexBalanced`
@@ -127,7 +127,7 @@ propensity. This is rendered first at the real-arithmetic level, then lifted to 
 **`jumpProb κ n r = stochasticMassActionRate κ n r / exitRate κ n`** (`jumpProb_nonneg`). On
 the positive-exit part of the lattice the row is stochastic, `sum_jumpProb_eq_one`; at an
 absorbing count where `exitRate κ n = 0` every `jumpProb` is zero
-(`jumpProb_eq_zero_of_exitRate_zero`), the genuine boundary defect. The jump chain's
+(`jumpProb_eq_zero_of_exitRate_zero`), the boundary defect. The jump chain's
 stationary weight is **`jumpStationaryMass κ c n = productPoissonPMF c n · exitRate κ n`**,
 the product-Poisson density reweighted by the holding rate. On the fully-enabled part this
 weight equals the total complex-indexed generator outflow
@@ -161,7 +161,7 @@ pushforward `μ.bind (jumpKernel κ)` on any set as the predecessor-indexed tsum
 expanded over reactions. This module states the predecessor `bind`-to-sum identity; closing
 it into invariance is the content of `KernelStationary` below.
 
-`CRNT/Stochastic/KernelStationary.lean` closes this into genuine measure invariance. The
+`CRNT/Stochastic/KernelStationary.lean` closes this into measure invariance. The
 unique source-dominating **`predecessorCount r m = m + source r − target r`** is the only
 count that fires `r` to land on `m` while dominating the source; every other count landing on
 `m` has vanishing propensity (`stochasticMassActionRate_eq_zero_of_not_source_le`). The key
@@ -339,7 +339,7 @@ the semigroup:
   `∑_{j+k=m} Po(s){j}·Po(t){k} = Po(s+t){m}` (the binomial theorem) and the kernel power law
   `U^{∘j} ∘ₖ U^{∘k} = U^{∘(j+k)}`.
 - **`cmeSemigroup_preserves_stationarity`**: the support-restricted, normalized product-Poisson
-  probability measure is invariant under every `P_t`, at a strictly positive complex-balanced
+  probability measure is invariant under every `P_t`, at a nonnegative complex-balanced
   concentration. This is the process-level companion of the generator stationarity `πQ = 0`:
   the continuous-time semigroup carries the Anderson–Craciun–Kurtz law to itself for all time.
   The preserved law is the product-Poisson density **`cmeStationaryMeasure`** itself — *not* the
@@ -347,8 +347,8 @@ the semigroup:
   factor, and uniformization maps the density to itself through the embedded jump-chain balance.
 
 `CRNT/Stochastic/UniformizedConvergence.lean` proves convergence of the uniformized chain.
-Its region matrix **`uRegionMatrix`** is column-stochastic (`uRegionMatrix_colStochastic`) and,
-crucially, has a **strictly positive diagonal** (`uRegionMatrix_diag_pos`): the holding weight
+Its region matrix **`uRegionMatrix`** is column-stochastic (`uRegionMatrix_colStochastic`) and
+has a **strictly positive diagonal** (`uRegionMatrix_diag_pos`): the holding weight
 `1 − w > 0` supplies the aperiodicity self-loop from `U`, not from a network reaction, so the
 obstruction `no_aperiodic_self_loop` does not apply. Inheriting strong connectivity from the
 embedded chain (`uRegionMatrix_stronglyConnected_of_regionStronglyConnected`, since the jump
@@ -370,7 +370,7 @@ and primitive on a jump-strongly-connected region
 (**`uRegionMatrix_pow_mulVec_tendsto_of_conservationClass`**).
 
 The reversible pair `A ⇌ B` on a fixed conservation class `{n : n_A + n_B = K}` is exhibited as
-a genuine such region: finite (`conservationClass_finite`), non-absorbing and jump-forward-closed
+such a region: finite (`conservationClass_finite`), non-absorbing and jump-forward-closed
 (`conservationClassRegion`), and jump-strongly-connected as a birth–death chain on `{0,…,K}`
 (`conservationClass_jumpStronglyConnected`, routed through the boundary count `(K,0)`). This
 discharges every hypothesis, giving unconditional discrete geometric convergence
