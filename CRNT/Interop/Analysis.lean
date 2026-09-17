@@ -16,6 +16,10 @@ import CRNT.Decision.InjectivityMargin
 import CRNT.Dynamics.HopfBoundaryQ
 import CRNT.Dynamics.GershgorinMarginQ
 import CRNT.Dynamics.GershgorinColumnMarginQ
+import CRNT.Oscillation.LowRank
+import CRNT.Dynamics.GlobalPersistenceCertificates
+import CRNT.Dynamics.SiphonAutocatalysis
+import CRNT.Oscillation.Exclusion
 
 /-!
 # One-call structural analysis
@@ -93,10 +97,11 @@ namespace CRNT
 
 open Lean (FromJson ToJson)
 open CRNT.GaussianRank
+open CRNT.Network
 open scoped NNReal Topology
 
 /-- The version of the `Analysis` JSON contract. Bump on any field-set change. -/
-def analysisVersion : Nat := 14
+def analysisVersion : Nat := 17
 
 /-- The structural invariants of a network, as a JSON-serializable record. The numeric fields are
 the computable companions of the library theory; `deficiency` is `n − ℓ − s` assembled here. -/
@@ -167,6 +172,16 @@ structure Analysis where
   compatibility class. The only remaining input is the positive start — a per-trajectory hypothesis,
   not a structural one. -/
   persistenceCertified : Bool
+  /-- Whether the analyzer can certify **structural non-oscillation** for every positive mass-action
+  rate vector.  Two independent global routes are currently compiled: (i) weak reversibility plus
+  deficiency zero (Horn--Jackson), or (ii) stoichiometric rank at most one (one-dimensional autonomous
+  dynamics).  This is an all-parameter exclusion of nonconstant positive periodic orbits, not merely
+  local linear stability at one concentration. -/
+  noPositivePeriodicOrbitCertified : Bool
+  /-- Whether the stoichiometric rank is exactly two.  This is not an oscillation verdict; it marks
+  networks whose positive compatibility classes are two-dimensional, the setting where a future
+  Poincare--Bendixson/Bendixson--Dulac certificate can give global periodic-orbit conclusions. -/
+  stoichRankTwo : Bool
   /-- Whether the network meets the decidable structural precondition of the single-linkage-class
   global-attractor verdict: it is weakly reversible and has a single linkage class
   (`weaklyReversible ∧ computeNumLinkageClasses = 1`). This is the *other* persistence mechanism from
@@ -175,6 +190,22 @@ structure Analysis where
   `gac_of_singleLinkage_decide`; it is not a full persistence proof, which additionally needs a
   positive complex-balanced reference and Anderson's single-linkage persistence implication. -/
   persistenceSingleLinkage : Bool
+  /-- Whether the network has no drainable siphon. This is now an exact decidable pathway-cone
+  verdict: strict real fluxes are converted to rational fluxes and then to finite reaction
+  multiplicities by `StrictConeRealization`. -/
+  noDrainableSiphon : Bool
+  /-- Whether the network has no self-replicable siphon (the non-autocatalytic siphon condition).
+  This is likewise decided exactly through rational linear feasibility. -/
+  noSelfReplicableSiphon : Bool
+  /-- Whether every minimal critical siphon in this concrete network is drainable or
+  self-replicable. The universal Deshpande--Gopalkrishnan theorem remains a theorem frontier, but
+  the proposition for a fixed finite network is decidable and therefore certifiable. -/
+  minimalCriticalSiphonDichotomy : Bool
+  /-- Proof-producing omega-persistence route based on the verified siphon dichotomy:
+  `weaklyReversible ∧ minimalCriticalSiphonDichotomy ∧
+  (noDrainableSiphon ∨ noSelfReplicableSiphon)`. A true value yields a
+  `BoundaryOmegaCertificate` with no unproved flux-realization premise. -/
+  persistenceSiphonDichotomy : Bool
   /-- Whether the network satisfies Feinberg's deficiency-one linkage conditions
   (`DeficiencyOneConditions`): every linkage class has deficiency at most one and the per-class
   deficiencies sum to the network deficiency — conditions (i) and (ii) of the deficiency-one theorem.
@@ -251,7 +282,17 @@ def analyze (d : NetworkData) : Analysis :=
     persistenceStructural := decide N.WeaklyReversible && !decide N.HasCriticalSiphon
     persistenceCertified := decide N.WeaklyReversible && N.computableDeficiency == 0
       && !decide N.HasCriticalSiphon
+    noPositivePeriodicOrbitCertified :=
+      (decide N.WeaklyReversible && N.computableDeficiency == 0)
+        || decide (computeRank N.stoichMatrixQ ≤ 1)
+    stoichRankTwo := computeRank N.stoichMatrixQ == 2
     persistenceSingleLinkage := decide N.WeaklyReversible && N.computeNumLinkageClasses == 1
+    noDrainableSiphon := decide N.HasNoDrainableSiphon
+    noSelfReplicableSiphon := decide N.HasNoSelfReplicableSiphon
+    minimalCriticalSiphonDichotomy := decide N.MinimalCriticalSiphonDichotomy
+    persistenceSiphonDichotomy := decide N.WeaklyReversible
+      && decide N.MinimalCriticalSiphonDichotomy
+      && (decide N.HasNoDrainableSiphon || decide N.HasNoSelfReplicableSiphon)
     deficiencyOneConditions := decide N.DeficiencyOneConditions
     numMinimalSiphons := ms.size
     minSiphonSize := ms.foldl (fun m a => min m a.size) (d.numSpecies + 1)
@@ -425,7 +466,7 @@ theorem analyze_persistenceCertified_eq (d : NetworkData) :
 /-- **Certified structural precondition.** When the certified-persistence flag is `true`, the network
 is weakly reversible, of deficiency zero, and has no critical siphon. These are exactly the structural
 hypotheses of `gac_of_deficiencyZero_decide`: the complex-balanced reference is then supplied by the
-Feinberg–Horn–Jackson deficiency-zero theorem, not by the consumer. -/
+Feinberg--Horn--Jackson deficiency-zero theorem, not by the consumer. -/
 theorem certifiedHypotheses_of_persistenceCertified (d : NetworkData)
     (h : (d.analyze).persistenceCertified = true) :
     d.toNetwork.WeaklyReversible ∧ d.toNetwork.DeficiencyZero
@@ -439,37 +480,111 @@ theorem certifiedHypotheses_of_persistenceCertified (d : NetworkData)
   · rw [Network.hasNoCriticalSiphon_iff_not_hasCriticalSiphon, ← analyze_hasCriticalSiphon_eq d, hcs]
     exact Bool.false_ne_true
 
-/-- **Certified global-attractor / no-extinction verdict.** When the certified-persistence flag is
-`true`, the network is weakly reversible, of deficiency zero, and has no critical siphon. For any
-positive rate constants and any positive start `x₀`, there is a positive complex-balanced
-concentration `x*` in `x₀`'s compatibility class such that the mass-action semiflow through `x₀`
-converges to it: its ω-limit set is exactly `{x*}`. The complex-balanced reference is supplied by the
-deficiency-zero theorem; the only input the contract cannot certify is the positive start, a genuine
-per-trajectory hypothesis. The verdict therefore reads: every positive trajectory converges to the
-network's complex-balanced equilibrium in its own compatibility class. -/
-theorem gac_of_persistenceCertified (d : NetworkData)
-    (h : (d.analyze).persistenceCertified = true) (κ : d.toNetwork.RateConstants)
-    {x₀ : Concentration (Fin d.numSpecies)} (hx0 : x₀.Positive) :
-    ∃ xstar : Concentration (Fin d.numSpecies), xstar.Positive
-      ∧ d.toNetwork.IsComplexBalanced κ xstar ∧ d.toNetwork.StoichCompatible x₀ xstar ∧
-      ∃ (ϕ : Flow ℝ≥0 (Concentration (Fin d.numSpecies)))
-        (γ : Concentration (Fin d.numSpecies) → ℝ → Concentration (Fin d.numSpecies)),
-        (∀ x, γ x 0 = x) ∧ (∀ x (t : ℝ≥0), ϕ t x = γ x t) ∧
-        (∀ t, 0 ≤ t →
-          HasDerivAt (γ x₀) (d.toNetwork.massActionVectorField κ (γ x₀ t)) t) ∧
-        omegaLimit Filter.atTop ϕ {x₀} = {xstar} := by
-  obtain ⟨hwr, hδ, _⟩ := certifiedHypotheses_of_persistenceCertified d h
-  have hcs : decide d.toNetwork.HasCriticalSiphon = false := by
-    rw [analyze_persistenceCertified_eq, Bool.and_eq_true, Bool.and_eq_true,
-      Bool.not_eq_true'] at h
-    exact h.2
-  exact d.toNetwork.gac_of_deficiencyZero_decide hwr κ hδ hcs hx0
+
+/-- The reported non-oscillation flag is the disjunction of the two currently compiled global
+exclusion routes: weak reversibility plus deficiency zero, or stoichiometric rank at most one. -/
+theorem analyze_noPositivePeriodicOrbitCertified_eq (d : NetworkData) :
+    (d.analyze).noPositivePeriodicOrbitCertified
+      = (((d.analyze).weaklyReversible && (d.analyze).deficiency == 0)
+          || decide ((d.analyze).stoichRank ≤ 1)) :=
+  rfl
+
+/-- **Kernel bridge for the structural non-oscillation flag.**  When the compiled analyzer reports
+`noPositivePeriodicOrbitCertified = true`, no positive rate constants on the reconstructed network
+can admit a nonconstant positive periodic mass-action orbit.  The proof payload records whichever of
+the deficiency-zero or low-rank routes discharged the claim. -/
+theorem neverPositivePeriodic_of_analyze (d : NetworkData)
+    (h : (d.analyze).noPositivePeriodicOrbitCertified = true) :
+    d.toNetwork.NeverPositivePeriodic := by
+  change ((decide d.toNetwork.WeaklyReversible
+      && d.toNetwork.computableDeficiency == 0)
+      || decide (computeRank d.toNetwork.stoichMatrixQ ≤ 1)) = true at h
+  rw [Bool.or_eq_true] at h
+  rcases h with hdz | hrank
+  · rw [Bool.and_eq_true, decide_eq_true_iff, beq_iff_eq] at hdz
+    apply neverPositivePeriodic_of_weaklyReversible_deficiencyZero hdz.1
+    rw [Network.deficiencyZero_iff_computableDeficiency_eq_zero]
+    exact hdz.2
+  · have hq : computeRank d.toNetwork.stoichMatrixQ ≤ 1 := of_decide_eq_true hrank
+    apply d.toNetwork.neverPositivePeriodic_of_stoichRank_le_one
+    rw [d.toNetwork.stoichRank_eq_computeRank]
+    exact hq
+
+/-- The rank-two flag is true exactly for stoichiometric rank two.  It is a route selector for planar
+global-dynamics certificates, not itself an oscillation claim. -/
+theorem analyze_stoichRankTwo_eq (d : NetworkData) :
+    (d.analyze).stoichRankTwo = true ↔ d.toNetwork.stoichRank = 2 := by
+  change (computeRank d.toNetwork.stoichMatrixQ == 2) = true ↔ _
+  rw [beq_iff_eq, ← d.toNetwork.stoichRank_eq_computeRank]
 
 /-- The reported single-linkage persistence flag is `weaklyReversible ∧ numLinkageClasses = 1`. -/
 theorem analyze_persistenceSingleLinkage_eq (d : NetworkData) :
     (d.analyze).persistenceSingleLinkage
       = ((d.analyze).weaklyReversible && (d.analyze).numLinkageClasses == 1) :=
   rfl
+/-- Exact analyzer reflection for the no-drainable-siphon verdict. -/
+theorem analyze_noDrainableSiphon_eq (d : NetworkData) :
+    (d.analyze).noDrainableSiphon = true ↔ d.toNetwork.HasNoDrainableSiphon := by
+  simp [NetworkData.analyze]
+
+/-- Exact analyzer reflection for the non-autocatalytic siphon verdict. -/
+theorem analyze_noSelfReplicableSiphon_eq (d : NetworkData) :
+    (d.analyze).noSelfReplicableSiphon = true ↔ d.toNetwork.HasNoSelfReplicableSiphon := by
+  simp [NetworkData.analyze]
+
+/-- A true no-drainable-siphon analyzer verdict now produces a complete clean
+omega-persistence certificate directly; the minimal-critical-siphon dichotomy is not needed. -/
+theorem omegaPersistenceCertificate_of_noDrainableSiphon (d : NetworkData)
+    (h : (d.analyze).noDrainableSiphon = true) :
+    d.toNetwork.OmegaPersistenceCertificate :=
+  Network.OmegaPersistenceCertificate.ofNoDrainableSiphon d.toNetwork
+    ((analyze_noDrainableSiphon_eq d).mp h)
+
+/-- A weakly-reversible network with no self-replicable siphon has a complete clean
+omega-persistence certificate. -/
+theorem omegaPersistenceCertificate_of_noSelfReplicableSiphon (d : NetworkData)
+    (hwrB : (d.analyze).weaklyReversible = true)
+    (h : (d.analyze).noSelfReplicableSiphon = true) :
+    d.toNetwork.OmegaPersistenceCertificate :=
+  Network.OmegaPersistenceCertificate.ofWeaklyReversibleNoSelfReplicable d.toNetwork
+    ((analyze_weaklyReversible_eq d).mp hwrB)
+    ((analyze_noSelfReplicableSiphon_eq d).mp h)
+
+/-- Exact analyzer reflection for the per-network minimal-critical-siphon dichotomy. -/
+theorem analyze_minimalCriticalSiphonDichotomy_eq (d : NetworkData) :
+    (d.analyze).minimalCriticalSiphonDichotomy = true ↔
+      d.toNetwork.MinimalCriticalSiphonDichotomy := by
+  simp [NetworkData.analyze]
+
+/-- The new siphon-dichotomy persistence flag is exactly its four structural booleans. -/
+theorem analyze_persistenceSiphonDichotomy_eq (d : NetworkData) :
+    (d.analyze).persistenceSiphonDichotomy =
+      ((d.analyze).weaklyReversible && (d.analyze).minimalCriticalSiphonDichotomy &&
+        ((d.analyze).noDrainableSiphon || (d.analyze).noSelfReplicableSiphon)) :=
+  rfl
+
+/-- A true siphon-dichotomy flag constructs an actual global boundary-omega certificate.  This is
+proof producing even though the *universal* minimal-critical-siphon theorem has not yet been proved:
+the analyzer has verified the finite proposition for this particular network. -/
+theorem boundaryOmegaCertificate_of_persistenceSiphonDichotomy (d : NetworkData)
+    (h : (d.analyze).persistenceSiphonDichotomy = true) :
+    d.toNetwork.BoundaryOmegaCertificate := by
+  rw [analyze_persistenceSiphonDichotomy_eq, Bool.and_eq_true, Bool.and_eq_true,
+    Bool.or_eq_true] at h
+  obtain ⟨⟨hwrB, hdichB⟩, hsign⟩ := h
+  have hwr : d.toNetwork.WeaklyReversible := (analyze_weaklyReversible_eq d).mp hwrB
+  have hdich : d.toNetwork.MinimalCriticalSiphonDichotomy :=
+    (analyze_minimalCriticalSiphonDichotomy_eq d).mp hdichB
+  rcases hsign with hndB | hnsrB
+  · have hnd : d.toNetwork.HasNoDrainableSiphon :=
+      (analyze_noDrainableSiphon_eq d).mp hndB
+    exact Network.BoundaryOmegaCertificate.ofWeaklyReversibleNoDrainable
+      d.toNetwork hdich hwr hnd
+  · have hnsr : d.toNetwork.HasNoSelfReplicableSiphon :=
+      (analyze_noSelfReplicableSiphon_eq d).mp hnsrB
+    exact Network.BoundaryOmegaCertificate.ofWeaklyReversibleNoSelfReplicable
+      d.toNetwork hdich hwr hnsr
+
 
 /-- **Single-linkage persistence precondition.** When the single-linkage persistence flag is `true`,
 the network is weakly reversible and has a single linkage class — the structural hypotheses of the

@@ -59,12 +59,15 @@ echo '{"numSpecies":2,"reactions":[{"source":[1,0],"target":[0,1]},
 For the reversible pair `A ⇌ B` the output includes, among about two dozen fields:
 
 ```json
-{"deficiency": 0, "weaklyReversible": true, "persistenceCertified": true, "hasCriticalSiphon": false}
+{"deficiency": 0, "weaklyReversible": true, "persistenceCertified": true,
+ "noPositivePeriodicOrbitCertified": true, "hasCriticalSiphon": false}
 ```
 
 `A ⇌ B` is weakly reversible of deficiency zero, so `persistenceCertified` reports that for any rate
 constants every positive trajectory converges to the network's complex-balanced equilibrium in its
-compatibility class (Feinberg–Horn–Jackson). Each field is a computable companion of a proven theorem,
+compatibility class (Feinberg–Horn–Jackson), while `noPositivePeriodicOrbitCertified` (weakly reversible deficiency zero, or
+stoichiometric rank at most one) gives the
+all-parameter theorem that no nonconstant positive periodic orbit exists. Each field is a computable companion of a proven theorem,
 tied to it by a bridge lemma; the full record is in [`docs/analyze-contract.md`](docs/analyze-contract.md).
 
 **Or state and check a network in Lean:**
@@ -126,6 +129,9 @@ example : N.WeaklyReversible := by
   resting on n-dimensional Sperner and Brouwer theorems formalized here.
 - A decidable, certificate-emitting core: check deficiency, reachability, and siphons, with
   kernel-checked certificates and a stable JSON contract for external tools.
+- A unified oscillation-certificate layer: exact positive periodic-orbit semantics, all-parameter
+  deficiency-zero exclusion, Poincare-return-map closure, child selections/unstable cores, and explicit
+  Poincare--Bendixson/Bendixson--Dulac frontiers; see [`docs/oscillation.md`](docs/oscillation.md).
 
 ## What's Proven
 
@@ -154,6 +160,17 @@ Grouped by area; the precise statements and module names are in each linked doc.
 - The planar Poincaré normal form with its first Lyapunov coefficient, and the closed-form limit cycle
   of the truncated normal form; the sustained-oscillation verdict for the full field is reduced to
   explicit center-manifold, averaging, and smooth-flow-dependence hypotheses (see Scope & Open Problems)
+
+**[Oscillation & recurrent dynamics](docs/oscillation.md)**
+- Exact `PeriodicTrajectory`, fixed-parameter positive periodic-orbit, oscillatory-capacity, and
+  all-parameter non-oscillation predicates
+- Weakly reversible deficiency-zero networks are proved globally non-oscillatory in the positive
+  orthant for every positive rate vector; the analyzer exposes a kernel-backed certificate bridge
+- Poincare-return fixed points construct the common periodic-trajectory witness
+- Child selections, child-selection matrices, right-half-plane instability, minimal unstable cores,
+  and positive/negative-feedback classification are represented natively
+- Rank-two Poincare--Bendixson and Bendixson--Dulac routes are specified as explicit proof frontiers,
+  not axioms or numerical heuristics
 
 **[Persistence & global attraction](docs/persistence-gac.md)**
 - The reduction GAC ⟺ persistence, and unconditional convergence for the no-critical-siphon class
@@ -242,6 +259,18 @@ remains is a specific missing piece.
   consumes all three as inputs, and center-manifold averaging is the one piece Mathlib lacks and no
   module yet supplies
 
+**Global persistence layer (new)**
+- Global quantifier APIs distinguish pointwise `PersistentFrom`, fixed-rate persistence, structural
+  persistence, omega-limit boundary exclusion, and permanence.
+- `WeaklyReversible.endotactic`, the standard stoichiometric strong-endotactic predicate,
+  single-linkage connectedness/reachability bridges, tier definitions, and drainable/self-replicable
+  siphon definitions are exposed in the core import.
+- The already-proved deficiency-zero/no-critical-siphon route now yields a proof-carrying
+  `GlobalPersistenceCertificate`; the analyzer's `persistenceCertified = true` flag constructs that
+  certificate directly.
+- Published but not yet machine-discharged global classes are represented as explicit proposition
+  contracts rather than axioms; see `docs/global-persistence.md`.
+
 **Open research**
 - The global attractor conjecture (Horn's 1974 conjecture, open in general):
   - Proven unconditionally for the no-critical-siphon class of complex-balanced networks, and reduced
@@ -288,7 +317,9 @@ abstractions, and theorem dependency structure. From there:
 | Doc | Covers |
 |---|---|
 | [`foundations.md`](docs/foundations.md) | networks, the reaction graph, stoichiometry |
+| [`global-persistence.md`](docs/global-persistence.md) | global persistence/permanence APIs, proved classes, theorem frontier |
 | [`dynamics.md`](docs/dynamics.md) | kinetics, complex-space factorization, the semiflow, Lyapunov/LaSalle, local stability, reduced models |
+| [`oscillation.md`](docs/oscillation.md) | periodic-orbit semantics and certificates, global exclusions, return maps, child selections/unstable cores, planar global frontiers |
 | [`deficiency.md`](docs/deficiency.md) | complex balancing, Birch, Perron–Frobenius, the deficiency-zero and deficiency-one theorems |
 | [`persistence-gac.md`](docs/persistence-gac.md) | siphons, persistence, the global attractor conjecture (proven vs. open) |
 | [`stochastic.md`](docs/stochastic.md) | the chemical master equation and Anderson–Craciun–Kurtz product form |

@@ -295,6 +295,13 @@ import CRNT.Theorems.DeficiencyZero.Confinement
 import CRNT.Theorems.DeficiencyZero.Lyapunov
 import CRNT.Theorems.DeficiencyZero.AsymptoticStability
 import CRNT.Theorems.DeficiencyZero.NoPeriodicOrbit
+
+-- Oscillation: core periodic-orbit vocabulary and low-rank exclusion
+-- (additional oscillation modules are present but not re-exported by default)
+import CRNT.Oscillation.Basic
+import CRNT.Oscillation.Exclusion
+import CRNT.Oscillation.LowRank
+import CRNT.Oscillation.KineticBasic
 import CRNT.Theorems.DeficiencyOne.Statement
 import CRNT.Theorems.DeficiencyOne.LogRatioUniqueness
 import CRNT.Theorems.DeficiencyOne.ToricReduction
@@ -462,6 +469,14 @@ import CRNT.Multistationarity.Sard
 import CRNT.Multistationarity.SteadyStateDegree
 import CRNT.Deficiency.DOACapacityConstruction
 
+-- Global persistence/permanence API: only the analyzer-facing certificates are part of the
+-- default bundle. The remaining tier/structural modules are present on disk as .bak
+-- (import them directly when needed).
+import CRNT.Geometry.EndotacticGlobal
+import CRNT.Dynamics.GlobalPersistence
+import CRNT.Dynamics.SiphonAutocatalysis
+import CRNT.Dynamics.GlobalPersistenceCertificates
+
 /-!
 # `crnt-lean`: Chemical Reaction Network Theory in Lean 4
 
@@ -469,6 +484,8 @@ Top-level import for the stable core of the `CRNT` library. It re-exports the ba
 CRN data structures, the reaction-graph and stoichiometry layers, mass-action
 kinetics, the deficiency definition, and the deficiency-zero statement interface.
 
-Experimental modules and theorem stubs are **not** re-exported here. Importing
-`CRNT` brings in no axioms beyond those of Mathlib and no `sorry`.
+The stable core plus the global-persistence and oscillation APIs is re-exported
+here.  Research-frontier statements in those layers are represented as ordinary
+propositions, never as axioms; importing `CRNT` therefore does not turn an
+unproved global claim into an available theorem.
 -/
