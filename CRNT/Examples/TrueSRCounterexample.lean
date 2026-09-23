@@ -32,6 +32,20 @@ private abbrev flowN : Network (Fin 2) where
     (flowN.fullyOpen.reaction (Sum.inr (Sum.inr (0 : Fin 2)))).source 0 = 1 := by rfl
 @[simp] private theorem flowN_fo_out1_s1 :
     (flowN.fullyOpen.reaction (Sum.inr (Sum.inr (1 : Fin 2)))).source 1 = 1 := by rfl
+@[simp] private theorem flowN_fo_original_source (r s : Fin 2) :
+    (flowN.fullyOpen.reaction
+      (Sum.inl r : Fin 2 ⊕ (Fin 2 ⊕ Fin 2))).source s = 0 := by
+  fin_cases r <;> rfl
+@[simp] private theorem flowN_fo_out_target (r s : Fin 2) :
+    (flowN.fullyOpen.reaction
+      (Sum.inr (Sum.inr r) : Fin 2 ⊕ (Fin 2 ⊕ Fin 2))).target s = 0 := by
+  fin_cases r <;> fin_cases s <;> rfl
+@[simp] private theorem flowN_fo_out0_s1 :
+    (flowN.fullyOpen.reaction
+      (Sum.inr (Sum.inr (0 : Fin 2)) : Fin 2 ⊕ (Fin 2 ⊕ Fin 2))).source 1 = 0 := by rfl
+@[simp] private theorem flowN_fo_out1_s0 :
+    (flowN.fullyOpen.reaction
+      (Sum.inr (Sum.inr (1 : Fin 2)) : Fin 2 ⊕ (Fin 2 ⊕ Fin 2))).source 0 = 0 := by rfl
 
 private def sig : Fin 2 → ℝ := fun s => if s = 0 then -1 else 1
 
@@ -68,20 +82,21 @@ private theorem flowN_witness : flowN.fullyOpen.StrongConcordanceWitness a sig :
   refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
   · apply flowN.fullyOpen.inKerL_of_apply
     intro s
-    change (∑ q : Fin 2 ⊕ (Fin 2 ⊕ Fin 2), a q * flowN.fullyOpen.reactionVector q s) = 0
+    change (∑ q : flowN.R ⊕ (Fin 2 ⊕ Fin 2),
+      a q * flowN.fullyOpen.reactionVector q s) = 0
     rw [Fintype.sum_sum_type, Fintype.sum_sum_type]
     simp only [Fin.sum_univ_two]
     fin_cases s
-    · norm_num [a, reactionVector_apply, fullyOpen_reaction_inl,
-        fullyOpen_reaction_inflow, fullyOpen_reaction_outflow,
-        inflowReaction, outflowReaction, singletonComplex_apply]
+    · norm_num [a, Network.reactionVector, Network.fullyOpen, flowN,
+        inflowReaction, outflowReaction, singletonComplex, Complex.zero]
       rw [flowN_fo_r0_t0, flowN_fo_r1_t0, flowN_fo_out0_s0]
-      norm_num
-    · norm_num [a, reactionVector_apply, fullyOpen_reaction_inl,
-        fullyOpen_reaction_inflow, fullyOpen_reaction_outflow,
-        inflowReaction, outflowReaction, singletonComplex_apply]
+      norm_num [flowN, Network.fullyOpen, inflowReaction, outflowReaction,
+        singletonComplex, Complex.zero]
+    · norm_num [a, Network.reactionVector, Network.fullyOpen, flowN,
+        inflowReaction, outflowReaction, singletonComplex, Complex.zero]
       rw [flowN_fo_r0_t1, flowN_fo_r1_t1, flowN_fo_out1_s1]
-      norm_num
+      norm_num [flowN, Network.fullyOpen, inflowReaction, outflowReaction,
+        singletonComplex, Complex.zero]
   · rw [flowN.stoichSubspace_fullyOpen_eq_top]
     exact Submodule.mem_top
   · intro h
