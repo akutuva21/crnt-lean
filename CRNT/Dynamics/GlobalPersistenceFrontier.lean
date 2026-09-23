@@ -20,6 +20,9 @@ no-drainable theorem is no longer a frontier item at omega-persistence strength.
 -/
 
 namespace CRNT
+
+open scoped NNReal
+
 namespace Network
 
 variable {S : Type} [DecidableEq S] [Fintype S]

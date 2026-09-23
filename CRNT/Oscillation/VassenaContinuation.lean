@@ -25,26 +25,28 @@ scaling.  No mere "not Hurwitz" endpoint is treated as a Hopf crossing.
 
 namespace Matrix
 
-variable {n : Type*} [Fintype n] [DecidableEq n]
+universe u
+
+variable {n : Type u} [Fintype n] [DecidableEq n]
 
 /-- Matrix ingredient behind the positive-feedback criterion: failure of `P^-_0` produces a
 strictly unstable positive right-diagonal scaling. -/
 def NotPMinusZeroImpliesUnstableScalingTarget : Prop :=
-  ∀ {m : Type*} [Fintype m] [DecidableEq m] (M : Matrix m m ℝ),
+  ∀ {m : Type u} [Fintype m] [DecidableEq m] (M : Matrix m m ℝ),
     ¬ M.IsPMinusZeroMatrix →
     ∃ d : m → ℝ, (∀ i, 0 < d i) ∧
       (M * Matrix.diagonal d).HasUnstableEigenvalue
 
 /-- Fisher--Fuller diagonal-stabilization ingredient used in the negative-feedback criterion. -/
 def FisherFullerStabilizingScalingTarget : Prop :=
-  ∀ {m : Type*} [Fintype m] [DecidableEq m] (M : Matrix m m ℝ),
+  ∀ {m : Type u} [Fintype m] [DecidableEq m] (M : Matrix m m ℝ),
     M.IsFisherFullerPMinusMatrix →
     ∃ d : m → ℝ, (∀ i, 0 < d i) ∧
       IsHurwitzReal (M * Matrix.diagonal d)
 
 /-- Criterion I has an unstable positive scaling once the `P^-_0` matrix theorem is supplied. -/
 theorem CriterionI.exists_positive_scaling_unstable
-    (hP0 : NotPMinusZeroImpliesUnstableScalingTarget)
+    (hP0 : NotPMinusZeroImpliesUnstableScalingTarget.{u})
     {M : Matrix n n ℝ} (h : CriterionI M) :
     ∃ d : n → ℝ, (∀ i, 0 < d i) ∧
       (M * Matrix.diagonal d).HasUnstableEigenvalue :=
@@ -52,7 +54,7 @@ theorem CriterionI.exists_positive_scaling_unstable
 
 /-- Criterion II has a Hurwitz positive scaling once Fisher--Fuller stabilizability is supplied. -/
 theorem CriterionII.exists_positive_scaling_hurwitz
-    (hFF : FisherFullerStabilizingScalingTarget)
+    (hFF : FisherFullerStabilizingScalingTarget.{u})
     {M : Matrix n n ℝ} (h : CriterionII M) :
     ∃ d : n → ℝ, (∀ i, 0 < d i) ∧
       IsHurwitzReal (M * Matrix.diagonal d) :=
@@ -60,7 +62,7 @@ theorem CriterionII.exists_positive_scaling_hurwitz
 
 /-- A finite matrix certificate of a strict stability transition under positive right-diagonal
 scaling: one endpoint is Hurwitz and one has a strict right-half-plane eigenvalue. -/
-structure PositiveDiagonalStabilityTransition (M : Matrix n n ℝ) : Type where
+structure PositiveDiagonalStabilityTransition (M : Matrix n n ℝ) : Type u where
   stableDiagonal : n → ℝ
   stablePositive : ∀ i, 0 < stableDiagonal i
   unstableDiagonal : n → ℝ
@@ -81,37 +83,39 @@ end PositiveDiagonalStabilityTransition
 /-- Criterion I yields a diagonal stability transition: identity is stable and a certified positive
 scaling is unstable. -/
 noncomputable def CriterionI.stabilityTransition
-    (hP0 : NotPMinusZeroImpliesUnstableScalingTarget)
+    (hP0 : NotPMinusZeroImpliesUnstableScalingTarget.{u})
     {M : Matrix n n ℝ} (h : CriterionI M) : PositiveDiagonalStabilityTransition M := by
-  obtain ⟨d, hd, hu⟩ := h.exists_positive_scaling_unstable hP0
+  let hex := h.exists_positive_scaling_unstable hP0
+  let d := Classical.choose hex
+  have hdhu := Classical.choose_spec hex
   exact
     { stableDiagonal := fun _ => 1
       stablePositive := fun _ => zero_lt_one
       unstableDiagonal := d
-      unstablePositive := hd
+      unstablePositive := hdhu.1
       stable := by
-        have hdiag : Matrix.diagonal (fun _ : n => (1 : ℝ)) = (1 : Matrix n n ℝ) := by
-          ext i j
-          simp [Matrix.diagonal_apply]
+        have hdiag : Matrix.diagonal (fun _ : n => (1 : ℝ)) = (1 : Matrix n n ℝ) :=
+          Matrix.diagonal_one
         simpa [hdiag] using h.stable
-      unstable := hu }
+      unstable := hdhu.2 }
 
 /-- Criterion II yields the reverse transition: Fisher--Fuller gives a stable scaling while the
 identity scaling retains the original strict instability. -/
 noncomputable def CriterionII.stabilityTransition
-    (hFF : FisherFullerStabilizingScalingTarget)
+    (hFF : FisherFullerStabilizingScalingTarget.{u})
     {M : Matrix n n ℝ} (h : CriterionII M) : PositiveDiagonalStabilityTransition M := by
-  obtain ⟨d, hd, hs⟩ := h.exists_positive_scaling_hurwitz hFF
+  let hex := h.exists_positive_scaling_hurwitz hFF
+  let d := Classical.choose hex
+  have hdhs := Classical.choose_spec hex
   exact
     { stableDiagonal := d
-      stablePositive := hd
+      stablePositive := hdhs.1
       unstableDiagonal := fun _ => 1
       unstablePositive := fun _ => zero_lt_one
-      stable := hs
+      stable := hdhs.2
       unstable := by
-        have hdiag : Matrix.diagonal (fun _ : n => (1 : ℝ)) = (1 : Matrix n n ℝ) := by
-          ext i j
-          simp [Matrix.diagonal_apply]
+        have hdiag : Matrix.diagonal (fun _ : n => (1 : ℝ)) = (1 : Matrix n n ℝ) :=
+          Matrix.diagonal_one
         simpa [hdiag] using h.unstable }
 
 end Matrix
@@ -127,7 +131,7 @@ variable {S : Type} [DecidableEq S] [Fintype S]
 /-- Exponential interpolation between positive diagonal scalings.  Unlike the affine segment, this
 path stays strictly positive for every real parameter and is therefore convenient for global-Hopf
 continuation arguments. -/
-def exponentialDiagonalPath (d₀ d₁ : S → ℝ) (μ : ℝ) : S → ℝ :=
+noncomputable def exponentialDiagonalPath (d₀ d₁ : S → ℝ) (μ : ℝ) : S → ℝ :=
   fun s => d₀ s * Real.exp (μ * Real.log (d₁ s / d₀ s))
 
 @[simp] theorem exponentialDiagonalPath_zero (d₀ d₁ : S → ℝ) :
@@ -153,7 +157,7 @@ theorem exponentialDiagonalPath_positive {d₀ d₁ : S → ℝ}
   exact mul_pos (hd₀ s) (Real.exp_pos _)
 
 /-- Reciprocal positive steady-state concentration along the globally positive path. -/
-def exponentialDiagonalState (d₀ d₁ : S → ℝ) (μ : ℝ) : Concentration S :=
+noncomputable def exponentialDiagonalState (d₀ d₁ : S → ℝ) (μ : ℝ) : Concentration S :=
   concentrationOfPositiveDiagonal (exponentialDiagonalPath d₀ d₁ μ)
 
 /-- The reciprocal state is positive at every real parameter. -/
@@ -166,24 +170,25 @@ theorem exponentialDiagonalState_positive {d₀ d₁ : S → ℝ}
 noncomputable def exponentialDiagonalRates (N : Network S) {v : N.R → ℝ}
     (hv : N.PositiveSteadyStateFlux v) {d₀ d₁ : S → ℝ}
     (hd₀ : ∀ s, 0 < d₀ s) (μ : ℝ) : N.RateConstants :=
-  N.rateConstantsOfPositiveSteadyStateFlux hv (exponentialDiagonalState_positive hd₀ μ)
+  N.rateConstantsOfPositiveSteadyStateFlux hv
+    (exponentialDiagonalState_positive (d₁ := d₁) hd₀ μ)
 
 /-- Every point of the global path is an actual mass-action steady state with the prescribed flux. -/
 theorem exponentialDiagonal_isSteady (N : Network S) {v : N.R → ℝ}
     (hv : N.PositiveSteadyStateFlux v) {d₀ d₁ : S → ℝ}
     (hd₀ : ∀ s, 0 < d₀ s) (μ : ℝ) :
     N.IsMassActionSteadyState
-      (N.exponentialDiagonalRates hv hd₀ μ)
+      (N.exponentialDiagonalRates (d₁ := d₁) hv hd₀ μ)
       (exponentialDiagonalState d₀ d₁ μ) :=
   N.isMassActionSteadyState_rateConstantsOfPositiveSteadyStateFlux hv
-    (exponentialDiagonalState_positive hd₀ μ)
+    (exponentialDiagonalState_positive (d₁ := d₁) hd₀ μ)
 
 /-- The Jacobian along the globally positive continuation is exactly `B(v) D(μ)`. -/
 theorem massActionJacobian_exponentialDiagonal (N : Network S) {v : N.R → ℝ}
     (hv : N.PositiveSteadyStateFlux v) {d₀ d₁ : S → ℝ}
     (hd₀ : ∀ s, 0 < d₀ s) (μ : ℝ) :
     N.massActionJacobian
-      (N.exponentialDiagonalRates hv hd₀ μ)
+      (N.exponentialDiagonalRates (d₁ := d₁) hv hd₀ μ)
       (exponentialDiagonalState d₀ d₁ μ) =
       N.fluxJacobianCore v * Matrix.diagonal (exponentialDiagonalPath d₀ d₁ μ) := by
   unfold exponentialDiagonalRates exponentialDiagonalState
@@ -225,16 +230,17 @@ namespace FluxJacobianStabilityTransition
 variable {N : Network S}
 
 /-- The globally positive exponential path associated with the certified stable/unstable endpoints. -/
-def continuationDiagonal (w : FluxJacobianStabilityTransition N) (μ : ℝ) : S → ℝ :=
+noncomputable def continuationDiagonal (w : FluxJacobianStabilityTransition N) (μ : ℝ) : S → ℝ :=
   exponentialDiagonalPath w.transition.stableDiagonal w.transition.unstableDiagonal μ
 
 /-- Positive steady-state path realizing `continuationDiagonal`. -/
-def continuationState (w : FluxJacobianStabilityTransition N) (μ : ℝ) : Concentration S :=
+noncomputable def continuationState (w : FluxJacobianStabilityTransition N) (μ : ℝ) : Concentration S :=
   exponentialDiagonalState w.transition.stableDiagonal w.transition.unstableDiagonal μ
 
 /-- Positive rate path realizing the fixed stationary flux along the global continuation. -/
 noncomputable def continuationRates (w : FluxJacobianStabilityTransition N) (μ : ℝ) : N.RateConstants :=
-  N.exponentialDiagonalRates w.steady w.transition.stablePositive μ
+  N.exponentialDiagonalRates (d₁ := w.transition.unstableDiagonal)
+    w.steady w.transition.stablePositive μ
 
 /-- The continuation diagonal is positive for every real parameter. -/
 theorem continuationDiagonal_positive (w : FluxJacobianStabilityTransition N) (μ : ℝ) :
@@ -255,7 +261,7 @@ theorem continuation_jacobian (w : FluxJacobianStabilityTransition N) (μ : ℝ)
 /-- Scalar rate-value path with proof fields erased.  This is definitionally the `k` field of
 `continuationRates`, but unlike the structure-valued rate path it lives in an ordinary finite real
 vector space and can be differentiated. -/
-def continuationRateValue (w : FluxJacobianStabilityTransition N) (μ : ℝ) (r : N.R) : ℝ :=
+noncomputable def continuationRateValue (w : FluxJacobianStabilityTransition N) (μ : ℝ) (r : N.R) : ℝ :=
   w.flux r /
     (N.reaction r).source.massActionMonomial (w.continuationState μ)
 
@@ -270,7 +276,8 @@ theorem continuationRateValue_contDiff (w : FluxJacobianStabilityTransition N)
     ContDiff ℝ n (fun μ : ℝ => w.continuationRateValue μ r) := by
   have hcoord : ∀ s : S, ContDiff ℝ n (fun μ : ℝ => w.continuationState μ s) := by
     intro s
-    exact (contDiff_apply ℝ ℝ s).comp w.continuationState_contDiff
+    exact (contDiff_apply ℝ ℝ s).comp
+      (exponentialDiagonalState_contDiff w.transition.stablePositive)
   have hmon : ContDiff ℝ n (fun μ : ℝ =>
       (N.reaction r).source.massActionMonomial (w.continuationState μ)) := by
     show ContDiff ℝ n (fun μ : ℝ =>
@@ -285,7 +292,7 @@ theorem continuationRateValue_contDiff (w : FluxJacobianStabilityTransition N)
   exact contDiff_const.div hmon hne
 
 /-- Proof-erased smooth vector-field family along the global diagonal continuation. -/
-def continuationField (w : FluxJacobianStabilityTransition N)
+noncomputable def continuationField (w : FluxJacobianStabilityTransition N)
     (μ : ℝ) (x : Concentration S) : Concentration S :=
   fun s => ∑ r : N.R,
     w.continuationRateValue μ r *
@@ -343,11 +350,11 @@ theorem continuationState_contDiff (w : FluxJacobianStabilityTransition N)
 
 
 /-- Positive steady state realizing the Hurwitz endpoint. -/
-def stableState (w : FluxJacobianStabilityTransition N) : Concentration S :=
+noncomputable def stableState (w : FluxJacobianStabilityTransition N) : Concentration S :=
   concentrationOfPositiveDiagonal w.transition.stableDiagonal
 
 /-- Positive steady state realizing the unstable endpoint. -/
-def unstableState (w : FluxJacobianStabilityTransition N) : Concentration S :=
+noncomputable def unstableState (w : FluxJacobianStabilityTransition N) : Concentration S :=
   concentrationOfPositiveDiagonal w.transition.unstableDiagonal
 
 /-- Positive rates realizing the Hurwitz endpoint. -/
@@ -375,6 +382,7 @@ theorem unstable_isSteady (w : FluxJacobianStabilityTransition N) :
 /-- The stable endpoint Jacobian is Hurwitz. -/
 theorem stable_jacobian_hurwitz (w : FluxJacobianStabilityTransition N) :
     Matrix.IsHurwitzReal (N.massActionJacobian w.stableRates w.stableState) := by
+  unfold stableRates stableState
   rw [N.massActionJacobian_reciprocalDiagonalRealization w.steady
     w.transition.stableDiagonal w.transition.stablePositive]
   exact w.transition.stable
@@ -383,6 +391,7 @@ theorem stable_jacobian_hurwitz (w : FluxJacobianStabilityTransition N) :
 theorem unstable_jacobian_hasUnstableEigenvalue (w : FluxJacobianStabilityTransition N) :
     Matrix.HasUnstableEigenvalue
       (N.massActionJacobian w.unstableRates w.unstableState) := by
+  unfold unstableRates unstableState
   rw [N.massActionJacobian_reciprocalDiagonalRealization w.steady
     w.transition.unstableDiagonal w.transition.unstablePositive]
   exact w.transition.unstable
@@ -403,7 +412,7 @@ noncomputable def FluxCriterionIWitness.stabilityTransition
     (w : FluxCriterionIWitness N) : N.FluxJacobianStabilityTransition where
   flux := w.flux
   steady := w.steady
-  transition := w.criterion.stabilityTransition hP0
+  transition := Matrix.CriterionI.stabilityTransition (n := S) hP0 w.criterion
 
 /-- Criterion-II flux data plus Fisher--Fuller diagonal stabilizability gives the analogous concrete
 mass-action stability transition. -/
@@ -413,7 +422,7 @@ noncomputable def FluxCriterionIIWitness.stabilityTransition
     (w : FluxCriterionIIWitness N) : N.FluxJacobianStabilityTransition where
   flux := w.flux
   steady := w.steady
-  transition := w.criterion.stabilityTransition hFF
+  transition := Matrix.CriterionII.stabilityTransition (n := S) hFF w.criterion
 
 /-- Data required immediately before applying the global-Hopf theorem in diagonal coordinates.
 
@@ -436,9 +445,8 @@ theorem continuation_jacobian_det_ne_zero (w : N.FluxGlobalHopfData) (μ : ℝ) 
   rw [w.toFluxJacobianStabilityTransition.continuation_jacobian]
   rw [Matrix.det_mul, Matrix.det_diagonal]
   apply mul_ne_zero w.coreInvertible
-  apply Finset.prod_ne_zero
-  intro s _
-  exact ne_of_gt (w.toFluxJacobianStabilityTransition.continuationDiagonal_positive μ s)
+  exact (Finset.prod_ne_zero_iff).2 fun s _ =>
+    ne_of_gt (w.toFluxJacobianStabilityTransition.continuationDiagonal_positive μ s)
 
 /-- The same nonsingularity statement in the proof-erased smooth-family notation. -/
 theorem continuation_jacobian_core_scaling_det_ne_zero (w : N.FluxGlobalHopfData) (μ : ℝ) :
@@ -446,14 +454,13 @@ theorem continuation_jacobian_core_scaling_det_ne_zero (w : N.FluxGlobalHopfData
       Matrix.diagonal (w.toFluxJacobianStabilityTransition.continuationDiagonal μ)).det ≠ 0 := by
   rw [Matrix.det_mul, Matrix.det_diagonal]
   apply mul_ne_zero w.coreInvertible
-  apply Finset.prod_ne_zero
-  intro s _
-  exact ne_of_gt (w.toFluxJacobianStabilityTransition.continuationDiagonal_positive μ s)
+  exact (Finset.prod_ne_zero_iff).2 fun s _ =>
+    ne_of_gt (w.toFluxJacobianStabilityTransition.continuationDiagonal_positive μ s)
 
 /-- All CRN-specific hypotheses needed before invoking the global-Hopf continuation theorem are now
 available from `FluxGlobalHopfData`: smooth family, smooth equilibrium branch, steady-state identity,
 endpoint stability change, and nonsingularity along the whole path. -/
-structure ContinuationPackage (w : N.FluxGlobalHopfData) : Prop where
+structure ContinuationPackage (w : N.FluxGlobalHopfData) where
   fieldSmooth : ContDiff ℝ (⊤ : WithTop ℕ∞)
     (fun p : ℝ × Concentration S =>
       w.toFluxJacobianStabilityTransition.continuationField p.1 p.2)

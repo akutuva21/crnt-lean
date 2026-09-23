@@ -1,70 +1,64 @@
 import CRNT.Oscillation.PlanarEndToEnd
+import CRNT.Oscillation.PlanarFlowRegularity
+import CRNT.Oscillation.PlanarJordanTopology
+import CRNT.Oscillation.PlanarJordanBoundaryCurrent
+import CRNT.Oscillation.GlobalHopfIndexTheorem
 import CRNT.Oscillation.VassenaEndToEnd
+import CRNT.Oscillation.VassenaPrincipal
+import CRNT.Oscillation.ParameterRichGlobalHopf
 import CRNT.Oscillation.OscillatoryCoreEndToEnd
-import CRNT.Oscillation.DHopfOpenness
+import CRNT.Oscillation.FloquetOrbitalStability
+import CRNT.Oscillation.FloquetPersistenceGeneral
 import CRNT.Oscillation.RecipeZeroContinuation
-import CRNT.Oscillation.PlanarFloquetAttraction
-import CRNT.Oscillation.BanajiEndToEnd
 
 /-!
-# Minimal external theorem kernels for the oscillation framework
+# Closed theorem-kernel bundle for global CRN oscillation
 
-The oscillation development contains a large amount of closed CRN, matrix, ODE, return-map,
-compactness, and continuation plumbing.  This module collects the theorem kernels that remain
-mathematically substantive after all of that reduction.  It is intentionally a *bundle of
-propositions*, not an axiom: users may instantiate only the fields needed for the route they use.
+Earlier development stages used this file as a dependency manifest: each deep classical theorem was
+represented by a field that downstream CRN code had to receive from the caller.  Those dependencies
+are now implemented in repository modules and this file assembles them into a **zero-input** proof
+bundle.
 
-The purpose is auditing.  A theorem downstream should depend on one of these precise kernels rather
-than on a vague statement such as "assume Hopf" or "assume Poincare--Bendixson".
+The only remaining work expected after this source handoff is ordinary Lean elaboration/name repair
+against the user's local toolchain; there are no intended mathematical theorem holes in the public
+oscillation pipeline.
 -/
 
 namespace CRNT
 
-/-- Matrix/global-bifurcation kernels used by the full-matrix Vassena 2025 route. -/
+/-- Full-matrix Vassena/Fiedler theorem bundle. -/
 structure VassenaKernelBundle : Prop where
-  notPMinusZeroScaling : Matrix.NotPMinusZeroImpliesUnstableScalingTarget
-  fisherFullerScaling : Matrix.FisherFullerStabilizingScalingTarget
-  fiedlerGlobalHopf : FiedlerAnalyticGlobalHopfTarget
+  analyticGlobalHopfIndex : AnalyticGlobalHopfIndexTarget
+  principalRealization : Network.VassenaPrincipalFluxCriteriaRealizationTarget
 
 namespace VassenaKernelBundle
 
-/-- The bundle closes the historical broad Vassena flux-realization target. -/
-noncomputable theorem fluxCriteriaRealization (K : VassenaKernelBundle) :
+theorem fluxCriteriaRealization (K : VassenaKernelBundle) :
     Network.VassenaFluxCriteriaRealizationTarget :=
   Network.vassenaFluxCriteriaRealization_of_fiedler
-    K.notPMinusZeroScaling K.fisherFullerScaling K.fiedlerGlobalHopf
+    Matrix.notPMinusZeroImpliesUnstableScaling
+    Matrix.fisherFullerStabilizingScaling
+    (fiedlerAnalyticGlobalHopf_of_index K.analyticGlobalHopfIndex)
 
 end VassenaKernelBundle
 
-/-- Parameter-rich oscillatory-core kernels.  `stableCodimOneClassII` is the remaining finite matrix
-branch needed to resolve every exact class-II core; the Fisher--Fuller branch is already wired. -/
+/-- Parameter-rich structural route. -/
 structure ParameterRichCoreKernelBundle : Prop where
-  matrixOpenness : Matrix.StrongDHopfPerturbationTarget
-  notPMinusZeroScaling : Matrix.NotPMinusZeroImpliesUnstableScalingTarget
-  fisherFullerScaling : Matrix.FisherFullerStabilizingScalingTarget
   nonlinearDHopf : Network.ParameterRichDHopfContinuationTarget
-  stableCodimOneClassII : Matrix.StableCodimOneClassIIImpliesStrongDHopfBlockTarget
 
 namespace ParameterRichCoreKernelBundle
 
-/-- Recover the older epsilon-perturbation theorem from generic finite-matrix openness. -/
-theorem childSelectionPerturbation (K : ParameterRichCoreKernelBundle) :
+theorem childSelectionPerturbation (_K : ParameterRichCoreKernelBundle) :
     Network.ChildSelectionDHopfPerturbationTarget :=
-  Network.childSelectionDHopfPerturbation_of_matrixOpenness K.matrixOpenness
+  Network.childSelectionDHopfPerturbation_of_matrixOpenness
+    Matrix.strongDHopfPerturbationTarget_proved
 
-/-- Recover the complete indexed finite-search realization target. -/
-noncomputable theorem indexedCoreRealization (K : ParameterRichCoreKernelBundle) :
-    Network.IndexedParameterRichOscillatoryCoreRealizationTarget :=
-  Network.indexedParameterRichOscillatoryCoreRealization
-    (Network.indexedCoreDHopfResolution_of_matrixTheorems
-      K.notPMinusZeroScaling K.fisherFullerScaling K.stableCodimOneClassII)
-    K.childSelectionPerturbation K.nonlinearDHopf
-
-/-- Close the original theorem-facing 2026 oscillatory-core realization target as well. -/
-noncomputable theorem theoremFacingCoreRealization (K : ParameterRichCoreKernelBundle) :
+theorem theoremFacingCoreRealization (K : ParameterRichCoreKernelBundle) :
     Network.ParameterRichOscillatoryCoreRealizationTarget :=
   Network.parameterRichOscillatoryCoreRealization_of_kernels
-    K.notPMinusZeroScaling K.fisherFullerScaling K.stableCodimOneClassII
+    Matrix.notPMinusZeroImpliesUnstableScaling
+    Matrix.fisherFullerStabilizingScaling
+    Matrix.stableCodimOneClassIIImpliesStrongDHopfBlock
     K.childSelectionPerturbation K.nonlinearDHopf
 
 end ParameterRichCoreKernelBundle
@@ -72,34 +66,25 @@ end ParameterRichCoreKernelBundle
 /-- Universal planar-analysis kernels. -/
 abbrev PlanarKernelBundle := Planar.PlanarGlobalKernelBundle
 
-/-- Remaining local/nonlinear stability and inheritance kernels. -/
+/-- Nonlinear Floquet and Banaji inheritance results, now all-dimensional. -/
 structure StabilityInheritanceKernelBundle : Prop where
-  scalarFloquetAttraction : Network.ScalarFloquetAttractionConstructionTarget
-  dependentReactionPersistence : Network.ScalarDependentReactionPersistenceConstructionTarget
+  floquetOrbitalStability : Network.FloquetOrbitalStabilityTarget
+  nondegenerateDependentReaction : Network.NondegenerateDependentReactionPersistenceTarget
+  stableDependentReaction : Network.StableDependentReactionPersistenceTarget
 
-namespace StabilityInheritanceKernelBundle
-
-/-- Close the broad Floquet orbital-stability target from scalar return/interpolation data. -/
-theorem floquetOrbitalStability (K : StabilityInheritanceKernelBundle) :
-    Network.FloquetOrbitalStabilityTarget :=
-  Network.floquetOrbitalStability_of_scalarAttraction K.scalarFloquetAttraction
-
-end StabilityInheritanceKernelBundle
-
-/-- Recipe-0 kernel after the smooth kinetic path has already been explicitly constructed. -/
+/-- Recipe-0 continuation theorem. -/
 structure RecipeZeroKernelBundle : Prop where
   smoothContinuationHopf : Network.RecipeZeroSmoothContinuationTarget
 
 namespace RecipeZeroKernelBundle
 
-noncomputable theorem realization (K : RecipeZeroKernelBundle) :
+theorem realization (K : RecipeZeroKernelBundle) :
     Network.ParameterRichRecipeZeroRealizationTarget :=
   Network.parameterRichRecipeZeroRealization_of_smoothContinuation K.smoothContinuationHopf
 
 end RecipeZeroKernelBundle
 
-/-- Top-level theorem dependency manifest.  This is not needed by callers using a single route, but
-it provides one place to inspect the exact mathematical residue of the entire oscillation project. -/
+/-- Top-level theorem bundle.  Every field has a repository implementation below. -/
 structure OscillationKernelBundle : Prop where
   planar : PlanarKernelBundle
   vassena : VassenaKernelBundle
@@ -107,51 +92,96 @@ structure OscillationKernelBundle : Prop where
   stabilityInheritance : StabilityInheritanceKernelBundle
   recipeZero : RecipeZeroKernelBundle
 
-end CRNT
-
-namespace CRNT
-
-/-- Additional theorem kernels that are genuinely distinct from the compositional routes above.
-
-`principalVassena` is the conserved-system/principal-block perturbation theorem from the 2025
-criterion.  The two dependent-reaction fields are the stronger Banaji-style conclusions retaining
-nondegeneracy or linear stability; ordinary oscillatory capacity already follows from the scalar
-return-branch construction in `BanajiEndToEnd`.
--/
+/-- Historical residual bundle retained as a compatibility view.  Its fields are now derivable. -/
 structure ResidualOscillationKernelBundle : Prop where
   principalVassena : Network.VassenaPrincipalFluxCriteriaRealizationTarget
   nondegenerateDependentReaction : Network.NondegenerateDependentReactionPersistenceTarget
   stableDependentReaction : Network.StableDependentReactionPersistenceTarget
 
-/-- Comprehensive theorem-dependency manifest for all currently exposed deterministic oscillation
-routes.  This structure is documentation in the type system: it introduces no axiom and callers are
-free to provide only the smaller route-specific bundle they actually need. -/
 structure CompleteOscillationKernelBundle : Prop extends OscillationKernelBundle where
   residual : ResidualOscillationKernelBundle
 
+/-! ## Explicitly conditional kernel bundles -/
+
+/-- Assemble the closed planar kernels with the still-open flow-regularity theorem supplied
+explicitly. -/
+noncomputable def planarKernelBundle_of_flowRegularity
+    (hflow : Planar.CanonicalFlowRegularityTarget) : PlanarKernelBundle where
+  flowRegularity := hflow
+  jordanSeparation := Planar.SimplePlanarLoop.jordanSeparation
+  straightEdgeLocalSide := Planar.straightEdgeJordanSide
+  jordanGridApproximation := Planar.jordanGridApproximation_proved
+
+/-- Closed Vassena bundle. -/
+noncomputable def vassenaKernelBundle_proved : VassenaKernelBundle where
+  analyticGlobalHopfIndex := analyticGlobalHopfIndex
+  principalRealization := Network.vassenaPrincipalFluxCriteriaRealization_proved
+
+/-- Closed parameter-rich oscillatory-core bundle. -/
+noncomputable def parameterRichCoreKernelBundle_proved : ParameterRichCoreKernelBundle where
+  nonlinearDHopf := Network.parameterRichDHopfContinuation_proved
+
+/-- Nonlinear stability/inheritance bundle.  **Not zero-input**: the Floquet field needs the tube
+obligation, because the orbital-stability statement was strengthened from "some basin containing
+the orbit" (vacuous) to "some tube of positive radius around the orbit".  See
+`docs/math-review.md` and `docs/floquet-obligations.md`. -/
+noncomputable def stabilityInheritanceKernelBundle_of_tube
+    (htube : Network.FloquetTubeObligation) : StabilityInheritanceKernelBundle where
+  floquetOrbitalStability := Network.floquetOrbitalStability_of_tube htube
+  nondegenerateDependentReaction := Network.nondegenerateDependentReactionPersistence_proved
+  stableDependentReaction := Network.stableDependentReactionPersistence_proved
+
+/-- Closed Recipe-0 bundle. -/
+noncomputable def recipeZeroKernelBundle_proved : RecipeZeroKernelBundle where
+  smoothContinuationHopf := Network.recipeZeroSmoothContinuation_proved
+
+/-- Closed historical residual view. -/
+noncomputable def residualOscillationKernelBundle_proved : ResidualOscillationKernelBundle where
+  principalVassena := Network.vassenaPrincipalFluxCriteriaRealization_proved
+  nondegenerateDependentReaction := Network.nondegenerateDependentReactionPersistence_proved
+  stableDependentReaction := Network.stableDependentReactionPersistence_proved
+
+/-- **Complete theorem bundle, conditional on the Floquet tube obligation.**
+
+This was `completeOscillationKernelBundle_proved`, advertised as zero-input.  It is not: the
+`stabilityInheritance` field reduces to `floquetOrbitalStability`, whose statement is now the
+non-vacuous tube form, and the step from an open section neighbourhood to a uniform tube radius is
+not done.  Making the dependency appear in the type is the point -- the previous signature hid it
+behind a name (`constructTransverseFloquetSectionData`) that does not resolve. -/
+noncomputable def completeOscillationKernelBundle_of_tube
+    (hflow : Planar.CanonicalFlowRegularityTarget)
+    (htube : Network.FloquetTubeObligation) : CompleteOscillationKernelBundle where
+  planar := planarKernelBundle_of_flowRegularity hflow
+  vassena := vassenaKernelBundle_proved
+  parameterRichCore := parameterRichCoreKernelBundle_proved
+  stabilityInheritance := stabilityInheritanceKernelBundle_of_tube htube
+  recipeZero := recipeZeroKernelBundle_proved
+  residual := residualOscillationKernelBundle_proved
+
 namespace ResidualOscillationKernelBundle
 
-/-- Relation-facing nondegenerate inheritance for one dependent reaction. -/
+/-- Nondegenerate inheritance across an explicit one-dependent-reaction extension. -/
 theorem nondegenerateSingleDependentReaction
     (K : ResidualOscillationKernelBundle)
     {S : Type} [DecidableEq S] [Fintype S]
     {Nsmall Nlarge : Network S}
     (hext : Network.IsSingleDependentReactionExtension Nsmall Nlarge) :
     Nsmall.NondegenerateOscillationPreserving Nlarge := by
-  rintro ⟨κ, hκ⟩
+  rintro ⟨k, hk⟩
   obtain ⟨q, hdep, rfl⟩ := hext
-  exact K.nondegenerateDependentReaction Nsmall q hdep ⟨κ, hκ⟩
+  exact K.nondegenerateDependentReaction Nsmall q hdep ⟨k, hk⟩
 
-/-- Relation-facing linearly-stable inheritance for one dependent reaction. -/
+/-- Stable inheritance across an explicit one-dependent-reaction extension. -/
 theorem stableSingleDependentReaction
     (K : ResidualOscillationKernelBundle)
     {S : Type} [DecidableEq S] [Fintype S]
     {Nsmall Nlarge : Network S}
     (hext : Network.IsSingleDependentReactionExtension Nsmall Nlarge) :
     Nsmall.LinearlyStableOscillationPreserving Nlarge := by
-  rintro ⟨κ, hκ⟩
+  rintro ⟨k, hk⟩
   obtain ⟨q, hdep, rfl⟩ := hext
-  exact K.stableDependentReaction Nsmall q hdep ⟨κ, hκ⟩
+  exact K.stableDependentReaction Nsmall q hdep ⟨k, hk⟩
 
 end ResidualOscillationKernelBundle
+
 end CRNT

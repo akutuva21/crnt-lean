@@ -1,4 +1,5 @@
 import CRNT.Oscillation.Basic
+import CRNT.Oscillation.OrbitTube
 import CRNT.Oscillation.MatrixCriteria
 import CRNT.Kinetics.MassActionJacobian
 
@@ -41,6 +42,7 @@ theorem massActionJacobian_along_periodicOrbit_periodic
     {N : Network S} {κ : N.RateConstants} (P : N.PositivePeriodicOrbit κ) :
     Function.Periodic (fun t => N.massActionJacobian κ (P.orbit t)) P.period := by
   intro t
+  dsimp only
   rw [P.periodic t]
 
 /-- A fundamental-matrix solution of the linear variational equation along a positive periodic
@@ -65,8 +67,10 @@ variable {N : Network S} {κ : N.RateConstants} {P : N.PositivePeriodicOrbit κ}
 def monodromy (F : N.MassActionFloquetData κ P) : Matrix S S ℝ :=
   F.fundamental P.period
 
-/-- Complexified characteristic polynomial of the monodromy matrix. -/
-def floquetPolynomial (F : N.MassActionFloquetData κ P) : Polynomial ℂ :=
+/-- Complexified characteristic polynomial of the monodromy matrix.
+
+`noncomputable` because `Matrix.charpoly` is. -/
+noncomputable def floquetPolynomial (F : N.MassActionFloquetData κ P) : Polynomial ℂ :=
   ((F.monodromy).map (algebraMap ℝ ℂ)).charpoly
 
 /-- `μ` is a Floquet multiplier when it is a root of the monodromy characteristic polynomial. -/
@@ -87,7 +91,7 @@ def Nondegenerate (F : N.MassActionFloquetData κ P) : Prop :=
 multiplier lies strictly inside the unit circle. -/
 def LinearlyStable (F : N.MassActionFloquetData κ P) : Prop :=
   F.Nondegenerate ∧
-    ∀ μ : ℂ, F.HasMultiplier μ → μ ≠ 1 → Complex.abs μ < 1
+    ∀ μ : ℂ, F.HasMultiplier μ → μ ≠ 1 → ‖μ‖ < 1
 
 /-- Linear stability includes Floquet nondegeneracy. -/
 theorem LinearlyStable.nondegenerate {F : N.MassActionFloquetData κ P}
@@ -150,23 +154,45 @@ theorem oscillatoryCapacity_of_linearlyStableOscillatoryCapacity {N : Network S}
     (nondegenerateOscillatoryCapacity_of_linearlyStable h)
 
 /-- Exact remaining nonlinear Floquet theorem interface: a linearly stable positive periodic orbit
-is orbitally asymptotically stable in some neighbourhood of its geometric orbit.  This is kept as a
-`Prop`, not an axiom; the linear Floquet objects above are fully available independently of it. -/
+is orbitally asymptotically stable, i.e. it attracts every solution started in some tube of
+positive radius around it.  This is kept as a `Prop`, not an axiom; the linear Floquet objects
+above are fully available independently of it.
+
+**The tube radius is the whole content.** An earlier form of this statement read
+
+```
+∃ basin, Set.range P.orbit.orbit ⊆ basin ∧ P.orbit.GloballyAttractsSolutions basin
+```
+
+which is provable with no Floquet theory at all: take `basin := Set.range P.orbit.orbit`.  For `x`
+on the orbit, forward uniqueness of mass-action solutions makes any `γ` with `γ 0 = x` equal to a
+phase shift of the orbit, so `dist (γ t) (P.orbit phase) = 0 < ε` on choosing that phase.  A basin
+that is merely a superset of the orbit therefore says nothing; it has to be a *neighbourhood*.  See
+`docs/math-review.md`. -/
 def FloquetOrbitalStabilityTarget : Prop :=
   ∀ {T : Type} [DecidableEq T] [Fintype T] (N : Network T)
     (κ : N.RateConstants) (P : N.LinearlyStablePositivePeriodicOrbit κ),
-      ∃ basin : Set (Concentration T),
-        Set.range P.orbit.orbit ⊆ basin ∧
-        P.orbit.GloballyAttractsSolutions basin
+      ∃ δ : ℝ, 0 < δ ∧ P.orbit.GloballyAttractsSolutions (P.orbit.orbitTube δ)
 
 /-- Consume a future proof of the Floquet orbital-stability theorem for one certified orbit. -/
 theorem LinearlyStablePositivePeriodicOrbit.hasLocallyAttractingCycle
     {N : Network S} {κ : N.RateConstants}
     (hFloquet : FloquetOrbitalStabilityTarget)
     (P : N.LinearlyStablePositivePeriodicOrbit κ) :
-    ∃ basin : Set (Concentration S),
-      Set.range P.orbit.orbit ⊆ basin ∧ P.orbit.GloballyAttractsSolutions basin :=
+    ∃ δ : ℝ, 0 < δ ∧ P.orbit.GloballyAttractsSolutions (P.orbit.orbitTube δ) :=
   hFloquet N κ P
+
+/-- The weak form, recovered from the strong one: a tube of positive radius contains the orbit.
+Kept so that any consumer written against the old signature still type-checks, but note that this
+weak statement is trivially true on its own and carries no information. -/
+theorem LinearlyStablePositivePeriodicOrbit.hasAttractingBasin
+    {N : Network S} {κ : N.RateConstants}
+    (hFloquet : FloquetOrbitalStabilityTarget)
+    (P : N.LinearlyStablePositivePeriodicOrbit κ) :
+    ∃ basin : Set (Concentration S),
+      Set.range P.orbit.orbit ⊆ basin ∧ P.orbit.GloballyAttractsSolutions basin := by
+  obtain ⟨δ, hδ, hattr⟩ := hFloquet N κ P
+  exact ⟨P.orbit.orbitTube δ, P.orbit.range_subset_orbitTube hδ, hattr⟩
 
 end Network
 

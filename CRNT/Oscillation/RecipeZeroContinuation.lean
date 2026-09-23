@@ -29,7 +29,7 @@ structure SmoothRecipeZeroContinuation
 namespace RecipeZeroCertificate
 
 /-- Smooth-path support realizes a Recipe-0 path at every prescribed positive state. -/
-noncomputable theorem exists_smoothContinuation
+theorem exists_smoothContinuation
     (C : RecipeZeroCertificate N)
     (F : N.SteadyStateParameterRichFamily)
     (hpaths : N.SupportsSmoothReactivityPaths F)
@@ -50,7 +50,7 @@ def RecipeZeroSmoothContinuationTarget : Prop :=
       N.ParameterRichOscillatoryCapacity F
 
 /-- The concrete smooth-continuation theorem implies the older broad Recipe-0 realization target. -/
-noncomputable theorem parameterRichRecipeZeroRealization_of_smoothContinuation
+theorem parameterRichRecipeZeroRealization_of_smoothContinuation
     (hHopf : RecipeZeroSmoothContinuationTarget) :
     ParameterRichRecipeZeroRealizationTarget := by
   intro T _ _ N F hpaths _hcons hC

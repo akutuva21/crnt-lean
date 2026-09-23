@@ -1,4 +1,5 @@
 import CRNT.Oscillation.ChildSelectionReactivity
+import CRNT.Oscillation.SpectralOpenness
 
 /-!
 # Finite-matrix openness behind the epsilon child-selection construction
@@ -25,6 +26,15 @@ def StrongDHopfPerturbationTarget : Prop :=
       ∃ ε₀ : ℝ, 0 < ε₀ ∧
         ∀ ε : ℝ, 0 < ε → ε < ε₀ →
           Nonempty (StrongDHopfWitness (A ε))
+
+end Matrix
+
+namespace Matrix
+
+/-- Concrete implementation of the formerly abstract finite-matrix openness dependency. -/
+theorem strongDHopfPerturbationTarget_proved : StrongDHopfPerturbationTarget := by
+  intro n _ _ M W A hA0 hcont
+  exact strongDHopfPerturbation_exists M W A hA0 hcont
 
 end Matrix
 

@@ -136,7 +136,7 @@ theorem faceSum_field_le (N : Network S) (κ : N.RateConstants) {P : Finset S}
           pow_le_pow_left₀ (hx s') (hxle s') _
         have h2 : (∏ s'' ∈ Finset.univ.erase s', x s'' ^ (N.reaction r).source s'')
             ≤ ∏ s'' ∈ Finset.univ.erase s', (max 1 B) ^ (N.reaction r).source s'' :=
-          Finset.prod_le_prod (fun s'' _ => pow_nonneg (hx s'') _)
+          Finset.prod_le_prod₀ (fun s'' _ => pow_nonneg (hx s'') _)
             (fun s'' _ => pow_le_pow_left₀ (hx s'') (hxle s'') _)
         calc Q ≤ (max 1 B) ^ ((N.reaction r).source s' - 1)
                   * ∏ s'' ∈ Finset.univ.erase s', (max 1 B) ^ (N.reaction r).source s'' :=

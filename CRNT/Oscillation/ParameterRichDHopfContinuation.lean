@@ -25,7 +25,7 @@ namespace Network
 variable {S : Type} [DecidableEq S] [Fintype S]
 
 /-- A concrete admissible reactivity matrix carrying a selected strong D-Hopf block. -/
-structure IndexedDHopfReactivityWitness (N : Network S) : Type where
+structure IndexedDHopfReactivityWitness (N : Network S) : Type 1 where
   I : Type
   decI : DecidableEq I
   finI : Fintype I
@@ -46,16 +46,17 @@ noncomputable def indexedDHopfReactivityWitnessOfCore
     (N : Network S) (C : N.IndexedChildSelection I)
     (hcore : Nonempty (Matrix.StrongDHopfWitness C.matrix)) :
     N.IndexedDHopfReactivityWitness := by
-  obtain ⟨R, hR, hblock⟩ :=
-    exists_admissible_reactivity_with_strongDHopfBlock hopen N C hcore
+  let hex := exists_admissible_reactivity_with_strongDHopfBlock hopen N C hcore
+  let R := Classical.choose hex
+  have hspec := Classical.choose_spec hex
   exact
     { I := I
       decI := inferInstance
       finI := inferInstance
       selection := C
       reactivity := R
-      admissible := hR
-      dhopf := hblock }
+      admissible := hspec.1
+      dhopf := hspec.2 }
 
 namespace IndexedDHopfReactivityWitness
 
@@ -81,7 +82,7 @@ structure SmoothKineticContinuation
 
 /-- Parameter-rich smooth-path support constructs the required kinetic continuation at every chosen
 positive state. -/
-noncomputable theorem exists_smoothKineticContinuation
+theorem exists_smoothKineticContinuation
     (W : N.IndexedDHopfReactivityWitness)
     (F : N.SteadyStateParameterRichFamily)
     (hpaths : N.SupportsSmoothReactivityPaths F)
@@ -120,7 +121,7 @@ theorem IndexedDHopfReactivityWitness.parameterRichOscillatoryCapacity
 
 /-- End-to-end indexed-core pipeline, leaving only the finite D-Hopf perturbation theorem and the
 nonlinear parameter-rich D-Hopf theorem as explicit mathematical dependencies. -/
-noncomputable theorem parameterRichOscillatoryCapacity_of_indexed_strongDHopfCore
+theorem parameterRichOscillatoryCapacity_of_indexed_strongDHopfCore
     (hopen : ChildSelectionDHopfPerturbationTarget)
     (hDHopf : ParameterRichDHopfContinuationTarget)
     {I : Type} [DecidableEq I] [Fintype I]

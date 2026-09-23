@@ -5,7 +5,7 @@ import CRNT.Oscillation.PlanarOmega
 # Rank-two CRNs as genuine planar systems
 
 A CRN with stoichiometric rank two has reduced coordinates indexed by `Fin N.stoichRank`, whereas
-the planar global-dynamics library uses `Phase2 = Fin 2 -> ℝ`.  This module removes that otherwise
+the planar global-dynamics library uses `Phase2 = EuclideanSpace ℝ (Fin 2)`.  This module removes that otherwise
 annoying type gap by reindexing along a proof `N.stoichRank = 2`.
 
 The reindexing is exact.  Planar trajectories transport back to reduced trajectories, and planar
@@ -20,19 +20,19 @@ namespace Network
 variable {S : Type} [DecidableEq S] [Fintype S]
 
 /-- Reindex a reduced rank-two coordinate vector as a planar vector. -/
-def reducedToPhase2 (N : Network S) (h : N.stoichRank = 2)
+noncomputable def reducedToPhase2 (N : Network S) (h : N.stoichRank = 2)
     (y : Fin N.stoichRank → ℝ) : Phase2 :=
-  fun i => y (Fin.cast h.symm i)
+  WithLp.toLp 2 (fun i => y (Fin.cast h.symm i))
 
 /-- Reindex a planar vector back into the CRN's reduced coordinate type. -/
-def phase2ToReduced (N : Network S) (h : N.stoichRank = 2)
+noncomputable def phase2ToReduced (N : Network S) (h : N.stoichRank = 2)
     (z : Phase2) : Fin N.stoichRank → ℝ :=
   fun i => z (Fin.cast h i)
 
 @[simp] theorem reducedToPhase2_phase2ToReduced
     (N : Network S) (h : N.stoichRank = 2) (z : Phase2) :
     N.reducedToPhase2 h (N.phase2ToReduced h z) = z := by
-  funext i
+  ext i
   simp [reducedToPhase2, phase2ToReduced]
 
 @[simp] theorem phase2ToReduced_reducedToPhase2
@@ -42,7 +42,7 @@ def phase2ToReduced (N : Network S) (h : N.stoichRank = 2)
   simp [reducedToPhase2, phase2ToReduced]
 
 /-- The rank-two reduced mass-action field expressed on the canonical planar phase space. -/
-def rankTwoReducedField (N : Network S) (h : N.stoichRank = 2)
+noncomputable def rankTwoReducedField (N : Network S) (h : N.stoichRank = 2)
     (κ : N.RateConstants) (x₀ : Concentration S) : Phase2 → Phase2 :=
   fun z => N.reducedToPhase2 h (N.reducedField κ x₀ (N.phase2ToReduced h z))
 
@@ -63,8 +63,12 @@ theorem rankTwoPlanarSolution_to_reduced
   intro t
   apply hasDerivAt_pi.mpr
   intro i
-  have hi := hasDerivAt_pi.mp (hz t) (Fin.cast h i)
-  simpa [rankTwoReducedField, reducedToPhase2, phase2ToReduced] using hi
+  -- `Phase2` is `EuclideanSpace ℝ (Fin 2)`, so components are read off with the continuous
+  -- linear projection rather than with `hasDerivAt_pi` on a bare pi type.
+  have hi :=
+    (EuclideanSpace.proj (Fin.cast h i) : Phase2 →L[ℝ] ℝ).hasFDerivAt.comp_hasDerivAt t (hz t)
+  simpa [rankTwoReducedField, reducedToPhase2, phase2ToReduced, Function.comp_def]
+    using hi
 
 /-- Transport a planar periodic trajectory back to the native reduced-coordinate field. -/
 noncomputable def reducedPeriodicTrajectoryOfRankTwoPlanar

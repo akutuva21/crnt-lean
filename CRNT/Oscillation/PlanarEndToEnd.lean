@@ -1,41 +1,63 @@
-import CRNT.Oscillation.PlanarReturnOrdering
-import CRNT.Oscillation.GreenJordanFoundations
+import CRNT.Oscillation.PlanarPoincareBendixson
+import CRNT.Oscillation.PlanarGreenJordanApproximation
+import CRNT.Oscillation.PlanarDivergenceRegularity
 
 /-!
 # End-to-end planar global-dynamics adapters
 
-All CRN-independent preprocessing and postprocessing for the two classical planar tools has now been
-formalized.  This file exposes the final composition layer:
+The Poincare--Bendixson path now uses the mathematically correct minimal-set endpoint: a recurrent
+point itself becomes periodic.  It no longer requires an affine return interval to lie inside the
+minimal omega-set.
 
-* Poincare--Bendixson reduces to the local flow-box/ordered-return theorem on a recurrent minimal set;
-* Bendixson--Dulac reduces to Jordan interior, convex-region containment, ordinary divergence
-  regularity on that interior, and Green's divergence theorem.
-
-No numerical trajectory or unproved CRN-specific implication is used in either adapter.
+The Bendixson--Dulac path uses the actual boundary line integral, internal C1/divergence regularity,
+finite-domain Green identities, and a Jordan-domain approximation theorem.
 -/
 
 namespace CRNT
 namespace Planar
 
-/-- Universal planar kernels sufficient to close both global planar routes. -/
+/-- Universal planar kernels sufficient for both global planar routes. -/
 structure PlanarGlobalKernelBundle : Prop where
-  returnOrdering : CanonicalReturnOrderingTarget
-  jordanInterior : PeriodicJordanInteriorTarget
-  jordanContainment : JordanInteriorContainmentTarget
-  dulacRegularity : JordanDulacRegularityTarget
-  greenDivergence : PeriodicGreenDivergenceTarget
+  flowRegularity : CanonicalFlowRegularityTarget
+  jordanSeparation : SimplePlanarLoop.JordanSeparationTarget
+  straightEdgeLocalSide : StraightEdgeJordanSideTarget
+  jordanGridApproximation : JordanGridApproximationTarget
 
 namespace PlanarGlobalKernelBundle
+
+/-- Poincare--Bendixson inputs. -/
+def poincareBendixsonBundle (K : PlanarGlobalKernelBundle) :
+    PoincareBendixsonKernelBundle where
+  flowRegularity := K.flowRegularity
+  jordanSeparation := K.jordanSeparation
+  straightEdgeLocalSide := K.straightEdgeLocalSide
 
 /-- Complete Poincare--Bendixson omega-limit classification. -/
 theorem poincareBendixsonOmegaClassification
     (K : PlanarGlobalKernelBundle) :
     PoincareBendixsonOmegaClassificationTarget :=
-  poincareBendixsonOmegaClassification_of_ordering K.returnOrdering
+  K.poincareBendixsonBundle.omegaClassification
 
-/-- The omega-limit classification is the stronger flow-aware Poincare--Bendixson result used by
-the rank-two CRN path.  The older `TrappedOrbit`-only API does not carry a global flow and is kept
-separate rather than manufacturing one from trajectory data. -/
+/-- Jordan separation constructs the bounded periodic interior. -/
+theorem jordanInterior (K : PlanarGlobalKernelBundle) :
+    PeriodicJordanInteriorTarget :=
+  periodicJordanInterior_of_jordanSeparation K.jordanSeparation
+
+/-- Convex containment is already a corollary of the Jordan separation record. -/
+theorem jordanContainment (K : PlanarGlobalKernelBundle) :
+    JordanInteriorContainmentTarget :=
+  jordanInteriorContainment_of_jordanSeparation K.jordanSeparation
+
+/-- Divergence regularity is internal. -/
+theorem dulacRegularity (_K : PlanarGlobalKernelBundle) :
+    JordanDulacRegularityTarget :=
+  jordanDulacRegularity_proved
+
+/-- Green's theorem on the periodic Jordan domain follows from the finite-domain theorem plus the
+Jordan grid approximation. -/
+theorem greenDivergence (K : PlanarGlobalKernelBundle) :
+    PeriodicGreenDivergenceTarget :=
+  periodicGreenDivergence_of_gridTarget K.jordanGridApproximation
 
 /-- Dulac-specific Jordan construction. -/
 theorem jordanDulacInteriorConstruction
@@ -44,17 +66,18 @@ theorem jordanDulacInteriorConstruction
   jordanDulacInteriorConstruction_of_foundations
     K.jordanInterior K.jordanContainment K.dulacRegularity
 
-/-- Dulac-specific Green identity. -/
-theorem greenDivergencePeriodicJordan
-    (K : PlanarGlobalKernelBundle) :
-    GreenDivergencePeriodicJordanTarget :=
-  greenDivergencePeriodicJordan_of_foundation K.greenDivergence
+/-- Public Bendixson--Dulac exclusion target, given local Lipschitz continuity.
 
-/-- Complete public Bendixson--Dulac exclusion target. -/
+The Lipschitz hypothesis is now explicit: see
+`bendixsonDulacTarget_of_jordan_green_of_locallyLipschitz` in
+`CRNT/Oscillation/DulacLineIntegral.lean` for why it cannot be derived from the C¹-on-the-region
+assumption that `BendixsonDulacTarget` carries. -/
 theorem bendixsonDulac
-    (K : PlanarGlobalKernelBundle) : BendixsonDulacTarget :=
-  bendixsonDulacTarget_of_jordan_green
-    K.jordanDulacInteriorConstruction K.greenDivergencePeriodicJordan
+    (K : PlanarGlobalKernelBundle)
+    (hlipAll : ∀ field : Phase2 → Phase2, LocallyLipschitz field) :
+    BendixsonDulacTarget :=
+  bendixsonDulacTarget_of_jordan_green_of_locallyLipschitz
+    K.jordanDulacInteriorConstruction K.greenDivergence hlipAll
 
 end PlanarGlobalKernelBundle
 

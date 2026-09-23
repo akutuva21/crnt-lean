@@ -18,7 +18,7 @@ namespace CRNT
 
 open Filter Set Topology
 
-variable {E : Type*} [PseudoMetricSpace E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 variable {field : E → E} {P : PeriodicTrajectory field}
 variable {f : ℝ → ℝ} {x₀ : ℝ}
 
@@ -77,7 +77,7 @@ theorem tendsto_embedded_hits
   have hcenter : (D.toContractingReturnMapData hfix).fixedPoint = D.center := rfl
   rw [hcenter] at hscalar
   have hcomp := hpoint.comp hscalar
-  simpa [G.point_center] using hcomp
+  simpa only [Function.comp_def, G.point_center] using hcomp
 
 /-- Quantitative eventual form of embedded-hit convergence. -/
 theorem embedded_hits_eventually_close
@@ -110,7 +110,7 @@ noncomputable def toSectionHitInterpolationData
     intro N t ht
     obtain ⟨n, hn, s, hs0, hsmax, htime, hseg⟩ := G.tailCover N t ht
     refine ⟨n, hn, s, hs0, hsmax, htime, ?_⟩
-    rw [G.hitState_eq n]
+    rw [← G.hitState_eq n]
     exact hseg
   shadow := G.shadow
 

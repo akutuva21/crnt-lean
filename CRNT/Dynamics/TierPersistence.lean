@@ -108,9 +108,9 @@ exactly `w`-maximal sources, and a strict negative `wRate` is exactly a reaction
 /-- A linear functional `w` exactly realizes the tier preorder of a sequence. -/
 structure TierRealizesDirection (N : Network S) (xs : ℕ → Concentration S) (w : S → ℝ) : Prop where
   same_iff : ∀ y : Complex S, y ∈ N.complexes → ∀ y' : Complex S, y' ∈ N.complexes →
-    TierSame xs y y' ↔ complexWValue w y = complexWValue w y'
+    (TierSame xs y y' ↔ complexWValue w y = complexWValue w y')
   below_iff : ∀ y : Complex S, y ∈ N.complexes → ∀ y' : Complex S, y' ∈ N.complexes →
-    TierStrictBelow xs y y' ↔ complexWValue w y < complexWValue w y'
+    (TierStrictBelow xs y y' ↔ complexWValue w y < complexWValue w y')
 
 /-- A tier sequence has some linear direction representing all of its tier comparisons. -/
 def HasTierDirectionWitness (N : Network S) (xs : ℕ → Concentration S) : Prop :=
@@ -227,7 +227,9 @@ theorem TierDescending.stronglyEndotacticStd_of_directionalRealizations {N : Net
         (N.reaction r).source (N.source_mem_complexes r)).mp hle
       rw [N.wRate_eq_complexWValue_sub w r]
       linarith
-    · push_neg at hactive
+    · -- `StoichActiveDirection w` is `∃ r, N.wRate w r ≠ 0`; `push_neg` needs it unfolded
+      -- before it can turn the negation into `∀ r, N.wRate w r = 0`.
+      simp only [Network.StoichActiveDirection, not_exists, not_ne_iff] at hactive
       exact le_of_eq (hactive r)
   refine ⟨hend, ?_⟩
   intro w hactive
@@ -252,8 +254,10 @@ For this sequence every monomial ratio is exactly an exponential of the differen
 least one coordinate, so this sequence also escapes in logarithmic coordinates and is transversal.
 -/
 
-/-- Exponential concentration sequence realizing a prescribed linear direction. -/
-def exponentialDirectionSequence (w : S → ℝ) (n : ℕ) : Concentration S :=
+/-- Exponential concentration sequence realizing a prescribed linear direction.
+
+`noncomputable` because `Real.exp` is. -/
+noncomputable def exponentialDirectionSequence (w : S → ℝ) (n : ℕ) : Concentration S :=
   fun s => Real.exp ((n : ℝ) * w s)
 
 /-- Every point of an exponential direction sequence is strictly positive. -/
@@ -273,7 +277,9 @@ theorem tierMonomial_exponentialDirectionSequence (w : S → ℝ) (n : ℕ) (y :
         = ∏ s : S, Real.exp ((y s : ℝ) * ((n : ℝ) * w s)) := by
             apply Finset.prod_congr rfl
             intro s _
-            rw [Real.exp_nat_mul]
+            -- `Real.exp_nat_mul : exp (n * x) = exp x ^ n`; we need the reverse direction to
+            -- turn `exp (n * w s) ^ y s` into `exp (y s * (n * w s))`.
+            rw [← Real.exp_nat_mul]
     _ = Real.exp (∑ s : S, (y s : ℝ) * ((n : ℝ) * w s)) := by
           simpa using (Real.exp_sum (Finset.univ : Finset S)
             (fun s => (y s : ℝ) * ((n : ℝ) * w s))).symm
@@ -311,7 +317,7 @@ theorem tendsto_exp_nat_mul_zero_iff (d : ℝ) :
     · have htop : Tendsto (fun n : ℕ => Real.exp ((n : ℝ) * d)) atTop atTop := by
         have hp := tendsto_pow_atTop_atTop_of_one_lt ((Real.one_lt_exp_iff).2 hd)
         simpa only [← Real.exp_nat_mul] using hp
-      exact (not_tendsto_nhds_of_tendsto_atTop htop 0) h
+      exact ((not_tendsto_nhds_of_tendsto_atTop htop 0) h).elim
   · intro hd
     have hp := tendsto_pow_atTop_nhds_zero_of_lt_one
       (Real.exp_pos d).le ((Real.exp_lt_one_iff).2 hd)
@@ -390,10 +396,16 @@ theorem exponentialDirectionSequence_logEscapes {N : Network S} {w : S → ℝ}
     exact mul_le_mul_of_nonneg_right (by exact_mod_cast hn) habs.le
   have hterm : |Real.log (exponentialDirectionSequence w n s0)| =
       (n : ℝ) * |w s0| := by
-    simp [exponentialDirectionSequence, abs_mul, abs_of_nonneg (Nat.cast_nonneg n)]
+    -- the type of the `0 ≤ ↑n` side condition is not determined by unification here,
+    -- so state it at `ℝ` explicitly.
+    simp [exponentialDirectionSequence, abs_mul,
+      abs_of_nonneg (show (0 : ℝ) ≤ (n : ℝ) from Nat.cast_nonneg n)]
   have hleSum : |Real.log (exponentialDirectionSequence w n s0)| ≤
       ∑ s : S, |Real.log (exponentialDirectionSequence w n s)| := by
-    exact Finset.single_le_sum (fun s _ => abs_nonneg _) (Finset.mem_univ s0)
+    -- `single_le_sum` cannot infer the summand from the goal alone; name it.
+    exact Finset.single_le_sum
+      (f := fun s => |Real.log (exponentialDirectionSequence w n s)|)
+      (fun s _ => abs_nonneg _) (Finset.mem_univ s0)
   rw [hterm] at hleSum
   linarith
 

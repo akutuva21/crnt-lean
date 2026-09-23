@@ -68,7 +68,7 @@ theorem returnMap_fixed_of_scalar_fixed
 
 /-- **Compact return interval theorem.** A continuous self-returning transversal interval contains
 an exact nonconstant periodic trajectory of the ambient vector field. -/
-noncomputable theorem exists_periodicTrajectory (D : S.ReturnIntervalData) :
+theorem exists_periodicTrajectory (D : S.ReturnIntervalData) :
     Nonempty (PeriodicTrajectory S.field) := by
   obtain ⟨u, hu, hufix⟩ := D.exists_scalar_fixedPoint
   exact ⟨S.periodicTrajectoryOfReturnMapFixedPoint
@@ -79,7 +79,7 @@ noncomputable theorem exists_periodicTrajectory (D : S.ReturnIntervalData) :
     (D.field_ne_zero u hu)⟩
 
 /-- Witness-producing form of `exists_periodicTrajectory`. -/
-noncomputable theorem periodicTrajectory (D : S.ReturnIntervalData) :
+theorem periodicTrajectory (D : S.ReturnIntervalData) :
     ∃ P : PeriodicTrajectory S.field, True := by
   obtain ⟨P⟩ := D.exists_periodicTrajectory
   exact ⟨P, trivial⟩

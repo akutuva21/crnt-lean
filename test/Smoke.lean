@@ -52,7 +52,14 @@ example : Examples.ReversiblePair.N.DeficiencyZero := Examples.ReversiblePair.de
 example : Examples.ReversiblePair.N.SatisfiesDeficiencyZeroHypotheses :=
   Examples.ReversiblePair.satisfiesDeficiencyZeroHypotheses
 
-
+-- The oscillation layer promotes the same theorem to an all-parameter non-oscillation certificate.
+example : Examples.ReversiblePair.N.NeverPositivePeriodic :=
+  Examples.ReversiblePair.N.neverPositivePeriodic_of_weaklyReversible_deficiencyZero
+    Examples.ReversiblePair.weaklyReversible Examples.ReversiblePair.deficiencyZero
+example :
+    (Network.deficiencyZeroOscillationCertificate Examples.ReversiblePair.N
+      Examples.ReversiblePair.weaklyReversible Examples.ReversiblePair.deficiencyZero).status
+      = Network.OscillationStatus.excluded := rfl
 
 -- The computable linkage count reduces under `decide`; the computable deficiency assembly
 -- agrees with the deficiency via the bridge theorem (the value itself is `#eval`-only).
@@ -191,7 +198,7 @@ example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (hwr : N.WeaklyRe
   N.gac_of_deficiencyZero_decide hwr κ hδ hdec hx0
 
 -- The analysis tags the current contract version.
-example : interopRevData.analyze.version = 17 := by decide
+example : interopRevData.analyze.version = 19 := by decide
 
 -- Single-linkage persistence and deficiency-one linkage conditions on the reversible pair `A ⇌ B`.
 -- The persistence flag equates to its two-field structural definition (the value's `decide` on weak
@@ -225,8 +232,16 @@ example : interopRevData.analyze.numACRSpecies = 0 := by decide
 example : interopRevData.analyze.numTerminalSLC = 1 := by decide
 example : interopRevData.analyze.numDiagonalDriveSpecies = 0 := by decide
 example : interopRevData.analyze.hopfBoundaryMargin = none := by decide
-
-
+-- The reversible pair is weakly reversible and deficiency zero, so the analyzer can certify that
+-- no positive mass-action parameterization admits a nonconstant positive periodic orbit.
+example : interopRevData.analyze.noPositivePeriodicOrbitCertified = true := by decide
+example (h : interopRevData.analyze.noPositivePeriodicOrbitCertified = true) :
+    interopRevData.toNetwork.NeverPositivePeriodic :=
+  NetworkData.neverPositivePeriodic_of_analyze interopRevData h
+-- Its stoichiometric rank is one, so it is not a planar (rank-two) compatibility-class candidate.
+example : interopRevData.analyze.stoichRankTwo = false := by decide
+example : interopRevData.oscillationStatus = Network.OscillationStatus.excluded :=
+  NetworkData.oscillationStatus_eq_excluded_of_certified interopRevData (by decide)
 example (d : NetworkData) :
     d.analyze.numDiagonalDriveSpecies = d.numSpecies ↔ d.toNetwork.ConsistentDiagonalDrive :=
   NetworkData.analyze_numDiagonalDriveSpecies_eq_card_iff d
@@ -240,7 +255,11 @@ def interopTriData : NetworkData :=
                     { source := #[0, 1, 0], target := #[0, 0, 1] },
                     { source := #[0, 0, 1], target := #[1, 0, 0] } ] }
 example : interopTriData.analyze.hopfBoundaryMargin.isSome = true := by decide
-
+-- The three-cycle has a two-dimensional stoichiometric subspace, exposing the planar-global route.
+example : interopTriData.analyze.stoichRankTwo = true := by decide
+example (d : NetworkData) :
+    d.analyze.stoichRankTwo = true ↔ d.toNetwork.stoichRank = 2 :=
+  NetworkData.analyze_stoichRankTwo_eq d
 
 -- Sard in equal dimension: the critical values of a differentiable self-map of a finite-dimensional
 -- space carry no measure, so almost every value is regular — the measure-theoretic input that lifts

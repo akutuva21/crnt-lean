@@ -65,7 +65,7 @@ theorem exists_isMaxSource_of_nonempty (N : Network S) (w : S → ℝ)
   have hle : N.wValue w r' ≤ m := by
     dsimp [m]
     exact Finset.le_max' vals (N.wValue w r') hr'mem
-  rw [← hrm] at hle
+  rw [hrm]
   exact hle
 
 /-- Along a directed path that starts at a `w`-maximal reaction source and ends at a
@@ -99,9 +99,9 @@ theorem Reaches.exists_maxSource_strict_drop {N : Network S} {w : S → ℝ}
         · refine ⟨redge, ?_, ?_⟩
           · intro r'
             have hm := hmax r'
-            have hredge_eq : N.wValue w redge = N.wValue w rmax := by
-              rw [wValue_eq_complexWValue_source, wValue_eq_complexWValue_source, hs, heq]
-            rw [hredge_eq]
+            rw [wValue_eq_complexWValue_source] at hm ⊢
+            rw [N.wValue_eq_complexWValue_source w redge] at *
+            rw [hs, heq]
             exact hm
           · rw [N.wRate_eq_complexWValue_sub w redge, hs, ht, heq]
             linarith

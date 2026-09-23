@@ -52,7 +52,7 @@ theorem dulacAreaConstruction_of_foundations
 
 /-- The same refined decomposition constructs the historical proof-relevant Green/Jordan
 certificate for every already-simple cycle. -/
-noncomputable theorem greenJordanCertificateConstruction_of_foundations
+theorem greenJordanCertificateConstruction_of_foundations
     (hJordan : PeriodicJordanInteriorTarget)
     (hContain : JordanInteriorContainmentTarget)
     (hRegular : JordanDulacRegularityTarget)

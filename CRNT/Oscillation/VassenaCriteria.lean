@@ -127,25 +127,9 @@ theorem symbolicJacobian_massActionReactivity (N : Network S) (κ : N.RateConsta
   intro r _
   ring
 
-/-- The source-monomial gradient, multiplied by the differentiated concentration, reconstructs the
-source stoichiometric coefficient times the source monomial.  This cross-multiplied form avoids a
-division and therefore remains valid even on the boundary. -/
-theorem massActionMonomialGrad_mul_coord (y : Complex S) (x : Concentration S) (j : S) :
-    massActionMonomialGrad y x j * x j = (y j : ℝ) * y.massActionMonomial x := by
-  classical
-  by_cases hj : y j = 0
-  · simp [massActionMonomialGrad, Complex.massActionMonomial, hj]
-  · have hj1 : 1 ≤ y j := Nat.one_le_iff_ne_zero.mpr hj
-    have hmem : j ∈ (Finset.univ : Finset S) := Finset.mem_univ j
-    have hsplit : y.massActionMonomial x =
-        x j ^ y j * ∏ s ∈ Finset.univ.erase j, x s ^ y s := by
-      exact (Finset.mul_prod_erase Finset.univ (fun s => x s ^ y s) hmem).symm
-    have hpow : x j ^ y j = x j ^ (y j - 1) * x j := by
-      conv_lhs => rw [show y j = (y j - 1) + 1 by omega]
-      rw [pow_succ]
-    rw [massActionMonomialGrad, hsplit, hpow]
-    ring
-
+-- `massActionMonomialGrad_mul_coord` now lives in `Kinetics/MassActionJacobian.lean`,
+-- next to the definition of `massActionMonomialGrad`, so the `Equilibria/*` stability
+-- modules can use it without importing `Oscillation/*`.
 /-- At a positive concentration, the mass-action reactivity matrix has exactly the admissible
 reactant-support sign pattern required by `IsReactivityMatrix`. -/
 theorem massActionReactivity_isReactivityMatrix (N : Network S) (κ : N.RateConstants)
@@ -167,7 +151,7 @@ theorem massActionReactivity_isReactivityMatrix (N : Network S) (κ : N.RateCons
 /-- Reactivity matrix obtained directly from a reaction flux `v` at a positive state `x`: each
 source sensitivity is `v_r * source_r(j) / x_j`.  This is the local derivative form underlying
 `B(v) * diag(1/x)`. -/
-def fluxReactivityAt (N : Network S) (v : N.R → ℝ) (x : Concentration S) :
+noncomputable def fluxReactivityAt (N : Network S) (v : N.R → ℝ) (x : Concentration S) :
     N.ReactivityMatrix :=
   fun r j => v r * ((N.reaction r).source j : ℝ) * (x j)⁻¹
 
@@ -192,11 +176,12 @@ theorem symbolicJacobian_fluxReactivityAt (N : Network S) (v : N.R → ℝ)
       N.fluxJacobianCore v * Matrix.diagonal (fun s => (x s)⁻¹) := by
   classical
   ext i j
-  simp only [symbolicJacobian, fluxReactivityAt, Matrix.mul_apply, Matrix.diagonal_apply,
-    mul_ite, Finset.sum_ite_eq', Finset.mem_univ, if_true, fluxJacobianCore]
-  apply Finset.sum_congr rfl
-  intro r _
-  ring
+  -- `Matrix.mul_diagonal` collapses the right factor in one step.  Going through
+  -- `mul_ite`/`Finset.sum_ite_eq'` instead leaves the else-branch as `_ * 0` rather than a
+  -- syntactic `0`, so no `sum_ite_eq` variant can fire.
+  rw [Matrix.mul_diagonal]
+  simp only [symbolicJacobian, fluxReactivityAt, fluxJacobianCore, Finset.sum_mul]
+  exact Finset.sum_congr rfl fun r _ => by ring
 
 /-- At a positive state, the derivative-defined mass-action reactivity matrix is exactly the
 flux-defined reactivity matrix evaluated at the induced mass-action reaction rates. -/
@@ -222,13 +207,14 @@ theorem massActionJacobian_mul_diagonal_eq_fluxJacobianCore
       N.fluxJacobianCore (N.steadyStateFlux κ x) := by
   classical
   ext i j
-  simp only [Matrix.mul_apply, Matrix.diagonal_apply, mul_ite, Finset.sum_ite_eq',
-    Finset.mem_univ, if_true, massActionJacobian, fluxJacobianCore, steadyStateFlux,
-    massActionRate]
-  apply Finset.sum_congr rfl
-  intro r _
-  rw [massActionMonomialGrad_mul_coord]
-  ring
+  rw [Matrix.mul_diagonal]
+  simp only [massActionJacobian, fluxJacobianCore, steadyStateFlux, massActionRate,
+    Finset.sum_mul]
+  refine Finset.sum_congr rfl fun r _ => ?_
+  -- `rw [massActionMonomialGrad_mul_coord]` cannot fire: the product `grad * x j` is not
+  -- syntactically present in the term.  Scale the identity instead.
+  linear_combination (κ.k r * N.reactionVector r i) *
+    massActionMonomialGrad_mul_coord (N.reaction r).source x j
 
 /-- At a positive concentration, the Jacobian is the flux core times `diag(1/x)`.  This is the
 right-diagonal scaling used by the structural Hopf criteria. -/
@@ -237,16 +223,14 @@ theorem massActionJacobian_eq_fluxJacobianCore_mul_invDiagonal
     N.massActionJacobian κ x =
       N.fluxJacobianCore (N.steadyStateFlux κ x) * Matrix.diagonal (fun s => (x s)⁻¹) := by
   classical
-  ext i j
-  simp only [Matrix.mul_apply, Matrix.diagonal_apply, mul_ite, Finset.sum_ite_eq',
-    Finset.mem_univ, if_true, massActionJacobian, fluxJacobianCore, steadyStateFlux,
-    massActionRate]
-  apply Finset.sum_congr rfl
-  intro r _
-  have hxj : x j ≠ 0 := ne_of_gt (hx j)
-  have hgrad := massActionMonomialGrad_mul_coord (N.reaction r).source x j
-  field_simp [hxj]
-  nlinarith
+  -- Derive this from the cross-multiplied form rather than re-deriving entrywise: cancel
+  -- `diag(x) * diag(1/x) = 1` on the right.
+  rw [← N.massActionJacobian_mul_diagonal_eq_fluxJacobianCore κ x, Matrix.mul_assoc,
+    Matrix.diagonal_mul_diagonal]
+  have hcancel : (fun s => x s * (x s)⁻¹) = fun _ : S => (1 : ℝ) := by
+    funext s
+    exact mul_inv_cancel₀ (ne_of_gt (hx s))
+  rw [hcancel, Matrix.diagonal_one, Matrix.mul_one]
 
 /-- The Jacobian of the canonical realization of a prescribed flux `v` at `x` has exactly the
 right-diagonal factorization `B(v) * diag(1/x)`. -/
@@ -285,12 +269,12 @@ theorem massActionJacobian_rateConstantsOfPositiveSteadyStateFlux_unit
   have hdiag : Matrix.diagonal (fun s : S => (unitConcentration S s)⁻¹) =
       (1 : Matrix S S ℝ) := by
     ext i j
-    simp [unitConcentration, Matrix.diagonal_apply]
-  simp [hdiag]
+    simp [unitConcentration, Matrix.diagonal_apply, Matrix.one_apply]
+  rw [hdiag, Matrix.mul_one]
 
 /-- Positive concentration corresponding to a positive right-diagonal scaling `d`: `x_i = 1/d_i`.
 Under the mass-action flux realization this makes the Jacobian scaling exactly `diag(d)`. -/
-def concentrationOfPositiveDiagonal (d : S → ℝ) : Concentration S :=
+noncomputable def concentrationOfPositiveDiagonal (d : S → ℝ) : Concentration S :=
   fun s => (d s)⁻¹
 
 /-- A strictly positive diagonal gives a strictly positive reciprocal concentration. -/
@@ -398,7 +382,7 @@ theorem positiveDiagonalSegment_positive {d₀ d₁ : S → ℝ}
     exact add_pos_of_nonneg_of_pos hleft hright
 
 /-- Reciprocal concentration along a positive diagonal continuation. -/
-def diagonalSegmentState (d₀ d₁ : S → ℝ) (μ : ℝ) : Concentration S :=
+noncomputable def diagonalSegmentState (d₀ d₁ : S → ℝ) (μ : ℝ) : Concentration S :=
   concentrationOfPositiveDiagonal (positiveDiagonalSegment d₀ d₁ μ)
 
 /-- The diagonal-segment state is positive throughout `[0,1]`. -/

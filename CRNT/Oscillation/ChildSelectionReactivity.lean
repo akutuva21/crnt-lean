@@ -34,17 +34,21 @@ variable {I : Type} [DecidableEq I] [Fintype I]
 def IsPaired (C : N.IndexedChildSelection I) (r : N.R) (s : S) : Prop :=
   ∃ i : I, C.reaction i = r ∧ C.species i = s
 
-instance (C : N.IndexedChildSelection I) : DecidablePred (fun p : N.R × S =>
-    C.IsPaired p.1 p.2) := Classical.decPred _
+instance instDecidableIsPaired (C : N.IndexedChildSelection I) (r : N.R) (s : S) :
+    Decidable (C.IsPaired r s) := by
+  unfold IsPaired
+  infer_instance
 
 /-- The distinguished sparse reactivity matrix.  It is `1` on paired entries and `0` elsewhere.
 It need not itself be admissible because unpaired reactant incidences are zero. -/
-def coreReactivity (C : N.IndexedChildSelection I) : N.ReactivityMatrix :=
-  fun r s => if C.IsPaired r s then 1 else 0
+noncomputable def coreReactivity (C : N.IndexedChildSelection I) : N.ReactivityMatrix := by
+  classical
+  exact fun r s => if C.IsPaired r s then 1 else 0
 
 /-- Fill every unpaired but chemically allowed reactant incidence by `eps`. -/
-def epsilonReactivity (C : N.IndexedChildSelection I) (ε : ℝ) : N.ReactivityMatrix :=
-  fun r s =>
+noncomputable def epsilonReactivity (C : N.IndexedChildSelection I) (ε : ℝ) : N.ReactivityMatrix := by
+  classical
+  exact fun r s =>
     if (N.reaction r).source s = 0 then 0
     else if C.IsPaired r s then 1 else ε
 
@@ -63,7 +67,6 @@ theorem epsilonReactivity_zero (C : N.IndexedChildSelection I) :
       exact (Nat.ne_of_gt (C.reactant i)) hsrc
     rw [if_neg hnpair]
   · rw [if_neg hsrc]
-    by_cases hp : C.IsPaired r s <;> simp [hp]
 
 /-- Every paired incidence is necessarily a genuine reactant incidence. -/
 theorem source_pos_of_isPaired (C : N.IndexedChildSelection I)
@@ -151,8 +154,18 @@ theorem epsilonReactivity_apply (C : N.IndexedChildSelection I)
 theorem continuous_selectedSymbolicBlock_apply
     (C : N.IndexedChildSelection I) (i j : I) :
     Continuous (fun ε : ℝ => C.selectedSymbolicBlock (C.epsilonReactivity ε) i j) := by
-  unfold selectedSymbolicBlock Network.symbolicJacobian epsilonReactivity
-  fun_prop
+  classical
+  unfold selectedSymbolicBlock Network.symbolicJacobian
+  apply continuous_finsetSum
+  intro r hr
+  by_cases hsrc : (N.reaction r).source (C.species j) = 0
+  · simp only [epsilonReactivity, hsrc, if_pos]
+    fun_prop
+  · by_cases hp : C.IsPaired r (C.species j)
+    · simp only [epsilonReactivity, hsrc, hp, if_false, if_true]
+      fun_prop
+    · simp only [epsilonReactivity, hsrc, hp, if_false]
+      fun_prop
 
 /-- Every selected block entry converges to the child-selection matrix entry as `eps -> 0`. -/
 theorem tendsto_selectedSymbolicBlock_zero
@@ -161,11 +174,13 @@ theorem tendsto_selectedSymbolicBlock_zero
       (fun ε : ℝ => C.selectedSymbolicBlock (C.epsilonReactivity ε) i j)
       (nhds 0) (nhds (C.matrix i j)) := by
   have hcont : Continuous
-      (fun ε : ℝ => C.selectedSymbolicBlock (C.epsilonReactivity ε) i j) := by
-    unfold selectedSymbolicBlock Network.symbolicJacobian epsilonReactivity
-    fun_prop
-  convert hcont.continuousAt using 1
-  simpa [C.selectedSymbolicBlock_epsilon_zero]
+      (fun ε : ℝ => C.selectedSymbolicBlock (C.epsilonReactivity ε) i j) :=
+    C.continuous_selectedSymbolicBlock_apply i j
+  have hzero : C.selectedSymbolicBlock (C.epsilonReactivity 0) i j = C.matrix i j := by
+    have hm := C.selectedSymbolicBlock_epsilon_zero
+    exact congrArg (fun M : Matrix I I ℝ => M i j) hm
+  rw [← hzero]
+  exact hcont.continuousAt
 
 /-- Matrix-valued convergence of the selected symbolic block to the child-selection matrix. -/
 theorem tendsto_selectedSymbolicBlock_zero_matrix
@@ -173,9 +188,13 @@ theorem tendsto_selectedSymbolicBlock_zero_matrix
     Filter.Tendsto
       (fun ε : ℝ => C.selectedSymbolicBlock (C.epsilonReactivity ε))
       (nhds 0) (nhds C.matrix) := by
-  rw [Matrix.tendsto_iff]
-  intro i j
-  exact C.tendsto_selectedSymbolicBlock_zero i j
+  have hcont : Continuous
+      (fun ε : ℝ => C.selectedSymbolicBlock (C.epsilonReactivity ε)) := by
+    apply continuous_matrix
+    intro i j
+    exact C.continuous_selectedSymbolicBlock_apply i j
+  rw [← C.selectedSymbolicBlock_epsilon_zero]
+  exact hcont.continuousAt
 
 end IndexedChildSelection
 

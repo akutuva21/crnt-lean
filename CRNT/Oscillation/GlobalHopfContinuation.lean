@@ -22,6 +22,8 @@ structure SmoothEquilibriumContinuation
   field : ℝ → (I → ℝ) → (I → ℝ)
   equilibrium : ℝ → (I → ℝ)
   jacobian : ℝ → Matrix I I ℝ
+  /-- Continuity of the Jacobian path along the equilibrium branch. -/
+  jacobianContinuous : Continuous jacobian
   /-- The actual state derivative of the vector field along the equilibrium branch. -/
   linearization : ℝ → ((I → ℝ) →L[ℝ] (I → ℝ))
   /-- The operator and matrix presentations of the linearization agree pointwise. -/
@@ -78,6 +80,26 @@ noncomputable def toSmoothEquilibriumContinuation
     N.massActionJacobian
       (W.toFluxJacobianStabilityTransition.continuationRates μ)
       (W.toFluxJacobianStabilityTransition.continuationState μ)
+  jacobianContinuous := by
+    apply continuous_pi
+    intro i
+    apply continuous_pi
+    intro j
+    have hdiag : Continuous fun μ : ℝ =>
+        W.toFluxJacobianStabilityTransition.continuationDiagonal μ j :=
+      (exponentialDiagonalPath_contDiff_apply (n := 0) j).continuous
+    have hrw : (fun μ : ℝ =>
+        N.massActionJacobian
+          (W.toFluxJacobianStabilityTransition.continuationRates μ)
+          (W.toFluxJacobianStabilityTransition.continuationState μ) i j) =
+        (fun μ =>
+          (N.fluxJacobianCore W.toFluxJacobianStabilityTransition.flux *
+            Matrix.diagonal (W.toFluxJacobianStabilityTransition.continuationDiagonal μ)) i j) := by
+      funext μ
+      rw [W.toFluxJacobianStabilityTransition.continuation_jacobian]
+    rw [hrw]
+    simp only [Matrix.mul_diagonal]
+    exact continuous_const.mul hdiag
   linearization := fun μ =>
     N.massActionJacobianCLM
       (W.toFluxJacobianStabilityTransition.continuationRates μ)
@@ -96,7 +118,12 @@ noncomputable def toSmoothEquilibriumContinuation
       W.toFluxJacobianStabilityTransition.transition.stablePositive μ i
   hasFDerivAt_equilibrium := by
     intro μ
-    rw [W.toFluxJacobianStabilityTransition.continuationField_eq_massAction]
+    have hfield : W.toFluxJacobianStabilityTransition.continuationField μ
+        = fun x => N.massActionVectorField
+            (W.toFluxJacobianStabilityTransition.continuationRates μ) x := by
+      funext x
+      exact W.toFluxJacobianStabilityTransition.continuationField_eq_massAction μ x
+    rw [hfield]
     exact N.massActionVectorField_hasFDerivAt
       (W.toFluxJacobianStabilityTransition.continuationRates μ)
       (W.toFluxJacobianStabilityTransition.continuationState μ)
@@ -112,9 +139,12 @@ noncomputable def positivePeriodicOrbitOfContinuationWitness
     N.PositivePeriodicOrbit
       (W.toFluxJacobianStabilityTransition.continuationRates P.parameter) := by
   let κ := W.toFluxJacobianStabilityTransition.continuationRates P.parameter
+  have hfield : W.toSmoothEquilibriumContinuation.field P.parameter
+      = N.massActionVectorField κ := by
+    funext x
+    exact W.toFluxJacobianStabilityTransition.continuationField_eq_massAction P.parameter x
   let Q : PeriodicTrajectory (N.massActionVectorField κ) :=
-    P.trajectory.congrField
-      (W.toFluxJacobianStabilityTransition.continuationField_eq_massAction P.parameter)
+    P.trajectory.congrField hfield
   exact
     { orbit := Q.orbit
       period := Q.period
@@ -122,13 +152,13 @@ noncomputable def positivePeriodicOrbitOfContinuationWitness
       positive := by
         intro t i
         exact P.positive t i
-      solution := Q.solution
+      solution := fun t s => (hasDerivAt_pi.mp (Q.solution t)) s
       periodic := Q.periodic
       nonconstant := Q.nonconstant }
 
 /-- The generic global-Hopf theorem immediately yields mass-action oscillatory capacity for the
 Vassena continuation. -/
-noncomputable theorem oscillatoryCapacity_of_globalHopfContinuation
+theorem oscillatoryCapacity_of_globalHopfContinuation
     (hHopf : GlobalHopfContinuationTarget)
     (W : N.FluxGlobalHopfData) : N.OscillatoryCapacity := by
   obtain ⟨P⟩ := hHopf S W.toSmoothEquilibriumContinuation
@@ -143,7 +173,7 @@ end Network
 /-- The generic smooth-continuation theorem is strictly stronger than the CRN-specific diagonal-
 scaling target previously exposed by `VassenaContinuation`.  This adapter lets the older Vassena
 API consume the generic theorem without duplicating any CRN realization argument. -/
-noncomputable theorem diagonalScalingGlobalHopfTarget_of_globalHopfContinuation
+theorem diagonalScalingGlobalHopfTarget_of_globalHopfContinuation
     (hHopf : GlobalHopfContinuationTarget) :
     Network.DiagonalScalingGlobalHopfTarget := by
   intro T _ _ N hW

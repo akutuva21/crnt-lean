@@ -38,7 +38,8 @@ theorem IsReactivityMatrix.scaleReactivity
   · intro r s hrs
     exact mul_pos (hR.positive_on_reactants r s hrs) (hd s)
   · intro r s hrs
-    simp [scaleReactivity, hR.zero_off_reactants r s hrs]
+    change R r s * d s = 0
+    rw [hR.zero_off_reactants r s hrs, zero_mul]
 
 /-- The symbolic Jacobian intertwines reactivity column scaling and right diagonal matrix scaling. -/
 theorem symbolicJacobian_scaleReactivity
@@ -47,11 +48,8 @@ theorem symbolicJacobian_scaleReactivity
       N.symbolicJacobian R * Matrix.diagonal d := by
   classical
   ext i j
-  simp only [symbolicJacobian, scaleReactivity, Matrix.mul_apply, Matrix.diagonal_apply,
-    mul_ite, Finset.sum_ite_eq', Finset.mem_univ, if_true]
-  apply Finset.sum_congr rfl
-  intro r _
-  ring
+  simp [symbolicJacobian, scaleReactivity, Matrix.mul_apply, Matrix.diagonal_apply,
+    Finset.sum_mul, mul_assoc]
 
 @[simp] theorem scaleReactivity_one (N : Network S) (R : N.ReactivityMatrix) :
     N.scaleReactivity R (fun _ => 1) = R := by
@@ -82,12 +80,24 @@ theorem selectedSymbolicBlock_scaleReactivity
       C.selectedSymbolicBlock R * Matrix.diagonal (C.restrictDiagonal d) := by
   classical
   ext i j
-  unfold selectedSymbolicBlock restrictDiagonal
+  let M : Matrix I I ℝ := C.selectedSymbolicBlock R
+  have hselected :
+      (M * Matrix.diagonal (C.restrictDiagonal d)) i j =
+        N.symbolicJacobian R (C.species i) (C.species j) * d (C.species j) := by
+    rw [Matrix.mul_apply]
+    rw [Fintype.sum_eq_single j (fun k hk => by
+      simp [Matrix.diagonal_apply, hk])]
+    dsimp [M, selectedSymbolicBlock, restrictDiagonal]
+    simp [restrictDiagonal]
+  change C.selectedSymbolicBlock (N.scaleReactivity R d) i j =
+    (M * Matrix.diagonal (C.restrictDiagonal d)) i j
+  rw [hselected]
+  change N.symbolicJacobian (N.scaleReactivity R d) (C.species i) (C.species j) = _
   rw [N.symbolicJacobian_scaleReactivity]
   simp [Matrix.mul_apply, Matrix.diagonal_apply]
 
 /-- Extend a selected diagonal by `1` outside the selected species. -/
-def extendDiagonal (C : N.IndexedChildSelection I) (d : I → ℝ) : S → ℝ :=
+noncomputable def extendDiagonal (C : N.IndexedChildSelection I) (d : I → ℝ) : S → ℝ :=
   fun s => if h : ∃ i : I, C.species i = s then d (Classical.choose h) else 1
 
 /-- On selected species, the extension recovers the original selected diagonal. -/

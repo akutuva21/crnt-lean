@@ -85,7 +85,7 @@ theorem exists_localContraction {f : ℝ → ℝ} (C : ScalarC1Map f) {x₀ : �
       rw [(C.hasDeriv z).deriv, Real.norm_eq_abs]
       exact hderiv_bound z hz
     have hmvt := Convex.norm_image_sub_le_of_norm_deriv_le (f := f)
-      (s := Icc (x₀ - δ) (x₀ + δ)) hdiff hbound convex_Icc hy hx
+      (s := Icc (x₀ - δ) (x₀ + δ)) hdiff hbound (convex_Icc _ _) hy hx
     simpa [Real.dist_eq, Real.norm_eq_abs, abs_sub_comm] using hmvt
   have hmaps : MapsTo f (Icc (x₀ - δ) (x₀ + δ))
       (Icc (x₀ - δ) (x₀ + δ)) := by
@@ -126,7 +126,7 @@ abbrev LocalInterval {f : ℝ → ℝ} {x₀ : ℝ} (D : ScalarLocalContraction 
 /-- Restriction of the scalar return map to the invariant local interval. -/
 def restrictedMap {f : ℝ → ℝ} {x₀ : ℝ} (D : ScalarLocalContraction f x₀) :
     D.LocalInterval → D.LocalInterval :=
-  fun x => ⟨f x, D.mapsTo x x.property⟩
+  fun x => ⟨f x, D.mapsTo x.property⟩
 
 /-- The center fixed point as an element of the invariant interval. -/
 def center {f : ℝ → ℝ} {x₀ : ℝ} (D : ScalarLocalContraction f x₀) : D.LocalInterval :=

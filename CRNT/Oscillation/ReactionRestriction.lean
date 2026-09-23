@@ -23,15 +23,16 @@ namespace Network
 variable {S : Type} [DecidableEq S] [Fintype S]
 
 /-- Restrict a network to a finite subset of its reaction channels. -/
-def restrictReactions (N : Network S) (rs : Finset N.R) : Network S where
+def restrictOscillationReactions (N : Network S) (rs : Finset N.R) : Network S where
   R := {r : N.R // r ∈ rs}
   decEqR := inferInstance
   fintypeR := inferInstance
   reaction r := N.reaction r.1
 
 @[simp] theorem restrictReactions_numReactions (N : Network S) (rs : Finset N.R) :
-    (N.restrictReactions rs).numReactions = rs.card := by
-  simp [restrictReactions, numReactions]
+    (N.restrictOscillationReactions rs).numReactions = rs.card := by
+  change Fintype.card (↥rs) = rs.card
+  exact Fintype.card_coe rs
 
 /-- A minimal reaction-restricted subnetwork with oscillatory capacity.
 
@@ -44,10 +45,10 @@ structure MinimalOscillatorySubnetwork (N : Network S) where
   /-- The core is nonempty. -/
   nonempty : reactions.Nonempty
   /-- The restricted network has oscillatory capacity. -/
-  capable : (N.restrictReactions reactions).OscillatoryCapacity
+  capable : (N.restrictOscillationReactions reactions).OscillatoryCapacity
   /-- Removing any retained reaction destroys the certified capacity. -/
   minimal : ∀ r ∈ reactions,
-    ¬ (N.restrictReactions (reactions.erase r)).OscillatoryCapacity
+    ¬ (N.restrictOscillationReactions (reactions.erase r)).OscillatoryCapacity
 
 /-- A behavior-preserving network transformation at the level of oscillatory capacity.
 
@@ -88,7 +89,7 @@ theorem OscillationEquivalent.symm
     {S₁ S₂ : Type} [DecidableEq S₁] [Fintype S₁] [DecidableEq S₂] [Fintype S₂]
     {N₁ : Network S₁} {N₂ : Network S₂}
     (h : N₁.OscillationEquivalent N₂) : N₂.OscillationEquivalent N₁ :=
-  h.symm
+  Iff.symm h
 
 /-- Oscillation equivalence is transitive. -/
 theorem OscillationEquivalent.trans
@@ -99,7 +100,7 @@ theorem OscillationEquivalent.trans
     {N₁ : Network S₁} {N₂ : Network S₂} {N₃ : Network S₃}
     (h₁₂ : N₁.OscillationEquivalent N₂) (h₂₃ : N₂.OscillationEquivalent N₃) :
     N₁.OscillationEquivalent N₃ :=
-  h₁₂.trans h₂₃
+  Iff.trans h₁₂ h₂₃
 
 /-- Equivalence gives preservation in the forward direction. -/
 theorem OscillationEquivalent.toPreserving

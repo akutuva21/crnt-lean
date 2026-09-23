@@ -1,3 +1,6 @@
+-- `toSpanSingleton_isInvertible` lives here (as `CRNT.toSpanSingleton_isInvertible`); the
+-- file previously referenced it through the unrelated `PlanarHopfData` namespace.
+import CRNT.Dynamics.TransversalCrossingTime
 import CRNT.Oscillation.FloquetReturnBridge
 import CRNT.Oscillation.ReturnMapPersistence
 
@@ -41,7 +44,9 @@ namespace ScalarParameterizedReturnMapData
 /-- The scalar derivative of the displacement `P-id`. -/
 theorem hasDerivAt_displacement_state (D : ScalarParameterizedReturnMapData) :
     HasDerivAt (fun x => D.returnMap D.parameter x - x) (D.derivative - 1) D.base := by
-  simpa using D.hasDerivAt_state.sub (hasDerivAt_id D.base)
+  -- `HasDerivAt.sub` produces the function-subtraction form `P - id`; that is defeq to the
+  -- pointwise form, so `exact` works where `simpa` reports an instance mismatch.
+  exact D.hasDerivAt_state.sub (hasDerivAt_id D.base)
 
 /-- If the return derivative is not one, the transverse displacement derivative is invertible. -/
 theorem displacementDerivative_ne_zero (D : ScalarParameterizedReturnMapData)
@@ -55,7 +60,7 @@ noncomputable def toReturnMapPersistenceData
   refine returnMapPersistenceDataOfDerivativeInvertible
     D.returnMap D.parameter D.base D.fixed D.contDiffAt_displacement ?_
   rw [D.stateDerivativeMap_eq]
-  exact PlanarHopfData.toSpanSingleton_isInvertible (D.displacementDerivative_ne_zero hne)
+  exact toSpanSingleton_isInvertible (D.displacementDerivative_ne_zero hne)
 
 end ScalarParameterizedReturnMapData
 

@@ -39,6 +39,18 @@ variable {N : Network S} {I : Type} [DecidableEq I] [Fintype I]
 def matrix (C : N.IndexedChildSelection I) : Matrix I I ℝ :=
   fun i j => N.reactionVector (C.reaction j) (C.species i)
 
+end IndexedChildSelection
+
+variable {N : Network S}
+
+/-! `ChildSelection.Idx` is already defined in `CRNT/Oscillation/StructuralCore.lean`; only the
+instances it needs for `IndexedChildSelection` were missing. -/
+
+instance (C : N.ChildSelection) : DecidableEq C.Idx :=
+  fun _ _ => decidable_of_iff _ Subtype.ext_iff.symm
+
+instance (C : N.ChildSelection) : Fintype C.Idx := FinsetCoe.fintype C.species
+
 /-- Every theorem-facing `ChildSelection` has a definitionally equivalent indexed presentation,
 using its selected-species subtype as the index type.  This is the bridge from the existing
 structural theory to the search-friendly API. -/
@@ -47,10 +59,7 @@ def ChildSelection.toIndexed (C : N.ChildSelection) :
   species := fun i => i.1
   reaction := fun i => (C.pairing i).1
   species_injective := Subtype.val_injective
-  reaction_injective := by
-    intro i j hij
-    apply C.pairing.injective
-    exact Subtype.ext hij
+  reaction_injective := fun _ _ hij => C.pairing.injective (Subtype.ext hij)
   reactant := C.reactant
 
 /-- Converting an existing child selection to the indexed representation does not change its
@@ -58,6 +67,11 @@ child-selection matrix. -/
 @[simp] theorem ChildSelection.toIndexed_matrix (C : N.ChildSelection) :
     C.toIndexed.matrix = C.matrix := by
   rfl
+
+namespace IndexedChildSelection
+
+variable {I : Type} [DecidableEq I] [Fintype I]
+
 
 /-- An indexed child selection cannot contain more selected species than the ambient CRN. -/
 theorem card_le_species (C : N.IndexedChildSelection I) :

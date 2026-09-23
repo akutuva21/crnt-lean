@@ -15,6 +15,8 @@ and uniqueness, create a smaller positive period.  This file formalizes that sta
 It removes orbit-simplicity from the eventual Green/Jordan frontier.
 -/
 
+open Filter Topology
+
 namespace CRNT
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -49,13 +51,12 @@ theorem globalSolutionUnique_of_locallyLipschitz
     obtain ⟨K, U, hU, hLip⟩ := hfield xstar
     have hxU : xstar ∈ U := mem_of_mem_nhds hU
     have hγ₁U : ∀ᶠ u in 𝓝 t, γ₁ u ∈ U := by
-      have htend : Tendsto γ₁ (𝓝 t) (𝓝 xstar) := by
-        simpa [xstar] using (hγ₁ t).continuousAt
+      have htend : Tendsto γ₁ (𝓝 t) (𝓝 xstar) := (hγ₁ t).continuousAt
       exact htend hU
     have hγ₂U : ∀ᶠ u in 𝓝 t, γ₂ u ∈ U := by
       have htend : Tendsto γ₂ (𝓝 t) (𝓝 xstar) := by
-        have hc := (hγ₂ t).continuousAt
-        simpa [xstar, ← ht] using hc
+        have hc : Tendsto γ₂ (𝓝 t) (𝓝 (γ₂ t)) := (hγ₂ t).continuousAt
+        rwa [← ht] at hc
       exact htend hU
     have hv : ∀ᶠ u in 𝓝 t,
         LipschitzOnWith K ((fun _ : ℝ => field) u) U :=
@@ -103,12 +104,6 @@ def periodAddSubgroup (f : ℝ → E) : AddSubgroup ℝ where
     T ∈ periodAddSubgroup f ↔ Function.Periodic f T :=
   Iff.rfl
 
-/-- An exact ODE trajectory is continuous. -/
-theorem continuous_orbit (P : PeriodicTrajectory field) : Continuous P.orbit := by
-  rw [continuous_iff_continuousAt]
-  intro t
-  exact (P.solution t).continuousAt
-
 /-- If the period subgroup of a continuous function is dense in `ℝ`, the function is constant.
 Indeed, for fixed `x`, the functions `T ↦ f (x+T)` and `T ↦ f x` agree on the dense set of periods,
 so continuity forces equality everywhere. -/
@@ -134,9 +129,11 @@ theorem constant_of_dense_periods
   have hall : Set.EqOn g c (Set.univ : Set ℝ) :=
     heq.of_subset_closure hg.continuousOn hc.continuousOn
       (Set.subset_univ _) hclosure
-  have hxy := hall (y - x) (Set.mem_univ _)
+  have hxy := hall (Set.mem_univ (y - x))
   dsimp [g, c] at hxy
-  convert hxy using 1 <;> ring
+  -- `hxy : f (x + (y - x)) = f x`; simplify the argument and flip
+  rw [show x + (y - x) = y by ring] at hxy
+  exact hxy.symm
 
 /-- **Existence of a least positive period.** Every nonconstant exact periodic trajectory has some
 least strictly positive period.  The proof classifies its additive subgroup of periods: the dense
@@ -162,7 +159,7 @@ theorem exists_leastPositivePeriod (P : PeriodicTrajectory field) :
         exact P.periodic
       rw [ha] at hp
       have hp0 : P.period = 0 := by
-        simpa using hp
+        rwa [AddSubgroup.closure_singleton_zero, AddSubgroup.mem_bot] at hp
       linarith [P.period_pos]
     have habs : 0 < |a| := abs_pos.mpr ha0
     have hleast0 :
@@ -247,7 +244,7 @@ theorem period_sub_of_eq (P : PeriodicTrajectory field)
   have hx := congrFun hfun (x - s)
   have hleft : (x - s) + s = x := by ring
   have hright : (x - s) + t = x + (t - s) := by ring
-  simpa [hleft, hright] using hx
+  simpa [hleft, hright] using hx.symm
 
 /-- **Simplicity before the least period.** With uniqueness and a least positive period, the orbit
 is injective on `[0,T)`. -/
@@ -283,7 +280,7 @@ structure SimpleClosedCycle (P : PeriodicTrajectory field) : Prop where
 /-- Every periodic trajectory of a locally Lipschitz autonomous field has a simple closed
 least-period representative.  Thus simple-cycle geometry is not an extra assumption for smooth
 ODEs. -/
-noncomputable theorem leastPeriodRepresentative_simpleClosedCycle
+theorem leastPeriodRepresentative_simpleClosedCycle
     (P : PeriodicTrajectory field) (hfield : LocallyLipschitz field) :
     P.leastPeriodRepresentative.SimpleClosedCycle where
   uniqueSolutions := globalSolutionUnique_of_locallyLipschitz hfield
@@ -337,7 +334,7 @@ variable {N : Network S} {κ : N.RateConstants}
 
 /-- Every positive mass-action periodic orbit has a simple closed representative with exactly the
 same geometric orbit.  Polynomial mass-action fields are `C¹`, hence locally Lipschitz. -/
-noncomputable theorem PositivePeriodicOrbit.exists_simpleClosedRepresentative
+theorem PositivePeriodicOrbit.exists_simpleClosedRepresentative
     (P : N.PositivePeriodicOrbit κ) :
     ∃ Q : PeriodicTrajectory (N.massActionVectorField κ),
       Q.orbit = P.orbit ∧ Q.SimpleClosedCycle := by

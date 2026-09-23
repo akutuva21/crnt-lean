@@ -27,11 +27,11 @@ structure CanonicalOrderedReturnData {field : Phase2 → Phase2}
     {D : FlowTrappingData field} (M : MinimalOmegaData D) where
   q : Phase2
   q_mem : q ∈ M.carrier
-  section : TransversalSection (E := Phase2)
-  field_eq : section.field = field
-  section_point : section.point = q
-  section_normal : section.normal = field q
-  returnInterval : section.ReturnIntervalData
+  xsection : TransversalSection (E := Phase2)
+  field_eq : xsection.field = field
+  section_point : xsection.point = q
+  section_normal : xsection.normal = field q
+  returnInterval : xsection.ReturnIntervalData
   /-- The return interval uses the explicit canonical scalar coordinate. -/
   point_eq_canonical : ∀ u,
     returnInterval.point u = canonicalSectionPoint field q u
@@ -43,7 +43,7 @@ structure CanonicalOrderedReturnData {field : Phase2 → Phase2}
   closure, avoiding any later conversion between the NNReal semiflow and complete trajectories. -/
   interval_flow_in_minimal :
     ∀ u ∈ Set.Icc returnInterval.left returnInterval.right, ∀ t : ℝ,
-      section.flow (returnInterval.point u) t ∈ M.carrier
+      xsection.flow (returnInterval.point u) t ∈ M.carrier
   /-- The canonical base point is actually in the compact scalar interval. -/
   base_mem : (0 : ℝ) ∈ Set.Icc returnInterval.left returnInterval.right
 
@@ -62,7 +62,7 @@ theorem point_zero (R : CanonicalOrderedReturnData M) :
 Poincare--Bendixson classification. -/
 noncomputable def toOmegaRecurrentSectionData
     (R : CanonicalOrderedReturnData M) : OmegaRecurrentSectionData D where
-  section := R.section
+  xsection := R.xsection
   field_eq := R.field_eq
   returnInterval := R.returnInterval
   point_in_omega := by

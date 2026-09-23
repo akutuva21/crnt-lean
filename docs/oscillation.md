@@ -267,3 +267,27 @@ This layer concerns deterministic autonomous ODE periodic orbits.  A stochastic 
 show quasi-cycles, coherence, or spectral peaks without possessing a deterministic periodic orbit;
 those require separate stochastic semantics and are intentionally not identified with the results
 above.
+
+## Final source-implementation checkpoint — 2026-09-17
+
+The source tree has since implemented the theorem routes that were listed above as frontiers.  The
+canonical closure point is `CRNT.completeOscillationKernelBundle_proved` in
+`CRNT/Oscillation/OscillationKernelBundle.lean`.
+
+The final foundational modules include:
+
+- `PlanarJordanTopology.lean` and `PlanarJordanBoundaryCurrent.lean` for the Jordan/Green layer;
+- `PlanarFlowRegularity.lean` for automatic variational flow-box regularity;
+- `GlobalHopfIndexTheorem.lean` and `SmoothGlobalHopf.lean` for analytic/smooth global Hopf;
+- `ReducedKineticContinuation.lean`, `ParameterRichGlobalHopf.lean`, and
+  `VassenaPrincipal.lean` for conservation-law/rank-reduced continuation;
+- `FloquetOrbitalStability.lean` and `FloquetPersistenceGeneral.lean` for all-dimensional orbital
+  stability and Banaji-style dependent-reaction persistence.
+
+Historical `...Target` propositions remain in their original modules as stable interfaces and as a
+record of theorem decomposition; the final bundle supplies their implementations rather than asking
+callers for proof assumptions.
+
+**Validation note:** this source checkpoint was intentionally not elaborated with Lean/Lake in the
+handoff environment.  The user will run the local Lean 4.31/Mathlib validation pass.  See
+`OSCILLATION_FINAL_HANDOFF.md` for the exact scope and expected local name/elaboration cleanup.

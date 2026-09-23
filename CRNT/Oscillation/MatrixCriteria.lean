@@ -239,6 +239,24 @@ theorem IsFisherFullerPMinusMatrix.isPMinusZero {M : Matrix n n ℝ}
     (h : M.IsFisherFullerPMinusMatrix) : M.IsPMinusZeroMatrix :=
   h.1
 
+/-- Fisher--Fuller membership includes a nonsingular principal block of full order, hence the
+whole matrix is nonsingular.  This is the full-size endpoint of the nested principal-minor chain. -/
+theorem IsFisherFullerPMinusMatrix.det_ne_zero {M : Matrix n n ℝ}
+    (h : M.IsFisherFullerPMinusMatrix) : M.det ≠ 0 := by
+  obtain ⟨_hP0, hcard, κ, hminor, _hnested, hfull⟩ := h
+  have hk := (hminor (Fintype.card n) (Nat.succ_le_iff.mpr hcard) le_rfl).2
+  rw [hfull] at hk
+  -- the order-`card n` principal minor is taken over all of `n`, so its submatrix is `M`
+  -- itself up to the canonical bijection `↥univ ≃ n`.
+  simp only [principalDet] at hk
+  intro h0
+  refine hk ?_
+  -- the coercion `↥univ → n` *is* `Equiv.subtypeUnivEquiv`, but only up to unfolding
+  have he : (fun i : {x // x ∈ (Finset.univ : Finset n)} => (i : n))
+      = (Equiv.subtypeUnivEquiv (fun i => Finset.mem_univ i) : _ → n) := rfl
+  rw [he, Matrix.det_submatrix_equiv_self]
+  exact h0
+
 /-- Matrix side of Vassena Criterion I: stable but not `P^-_0`. -/
 structure CriterionI (M : Matrix n n ℝ) : Prop where
   stable : M.IsHurwitzReal
@@ -275,5 +293,56 @@ abbrev StableNotPMinusZero (M : Matrix n n ℝ) := CriterionI M
 
 /-- Backwards-compatible descriptive alias for Criterion II. -/
 abbrev UnstableFisherFullerPMinus (M : Matrix n n ℝ) := CriterionII M
+
+end Matrix
+
+namespace Matrix
+
+variable {n : Type*} [Fintype n] [DecidableEq n]
+
+namespace IsHurwitzReal
+
+/-- A Hurwitz matrix is nonsingular: otherwise zero is a characteristic root, contradicting the
+strict left-half-plane root condition. -/
+theorem det_ne_zero {M : Matrix n n ℝ} (h : M.IsHurwitzReal) : M.det ≠ 0 := by
+  intro hdet
+  let MC : Matrix n n ℂ := M.map (algebraMap ℝ ℂ)
+  have hdetC : MC.det = 0 := by
+    -- `RingHom.map_det` is stated for `RingHom.mapMatrix`, which is `Matrix.map` definitionally
+    show ((algebraMap ℝ ℂ).mapMatrix M).det = 0
+    rw [← RingHom.map_det, hdet, map_zero]
+  -- the characteristic polynomial is monic, hence nonzero
+  have hpoly : MC.charpoly ≠ 0 := (Matrix.charpoly_monic MC).ne_zero
+  have heval : Polynomial.eval (0 : ℂ) MC.charpoly = 0 := by
+    rw [Matrix.eval_charpoly]
+    -- `eval 0` of the characteristic polynomial is `det (-MC)`, and `det` is homogeneous.
+    -- `Matrix.eval_charpoly` phrases the entries via `Complex.ofReal` rather than
+    -- `algebraMap ℝ ℂ`, so restate the vanishing determinant in that form.
+    have hdet' : (M.map Complex.ofReal).det = 0 := by
+      show (Complex.ofRealHom.mapMatrix M).det = 0
+      rw [← RingHom.map_det, hdet, map_zero]
+    simp [Matrix.det_neg, hdet']
+    exact hdetC
+  have hroot : (0 : ℂ) ∈ MC.charpoly.roots := by
+    rw [Polynomial.mem_roots hpoly]
+    exact heval
+  have hleft := h (0 : ℂ) hroot
+  norm_num at hleft
+
+end IsHurwitzReal
+
+/-- Negative-feedback determinant sign is in particular a nonsingularity certificate. -/
+theorem HasNegativeFeedbackSign.det_ne_zero {M : Matrix n n ℝ}
+    (h : M.HasNegativeFeedbackSign) : M.det ≠ 0 := by
+  intro hzero
+  rw [Matrix.HasNegativeFeedbackSign, hzero, mul_zero] at h
+  linarith
+
+/-- Positive-feedback determinant sign is likewise nonsingular. -/
+theorem HasPositiveFeedbackSign.det_ne_zero {M : Matrix n n ℝ}
+    (h : M.HasPositiveFeedbackSign) : M.det ≠ 0 := by
+  intro hzero
+  rw [Matrix.HasPositiveFeedbackSign, hzero, mul_zero] at h
+  linarith
 
 end Matrix

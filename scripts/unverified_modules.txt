@@ -1,0 +1,78 @@
+# Modules that have never been elaborated by Lean.
+#
+# This is the project's exclusion ledger.  `scripts/gen_lakefile.py` turns it into the
+# `excludeGlobs` of the `CRNT` library and the `globs` of the `CRNTFrontier` library, and
+# `scripts/check_exclusions.py` fails if the lakefile drifts out of sync or if this list grows.
+#
+# The rule is: this list only ever shrinks.  To remove an entry, make the module elaborate,
+# delete the line, regenerate the lakefile, and confirm `lake build` is clean.
+#
+# Provenance: the 449-module verified set is exactly the enumerated `globs` list of the
+# lakefile in the locally-built master snapshot.  Everything below was on disk in that
+# snapshot (or arrived with the oscillation expansion) but outside that list.
+
+# --- oscillation development (98 modules) ---
+# The whole subtree except Basic/Exclusion/LowRank/KineticBasic, which the analyzer
+# contract depends on and which are therefore in the core target.
+CRNT.Oscillation
+CRNT.Oscillation.CompatibilityAdapters
+CRNT.Oscillation.DHopfOpenness
+CRNT.Oscillation.DiagonalScaling
+CRNT.Oscillation.FisherFullerScaling
+CRNT.Oscillation.FloquetOrbitalStability
+CRNT.Oscillation.FloquetPersistenceGeneral
+CRNT.Oscillation.GlobalHopfIndex
+CRNT.Oscillation.GlobalHopfIndexTheorem
+CRNT.Oscillation.GlobalHopfSpectralCrossing
+CRNT.Oscillation.HalfPlanePolynomial
+CRNT.Oscillation.HurwitzBordering
+CRNT.Oscillation.OscillationKernelBundle
+CRNT.Oscillation.ParameterRichGlobalHopf
+CRNT.Oscillation.PlanarAdjacentReturnLoop
+CRNT.Oscillation.PlanarDivergenceRegularity
+CRNT.Oscillation.PlanarEndToEnd
+CRNT.Oscillation.PlanarFlowRegularity
+CRNT.Oscillation.PlanarGreenGrid
+CRNT.Oscillation.PlanarGreenJordanApproximation
+CRNT.Oscillation.PlanarGreenRectangle
+CRNT.Oscillation.PlanarJordanBoundaryCurrent
+CRNT.Oscillation.PlanarJordanCrossingOrder
+CRNT.Oscillation.PlanarJordanDyadic
+CRNT.Oscillation.PlanarJordanTopology
+CRNT.Oscillation.PlanarLocalReturnLoops
+CRNT.Oscillation.PlanarLocalReturns
+CRNT.Oscillation.PlanarPoincareBendixson
+CRNT.Oscillation.PlanarReturnMonotonicity
+CRNT.Oscillation.PlanarSectionHitIsolation
+CRNT.Oscillation.ReducedKineticContinuation
+CRNT.Oscillation.SimpleNegativeSpectrum
+CRNT.Oscillation.SmoothGlobalHopf
+CRNT.Oscillation.SpectralOpenness
+CRNT.Oscillation.StableCodimOneDHopf
+CRNT.Oscillation.VassenaPrincipal
+
+# --- VERIFIED, removed from this list ---
+# CRNT.Examples.Lotka          -- elaborates; 11 theorems, axiom-clean
+# CRNT.Oscillation.OrbitTube   -- elaborates; 8 theorems, axiom-clean  (new module)
+# CRNT.Oscillation.SimpleRoot  -- elaborates; 2 theorems, axiom-clean  (new module)
+# CRNT.Oscillation.Basic       -- elaborates after adding `open scoped NNReal`
+
+# --- Floquet interface modules, new (2 modules) ---
+# Written to close the two nonexistent imports the Floquet chain had.  They state the open
+# obligations rather than proving them; see docs/floquet-obligations.md.
+
+# --- global persistence / permanence frontier (2 modules) ---
+# The global-persistence branch supplied CRNT.Decision.StrictConeRealization (which previously
+# did not exist) and declared the five names GlobalPersistenceFrontier referenced, so both of
+# these now resolve.  Neither has been elaborated, and neither is re-exported from CRNT.lean,
+# so they stay here until `lake build CRNTFrontier` reaches them cleanly.
+# The four Tier* modules came off this list: their content arrived with the persistence branch
+# and they are now part of the core umbrella.
+# --- expanded checkpoint (latest drop), not yet elaborating ---
+# --- 2026-09-18 drop: 66 modules, 58 of them carrying `sorry`s ---
+CRNT.Multistationarity.TrueChemistrySRCriterion
+CRNT.Theorems.DeficiencyOne.Theorem
+CRNT.Theorems.DeficiencyOne.WeaklyReversibleExistence
+# --- crnt-lean-current-available drop (42 modules) ---
+CRNT.Dynamics.GlobalAttractorTheorem
+CRNT.Theorems.DeficiencyOne.DegreeExistence

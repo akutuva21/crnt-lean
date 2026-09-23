@@ -69,7 +69,7 @@ noncomputable def toAnalyticEquilibriumContinuation
 /-- Once the analytic-calculus lemma and Fiedler theorem are available, the Vassena continuation
 produces ordinary mass-action oscillatory capacity with no additional matrix or CRN realization
 work. -/
-noncomputable theorem oscillatoryCapacity_of_fiedler
+theorem oscillatoryCapacity_of_fiedler
     (hAnalytic : FluxGlobalHopfAnalyticityTarget)
     (hFiedler : FiedlerAnalyticGlobalHopfTarget)
     (W : N.FluxGlobalHopfData) : N.OscillatoryCapacity := by

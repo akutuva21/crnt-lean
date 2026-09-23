@@ -77,6 +77,8 @@ theorem log_pair_massActionVectorField_eq_tierDissipation (N : Network S)
       N.tierDissipation κ x := by
   rw [tierDissipation]
   simp only [massActionVectorField_apply, massActionRate]
+  -- `Finset.sum_comm` needs a literal double sum; the inner sum is still under a product.
+  simp only [Finset.mul_sum]
   rw [Finset.sum_comm]
   apply Finset.sum_congr rfl
   intro r _
@@ -98,11 +100,11 @@ theorem log_pair_massActionVectorField_eq_tierDissipation (N : Network S)
 /-- **Tier Lyapunov derivative identity.** Along any positive differentiable mass-action solution,
 `tierEntropy` has derivative exactly `tierDissipation`. -/
 theorem tierEntropy_hasDerivAt (N : Network S) (κ : N.RateConstants)
-    {γ : ℝ → Concentration S} {t : ℝ} (hpos : (γ t).Positive)
+    {γ : ℝ → Concentration S} {t : ℝ} (hpos : Concentration.Positive (γ t))
     (hsol : ∀ s, HasDerivAt (fun τ => γ τ s)
       (N.massActionVectorField κ (γ t) s) t) :
     HasDerivAt (fun τ => tierEntropy (γ τ)) (N.tierDissipation κ (γ t)) t := by
-  have href : (tierReference S : Concentration S).Positive := fun _ => zero_lt_one
+  have href : Concentration.Positive (tierReference S : Concentration S) := fun _ => zero_lt_one
   have hchain := relEntropy_hasDerivAt href hpos hsol
   have hder :
       (∑ s : S, (Real.log (γ t s) - Real.log ((tierReference S) s)) *
@@ -111,7 +113,9 @@ theorem tierEntropy_hasDerivAt (N : Network S) (κ : N.RateConstants)
     exact N.log_pair_massActionVectorField_eq_tierDissipation κ hpos
   have hrel : HasDerivAt (fun τ => relEntropy (tierReference S) (γ τ))
       (N.tierDissipation κ (γ t)) t := by
-    simpa [hder] using hchain
+    -- `hchain` states the derivative in fully expanded form (rates times reaction-vector
+    -- entries); fold it back into `massActionVectorField` before applying `hder`.
+    simpa only [← reactionVector_apply, ← massActionVectorField_apply, hder] using hchain
   simpa [tierEntropy] using hrel.const_add 1
 
 /-- Proposition-4.6-shaped analytic property: every transversal tier sequence eventually has

@@ -66,7 +66,7 @@ theorem omegaLimit_eq_singleton_of_mem_positive
     intro y hy t ht
     have := (Flow.isInvariant_omegaLimit atTop ϕ {x₀}
       (fun s => tendsto_atTop_mono (fun _ => le_add_self) tendsto_id) ⟨t, ht⟩) hy
-    rwa [hϕγ] at this
+    exact (hϕγ y ⟨t, ht⟩) ▸ this
   have hxstarmem : xstar ∈ N.positiveCompatibilityClass x₀ := ⟨hx0compat, hxs⟩
   -- the positive ω-point equals x*
   have hposyt : ∀ t : ℝ, 0 ≤ t → Concentration.Positive (γ p t) := hposorbit p hpω hppos

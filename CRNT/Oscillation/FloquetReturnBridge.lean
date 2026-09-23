@@ -18,6 +18,9 @@ continuous-time interpolation between section hits.
 
 namespace CRNT
 
+open Filter Topology
+
+
 namespace Network
 
 variable {S : Type} [DecidableEq S] [Fintype S]
@@ -35,7 +38,7 @@ structure ScalarFloquetReturnBridge
   multiplier : ℂ
   hasMultiplier : P.floquet.HasMultiplier multiplier
   nontrivial : multiplier ≠ 1
-  derivative_modulus : |c1.derivative x₀| = Complex.abs multiplier
+  derivative_modulus : |c1.derivative x₀| = ‖multiplier‖
 
 namespace ScalarFloquetReturnBridge
 
@@ -56,7 +59,7 @@ theorem exists_localContraction (B : N.ScalarFloquetReturnBridge P f x₀) :
 
 /-- Successive Poincare hits from any point in the resulting local interval converge geometrically
 to the periodic-orbit fixed point. -/
-noncomputable theorem exists_localSectionAttractor
+theorem exists_localSectionAttractor
     (B : N.ScalarFloquetReturnBridge P f x₀) :
     ∃ D : ScalarLocalContraction f x₀,
       ∀ x : D.LocalInterval,

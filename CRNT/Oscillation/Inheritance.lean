@@ -88,6 +88,16 @@ def RateConstants.extendSelfReactions {N : Network S}
       N.massActionRate κ r x := by
   rfl
 
+/-- Splitting a sum over the reactions of `addSelfReactions`.  Stated once here because the
+sum in the goals below carries the structure's own `fintypeR` field instance rather than
+`instFintypeSum`, so `Fintype.sum_sum_type` matches by neither `rw` nor `simp only`; `exact`
+closes it since `(N.addSelfReactions Q c).R` is *definitionally* `N.R ⊕ Q`. -/
+theorem sum_addSelfReactions {M : Type*} [AddCommMonoid M] (N : Network S) (Q : Type)
+    [DecidableEq Q] [Fintype Q] (c : Q → Complex S)
+    (f : (N.addSelfReactions Q c).R → M) :
+    ∑ r, f r = (∑ r : N.R, f (Sum.inl r)) + ∑ q : Q, f (Sum.inr q) :=
+  Fintype.sum_sum_type f
+
 /-- **Exact vector-field inheritance.** Adding self-reaction channels does not change the
 mass-action vector field. -/
 theorem massActionVectorField_addSelfReactions (N : Network S)
@@ -97,10 +107,18 @@ theorem massActionVectorField_addSelfReactions (N : Network S)
       N.massActionVectorField κ x := by
   funext s
   rw [massActionVectorField_apply, massActionVectorField_apply]
-  have hsplit := Fintype.sum_sum_type (α₁ := N.R) (α₂ := Q)
+  -- OBLIGATION (Lean plumbing).  `(N.addSelfReactions Q c).R` *is* `N.R ⊕ Q`, but the sum
+  -- carries the structure's own `fintypeR` field instance, not `instFintypeSum`, so
+  -- `Fintype.sum_sum_type` matches neither by `rw`, `simp only`, nor full `simp`
+  -- (all three tried; full `simp` made it worse by reshaping the goal).
+  -- Route: add a reusable splitting lemma next to `addSelfReactions`, e.g.
+  --   `theorem sum_addSelfReactions (f : (N.addSelfReactions Q c).R → M) :
+  --      ∑ r, f r = ∑ r : N.R, f (Sum.inl r) + ∑ q : Q, f (Sum.inr q)`
+  -- proved once by `Fintype.sum_congr`/`Subsingleton.elim` on the instance, then used
+  -- here and at lines ~129 and ~171 which fail the same way.
+  rw [sum_addSelfReactions N Q c
     (fun r => (N.addSelfReactions Q c).massActionRate (κ.extendSelfReactions Q c) r x *
-      (N.addSelfReactions Q c).reactionVector r s)
-  rw [hsplit]
+      (N.addSelfReactions Q c).reactionVector r s)]
   have hself :
       (∑ q : Q,
         (N.addSelfReactions Q c).massActionRate (κ.extendSelfReactions Q c) (Sum.inr q) x *
@@ -122,11 +140,10 @@ theorem massActionJacobian_addSelfReactions (N : Network S)
       N.massActionJacobian κ x := by
   ext i j
   simp only [massActionJacobian]
-  have hsplit := Fintype.sum_sum_type (α₁ := N.R) (α₂ := Q)
+  rw [sum_addSelfReactions N Q c
     (fun r => (κ.extendSelfReactions Q c).k r *
       massActionMonomialGrad ((N.addSelfReactions Q c).reaction r).source x j *
-      (N.addSelfReactions Q c).reactionVector r i)
-  rw [hsplit]
+      (N.addSelfReactions Q c).reactionVector r i)]
   have hself :
       (∑ q : Q,
         (κ.extendSelfReactions Q c).k (Sum.inr q) *
@@ -168,7 +185,9 @@ def MassActionFloquetData.addSelfReactions
   solves := by
     intro t i j
     have h := F.solves t i j
-    rw [N.massActionJacobian_addSelfReactions Q c κ (P.orbit t)]
+    -- the orbit argument appears as `(P.addSelfReactions Q c).orbit t`, which is only
+    -- *defeq* to `P.orbit t`; `simp only` unifies where `rw` cannot.
+    simp only [N.massActionJacobian_addSelfReactions Q c κ]
     exact h
 
 /-- The monodromy matrix is literally unchanged by self-reaction enlargement. -/

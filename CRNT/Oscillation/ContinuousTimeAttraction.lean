@@ -18,7 +18,7 @@ namespace CRNT
 
 namespace PeriodicTrajectory
 
-variable {E : Type*} [PseudoMetricSpace E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 variable {field : E → E}
 
 /-- A single trajectory approaches the geometric image of a periodic orbit, with phase free. -/
@@ -36,7 +36,7 @@ orbital attraction.
 `0 ≤ s ≤ maxSegment`.  The `tailCover` field says that every sufficiently late time belongs to a
 segment starting at a sufficiently late section hit. -/
 structure SectionHitInterpolationData
-    {E : Type*} [PseudoMetricSpace E]
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {field : E → E} (P : PeriodicTrajectory field) (γ : ℝ → E) where
   hitTime : ℕ → ℝ
   /-- Return times are forward times. -/
@@ -62,7 +62,7 @@ structure SectionHitInterpolationData
 
 namespace SectionHitInterpolationData
 
-variable {E : Type*} [PseudoMetricSpace E]
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 variable {field : E → E} {P : PeriodicTrajectory field} {γ : ℝ → E}
 
 /-- **Discrete-to-continuous attraction theorem.** Convergent section hits plus uniform shadowing

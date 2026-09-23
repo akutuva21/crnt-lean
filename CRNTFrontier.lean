@@ -1,0 +1,44 @@
+import CRNT.Dynamics.GlobalAttractorTheorem
+import CRNT.Multistationarity.TrueChemistrySRCriterion
+import CRNT.Oscillation
+import CRNT.Oscillation.CompatibilityAdapters
+import CRNT.Oscillation.DHopfOpenness
+import CRNT.Oscillation.DiagonalScaling
+import CRNT.Oscillation.FisherFullerScaling
+import CRNT.Oscillation.FloquetOrbitalStability
+import CRNT.Oscillation.FloquetPersistenceGeneral
+import CRNT.Oscillation.GlobalHopfIndex
+import CRNT.Oscillation.GlobalHopfIndexTheorem
+import CRNT.Oscillation.GlobalHopfSpectralCrossing
+import CRNT.Oscillation.HalfPlanePolynomial
+import CRNT.Oscillation.HurwitzBordering
+import CRNT.Oscillation.OscillationKernelBundle
+import CRNT.Oscillation.ParameterRichGlobalHopf
+import CRNT.Oscillation.PlanarAdjacentReturnLoop
+import CRNT.Oscillation.PlanarDivergenceRegularity
+import CRNT.Oscillation.PlanarEndToEnd
+import CRNT.Oscillation.PlanarFlowRegularity
+import CRNT.Oscillation.PlanarGreenGrid
+import CRNT.Oscillation.PlanarGreenJordanApproximation
+import CRNT.Oscillation.PlanarGreenRectangle
+import CRNT.Oscillation.PlanarJordanBoundaryCurrent
+import CRNT.Oscillation.PlanarJordanCrossingOrder
+import CRNT.Oscillation.PlanarJordanDyadic
+import CRNT.Oscillation.PlanarJordanTopology
+import CRNT.Oscillation.PlanarLocalReturnLoops
+import CRNT.Oscillation.PlanarLocalReturns
+import CRNT.Oscillation.PlanarPoincareBendixson
+import CRNT.Oscillation.PlanarReturnMonotonicity
+import CRNT.Oscillation.PlanarSectionHitIsolation
+import CRNT.Oscillation.ReducedKineticContinuation
+import CRNT.Oscillation.SimpleNegativeSpectrum
+import CRNT.Oscillation.SmoothGlobalHopf
+import CRNT.Oscillation.SpectralOpenness
+import CRNT.Oscillation.StableCodimOneDHopf
+import CRNT.Oscillation.VassenaPrincipal
+import CRNT.Theorems.DeficiencyOne.DegreeExistence
+import CRNT.Theorems.DeficiencyOne.Theorem
+import CRNT.Theorems.DeficiencyOne.WeaklyReversibleExistence
+
+/-! Frontier aggregator: exactly the modules on `scripts/unverified_modules.txt`.
+This target is allowed to fail; its error count is the tracked metric. -/

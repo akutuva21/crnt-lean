@@ -20,11 +20,13 @@ layer, and avoids introducing an eigenvalue-counting API solely to state inertia
 
 namespace Matrix
 
-variable {n : Type*} [Fintype n] [DecidableEq n]
+universe u
+
+variable {n : Type u} [Fintype n] [DecidableEq n]
 
 /-- Strong finite certificate for a diagonal Hopf route.  It records an invertible matrix and two
 positive right-diagonal scalings with different strict stability behavior. -/
-structure StrongDHopfWitness (M : Matrix n n ℝ) : Type where
+structure StrongDHopfWitness (M : Matrix n n ℝ) : Type u where
   nonsingular : M.det ≠ 0
   stableDiagonal : n → ℝ
   stablePositive : ∀ i, 0 < stableDiagonal i
@@ -52,7 +54,7 @@ theorem scaled_det_ne_zero {M : Matrix n n ℝ} (h : StrongDHopfWitness M)
     (M * Matrix.diagonal d).det ≠ 0 := by
   rw [Matrix.det_mul, Matrix.det_diagonal]
   exact mul_ne_zero h.nonsingular
-    (Finset.prod_ne_zero (fun i _ => ne_of_gt (hd i)))
+    (Finset.prod_ne_zero_iff.mpr (fun i _ => ne_of_gt (hd i)))
 
 end StrongDHopfWitness
 
@@ -97,7 +99,7 @@ theorem not_isPMinusZeroMatrix_of_containsUnstablePositiveFeedback
     ¬ M.IsPMinusZeroMatrix := by
   obtain ⟨I, _, hI⟩ := h
   apply not_isPMinusZeroMatrix_of_principal_sign_violation (M := M) (I := I)
-  simpa [principalDet, principalSubmatrix] using hI.2
+  simpa [HasPositiveFeedbackSign, principalDet, principalSubmatrix, Fintype.card_coe] using hI.2
 
 /-- Hence every exact class-I oscillatory core satisfies Vassena Criterion I. -/
 theorem IsOscillatoryCoreClassI.criterionI {M : Matrix n n ℝ}
@@ -117,8 +119,8 @@ theorem IsOscillatoryCoreClassII.criterionII_of_fisherFuller
 /-- Class I produces a strong D-Hopf witness once the two purely finite matrix facts are supplied:
 not-`P^-_0` gives an unstable scaling, and Hurwitz stability gives nonsingularity.  The latter is
 kept explicit here so the D-Hopf layer does not duplicate spectral determinant infrastructure. -/
-noncomputable theorem IsOscillatoryCoreClassI.strongDHopf
-    (hP0 : NotPMinusZeroImpliesUnstableScalingTarget)
+noncomputable def IsOscillatoryCoreClassI.strongDHopf
+    (hP0 : NotPMinusZeroImpliesUnstableScalingTarget.{u})
     {M : Matrix n n ℝ} (h : M.IsOscillatoryCoreClassI)
     (hdet : M.det ≠ 0) : StrongDHopfWitness M := by
   let cI : CriterionI M := h.criterionI
@@ -134,8 +136,8 @@ noncomputable theorem IsOscillatoryCoreClassI.strongDHopf
 
 /-- Fisher--Fuller class-II cores likewise give a strong D-Hopf witness after diagonal
 stabilization, with nonsingularity recorded explicitly. -/
-noncomputable theorem IsOscillatoryCoreClassII.strongDHopf_of_fisherFuller
-    (hFFscale : FisherFullerStabilizingScalingTarget)
+noncomputable def IsOscillatoryCoreClassII.strongDHopf_of_fisherFuller
+    (hFFscale : FisherFullerStabilizingScalingTarget.{u})
     {M : Matrix n n ℝ} (h : M.IsOscillatoryCoreClassII)
     (hFF : M.IsFisherFullerPMinusMatrix) (hdet : M.det ≠ 0) :
     StrongDHopfWitness M := by
@@ -167,31 +169,33 @@ namespace Network
 variable {S : Type} [DecidableEq S] [Fintype S]
 
 /-- A child selection carries a strong D-Hopf matrix certificate. -/
-def ChildSelection.HasStrongDHopfWitness (C : N.ChildSelection) : Prop :=
+def ChildSelection.HasStrongDHopfWitness {N : Network S} (C : N.ChildSelection) : Prop :=
   Nonempty (Matrix.StrongDHopfWitness C.matrix)
 
 /-- Search-friendly indexed version. -/
 def IndexedChildSelection.HasStrongDHopfWitness
-    {I : Type} [DecidableEq I] [Fintype I]
+    {N : Network S} {I : Type} [DecidableEq I] [Fintype I]
     (C : N.IndexedChildSelection I) : Prop :=
   Nonempty (Matrix.StrongDHopfWitness C.matrix)
 
 /-- A class-I child selection becomes a D-Hopf witness through the exact matrix theorem above. -/
-noncomputable theorem ChildSelection.strongDHopf_of_classI
+theorem ChildSelection.strongDHopf_of_classI
     {N : Network S} {C : N.ChildSelection}
-    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget)
+    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget.{0})
     (hC : C.IsOscillatoryCoreClassI) (hdet : C.matrix.det ≠ 0) :
-    C.HasStrongDHopfWitness :=
-  ⟨Matrix.IsOscillatoryCoreClassI.strongDHopf hP0 hC hdet⟩
+    C.HasStrongDHopfWitness := by
+  change Matrix.IsOscillatoryCoreClassI C.matrix at hC
+  exact ⟨Matrix.IsOscillatoryCoreClassI.strongDHopf hP0 hC hdet⟩
 
 /-- Fisher--Fuller class-II child selections become D-Hopf witnesses analogously. -/
-noncomputable theorem ChildSelection.strongDHopf_of_classII_fisherFuller
+theorem ChildSelection.strongDHopf_of_classII_fisherFuller
     {N : Network S} {C : N.ChildSelection}
-    (hFFscale : Matrix.FisherFullerStabilizingScalingTarget)
+    (hFFscale : Matrix.FisherFullerStabilizingScalingTarget.{0})
     (hC : C.IsOscillatoryCoreClassII)
     (hFF : C.matrix.IsFisherFullerPMinusMatrix) (hdet : C.matrix.det ≠ 0) :
-    C.HasStrongDHopfWitness :=
-  ⟨Matrix.IsOscillatoryCoreClassII.strongDHopf_of_fisherFuller
+    C.HasStrongDHopfWitness := by
+  change Matrix.IsOscillatoryCoreClassII C.matrix at hC
+  exact ⟨Matrix.IsOscillatoryCoreClassII.strongDHopf_of_fisherFuller
     hFFscale hC hFF hdet⟩
 
 end Network
@@ -199,18 +203,20 @@ end CRNT
 
 namespace Matrix
 
-variable {n : Type*} [Fintype n] [DecidableEq n]
+universe u
+
+variable {n : Type u} [Fintype n] [DecidableEq n]
 
 /-- Class-I oscillatory cores need no separate determinant hypothesis: Hurwitz stability supplies it. -/
-noncomputable theorem IsOscillatoryCoreClassI.strongDHopf_closed
-    (hP0 : NotPMinusZeroImpliesUnstableScalingTarget)
+noncomputable def IsOscillatoryCoreClassI.strongDHopf_closed
+    (hP0 : NotPMinusZeroImpliesUnstableScalingTarget.{u})
     {M : Matrix n n ℝ} (h : M.IsOscillatoryCoreClassI) :
     StrongDHopfWitness M :=
   h.strongDHopf hP0 h.stable.det_ne_zero
 
 /-- Class-II negative feedback also carries its nonsingularity proof in its determinant sign. -/
-noncomputable theorem IsOscillatoryCoreClassII.strongDHopf_of_fisherFuller_closed
-    (hFFscale : FisherFullerStabilizingScalingTarget)
+noncomputable def IsOscillatoryCoreClassII.strongDHopf_of_fisherFuller_closed
+    (hFFscale : FisherFullerStabilizingScalingTarget.{u})
     {M : Matrix n n ℝ} (h : M.IsOscillatoryCoreClassII)
     (hFF : M.IsFisherFullerPMinusMatrix) :
     StrongDHopfWitness M :=
@@ -223,19 +229,21 @@ namespace CRNT.Network
 variable {S : Type} [DecidableEq S] [Fintype S]
 
 /-- Closed class-I child-selection conversion with no manually supplied determinant fact. -/
-noncomputable theorem ChildSelection.strongDHopf_of_classI_closed
+theorem ChildSelection.strongDHopf_of_classI_closed
     {N : Network S} {C : N.ChildSelection}
-    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget)
-    (hC : C.IsOscillatoryCoreClassI) : C.HasStrongDHopfWitness :=
-  ⟨Matrix.IsOscillatoryCoreClassI.strongDHopf_closed hP0 hC⟩
+    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget.{0})
+    (hC : C.IsOscillatoryCoreClassI) : C.HasStrongDHopfWitness := by
+  change Matrix.IsOscillatoryCoreClassI C.matrix at hC
+  exact ⟨Matrix.IsOscillatoryCoreClassI.strongDHopf_closed hP0 hC⟩
 
 /-- Closed Fisher--Fuller class-II conversion. -/
-noncomputable theorem ChildSelection.strongDHopf_of_classII_fisherFuller_closed
+theorem ChildSelection.strongDHopf_of_classII_fisherFuller_closed
     {N : Network S} {C : N.ChildSelection}
-    (hFFscale : Matrix.FisherFullerStabilizingScalingTarget)
+    (hFFscale : Matrix.FisherFullerStabilizingScalingTarget.{0})
     (hC : C.IsOscillatoryCoreClassII)
-    (hFF : C.matrix.IsFisherFullerPMinusMatrix) : C.HasStrongDHopfWitness :=
-  ⟨Matrix.IsOscillatoryCoreClassII.strongDHopf_of_fisherFuller_closed
+    (hFF : C.matrix.IsFisherFullerPMinusMatrix) : C.HasStrongDHopfWitness := by
+  change Matrix.IsOscillatoryCoreClassII C.matrix at hC
+  exact ⟨Matrix.IsOscillatoryCoreClassII.strongDHopf_of_fisherFuller_closed
     hFFscale hC hFF⟩
 
 end CRNT.Network

@@ -8,6 +8,7 @@ on:
       - 'lakefile.toml'
       - 'lake-manifest.json'
       - 'lean-toolchain'
+      - 'scripts/**'
       - '.github/workflows/ci.yml'
   pull_request:
     paths:
@@ -15,30 +16,112 @@ on:
       - 'lakefile.toml'
       - 'lake-manifest.json'
       - 'lean-toolchain'
+      - 'scripts/**'
       - '.github/workflows/ci.yml'
 
 jobs:
-  build:
+  # ---------------------------------------------------------------------------
+  # Static gates.  These run in seconds and need neither Lean nor Mathlib, so
+  # they fail fast and catch the three classes of hole a text grep for `sorry`
+  # does not: hollow definitions, undeclared references, silent build exclusions.
+  # ---------------------------------------------------------------------------
+  static:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-      # Fast whole-tree backstop for the sorry-free / no-native_decide claim. The axiom-cleanliness
-      # guarantee (import CRNT depends on no axioms beyond propext, Classical.choice, Quot.sound) is
-      # enforced by test/AxiomAudit.lean, whose pinned `#print axioms` checks run under `lake test`
-      # below; this grep catches a stray `sorry`/`native_decide` anywhere, not only in audited cones.
-      - name: No sorry or native_decide in sources
+      - name: No native_decide in sources
         run: |
-          if grep -rnP '(?<!`)\bsorry\b(?!`)' --include='*.lean' CRNT Analyze.lean CRNT.lean test; then
-            echo "::error::bare 'sorry' found in sources"; exit 1
-          fi
-          if grep -rnP '(?<!`)\bnative_decide\b(?!`)' --include='*.lean' CRNT Analyze.lean CRNT.lean test; then
+          if grep -rnP '(?<!`)\bnative_decide\b(?!`)' --include='*.lean' \
+              CRNT CRNTFrontier.lean Analyze.lean CRNT.lean test; then
             echo "::error::'native_decide' found in sources"; exit 1
           fi
 
+      # Imports of modules that do not exist.  No false positives, and the failure is
+      # otherwise silent: such a module is simply excluded from the build.
+      - name: Internal-import audit
+        run: python3 scripts/check_imports.py
+
+      # `:= True`, `dummy : True`, `<trivial>` constructors, `isTrue` deciders,
+      # `sorry`, `admit`.  Baselined and shrink-only; also fails if a module
+      # containing one becomes reachable from `import CRNT`.
+      - name: Hollow-definition audit
+        run: python3 scripts/check_stubs.py
+
+      # Project identifiers referenced but never declared.  Gating for the
+      # verified core; baselined and shrink-only for the frontier.
+      - name: Undefined-name audit
+        run: python3 scripts/check_undefined_names.py
+
+      # lakefile.toml must be exactly what the ledger generates, the ledger may
+      # not grow, entries must exist on disk, CRNT.lean may not reach frontier.
+      - name: Exclusion-ledger audit
+        run: python3 scripts/check_exclusions.py
+
+  # ---------------------------------------------------------------------------
+  # The verified core.  Green here means the non-ledger modules really do
+  # elaborate with no `sorry` and no axioms beyond Mathlib's -- the latter
+  # enforced by the pinned `#print axioms` checks in test/AxiomAudit.lean, which
+  # `lake test` runs alongside test/Smoke.lean and test/NonVacuity.lean.
+  # ---------------------------------------------------------------------------
+  core:
+    runs-on: ubuntu-latest
+    needs: static
+    steps:
+      - uses: actions/checkout@v4
       - uses: leanprover/lean-action@v1
         with:
-          # Builds CRNT and runs the test library, including test/AxiomAudit.lean (the pinned
-          # `#print axioms` regression guard) and test/Smoke.lean.
+          build-args: 'CRNT'
           test: true
           use-mathlib-cache: true
+
+  # ---------------------------------------------------------------------------
+  # The frontier.  Expected to fail; the point is the number, not the colour.
+  # Every module in scripts/unverified_modules.txt has never been elaborated, so
+  # this job reports how many still error and uploads the log.  It cannot gate,
+  # but the count is the real progress metric and the ledger audit above makes
+  # sure it can only shrink.
+  # ---------------------------------------------------------------------------
+  frontier:
+    runs-on: ubuntu-latest
+    needs: static
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: leanprover/lean-action@v1
+        continue-on-error: true
+        with:
+          build-args: 'CRNT'
+          test: false
+          use-mathlib-cache: true
+
+      - name: Build frontier and count elaboration errors
+        if: always()
+        run: |
+          set +e
+          lake build CRNTFrontier 2>&1 | tee frontier-build.log
+          errors=$(grep -c '^error:' frontier-build.log)
+          files=$(grep -oP '^error: \S+\.lean' frontier-build.log | sort -u | wc -l)
+          ledger=$(grep -cv '^#\|^$' scripts/unverified_modules.txt)
+          echo "frontier: $errors error(s) across $files file(s); ledger $ledger modules" \
+            | tee frontier-summary.txt
+          {
+            echo "### Frontier build"
+            echo ""
+            echo "- elaboration errors: \`$errors\` across \`$files\` file(s)"
+            echo "- unverified modules in ledger: \`$ledger\`"
+            echo "- open proof obligations (undeclared names): \`$(grep -cv '^#\|^$' scripts/frontier_gaps.txt)\`"
+            echo "- hollow definitions: \`$(grep -cv '^#\|^$' scripts/stub_baseline.txt)\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontier-build-log
+          path: |
+            frontier-build.log
+            frontier-summary.txt

@@ -39,8 +39,12 @@ theorem massActionMonomial_analyticOnNhd (y : Complex S) :
   refine Finset.analyticOnNhd_fun_prod Finset.univ ?_
   intro s _
   have hs : AnalyticOnNhd ℝ (fun x : Concentration S => x s) Set.univ := by
-    simpa only [ContinuousLinearMap.proj_apply] using
-      (ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : S => ℝ) s).analyticOnNhd
+    let L : Concentration S →L[ℝ] ℝ :=
+      ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : S => ℝ) s
+    have hL := L.analyticOnNhd Set.univ
+    convert hL using 1
+    funext x
+    rfl
   exact hs.fun_pow (y s)
 
 end Complex
@@ -54,8 +58,11 @@ theorem exponentialDiagonalPath_analyticOnNhd_apply
     {d₀ d₁ : S → ℝ} (s : S) :
     AnalyticOnNhd ℝ (fun μ : ℝ => exponentialDiagonalPath d₀ d₁ μ s) Set.univ := by
   unfold exponentialDiagonalPath
-  have hid : AnalyticOnNhd ℝ (fun μ : ℝ => μ) Set.univ :=
-    (1 : ℝ →L[ℝ] ℝ).analyticOnNhd
+  have hid : AnalyticOnNhd ℝ (fun μ : ℝ => μ) Set.univ := by
+    have hL := (1 : ℝ →L[ℝ] ℝ).analyticOnNhd Set.univ
+    convert hL using 1
+    funext μ
+    rfl
   have hlin : AnalyticOnNhd ℝ
       (fun μ : ℝ => μ * Real.log (d₁ s / d₀ s)) Set.univ :=
     hid.mul analyticOnNhd_const
@@ -113,7 +120,12 @@ theorem continuationRateValue_analyticOnNhd
 /-- Coordinate projection from `(parameter,state)` to the parameter is analytic. -/
 private theorem parameterProjection_analyticOnNhd :
     AnalyticOnNhd ℝ (fun p : ℝ × Concentration S => p.1) Set.univ := by
-  simpa using (ContinuousLinearMap.fst ℝ ℝ (Concentration S)).analyticOnNhd
+  let L : (ℝ × Concentration S) →L[ℝ] ℝ :=
+    ContinuousLinearMap.fst ℝ ℝ (Concentration S)
+  have hL := L.analyticOnNhd Set.univ
+  convert hL using 1
+  funext p
+  rfl
 
 /-- Coordinate projection from `(parameter,state)` to one species concentration is analytic. -/
 private theorem stateCoordinate_analyticOnNhd (s : S) :
@@ -122,8 +134,10 @@ private theorem stateCoordinate_analyticOnNhd (s : S) :
     ContinuousLinearMap.snd ℝ ℝ (Concentration S)
   let L₂ : Concentration S →L[ℝ] ℝ :=
     ContinuousLinearMap.proj (R := ℝ) (φ := fun _ : S => ℝ) s
-  have h : AnalyticOnNhd ℝ (fun p : ℝ × Concentration S => (L₂.comp L₁) p) Set.univ :=
-    (L₂.comp L₁).analyticOnNhd
+  have hL := (L₂.comp L₁).analyticOnNhd Set.univ
+  have h : AnalyticOnNhd ℝ
+      (fun p : ℝ × Concentration S => (L₂.comp L₁) p) Set.univ := by
+    exact hL
   simpa [L₁, L₂, ContinuousLinearMap.proj_apply] using h
 
 /-- A state mass-action monomial is analytic jointly in `(parameter,state)`; it ignores the
@@ -182,7 +196,7 @@ noncomputable def toAnalyticEquilibriumContinuationClosed
   W.toAnalyticEquilibriumContinuation fluxGlobalHopfAnalyticity
 
 /-- The Vassena/Fiedler route now needs only the actual analytic global-Hopf theorem. -/
-noncomputable theorem oscillatoryCapacity_of_fiedler_closed
+theorem oscillatoryCapacity_of_fiedler_closed
     (hFiedler : FiedlerAnalyticGlobalHopfTarget)
     (W : N.FluxGlobalHopfData) : N.OscillatoryCapacity :=
   W.oscillatoryCapacity_of_fiedler fluxGlobalHopfAnalyticity hFiedler

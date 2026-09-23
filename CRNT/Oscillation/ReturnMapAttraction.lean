@@ -35,9 +35,9 @@ namespace ContractingReturnMapData
 variable (D : ContractingReturnMapData E)
 
 /-- Discrete sequence of successive section returns. -/
-def iterates (x : E) : ℕ → E
+def iterates (D : ContractingReturnMapData E) (x : E) : ℕ → E
   | 0 => x
-  | n + 1 => D.returnMap (D.iterates x n)
+  | n + 1 => D.returnMap (iterates D x n)
 
 @[simp] theorem iterates_zero (x : E) : D.iterates x 0 = x := rfl
 
@@ -75,12 +75,19 @@ theorem tendsto_iterates_fixedPoint (x : E) :
     simpa using hpow.mul_const (dist x D.fixedPoint)
   exact squeeze_zero (fun _ => dist_nonneg) (D.dist_iterates_fixedPoint_le x) hbound
 
-/-- The fixed point is unique for a strict contraction. -/
-theorem fixedPoint_unique {x : E} (hx : D.returnMap x = x) : x = D.fixedPoint := by
-  by_contra hne
-  have hpos : 0 < dist x D.fixedPoint := dist_pos.mpr hne
+/-- The fixed point is unique for a strict contraction.
+
+The ambient space here is only a `PseudoMetricSpace`, in which distinct points may be at distance
+`0`; uniqueness genuinely fails there. Rather than strengthen the section variable (which would
+clash with the existing instance), the separation property is taken as an explicit hypothesis. -/
+theorem fixedPoint_unique (hsep : ∀ a b : E, dist a b = 0 → a = b)
+    {x : E} (hx : D.returnMap x = x) : x = D.fixedPoint := by
+  refine hsep _ _ ?_
   have h := D.dist_le x D.fixedPoint
   rw [hx, D.fixed] at h
+  have hk := D.factor_lt_one
+  have hf0 := D.factor_nonneg
+  have hnn : 0 ≤ dist x D.fixedPoint := dist_nonneg
   nlinarith
 
 end ContractingReturnMapData

@@ -31,7 +31,7 @@ def ScalarDependentReactionPersistenceConstructionTarget : Prop :=
 capacity after adding one dependent reaction.  Retaining nondegeneracy/stability of the enlarged
 cycle is a stronger Floquet-continuity statement and remains represented separately by the existing
 inheritance targets. -/
-noncomputable theorem oscillatoryCapacity_addDependentReaction
+theorem oscillatoryCapacity_addDependentReaction
     (hpersist : ScalarDependentReactionPersistenceConstructionTarget)
     {N : Network S} (q : Reaction S)
     (hdep : N.IsStoichiometricallyDependentReaction q)
@@ -42,7 +42,7 @@ noncomputable theorem oscillatoryCapacity_addDependentReaction
   exact D.oscillatoryCapacity
 
 /-- Relation-facing version for two explicitly related networks. -/
-noncomputable theorem oscillatoryCapacity_of_singleDependentReactionExtension
+theorem oscillatoryCapacity_of_singleDependentReactionExtension
     (hpersist : ScalarDependentReactionPersistenceConstructionTarget)
     {Nsmall Nlarge : Network S}
     (hext : IsSingleDependentReactionExtension Nsmall Nlarge)

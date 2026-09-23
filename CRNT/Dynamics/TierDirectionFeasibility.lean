@@ -72,6 +72,8 @@ theorem lhsℝ_tierDiffRow (e : S ≃ Fin (Fintype.card S))
   rw [lhsℝ_encodeRow]
   simp only [tierDiffCoeff, Rat.cast_sub, Rat.cast_natCast, complexWValue, dotProduct,
     exponentVector, Finset.sum_sub_distrib]
+  -- the simp set split the right-hand side into two sums; recombine before comparing termwise
+  rw [← Finset.sum_sub_distrib]
   apply Finset.sum_congr rfl
   intro s _
   ring
@@ -84,8 +86,15 @@ theorem same_rows_mem_tierDirectionSystem (N : Network S)
     encodeRow e (tierDiffCoeff y y') 0 ∈ N.tierDirectionSystem e xs ∧
       encodeRow e (tierDiffCoeff y' y) 0 ∈ N.tierDirectionSystem e xs := by
   classical
-  constructor <;>
-    simp [tierDirectionSystem, tierComparisonRows, hy, hy', hsame]
+  -- both rows come from the *same* pair `(y, y')`, so the same witnesses serve twice;
+  -- `simp` reduces membership to an existential over the complex pair but cannot guess them.
+  have hmem : ∀ I ∈ tierComparisonRows e xs y y', I ∈ N.tierDirectionSystem e xs := by
+    intro I hI
+    simp only [tierDirectionSystem, List.mem_flatMap, Finset.mem_toList,
+      Finset.mem_product, Prod.exists]
+    exact ⟨y, y', ⟨hy, hy'⟩, hI⟩
+  refine ⟨hmem _ ?_, hmem _ ?_⟩ <;>
+    simp [tierComparisonRows, hsame]
 
 /-- Strict tier comparisons contribute the normalized `≤ -1` row. -/
 theorem below_row_mem_tierDirectionSystem (N : Network S)
@@ -95,7 +104,9 @@ theorem below_row_mem_tierDirectionSystem (N : Network S)
     encodeRow e (tierDiffCoeff y y') (-1) ∈ N.tierDirectionSystem e xs := by
   classical
   have hnsame : ¬ TierSame xs y y' := hbelow.not_tierSame
-  simp [tierDirectionSystem, tierComparisonRows, hy, hy', hbelow, hnsame]
+  simp only [tierDirectionSystem, List.mem_flatMap, Finset.mem_toList,
+    Finset.mem_product, Prod.exists]
+  exact ⟨y, y', ⟨hy, hy'⟩, by simp [tierComparisonRows, hbelow, hnsame]⟩
 
 /-- A real solution of the tier system assigns equal potential to same-tier complexes. -/
 theorem Satℝ.tierSame_potential_eq (N : Network S)
@@ -135,25 +146,25 @@ theorem tierRealizesDirection_of_satℝ (N : Network S)
   constructor
   · intro y hy y' hy'
     constructor
-    · exact hx.tierSame_potential_eq N e hy hy'
+    · exact Satℝ.tierSame_potential_eq N e hx hy hy'
     · intro heq
       rcases htier.2.2 y hy y' hy' with hle | hrev
       · rcases hle with hbelow | hsame
-        · have hlt := hx.tierBelow_potential_lt N e hy hy' hbelow
+        · have hlt := Satℝ.tierBelow_potential_lt N e hx hy hy' hbelow
           linarith
         · exact hsame
-      · have hlt := hx.tierBelow_potential_lt N e hy' hy hrev
+      · have hlt := Satℝ.tierBelow_potential_lt N e hx hy' hy hrev
         linarith
   · intro y hy y' hy'
     constructor
-    · exact hx.tierBelow_potential_lt N e hy hy'
+    · exact Satℝ.tierBelow_potential_lt N e hx hy hy'
     · intro hlt
       rcases htier.2.2 y hy y' hy' with hle | hrev
       · rcases hle with hbelow | hsame
         · exact hbelow
-        · have heq := hx.tierSame_potential_eq N e hy hy' hsame
+        · have heq := Satℝ.tierSame_potential_eq N e hx hy hy' hsame
           linarith
-      · have hrevlt := hx.tierBelow_potential_lt N e hy' hy hrev
+      · have hrevlt := Satℝ.tierBelow_potential_lt N e hx hy' hy hrev
         linarith
 
 /-- Real feasibility of the finite tier-direction system. -/

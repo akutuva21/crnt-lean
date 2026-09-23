@@ -119,6 +119,15 @@ theorem addedReactionFieldFamily_contDiff (N : Network S) (κ : N.RateConstants)
     contDiff_fst.mul hmono
   simpa [addedReactionFieldFamily] using hold.add (hscalar.smul contDiff_const)
 
+/-- Splitting a sum over the reactions of `addReaction`.  As with `sum_addSelfReactions`,
+`(N.addReaction q).R` is *definitionally* `N.R ⊕ Unit` but the sum carries the structure's own
+`fintypeR` field, so `Fintype.sum_sum_type` will not match by `rw`; `exact`/`trans` go
+through by defeq. -/
+theorem sum_addReaction {M : Type*} [AddCommMonoid M] (N : Network S) (q : Reaction S)
+    (f : (N.addReaction q).R → M) :
+    ∑ r, f r = (∑ r : N.R, f (Sum.inl r)) + f (Sum.inr ()) :=
+  (Fintype.sum_sum_type f).trans (by simp)
+
 /-- Exact componentwise vector-field perturbation after adding one reaction. -/
 theorem massActionVectorField_addReaction_apply (N : Network S) (q : Reaction S)
     (κ : N.RateConstants) (ε : ℝ) (hε : 0 < ε) (x : Concentration S) (s : S) :
@@ -126,7 +135,8 @@ theorem massActionVectorField_addReaction_apply (N : Network S) (q : Reaction S)
       N.massActionVectorField κ x s +
         ε * q.source.massActionMonomial x * q.vector s := by
   rw [massActionVectorField_apply, massActionVectorField_apply]
-  rw [Fintype.sum_sum_type]
+  rw [sum_addReaction N q (fun r => (N.addReaction q).massActionRate
+    (κ.extendReaction q ε hε) r x * (N.addReaction q).reactionVector r s)]
   simp [massActionRate, addReaction, RateConstants.extendReaction, reactionVector]
 
 /-- Exact vector form of the one-reaction mass-action perturbation. -/
@@ -154,7 +164,9 @@ theorem massActionJacobian_addReaction_apply (N : Network S) (q : Reaction S)
       N.massActionJacobian κ x i j +
         ε * massActionMonomialGrad q.source x j * q.vector i := by
   simp only [massActionJacobian]
-  rw [Fintype.sum_sum_type]
+  rw [sum_addReaction N q (fun r => (κ.extendReaction q ε hε).k r *
+    massActionMonomialGrad ((N.addReaction q).reaction r).source x j *
+    (N.addReaction q).reactionVector r i)]
   simp [addReaction, RateConstants.extendReaction, reactionVector]
 
 /-- Exact matrix form of the Jacobian perturbation. -/
@@ -162,7 +174,7 @@ theorem massActionJacobian_addReaction (N : Network S) (q : Reaction S)
     (κ : N.RateConstants) (ε : ℝ) (hε : 0 < ε) (x : Concentration S) :
     (N.addReaction q).massActionJacobian (κ.extendReaction q ε hε) x =
       N.massActionJacobian κ x +
-        fun i j => ε * massActionMonomialGrad q.source x j * q.vector i := by
+        Matrix.of (fun i j => ε * massActionMonomialGrad q.source x j * q.vector i) := by
   ext i j
   exact N.massActionJacobian_addReaction_apply q κ ε hε x i j
 
@@ -189,7 +201,87 @@ theorem stoichSubspace_addReaction_eq (N : Network S) (q : Reaction S)
 theorem stoichRank_addReaction_eq (N : Network S) (q : Reaction S)
     (hdep : N.IsStoichiometricallyDependentReaction q) :
     (N.addReaction q).stoichRank = N.stoichRank := by
-  simp only [stoichRank, N.stoichSubspace_addReaction_eq q hdep]
+  unfold stoichRank
+  rw [N.stoichSubspace_addReaction_eq q hdep]
+
+
+/-! ## Closing a smooth-family periodic trajectory back to the enlarged CRN -/
+
+/-- A positive periodic trajectory of the smooth one-reaction perturbation at a strictly positive
+parameter is exactly a positive periodic mass-action orbit of the enlarged network.
+
+This theorem is the semantic closure needed by regular-perturbation arguments: the IFT/Poincare
+layer may work with the smooth real family `addedReactionFieldFamily`, including the reference
+value `ε = 0`, while the CRN conclusion at `ε > 0` uses genuine positive rate constants. -/
+noncomputable def positivePeriodicOrbitOfAddedReactionFamily
+    (N : Network S) (q : Reaction S) (κ : N.RateConstants)
+    {ε : ℝ} (hε : 0 < ε)
+    (P : PeriodicTrajectory (N.addedReactionFieldFamily κ q ε))
+    (hpos : ∀ t s, 0 < P.orbit t s) :
+    (N.addReaction q).PositivePeriodicOrbit (κ.extendReaction q ε hε) where
+  orbit := P.orbit
+  period := P.period
+  period_pos := P.period_pos
+  positive := hpos
+  solution := by
+    intro t s
+    have h := P.solution t
+    have hs := hasDerivAt_pi.mp h s
+    -- the goal carries the raw reaction sum; rewrite it into the family form first so
+    -- `hs` (stated via `addedReactionFieldFamily`) matches.
+    rw [N.massActionVectorField_addReaction_eq_family q κ ε hε (P.orbit t)]
+    exact hs
+  periodic := P.periodic
+  nonconstant := P.nonconstant
+
+/-- Propositional version of `positivePeriodicOrbitOfAddedReactionFamily`. -/
+theorem hasPositivePeriodicOrbit_addReaction_of_family
+    (N : Network S) (q : Reaction S) (κ : N.RateConstants)
+    {ε : ℝ} (hε : 0 < ε)
+    (P : PeriodicTrajectory (N.addedReactionFieldFamily κ q ε))
+    (hpos : ∀ t s, 0 < P.orbit t s) :
+    (N.addReaction q).HasPositivePeriodicOrbit (κ.extendReaction q ε hε) :=
+  ⟨N.positivePeriodicOrbitOfAddedReactionFamily q κ hε P hpos⟩
+
+/-- A single positive-parameter positive periodic trajectory in the smooth perturbation family
+witnesses structural oscillatory capacity of the enlarged CRN. -/
+theorem oscillatoryCapacity_addReaction_of_family_witness
+    (N : Network S) (q : Reaction S) (κ : N.RateConstants)
+    {ε : ℝ} (hε : 0 < ε)
+    (P : PeriodicTrajectory (N.addedReactionFieldFamily κ q ε))
+    (hpos : ∀ t s, 0 < P.orbit t s) :
+    (N.addReaction q).OscillatoryCapacity :=
+  ⟨κ.extendReaction q ε hε,
+    N.hasPositivePeriodicOrbit_addReaction_of_family q κ hε P hpos⟩
+
+/-- Proof-relevant witness package for the final step of a regular-perturbation inheritance proof.
+Everything before this object may be performed in the smooth family through `ε=0`; this package
+contains only the two genuinely CRN-specific facts needed at a selected positive parameter. -/
+structure DependentReactionPeriodicWitness
+    (N : Network S) (q : Reaction S) (κ : N.RateConstants) : Type where
+  epsilon : ℝ
+  epsilon_pos : 0 < epsilon
+  orbit : PeriodicTrajectory (N.addedReactionFieldFamily κ q epsilon)
+  positive : ∀ t s, 0 < orbit.orbit t s
+
+namespace DependentReactionPeriodicWitness
+
+/-- Convert a smooth-family witness into the actual enlarged-network positive periodic orbit. -/
+noncomputable def toPositivePeriodicOrbit
+    {N : Network S} {q : Reaction S} {κ : N.RateConstants}
+    (W : DependentReactionPeriodicWitness N q κ) :
+    (N.addReaction q).PositivePeriodicOrbit
+      (κ.extendReaction q W.epsilon W.epsilon_pos) :=
+  N.positivePeriodicOrbitOfAddedReactionFamily q κ W.epsilon_pos W.orbit W.positive
+
+/-- Every smooth-family witness proves oscillatory capacity of the enlarged CRN. -/
+theorem oscillatoryCapacity
+    {N : Network S} {q : Reaction S} {κ : N.RateConstants}
+    (W : DependentReactionPeriodicWitness N q κ) :
+    (N.addReaction q).OscillatoryCapacity :=
+  ⟨κ.extendReaction q W.epsilon W.epsilon_pos, ⟨W.toPositivePeriodicOrbit⟩⟩
+
+end DependentReactionPeriodicWitness
 
 /-- Concrete relation used by Banaji-style inheritance statements: `Nlarge` is obtained from
 `Nsmall` by appending one stoichiometrically dependent reaction. -/

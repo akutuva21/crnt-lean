@@ -203,8 +203,7 @@ noncomputable def movingContractData (rate : ℝ) (c : Y →ᵇ E) (τ : ℝ≥0
   op := movingContractOp rate c τ
   factor := ⟨Real.exp (-rate * (τ : ℝ)), (Real.exp_pos _).le⟩
   factor_lt_one := by
-    rw [← NNReal.coe_lt_coe, NNReal.coe_one]
-    show Real.exp (-rate * (τ : ℝ)) < 1
+    change Real.exp (-rate * (τ : ℝ)) < 1
     rw [Real.exp_lt_one_iff]
     have : 0 < rate * (τ : ℝ) := mul_pos hrate hτ
     linarith

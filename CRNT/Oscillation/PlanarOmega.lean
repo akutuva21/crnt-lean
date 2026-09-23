@@ -89,6 +89,18 @@ theorem omegaSet_equilibriumFree (D : FlowTrappingData field) :
   intro x hx
   exact D.equilibriumFree x (D.omegaSet_subset_region hx)
 
+/-- Every point of the omega-limit set is visited arbitrarily late in every neighbourhood by the
+original trapped orbit.  This is the recurrence input from the definition of omega-limit; the
+remaining Poincare--Bendixson geometry must turn such arbitrarily late near-returns into a genuine
+transversal return interval. -/
+theorem omegaSet_frequently_near (D : FlowTrappingData field)
+    {q : Phase2} (hq : q ∈ D.omegaSet) {U : Set Phase2} (hU : U ∈ 𝓝 q) :
+    ∃ᶠ t : ℝ≥0 in Filter.atTop, D.flow t D.seed ∈ U := by
+  have hcluster : MapClusterPt q Filter.atTop (fun t : ℝ≥0 => D.flow t D.seed) := by
+    exact (mem_omegaLimit_singleton_iff_mapClusterPt
+      (f := Filter.atTop) (ϕ := D.flow) D.seed q).mp hq
+  exact hcluster.frequently hU
+
 /-- Bundle the already-proved omega-limit properties for downstream global-dynamics arguments. -/
 structure OmegaCertificate (D : FlowTrappingData field) : Prop where
   nonempty : D.omegaSet.Nonempty

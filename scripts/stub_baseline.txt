@@ -1,0 +1,36 @@
+# Hollow/unproved definitions, one per line: kind<TAB>file<TAB>text
+# Regenerate with: python3 scripts/check_stubs.py --write
+# This list must only ever shrink.  See LEDGER.md.
+sorry	CRNT/Dynamics/GlobalAttractorTheorem.lean	sorry
+sorry	CRNT/Equilibria/ComplexBalanceLinearStability.lean	sorry
+sorry	CRNT/Equilibria/DirectedMatrixTreeProof.lean	sorry
+sorry	CRNT/Equilibria/MatrixTreeCofactor.lean	sorry
+sorry	CRNT/Equilibria/WegscheiderInteger.lean	sorry
+sorry	CRNT/Flux/CircuitTheory.lean	sorry
+sorry	CRNT/Flux/CircuitTheory.lean	sorry⟩
+sorry	CRNT/Flux/ConformalDecomposition.lean	sorry
+sorry	CRNT/Flux/ExtremeRay.lean	sorry
+sorry	CRNT/Flux/IntegerTInvariant.lean	sorry
+sorry	CRNT/Graph/CirculationDecomposition.lean	sorry
+sorry	CRNT/Kinetics/GeneralizedBirchExistence.lean	sorry
+sorry	CRNT/Kinetics/GeneralizedDeficiencyZero.lean	sorry
+sorry	CRNT/Kinetics/GeneralizedDeficiencyZeroCRNT.lean	sorry
+sorry	CRNT/Multistationarity/ConcordanceConverse.lean	sorry
+sorry	CRNT/Multistationarity/Discordance.lean	sorry
+sorry	CRNT/Multistationarity/InfluenceConcordance.lean	sorry
+sorry	CRNT/Multistationarity/Normality.lean	sorry
+sorry	CRNT/Multistationarity/NormalityTerminal.lean	sorry
+sorry	CRNT/Multistationarity/StrongConcordance.lean	sorry
+sorry	CRNT/Multistationarity/StrongConcordanceStability.lean	sorry
+sorry	CRNT/Multistationarity/TrueChemistrySRCriterion.lean	sorry
+sorry	CRNT/Multistationarity/WeakNormality.lean	sorry
+sorry	CRNT/Multistationarity/WeakNormalityCriterion.lean	sorry
+sorry	CRNT/Stability/BDCCauchyBinetProof.lean	sorry
+sorry	CRNT/Stability/BDCPrincipalMinors.lean	sorry
+sorry	CRNT/Stability/BDCStructuralNonsingularity.lean	sorry
+sorry	CRNT/Stochastic/BirthDeathExhaustive.lean	sorry
+sorry	CRNT/Stochastic/ProductFormConverse.lean	sorry
+sorry	CRNT/Theorems/DeficiencyOne/DegreeExistence.lean	sorry
+sorry	CRNT/Theorems/DeficiencyOne/Theorem.lean	sorry
+sorry	CRNT/Theorems/DeficiencyOne/WeaklyReversibleExistence.lean	sorry
+sorry	CRNT/Translation/DeficiencyImprovement.lean	sorry

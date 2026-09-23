@@ -1,0 +1,8 @@
+# Undeclared identifiers referenced by frontier modules: the proof
+# obligations that remain to be written.  One per line: name<TAB>file.
+# Regenerate with: python3 scripts/check_undefined_names.py --write-gaps
+# This list must only ever shrink.  See LEDGER.md.
+constructParameterizedPoincarePersistence	CRNT/Oscillation/FloquetPersistenceGeneral.lean
+constructTransverseFloquetSectionData	CRNT/Oscillation/FloquetOrbitalStability.lean
+massActionFloquetData_of_branchMonodromy	CRNT/Oscillation/FloquetPersistenceGeneral.lean
+noDrainableSiphonOmega_of_minimalDichotomy	test/GlobalPersistenceSmoke.lean

@@ -34,14 +34,14 @@ variable {N : Network S}
 
 /-- Criterion I canonically supplies all CRN data needed by the analytic global-Hopf theorem. -/
 noncomputable def globalHopfData
-    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget)
+    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget.{0})
     (w : FluxCriterionIWitness N) : N.FluxGlobalHopfData where
   toFluxJacobianStabilityTransition := w.stabilityTransition hP0
   coreInvertible := w.criterion.stable.det_ne_zero
 
 /-- End-to-end Criterion-I oscillatory capacity. -/
-noncomputable theorem oscillatoryCapacity_of_fiedler
-    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget)
+theorem oscillatoryCapacity_of_fiedler
+    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget.{0})
     (hFiedler : FiedlerAnalyticGlobalHopfTarget)
     (w : FluxCriterionIWitness N) : N.OscillatoryCapacity :=
   (w.globalHopfData hP0).oscillatoryCapacity_of_fiedler_closed hFiedler
@@ -55,14 +55,14 @@ variable {N : Network S}
 /-- Criterion II likewise supplies a complete analytic global-Hopf continuation.  Fisher--Fuller
 membership already includes nonsingularity of the full core matrix. -/
 noncomputable def globalHopfData
-    (hFF : Matrix.FisherFullerStabilizingScalingTarget)
+    (hFF : Matrix.FisherFullerStabilizingScalingTarget.{0})
     (w : FluxCriterionIIWitness N) : N.FluxGlobalHopfData where
   toFluxJacobianStabilityTransition := w.stabilityTransition hFF
   coreInvertible := w.criterion.fisherFuller.det_ne_zero
 
 /-- End-to-end Criterion-II oscillatory capacity. -/
-noncomputable theorem oscillatoryCapacity_of_fiedler
-    (hFF : Matrix.FisherFullerStabilizingScalingTarget)
+theorem oscillatoryCapacity_of_fiedler
+    (hFF : Matrix.FisherFullerStabilizingScalingTarget.{0})
     (hFiedler : FiedlerAnalyticGlobalHopfTarget)
     (w : FluxCriterionIIWitness N) : N.OscillatoryCapacity :=
   (w.globalHopfData hFF).oscillatoryCapacity_of_fiedler_closed hFiedler
@@ -71,9 +71,9 @@ end FluxCriterionIIWitness
 
 /-- The two full-matrix Vassena criteria now assemble into the public realization theorem.  The
 remaining dependencies are purely finite matrix theory plus the analytic global-Hopf theorem. -/
-noncomputable theorem vassenaFluxCriteriaRealization_of_fiedler
-    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget)
-    (hFF : Matrix.FisherFullerStabilizingScalingTarget)
+theorem vassenaFluxCriteriaRealization_of_fiedler
+    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget.{0})
+    (hFF : Matrix.FisherFullerStabilizingScalingTarget.{0})
     (hFiedler : FiedlerAnalyticGlobalHopfTarget) :
     VassenaFluxCriteriaRealizationTarget := by
   intro T _ _ N h

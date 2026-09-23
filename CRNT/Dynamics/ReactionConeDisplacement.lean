@@ -72,7 +72,8 @@ theorem displacement_eq_integratedReactionFlux (N : Network S) (κ : N.RateConst
           ∫ t in a..b, (N.massActionRate κ r (γ t)) • N.reactionVector r := by
           rw [intervalIntegral.integral_finsetSum]
           intro r _
-          exact (hrint r).smul_continuousOn continuousOn_const
+          -- `IntervalIntegrable` is the conjunction of two `IntegrableOn`s here
+          exact ⟨(hrint r).1.smul_const _, (hrint r).2.smul_const _⟩
     _ = ∑ r : N.R,
           (∫ t in a..b, N.massActionRate κ r (γ t)) • N.reactionVector r := by
           apply Finset.sum_congr rfl

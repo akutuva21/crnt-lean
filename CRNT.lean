@@ -157,6 +157,7 @@ import CRNT.Open.PartialOpen
 import CRNT.Equilibria.SteadyState
 import CRNT.Equilibria.CompatibilityClass
 import CRNT.Equilibria.ComplexBalanced
+import CRNT.Equilibria.DetailedBalanced
 import CRNT.Equilibria.BrouwerSteadyState
 import CRNT.Equilibria.BrouwerNormalCone
 
@@ -296,8 +297,10 @@ import CRNT.Theorems.DeficiencyZero.Lyapunov
 import CRNT.Theorems.DeficiencyZero.AsymptoticStability
 import CRNT.Theorems.DeficiencyZero.NoPeriodicOrbit
 
--- Oscillation: core periodic-orbit vocabulary and low-rank exclusion
--- (additional oscillation modules are present but not re-exported by default)
+-- Oscillation: periodic-orbit vocabulary, the proved exclusion theorems, matrix criteria,
+-- reaction-restriction/inheritance interfaces, and the planar/Vassena/Floquet routes.
+-- The whole subtree is re-exported through the `CRNT.Oscillation` umbrella below; these four
+-- are listed early because the analyzer contract depends on them directly.
 import CRNT.Oscillation.Basic
 import CRNT.Oscillation.Exclusion
 import CRNT.Oscillation.LowRank
@@ -319,6 +322,7 @@ import CRNT.Multistationarity.JacobianDeterminantSign
 import CRNT.Multistationarity.JacobianCycleSign
 import CRNT.Multistationarity.JacobianCycleSelection
 import CRNT.Multistationarity.Injectivity
+import CRNT.Multistationarity.SourceWeightPairing
 import CRNT.Multistationarity.Concordance
 import CRNT.Multistationarity.Capacity
 import CRNT.Multistationarity.JacobianInjectivity
@@ -469,13 +473,315 @@ import CRNT.Multistationarity.Sard
 import CRNT.Multistationarity.SteadyStateDegree
 import CRNT.Deficiency.DOACapacityConstruction
 
--- Global persistence/permanence API: only the analyzer-facing certificates are part of the
--- default bundle. The remaining tier/structural modules are present on disk as .bak
--- (import them directly when needed).
+-- Global persistence/permanence API and theorem-frontier infrastructure.
+--
+-- The three modules that used to be hollow (`GlobalPersistence`, `GlobalPersistenceCertificates`,
+-- `SiphonAutocatalysis` -- `:= True`, `dummy : True`, `isTrue` deciders) now carry real content
+-- from the global-persistence branch, so they are re-exported again.  `scripts/check_stubs.py`
+-- reports zero hollow definitions in the tree; if that regresses, these imports are the first
+-- thing to remove.
 import CRNT.Geometry.EndotacticGlobal
+import CRNT.Geometry.SpeciesProjection
+import CRNT.Kinetics.SpeciesProjectionMassAction
+import CRNT.Kinetics.VariableMassAction
 import CRNT.Dynamics.GlobalPersistence
 import CRNT.Dynamics.SiphonAutocatalysis
 import CRNT.Dynamics.GlobalPersistenceCertificates
+import CRNT.Dynamics.SingleLinkageStructure
+import CRNT.Dynamics.ReactionConeDisplacement
+import CRNT.Dynamics.NoDrainableSiphonPersistence
+import CRNT.Dynamics.GlobalPermanence
+import CRNT.Decision.StrictConeRealization
+
+-- Tier decomposition and the Lemma 4.4 scale-extraction chain (the permanence route).
+import CRNT.Dynamics.TierPersistence
+import CRNT.Dynamics.TierDirectionFeasibility
+import CRNT.Dynamics.TierDirectionProjection
+import CRNT.Dynamics.TierLyapunov
+import CRNT.Dynamics.TierOriginGeometry
+import CRNT.Dynamics.FiniteNegativeBudget
+import CRNT.Dynamics.TierScaleMagnitude
+import CRNT.Dynamics.TierScaleTruncation
+import CRNT.Dynamics.TierScaleDecomposition
+import CRNT.Dynamics.TierScaleExtractionLemma44
+import CRNT.Dynamics.TierExtractionCompleted
+import CRNT.Dynamics.ProperTierTransversal
+import CRNT.Dynamics.TierSubsequenceExtraction
+import CRNT.Dynamics.TierOrderAlgebra
+import CRNT.Dynamics.TierExtraction
+import CRNT.Dynamics.TierSequentialReduction
+import CRNT.Dynamics.TierCompactNegativity
+import CRNT.Dynamics.VariableTierLyapunov
+import CRNT.Dynamics.PermanenceAssembly
+-- Detailed balance / Wegscheider, buffering, translation (new)
+import CRNT.Stoich.Transpose
+import CRNT.Graph.Reversibility
+import CRNT.Equilibria.Wegscheider
+import CRNT.Equilibria.WegscheiderConverse
+import CRNT.Design.BufferingStructure
+import CRNT.Design.OutputCompleteClosure
+import CRNT.Translation.DynamicalEquivalence
+import CRNT.Translation.ReactionTranslation
+-- expanded checkpoint (latest drop): modules that elaborate
+import CRNT.Design.ACRStandard
+import CRNT.Equilibria.ComplexBalanceStructure
+import CRNT.Flux.PSemiflow
+import CRNT.Algebra.SiphonIdeal
+import CRNT.Decomposition.ReactionPartition
+import CRNT.Design.GeneratedClosure
+import CRNT.Multistationarity.SignConstruction
+import CRNT.Stochastic.FosterLyapunov
+import CRNT.Translation.ComplexBalance
+import CRNT.Translation.StructuralInvariants
+import CRNT.Stability.BDC
+import CRNT.Kinetics.GeneralizedConditions
+import CRNT.LinearAlgebra.OrientedMatroidConditions
+import CRNT.Geometry.CompatibilityFaces
+import CRNT.Stoich.ConservationDimension
+import CRNT.Subnetwork.ReactionRestriction
+import CRNT.Stochastic.IntegerLattice
+import CRNT.Dynamics.FlowSmoothDependence
+import CRNT.Dynamics.KnownGlobalPersistenceClasses
+import CRNT.Oscillation.CoordinateDynamics
+import CRNT.Oscillation.Floquet
+import CRNT.Oscillation.GlobalAttraction
+import CRNT.Oscillation.MatrixCriteria
+import CRNT.Oscillation.ReturnMap
+import CRNT.Oscillation.ReturnMapContraction
+import CRNT.Oscillation.ParameterRich
+import CRNT.Oscillation.ReturnMapPersistence
+import CRNT.Oscillation.Certificate
+import CRNT.Oscillation.ReactionRestriction
+import CRNT.Oscillation.RecipeZero
+import CRNT.Oscillation.StructuralCore
+import CRNT.Oscillation.PlanarFrontier
+import CRNT.Oscillation.DulacAreaSign
+import CRNT.Oscillation.GreenJordanReduction
+import CRNT.Oscillation.PlanarDulac
+import CRNT.Oscillation.SimpleCycle
+import CRNT.Oscillation.RecipeZeroContinuation
+import CRNT.Oscillation.ReturnInterval
+import CRNT.Oscillation.ReturnMapAttraction
+import CRNT.Oscillation.DulacLineIntegral
+import CRNT.Oscillation.PlanarOmega
+import CRNT.Oscillation.ChildSelectionSearch
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Equilibria.SteadyStateFlux
+import CRNT.Flux.Cone
+import CRNT.Flux.Elementary
+import CRNT.Oscillation.Analyze
+import CRNT.Oscillation.PlanarCanonicalReturn
+import CRNT.Oscillation.PlanarMinimalSet
+import CRNT.Oscillation.PlanarRecurrentSection
+import CRNT.Oscillation.PlanarTransversalGeometry
+import CRNT.Oscillation.RankTwoPlanar
+import CRNT.Oscillation.VassenaCriteria
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Deficiency.ExactSequence
+import CRNT.Design.EmergentCycles
+import CRNT.Kinetics.GeneralizedNondegeneracy
+import CRNT.Reduction.Intermediates
+import CRNT.Subnetwork.EmbeddedNetwork
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Oscillation.ReturnMapFamilyPersistence
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Equilibria.LinkageComplexBalance
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Design.EmergentConservation
+import CRNT.Design.Localization
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Dynamics.Trap
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Graph.Condensation
+import CRNT.Kinetics.GeneralizedNetwork
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Basic.Isomorphism
+import CRNT.Basic.IsomorphismKinetics
+import CRNT.Decomposition.BlockDeficiency
+import CRNT.Decomposition.Deficiency
+import CRNT.Decomposition.Rank
+import CRNT.Deficiency.CycleExactSequence
+import CRNT.Deficiency.LinkageCoupling
+import CRNT.Design.MaxRPA
+import CRNT.Design.MaxRPAIntegrator
+import CRNT.Design.MaxRPAStochastic
+import CRNT.Design.ShinarFeinbergTheorem
+import CRNT.Equilibria.WegscheiderDeficiency
+import CRNT.Equilibria.WegscheiderGenerators
+import CRNT.Geometry.ConservativeCompatibility
+import CRNT.Kinetics.GeneralizedCycleExactSequence
+import CRNT.Kinetics.GeneralizedDeficiencyComparison
+import CRNT.LinearAlgebra.OrientedMatroidNondegeneracy
+import CRNT.Stochastic.Absorbing
+import CRNT.Stochastic.ConservativeClasses
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Equilibria.TreeConstantBinomials
+import CRNT.Equilibria.TreeConstantCriterion
+import CRNT.Equilibria.TreeConstantKernelBasis
+import CRNT.Equilibria.TreeConstants
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Algebra.DeficiencyIdeal
+import CRNT.Algebra.PositiveTorusIdeals
+import CRNT.Algebra.SteadyStateIdeal
+import CRNT.Deficiency.DeficiencyOneLinkageScalars
+import CRNT.Deficiency.DeficiencyOneMonotonicity
+import CRNT.Deficiency.DeficiencyOneScalarReduction
+import CRNT.Deficiency.DeficiencyZeroConsistency
+import CRNT.Deficiency.TerminalKernelCone
+import CRNT.Deficiency.TerminalKernelDimension
+import CRNT.Deficiency.TerminalKernelFaces
+import CRNT.Design.ShinarFeinbergCrossClass
+import CRNT.Design.ShinarFeinbergTreeFormula
+import CRNT.Equilibria.BoundarySiphon
+import CRNT.Equilibria.GeneralizedComplexBalanceToric
+import CRNT.Equilibria.GeneralizedTreeConstantCriterion
+import CRNT.Graph.PositiveCirculation
+import CRNT.Multistationarity.DeficiencyObstruction
+import CRNT.Oscillation.ChildSelectionReactivity
+import CRNT.Oscillation.DHopf
+import CRNT.Oscillation.OscillatoryCoreEndToEnd
+import CRNT.Oscillation.ParameterRichDHopfContinuation
+import CRNT.Oscillation.ReactivityScaling
+import CRNT.Oscillation.VassenaContinuation
+import CRNT.Stability.RobustLyapunov
+import CRNT.Theorems.DeficiencyZero.Characterization
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Deficiency.CycleSplitting
+import CRNT.Equilibria.WegscheiderDeficiencyOne
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Design.LabeledBufferingRPA
+import CRNT.Design.LabeledBufferingStructure
+import CRNT.Design.LocalizationDifferential
+import CRNT.Design.MinimalForm
+import CRNT.Design.StrongBufferingFluxRPA
+import CRNT.Reduction.IntermediateSchurComplement
+import CRNT.Reduction.SingleIntermediateElimination
+import CRNT.Stochastic.DetailedBalance
+import CRNT.Stochastic.FirstOrderFoster
+import CRNT.Translation.ParallelAggregation
+import CRNT.Translation.ParallelStructural
+import CRNT.Translation.SourceCoefficientEquivalence
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Equilibria.ComplexBalanceGeometry
+import CRNT.Equilibria.ConservationCoordinates
+import CRNT.Equilibria.DetailedBalanceEntropy
+import CRNT.Equilibria.DetailedBalanceLinearStability
+import CRNT.Equilibria.DetailedBalanceToric
+import CRNT.Equilibria.GeneralizedComplexBalanceGeometry
+import CRNT.Oscillation.ContinuousTimeAttraction
+import CRNT.Oscillation.GreenJordanFoundations
+import CRNT.Oscillation.PlanarFlowBox
+import CRNT.Oscillation.PlanarJordanSeparation
+import CRNT.Oscillation.PlanarLateSectionReturn
+import CRNT.Oscillation.PlanarNoCrossing
+import CRNT.Oscillation.PlanarReturnOrdering
+import CRNT.Oscillation.PlanarReturnSequence
+import CRNT.Oscillation.PlanarSectionCoordinates
+import CRNT.Translation.Improper
+import CRNT.Translation.ResolvedComplexBalance
+import CRNT.Translation.SourceComplexes
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Oscillation.DependentReaction
+import CRNT.Oscillation.FloquetPersistenceBridge
+import CRNT.Oscillation.FloquetReturnBridge
+import CRNT.Oscillation.Inheritance
+import CRNT.Oscillation.ScalarReturnStability
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Dynamics.GlobalPersistenceFrontier
+import CRNT.Dynamics.TierStrictUpwardPartner
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Multistationarity.TrueChemistrySRGraph
+import CRNT.Translation.ImproperComplexBalance
+import CRNT.Translation.LinearConjugacy
+import CRNT.Translation.LinearConjugacySpectral
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Oscillation.FiedlerGlobalHopf
+import CRNT.Oscillation.GlobalHopfContinuation
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Oscillation.PlanarFloquetAttraction
+import CRNT.Oscillation.ScalarReturnMapFamilyPersistence
+import CRNT.Oscillation.ScalarSectionInterpolation
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Oscillation.VassenaAnalyticity
+import CRNT.Oscillation.VassenaEndToEnd
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Oscillation.VassenaFiniteDimHopf
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Oscillation.PlanarOneSidedReturns
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Equilibria.TreePotentialIntegration
+import CRNT.Theorems.DeficiencyZero.TreeConstantConstruction
+import CRNT.Theorems.DeficiencyZero.TreeConstantProofComplete
+
+-- Promoted from the frontier ledger (elaborated, closure sorry-free).
+import CRNT.Stability.BDCCauchyBinetProof
+import CRNT.Stability.BDCPrincipalMinors
+import CRNT.Stability.BDCStructuralNonsingularity
+import CRNT.Kinetics.CatalystFace
+import CRNT.Kinetics.GeneralizedBirchExistence
+import CRNT.Multistationarity.LocalDegreeOn
+import CRNT.Multistationarity.ParametrizedLocalDegree
+import CRNT.Theorems.DeficiencyOne.JacobianKernel
+import CRNT.Basic.IsomorphismStructural
+import CRNT.Equilibria.ComplexBalanceLinearStability
+import CRNT.Equilibria.ComplexBalanceObstruction
+import CRNT.Equilibria.DirectedMatrixTreeProof
+import CRNT.Equilibria.MatrixTreeCofactor
+import CRNT.Equilibria.WegscheiderInteger
+import CRNT.Flux.CircuitTheory
+import CRNT.Flux.ConformalDecomposition
+import CRNT.Flux.ExtremeRay
+import CRNT.Flux.IntegerTInvariant
+import CRNT.Graph.CirculationDecomposition
+import CRNT.Kinetics.GeneralizedComplexBalanceObstruction
+import CRNT.Kinetics.GeneralizedDeficiencyZero
+import CRNT.Kinetics.GeneralizedDeficiencyZeroCRNT
+import CRNT.Kinetics.GeneralizedDeficiencyZeroExistence
+import CRNT.Kinetics.GeneralizedDeficiencyZeroProof
+import CRNT.Multistationarity.InfluenceConcordance
+import CRNT.Multistationarity.Normality
+import CRNT.Multistationarity.NormalityTerminal
+import CRNT.Multistationarity.StrongConcordance
+import CRNT.Multistationarity.StrongConcordanceStability
+import CRNT.Multistationarity.WeakNormality
+import CRNT.Multistationarity.WeakNormalityCriterion
+import CRNT.Stochastic.BirthDeathExhaustive
+import CRNT.Stochastic.ProductFormConverse
+import CRNT.Translation.DeficiencyImprovement
+import CRNT.Oscillation.BanajiDependentReaction
+import CRNT.Oscillation.BanajiEndToEnd
+import CRNT.Oscillation.DependentReactionPersistence
+
+-- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
+-- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
+-- been elaborated; see scripts/unverified_modules.txt.
+
+-- The deterministic oscillation development (planar Poincare-Bendixson/Dulac route, Vassena and
+-- Fiedler criteria, parameter-rich D-Hopf cores, Floquet stability, network inheritance) is also in
+-- the frontier target.  Only the four modules imported above -- Basic, Exclusion, LowRank,
+-- KineticBasic -- are part of the verified core, because the analyzer contract depends on them.
 
 /-!
 # `crnt-lean`: Chemical Reaction Network Theory in Lean 4
@@ -488,4 +794,14 @@ The stable core plus the global-persistence and oscillation APIs is re-exported
 here.  Research-frontier statements in those layers are represented as ordinary
 propositions, never as axioms; importing `CRNT` therefore does not turn an
 unproved global claim into an available theorem.
+
+Two caveats, both machine-checked by `scripts/`:
+
+* Modules whose definitions do not yet carry their intended meaning (`:= True`,
+  `dummy : True`, `isTrue` deciders) are listed in `LEDGER.md` and are deliberately
+  excluded from this umbrella.  `scripts/check_stubs.py` fails if a new one appears
+  or if one of them is re-exported here.
+* Modules that do not elaborate are listed in `scripts/known_broken.txt`, which the
+  lakefile consumes as its exclusion list.  `scripts/check_exclusions.py` fails if
+  that list grows.
 -/

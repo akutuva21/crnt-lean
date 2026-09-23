@@ -1,6 +1,7 @@
 import CRNT.Oscillation.Basic
 import Mathlib.Analysis.Calculus.Deriv.Basic
 import Mathlib.Analysis.Convex.Basic
+import Mathlib.Analysis.InnerProductSpace.PiL2
 
 /-!
 # Planar global-oscillation interfaces
@@ -20,8 +21,14 @@ Bendixson--Dulac implication is already proved.
 
 namespace CRNT
 
-/-- The standard two-dimensional real phase space. -/
-abbrev Phase2 := Fin 2 → ℝ
+/-- The standard two-dimensional real phase space.
+
+This is `EuclideanSpace ℝ (Fin 2)` rather than the bare pi type `Fin 2 → ℝ`: the transversal
+section machinery in `Dynamics.TransversalCrossingTime` is stated over an
+`InnerProductSpace ℝ E`, and the pi type carries the sup norm, which is not induced by any
+inner product.  `EuclideanSpace ℝ (Fin 2)` unfolds to the same underlying function type, so
+componentwise definitions still typecheck. -/
+abbrev Phase2 := EuclideanSpace ℝ (Fin 2)
 
 namespace Planar
 
@@ -45,16 +52,16 @@ structure TrappedOrbit (field : Phase2 → Phase2) where
 
 /-- Replace coordinate `i` of a planar point by the scalar `a`. -/
 def setCoord (x : Phase2) (i : Fin 2) (a : ℝ) : Phase2 :=
-  Function.update x i a
+  WithLp.toLp 2 (Function.update x.ofLp i a)
 
-/-- Coordinate partial derivative of a scalar function on `Phase2`, using the classical real
+/-- Coordinate partialDeriv derivative of a scalar function on `Phase2`, using the classical real
 `deriv`.  The regularity hypotheses needed to reason about this quantity belong in theorems using it. -/
-noncomputable def partial (g : Phase2 → ℝ) (i : Fin 2) (x : Phase2) : ℝ :=
+noncomputable def partialDeriv (g : Phase2 → ℝ) (i : Fin 2) (x : Phase2) : ℝ :=
   deriv (fun a => g (setCoord x i a)) (x i)
 
 /-- Classical divergence of a planar vector field in coordinates. -/
 noncomputable def divergence (field : Phase2 → Phase2) (x : Phase2) : ℝ :=
-  partial (fun y => field y 0) 0 x + partial (fun y => field y 1) 1 x
+  partialDeriv (fun y => field y 0) 0 x + partialDeriv (fun y => field y 1) 1 x
 
 /-- A real function has one strict sign on a region. -/
 def StrictOneSignOn (g : Phase2 → ℝ) (region : Set Phase2) : Prop :=

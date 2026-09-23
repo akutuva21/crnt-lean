@@ -25,7 +25,7 @@ to one particular line/surface integration representation.  The eventual Green t
 values from actual integrals. -/
 structure GreenJordanCycleCertificate
     {field : Phase2 → Phase2} (D : BendixsonDulacData field)
-    (P : PeriodicTrajectory field) : Prop where
+    (P : PeriodicTrajectory field) where
   simple : P.SimpleClosedCycle
   inside : Set.range P.orbit ⊆ D.region
   /-- Boundary flux of `D.dulac • field` around one positively oriented traversal. -/
@@ -34,8 +34,12 @@ structure GreenJordanCycleCertificate
   divergenceArea : ℝ
   /-- The tangency identity makes the boundary flux zero. -/
   boundaryFlux_zero : boundaryFlux = 0
-  /-- Green's divergence theorem identifies boundary and area integrals. -/
-  green : boundaryFlux = divergenceArea
+  /-- Orientation of the displayed traversal relative to the positive Jordan boundary orientation.
+  It is `+1` for counterclockwise and `-1` for clockwise traversal. -/
+  orientation : ℝ
+  orientation_sq : orientation ^ 2 = 1
+  /-- Green's divergence theorem identifies boundary flux with the oriented area integral. -/
+  green : boundaryFlux = orientation * divergenceArea
   /-- Strict one-sign divergence on a nonempty Jordan interior makes the area integral nonzero. -/
   divergenceArea_ne_zero : divergenceArea ≠ 0
 
@@ -47,7 +51,14 @@ theorem false_of_certificate
     {P : PeriodicTrajectory field}
     (C : GreenJordanCycleCertificate D P) : False := by
   apply C.divergenceArea_ne_zero
-  rw [← C.green, C.boundaryFlux_zero]
+  have horient : C.orientation ≠ 0 := by
+    intro h0
+    have hsq := C.orientation_sq
+    rw [h0, zero_pow (by norm_num)] at hsq
+    norm_num at hsq
+  have hmul : C.orientation * C.divergenceArea = 0 := by
+    rw [← C.green, C.boundaryFlux_zero]
+  exact (mul_eq_zero.mp hmul).resolve_left horient
 
 end GreenJordanCycleCertificate
 

@@ -95,8 +95,19 @@ theorem vectorField_coordinate_hasDerivAt (K : N.Kinetics) (x : Concentration S)
       (fun z : ℝ => ∑ r : N.R,
         K.rate r (Function.update x j z) * N.reactionVector r i)
       (∑ r : N.R, R r j * N.reactionVector r i) (x j) := by
-    exact HasDerivAt.sum (u := (Finset.univ : Finset N.R))
-      (fun r _ => (hR r j).mul_const (N.reactionVector r i))
+    -- `HasDerivAt.sum` produces `∑ r, (fun z => …)`, a sum of *functions*; the goal is a
+    -- function of a sum, so bridge with `Finset.sum_apply`.
+    have h := HasDerivAt.sum (u := (Finset.univ : Finset N.R))
+      (fun r (_ : r ∈ (Finset.univ : Finset N.R)) =>
+        (hR r j).mul_const (N.reactionVector r i))
+    have hfun : (∑ r : N.R, fun z : ℝ =>
+        K.rate r (Function.update x j z) * N.reactionVector r i)
+        = fun z : ℝ => ∑ r : N.R,
+          K.rate r (Function.update x j z) * N.reactionVector r i := by
+      funext z
+      simp [Finset.sum_apply]
+    rw [hfun] at h
+    exact h
   simpa [Network.Kinetics.vectorField, Network.symbolicJacobian, mul_comm] using hsum
 
 end Kinetics

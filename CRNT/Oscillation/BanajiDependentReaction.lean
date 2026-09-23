@@ -1,5 +1,7 @@
 import CRNT.Oscillation.DependentReaction
 import CRNT.Oscillation.ScalarReturnMapFamilyPersistence
+import CRNT.Oscillation.ConcentrationEuclidean
+import CRNT.Oscillation.DependentReactionPersistence
 
 /-!
 # Planar Banaji-style inheritance for a dependent added reaction
@@ -25,20 +27,21 @@ variable {S : Type} [DecidableEq S] [Fintype S]
 /-- Planar scalar-section persistence data specialized to the smooth one-added-reaction family. -/
 structure ScalarDependentReactionPersistenceData
     (N : Network S) (q : Reaction S) (κ : N.RateConstants) where
-  persistent : ScalarPersistentReturnOrbitData (Concentration S)
+  persistent : ScalarPersistentReturnOrbitData (ConcentrationE S)
   parameter_zero : persistent.persistence.parameter = 0
-  field_eq : ∀ ε, (persistent.section ε).field = N.addedReactionFieldFamily κ q ε
+  field_eq : ∀ ε,
+    (persistent.xsection ε).field = euclideanField (N.addedReactionFieldFamily κ q ε)
   /-- The chosen branch flow remains strictly positive for nearby parameters. -/
   branch_positive :
     ∀ᶠ ε in 𝓝 (0 : ℝ), ∀ t s,
-      0 < (persistent.section ε).flow
-        (persistent.point ε (persistent.persistence.fixedPointBranch ε)) t s
+      0 < WithLp.ofLp ((persistent.xsection ε).flow
+        (persistent.point ε (persistent.persistence.fixedPointBranch ε)) t) s
 
 namespace ScalarDependentReactionPersistenceData
 
 /-- The scalar IFT branch yields nearby positive periodic trajectories of the smooth perturbation
 family. -/
-noncomputable theorem eventually_positive_family_branch
+theorem eventually_positive_family_branch
     {N : Network S} {q : Reaction S} {κ : N.RateConstants}
     (D : ScalarDependentReactionPersistenceData N q κ) :
     ∀ᶠ ε in 𝓝 (0 : ℝ),
@@ -48,21 +51,20 @@ noncomputable theorem eventually_positive_family_branch
   rw [D.parameter_zero] at hbranch
   filter_upwards [hbranch, D.branch_positive] with ε hP hpos
   obtain ⟨B⟩ := hP
-  let P : PeriodicTrajectory (N.addedReactionFieldFamily κ q ε) :=
-    B.trajectory.congrField (D.field_eq ε)
-  refine ⟨P, ?_⟩
+  refine ⟨PeriodicTrajectory.ofEuclidean (B.trajectory.congrField (D.field_eq ε)), ?_⟩
   intro t s
-  have horbit : P.orbit t =
-      (D.persistent.section ε).flow
-        (D.persistent.point ε (D.persistent.persistence.fixedPointBranch ε)) t := by
-    change B.trajectory.orbit t = _
-    exact congrFun B.orbit_eq t
+  have horbit :
+      (PeriodicTrajectory.ofEuclidean (B.trajectory.congrField (D.field_eq ε))).orbit t =
+        WithLp.ofLp ((D.persistent.xsection ε).flow
+          (D.persistent.point ε (D.persistent.persistence.fixedPointBranch ε)) t) := by
+    simp only [PeriodicTrajectory.ofEuclidean_orbit, PeriodicTrajectory.congrField_orbit]
+    exact congrArg WithLp.ofLp (congrFun B.orbit_eq t)
   rw [horbit]
   exact hpos t s
 
 /-- **Planar regular-perturbation inheritance.** A certified scalar Poincare branch through zero
 added-reaction rate implies oscillatory capacity of the enlarged CRN. -/
-noncomputable theorem oscillatoryCapacity
+theorem oscillatoryCapacity
     {N : Network S} {q : Reaction S} {κ : N.RateConstants}
     (D : ScalarDependentReactionPersistenceData N q κ) :
     (N.addReaction q).OscillatoryCapacity := by

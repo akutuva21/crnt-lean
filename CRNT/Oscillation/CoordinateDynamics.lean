@@ -1,5 +1,6 @@
 import CRNT.Oscillation.Basic
 import CRNT.Multistationarity.ReducedJacobian
+import CRNT.Kinetics.Concentration
 
 /-!
 # Stoichiometric-coordinate dynamics
@@ -52,11 +53,11 @@ theorem reducedSolution_lifts (N : Network S) (κ : N.RateConstants)
 /-- The positive part of the affine stoichiometric chart. -/
 def positiveChartRegion (N : Network S) (x₀ : Concentration S) :
     Set (Fin N.stoichRank → ℝ) :=
-  {y | (N.affineChart x₀ y).Positive}
+  {y | Concentration.Positive (N.affineChart x₀ y)}
 
 @[simp] theorem mem_positiveChartRegion_iff (N : Network S) (x₀ : Concentration S)
     (y : Fin N.stoichRank → ℝ) :
-    y ∈ N.positiveChartRegion x₀ ↔ (N.affineChart x₀ y).Positive :=
+    y ∈ N.positiveChartRegion x₀ ↔ Concentration.Positive (N.affineChart x₀ y) :=
   Iff.rfl
 
 /-- **A positive periodic reduced orbit lifts to a positive periodic mass-action orbit.**
@@ -66,7 +67,7 @@ rank-two reduced field inside a trapping region known to lie in `positiveChartRe
 noncomputable def positivePeriodicOrbitOfReducedTrajectory
     (N : Network S) (κ : N.RateConstants) (x₀ : Concentration S)
     (P : PeriodicTrajectory (N.reducedField κ x₀))
-    (hpos : ∀ t, (N.affineChart x₀ (P.orbit t)).Positive) :
+    (hpos : ∀ t, Concentration.Positive (N.affineChart x₀ (P.orbit t))) :
     N.PositivePeriodicOrbit κ where
   orbit := fun t => N.affineChart x₀ (P.orbit t)
   period := P.period

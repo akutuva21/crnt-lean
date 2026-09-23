@@ -34,15 +34,13 @@ theorem periodBoundaryFlux_dulac_zero
     (P : PeriodicTrajectory field) :
     periodBoundaryFlux (fun x => B x • field x) P = 0 := by
   unfold periodBoundaryFlux
-  apply intervalIntegral.integral_eq_zero_of_ae
-  filter_upwards with t
-  exact P.dulac_scaled_flux_density_zero t
+  simp [Planar.PeriodicTrajectory.dulac_scaled_flux_density_zero]
 
 /-- Jordan-domain data without Green's theorem.  This contains only the geometric/measure-theoretic
 properties of the bounded interior and enough divergence regularity for the sign-integration lemma. -/
 structure JordanDulacInteriorData
     {field : Phase2 → Phase2} (D : BendixsonDulacData field)
-    (P : PeriodicTrajectory field) : Prop where
+    (P : PeriodicTrajectory field) where
   simple : P.SimpleClosedCycle
   inside : Set.range P.orbit ⊆ D.region
   interior : Set Phase2
@@ -50,7 +48,13 @@ structure JordanDulacInteriorData
   interior_open : IsOpen interior
   interior_connected : IsConnected interior
   interior_measurable : MeasurableSet interior
-  interior_finite : volume interior ≠ ⊤
+  /-- The interior is genuinely bounded, not merely of finite volume. -/
+  bounded : Bornology.IsBounded interior
+  /-- **The interior is the Jordan interior of this very orbit.**  Without this clause the
+  field `interior` is unconstrained (any open connected subset of the region would do), and
+  `GreenDivergencePeriodicJordanTarget` below is then false: its left-hand side depends only
+  on `P` while its right-hand side would range over unrelated domains. -/
+  boundary_eq : frontier interior = P.orbitSet
   interior_subset_region : interior ⊆ D.region
   divergence_continuous :
     ContinuousOn (divergence (fun x => D.dulac x • field x)) interior
@@ -71,14 +75,19 @@ Jordan interior. -/
 def GreenDivergencePeriodicJordanTarget : Prop :=
   ∀ (field : Phase2 → Phase2) (D : BendixsonDulacData field)
     (P : PeriodicTrajectory field) (J : JordanDulacInteriorData D P),
-    periodBoundaryFlux (fun x => D.dulac x • field x) P =
-      ∫ x : Phase2 in J.interior,
-        divergence (fun y => D.dulac y • field y) x
+    ∃ σ : ℝ, σ ^ 2 = 1 ∧
+      periodBoundaryFlux (fun x => D.dulac x • field x) P = σ *
+        (∫ x : Phase2 in J.interior,
+          divergence (fun y => D.dulac y • field y) x)
 
 namespace JordanDulacInteriorData
 
 variable {field : Phase2 → Phase2} {D : BendixsonDulacData field}
   {P : PeriodicTrajectory field}
+
+/-- Boundedness gives finite volume, so the old `interior_finite` field is redundant. -/
+theorem interior_finite (J : JordanDulacInteriorData D P) : volume J.interior ≠ ⊤ :=
+  J.bounded.measure_lt_top.ne
 
 /-- Jordan interior + Green's identity automatically assemble the stronger `DulacAreaData`; the
 boundary-flux-zero field is no longer an assumption. -/
@@ -92,13 +101,15 @@ noncomputable def toDulacAreaData
   interior_open := J.interior_open
   interior_connected := J.interior_connected
   interior_measurable := J.interior_measurable
-  interior_finite := J.interior_finite
+  interior_finite := J.bounded.measure_lt_top.ne
   interior_subset_region := J.interior_subset_region
   divergence_continuous := J.divergence_continuous
   divergence_integrable := J.divergence_integrable
   boundaryFlux := periodBoundaryFlux (fun x => D.dulac x • field x) P
   boundaryFlux_zero := periodBoundaryFlux_dulac_zero D.dulac P
-  green := hGreen field D P J
+  orientation := Classical.choose (hGreen field D P J)
+  orientation_sq := (Classical.choose_spec (hGreen field D P J)).1
+  green := (Classical.choose_spec (hGreen field D P J)).2
 
 /-- The two irreducible geometric theorems immediately give the Bendixson--Dulac contradiction. -/
 theorem false_of_jordan_green
@@ -117,10 +128,23 @@ theorem dulacAreaConstruction_of_jordan_green
   obtain ⟨J⟩ := hJordan field D P hsimple hinside
   exact ⟨J.toDulacAreaData hGreen⟩
 
-/-- Consequently Jordan + Green close the public Bendixson--Dulac theorem. -/
-theorem bendixsonDulacTarget_of_jordan_green
+/-- Jordan + Green close Bendixson--Dulac **given local Lipschitz continuity of the field**.
+
+The extra hypothesis is not decoration. `BendixsonDulacTarget` assumes only `ContDiffOn ℝ 1 field
+D.region`, i.e. C¹ *on the Dulac region*; the flow argument downstream needs `LocallyLipschitz
+field` globally. An earlier version of this proof produced that from
+`smooth_field.locallyLipschitzOn` via a `locallyLipschitz_of_forall_mem` step -- a lemma that does
+not exist, and could not, since being locally Lipschitz on a subset says nothing off that subset.
+Its own comment claimed to be "avoiding silently assuming global C1 outside the Dulac region",
+which is exactly what it did.
+
+Closing the gap to the unqualified `BendixsonDulacTarget` needs either a C¹-extension result off
+the region or a restatement of the downstream flow lemmas in terms of `LocallyLipschitzOn`. Until
+then the hypothesis is explicit. -/
+theorem bendixsonDulacTarget_of_jordan_green_of_locallyLipschitz
     (hJordan : JordanDulacInteriorConstructionTarget)
-    (hGreen : GreenDivergencePeriodicJordanTarget) :
+    (hGreen : GreenDivergencePeriodicJordanTarget)
+    (hlipAll : ∀ field : Phase2 → Phase2, LocallyLipschitz field) :
     BendixsonDulacTarget := by
   have harea := dulacAreaConstruction_of_jordan_green hJordan hGreen
   have hkernel := greenJordanSimpleCycleKernel_of_areaConstruction harea
@@ -133,10 +157,7 @@ theorem bendixsonDulacTarget_of_jordan_green
       convex_region := hconv
       smooth_field := hfield
       smooth_dulac := hB }
-  have hlip : LocallyLipschitz field := by
-    -- On the open region containing the compact orbit this follows from C1 regularity.  Keeping the
-    -- extension step explicit avoids silently assuming global C1 outside the Dulac region.
-    exact D'.smooth_field.locallyLipschitzOn.locallyLipschitz_of_forall_mem D'.open_region
+  have hlip : LocallyLipschitz field := hlipAll field
   exact noPeriodicTrajectoryInRegion_of_simpleGreenJordanKernel
     hkernel D' hlip P hinside
 

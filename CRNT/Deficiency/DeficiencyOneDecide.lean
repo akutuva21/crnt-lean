@@ -104,7 +104,11 @@ open CRNT
 inductive Species
   | A
   | B
-  deriving DecidableEq, Fintype, Repr
+  deriving DecidableEq, Repr
+
+instance : Fintype Species where
+  elems := {Species.A, Species.B}
+  complete := by intro s; cases s <;> simp
 
 open Species
 
@@ -114,7 +118,11 @@ def cB : Complex Species := fun s => match s with | A => 0 | B => 1
 inductive Rxn
   | r1
   | r2
-  deriving DecidableEq, Fintype, Repr
+  deriving DecidableEq, Repr
+
+instance : Fintype Rxn where
+  elems := {Rxn.r1, Rxn.r2}
+  complete := by intro r; cases r <;> simp
 
 def reaction : Rxn → Reaction Species
   | .r1 => { source := cA, target := cB }
@@ -125,6 +133,6 @@ def N : Network Species :=
 
 /-- The reversible network `A ⇌ B` has one linkage class whose single strong linkage class is
 terminal, so condition (3) holds and decides positively. -/
-example : N.OneTerminalSLCPerLinkageClass := by decide
+example : N.OneTerminalSLCPerLinkageClass := by native_decide
 
 end CRNT.DeficiencyOneDecide.Example

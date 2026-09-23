@@ -23,6 +23,11 @@ Depends on: `CRNT.Dynamics.MassActionField`.
 
 namespace CRNT
 
+-- `ℝ≥0` is scoped notation for `NNReal`; without this open it parses as the proposition
+-- `ℝ ≥ 0`, which is how this file failed to elaborate (`failed to synthesize LE Type`).
+-- Every other module in the repository that uses `ℝ≥0` opens it the same way.
+open scoped NNReal
+
 /-- An exact nonconstant periodic solution of an autonomous vector field `field`.
 
 The derivative is stated in the ambient normed vector space.  No stability claim is included: a
@@ -42,10 +47,42 @@ structure PeriodicTrajectory {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ
   /-- The orbit is not an equilibrium trajectory. -/
   nonconstant : ∃ t, orbit t ≠ orbit 0
 
+
+/-- The periodic orbit reparameterized to the unit interval:
+`normalizedLoop s = orbit (s * period)`.  Used by the planar Jordan-curve machinery, which
+needs a loop on `[0,1]`.  (It was referenced by `PlanarJordanBoundaryCurrent` and
+`PlanarJordanSeparation` but defined nowhere; the intended body is pinned down by
+`normalizedLoop_hasDeriv`.) -/
+noncomputable def PeriodicTrajectory.normalizedLoop {E : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] {field : E → E} (P : PeriodicTrajectory field) (s : ℝ) : E :=
+  P.orbit (s * P.period)
+
+/-- The orbit of a periodic trajectory is continuous (it is differentiable everywhere). -/
+theorem PeriodicTrajectory.continuous_orbit {E : Type*} [NormedAddCommGroup E]
+    [NormedSpace ℝ E] {field : E → E} (P : PeriodicTrajectory field) :
+    Continuous P.orbit :=
+  continuous_iff_continuousAt.2 fun t => (P.solution t).continuousAt
 namespace PeriodicTrajectory
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 variable {field : E → E}
+
+/-- Transport a periodic trajectory across an equality of autonomous vector fields.
+Only the field index changes; the orbit, period, and dynamical witness are unchanged. -/
+noncomputable def congrField {field' : E → E} (P : PeriodicTrajectory field)
+    (h : field = field') : PeriodicTrajectory field' := by
+  subst field'
+  exact P
+
+@[simp] theorem congrField_orbit {field' : E → E} (P : PeriodicTrajectory field)
+    (h : field = field') : (P.congrField h).orbit = P.orbit := by
+  subst field'
+  rfl
+
+@[simp] theorem congrField_period {field' : E → E} (P : PeriodicTrajectory field)
+    (h : field = field') : (P.congrField h).period = P.period := by
+  subst field'
+  rfl
 
 /-- The geometric image of a periodic trajectory, forgetting its phase parameterization. -/
 def orbitSet (P : PeriodicTrajectory field) : Set E := Set.range P.orbit
@@ -65,8 +102,9 @@ theorem closes (P : PeriodicTrajectory field) : P.orbit P.period = P.orbit 0 := 
 positive tolerance of *some phase* of the periodic orbit.  This is the natural target for a globally
 attracting limit cycle and avoids choosing a phase synchronization convention. -/
 def GloballyAttracts (P : PeriodicTrajectory field)
-    (flow : NNReal → E → E) (basin : Set E) : Prop :=
-  True
+    (flow : ℝ≥0 → E → E) (basin : Set E) : Prop :=
+  ∀ x ∈ basin, ∀ ε : ℝ, 0 < ε →
+    ∃ T : ℝ≥0, ∀ t : ℝ≥0, T ≤ t → ∃ phase : ℝ, dist (flow t x) (P.orbit phase) < ε
 
 end PeriodicTrajectory
 
@@ -119,7 +157,12 @@ assuming a globally defined flow or uniqueness theorem that the generic CRN laye
 provide.  This is the precise fixed-parameter target for a globally attracting limit cycle. -/
 def GloballyAttractsSolutions (P : N.PositivePeriodicOrbit κ)
     (basin : Set (Concentration S)) : Prop :=
-  True
+  ∀ x ∈ basin, ∀ γ : ℝ → Concentration S,
+    γ 0 = x →
+    (∀ t, 0 ≤ t → HasDerivAt γ (N.massActionVectorField κ (γ t)) t) →
+    ∀ ε : ℝ, 0 < ε →
+      ∃ T : ℝ, 0 ≤ T ∧ ∀ t : ℝ, T ≤ t →
+        ∃ phase : ℝ, dist (γ t) (P.orbit phase) < ε
 
 end PositivePeriodicOrbit
 

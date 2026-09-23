@@ -68,8 +68,13 @@ theorem eventually_displacement_fixedPointBranch_eq_zero (D : ReturnMapPersisten
   have h := D.contDiffAt_displacement.eventually_apply_implicitFunction
     (by norm_num) D.stateDerivativeInvertible
   filter_upwards [h] with μ hμ
+  -- `fixedPointBranch` *is* the implicit function; unfold it so `hμ` matches
+  -- `hμ` is stated on the unfolded displacement, so unfold both `fixedPointBranch` and
+  -- `displacement` in the goal before rewriting
+  show D.returnMap μ (D.fixedPointBranch μ) - D.fixedPointBranch μ = 0
+  simp only [fixedPointBranch]
   rw [hμ]
-  exact D.displacement_base
+  simpa [displacement] using D.displacement_base
 
 /-- Equivalently, the implicit branch consists of actual return-map fixed points near the reference
 parameter. -/

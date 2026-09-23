@@ -15,6 +15,10 @@ line for which the positive return map is defined and maps the interval into its
 
 namespace CRNT
 
+-- `⟪x, y⟫_ℝ` lives in the `InnerProductSpace` scope (not `RealInnerProductSpace`, which
+-- supplies the unsuffixed `⟪x, y⟫`).  Without this the bracket is not even a valid token.
+open scoped InnerProductSpace
+
 namespace Planar
 
 /-- Canonical affine transversal through `q`, represented as a set. -/
@@ -46,7 +50,7 @@ theorem canonical_transversal_ne_zero {field : Phase2 → Phase2} {q : Phase2}
   ne_of_gt (canonical_transversal_speed_pos hne)
 
 /-- Signed coordinate normal to the canonical section. -/
-def canonicalSectionCoord (field : Phase2 → Phase2) (q x : Phase2) : ℝ :=
+noncomputable def canonicalSectionCoord (field : Phase2 → Phase2) (q x : Phase2) : ℝ :=
   ⟪x - q, field q⟫_ℝ
 
 @[simp] theorem canonicalSectionCoord_base (field : Phase2 → Phase2) (q : Phase2) :

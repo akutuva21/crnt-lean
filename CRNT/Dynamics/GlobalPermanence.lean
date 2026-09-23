@@ -33,7 +33,8 @@ def IsMassActionFlow (N : Network S) (κ : N.RateConstants)
     (ϕ : Flow ℝ≥0 (Concentration S)) (γ : Concentration S → ℝ → Concentration S) : Prop :=
   (∀ x, γ x 0 = x) ∧
   (∀ x (t : ℝ≥0), ϕ t x = γ x t) ∧
-  (∀ (x : Concentration S) (t : ℝ), 0 ≤ t → HasDerivAt (γ x) (N.massActionVectorField κ (γ x t)) t)
+  (∀ (x : Concentration S) (t : ℝ), 0 ≤ t →
+    HasDerivAt (γ x) (N.massActionVectorField κ (γ x t)) t)
 
 /-- Legacy orbitwise quantifier: every positive orbit of a fixed genuine mass-action flow is
 `Permanent` in the pre-existing orbit-level sense.  This is weaker than standard CRNT permanence
@@ -130,7 +131,7 @@ theorem StructurallyPermanent.permanent_selfClass {N : Network S} (h : N.Structu
     (κ : N.RateConstants) {ϕ : Flow ℝ≥0 (Concentration S)}
     {γ : Concentration S → ℝ → Concentration S} (hflow : N.IsMassActionFlow κ ϕ γ)
     {x₀ : Concentration S} (hx₀ : x₀.Positive) : Permanent ϕ x₀ :=
-  h.permanent κ hflow hx₀ hx₀ (Network.StoichCompatible.refl (N := N) x₀)
+  h.permanent κ hflow hx₀ hx₀ (Network.StoichCompatible.refl N x₀)
 
 /-- Standard permanence is stronger than the historical orbitwise global quantifier. -/
 theorem StructurallyPermanent.toOrbitwise {N : Network S} (h : N.StructurallyPermanent) :

@@ -79,7 +79,7 @@ theorem omegaLimit_self_eq_carrier (M : MinimalOmegaData D)
       · exact M.compact.isClosed
     exact (omegaLimit_subset_closure_image2 Filter.atTop D.flow {q}
       (Filter.univ_mem : (Set.univ : Set ℝ≥0) ∈ Filter.atTop) hy) |> hclosure
-  exact (M.minimal.eq_of_le hprop hsubM).symm
+  exact M.minimal.eq_of_le hprop hsubM
 
 /-- Hence every point of a minimal omega subset is recurrent: it belongs to its own omega-limit. -/
 theorem recurrent (M : MinimalOmegaData D) {q : Phase2} (hq : q ∈ M.carrier) :
@@ -95,7 +95,7 @@ theorem frequently_returns_near (M : MinimalOmegaData D)
   have hcluster : MapClusterPt q Filter.atTop (fun t : ℝ≥0 => D.flow t q) := by
     exact (mem_omegaLimit_singleton_iff_mapClusterPt
       (f := Filter.atTop) (ϕ := D.flow) q q).mp (M.recurrent hq)
-  exact (map_cluster_pt_iff.mp hcluster) U hU
+  exact (mapClusterPt_iff_frequently.mp hcluster) U hU
 
 /-- Constructive recurrence form: after any requested nonnegative time, the orbit returns to every
 neighbourhood of `q`. -/
@@ -105,12 +105,13 @@ theorem exists_late_return (M : MinimalOmegaData D)
     ∃ t : ℝ≥0, T ≤ t ∧ D.flow t q ∈ U := by
   have hfreq := M.frequently_returns_near hq hU
   have htail : ∀ᶠ t : ℝ≥0 in Filter.atTop, T ≤ t := eventually_ge_atTop T
-  exact (hfreq.and_eventually htail).exists
+  obtain ⟨t, hmem, hT⟩ := (hfreq.and_eventually htail).exists
+  exact ⟨t, hT, hmem⟩
 
 end MinimalOmegaData
 
 /-- Every certified trapped planar orbit contains a minimal compact invariant omega subset. -/
-noncomputable theorem FlowTrappingData.exists_minimalOmegaData
+theorem FlowTrappingData.exists_minimalOmegaData
     {field : Phase2 → Phase2} (D : FlowTrappingData field) :
     Nonempty (MinimalOmegaData D) := by
   obtain ⟨M, hMomega, hMmin⟩ :=

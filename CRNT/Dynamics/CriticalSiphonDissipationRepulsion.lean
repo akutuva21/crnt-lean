@@ -1,4 +1,5 @@
 import CRNT.Dynamics.GenuineConfinement
+import CRNT.Dynamics.SingletonFacetEscape
 
 /-!
 # Asymptotic facet repulsion from a near-facet dissipation bound
@@ -177,6 +178,117 @@ theorem siphonFacet_floor_of_nearFacet_dissipation (N : Network S) (κ : N.RateC
       _ ≤ γ τ sstar * Real.exp (-(G * (t - τ))) :=
           mul_le_mul_of_nonneg_right hτδ (Real.exp_pos _).le
       _ ≤ γ t sstar := hkey
+
+
+/-! ## From a uniform facet floor to omega-limit exclusion -/
+
+/-- A uniform coordinate floor along a forward orbit passes to every omega-limit point.  This is a
+general topological bridge: the orbit is eventually (indeed always) in the closed half-space
+`{x | ε ≤ x s}`, so every cluster point is there as well. -/
+theorem omegaLimit_coord_ge_of_orbit_floor (N : Network S)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S} (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    {sstar : S} {ε : ℝ}
+    (hfloor : ∀ t : ℝ, 0 ≤ t → ε ≤ γ x₀ t sstar)
+    {w : Concentration S} (hw : w ∈ omegaLimit Filter.atTop ϕ {x₀}) :
+    ε ≤ w sstar := by
+  rw [mem_omegaLimit_singleton_iff_mapClusterPt] at hw
+  have hcl : ClusterPt (w sstar)
+      (Filter.map (fun t : ℝ≥0 => (ϕ t x₀) sstar) Filter.atTop) :=
+    hw.continuousAt_comp (continuous_apply sstar).continuousAt
+  have hev : Set.Ici ε ∈ Filter.map (fun t : ℝ≥0 => (ϕ t x₀) sstar) Filter.atTop := by
+    rw [Filter.mem_map]
+    exact Filter.Eventually.of_forall fun t => by
+      dsimp only
+      rw [hϕγ]
+      exact hfloor t t.coe_nonneg
+  by_contra hnot
+  have hlt : w sstar < ε := lt_of_not_ge hnot
+  have hopen : Set.Iio ε ∈ 𝓝 (w sstar) := Iio_mem_nhds hlt
+  have hdisj : Set.Iio ε ∩ Set.Ici ε = (∅ : Set ℝ) := by
+    ext z
+    simp only [Set.mem_inter_iff, Set.mem_Iio, Set.mem_Ici, Set.mem_empty_iff_false,
+      iff_false, not_and]
+    intro hz
+    exact not_le.mpr hz
+  haveI hne :
+      (𝓝 (w sstar) ⊓ Filter.map (fun t : ℝ≥0 => (ϕ t x₀) sstar) Filter.atTop).NeBot := hcl
+  have hmem := Filter.inter_mem (Filter.mem_inf_of_left hopen) (Filter.mem_inf_of_right hev)
+  rw [hdisj] at hmem
+  exact Filter.empty_notMem _ hmem
+
+/-- **The near-facet dissipation estimate really excludes the singleton facet from omega.**  The
+analytic theorem above supplies the fixed positive floor
+`δ * exp (-(G * V₀ / ε))`; `omegaLimit_coord_ge_of_orbit_floor` transfers it to every omega-point.
+Thus an omega-limit point cannot have the critical species coordinate equal to zero. -/
+theorem notMem_omegaLimit_singletonFacet_of_nearFacet_dissipation
+    (N : Network S) (κ : N.RateConstants)
+    {xstar x₀ : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    {sstar : S} {δ ε G : ℝ} (hδ : 0 < δ) (hε : 0 < ε) (hG : 0 ≤ G)
+    (hpos : ∀ t, 0 ≤ t → (γ x₀ t).Positive)
+    (hsol : ∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    (hlog : ∀ t, 0 ≤ t → -(G * γ x₀ t sstar) ≤ N.massActionVectorField κ (γ x₀ t) sstar)
+    (hstart : δ ≤ γ x₀ 0 sstar)
+    (hnear : ∀ t, 0 ≤ t → γ x₀ t sstar ≤ δ →
+      ε ≤ -(∑ s, (Real.log (γ x₀ t s) - Real.log (xstar s)) *
+        N.massActionVectorField κ (γ x₀ t) s))
+    {w : Concentration S} (hw : w ∈ omegaLimit Filter.atTop ϕ {x₀}) :
+    w sstar ≠ 0 := by
+  let floor : ℝ := δ * Real.exp (-(G * (relEntropy xstar (γ x₀ 0) / ε)))
+  have hfloor_pos : 0 < floor := mul_pos hδ (Real.exp_pos _)
+  have hfloor : ∀ t : ℝ, 0 ≤ t → floor ≤ γ x₀ t sstar := by
+    intro t ht
+    exact N.siphonFacet_floor_of_nearFacet_dissipation κ hxs hcb hδ hε hG hpos hsol hlog
+      hstart hnear t ht
+  have hωfloor : floor ≤ w sstar :=
+    N.omegaLimit_coord_ge_of_orbit_floor hϕγ hfloor hw
+  intro hw0
+  rw [hw0] at hωfloor
+  linarith
+
+/-- The explicit singleton near-facet influx constant is nonnegative. -/
+theorem singletonFacetInfluxConst_nonneg (N : Network S) (κ : N.RateConstants)
+    (sstar : S) (M : ℝ) :
+    0 ≤ N.singletonFacetInfluxConst κ sstar M := by
+  rw [singletonFacetInfluxConst]
+  refine Finset.sum_nonneg fun r _ => ?_
+  have hbase : 0 ≤ max M 1 := le_trans (by norm_num : (0 : ℝ) ≤ 1) (le_max_right M 1)
+  exact mul_nonneg
+    (mul_nonneg (κ.positive r).le (Nat.cast_nonneg _))
+    (pow_nonneg hbase _)
+
+/-- **Singleton critical-facet omega exclusion with the influx bound discharged.**  On a bounded
+positive genuine orbit, the Anderson--Shiu singleton influx estimate automatically supplies the
+log-coordinate lower bound required by `notMem_omegaLimit_singletonFacet_of_nearFacet_dissipation`.
+Thus the only nonstructural hypothesis left in the codimension-one critical-siphon argument is the
+near-facet relative-entropy dissipation bound `hnear`. -/
+theorem notMem_omegaLimit_singletonFacet_of_nearFacet_dissipation_bounded
+    (N : Network S) (κ : N.RateConstants)
+    {xstar x₀ : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    {sstar : S} (hsiph : N.IsSiphon ({sstar} : Finset S))
+    {M δ ε : ℝ} (hδ : 0 < δ) (hε : 0 < ε)
+    (hpos : ∀ t, 0 ≤ t → (γ x₀ t).Positive)
+    (hsol : ∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    (hγM : ∀ t, 0 ≤ t → ∀ s, γ x₀ t s ≤ M)
+    (hstart : δ ≤ γ x₀ 0 sstar)
+    (hnear : ∀ t, 0 ≤ t → γ x₀ t sstar ≤ δ →
+      ε ≤ -(∑ s, (Real.log (γ x₀ t s) - Real.log (xstar s)) *
+        N.massActionVectorField κ (γ x₀ t) s))
+    {w : Concentration S} (hw : w ∈ omegaLimit Filter.atTop ϕ {x₀}) :
+    w sstar ≠ 0 := by
+  let G : ℝ := N.singletonFacetInfluxConst κ sstar M
+  have hG : 0 ≤ G := by
+    dsimp [G]
+    exact N.singletonFacetInfluxConst_nonneg κ sstar M
+  apply N.notMem_omegaLimit_singletonFacet_of_nearFacet_dissipation κ hxs hcb hϕγ
+    hδ hε hG hpos hsol (G := G) ?_ hstart hnear hw
+  intro t ht
+  dsimp [G]
+  exact N.massActionVectorField_singleton_facet_ge κ hsiph (hpos t ht).nonnegative (hγM t ht)
 
 end Network
 

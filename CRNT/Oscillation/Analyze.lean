@@ -24,38 +24,40 @@ namespace NetworkData
 The current automatic branch promotes either compiled non-oscillation route (deficiency-zero or
 stoichiometric rank at most one) back into its kernel theorem; all other networks are conservatively
 `unknown`. -/
-def oscillationCertificate (d : NetworkData) : d.toNetwork.OscillationCertificate :=
+noncomputable def oscillationCertificate (d : NetworkData) : d.toNetwork.OscillationCertificate :=
   if h : d.analyze.noPositivePeriodicOrbitCertified = true then
     .excluded (NetworkData.neverPositivePeriodic_of_analyze d h)
   else
     .unknown
 
 /-- The proof-erased status returned by the current certificate engine. -/
-def oscillationStatus (d : NetworkData) : Network.OscillationStatus :=
+noncomputable def oscillationStatus (d : NetworkData) : Network.OscillationStatus :=
   (d.oscillationCertificate).status
 
 /-- Global-limit-cycle certificate derived from the ordinary certificate engine.  A proved
 all-periodic-orbit exclusion also excludes a class-global cycle; other ordinary statuses are kept
 conservative because periodic existence alone does not prove global attraction. -/
-def globalOscillationCertificate (d : NetworkData) : d.toNetwork.GlobalOscillationCertificate :=
+noncomputable def globalOscillationCertificate (d : NetworkData) : d.toNetwork.GlobalOscillationCertificate :=
   d.oscillationCertificate.toGlobal
 
 /-- Proof-erased class-global-limit-cycle status. -/
-def globalOscillationStatus (d : NetworkData) : Network.OscillationStatus :=
+noncomputable def globalOscillationStatus (d : NetworkData) : Network.OscillationStatus :=
   d.globalOscillationCertificate.status
 
 /-- A positive structural non-oscillation analyzer flag is reflected as `excluded`. -/
 theorem oscillationStatus_eq_excluded_of_certified (d : NetworkData)
     (h : d.analyze.noPositivePeriodicOrbitCertified = true) :
     d.oscillationStatus = Network.OscillationStatus.excluded := by
-  simp [oscillationStatus, oscillationCertificate, h]
+  simp [oscillationStatus, oscillationCertificate, h,
+    Network.OscillationCertificate.status]
 
 /-- Without the currently implemented exclusion certificate, the engine reports `unknown` rather
 than guessing from a failed sufficient test. -/
 theorem oscillationStatus_eq_unknown_of_not_certified (d : NetworkData)
     (h : d.analyze.noPositivePeriodicOrbitCertified ≠ true) :
     d.oscillationStatus = Network.OscillationStatus.unknown := by
-  simp [oscillationStatus, oscillationCertificate, h]
+  simp [oscillationStatus, oscillationCertificate, h,
+    Network.OscillationCertificate.status]
 
 /-- A certified all-parameter exclusion is also a certified exclusion of class-global attracting
 limit cycles. -/

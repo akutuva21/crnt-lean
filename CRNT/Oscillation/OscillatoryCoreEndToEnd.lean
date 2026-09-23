@@ -25,7 +25,7 @@ variable {S : Type} [DecidableEq S] [Fintype S]
 
 /-- Search result after the finite matrix side has been completely resolved to a strong D-Hopf
 certificate. -/
-structure ResolvedIndexedOscillatoryCoreCertificate (N : Network S) : Type where
+structure ResolvedIndexedOscillatoryCoreCertificate (N : Network S) : Type 1 where
   I : Type
   decI : DecidableEq I
   finI : Fintype I
@@ -40,7 +40,7 @@ namespace ResolvedIndexedOscillatoryCoreCertificate
 variable {N : Network S}
 
 /-- A resolved finite core feeds the already-closed CRN/reactivity path directly. -/
-noncomputable theorem parameterRichOscillatoryCapacity
+theorem parameterRichOscillatoryCapacity
     (hopen : ChildSelectionDHopfPerturbationTarget)
     (hDHopf : ParameterRichDHopfContinuationTarget)
     (F : N.SteadyStateParameterRichFamily)
@@ -56,7 +56,7 @@ end ResolvedIndexedOscillatoryCoreCertificate
 
 /-- Class-I indexed selections resolve without any user-supplied determinant fact. -/
 noncomputable def resolvedIndexedCoreOfClassI
-    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget)
+    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget.{0})
     {I : Type} [DecidableEq I] [Fintype I]
     {N : Network S} (C : N.IndexedChildSelection I)
     (hC : C.IsOscillatoryCoreClassI) :
@@ -69,7 +69,7 @@ noncomputable def resolvedIndexedCoreOfClassI
 
 /-- Fisher--Fuller class-II indexed selections resolve analogously. -/
 noncomputable def resolvedIndexedCoreOfClassIIFF
-    (hFFscale : Matrix.FisherFullerStabilizingScalingTarget)
+    (hFFscale : Matrix.FisherFullerStabilizingScalingTarget.{0})
     {I : Type} [DecidableEq I] [Fintype I]
     {N : Network S} (C : N.IndexedChildSelection I)
     (hC : C.IsOscillatoryCoreClassII)
@@ -83,8 +83,8 @@ noncomputable def resolvedIndexedCoreOfClassIIFF
     hFFscale hC hFF⟩
 
 /-- End-to-end class-I child-selection recipe. -/
-noncomputable theorem parameterRichOscillatoryCapacity_of_indexed_classI
-    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget)
+theorem parameterRichOscillatoryCapacity_of_indexed_classI
+    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget.{0})
     (hopen : ChildSelectionDHopfPerturbationTarget)
     (hDHopf : ParameterRichDHopfContinuationTarget)
     {I : Type} [DecidableEq I] [Fintype I]
@@ -98,8 +98,8 @@ noncomputable theorem parameterRichOscillatoryCapacity_of_indexed_classI
   exact R.parameterRichOscillatoryCapacity hopen hDHopf F hpaths hnd x hx
 
 /-- End-to-end Fisher--Fuller class-II child-selection recipe. -/
-noncomputable theorem parameterRichOscillatoryCapacity_of_indexed_classIIFF
-    (hFFscale : Matrix.FisherFullerStabilizingScalingTarget)
+theorem parameterRichOscillatoryCapacity_of_indexed_classIIFF
+    (hFFscale : Matrix.FisherFullerStabilizingScalingTarget.{0})
     (hopen : ChildSelectionDHopfPerturbationTarget)
     (hDHopf : ParameterRichDHopfContinuationTarget)
     {I : Type} [DecidableEq I] [Fintype I]
@@ -120,7 +120,8 @@ noncomputable def resolvedIndexedCoreOfContainedBlock
     {N : Network S} (C : N.IndexedChildSelection I)
     (hblock : C.matrix.ContainsStrongDHopfBlock) :
     N.ResolvedIndexedOscillatoryCoreCertificate := by
-  obtain ⟨J, hJ⟩ := hblock
+  let J := Classical.choose hblock
+  have hJ := Classical.choose_spec hblock
   exact
     { I := {i : I // i ∈ J}
       decI := inferInstance
@@ -134,16 +135,17 @@ noncomputable def resolvedIndexedCoreOfContainedBlock
 been supplied: Fisher--Fuller diagonal stabilization or the stable-codimension-one principal-block
 theorem. -/
 noncomputable def resolvedIndexedCoreOfClassII
-    (hFFscale : Matrix.FisherFullerStabilizingScalingTarget)
+    (hFFscale : Matrix.FisherFullerStabilizingScalingTarget.{0})
     (hStable : Matrix.StableCodimOneClassIIImpliesStrongDHopfBlockTarget)
     {I : Type} [DecidableEq I] [Fintype I]
     {N : Network S} (C : N.IndexedChildSelection I)
     (hC : C.IsOscillatoryCoreClassII) :
     N.ResolvedIndexedOscillatoryCoreCertificate := by
+  apply Classical.choice
   rcases hC.fisherFuller_or_stableCodimOne with hFF | hcodim
-  · exact resolvedIndexedCoreOfClassIIFF hFFscale C hC hFF
-  · exact resolvedIndexedCoreOfContainedBlock C
-      (hStable C.matrix hC.unstableNegativeFeedback hcodim)
+  · exact ⟨resolvedIndexedCoreOfClassIIFF hFFscale C hC hFF⟩
+  · exact ⟨resolvedIndexedCoreOfContainedBlock C
+      (hStable C.matrix hC.unstableNegativeFeedback hcodim)⟩
 
 /-- Exact finite-resolution theorem needed to make all search-facing class-I/class-II witnesses
 uniform. -/
@@ -153,9 +155,9 @@ def IndexedCoreDHopfResolutionTarget : Prop :=
       Nonempty (N.ResolvedIndexedOscillatoryCoreCertificate)
 
 /-- The three finite matrix theorems resolve every exact indexed oscillatory core. -/
-noncomputable theorem indexedCoreDHopfResolution_of_matrixTheorems
-    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget)
-    (hFFscale : Matrix.FisherFullerStabilizingScalingTarget)
+theorem indexedCoreDHopfResolution_of_matrixTheorems
+    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget.{0})
+    (hFFscale : Matrix.FisherFullerStabilizingScalingTarget.{0})
     (hStable : Matrix.StableCodimOneClassIIImpliesStrongDHopfBlockTarget) :
     IndexedCoreDHopfResolutionTarget := by
   intro T _ _ N hcore
@@ -167,7 +169,7 @@ noncomputable theorem indexedCoreDHopfResolution_of_matrixTheorems
 
 /-- Once finite core resolution and the nonlinear D-Hopf theorem are available, the older generic
 search-facing realization target follows automatically. -/
-noncomputable theorem indexedParameterRichOscillatoryCoreRealization
+theorem indexedParameterRichOscillatoryCoreRealization
     (hresolve : IndexedCoreDHopfResolutionTarget)
     (hopen : ChildSelectionDHopfPerturbationTarget)
     (hDHopf : ParameterRichDHopfContinuationTarget) :
@@ -190,9 +192,9 @@ variable {S : Type} [DecidableEq S] [Fintype S]
 pipeline.  `IsConsistent` remains in the historical public signature but is not needed by this
 construction because `SupportsSmoothReactivityPaths` already supplies a coherent steady kinetic
 realization at the chosen positive state. -/
-noncomputable theorem parameterRichOscillatoryCoreRealization_of_kernels
-    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget)
-    (hFFscale : Matrix.FisherFullerStabilizingScalingTarget)
+theorem parameterRichOscillatoryCoreRealization_of_kernels
+    (hP0 : Matrix.NotPMinusZeroImpliesUnstableScalingTarget.{0})
+    (hFFscale : Matrix.FisherFullerStabilizingScalingTarget.{0})
     (hStable : Matrix.StableCodimOneClassIIImpliesStrongDHopfBlockTarget)
     (hopen : ChildSelectionDHopfPerturbationTarget)
     (hDHopf : ParameterRichDHopfContinuationTarget) :
@@ -204,13 +206,17 @@ noncomputable theorem parameterRichOscillatoryCoreRealization_of_kernels
   · obtain ⟨C⟩ := hI
     let I := C.selection.toIndexed
     have hclass : I.IsOscillatoryCoreClassI := by
-      simpa [I] using C.isClassI
+      change Matrix.IsOscillatoryCoreClassI I.matrix
+      have hc : Matrix.IsOscillatoryCoreClassI C.selection.matrix := C.isClassI
+      simpa [I] using hc
     let R := resolvedIndexedCoreOfClassI hP0 I hclass
     exact R.parameterRichOscillatoryCapacity hopen hDHopf F hpaths hnd x hx
   · obtain ⟨C⟩ := hII
     let I := C.selection.toIndexed
     have hclass : I.IsOscillatoryCoreClassII := by
-      simpa [I] using C.isClassII
+      change Matrix.IsOscillatoryCoreClassII I.matrix
+      have hc : Matrix.IsOscillatoryCoreClassII C.selection.matrix := C.isClassII
+      simpa [I] using hc
     let R := resolvedIndexedCoreOfClassII hFFscale hStable I hclass
     exact R.parameterRichOscillatoryCapacity hopen hDHopf F hpaths hnd x hx
 

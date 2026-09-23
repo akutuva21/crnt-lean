@@ -1,4 +1,9 @@
 import CRNT.Oscillation.GreenJordanReduction
+-- `Phase2 = EuclideanSpace ℝ (Fin 2)` has no measure structure without these two:
+-- `…Lp.MeasurableSpace` transports the measurable/Borel structure across `WithLp`, and
+-- `…Haar.OfBasis` supplies `measureSpaceOfInnerProductSpace` (hence `volume`).
+import Mathlib.Analysis.Normed.Lp.MeasurableSpace
+import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 import Mathlib.MeasureTheory.Integral.MeanValue
 import Mathlib.MeasureTheory.Measure.Real
 import Mathlib.MeasureTheory.Measure.OpenPos
@@ -31,7 +36,7 @@ from openness/nonemptiness and finite volume without coupling this module to one
 representation. -/
 structure DulacAreaData
     {field : Phase2 → Phase2} (D : BendixsonDulacData field)
-    (P : PeriodicTrajectory field) : Prop where
+    (P : PeriodicTrajectory field) where
   simple : P.SimpleClosedCycle
   inside : Set.range P.orbit ⊆ D.region
   interior : Set Phase2
@@ -48,9 +53,12 @@ structure DulacAreaData
   /-- The actual boundary flux around the simple periodic orbit. -/
   boundaryFlux : ℝ
   boundaryFlux_zero : boundaryFlux = 0
-  /-- Green's divergence theorem on the Jordan interior. -/
-  green : boundaryFlux =
-    ∫ x : Phase2 in interior, divergence (fun y => D.dulac y • field y) x
+  /-- Orientation of the orbit traversal relative to the positive Jordan orientation. -/
+  orientation : ℝ
+  orientation_sq : orientation ^ 2 = 1
+  /-- Green's divergence theorem on the Jordan interior, including boundary orientation. -/
+  green : boundaryFlux = orientation *
+    (∫ x : Phase2 in interior, divergence (fun y => D.dulac y • field y) x)
 
 namespace DulacAreaData
 
@@ -95,8 +103,15 @@ theorem divergenceIntegral_ne_zero (A : DulacAreaData D P) :
 /-- The analytic Jordan-area data are already contradictory: Green identifies the nonzero signed
 area integral with the boundary flux, while tangency makes that flux zero. -/
 theorem false_of_areaData (A : DulacAreaData D P) : False := by
-  apply A.divergenceIntegral_ne_zero
-  rw [← A.green, A.boundaryFlux_zero]
+  have horient : A.orientation ≠ 0 := by
+    intro h0
+    have hfld := A.orientation_sq
+    rw [h0, zero_pow (by norm_num)] at hfld
+    norm_num at hfld
+  have hmul : A.orientation *
+      (∫ x : Phase2 in A.interior, divergence (fun y => D.dulac y • field y) x) = 0 := by
+    rw [← A.green, A.boundaryFlux_zero]
+  exact A.divergenceIntegral_ne_zero ((mul_eq_zero.mp hmul).resolve_left horient)
 
 /-- Forget the stronger analytic data to the older minimal Green/Jordan certificate. -/
 noncomputable def toGreenJordanCycleCertificate (A : DulacAreaData D P) :
@@ -108,6 +123,8 @@ noncomputable def toGreenJordanCycleCertificate (A : DulacAreaData D P) :
     ∫ x : Phase2 in A.interior,
       divergence (fun y => D.dulac y • field y) x
   boundaryFlux_zero := A.boundaryFlux_zero
+  orientation := A.orientation
+  orientation_sq := A.orientation_sq
   green := A.green
   divergenceArea_ne_zero := A.divergenceIntegral_ne_zero
 

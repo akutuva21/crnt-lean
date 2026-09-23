@@ -16,6 +16,11 @@ Everything after that construction is already closed by the return-interval fixe
 
 namespace CRNT
 
+-- `⟪x, y⟫_ℝ` lives in the `InnerProductSpace` scope; without this open the bracket is
+-- not a valid token.
+open scoped InnerProductSpace
+
+
 namespace Planar
 
 /-- Minimal-set return data whose Poincare section is the canonical affine transversal through a
@@ -25,8 +30,8 @@ structure CanonicalMinimalRecurrentSectionData {field : Phase2 → Phase2}
     extends MinimalRecurrentSectionData M where
   q : Phase2
   q_mem : q ∈ M.carrier
-  section_point : toMinimalRecurrentSectionData.section.point = q
-  section_normal : toMinimalRecurrentSectionData.section.normal = field q
+  section_point : toMinimalRecurrentSectionData.xsection.point = q
+  section_normal : toMinimalRecurrentSectionData.xsection.normal = field q
   /-- The certified scalar interval actually contains the canonical base point. -/
   baseCoordinate : ℝ
   baseCoordinate_mem :

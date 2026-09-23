@@ -70,7 +70,7 @@ their analyses (the bulk path: one process invocation scores many networks).
  "numDiagonalDriveSpecies":0,"numLinkageClasses":1,"numMinimalSiphons":1,"numReactions":2,
  "numSpecies":2,"numStrongLinkageClasses":1,"numTerminalSLC":1,"persistenceCertified":true,
  "persistenceSingleLinkage":true,"persistenceStructural":true,"srPMatrixPointIndep":false,
- "srSignConsistent":false,"stoichRank":1,"stoichRankTwo":false,"version":17,"weaklyReversible":true}
+ "srSignConsistent":false,"stoichRank":1,"stoichRankTwo":false,"version":19,"weaklyReversible":true}
 ```
 
 The fields, in their declaration order on the `Analysis` structure:
@@ -298,7 +298,7 @@ above); for a kernel-checked certificate of a specific verdict, use the codegen 
 
 ## Versioning
 
-`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `17`. It tags the
+`version` is the value of `analysisVersion` (`CRNT/Interop/Analysis.lean`), currently `19`. It tags the
 field set and increments whenever a field is added or its meaning changes, so a consumer can detect a
 contract it does not understand. A new per-property companion raises the version when it joins the
 record. A consumer should read fields by name and treat an absent field as undecided, so a record
@@ -353,3 +353,41 @@ never yields a structural verdict.
   contract — the provenance path, complementary to this throughput path.
 - [`decidability.md`](decidability.md): the decision procedures and computable companions the fields
   rest on.
+
+## Version history
+
+### 19
+
+The union of the three development branches' contracts. Restores the four persistence fields that
+v18 removed, now backed by real definitions: `CRNT/Dynamics/SiphonAutocatalysis.lean` defines
+`IsDrainable` and `IsSelfReplicable` in terms of reaction pathways and decides them through
+`isDrainable_iff_feasible_negativeFluxSystem` and the rational-Farkas layer, so the flags are no
+longer constant. Adds the oscillation branch's `noPositivePeriodicOrbitCertified` and
+`stoichRankTwo`, with `neverPositivePeriodic_of_analyze` as the proof-producing bridge.
+
+### 18 (superseded)
+
+Removes four fields that were unconditionally `true` for every input network, together with the
+three certificate bridges built on them:
+
+* `noDrainableSiphon`
+* `noSelfReplicableSiphon`
+* `minimalCriticalSiphonDichotomy`
+* `persistenceSiphonDichotomy`
+
+Their underlying predicates in `CRNT/Dynamics/SiphonAutocatalysis.lean` were defined as
+`∃ (_ : Unit), True` with `Decidable` instances given by `isTrue`, so `decide P = true` held for
+every network. Consumers reading these fields were reading a constant, and
+`boundaryOmegaCertificate_of_persistenceSiphonDichotomy` produced a `BoundaryOmegaCertificate`
+whose only field was `dummy : True`. See `LEDGER.md`.
+
+Adds `gac_of_persistenceCertified`: when `persistenceCertified` is `true`, every positive trajectory
+converges to the network's complex-balanced equilibrium in its own compatibility class. This one is
+real — it routes through the proved `gac_of_deficiencyZero_decide`.
+
+These fields return when the siphon predicates carry their intended meaning and the certificates
+carry the statements they are supposed to witness.
+
+### 17
+
+Added the four fields above. Superseded; do not rely on a `version = 17` report.

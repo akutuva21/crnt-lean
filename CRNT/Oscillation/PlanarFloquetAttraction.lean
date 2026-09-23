@@ -29,6 +29,9 @@ structure ScalarFloquetAttractionData
   bridge : N.ScalarFloquetReturnBridge P f x₀
   contraction : ScalarLocalContraction f x₀
   basin : Set (Concentration S)
+  /-- Openness makes the local basin genuinely non-vacuous: compactness of the periodic orbit
+  then supplies a positive-radius orbit tube contained in it. -/
+  basin_open : IsOpen basin
   /-- The geometric periodic orbit lies inside the local attraction basin. -/
   orbit_in_basin : Set.range P.orbit.orbit ⊆ basin
   /-- Every exact solution beginning in the local basin admits a section-coordinate interpolation
@@ -102,7 +105,8 @@ theorem floquetOrbitalStability_of_scalarAttraction
   intro T _ _ N κ P
   obtain ⟨f, x₀, D⟩ := hscalar N κ P
   obtain ⟨D⟩ := D
-  exact ⟨D.basin, D.orbit_in_basin, D.locallyAttracts⟩
+  exact P.orbit.exists_tube_attraction_of_open_basin
+    D.basin_open D.orbit_in_basin D.locallyAttracts
 
 end Network
 end CRNT

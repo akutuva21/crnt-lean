@@ -15,6 +15,11 @@ with the canonical one-dimensional transversal.
 
 namespace CRNT
 
+-- `ℝ≥0` is scoped notation for `NNReal`; without this it does not parse and shows up as
+-- `LE Type` / `OfNat Type 0` instance failures.
+open scoped NNReal
+
+
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 variable {field : E → E}
 
@@ -110,7 +115,11 @@ theorem FlowTrappingData.period_of_selfIntersection
   intro u
   have h := exactSolutions_shift_eq_of_hit huniq
     (D.trajectory_solution x) (D.trajectory_solution x) hhit (u - s)
-  convert h using 1 <;> ring
+  -- `convert … using 1` pairs the wrong sides here; normalise the time arguments instead.
+  have e1 : u - s + s = u := by ring
+  have e2 : u - s + t = u + (t - s) := by ring
+  rw [e1, e2] at h
+  exact h.symm
 
 end Planar
 end CRNT

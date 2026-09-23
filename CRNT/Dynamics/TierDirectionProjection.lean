@@ -87,10 +87,16 @@ theorem complexWValue_sub_eq_inner_tierDiffEuclid (w : TierEuclid S)
     (y y' : Complex S) :
     complexWValue (fun s => w s) y - complexWValue (fun s => w s) y' =
       @inner ℝ (TierEuclid S) _ (tierDiffEuclid y y') w := by
-  rw [tierDiffEuclid, inner_toEuclid]
-  simp only [complexWValue, dotProduct, exponentVector, Finset.sum_sub_distrib]
+  -- `inner_toEuclid` matches `inner (toEuclid _) (toEuclid _)`, but only the left argument is
+  -- in that form here; put `w` in it first (`toEuclid` is the identity on coordinates).
+  rw [tierDiffEuclid]
+  have hw : (toEuclid fun s => w.ofLp s) = w := by ext s; rfl
+  rw [← hw, inner_toEuclid]
+  simp only [complexWValue, dotProduct, exponentVector]
+  rw [← Finset.sum_sub_distrib]
   apply Finset.sum_congr rfl
   intro s _
+  rw [hw]
   ring
 
 /-- Eventual boundedness of pairing against the log sequence.  This is a submodule: finite linear
@@ -117,7 +123,7 @@ noncomputable def eventuallyBoundedLogPairingSubmodule (xs : ℕ → Concentrati
       |@inner ℝ (TierEuclid S) _ u (tierLogEuclid xs n) +
           @inner ℝ (TierEuclid S) _ v (tierLogEuclid xs n)|
           ≤ |@inner ℝ (TierEuclid S) _ u (tierLogEuclid xs n)| +
-              |@inner ℝ (TierEuclid S) _ v (tierLogEuclid xs n)| := abs_add _ _
+              |@inner ℝ (TierEuclid S) _ v (tierLogEuclid xs n)| := abs_add_le _ _
       _ ≤ Cu + Cv := add_le_add hun hvn
   smul_mem' := by
     intro a v hv
@@ -141,7 +147,7 @@ theorem eventually_abs_le_of_tendsto_real {f : ℕ → ℝ} {a : ℝ}
   rw [Metric.mem_ball, Real.dist_eq] at hn
   calc
     |f n| = |(f n - a) + a| := by ring_nf
-    _ ≤ |f n - a| + |a| := abs_add _ _
+    _ ≤ |f n - a| + |a| := abs_add_le _ _
     _ ≤ |a| + 1 := by linarith
     _ = C := rfl
 
@@ -284,26 +290,26 @@ theorem exists_projectedTierDirection_realizes (N : Network S)
     constructor
     · intro hsame
       have hzero := N.inner_tierDiff_projected_eq_zero_of_tierSame hy hy' hsame n
-      rw [← N.complexWValue_sub_eq_inner_tierDiffEuclid
+      rw [← complexWValue_sub_eq_inner_tierDiffEuclid
         (N.projectedTierLogDirection xs n) y y'] at hzero
       linarith
     · intro heq
       rcases htier.2.2 y hy y' hy' with hle | hrev
       · rcases hle with hbelow | hsame
         · have hneg := hn y hy y' hy' hbelow
-          rw [← N.complexWValue_sub_eq_inner_tierDiffEuclid
+          rw [← complexWValue_sub_eq_inner_tierDiffEuclid
             (N.projectedTierLogDirection xs n) y y'] at hneg
           linarith
         · exact hsame
       · have hneg := hn y' hy' y hy hrev
-        rw [← N.complexWValue_sub_eq_inner_tierDiffEuclid
+        rw [← complexWValue_sub_eq_inner_tierDiffEuclid
           (N.projectedTierLogDirection xs n) y' y] at hneg
         linarith
   · intro y hy y' hy'
     constructor
     · intro hbelow
       have hneg := hn y hy y' hy' hbelow
-      rw [← N.complexWValue_sub_eq_inner_tierDiffEuclid
+      rw [← complexWValue_sub_eq_inner_tierDiffEuclid
         (N.projectedTierLogDirection xs n) y y'] at hneg
       linarith
     · intro hlt
@@ -311,11 +317,11 @@ theorem exists_projectedTierDirection_realizes (N : Network S)
       · rcases hle with hbelow | hsame
         · exact hbelow
         · have hzero := N.inner_tierDiff_projected_eq_zero_of_tierSame hy hy' hsame n
-          rw [← N.complexWValue_sub_eq_inner_tierDiffEuclid
+          rw [← complexWValue_sub_eq_inner_tierDiffEuclid
             (N.projectedTierLogDirection xs n) y y'] at hzero
           linarith
       · have hneg := hn y' hy' y hy hrev
-        rw [← N.complexWValue_sub_eq_inner_tierDiffEuclid
+        rw [← complexWValue_sub_eq_inner_tierDiffEuclid
           (N.projectedTierLogDirection xs n) y' y] at hneg
         linarith
 
