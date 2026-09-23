@@ -157,10 +157,11 @@ Birch supplies uniqueness.
 
 ## Deficiency-one uniqueness (single and multi-class)
 
-Feinberg's **deficiency-one theorem** is the statement that, under graph hypotheses weaker than weak
-reversibility, a positive compatibility class still contains at most one mass-action steady state
-(and, when weakly reversible, exactly one). The library's uniqueness half is complete; existence is
-only partial.
+Feinberg's **deficiency-one theorem** proves at most one positive mass-action steady state per
+compatibility class under its graph hypotheses. A separate existence theorem now proves that every
+weakly reversible mass-action system has a positive steady state in each positive compatibility class,
+for every positive rate vector. When the classical deficiency-one hypotheses also hold, the two results
+combine to give exactly one steady state per class.
 
 **Hypotheses.** `Network.DeficiencyOne` is `deficiencyInt = 1`
 (`CRNT/Deficiency/DeficiencyOne.lean`). The graph conditions are `DeficiencyOneConditions` (each
@@ -196,30 +197,25 @@ constancy `DeficientClassRatioConst` (`CRNT/Theorems/DeficiencyOne/ToricReductio
 `deficiencyOneUniqueness_of_logRatio` reduces it to the toric characterization
 `LogRatioCharacterization` (`CRNT/Theorems/DeficiencyOne/LogRatioUniqueness.lean`).
 
-**Existence (partial).** Both conclusions are recorded as `def` propositions in
-`CRNT/Theorems/DeficiencyOne/Statement.lean`: `DeficiencyOneUniqueness` (any two positive steady
-states in a positive class coincide) and `DeficiencyOneExistence` (each positive class carries a
-unique positive steady state). The bare implication "weakly reversible + deficiency-one hypotheses ⇒
-existence" is **not proven**, because the generic argument needs a degree-theoretic fixed-point
-input (Brouwer / Poincaré–Miranda / Sperner) that Mathlib v4.31 does not supply. What is proven,
-`sorry`-free, are sound reductions and special cases. `deficiencyOneExistence_iff_exists_steadyState`
-and `deficiencyOneExistence_of_existsSteadyState` reduce it to per-class steady-state existence,
-taken as a hypothesis (`CRNT/Theorems/DeficiencyOne/Existence.lean`).
-`deficiencyOneExistence_of_complexBalanced` discharges it for networks whose every rate-constant
-choice admits a positive complex-balanced concentration, that hypothesis supplied as an argument. A
-degree-free **dynamical brick**, `omegaLimit_relEntropy_const_of_absorbed`, confines a positive
-mass-action orbit by relative-entropy dissipation to a compact sublevel set and applies LaSalle to
-produce a nonempty invariant ω-limit on which the relative entropy is constant;
-`deficiencyOneExistence_of_complexBalancedExistence` packages the complex-balanced corollary on top
-of it (`CRNT/Theorems/DeficiencyOne/ExistenceDynamical.lean`). `deficiencyOneUniqueness_of_existence`
-(`CRNT/Theorems/DeficiencyOne/Statement.lean`) records that existence refines uniqueness into
-existence-and-uniqueness. The general,
-non-complex-balanced half stays open for the same degree-theoretic reason: a generic positive steady
-state is not complex-balanced, so the relative entropy is not a Lyapunov function adapted to it, and
-turning a nonempty ω-limit into an equilibrium still needs positivity of the ω-limit. Boros's
-structural results on deficiency-one networks (Boros, *Existence of positive steady states for
-weakly reversible mass-action systems*) sit on this same boundary.
+**Existence.** The statement interface remains in `CRNT/Theorems/DeficiencyOne/Statement.lean`.
+`exists_positiveSteadyState_of_weaklyReversible` (`CRNT/Deficiency/WeaklyReversibleSteadyState.lean`)
+now proves that every weakly reversible mass-action system has a positive steady state in every
+positive compatibility class. Its Boros–Birch construction builds a positive class section, derives a
+strict inward estimate for the projected kinetic field, and obtains a zero from the resulting
+finite-dimensional existence argument.
 
+`weaklyReversible_deficiencyOne_exists_positive_steadyState`
+(`CRNT/Theorems/DeficiencyOne/WeaklyReversibleExistence.lean`) records the deficiency-one
+structural split into additive linkage deficiencies and linkage-coupling deficiency. Under the classical
+`DeficiencyOneHypotheses`, the existing uniqueness theorem then strengthens existence to uniqueness.
+
+The local-degree machinery remains a separate route: `exists_zero_of_deficiencyOneDegreeCertificate`
+turns a nonzero degree certificate into a steady state. The certificate constructor now uses an
+already-established weakly reversible equilibrium as a constant homotopy; it does not independently
+derive the equilibrium or the nonzero degree from network structure. Positive existence for
+non-weakly-reversible networks satisfying only the classical deficiency-one hypotheses remains open.
+The complex-balanced special case and the relative-entropy/LaSalle reductions remain available in
+`Existence.lean` and `ExistenceDynamical.lean`.
 ## The deficiency-one and advanced-deficiency algorithms
 
 A network **has the capacity for multiple steady states** when some positive rate constants admit
@@ -321,8 +317,13 @@ Deficiency-one theorem:
 - `CRNT/Theorems/DeficiencyOne/MultiClass.lean`: multi-class uniqueness.
 - `CRNT/Theorems/DeficiencyOne/ToricReduction.lean`, `LogRatioUniqueness.lean`: reductions to the
   toric/log-ratio obligation.
-- `CRNT/Theorems/DeficiencyOne/Existence.lean`, `ExistenceDynamical.lean`: partial existence: sound
-  reductions, the complex-balanced special case, and the degree-free dynamical brick.
+- `CRNT/Deficiency/WeaklyReversibleSteadyState.lean` and
+  `CRNT/Theorems/DeficiencyOne/WeaklyReversibleExistence.lean`: positive existence for weakly
+  reversible systems, including the deficiency-one linkage split.
+- `CRNT/Theorems/DeficiencyOne/DegreeExistence.lean`: local-degree certificates and the implication
+  from nonzero degree to a steady state.
+- `CRNT/Theorems/DeficiencyOne/Existence.lean`, `ExistenceDynamical.lean`: complex-balanced and
+  relative-entropy/LaSalle reductions.
 
 Deficiency-one and advanced-deficiency algorithms:
 
