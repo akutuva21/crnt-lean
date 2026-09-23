@@ -3,6 +3,8 @@ import CRNT.Deficiency.PerClassKernelUnique
 import CRNT.Deficiency.PositiveKineticPreimageWR
 import CRNT.Deficiency.DeficiencyOneRowDefect
 import CRNT.Deficiency.DeficiencyOneLine
+import CRNT.Deficiency.SteadyStateKernel
+import CRNT.Deficiency.BorosBirchGraph
 
 /-!
 # Linear reduction for weakly reversible deficiency-one existence
@@ -135,6 +137,74 @@ theorem exists_positiveSteadyState_of_deficiencyLine_monomial_realization
   rcases hrealize with ⟨a, v, x, _, hxclass, hmono, hAv⟩
   exact ⟨x, hxclass,
     N.isMassActionSteadyState_of_realizes_deficiencyKineticPreimage κ hg hmono hAv⟩
+
+/-- Any positive steady state gives the synchronized class-scale realization required by the
+Type-II reduction: choose its own monomial vector and unit scale on every linkage class. -/
+theorem exists_synchronized_classScale_realization_of_positiveSteadyState
+    (N : Network S) (κ : N.RateConstants) {x₀ x : Concentration S}
+    (hxclass : x ∈ N.positiveCompatibilityClass x₀)
+    (hxss : N.IsMassActionSteadyState κ x)
+    {g : N.ComplexIdx → ℝ}
+    (hspan : ∀ w ∈ N.deficiencySubspace, ∃ a : ℝ, a • g = w) :
+    ∃ (a : ℝ) (v : N.ComplexIdx → ℝ) (x : Concentration S)
+      (lambda : Quotient N.linkedSetoid → ℝ),
+      (∀ c, 0 < v c) ∧
+      x ∈ N.positiveCompatibilityClass x₀ ∧
+      (∀ q, 0 < lambda q) ∧
+      (∀ c, v c = lambda (N.classOf c) * N.complexMonomialVector x c) ∧
+      N.kineticMap κ v = a • g ∧
+      ∃ L : ℝ, 0 < L ∧ ∀ q,
+        N.complexMap (N.restrictToClass q (N.kineticMap κ v)) ≠ 0 →
+          lambda q = L := by
+  have hdef := N.kineticMap_complexMonomial_mem_deficiencySubspace κ hxss
+  obtain ⟨a, ha⟩ := hspan _ hdef
+  refine ⟨a, N.complexMonomialVector x, x, (fun _ => 1), ?_, hxclass,
+    (fun _ => by norm_num), ?_, ha.symm, ?_⟩
+  · intro c
+    rw [N.complexMonomialVector_apply]
+    exact Complex.massActionMonomial_pos hxclass.2 c.val
+  · intro c
+    simp
+  · refine ⟨1, by norm_num, ?_⟩
+    intro q hq
+    rfl
+
+/-- The remaining Type-II realization reduces to the active-face inward estimates for Boros's
+Birch graph. Once those estimates hold on a nested domain, the projected-field zero is a positive
+steady state in the requested class, and its unit class scales give the exact synchronized
+realization required by the deficiency-one reduction. -/
+theorem exists_borosTypeII_realization_of_activeInward
+    (N : Network S) [DecidableEq (Quotient N.linkedSetoid)]
+    [Nonempty (Quotient N.linkedSetoid)] (κ : N.RateConstants)
+    {x₀ : Concentration S} {g : N.ComplexIdx → ℝ}
+    (x : N.borosBirchParameterSpace → Concentration S)
+    (hxcont : Continuous x) (hxpos : ∀ z s, 0 < x z s)
+    (hxclass : ∀ z, x z ∈ N.positiveCompatibilityClass x₀)
+    (hspan : ∀ w ∈ N.deficiencySubspace, ∃ a : ℝ, a • g = w)
+    (r : ℕ → ℝ)
+    (hinward : ∀ z ∈ Analysis.borosWithinSubspaceNestedDomain
+          N.borosLinkageProjectionSystem N.borosBirchParameterSpace r,
+      ∀ Q : Analysis.BorosSubsetIndex (Quotient N.linkedSetoid),
+        ‖Analysis.borosWithinSubspaceProjectionFamily
+            N.borosLinkageProjectionSystem N.borosBirchParameterSpace Q z‖ =
+          Analysis.borosProjectionRadius r Q →
+        0 < inner ℝ (N.borosBirchKineticProjectionField κ x z)
+          (Analysis.borosWithinSubspaceProjectionFamily
+            N.borosLinkageProjectionSystem N.borosBirchParameterSpace Q z)) :
+    ∃ (a : ℝ) (v : N.ComplexIdx → ℝ) (y : Concentration S)
+      (lambda : Quotient N.linkedSetoid → ℝ),
+      (∀ c, 0 < v c) ∧
+      y ∈ N.positiveCompatibilityClass x₀ ∧
+      (∀ q, 0 < lambda q) ∧
+      (∀ c, v c = lambda (N.classOf c) * N.complexMonomialVector y c) ∧
+      N.kineticMap κ v = a • g ∧
+      ∃ L : ℝ, 0 < L ∧ ∀ q,
+        N.complexMap (N.restrictToClass q (N.kineticMap κ v)) ≠ 0 →
+          lambda q = L := by
+  obtain ⟨y, hyclass, hyss⟩ :=
+    N.exists_borosBirchSteadyState_of_activeInward κ x hxcont hxpos hxclass r hinward
+  exact N.exists_synchronized_classScale_realization_of_positiveSteadyState
+    κ hyclass hyss hspan
 
 end Network
 end CRNT

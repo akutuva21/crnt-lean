@@ -2,6 +2,7 @@ import CRNT.Theorems.DeficiencyOne.Theorem
 import CRNT.Deficiency.DeficiencyOne
 import CRNT.Deficiency.LinkageCouplingLine
 import CRNT.Deficiency.BorosDeficiencyOneReduction
+import CRNT.Deficiency.BorosActiveInwardEstimate
 import CRNT.Deficiency.PositiveKineticSection
 import CRNT.Deficiency.PositiveKineticObstructionIVT
 import CRNT.Deficiency.ClassScaleSynchronization
@@ -283,14 +284,48 @@ theorem weaklyReversible_deficiencyOne_exists_positive_steadyState
       intro v hvpos
       exact N.deficiencyOne_logObstruction_zero_iff_classScaledMonomial_in_positiveClass
         hδ hgD hg0 hgspan hvpos hx₀
-    -- Generalized Birch solutions can now be selected continuously along any continuous
-    -- positive target family (`exists_continuous_generalizedBirchSelector`).  This is the
-    -- topology bridge needed for the remaining scalar Type-II continuation argument.
-    -- The sole remaining Type-II step is therefore nonlinear: choose the scalar on the
-    -- positive kinetic line so that its positive preimage is exactly `Ψ(x)` for an `x` in
-    -- the requested positive class. The helper
-    -- `exists_positiveSteadyState_of_deficiencyLine_monomial_realization` then closes the goal.
-    sorry
+    -- If the positive kernel fibre already has zero obstruction, its class-scaled monomial
+    -- realization can be transported to the requested class. Since that realization is still
+    -- in the kinetic kernel, it is a steady state without any class-scale synchronization.
+    by_cases hObs : (∑ c, g c * Real.log (b c)) = 0
+    · obtain ⟨x, lambda, hxclass, hlambda, hvx⟩ := (htransportIff hbpos).mp hObs
+      exact ⟨x, hxclass,
+        N.isMassActionSteadyState_of_kernel_classScaledMonomial κ hbker hlambda hvx⟩
+    · -- This split only decides whether the kernel reference itself is a class-scaled
+      -- monomial. A steady state may instead lie on a nonzero deficiency fibre, so the target
+      -- is to find a positive fibre point whose class-scaled monomial realization has synchronized
+      -- active linkage scales. The strict-side inequality for the chosen canonical section does
+      -- not establish that simultaneous existence; a Brouwer/intersection argument is needed.
+      have hrealize :
+          ∃ (a : ℝ) (v : N.ComplexIdx → ℝ) (x : Concentration S)
+            (lambda : Quotient N.linkedSetoid → ℝ),
+            (∀ c, 0 < v c) ∧
+            x ∈ N.positiveCompatibilityClass x₀ ∧
+            (∀ q, 0 < lambda q) ∧
+            (∀ c, v c = lambda (N.classOf c) * N.complexMonomialVector x c) ∧
+            N.kineticMap κ v = a • g ∧
+            ∃ L : ℝ, 0 < L ∧ ∀ q,
+              N.complexMap (N.restrictToClass q (N.kineticMap κ v)) ≠ 0 →
+                lambda q = L := by
+        letI : Nonempty (Quotient N.linkedSetoid) :=
+          N.nonemptyLinkageClass_of_deficiencyOne hδ
+        obtain ⟨xsel, hxcont, hxpos, hxclass, _, hgraph⟩ :=
+          N.exists_continuous_borosBirchGraph x₀ hx₀
+        have hxpositiveClass : ∀ z, xsel z ∈ N.positiveCompatibilityClass x₀ := by
+          intro z
+          exact ⟨hxclass z, hxpos z⟩
+        obtain ⟨kmin, kmax, ε, r, hkminpos, hkmin, hkmaxpos, hkmax,
+            hε, hεone, hr0, hrmono, hrnonneg, hεres, hrstep⟩ :=
+          N.exists_borosActiveRadiusSchedule hwr κ
+        have hinward := N.borosBirchKineticProjectionField_strict_inward
+          hwr κ xsel hxpos hgraph kmin kmax ε r hkminpos hkmin hkmaxpos hkmax
+          hε hεone hr0 hrmono hrnonneg hεres hrstep
+        obtain ⟨y, hyclass, hyss⟩ :=
+          N.exists_borosBirchSteadyState_of_activeInward κ xsel hxcont hxpos hxpositiveClass
+            r hinward
+        exact N.exists_synchronized_classScale_realization_of_positiveSteadyState
+          κ hyclass hyss hgspan
+      exact N.exists_positiveSteadyState_of_synchronized_classScale_realization κ hgD hrealize
   · exact N.weaklyReversible_deficiencyOne_exists_positive_steadyState_of_sum_eq_one
       hwr hδ hsum κ x₀ hx₀
 

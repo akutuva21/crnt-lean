@@ -56,9 +56,7 @@ excludeGlobs = [
   "CRNT.Oscillation.VassenaPrincipal",
   "CRNT.Multistationarity.TrueChemistrySRCriterion",
   "CRNT.Theorems.DeficiencyOne.Theorem",
-  "CRNT.Theorems.DeficiencyOne.WeaklyReversibleExistence",
-  "CRNT.Dynamics.GlobalAttractorTheorem",
-  "CRNT.Theorems.DeficiencyOne.DegreeExistence"
+  "CRNT.Dynamics.GlobalAttractorTheorem"
 ]
 
 # The frontier: exactly the modules in the ledger.  Expected to fail; CI records the
@@ -105,9 +103,7 @@ globs = [
   "CRNT.Oscillation.VassenaPrincipal",
   "CRNT.Multistationarity.TrueChemistrySRCriterion",
   "CRNT.Theorems.DeficiencyOne.Theorem",
-  "CRNT.Theorems.DeficiencyOne.WeaklyReversibleExistence",
-  "CRNT.Dynamics.GlobalAttractorTheorem",
-  "CRNT.Theorems.DeficiencyOne.DegreeExistence"
+  "CRNT.Dynamics.GlobalAttractorTheorem"
 ]
 
 [[lean_lib]]

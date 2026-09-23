@@ -13,9 +13,9 @@ results in detail.
 
 ## Two layers
 
-The library is built in two layers. The lower one is general-purpose mathematics that Mathlib
-v4.31 does not have; the upper one is the structural and dynamical theory of reaction networks,
-stated over a small composable core and resting on the mathematics beneath it.
+The library is built in two layers. The lower one supplies general-purpose mathematics used by the
+upper layer: the structural and dynamical theory of reaction networks, stated over a small composable
+core and resting on the mathematics beneath it.
 
 ### Mathematics layer
 

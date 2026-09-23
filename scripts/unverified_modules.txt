@@ -72,7 +72,5 @@ CRNT.Oscillation.VassenaPrincipal
 # --- 2026-09-18 drop: 66 modules, 58 of them carrying `sorry`s ---
 CRNT.Multistationarity.TrueChemistrySRCriterion
 CRNT.Theorems.DeficiencyOne.Theorem
-CRNT.Theorems.DeficiencyOne.WeaklyReversibleExistence
 # --- crnt-lean-current-available drop (42 modules) ---
 CRNT.Dynamics.GlobalAttractorTheorem
-CRNT.Theorems.DeficiencyOne.DegreeExistence

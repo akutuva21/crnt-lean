@@ -1,8 +1,8 @@
 # Chemical Reaction Network Theory in Lean 4
 
 [![CI](https://github.com/marpaia/crnt-lean/actions/workflows/ci.yml/badge.svg)](https://github.com/marpaia/crnt-lean/actions/workflows/ci.yml)
-![Lean](https://img.shields.io/badge/Lean-4.31.0-blue)
-![Mathlib](https://img.shields.io/badge/Mathlib-v4.31.0-blue)
+![Lean](https://img.shields.io/badge/Lean-4.34.0-blue)
+![Mathlib](https://img.shields.io/badge/Mathlib-v4.34.0-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![axioms: Mathlib only](https://img.shields.io/badge/axioms-Mathlib%20only-brightgreen)
 
@@ -26,16 +26,16 @@ This library makes that theory machine-checked. Every result is verified by Lean
 structural criteria carry decidable procedures and exact certificates, so a design tool can hand it a
 candidate network and get back a checkable answer instead of a heuristic.
 
-The library is built in two layers. The CRN layer formalizes the classical structural and dynamical
-theory over a small composable core: species, complexes, reactions, stoichiometry, mass-action
-kinetics, linkage classes, deficiency. The mathematics layer beneath it supplies general results
-Mathlib lacks as of v4.31 (Sperner's lemma and Brouwer's theorem in every dimension, Gale–Nikaido
-univalence, forward semiflows with LaSalle).
+The library is built in two layers. The CRN layer formalizes structural and dynamical theory over a
+composable core: species, complexes, reactions, stoichiometry, mass-action kinetics, linkage classes,
+and deficiency. The mathematics layer supplies results used throughout the CRN development, including
+Sperner's lemma and Brouwer's theorem in every dimension, Gale–Nikaido univalence, and forward
+semiflows with LaSalle's principle.
 
 - **Package:** `crnt-lean`
 - **Namespace:** `CRNT`
-- **Lean:** 4.31.0
-- **Mathlib:** v4.31.0
+- **Lean:** 4.34.0
+- **Mathlib:** v4.34.0
 - The default import (`import CRNT`) is **`sorry`-free** and introduces **no axioms beyond Mathlib's**
   (`[propext, Classical.choice, Quot.sound]`). CI enforces this with `test/AxiomAudit.lean`, which
   pins `#print axioms` on the headline results.
@@ -145,7 +145,7 @@ Grouped by area; the precise statements and module names are in each linked doc.
 **[Equilibria & deficiency](docs/deficiency.md)**
 - Complex balancing and the toric structure of steady states
 - Birch's theorem, and Perron–Frobenius for column-stochastic matrices
-- The deficiency-zero theorem, and deficiency-one uniqueness (single- and multi-class)
+- The deficiency-zero theorem, weakly reversible deficiency-one existence, and deficiency-one uniqueness (single- and multi-class)
 
 **[Dynamics & stability](docs/dynamics.md)**
 - The complex-space factorization `ẋ = Y(A_k(Ψ x))` and the forward semiflow
@@ -202,7 +202,7 @@ Grouped by area; the precise statements and module names are in each linked doc.
 
 Every abstraction is exercised by at least one worked example network in [`CRNT/Examples/`](./CRNT/Examples/).
 
-### General Mathematics (not in Mathlib v4.31)
+### General mathematics formalized here
 
 The CRN results rest on general-purpose mathematics built here and cited by name from the CRN layer.
 [`docs/architecture.md`](docs/architecture.md) gives the full inventory; the four areas are:
@@ -227,10 +227,12 @@ unlocks the CRN results noted, and questions where the mathematics itself is sti
 
 **General mathematics still to build.** The apparatus in each of these areas is in place; what
 remains is a specific missing piece.
-- The nonzero-degree input for topological-degree existence. The Brouwer degree, Sard's theorem, and
-  homotopy invariance are built, and a nonzero reduced degree forces a steady state; what is missing is
-  a theorem forcing the degree to be nonzero for a network class, which would make steady-state
-  existence unconditional and settle the multistationarity converse (the switch verdict)
+- A structural criterion for nonzero topological degree. Brouwer degree, Sard's theorem, and homotopy
+  invariance are formalized, and a nonzero reduced degree forces a steady state. Positive steady-state
+  existence is now proven for every weakly reversible mass-action system; the deficiency-one degree
+  certificate packages an already-established equilibrium as a constant homotopy. What remains is to
+  derive a nonzero degree directly from structural hypotheses for broader network classes. The separate
+  correctness equivalences for the higher-deficiency algorithms remain open below.
 - Critical-siphon facet repulsion. The Butler–McGehee lemma and non-siphon (codimension-1) facet
   repulsion are proven, as is the Anderson–Shiu influx estimate for a singleton critical siphon (a
   linear lower bound on the mass-action field at the facet). From that bound together with a near-facet
