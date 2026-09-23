@@ -323,6 +323,7 @@ import CRNT.Multistationarity.JacobianCycleSign
 import CRNT.Multistationarity.JacobianCycleSelection
 import CRNT.Multistationarity.Injectivity
 import CRNT.Multistationarity.SourceWeightPairing
+import CRNT.Multistationarity.GainPotential
 import CRNT.Multistationarity.Concordance
 import CRNT.Multistationarity.Capacity
 import CRNT.Multistationarity.JacobianInjectivity
