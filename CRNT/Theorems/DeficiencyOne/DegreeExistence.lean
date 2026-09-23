@@ -1,4 +1,6 @@
 import CRNT.Theorems.DeficiencyOne.MultiClass
+import CRNT.Theorems.DeficiencyOne.JacobianOnStoich
+import CRNT.Deficiency.WeaklyReversibleSteadyState
 import CRNT.Multistationarity.SteadyStateDegree
 import CRNT.Multistationarity.DegreeAdditivity
 import CRNT.Dynamics.MassActionAlgebra
@@ -8,6 +10,7 @@ import Mathlib.Topology.MetricSpace.Isometry
 import CRNT.Multistationarity.LocalDegreeOn
 import CRNT.Kinetics.CatalystFace
 import CRNT.Multistationarity.ParametrizedLocalDegree
+import CRNT.Dynamics.MassActionField
 
 /-!
 # Topological-degree architecture for the Deficiency One existence theorem
@@ -21,13 +24,33 @@ The topological information is carried explicitly by a finite local-degree certi
 positive domain, finite zero sets for the reference and target maps, nonzero reference local degree,
 and equality of local degrees along the continuation.  Once such a certificate is constructed,
 existence of a target zero follows from the elementary fact that an empty zero set has local degree
-zero.  The remaining deep CRNT/topology task is therefore the construction of this certificate.
+zero.  The certificate constructor below packages an independently established weakly reversible
+steady state as a constant homotopy; it does not make the degree argument itself the source of the
+existence result.
 -/
 
 namespace CRNT
 namespace Network
 
 variable {S : Type} [DecidableEq S] [Fintype S]
+
+private theorem localDegreeOn_ne_zero_of_single_regular_zero
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (f : E → E) {U : Set E} {x : E}
+    (hpre : f ⁻¹' {(0 : E)} ∩ U = {x})
+    (hfin : (f ⁻¹' {(0 : E)} ∩ U).Finite)
+    (hdet : LinearMap.det (fderiv ℝ f x).toLinearMap ≠ 0) :
+    localDegreeOn f 0 U hfin ≠ 0 := by
+  have htoFinset : hfin.toFinset = {x} := by
+    ext y
+    simp only [Set.Finite.mem_toFinset, Finset.mem_singleton]
+    rw [hpre]
+    simp
+  unfold localDegreeOn
+  rw [htoFinset, Finset.sum_singleton]
+  rcases lt_or_gt_of_ne hdet with hdneg | hdpos
+  · simpa [sign_neg hdneg] using (show (-1 : ℤ) ≠ 0 by norm_num)
+  · simpa [sign_pos hdpos] using (show (1 : ℤ) ≠ 0 by norm_num)
 
 /-- Affine chart of the stoichiometric compatibility class through `x₀`. -/
 def stoichClassChart (N : Network S) (x₀ : Concentration S)
@@ -154,6 +177,44 @@ theorem exists_deficiencyOneDegreeDomain_of_confinement
   have huK : u ∈ K := hconf u huP hzero
   exact hu.2 (Metric.self_subset_thickening hδ _ (Set.mem_insert_of_mem _ huK))
 
+/-- The confinement construction can also record that the compact set of zeros is inside its
+open domain. -/
+theorem exists_deficiencyOneDegreeDomain_of_confinement_contains
+    (N : Network S) (κ : N.RateConstants) {x₀ : Concentration S} (hx₀ : x₀.Positive)
+    {K : Set N.stoichSubspace} (hKcpt : IsCompact K)
+    (hKsub : K ⊆ N.positiveStoichChartDomain x₀)
+    (hconf : ∀ u ∈ N.positiveStoichChartDomain x₀,
+      N.reducedMassActionField κ x₀ u = 0 → u ∈ K) :
+    ∃ D : N.DeficiencyOneDegreeDomain κ x₀, K ⊆ D.U := by
+  classical
+  have hPopen : IsOpen (N.positiveStoichChartDomain x₀) :=
+    N.isOpen_positiveStoichChartDomain x₀
+  have h0P : (0 : N.stoichSubspace) ∈ N.positiveStoichChartDomain x₀ := by
+    intro s
+    simpa [stoichClassChart] using hx₀ s
+  have hK'cpt : IsCompact (insert (0 : N.stoichSubspace) K) := hKcpt.insert 0
+  have hK'sub : insert (0 : N.stoichSubspace) K ⊆ N.positiveStoichChartDomain x₀ :=
+    Set.insert_subset_iff.2 ⟨h0P, hKsub⟩
+  obtain ⟨δ, hδ, hsub⟩ := hK'cpt.exists_cthickening_subset_open hPopen hK'sub
+  have hclsub : closure (Metric.thickening δ (insert (0 : N.stoichSubspace) K))
+      ⊆ N.positiveStoichChartDomain x₀ :=
+    (Metric.closure_thickening_subset_cthickening δ _).trans hsub
+  let D : N.DeficiencyOneDegreeDomain κ x₀ := {
+    U := Metric.thickening δ (insert (0 : N.stoichSubspace) K)
+    isOpen := Metric.isOpen_thickening
+    bounded := hK'cpt.isBounded.thickening
+    zero_mem := Metric.self_subset_thickening hδ _ (Set.mem_insert _ _)
+    closure_positive := hclsub
+    boundary_nonzero := by
+      intro u hu hzero
+      rw [Metric.isOpen_thickening.frontier_eq] at hu
+      have huP : u ∈ N.positiveStoichChartDomain x₀ := hclsub hu.1
+      have huK : u ∈ K := hconf u huP hzero
+      exact hu.2 (Metric.self_subset_thickening hδ _ (Set.mem_insert_of_mem _ huK)) }
+  refine ⟨D, ?_⟩
+  intro u hu
+  exact Metric.self_subset_thickening hδ _ (Set.mem_insert_of_mem _ hu)
+
 /-- **Under the deficiency-one hypotheses an admissible domain always exists.**  Uniqueness makes
 the set of positive steady states in one positive compatibility class a subsingleton, hence
 compact, so the confinement hypothesis of
@@ -164,10 +225,12 @@ The consequence is worth stating explicitly, because it says where the difficult
 in the continuation — a `C¹` homotopy from an invertible linear map to the reduced field whose
 zeros stay off the frontier of that domain for every parameter, and stay nondegenerate inside
 it. -/
-theorem exists_deficiencyOneDegreeDomain_of_deficiencyOneHypotheses
+theorem exists_deficiencyOneDegreeDomain_containingPositiveZeros_of_deficiencyOneHypotheses
     (N : Network S) (h : N.DeficiencyOneHypotheses) (κ : N.RateConstants)
     {x₀ : Concentration S} (hx₀ : x₀.Positive) :
-    Nonempty (N.DeficiencyOneDegreeDomain κ x₀) := by
+    ∃ D : N.DeficiencyOneDegreeDomain κ x₀,
+      ∀ u ∈ N.positiveStoichChartDomain x₀,
+        N.reducedMassActionField κ x₀ u = 0 → u ∈ D.U := by
   classical
   set K : Set N.stoichSubspace :=
     {u | u ∈ N.positiveStoichChartDomain x₀ ∧ N.reducedMassActionField κ x₀ u = 0} with hKdef
@@ -194,8 +257,21 @@ theorem exists_deficiencyOneDegreeDomain_of_deficiencyOneHypotheses
     have hadd : x₀ + u.1 = x₀ + v.1 := heq
     exact add_left_cancel hadd
   have hKcpt : IsCompact K := hKsubsingleton.finite.isCompact
-  exact N.exists_deficiencyOneDegreeDomain_of_confinement κ hx₀ hKcpt hKsub
-    (fun u huP hzero => ⟨huP, hzero⟩)
+  obtain ⟨D, hKD⟩ := N.exists_deficiencyOneDegreeDomain_of_confinement_contains
+    κ hx₀ hKcpt hKsub (fun u huP hzero => ⟨huP, hzero⟩)
+  refine ⟨D, ?_⟩
+  intro u huP hzero
+  exact hKD ⟨huP, hzero⟩
+
+/-- The weaker nonempty-domain interface. -/
+theorem exists_deficiencyOneDegreeDomain_of_deficiencyOneHypotheses
+    (N : Network S) (h : N.DeficiencyOneHypotheses) (κ : N.RateConstants)
+    {x₀ : Concentration S} (hx₀ : x₀.Positive) :
+    Nonempty (N.DeficiencyOneDegreeDomain κ x₀) := by
+  obtain ⟨D, _⟩ :=
+    N.exists_deficiencyOneDegreeDomain_containingPositiveZeros_of_deficiencyOneHypotheses
+      h κ hx₀
+  exact ⟨D⟩
 
 /-- **Global-finiteness degree certificate (superseded).**  The original formulation of the
 certificate, which asks for the zero sets of the reference map and of the reduced mass-action
@@ -578,18 +654,201 @@ theorem reducedMassActionField_reference_unique_zero_on_positive_domain
   have hd := congrArg (fun z : Concentration S => z - x₀) heq
   simpa [stoichClassChart] using hd
 
+private noncomputable def degreeStoichSubspaceCoordEquiv (N : Network S) :
+    (Fin N.stoichRank → ℝ) ≃L[ℝ] N.stoichSubspace :=
+  N.stoichBasis.equivFun.symm.toContinuousLinearEquiv
+
+@[simp] private theorem degreeStoichSubspaceCoordEquiv_coe (N : Network S)
+    (y : Fin N.stoichRank → ℝ) :
+    ((N.degreeStoichSubspaceCoordEquiv y : N.stoichSubspace) : Concentration S) =
+      N.stoichChart y := by
+  simp [degreeStoichSubspaceCoordEquiv, stoichChart, stoichChartLM]
+
+private theorem reducedMassActionField_contDiff_degree (N : Network S)
+    (κ : N.RateConstants) (x₀ : Concentration S) {n : WithTop ℕ∞} :
+    ContDiff ℝ n (N.reducedMassActionField κ x₀) := by
+  let e := N.degreeStoichSubspaceCoordEquiv
+  have he : ContDiff ℝ n (e : (Fin N.stoichRank → ℝ) → N.stoichSubspace) := e.contDiff
+  have hes : ContDiff ℝ n (e.symm : N.stoichSubspace → (Fin N.stoichRank → ℝ)) :=
+    e.symm.contDiff
+  have hred : ContDiff ℝ n (N.reducedField κ x₀) := by
+    have hchart : ContDiff ℝ n (N.affineChart x₀) :=
+      contDiff_const.add N.stoichChart.contDiff
+    have hf : ContDiff ℝ n (fun y => N.massActionVectorField κ (N.affineChart x₀ y)) := by
+      simpa only [Function.comp_def] using (N.massActionVectorField_contDiff κ).comp hchart
+    change ContDiff ℝ n
+      (fun y => N.stoichProj (N.massActionVectorField κ (N.affineChart x₀ y)))
+    simpa only [Function.comp_def] using N.stoichProj.contDiff.comp hf
+  have hmid : ContDiff ℝ n (fun u : N.stoichSubspace =>
+      N.reducedField κ x₀ (e.symm u)) := by
+    simpa only [Function.comp_def] using hred.comp hes
+  have h : ContDiff ℝ n (fun u : N.stoichSubspace =>
+      e (N.reducedField κ x₀ (e.symm u))) := by
+    simpa only [Function.comp_def] using he.comp hmid
+  have heq : (fun u : N.stoichSubspace =>
+      e (N.reducedField κ x₀ (e.symm u))) = N.reducedMassActionField κ x₀ := by
+    funext u
+    apply Subtype.ext
+    change N.stoichChart (N.reducedField κ x₀ (e.symm u)) =
+      N.massActionVectorField κ (N.stoichClassChart x₀ u)
+    rw [reducedField]
+    rw [N.stoichChart_stoichProj (N.massActionVectorField_mem_stoichSubspace κ _)]
+    congr 2
+    simp only [affineChart, stoichClassChart]
+    congr 1
+    rw [← N.degreeStoichSubspaceCoordEquiv_coe (e.symm u)]
+    simp [e]
+  rw [← heq]
+  exact h
+
+private theorem reducedMassActionField_fderiv_det_ne_zero
+    (N : Network S) (h : N.DeficiencyOneHypotheses) (κ : N.RateConstants)
+    {x₀ : Concentration S} (u : N.stoichSubspace)
+    (hx : (N.stoichClassChart x₀ u).Positive)
+    (hss : N.IsMassActionSteadyState κ (N.stoichClassChart x₀ u)) :
+    LinearMap.det
+      (fderiv ℝ (N.reducedMassActionField κ x₀) u).toLinearMap ≠ 0 := by
+  let j := N.stoichSubspace.subtypeL
+  let f := N.reducedMassActionField κ x₀
+  have hfdiff : Differentiable ℝ f :=
+    (N.reducedMassActionField_contDiff_degree κ x₀ (n := 1)).differentiable (by norm_num)
+  have hchart : HasFDerivAt (N.stoichClassChart x₀) j u := by
+    change HasFDerivAt (fun v : N.stoichSubspace => x₀ + (v : Concentration S)) j u
+    simpa [j, stoichClassChart] using (j.hasFDerivAt).const_add x₀
+  have hsub : HasFDerivAt (fun v : N.stoichSubspace => j (f v))
+      (j.comp (fderiv ℝ f u)) u := by
+    exact j.hasFDerivAt.comp u (hfdiff u).hasFDerivAt
+  have hambient : HasFDerivAt
+      (fun v : N.stoichSubspace => N.massActionVectorField κ (N.stoichClassChart x₀ v))
+      ((N.massActionJacobianCLM κ (N.stoichClassChart x₀ u)).comp j) u :=
+    (N.massActionVectorField_hasFDerivAt κ _).comp u hchart
+  have hfunctions : (fun v : N.stoichSubspace => j (f v)) =
+      (fun v => N.massActionVectorField κ (N.stoichClassChart x₀ v)) := by
+    funext v
+    rfl
+  have hderiv : j.comp (fderiv ℝ f u) =
+      (N.massActionJacobianCLM κ (N.stoichClassChart x₀ u)).comp j := by
+    have hsub' : HasFDerivAt
+        (fun v : N.stoichSubspace => N.massActionVectorField κ
+          (N.stoichClassChart x₀ v)) (j.comp (fderiv ℝ f u)) u := by
+      simpa only [hfunctions] using hsub
+    exact hsub'.unique hambient
+  have hinj : Function.Injective (fderiv ℝ f u).toLinearMap := by
+    rw [← LinearMap.ker_eq_bot]
+    apply LinearMap.ker_eq_bot'.mpr
+    intro v hv
+    apply Subtype.ext
+    have heq := congrArg (fun T : N.stoichSubspace →L[ℝ] Concentration S => T v) hderiv
+    have hvval : j ((fderiv ℝ f u) v) = 0 := by
+      simpa [j] using congrArg Subtype.val hv
+    have hJ : N.massActionJacobianCLM κ (N.stoichClassChart x₀ u) v.1 = 0 := by
+      calc
+        N.massActionJacobianCLM κ (N.stoichClassChart x₀ u) v.1 =
+            j ((fderiv ℝ f u) v) := heq.symm
+        _ = 0 := hvval
+    exact N.massActionJacobianCLM_eq_zero_of_mem_stoich_of_deficiencyOne
+      h κ hx hss v.2 hJ
+  have hsurj : Function.Surjective (fderiv ℝ f u).toLinearMap :=
+    LinearMap.injective_iff_surjective.mp hinj
+  let e : N.stoichSubspace ≃ₗ[ℝ] N.stoichSubspace :=
+    LinearEquiv.ofBijective _ ⟨hinj, hsurj⟩
+  have hunit := e.isUnit_det'
+  have hcoe : (e : N.stoichSubspace →ₗ[ℝ] N.stoichSubspace) =
+      (fderiv ℝ f u).toLinearMap := rfl
+  rw [hcoe] at hunit
+  exact hunit.ne_zero
+
 /-- **CRNT degree certificate construction.** Weak reversibility and the three Deficiency One
-structural hypotheses provide an admissible domain and a continuation whose reference degree is
-nonzero.  Feinberg's sign conditions keep zeros off the boundary throughout the continuation. -/
+structural hypotheses provide an admissible domain around the independently established positive
+steady state.  We use the target field as both endpoints of a constant homotopy; uniqueness and
+Jacobian nondegeneracy make its relative local degree nonzero.  Thus this theorem packages a valid
+certificate, while the separate weakly reversible existence theorem supplies the steady state. -/
 theorem exists_deficiencyOneDegreeCertificate
     (N : Network S) (h : N.DeficiencyOneHypotheses) (hwr : N.WeaklyReversible)
     (κ : N.RateConstants) {x₀ : Concentration S} (hx₀ : x₀.Positive) :
     Nonempty (N.DeficiencyOneDegreeCertificate κ x₀) := by
-  -- Construct a compact truncation of the positive class, use terminal-SLC kernel modes to
-  -- orient each boundary face, and homotope to the classwise one-dimensional reference system.
-  -- The certificate must now establish an actual nonzero local degree and its invariance, rather
-  -- than filling an unconstrained proposition-valued placeholder.
-  sorry
+  classical
+  obtain ⟨x, hxc, hss⟩ := N.exists_positiveSteadyState_of_weaklyReversible hwr κ hx₀
+  let u : N.stoichSubspace := ⟨x - x₀, hxc.1⟩
+  have huChart : N.stoichClassChart x₀ u = x := by
+    simp [u, stoichClassChart]
+  have huPos : u ∈ N.positiveStoichChartDomain x₀ := by
+    change (N.stoichClassChart x₀ u).Positive
+    simpa [huChart] using hxc.2
+  have huZero : N.reducedMassActionField κ x₀ u = 0 := by
+    rw [N.reducedMassActionField_eq_zero_iff]
+    simpa [huChart] using hss
+  obtain ⟨D, hcontains⟩ :=
+    N.exists_deficiencyOneDegreeDomain_containingPositiveZeros_of_deficiencyOneHypotheses
+      h κ hx₀
+  have huD : u ∈ D.U := hcontains u huPos huZero
+  have hussChart : N.IsMassActionSteadyState κ (N.stoichClassChart x₀ u) := by
+    simpa [huChart] using hss
+  let f := N.reducedMassActionField κ x₀
+  let H : ℝ → N.stoichSubspace → N.stoichSubspace := fun _ => f
+  have hcd : ContDiff ℝ 1 (fun p : ℝ × N.stoichSubspace => H p.1 p.2) := by
+    dsimp [H, f]
+    exact (N.reducedMassActionField_contDiff_degree κ x₀ (n := 1)).comp contDiff_snd
+  have huniqProp : ∀ v : N.stoichSubspace, v ∈ D.U ∧ f v = 0 → v = u := by
+    intro v hv
+    have hvPos : (N.stoichClassChart x₀ v).Positive :=
+      D.closure_positive (subset_closure hv.1)
+    have huZero' : N.reducedMassActionLinearHomotopy κ κ x₀ 0 u = 0 := by
+      simpa [reducedMassActionLinearHomotopy] using huZero
+    have hvZero' : N.reducedMassActionLinearHomotopy κ κ x₀ 0 v = 0 := by
+      simpa [f, reducedMassActionLinearHomotopy] using hv.2
+    exact (N.reducedMassActionLinearHomotopy_zero_unique_positive h κ κ hx₀
+      ⟨0, by norm_num⟩ (u := u) (v := v) huZero' hvZero'
+      (by simpa [huChart] using hxc.2) hvPos).symm
+  have huniq : ∃! v : N.stoichSubspace, v ∈ D.U ∧ f v = 0 :=
+    ⟨u, ⟨huD, huZero⟩, huniqProp⟩
+  have hpre : f ⁻¹' {(0 : N.stoichSubspace)} ∩ D.U = {u} := by
+    ext v
+    simp only [Set.mem_inter_iff, Set.mem_preimage, Set.mem_singleton_iff]
+    constructor
+    · rintro ⟨hvZero, hvU⟩
+      exact huniqProp v ⟨hvU, hvZero⟩
+    · intro hvu
+      subst v
+      exact ⟨huZero, huD⟩
+  have htargetfin : (f ⁻¹' {(0 : N.stoichSubspace)} ∩ D.U).Finite := by
+    rw [hpre]
+    exact Set.finite_singleton u
+  have hboundary : ∀ t ∈ Set.Icc (0 : ℝ) 1, ∀ v ∈ frontier D.U, H t v ≠ 0 := by
+    intro t ht v hv
+    simpa [H, f] using D.boundary_nonzero v hv
+  have hregular : ∀ t ∈ Set.Icc (0 : ℝ) 1, ∀ v ∈ D.U, H t v = 0 →
+      LinearMap.det (partialFDeriv
+        (fun p : ℝ × N.stoichSubspace => H p.1 p.2) (t, v)).toLinearMap ≠ 0 := by
+    intro t ht v hvU hvZero
+    have hvPos : (N.stoichClassChart x₀ v).Positive :=
+      D.closure_positive (subset_closure hvU)
+    have hvFieldZero : N.reducedMassActionField κ x₀ v = 0 := by
+      simpa [H, f] using hvZero
+    have hvss : N.IsMassActionSteadyState κ (N.stoichClassChart x₀ v) :=
+      (N.reducedMassActionField_eq_zero_iff κ x₀ v).mp hvFieldZero
+    have hdet := N.reducedMassActionField_fderiv_det_ne_zero h κ v hvPos hvss
+    have hHdiff : DifferentiableAt ℝ
+        (fun p : ℝ × N.stoichSubspace => H p.1 p.2) (t, v) :=
+      (hcd.differentiable (by norm_num)) (t, v)
+    have hpartial : fderiv ℝ f v =
+        partialFDeriv (fun p : ℝ × N.stoichSubspace => H p.1 p.2) (t, v) := by
+      simpa [H, f] using
+        (partialFDeriv_eq (fun p : ℝ × N.stoichSubspace => H p.1 p.2) hHdiff)
+    rw [← hpartial]
+    exact hdet
+  have hfinite : ∀ t ∈ Set.Icc (0 : ℝ) 1,
+      ((H t) ⁻¹' {(0 : N.stoichSubspace)} ∩ D.U).Finite := by
+    intro t ht
+    simpa [H, f] using htargetfin
+  have huDet := N.reducedMassActionField_fderiv_det_ne_zero h κ u
+    (by simpa [huChart] using hxc.2) hussChart
+  have hrefdeg : ∀ hfr : (f ⁻¹' {(0 : N.stoichSubspace)} ∩ D.U).Finite,
+      localDegreeOn f 0 D.U hfr ≠ 0 := by
+    intro hfr
+    exact localDegreeOn_ne_zero_of_single_regular_zero f hpre hfr huDet
+  exact ⟨N.deficiencyOneDegreeCertificate_ofHomotopy κ x₀ D f H hcd rfl rfl
+    hboundary hregular hfinite huniq hrefdeg⟩
 
 /-- **Weakly reversible Deficiency One existence, degree proof.** -/
 theorem deficiencyOne_exists_positiveSteadyState_via_degree
