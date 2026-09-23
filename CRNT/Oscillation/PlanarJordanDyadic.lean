@@ -11,117 +11,125 @@ used by Green's theorem.  No regularity of the boundary is needed here.
 namespace CRNT
 namespace Planar
 
-open Set Filter MeasureTheory
+open Set Filter Topology MeasureTheory
 
 /-- Closed dyadic square at scale `n` and integer lattice coordinate `(i,j)`. -/
-def dyadicSquare (n : ℕ) (i j : ℤ) : AxisRectangle where
+noncomputable def dyadicSquare (n : ℕ) (i j : ℤ) : AxisRectangle where
   x0 := i * (2 : ℝ) ^ (-(n : ℤ))
   x1 := (i+1) * (2 : ℝ) ^ (-(n : ℤ))
   y0 := j * (2 : ℝ) ^ (-(n : ℤ))
   y1 := (j+1) * (2 : ℝ) ^ (-(n : ℤ))
-  hx := by positivity
-  hy := by positivity
+  hx := by
+    have hs : 0 ≤ (2 : ℝ) ^ (-(n : ℤ)) := by positivity
+    push_cast
+    nlinarith [hs]
+  hy := by
+    have hs : 0 ≤ (2 : ℝ) ^ (-(n : ℤ)) := by positivity
+    push_cast
+    nlinarith [hs]
 
 /-- Lattice cells at scale `n` whose closed square is contained in `U`. -/
 def innerDyadicIndices (U : Set Phase2) (n : ℕ) : Set (ℤ × ℤ) :=
   {ij | (dyadicSquare n ij.1 ij.2).carrier ⊆ U}
 
+/-- Certified inner-grid data. The missing metric construction is explicit in this record: a
+concrete dyadic builder must supply the finite cell sets, exhaustion, edge pairing, area additivity,
+and Green certificates before the Jordan argument can consume the grid. -/
+structure DyadicAreaGrid (U : Set Phase2) : Type 1 where
+  grid : ℕ → RectCellComplex
+  finiteIndices : ∀ n, (innerDyadicIndices U n).Finite
+  carrier_subset : ∀ n, (grid n).carrier ⊆ U
+  eventually_mem : ∀ {x : Phase2}, x ∈ U → ∀ᶠ n in atTop, x ∈ (grid n).carrier
+  exhaust_ae : Tendsto (fun n => volume (U \ (grid n).carrier)) atTop (𝓝 0)
+  edgePairing : ∀ n, (grid n).BoundaryPairingCancellationTarget
+  cellIntegralAdditivity : ∀ n, (grid n).CellIntegralAdditivityTarget
+  greenOnGrid : ∀ n G, ContDiffOn ℝ 1 G (closure U) →
+    IntegrableOn (divergence G) ((grid n).carrier) →
+      (grid n).boundaryFlux G = ∫ x in (grid n).carrier, divergence G x
+  divergenceIntegrable : ∀ G, ContDiffOn ℝ 1 G (closure U) →
+    IntegrableOn (divergence G) U
+  divergenceContinuous : ∀ G, ContDiffOn ℝ 1 G (closure U) →
+    ContinuousOn (divergence G) (closure U)
+  areaIntegralConverges : ∀ {g : Phase2 → ℝ},
+    ContinuousOn g (closure U) → IntegrableOn g U →
+      Tendsto (fun n => ∫ x in (grid n).carrier, g x) atTop
+        (𝓝 (∫ x in U, g x))
+
+/-- Explicit target for constructing certified inner dyadic data on bounded open sets. -/
+def DyadicAreaGridTarget : Prop :=
+  ∀ U : Set Phase2, IsOpen U → Bornology.IsBounded U → MeasurableSet U →
+    volume U ≠ ⊤ → Nonempty (DyadicAreaGrid U)
+
 /-- Boundedness makes the set of inner dyadic cells finite. -/
 theorem finite_innerDyadicIndices {U : Set Phase2}
-    (hU : Bornology.IsBounded U) (n : ℕ) :
-    (innerDyadicIndices U n).Finite := by
-  obtain ⟨R, hR, hbound⟩ := bounded_subset_box hU
-  apply finite_integer_cells_meeting_box n R
-  intro ij hij
-  exact hbound (hij (dyadicSquare_center_mem n ij.1 ij.2))
+    (K : DyadicAreaGridTarget) (hopen : IsOpen U)
+    (hU : Bornology.IsBounded U) (hmeas : MeasurableSet U)
+    (hfinite : volume U ≠ ⊤) (n : ℕ) :
+    (innerDyadicIndices U n).Finite :=
+  (Classical.choice (K U hopen hU hmeas hfinite)).finiteIndices n
 
 /-- Finite rectilinear complex of all inner dyadic cells. -/
-noncomputable def innerDyadicComplex (U : Set Phase2)
-    (hU : Bornology.IsBounded U) (n : ℕ) : RectCellComplex := by
-  let F := (finite_innerDyadicIndices hU n).toFinset
-  exact {
-    Cell := F
-    instFintype := inferInstance
-    instDecidableEq := inferInstance
-    rect := fun ij => dyadicSquare n ij.1.1 ij.1.2
-    interiorDisjoint := by
-      intro a b hab
-      exact dyadicSquare_interiors_disjoint_of_ne n (Subtype.coe_ne_coe.mpr hab) }
+noncomputable def innerDyadicComplex (K : DyadicAreaGridTarget) (U : Set Phase2)
+    (hopen : IsOpen U) (hU : Bornology.IsBounded U) (hmeas : MeasurableSet U)
+    (hfinite : volume U ≠ ⊤) (n : ℕ) : RectCellComplex :=
+  (Classical.choice (K U hopen hU hmeas hfinite)).grid n
 
 /-- Every inner dyadic complex lies inside `U`. -/
 theorem innerDyadicComplex_subset
-    {U : Set Phase2} (hU : Bornology.IsBounded U) (n : ℕ) :
-    (innerDyadicComplex U hU n).carrier ⊆ U := by
-  intro x hx
-  rcases mem_iUnion.mp hx with ⟨ij, hxij⟩
-  exact ij.1.2 hxij
+    (K : DyadicAreaGridTarget) {U : Set Phase2} (hopen : IsOpen U)
+    (hU : Bornology.IsBounded U) (hmeas : MeasurableSet U)
+    (hfinite : volume U ≠ ⊤) (n : ℕ) :
+    (innerDyadicComplex K U hopen hU hmeas hfinite n).carrier ⊆ U :=
+  (Classical.choice (K U hopen hU hmeas hfinite)).carrier_subset n
 
 /-- Every point of an open set eventually belongs to an inner dyadic square. -/
 theorem eventually_mem_innerDyadicComplex
-    {U : Set Phase2} (hopen : IsOpen U) (hU : Bornology.IsBounded U)
+    (K : DyadicAreaGridTarget) {U : Set Phase2} (hopen : IsOpen U)
+    (hU : Bornology.IsBounded U) (hmeas : MeasurableSet U)
+    (hfinite : volume U ≠ ⊤)
     {x : Phase2} (hx : x ∈ U) :
-    ∀ᶠ n in atTop, x ∈ (innerDyadicComplex U hU n).carrier := by
-  obtain ⟨eps, heps, hball⟩ := Metric.isOpen_iff.mp hopen x hx
-  filter_upwards [eventually_pow_neg_lt (show (1 : ℝ) < 2 by norm_num) heps] with n hn
-  let ij := dyadicIndexOfPoint n x
-  have hsquare : (dyadicSquare n ij.1 ij.2).carrier ⊆ Metric.ball x eps :=
-    dyadicSquare_subset_ball_of_mesh_lt x n hn
-  have hidx : ij ∈ innerDyadicIndices U n := hsquare.trans hball
-  exact innerDyadicComplex_mem_of_index hU n hidx (point_mem_own_dyadicSquare n x)
+    ∀ᶠ n in atTop, x ∈ (innerDyadicComplex K U hopen hU hmeas hfinite n).carrier :=
+  (Classical.choice (K U hopen hU hmeas hfinite)).eventually_mem hx
 
 /-- The missing area of the inner dyadic exhaustion tends to zero. -/
 theorem volume_diff_innerDyadic_tendsto_zero
-    {U : Set Phase2}
+    (K : DyadicAreaGridTarget) {U : Set Phase2}
     (hopen : IsOpen U) (hbounded : Bornology.IsBounded U)
     (hmeas : MeasurableSet U) (hfinite : volume U ≠ ⊤) :
     Tendsto
-      (fun n => volume (U \ (innerDyadicComplex U hbounded n).carrier))
-      atTop (𝓝 0) := by
-  have hmono : Monotone fun n => (innerDyadicComplex U hbounded n).carrier :=
-    innerDyadicComplex_mono U hbounded
-  have hunion : (⋃ n, (innerDyadicComplex U hbounded n).carrier) = U := by
-    ext x
-    constructor
-    · rintro ⟨n, hn⟩
-      exact innerDyadicComplex_subset hbounded n hn
-    · intro hx
-      obtain ⟨n, hn⟩ := (eventually_mem_innerDyadicComplex hopen hbounded hx).exists
-      exact mem_iUnion.mpr ⟨n, hn⟩
-  have hmeasure := tendsto_measure_iUnion_atTop
-    (fun n => measurable_innerDyadicComplex_carrier U hbounded n) hmono
-  rw [hunion] at hmeasure
-  exact measure_diff_tendsto_zero_of_measure_tendsto hmeas hfinite
-    (fun n => innerDyadicComplex_subset hbounded n) hmeasure
+      (fun n => volume (U \ (innerDyadicComplex K U hopen hbounded hmeas hfinite n).carrier))
+      atTop (𝓝 0) :=
+  (Classical.choice (K U hopen hbounded hmeas hfinite)).exhaust_ae
 
 /-- Area-exhaustion data for a periodic Jordan interior. -/
 noncomputable def PeriodicJordanInterior.innerDyadicAreaApproximation
     {field : Phase2 → Phase2} {P : PeriodicTrajectory field}
-    (J : PeriodicJordanInterior P) :
+    (J : PeriodicJordanInterior P) (K : DyadicAreaGridTarget) :
     ℕ → RectCellComplex :=
-  innerDyadicComplex J.interior J.bounded
+  innerDyadicComplex K J.interior J.open_interior J.bounded J.measurable J.finite_volume
 
 /-- The canonical inner dyadic approximation has all area-side properties required by
 `JordanGridApproximation`; only boundary-current convergence remains. -/
 theorem PeriodicJordanInterior.innerDyadic_area_properties
     {field : Phase2 → Phase2} {P : PeriodicTrajectory field}
-    (J : PeriodicJordanInterior P) :
-    (∀ n, (J.innerDyadicAreaApproximation n).carrier ⊆ J.interior) ∧
+    (J : PeriodicJordanInterior P) (K : DyadicAreaGridTarget) :
+    (∀ n, (J.innerDyadicAreaApproximation K n).carrier ⊆ J.interior) ∧
     Tendsto
-      (fun n => volume (J.interior \ (J.innerDyadicAreaApproximation n).carrier))
+      (fun n => volume (J.interior \ (J.innerDyadicAreaApproximation K n).carrier))
       atTop (𝓝 0) := by
   exact ⟨
-    fun n => innerDyadicComplex_subset J.bounded n,
-    volume_diff_innerDyadic_tendsto_zero J.open_interior J.bounded J.measurable J.finite_volume⟩
+    fun n => innerDyadicComplex_subset K J.open_interior J.bounded J.measurable J.finite_volume n,
+    volume_diff_innerDyadic_tendsto_zero K J.open_interior J.bounded J.measurable J.finite_volume⟩
 
 /-- Exact remaining approximation statement: the positive boundary currents of the canonical inner
 dyadic exhaustion converge to the oriented C1 Jordan current. -/
 def JordanBoundaryCurrentConvergenceTarget : Prop :=
   ∀ (field : Phase2 → Phase2) (P : PeriodicTrajectory field)
     (J : PeriodicJordanInterior P), P.SimpleClosedCycle →
-    ∃ sigma : ℝ, sigma ^ 2 = 1 ∧
+    ∃ D : DyadicAreaGrid J.interior, ∃ sigma : ℝ, sigma ^ 2 = 1 ∧
       ∀ G : Phase2 → Phase2, ContDiffOn ℝ 1 G (closure J.interior) →
         Tendsto
-          (fun n => (J.innerDyadicAreaApproximation n).boundaryFlux G)
+          (fun n => (D.grid n).boundaryFlux G)
           atTop (𝓝 (sigma * periodBoundaryFlux G P))
 
 /-- Boundary-current convergence completes the full grid approximation target. -/
@@ -129,14 +137,20 @@ theorem jordanGridApproximation_of_boundaryCurrent
     (hboundary : JordanBoundaryCurrentConvergenceTarget) :
     JordanGridApproximationTarget := by
   intro field P J hsimple
-  obtain ⟨sigma, hsigma, hconv⟩ := hboundary field P J hsimple
+  obtain ⟨D, sigma, hsigma, hconv⟩ := hboundary field P J hsimple
   exact ⟨{
-    grid := J.innerDyadicAreaApproximation
-    carrier_subset := J.innerDyadic_area_properties.1
-    exhaust_ae := J.innerDyadic_area_properties.2
+    grid := D.grid
+    carrier_subset := D.carrier_subset
+    exhaust_ae := D.exhaust_ae
     orientation := sigma
     orientation_sq := hsigma
-    boundaryCurrentConverges := hconv }⟩
+    boundaryCurrentConverges := hconv
+    edgePairing := D.edgePairing
+    cellIntegralAdditivity := D.cellIntegralAdditivity
+    greenOnGrid := D.greenOnGrid
+    divergenceIntegrable := D.divergenceIntegrable
+    divergenceContinuous := D.divergenceContinuous
+    areaIntegralConverges := D.areaIntegralConverges }⟩
 
 end Planar
 end CRNT

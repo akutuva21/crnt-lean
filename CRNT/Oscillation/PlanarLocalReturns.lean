@@ -375,8 +375,9 @@ structure ConsecutiveLocalReturns {field : Phase2 → Phase2}
   consecutive : ∀ t, first.time < t → t < second.time →
     t ∉ localReturnTimes D q rho
 
-/-- Every local return has a chronologically next local return when arbitrarily late recurrence is
-available. -/
+/-- Every local return has a chronologically next local return when arbitrarily late recurrence
+is available and the chosen section window is transverse throughout.  A flow box controls a
+neighborhood of the base point; it does not certify transversality on every positive-radius window. -/
 theorem exists_nextLocalReturn
     {field : Phase2 → Phase2} {D : FlowTrappingData field}
     {M : MinimalOmegaData D} {q : Phase2}
@@ -384,6 +385,8 @@ theorem exists_nextLocalReturn
     (R : CanonicalFlowBoxRegularity D q)
     (hsmooth : ContDiff ℝ 1 field)
     {rho : ℝ} (hrho : 0 < rho)
+    (horient : ∀ u ∈ Set.Icc (-rho) rho,
+      0 < ⟪field (canonicalSectionPoint field q u), field q⟫_ℝ)
     (H : LocalCanonicalReturn D q rho) :
     ∃ H' : LocalCanonicalReturn D q rho,
       H.time < H'.time ∧
@@ -409,8 +412,7 @@ theorem exists_nextLocalReturn
     by_contra hnot
     have heq : tnext = H.time := le_antisymm (le_of_not_gt hnot) hge
     obtain ⟨eps, heps, hiso⟩ := localReturnTime_isolated hsmooth.continuous
-      (positiveSpeedWindow_of_flowBox R M hq hsmooth hrho) hne
-      ⟨H.time_pos, H.state_mem⟩
+      horient hne ⟨H.time_pos, H.state_mem⟩
     have hupper : tnext < H.time + eps := by rw [heq]; linarith
     obtain ⟨t, htB, htlt⟩ := exists_lt_of_csInf_lt hBne hupper
     have htH : H.time < t := by simpa using htB.2
@@ -421,7 +423,8 @@ theorem exists_nextLocalReturn
     rw [hiso] at hmem
     have hteq : t = H.time := by simpa using hmem
     exact (ne_of_gt htB.2) hteq
-  have hgap0 := localReturn_gap_after_zero hsmooth.continuous hne
+  have hgap0 : ∃ δ > 0, Set.Ioo (0 : ℝ) δ ∩ localReturnTimes D q rho = ∅ := by
+    exact localReturn_gap_after_zero hsmooth.continuous hne
   have hclosed := isClosed_localReturnTimes_of_gap hsmooth.continuous hgap0
   have hcl : tnext ∈ closure A := by
     rw [Metric.mem_closure_iff]

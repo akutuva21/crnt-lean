@@ -42,24 +42,26 @@ theorem recurrentSectionConstruction_of_ordering
 /-- The modern Jordan/regularity/Green decomposition constructs the old analytic Dulac area data. -/
 theorem dulacAreaConstruction_of_foundations
     (hJordan : PeriodicJordanInteriorTarget)
+    (hSep : SimplePlanarLoop.JordanSeparationTarget)
     (hContain : JordanInteriorContainmentTarget)
     (hRegular : JordanDulacRegularityTarget)
     (hGreen : PeriodicGreenDivergenceTarget) :
     DulacAreaConstructionTarget :=
   dulacAreaConstruction_of_jordan_green
     (jordanDulacInteriorConstruction_of_foundations hJordan hContain hRegular)
-    (greenDivergencePeriodicJordan_of_foundation hGreen)
+    (greenDivergencePeriodicJordan_of_foundation hSep hContain hRegular hGreen)
 
 /-- The same refined decomposition constructs the historical proof-relevant Green/Jordan
 certificate for every already-simple cycle. -/
 theorem greenJordanCertificateConstruction_of_foundations
     (hJordan : PeriodicJordanInteriorTarget)
+    (hSep : SimplePlanarLoop.JordanSeparationTarget)
     (hContain : JordanInteriorContainmentTarget)
     (hRegular : JordanDulacRegularityTarget)
     (hGreen : PeriodicGreenDivergenceTarget) :
     GreenJordanCertificateConstructionTarget := by
   have harea : DulacAreaConstructionTarget :=
-    dulacAreaConstruction_of_foundations hJordan hContain hRegular hGreen
+    dulacAreaConstruction_of_foundations hJordan hSep hContain hRegular hGreen
   intro field D P hsimple hinside
   obtain ⟨A⟩ := harea field D P hsimple hinside
   exact ⟨A.toGreenJordanCycleCertificate⟩
@@ -67,13 +69,14 @@ theorem greenJordanCertificateConstruction_of_foundations
 /-- Hence the refined foundations close the old simple-cycle Green/Jordan kernel too. -/
 theorem greenJordanSimpleCycleKernel_of_foundations
     (hJordan : PeriodicJordanInteriorTarget)
+    (hSep : SimplePlanarLoop.JordanSeparationTarget)
     (hContain : JordanInteriorContainmentTarget)
     (hRegular : JordanDulacRegularityTarget)
     (hGreen : PeriodicGreenDivergenceTarget) :
     GreenJordanSimpleCycleKernelTarget :=
   greenJordanSimpleCycleKernel_of_certificateConstruction
     (greenJordanCertificateConstruction_of_foundations
-      hJordan hContain hRegular hGreen)
+      hJordan hSep hContain hRegular hGreen)
 
 end Planar
 end CRNT

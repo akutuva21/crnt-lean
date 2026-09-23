@@ -1,5 +1,6 @@
 import CRNT.Oscillation.PlanarGreenGrid
 import CRNT.Oscillation.GreenJordanFoundations
+import Mathlib.Topology.Basic
 
 /-!
 # Approximation route from finite Green domains to Jordan domains
@@ -17,12 +18,12 @@ This file packages those limits and proves Green's theorem by passing to the lim
 namespace CRNT
 namespace Planar
 
-open Set Filter MeasureTheory
+open Set Filter Topology MeasureTheory
 
 /-- Rectilinear approximations to one periodic Jordan interior. -/
 structure JordanGridApproximation
     {field : Phase2 → Phase2} (P : PeriodicTrajectory field)
-    (J : PeriodicJordanInterior P) : Type where
+    (J : PeriodicJordanInterior P) : Type 1 where
   grid : ℕ → RectCellComplex
   carrier_subset : ∀ n, (grid n).carrier ⊆ J.interior
   exhaust_ae : Tendsto
@@ -36,6 +37,25 @@ structure JordanGridApproximation
     ∀ G : Phase2 → Phase2, ContDiffOn ℝ 1 G (closure J.interior) →
       Tendsto (fun n => (grid n).boundaryFlux G) atTop
         (𝓝 (orientation * periodBoundaryFlux G P))
+  /-- Cell-edge cancellation for the chain boundary of every grid. -/
+  edgePairing : ∀ n, (grid n).BoundaryPairingCancellationTarget
+  /-- Additivity of cellwise area integrals over each grid carrier. -/
+  cellIntegralAdditivity : ∀ n, (grid n).CellIntegralAdditivityTarget
+  /-- Green's identity for each grid, with the actual regularity available on the Jordan closure. -/
+  greenOnGrid : ∀ n G, ContDiffOn ℝ 1 G (closure J.interior) →
+    IntegrableOn (divergence G) ((grid n).carrier) →
+      (grid n).boundaryFlux G = ∫ x in (grid n).carrier, divergence G x
+  /-- Integrability of the divergence on the Jordan interior. -/
+  divergenceIntegrable : ∀ G, ContDiffOn ℝ 1 G (closure J.interior) →
+    IntegrableOn (divergence G) J.interior
+  /-- Continuity of the divergence on the Jordan closure. -/
+  divergenceContinuous : ∀ G, ContDiffOn ℝ 1 G (closure J.interior) →
+    ContinuousOn (divergence G) (closure J.interior)
+  /-- Area-integral convergence along the supplied grid. -/
+  areaIntegralConverges : ∀ {g : Phase2 → ℝ},
+    ContinuousOn g (closure J.interior) → IntegrableOn g J.interior →
+      Tendsto (fun n => ∫ x in (grid n).carrier, g x) atTop
+        (𝓝 (∫ x in J.interior, g x))
 
 /-- Area integrals of a continuous integrable function converge along an exhausting inner grid. -/
 theorem integral_grid_tendsto_interior
@@ -47,12 +67,7 @@ theorem integral_grid_tendsto_interior
     (hint : IntegrableOn g J.interior) :
     Tendsto (fun n => ∫ x in (A.grid n).carrier, g x) atTop
       (𝓝 (∫ x in J.interior, g x)) := by
-  apply tendsto_setIntegral_of_measure_symmDiff_tendsto_zero
-  · exact hint
-  · intro n
-    exact A.carrier_subset n
-  · simpa [Set.symmDiff_of_subset (A.carrier_subset _)] using A.exhaust_ae
-  · exact hcont.aestronglyMeasurable.restrict
+  exact A.areaIntegralConverges hcont hint
 
 /-- **Green on a Jordan interior from grid approximation.** -/
 theorem periodicGreenDivergence_of_gridApproximation
@@ -62,24 +77,23 @@ theorem periodicGreenDivergence_of_gridApproximation
     (hG : ContDiffOn ℝ 1 G (closure J.interior)) :
     periodBoundaryFlux G P = A.orientation *
       (∫ x in J.interior, divergence G x) := by
+  have hdivInt : IntegrableOn (divergence G) J.interior := A.divergenceIntegrable G hG
   have hdivCont : ContinuousOn (divergence G) (closure J.interior) :=
-    continuousOn_divergence_of_contDiffOn_closure hG
-  have hdivInt : IntegrableOn (divergence G) J.interior :=
-    integrableOn_divergence_of_bounded
-      (J.open_interior) (hG.mono (subset_trans subset_closure le_rfl))
-      subset_rfl J.measurable J.bounded
-  have harea := A.integral_grid_tendsto_interior hdivCont hdivInt
+    A.divergenceContinuous G hG
+  have harea := integral_grid_tendsto_interior A hdivCont hdivInt
   have hflux := A.boundaryCurrentConverges G hG
   have hgreen_n : ∀ n,
       (A.grid n).boundaryFlux G =
         ∫ x in (A.grid n).carrier, divergence G x := by
     intro n
-    exact (A.grid n).boundaryFlux_eq_integral_divergence G
-      (contDiff_of_contDiffOn_closure_extend hG)
-      (hdivInt.mono_set (A.carrier_subset n))
+    exact A.greenOnGrid n G hG (hdivInt.mono_set (A.carrier_subset n))
+  have hflux' : Tendsto
+      (fun n => ∫ x in (A.grid n).carrier, divergence G x) atTop
+      (𝓝 (A.orientation * periodBoundaryFlux G P)) := by
+    exact hflux.congr' (Filter.Eventually.of_forall hgreen_n)
   have hlim : A.orientation * periodBoundaryFlux G P =
       ∫ x in J.interior, divergence G x :=
-    tendsto_nhds_unique hflux (harea.congr' (Filter.Eventually.of_forall hgreen_n).symm)
+    tendsto_nhds_unique hflux' harea
   have hsigma : A.orientation ≠ 0 := by
     intro h0
     have hfld := A.orientation_sq

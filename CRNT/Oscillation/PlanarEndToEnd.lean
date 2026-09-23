@@ -77,7 +77,10 @@ theorem bendixsonDulac
     (hlipAll : ∀ field : Phase2 → Phase2, LocallyLipschitz field) :
     BendixsonDulacTarget :=
   bendixsonDulacTarget_of_jordan_green_of_locallyLipschitz
-    K.jordanDulacInteriorConstruction K.greenDivergence hlipAll
+    K.jordanDulacInteriorConstruction
+    (greenDivergencePeriodicJordan_of_foundation
+      K.jordanSeparation K.jordanContainment K.dulacRegularity K.greenDivergence)
+    hlipAll
 
 end PlanarGlobalKernelBundle
 

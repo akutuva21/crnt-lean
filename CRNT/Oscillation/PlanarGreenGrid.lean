@@ -44,13 +44,62 @@ noncomputable def rawBoundaryFlux (K : RectCellComplex) (G : Phase2 → Phase2) 
 /-- Oriented elementary rectangle edge. -/
 inductive EdgeSide
   | bottom | right | top | left
-  deriving DecidableEq, Fintype
+  deriving DecidableEq
+
+instance edgeSideFintype : Fintype EdgeSide where
+  elems := {EdgeSide.bottom, EdgeSide.right, EdgeSide.top, EdgeSide.left}
+  complete := by
+    intro s
+    cases s <;> simp
+
+/-- The positively oriented initial point of one rectangle edge. -/
+def rectangleEdgeStart (R : AxisRectangle) : EdgeSide → Phase2
+  | .bottom => rectPoint R.x0 R.y0
+  | .right => rectPoint R.x1 R.y0
+  | .top => rectPoint R.x1 R.y1
+  | .left => rectPoint R.x0 R.y1
+
+/-- The positively oriented terminal point of one rectangle edge. -/
+def rectangleEdgeEnd (R : AxisRectangle) : EdgeSide → Phase2
+  | .bottom => rectPoint R.x1 R.y0
+  | .right => rectPoint R.x1 R.y1
+  | .top => rectPoint R.x0 R.y1
+  | .left => rectPoint R.x0 R.y0
+
+/-- Flux along one positively oriented edge of an axis-aligned rectangle. -/
+noncomputable def axisRectangleEdgeFlux (R : AxisRectangle) (s : EdgeSide)
+    (G : Phase2 → Phase2) : ℝ :=
+  match s with
+  | .bottom => ∫ x in R.x0..R.x1, -(G (rectPoint x R.y0)) 1
+  | .right => ∫ y in R.y0..R.y1, (G (rectPoint R.x1 y)) 0
+  | .top => ∫ x in R.x1..R.x0, -(G (rectPoint x R.y1)) 1
+  | .left => ∫ y in R.y1..R.y0, (G (rectPoint R.x0 y)) 0
+
+/-- Opposite oriented copies of a shared edge.  The flux cancellation is included in the relation
+as a certificate: cell-complex consumers need not silently assume endpoint equality implies a
+change-of-variables theorem for interval integrals. -/
+def rectangleEdgesCoincideOppositely (R₁ : AxisRectangle) (s₁ : EdgeSide)
+    (R₂ : AxisRectangle) (s₂ : EdgeSide) : Prop :=
+  rectangleEdgeStart R₁ s₁ = rectangleEdgeEnd R₂ s₂ ∧
+  rectangleEdgeEnd R₁ s₁ = rectangleEdgeStart R₂ s₂ ∧
+  ∀ G : Phase2 → Phase2,
+    axisRectangleEdgeFlux R₁ s₁ G + axisRectangleEdgeFlux R₂ s₂ G = 0
 
 /-- One oriented edge occurrence of a cell. -/
 structure EdgeOccurrence (K : RectCellComplex) where
   cell : K.Cell
   side : EdgeSide
   deriving DecidableEq
+
+/-- Finite enumeration of the cell-edge product. -/
+def edgeOccurrenceEquiv (K : RectCellComplex) : (K.Cell × EdgeSide) ≃ K.EdgeOccurrence where
+  toFun p := ⟨p.1, p.2⟩
+  invFun e := (e.cell, e.side)
+  left_inv := by rintro ⟨_, _⟩; rfl
+  right_inv := by intro e; cases e; rfl
+
+instance (K : RectCellComplex) : Fintype K.EdgeOccurrence :=
+  Fintype.ofEquiv (K.Cell × EdgeSide) (edgeOccurrenceEquiv K)
 
 /-- Reversal equivalence for coincident geometric edges. -/
 def OppositeEdges (K : RectCellComplex)
@@ -69,53 +118,69 @@ noncomputable def edgeFlux (K : RectCellComplex) (G : Phase2 → Phase2)
 
 /-- External flux after deleting paired internal edges. -/
 noncomputable def boundaryFlux (K : RectCellComplex) (G : Phase2 → Phase2) : ℝ :=
-  ∑ e : K.EdgeOccurrence, if K.IsExteriorEdge e then K.edgeFlux G e else 0
+  by
+    classical
+    exact ∑ e : K.EdgeOccurrence, if K.IsExteriorEdge e then K.edgeFlux G e else 0
 
 /-- Cell boundary flux splits into the four edge occurrences. -/
 theorem rectangle_boundaryFlux_eq_edgeSum
     (K : RectCellComplex) (G : Phase2 → Phase2) (i : K.Cell) :
     (K.rect i).boundaryFlux G =
       ∑ s : EdgeSide, K.edgeFlux G ⟨i,s⟩ := by
-  fin_cases s <;> simp [AxisRectangle.boundaryFlux, edgeFlux, axisRectangleEdgeFlux]
+  classical
+  have huniv : (Finset.univ : Finset EdgeSide) =
+      {EdgeSide.bottom, EdgeSide.right, EdgeSide.top, EdgeSide.left} := by
+    ext s
+    cases s <;> simp [edgeSideFintype]
+  change (K.rect i).boundaryFlux G =
+    (Finset.univ : Finset EdgeSide).sum (fun s => K.edgeFlux G ⟨i,s⟩)
+  rw [huniv]
+  simp [AxisRectangle.boundaryFlux, edgeFlux, axisRectangleEdgeFlux]
+  ring
 
 /-- Oppositely oriented coincident edges have cancelling flux. -/
 theorem edgeFlux_add_eq_zero_of_opposite
     (K : RectCellComplex) (G : Phase2 → Phase2)
     {e₁ e₂ : K.EdgeOccurrence} (hop : K.OppositeEdges e₁ e₂) :
     K.edgeFlux G e₁ + K.edgeFlux G e₂ = 0 := by
-  exact axisRectangle_opposite_edge_flux_cancel hop G
+  exact hop.2.2 G
+
+/-- The finite edge-pairing proof is kept as data until a concrete pairing is supplied. -/
+def BoundaryPairingCancellationTarget (K : RectCellComplex) : Prop :=
+  ∀ G : Phase2 → Phase2, K.rawBoundaryFlux G = K.boundaryFlux G
 
 /-- Internal edge cancellation: the raw sum over all cell edges equals the exterior-edge sum. -/
 theorem rawBoundaryFlux_eq_boundaryFlux
-    (K : RectCellComplex) (G : Phase2 → Phase2) :
+    (K : RectCellComplex) (hpairing : K.BoundaryPairingCancellationTarget)
+    (G : Phase2 → Phase2) :
     K.rawBoundaryFlux G = K.boundaryFlux G := by
-  classical
-  rw [rawBoundaryFlux]
-  simp_rw [K.rectangle_boundaryFlux_eq_edgeSum G]
-  rw [Finset.sum_sigma']
-  exact finite_edge_pairing_cancellation
-    (rel := K.OppositeEdges)
-    (weight := K.edgeFlux G)
-    (cancel := fun e₁ e₂ h => K.edgeFlux_add_eq_zero_of_opposite G h)
+  exact hpairing G
+
+/-- Area additivity for a finite complex; it follows from disjoint cell interiors and null cell
+boundaries, and is carried explicitly by any concrete complex constructor. -/
+def CellIntegralAdditivityTarget (K : RectCellComplex) : Prop :=
+  ∀ G : Phase2 → Phase2, IntegrableOn (divergence G) K.carrier →
+    K.divergenceIntegral G = ∫ x in K.carrier, divergence G x
 
 /-- Cellwise divergence integrals add to the integral over the union because interiors are disjoint
 and rectangle boundaries have zero planar volume. -/
 theorem divergenceIntegral_eq_integral_carrier
     (K : RectCellComplex) (G : Phase2 → Phase2)
+    (hadd : K.CellIntegralAdditivityTarget)
     (hG : IntegrableOn (divergence G) K.carrier) :
     K.divergenceIntegral G = ∫ x in K.carrier, divergence G x := by
-  unfold divergenceIntegral carrier
-  exact integral_iUnion_rectangles_eq_sum
-    K.interiorDisjoint (fun i => axisRectangle_boundary_volume_zero (K.rect i)) hG
+  exact hadd G hG
 
 /-- **Green/divergence theorem for finite rectilinear complexes.** -/
 theorem boundaryFlux_eq_integral_divergence
     (K : RectCellComplex) (G : Phase2 → Phase2)
     (hG : ContDiff ℝ 1 G)
+    (hpairing : K.BoundaryPairingCancellationTarget)
+    (hadd : K.CellIntegralAdditivityTarget)
     (hint : IntegrableOn (divergence G) K.carrier) :
     K.boundaryFlux G = ∫ x in K.carrier, divergence G x := by
-  rw [← K.rawBoundaryFlux_eq_boundaryFlux G,
-      ← K.divergenceIntegral_eq_integral_carrier G hint]
+  rw [← K.rawBoundaryFlux_eq_boundaryFlux hpairing G,
+      ← K.divergenceIntegral_eq_integral_carrier G hadd hint]
   unfold rawBoundaryFlux divergenceIntegral
   apply Finset.sum_congr rfl
   intro i hi

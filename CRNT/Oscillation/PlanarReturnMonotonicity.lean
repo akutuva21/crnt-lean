@@ -1,4 +1,5 @@
 import CRNT.Oscillation.PlanarLocalReturns
+import CRNT.Oscillation.PlanarLocalReturnLoops
 import CRNT.Oscillation.PlanarJordanSeparation
 import CRNT.Oscillation.PlanarNoCrossing
 
@@ -45,7 +46,7 @@ def JordanLocalReturnOrderingTarget : Prop :=
     q ∈ M.carrier → 0 < rho → ContDiff ℝ 1 field →
     (∀ u ∈ Set.Icc (-rho) rho,
       0 < ⟪field (canonicalSectionPoint field q u), field q⟫_ℝ) →
-    ¬ Nonempty (PeriodicTrajectory field) →
+    ¬ HasPeriodicTrajectoryThrough field q →
     ∀ H₁ : FirstLocalReturn D q rho,
       ∀ H₂ : LocalCanonicalReturn D q rho,
         H₁.time < H₂.time → ReturnFartherFromBase H₁.scalar H₂.scalar
@@ -58,16 +59,16 @@ the Jordan loop formed by the first orbit arc plus its closing section segment, 
 complement component is entered at the endpoint, and using equal crossing orientation to show that
 a later local section hit cannot occur on the base side of that endpoint. -/
 def OrientedJordanSectionOrderingTarget : Prop :=
-  SimplePlanarLoop.JordanSeparationTarget ->
-  forall (field : Phase2 -> Phase2) (D : FlowTrappingData field)
-    (M : MinimalOmegaData D) (q : Phase2) (rho : Real),
-    q ∈ M.carrier -> 0 < rho -> ContDiff Real 1 field ->
-    (forall u ∈ Set.Icc (-rho) rho,
-      0 < ⟪field (canonicalSectionPoint field q u), field q⟫_Real) ->
-    (not Nonempty (PeriodicTrajectory field)) ->
-    forall H1 : FirstLocalReturn D q rho,
-      forall H2 : LocalCanonicalReturn D q rho,
-        H1.time < H2.time -> ReturnFartherFromBase H1.scalar H2.scalar
+  SimplePlanarLoop.JordanSeparationTarget →
+  ∀ (field : Phase2 → Phase2) (D : FlowTrappingData field)
+    (M : MinimalOmegaData D) (q : Phase2) (rho : ℝ),
+    q ∈ M.carrier → 0 < rho → ContDiff ℝ 1 field →
+    (∀ u ∈ Set.Icc (-rho) rho,
+      0 < ⟪field (canonicalSectionPoint field q u), field q⟫_ℝ) →
+    (¬ HasPeriodicTrajectoryThrough field q) →
+    ∀ H1 : FirstLocalReturn D q rho,
+      ∀ H2 : LocalCanonicalReturn D q rho,
+        H1.time < H2.time → ReturnFartherFromBase H1.scalar H2.scalar
 
 /-- Jordan separation/no-crossing formulation of the same kernel.  Keeping this theorem here makes
 clear that the ordering kernel has no extra dynamical content beyond planar separation: a future
@@ -86,12 +87,15 @@ theorem periodic_of_localReturn_scalar_zero
     {field : Phase2 → Phase2} {D : FlowTrappingData field}
     {q : Phase2} {rho : ℝ}
     (hsmooth : ContDiff ℝ 1 field)
+    (hne : field q ≠ 0)
     (H : LocalCanonicalReturn D q rho)
     (hzero : H.scalar = 0) :
-    Nonempty (PeriodicTrajectory field) := by
+    HasPeriodicTrajectoryThrough field q := by
   have hreturn : D.trajectory q H.time = q := by
     simpa [hzero, canonicalSectionPoint_zero] using H.hit
-  exact ⟨D.periodicTrajectory_of_return hsmooth H.time_pos hreturn⟩
+  have hhit : D.trajectory q 0 = D.trajectory q H.time := by
+    rw [D.trajectory_zero, hreturn]
+  exact D.periodicTrajectory_of_selfIntersection hsmooth H.time_pos hhit hne
 
 /-- The ordering theorem plus recurrence forces a periodic orbit through every point of an
  equilibrium-free minimal omega set. -/
@@ -101,15 +105,15 @@ theorem minimalPoint_periodic_of_returnOrdering
     {field : Phase2 → Phase2} {D : FlowTrappingData field}
     (M : MinimalOmegaData D) {q : Phase2} (hq : q ∈ M.carrier)
     (hsmooth : ContDiff ℝ 1 field) :
-    Nonempty (PeriodicTrajectory field) := by
+    HasPeriodicTrajectoryThrough field q := by
   by_contra haper
-  push_neg at haper
   have hne := M.equilibriumFree q hq
   obtain ⟨R⟩ := hflow field D q hsmooth
   obtain ⟨rho, hrho, horient⟩ := exists_positiveSpeedWindow hsmooth.continuous hne
-  obtain ⟨H₁⟩ := exists_firstLocalReturn M hq R hsmooth hrho
+  obtain ⟨H₁⟩ := exists_firstLocalReturn (D := D) (M := M) (q := q)
+    M hq R hsmooth hrho
   by_cases hzero : H₁.scalar = 0
-  · exact haper (periodic_of_localReturn_scalar_zero hsmooth H₁.toLocalCanonicalReturn hzero)
+  · exact haper (periodic_of_localReturn_scalar_zero hsmooth hne H₁.toLocalCanonicalReturn hzero)
   · have hfar : ∀ H₂ : LocalCanonicalReturn D q rho,
         H₁.time < H₂.time → ReturnFartherFromBase H₁.scalar H₂.scalar :=
       horder field D M q rho hq hrho hsmooth horient haper H₁
@@ -119,21 +123,30 @@ theorem minimalPoint_periodic_of_returnOrdering
     have heps : 0 < eps := by
       dsimp [eps]
       exact half_pos (abs_pos.mpr hzero)
+    let epsWindow := min eps rho
+    have hepsWindow : 0 < epsWindow := by
+      dsimp [epsWindow]
+      exact lt_min heps hrho
     obtain ⟨K, hKlate, hKsmall⟩ :=
       R.exists_late_canonicalSectionHit_smallScalar M hq hsmooth
-        (lt_min heps hrho) (H₁.time + 1)
+        (eps := epsWindow) hepsWindow (H₁.time + 1)
     let H₂ : LocalCanonicalReturn D q rho := {
       toCanonicalSectionHit := K
       scalar_mem := by
-        have hkabs : |K.scalar| < rho := lt_trans hKsmall (min_lt_iff.mp (lt_min heps hrho)).2
+        have hkabs : |K.scalar| < rho :=
+          lt_of_lt_of_le hKsmall (min_le_right eps rho)
         exact ⟨by linarith [abs_lt.mp hkabs], by linarith [abs_lt.mp hkabs]⟩ }
     have htime : H₁.time < H₂.time := by
       dsimp [H₂]
       linarith
     have horder12 := hfar H₂ htime
     have hsmall : |H₂.scalar| < |H₁.scalar| := by
-      dsimp [H₂]
-      exact lt_trans hKsmall (by dsimp [eps]; linarith [abs_pos.mpr hzero])
+      have hhalf : eps ≤ |H₁.scalar| := by
+        dsimp [eps]
+        nlinarith [abs_nonneg H₁.scalar]
+      have hkabs : |K.scalar| < |H₁.scalar| :=
+        lt_of_lt_of_le hKsmall (le_trans (min_le_left eps rho) hhalf)
+      simpa [H₂] using hkabs
     rcases horder12 with hpos | hneg
     · have hu2pos : 0 < H₂.scalar := lt_trans hpos.1 hpos.2
       rw [abs_of_pos hpos.1, abs_of_pos hu2pos] at hsmall
@@ -151,8 +164,31 @@ theorem periodicOrbit_subset_minimal
     (hflow : ∀ t : ℝ, P.orbit t = D.trajectory q t) :
     P.orbitSet ⊆ M.carrier := by
   rintro x ⟨t, rfl⟩
-  rw [hflow]
-  exact M.invariant_realTime t hq
+  have hshiftN : ∀ n : ℕ, P.orbit (t + (n : ℝ) * P.period) = P.orbit t := by
+    intro n
+    induction n with
+    | zero => simp
+    | succ n ih =>
+      have htimeEq : t + (↑(n + 1) : ℝ) * P.period =
+          (t + (n : ℝ) * P.period) + P.period := by
+        push_cast
+        ring
+      calc
+        P.orbit (t + (↑(n + 1) : ℝ) * P.period) =
+        P.orbit ((t + (n : ℝ) * P.period) + P.period) := by rw [htimeEq]
+        _ = P.orbit (t + (n : ℝ) * P.period) := P.periodic _
+        _ = P.orbit t := ih
+  obtain ⟨n, hn⟩ := exists_nat_gt (-t / P.period)
+  have hmul : -t < (n : ℝ) * P.period := (div_lt_iff₀ P.period_pos).mp hn
+  have htime : 0 ≤ t + (n : ℝ) * P.period := by linarith
+  have hshift := hshiftN n
+  have hforward := M.invariant ⟨t + (n : ℝ) * P.period, htime⟩ hq
+  rw [D.flow_eq_trajectory q ⟨t + (n : ℝ) * P.period, htime⟩] at hforward
+  have hshiftMem : P.orbit (t + (n : ℝ) * P.period) ∈ M.carrier := by
+    rw [hflow]
+    exact hforward
+  rw [hshift] at hshiftMem
+  exact hshiftMem
 
 /-- Direct minimal-set Poincare--Bendixson endpoint: a minimal equilibrium-free omega subset contains
 an exact periodic orbit. -/
@@ -168,12 +204,13 @@ theorem minimalPeriodicOrbit_of_ordering
     MinimalPeriodicOrbitTarget := by
   intro field D M hsmooth
   obtain ⟨q, hq⟩ := M.nonempty
-  obtain ⟨P⟩ := minimalPoint_periodic_of_returnOrdering horder hflow M hq hsmooth
-  -- The periodic trajectory produced above is the recurrent trajectory through `q`; normalize its
-  -- phase to start at `q`, then use invariance of `M`.
-  let Q := P.phaseNormalize q
-  refine ⟨Q, ?_⟩
-  exact periodicOrbit_subset_minimal M hq Q Q.phaseNormalize_zero Q.phaseNormalize_eq_trajectory
+  obtain ⟨P, hP0⟩ := minimalPoint_periodic_of_returnOrdering horder hflow M hq hsmooth
+  have huniq := globalSolutionUnique_of_locallyLipschitz hsmooth.locallyLipschitz
+  have hinitial : P.orbit 0 = D.trajectory q 0 := by
+    rw [hP0, D.trajectory_zero]
+  have htrajectory : P.orbit = D.trajectory q :=
+    huniq P.orbit (D.trajectory q) P.solution (D.trajectory_solution q) hinitial
+  exact ⟨P, periodicOrbit_subset_minimal M hq P hP0 (fun t => congrFun htrajectory t)⟩
 
 /-- The direct minimal-periodic theorem proves the public omega-limit Poincare--Bendixson
 classification without constructing an artificial return interval contained in the minimal set. -/
