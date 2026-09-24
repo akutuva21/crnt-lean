@@ -1992,6 +1992,40 @@ theorem relativeSourceOrderNegativeCone_mem_family (N : Network S) (w : S → �
   refine ⟨N.relativeSourceOrderStoichProperCone w, ?_, rfl⟩
   exact (N.mem_relativeSourceOrderStoichConeFamily).2 ⟨w, rfl⟩
 
+/-- The sign-reversed finite chamber family covers the stoichiometric subspace as well. A vector
+`z` is in the sign-reversed cone generated from `C` precisely when `-z ∈ C`; since the
+stoichiometric subspace is closed under negation, applying the existing source-order cover to
+`-z` gives the corresponding cover for `z`. This is the covering property in the orientation used
+by the complex-balanced toric field. -/
+theorem exists_relativeSourceOrderNegativeConeFamily_mem
+    (N : Network S) {z : EuclideanSpace ℝ S}
+    (hz : CRNT.toEuclid.symm z ∈ N.stoichSubspace) :
+    ∃ C ∈ N.relativeSourceOrderNegativeConeFamily, z ∈ C := by
+  classical
+  have hneg : CRNT.toEuclid.symm (-z) ∈ N.stoichSubspace := by
+    simpa using N.stoichSubspace.neg_mem hz
+  obtain ⟨D, hD, hDz⟩ := N.exists_relativeSourceOrderStoichConeFamily_mem hneg
+  refine ⟨D.comap (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S))), ?_, ?_⟩
+  · rw [relativeSourceOrderNegativeConeFamily]
+    exact Finset.mem_image.mpr ⟨D, hD, rfl⟩
+  · simpa [ProperCone.mem_comap] using hDz
+
+/-- Every cone of the sign-reversed family remains inside the stoichiometric subspace. Together
+with `exists_relativeSourceOrderNegativeConeFamily_mem`, this identifies its union exactly with
+the subspace whose directions govern a compatibility class. -/
+theorem stoich_of_mem_relativeSourceOrderNegativeConeFamily
+    (N : Network S) {C : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (hC : C ∈ N.relativeSourceOrderNegativeConeFamily)
+    {z : EuclideanSpace ℝ S} (hz : z ∈ C) :
+    CRNT.toEuclid.symm z ∈ N.stoichSubspace := by
+  classical
+  rw [relativeSourceOrderNegativeConeFamily] at hC
+  rcases Finset.mem_image.mp hC with ⟨D, hD, rfl⟩
+  have hnegz : -z ∈ D := by
+    simpa [ProperCone.mem_comap] using hz
+  have hnegStoich := N.stoich_of_mem_relativeSourceOrderStoichConeFamily hD hnegz
+  simpa using N.stoichSubspace.neg_mem hnegStoich
+
 /-- The projected relative log state lies in the negative of its selected source-order cone. -/
 theorem negativeRelativeLogStoichProjection_mem_relativeSourceOrderNegativeCone
     (N : Network S) (u : S → ℝ) :
