@@ -1785,13 +1785,14 @@ theorem relativeSourceOrderStoichConeFamily_inter_commonExposedFace
   exact ⟨N.relativeSourceOrderStoichProperCone_inter_isExposedFaceOf w₁ w₂,
     N.relativeSourceOrderStoichProperCone_inter_isExposedFaceOf_right w₁ w₂⟩
 
-/-- Every exposed face of a stoichiometrically restricted source-order cone contains a point
+/-- Every face of a stoichiometrically restricted source-order cone contains a point
 whose weak source order records exactly the comparisons that can be strict on that face. This is
 the finite-arrangement interior-point construction: sum one face witness for each comparison that
 is not identically an equality on the face. -/
 private theorem exists_relativeSourceOrderFace_orderPoint
     (N : Network S) (w : S → ℝ) {D : ProperCone ℝ (EuclideanSpace ℝ S)}
-    (hD : CRNT.IsExposedFaceOf D (N.relativeSourceOrderStoichProperCone w)) :
+    (hD : PointedCone.IsFaceOf (D : PointedCone ℝ (EuclideanSpace ℝ S))
+      (N.relativeSourceOrderStoichProperCone w : PointedCone ℝ (EuclideanSpace ℝ S))) :
     ∃ z ∈ D, ∀ r q : N.R,
       N.sourceLogProjection w r ≤ N.sourceLogProjection w q →
         (0 < N.sourceLogProjection (CRNT.toEuclid.symm z) q -
@@ -1799,14 +1800,9 @@ private theorem exists_relativeSourceOrderFace_orderPoint
           ∃ y ∈ D, 0 < N.sourceLogProjection (CRNT.toEuclid.symm y) q -
             N.sourceLogProjection (CRNT.toEuclid.symm y) r) := by
   classical
-  obtain ⟨a, ha, hface⟩ := hD
   have hDsubset : ∀ z, z ∈ D → z ∈ N.relativeSourceOrderStoichProperCone w := by
     intro z hz
-    have hzmem := congrArg (fun A : Set (EuclideanSpace ℝ S) => z ∈ A) hface
-    have hzface : z ∈ CRNT.exposedFace
-        (N.relativeSourceOrderStoichProperCone w : PointedCone ℝ (EuclideanSpace ℝ S)) a := by
-      simpa only [SetLike.mem_coe] using hzmem.mp hz
-    exact (CRNT.mem_exposedFace.mp hzface).1
+    exact hD.le hz
   let gap : EuclideanSpace ℝ S → N.R × N.R → ℝ := fun z p =>
     N.sourceLogProjection (CRNT.toEuclid.symm z) p.2 -
       N.sourceLogProjection (CRNT.toEuclid.symm z) p.1
@@ -1879,38 +1875,26 @@ private theorem exists_relativeSourceOrderFace_orderPoint
   · rintro ⟨y, hyD, hpos⟩
     exact hgap_pos_of_strict (r, q) ⟨horder, y, hyD, hpos⟩
 
-/-- An exposed face of a stoichiometrically restricted source-order cone is the intersection
+/-- A face of a stoichiometrically restricted source-order cone is the intersection
 with the source-order cone selected by a point in that face. The face point is strict exactly on
 the comparisons that are not forced to equality; a small perturbation then shows that these
-comparisons cut out precisely the exposed face. -/
-theorem relativeSourceOrderStoichProperCone_exposedFace_eq_inter
+        comparisons cut out precisely the face. -/
+theorem relativeSourceOrderStoichProperCone_face_eq_inter
     (N : Network S) (w : S → ℝ) {D : ProperCone ℝ (EuclideanSpace ℝ S)}
-    (hD : CRNT.IsExposedFaceOf D (N.relativeSourceOrderStoichProperCone w)) :
+    (hD : PointedCone.IsFaceOf (D : PointedCone ℝ (EuclideanSpace ℝ S))
+      (N.relativeSourceOrderStoichProperCone w : PointedCone ℝ (EuclideanSpace ℝ S))) :
     ∃ v : S → ℝ,
       D = N.relativeSourceOrderStoichProperCone w ⊓
         N.relativeSourceOrderStoichProperCone v := by
   classical
-  have hD' := hD
-  obtain ⟨a, ha, hface⟩ := hD
-  obtain ⟨z, hzD, hzorder⟩ := N.exists_relativeSourceOrderFace_orderPoint w hD'
+  obtain ⟨z, hzD, hzorder⟩ := N.exists_relativeSourceOrderFace_orderPoint w hD
   let v : S → ℝ := CRNT.toEuclid.symm z
   let gap (x : EuclideanSpace ℝ S) (r q : N.R) : ℝ :=
     N.sourceLogProjection (CRNT.toEuclid.symm x) q -
       N.sourceLogProjection (CRNT.toEuclid.symm x) r
   have hDsubset : ∀ x, x ∈ D → x ∈ N.relativeSourceOrderStoichProperCone w := by
     intro x hx
-    have hxmem := congrArg (fun A : Set (EuclideanSpace ℝ S) => x ∈ A) hface
-    have hxface : x ∈ CRNT.exposedFace
-        (N.relativeSourceOrderStoichProperCone w : PointedCone ℝ (EuclideanSpace ℝ S)) a := by
-      simpa only [SetLike.mem_coe] using hxmem.mp hx
-    exact (CRNT.mem_exposedFace.mp hxface).1
-  have hDface_zero : ∀ x, x ∈ D → ⟪a, x⟫_ℝ = 0 := by
-    intro x hx
-    have hxmem := congrArg (fun A : Set (EuclideanSpace ℝ S) => x ∈ A) hface
-    have hxface : x ∈ CRNT.exposedFace
-        (N.relativeSourceOrderStoichProperCone w : PointedCone ℝ (EuclideanSpace ℝ S)) a := by
-      simpa only [SetLike.mem_coe] using hxmem.mp hx
-    exact (CRNT.mem_exposedFace.mp hxface).2
+    exact hD.le hx
   have hzC : z ∈ N.relativeSourceOrderStoichProperCone w := hDsubset z hzD
   have hzStoich : CRNT.toEuclid.symm z ∈ N.stoichSubspace := by
     change z ∈ N.relativeSourceOrderStoichCone w at hzC
@@ -2085,39 +2069,34 @@ theorem relativeSourceOrderStoichProperCone_exposedFace_eq_inter
     have hperturbC : z - ε • x ∈ N.relativeSourceOrderStoichProperCone w := by
       change z - ε • x ∈ N.relativeSourceOrderStoichCone w
       exact (N.mem_relativeSourceOrderStoichCone w).2 ⟨hperturbOrder, hperturbStoich⟩
-    have hdualNonneg (t : EuclideanSpace ℝ S)
-        (ht : t ∈ N.relativeSourceOrderStoichProperCone w) : 0 ≤ ⟪a, t⟫_ℝ := by
-      have h := CRNT.mem_coneDual.mp ha ht
-      simpa [real_inner_comm] using h
-    have hzInner : ⟪a, z⟫_ℝ = 0 := hDface_zero z hzD
-    have hxInnerNonneg : 0 ≤ ⟪a, x⟫_ℝ := hdualNonneg x hxC
-    have hperturbInner := hdualNonneg (z - ε • x) hperturbC
-    have heq : ⟪a, z - ε • x⟫_ℝ = -ε * ⟪a, x⟫_ℝ := by
-      rw [inner_sub_right, real_inner_smul_right, hzInner]
-      simp
-    have hmulNonneg : 0 ≤ -ε * ⟪a, x⟫_ℝ := by
-      rw [← heq]
-      exact hperturbInner
-    have hxInnerZero : ⟪a, x⟫_ℝ = 0 := by
-      have hnonpos : ⟪a, x⟫_ℝ ≤ 0 := by nlinarith
-      exact le_antisymm hnonpos hxInnerNonneg
-    have hxmem := congrArg (fun A : Set (EuclideanSpace ℝ S) => x ∈ A) hface
-    have hxface : x ∈ CRNT.exposedFace
-        (N.relativeSourceOrderStoichProperCone w : PointedCone ℝ (EuclideanSpace ℝ S)) a :=
-      CRNT.mem_exposedFace.mpr ⟨hxC, hxInnerZero⟩
-    exact hxmem.mpr hxface
+    have hdecomp : ε • x + (z - ε • x) = z := by module
+    have hsumD : ε • x + (z - ε • x) ∈ D := by
+      rw [hdecomp]
+      exact hzD
+    exact hD.mem_of_smul_add_mem hxC hperturbC hε hsumD
 
-/-- The finite stoichiometric source-order family is closed under exposed faces. The face theorem
-represents any exposed face as an intersection with another chamber, and pairwise intersection
+/-- Exposed-face intersection representation follows from the general face theorem. -/
+theorem relativeSourceOrderStoichProperCone_exposedFace_eq_inter
+    (N : Network S) (w : S → ℝ) {D : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (hD : CRNT.IsExposedFaceOf D (N.relativeSourceOrderStoichProperCone w)) :
+    ∃ v : S → ℝ,
+      D = N.relativeSourceOrderStoichProperCone w ⊓
+        N.relativeSourceOrderStoichProperCone v :=
+  N.relativeSourceOrderStoichProperCone_face_eq_inter w
+    (CRNT.isExposedFaceOf_isFaceOf hD)
+
+/-- The finite stoichiometric source-order family is closed under faces. The face theorem
+represents any face as an intersection with another chamber, and pairwise intersection
 closure keeps that face in the family. -/
-theorem relativeSourceOrderStoichConeFamily_exposedFace_mem
+theorem relativeSourceOrderStoichConeFamily_face_mem
     (N : Network S) {C D : ProperCone ℝ (EuclideanSpace ℝ S)}
     (hC : C ∈ N.relativeSourceOrderStoichConeFamily)
-    (hface : CRNT.IsExposedFaceOf D C) :
+    (hface : PointedCone.IsFaceOf (D : PointedCone ℝ (EuclideanSpace ℝ S))
+      (C : PointedCone ℝ (EuclideanSpace ℝ S))) :
     D ∈ N.relativeSourceOrderStoichConeFamily := by
   rw [N.mem_relativeSourceOrderStoichConeFamily] at hC
   rcases hC with ⟨w, rfl⟩
-  obtain ⟨v, hEq⟩ := N.relativeSourceOrderStoichProperCone_exposedFace_eq_inter w hface
+  obtain ⟨v, hEq⟩ := N.relativeSourceOrderStoichProperCone_face_eq_inter w hface
   have hleft : N.relativeSourceOrderStoichProperCone w ∈
       N.relativeSourceOrderStoichConeFamily :=
     (N.mem_relativeSourceOrderStoichConeFamily).2 ⟨w, rfl⟩
@@ -2127,6 +2106,15 @@ theorem relativeSourceOrderStoichConeFamily_exposedFace_mem
   have hinter := N.relativeSourceOrderStoichConeFamily_inter_mem hleft hright
   rw [← hEq] at hinter
   exact hinter
+
+/-- Exposed-face closure follows from the general face-closure theorem. -/
+theorem relativeSourceOrderStoichConeFamily_exposedFace_mem
+    (N : Network S) {C D : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (hC : C ∈ N.relativeSourceOrderStoichConeFamily)
+    (hface : CRNT.IsExposedFaceOf D C) :
+    D ∈ N.relativeSourceOrderStoichConeFamily :=
+  N.relativeSourceOrderStoichConeFamily_face_mem hC
+    (CRNT.isExposedFaceOf_isFaceOf hface)
 
 /-- A direction belongs to the source-order chamber it itself selects. -/
 theorem toEuclid_mem_relativeSourceOrderCone (N : Network S) (w : S → ℝ) :
@@ -2455,23 +2443,32 @@ private theorem isExposedFaceOf_comap_neg
       have hxD : -x ∈ D := by simpa using hxDset
       simpa using hxD
 
-/-- Pulling a face back by negation is involutive, so the exposed-face transport above is
-reversible as well. -/
-private theorem isExposedFaceOf_uncomap_neg
+/-- Negation transports arbitrary faces between the sign-reversed cone and its source cone. -/
+private theorem isFaceOf_uncomap_neg
     {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
     {D C : ProperCone ℝ E}
-    (h : CRNT.IsExposedFaceOf D
-      (C.comap (-(ContinuousLinearMap.id ℝ E)))) :
-    CRNT.IsExposedFaceOf
-      (D.comap (-(ContinuousLinearMap.id ℝ E))) C := by
-  have h' := isExposedFaceOf_comap_neg h
-  have hdouble (K : ProperCone ℝ E) :
-      (K.comap (-(ContinuousLinearMap.id ℝ E))).comap
-        (-(ContinuousLinearMap.id ℝ E)) = K := by
-    apply ProperCone.ext
+    (h : PointedCone.IsFaceOf (D : PointedCone ℝ E)
+      (C.comap (-(ContinuousLinearMap.id ℝ E)) : PointedCone ℝ E)) :
+    PointedCone.IsFaceOf (D.comap (-(ContinuousLinearMap.id ℝ E)) : PointedCone ℝ E)
+      (C : PointedCone ℝ E) := by
+  have h' := PointedCone.IsFaceOf.comap
+    ((-(ContinuousLinearMap.id ℝ E)).toLinearMap) h
+  have hright :
+      ((C.comap (-(ContinuousLinearMap.id ℝ E)) : ProperCone ℝ E) :
+        PointedCone ℝ E).comap ((-(ContinuousLinearMap.id ℝ E)).toLinearMap) =
+        (C : PointedCone ℝ E) := by
+    apply PointedCone.ext
     intro x
     simp
-  simpa only [hdouble C] using h'
+  have hleft :
+      (D : PointedCone ℝ E).comap ((-(ContinuousLinearMap.id ℝ E)).toLinearMap) =
+        ((D.comap (-(ContinuousLinearMap.id ℝ E)) : ProperCone ℝ E) :
+          PointedCone ℝ E) := by
+    apply PointedCone.ext
+    intro x
+    simp
+  rw [hright] at h'
+  exact hleft ▸ h'
 
 /-- Pairwise intersections in the sign-reversed family are common exposed faces of both cones.
 The positive source-order family already has supporting normals for both sides; the preceding
@@ -2498,21 +2495,24 @@ theorem relativeSourceOrderNegativeConeFamily_inter_commonExposedFace
   · simpa only [hpreimage] using isExposedFaceOf_comap_neg hfaces.1
   · simpa only [hpreimage] using isExposedFaceOf_comap_neg hfaces.2
 
-/-- The sign-reversed family is closed under exposed faces. Negation carries an exposed-face
-certificate back to the positive source-order family, whose exposed-face closure is already
-proved, then the involutive preimage returns the resulting cone to this family. -/
-theorem relativeSourceOrderNegativeConeFamily_exposedFace_mem
+/-- The sign-reversed family is closed under faces. Negation carries an arbitrary face back to
+the positive source-order family, whose face closure is already proved, then the involutive
+preimage returns the resulting cone to this family. -/
+theorem relativeSourceOrderNegativeConeFamily_face_mem
     (N : Network S) {C D : ProperCone ℝ (EuclideanSpace ℝ S)}
     (hC : C ∈ N.relativeSourceOrderNegativeConeFamily)
-    (hface : CRNT.IsExposedFaceOf D C) :
+    (hface : PointedCone.IsFaceOf (D : PointedCone ℝ (EuclideanSpace ℝ S))
+      (C : PointedCone ℝ (EuclideanSpace ℝ S))) :
     D ∈ N.relativeSourceOrderNegativeConeFamily := by
   classical
   rw [relativeSourceOrderNegativeConeFamily] at hC ⊢
   obtain ⟨C₀, hC₀, rfl⟩ := Finset.mem_image.mp hC
-  have hface₀ : CRNT.IsExposedFaceOf
-      (D.comap (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S)))) C₀ :=
-    isExposedFaceOf_uncomap_neg hface
-  have hD₀ := N.relativeSourceOrderStoichConeFamily_exposedFace_mem hC₀ hface₀
+  have hface₀ : PointedCone.IsFaceOf
+      (D.comap (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S))) :
+        PointedCone ℝ (EuclideanSpace ℝ S))
+      (C₀ : PointedCone ℝ (EuclideanSpace ℝ S)) :=
+    isFaceOf_uncomap_neg hface
+  have hD₀ := N.relativeSourceOrderStoichConeFamily_face_mem hC₀ hface₀
   apply Finset.mem_image.mpr
   refine ⟨D.comap (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S))), hD₀, ?_⟩
   have hdouble (K : ProperCone ℝ (EuclideanSpace ℝ S)) :
@@ -2522,6 +2522,15 @@ theorem relativeSourceOrderNegativeConeFamily_exposedFace_mem
     intro x
     simp
   exact hdouble D
+
+/-- Exposed-face closure follows from the general face-closure theorem. -/
+theorem relativeSourceOrderNegativeConeFamily_exposedFace_mem
+    (N : Network S) {C D : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (hC : C ∈ N.relativeSourceOrderNegativeConeFamily)
+    (hface : CRNT.IsExposedFaceOf D C) :
+    D ∈ N.relativeSourceOrderNegativeConeFamily :=
+  N.relativeSourceOrderNegativeConeFamily_face_mem hC
+    (CRNT.isExposedFaceOf_isFaceOf hface)
 
 /-- The projected relative log state lies in the negative of its selected source-order cone. -/
 theorem negativeRelativeLogStoichProjection_mem_relativeSourceOrderNegativeCone
