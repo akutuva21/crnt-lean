@@ -2,6 +2,10 @@ import Mathlib.Logic.Equiv.Fin.Rotate
 import CRNT.Multistationarity.TrueChemistrySRGraph
 import CRNT.Multistationarity.StrongConcordance
 import CRNT.Multistationarity.WeakNormality
+import CRNT.Multistationarity.GainPotential
+import CRNT.Graph.FiniteSource
+import CRNT.Multistationarity.TrueSRSingleSharedEdge
+import CRNT.Multistationarity.TrueSRCycleChord
 
 /-!
 # True-chemistry SR criteria for concordance and strong concordance
@@ -9,10 +13,11 @@ import CRNT.Multistationarity.WeakNormality
 This module states the classical orientation-free SR theorem using the chemically
 faithful SR graph of `TrueChemistrySRGraph.lean`.
 
-For a fully open network, if every e-cycle is an s-cycle and no two e-cycles have an
-S-to-R intersection, then the network is strongly concordant.  More generally the
-same graphical condition gives strong concordance for a nondegenerate/weakly-normal
-network by passing through its fully open extension.
+For a reactant/product-separated network, if every e-cycle is an s-cycle and no two e-cycles
+have an S-to-R intersection, then its fully open extension is strongly concordant. More
+generally the same graphical condition gives strong concordance for a nondegenerate/weakly-normal
+network by passing through its fully open extension. Separation is essential: without it, the
+SR-graph labels need not equal the net coefficients constrained by the stoichiometric kernel.
 
 The graph-to-sign-causality proof is long and intentionally isolated in one theorem.
 -/
@@ -1227,6 +1232,45 @@ theorem internal_flux_mul_sigma_pos (N : Network S)
   have hin := N.inflow_coeff_mul_sigma_nonpos W s
   nlinarith [hsum, hin]
 
+/-- **Restrict the strict source inequality to a reaction subset.**
+
+If every reaction outside `A` contributes nonpositively after multiplication by the species
+sign, the global kernel inequality remains strict when summed only over `A`.  This packages the
+finite-source restriction step for the later graph argument. -/
+theorem internal_flux_mul_sigma_pos_on_finset (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ) {s : S} (hs : σ s ≠ 0)
+    (A : Finset N.R)
+    (hout : ∀ r ∈ Finset.univ \ A,
+      (α (Sum.inl r) * N.reactionVector r s) * σ s ≤ 0) :
+    0 < ∑ r ∈ A, (α (Sum.inl r) * N.reactionVector r s) * σ s := by
+  apply CRNT.sum_subset_pos_of_nonpos_outside _ A hout
+  have hglobal := N.internal_flux_mul_sigma_pos W hs
+  rw [← Finset.sum_mul]
+  exact hglobal
+
+/-- The internal original channels alone have strictly positive signed flux at every active
+species. Flow-channel terms can be dropped because strong concordance makes each of them
+nonpositive. This aggregate form is useful when parallel and reverse channels are grouped by
+their true-reaction class. -/
+noncomputable def nonflowOriginalChannels (N : Network S) : Finset N.R := by
+  classical
+  exact Finset.univ.filter (fun r => ¬ N.IsFlowChannel r)
+
+theorem internal_flux_mul_sigma_pos_on_nonflow_channels (N : Network S)
+    (hflow : N.ZeroComplexReactionsAreFlows)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ) {s : S} (hs : σ s ≠ 0) :
+    0 < ∑ r ∈ N.nonflowOriginalChannels,
+      (α (Sum.inl r) * N.reactionVector r s) * σ s := by
+  classical
+  let I : Finset N.R := Finset.univ.filter (fun r => ¬ N.IsFlowChannel r)
+  apply N.internal_flux_mul_sigma_pos_on_finset W hs I
+  intro r hr
+  have hrnot : r ∉ I := (Finset.mem_sdiff.mp hr).2
+  have hnotnot : ¬¬ N.IsFlowChannel r := by simpa [I] using hrnot
+  exact N.original_flow_term_nonpos hflow W (Classical.not_not.mp hnotnot) s
+
 /-- **The SR edge label and the kernel term agree only under reactant/product separation.**
 
 The Shinar--Feinberg source inequalities are stated with the *edge* labels of the SR graph,
@@ -1306,6 +1350,69 @@ theorem gain_of_two_term_flux (N : Network S)
   rw [hx, hy, abs_mul, abs_mul] at this
   exact this
 
+/-- **Degree-two gain with sign-controlled off-block terms.**
+
+The source-block inequalities do not require every reaction outside the selected block to vanish.
+They only require that each such flux contribution oppose the sign of the species. Summing those
+nonpositive contributions leaves the same strict comparison between the causal and opposing
+cycle terms as in `gain_of_two_term_flux`.
+
+This is the form used by the Shinar--Feinberg end-block argument: reactions outside an end block
+can meet its separating species, but their contributions strengthen the source inequality after
+the block terms are removed. -/
+theorem gain_of_two_term_flux_of_nonpos_rest (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ) {s : S} (hs : σ s ≠ 0)
+    {r₁ r₂ : N.R} (hne : r₁ ≠ r₂)
+    (hrest : ∀ r : N.R, r ≠ r₁ → r ≠ r₂ →
+      (α (Sum.inl r) * N.reactionVector r s) * σ s ≤ 0)
+    (hcausal : 0 < (α (Sum.inl r₁) * N.reactionVector r₁ s) * σ s)
+    (hopp : (α (Sum.inl r₂) * N.reactionVector r₂ s) * σ s < 0) :
+    |α (Sum.inl r₂)| * |N.reactionVector r₂ s| <
+      |α (Sum.inl r₁)| * |N.reactionVector r₁ s| := by
+  classical
+  set x := α (Sum.inl r₁) * N.reactionVector r₁ s with hx
+  set y := α (Sum.inl r₂) * N.reactionVector r₂ s with hy
+  let pair : Finset N.R := {r₁, r₂}
+  have hout : ∀ r ∈ Finset.univ \ pair,
+      (α (Sum.inl r) * N.reactionVector r s) * σ s ≤ 0 := by
+    intro r hr
+    have hrPair : r ∉ pair := (Finset.mem_sdiff.mp hr).2
+    have hr1 : r ≠ r₁ := by
+      intro heq
+      apply hrPair
+      simp [heq, pair]
+    have hr2 : r ≠ r₂ := by
+      intro heq
+      apply hrPair
+      simp [heq, pair]
+    exact hrest r hr1 hr2
+  have hpairPos := N.internal_flux_mul_sigma_pos_on_finset W hs pair hout
+  have hpairEq :
+      (∑ r ∈ pair, (α (Sum.inl r) * N.reactionVector r s) * σ s) =
+        (x + y) * σ s := by
+    simp only [pair, Finset.sum_pair hne]
+    rw [hx, hy]
+    ring
+  have hxy : 0 < (x + y) * σ s := by
+    rw [← hpairEq]
+    exact hpairPos
+  have hxpos : 0 < x * σ s := by simpa [hx] using hcausal
+  have hyneg : y * σ s < 0 := by simpa [hy] using hopp
+  have habs : |σ s| > 0 := abs_pos.mpr hs
+  have hxabs : |x| * |σ s| = x * σ s := by
+    rw [← abs_mul]
+    exact abs_of_pos hxpos
+  have hyabs : |y| * |σ s| = -(y * σ s) := by
+    rw [← abs_mul]
+    exact abs_of_neg hyneg
+  have hlt : |y| * |σ s| < |x| * |σ s| := by
+    rw [hxabs, hyabs]
+    nlinarith [hxy]
+  have : |y| < |x| := lt_of_mul_lt_mul_right (by linarith [hlt]) (le_of_lt habs)
+  rw [hx, hy, abs_mul, abs_mul] at this
+  exact this
+
 /-- **The SR edge label is the net coefficient, under separation.**  For every true-SR edge the
 stoichiometric label it carries equals the absolute net coefficient of its species in the
 representative reaction.  This is the form in which `abs_reactionVector_eq_edge_label` is
@@ -1332,6 +1439,119 @@ theorem edge_coeff_eq_abs_reactionVector (N : Network S)
       exact ht (hsep e.representative e.species h)
     rw [N.abs_reactionVector_eq_edge_label hsep, if_neg (by simp [hs]),
       TrueSREdge.coeff, htgt]
+
+/-- Reactant/product separation makes an incidence edge's endpoint unique once its concrete
+reaction representative and species are fixed. -/
+theorem trueSREdge_endpoint_eq_of_same_representative_and_species (N : Network S)
+    (hsep : N.ReactantProductSeparated) (e f : N.TrueSREdge)
+    (hrep : e.representative = f.representative) (hsp : e.species = f.species) :
+    e.endpoint = f.endpoint := by
+  rcases e.endpoint_is_source_or_target with heSrc | heTgt <;>
+    rcases f.endpoint_is_source_or_target with hfSrc | hfTgt
+  · rw [heSrc, hfSrc, hrep]
+  · have hsrc : (N.reaction e.representative).source e.species ≠ 0 := by
+      rw [← heSrc]
+      exact e.occurs
+    have htgt : (N.reaction e.representative).target e.species ≠ 0 := by
+      have h := f.occurs
+      rw [hfTgt, ← hrep, ← hsp] at h
+      exact h
+    exfalso
+    exact htgt (hsep e.representative e.species hsrc)
+  · have hsrc : (N.reaction e.representative).source e.species ≠ 0 := by
+      have h := f.occurs
+      rw [hfSrc, ← hrep, ← hsp] at h
+      exact h
+    have htgt : (N.reaction e.representative).target e.species ≠ 0 := by
+      rw [← heTgt]
+      exact e.occurs
+    exfalso
+    exact htgt (hsep e.representative e.species hsrc)
+  · rw [heTgt, hfTgt, hrep]
+
+/-- Under separation, a true-reaction class has only one endpoint label at a given species,
+even when its edges come from different parallel or reversed channels. -/
+private theorem trueSREdge_endpoint_eq_of_same_class_and_species (N : Network S)
+    (hsep : N.ReactantProductSeparated) (e f : N.TrueSREdge)
+    (hreaction : e.reaction = f.reaction) (hspecies : e.species = f.species) :
+    e.endpoint = f.endpoint := by
+  have hclass : N.trueReaction e.representative = N.trueReaction f.representative :=
+    e.representative_class.trans (hreaction.trans f.representative_class.symm)
+  have hsame : N.SameTrueReaction e.representative f.representative := Quotient.exact hclass
+  rcases hsame with hsame | hrev
+  · rcases e.endpoint_is_source_or_target with heSrc | heTgt <;>
+      rcases f.endpoint_is_source_or_target with hfSrc | hfTgt
+    · rw [heSrc, hfSrc, hsame.1]
+    · exfalso
+      have hsrc : (N.reaction e.representative).source e.species ≠ 0 := by
+        rw [← heSrc]
+        exact e.occurs
+      have htgtE : (N.reaction e.representative).target e.species = 0 :=
+        hsep e.representative e.species hsrc
+      have htgtF : (N.reaction f.representative).target f.species ≠ 0 := by
+        rw [← hfTgt]
+        exact f.occurs
+      apply htgtF
+      calc
+        (N.reaction f.representative).target f.species =
+            (N.reaction e.representative).target e.species := by
+          rw [← hspecies]
+          exact (congrFun hsame.2 e.species).symm
+        _ = 0 := htgtE
+    · exfalso
+      have hsrcF : (N.reaction f.representative).source f.species ≠ 0 := by
+        rw [← hfSrc]
+        exact f.occurs
+      have htgtF : (N.reaction f.representative).target f.species = 0 :=
+        hsep f.representative f.species hsrcF
+      have htgtE : (N.reaction e.representative).target e.species ≠ 0 := by
+        rw [← heTgt]
+        exact e.occurs
+      apply htgtE
+      calc
+        (N.reaction e.representative).target e.species =
+            (N.reaction f.representative).target f.species := by
+          rw [← hspecies]
+          exact congrFun hsame.2 e.species
+        _ = 0 := by simpa [hspecies] using htgtF
+    · rw [heTgt, hfTgt, hsame.2]
+  · rcases e.endpoint_is_source_or_target with heSrc | heTgt <;>
+      rcases f.endpoint_is_source_or_target with hfSrc | hfTgt
+    · exfalso
+      have hsrcE : (N.reaction e.representative).source e.species ≠ 0 := by
+        rw [← heSrc]
+        exact e.occurs
+      have htgtE : (N.reaction e.representative).target e.species = 0 :=
+        hsep e.representative e.species hsrcE
+      have hsrcF : (N.reaction f.representative).source f.species ≠ 0 := by
+        rw [← hfSrc]
+        exact f.occurs
+      apply hsrcF
+      calc
+        (N.reaction f.representative).source f.species =
+            (N.reaction e.representative).target e.species := by
+          rw [← hspecies]
+          exact (congrFun hrev.2 e.species).symm
+        _ = 0 := htgtE
+    · rw [heSrc, hfTgt, hrev.1]
+    · rw [heTgt, hfSrc, hrev.2]
+    · exfalso
+      have htgtF : (N.reaction f.representative).target f.species ≠ 0 := by
+        rw [← hfTgt]
+        exact f.occurs
+      have hsrcF : (N.reaction f.representative).source f.species = 0 := by
+        by_contra hne
+        exact htgtF (hsep f.representative f.species hne)
+      have htgtE : (N.reaction e.representative).target e.species ≠ 0 := by
+        rw [← heTgt]
+        exact e.occurs
+      apply htgtE
+      calc
+        (N.reaction e.representative).target e.species =
+            (N.reaction f.representative).source f.species := by
+          rw [← hspecies]
+          exact congrFun hrev.2 e.species
+        _ = 0 := hsrcF
 
 theorem exists_internal_opposite_species (N : Network S)
     {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
@@ -1469,6 +1689,13 @@ noncomputable def trueSREdgeOfReactionVectorNe (N : Network S)
     (r : N.R) (hrint : ¬ N.IsFlowChannel r) (s : S)
     (hrs : N.reactionVector r s ≠ 0) :
     (N.trueSREdgeOfReactionVectorNe r hrint s hrs).reaction = N.trueReaction r := by
+  unfold trueSREdgeOfReactionVectorNe
+  split <;> rfl
+
+@[simp] private theorem trueSREdgeOfReactionVectorNe_representative (N : Network S)
+    (r : N.R) (hrint : ¬ N.IsFlowChannel r) (s : S)
+    (hrs : N.reactionVector r s ≠ 0) :
+    (N.trueSREdgeOfReactionVectorNe r hrint s hrs).representative = r := by
   unfold trueSREdgeOfReactionVectorNe
   split <;> rfl
 
@@ -1723,6 +1950,116 @@ theorem trueInternalCausalSpeciesStep_ne (N : Network S)
   rw [hv'] at hn
   linarith
 
+/-- An edge of the full internal sign-causality graph: an internal reaction contributes with
+the sign of `s` and with the opposite sign at `t`. Keeping all such edges is essential when
+choosing a source component; a source of one arbitrary choice function need not be a source in
+the full graph. -/
+def TrueInternalCausalEdge (N : Network S) (hflow : N.ZeroComplexReactionsAreFlows)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (s t : ActiveSpecies σ) : Prop :=
+  ∃ r : N.ActiveTrueInternalReaction α,
+    0 < (α (Sum.inl r.1) * N.reactionVector r.1 s.1) * σ s.1 ∧
+    (α (Sum.inl r.1) * N.reactionVector r.1 t.1) * σ t.1 < 0
+
+/-- Vertices of the bipartite sign-causality graph for a witness: active species and active
+internal reactions. -/
+abbrev TrueInternalSignCausalVertex (N : Network S)
+    (α : N.fullyOpen.R → ℝ) (σ : S → ℝ) :=
+  ActiveSpecies σ ⊕ N.ActiveTrueInternalReaction α
+
+/-- The directed bipartite sign-causality graph. An edge from a species to a reaction records
+a negative signed flux term; an edge from a reaction to a species records a positive one. -/
+def TrueInternalSignCausalEdge (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (u v : N.TrueInternalSignCausalVertex α σ) : Prop :=
+  match u, v with
+  | Sum.inl s, Sum.inr r =>
+      (α (Sum.inl r.1) * N.reactionVector r.1 s.1) * σ s.1 < 0
+  | Sum.inr r, Sum.inl s =>
+      0 < (α (Sum.inl r.1) * N.reactionVector r.1 s.1) * σ s.1
+  | Sum.inl _, Sum.inl _ => False
+  | Sum.inr _, Sum.inr _ => False
+
+/-- The true-reaction class of an active internal channel, retaining the proof that the class is
+internal. -/
+noncomputable def trueInternalReactionClass (N : Network S)
+    {α : N.fullyOpen.R → ℝ}
+    (r : N.ActiveTrueInternalReaction α) : N.InternalTrueReaction :=
+  ⟨N.trueReaction r.1, r.2.2⟩
+
+/-- Internal true-reaction classes represented by at least one active original channel. -/
+abbrev ActiveTrueInternalReactionClass (N : Network S)
+    (α : N.fullyOpen.R → ℝ) :=
+  {ρ : N.InternalTrueReaction //
+    ∃ r : N.ActiveTrueInternalReaction α, N.trueInternalReactionClass r = ρ}
+
+/-- Vertices of the quotient sign-causality graph: active species and active true-reaction
+classes. -/
+abbrev TrueInternalQuotientVertex (N : Network S)
+    (α : N.fullyOpen.R → ℝ) (σ : S → ℝ) :=
+  ActiveSpecies σ ⊕ N.ActiveTrueInternalReactionClass α
+
+/-- Collapsing parallel and reverse channels into one reaction vertex retains an edge whenever
+some active representative supplies the corresponding signed-flux term. -/
+def TrueInternalQuotientCausalEdge (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (u v : N.TrueInternalQuotientVertex α σ) : Prop :=
+  match u, v with
+  | Sum.inl s, Sum.inr ρ =>
+      ∃ r : N.ActiveTrueInternalReaction α,
+        N.trueInternalReactionClass r = ρ.1 ∧
+        (α (Sum.inl r.1) * N.reactionVector r.1 s.1) * σ s.1 < 0
+  | Sum.inr ρ, Sum.inl s =>
+      ∃ r : N.ActiveTrueInternalReaction α,
+        N.trueInternalReactionClass r = ρ.1 ∧
+        0 < (α (Sum.inl r.1) * N.reactionVector r.1 s.1) * σ s.1
+  | Sum.inl _, Sum.inl _ => False
+  | Sum.inr _, Sum.inr _ => False
+
+/-- Map one active channel reaction vertex into its quotient true-reaction class. -/
+noncomputable def activeTrueInternalReactionClassVertex (N : Network S)
+    {α : N.fullyOpen.R → ℝ}
+    (r : N.ActiveTrueInternalReaction α) : N.ActiveTrueInternalReactionClass α :=
+  ⟨N.trueInternalReactionClass r, ⟨r, rfl⟩⟩
+
+/-- Lift a quotient source back to the original-channel sign-causality graph. -/
+noncomputable def liftTrueInternalQuotientSource (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (T : Finset (N.TrueInternalQuotientVertex α σ)) :
+    Finset (N.TrueInternalSignCausalVertex α σ) := by
+  classical
+  exact Finset.univ.filter (fun v =>
+    match v with
+    | Sum.inl s => Sum.inl s ∈ T
+    | Sum.inr r => Sum.inr (N.activeTrueInternalReactionClassVertex r) ∈ T)
+
+@[simp] theorem mem_liftTrueInternalQuotientSource_species (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (T : Finset (N.TrueInternalQuotientVertex α σ)) (s : ActiveSpecies σ) :
+    Sum.inl s ∈ N.liftTrueInternalQuotientSource T ↔ Sum.inl s ∈ T := by
+  simp [liftTrueInternalQuotientSource]
+
+@[simp] theorem mem_liftTrueInternalQuotientSource_reaction (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (T : Finset (N.TrueInternalQuotientVertex α σ))
+    (r : N.ActiveTrueInternalReaction α) :
+    Sum.inr r ∈ N.liftTrueInternalQuotientSource T ↔
+      Sum.inr (N.activeTrueInternalReactionClassVertex r) ∈ T := by
+  simp [liftTrueInternalQuotientSource]
+
+/-- The chosen causal species step is one edge in the full sign-causality graph. -/
+theorem trueInternalCausalEdge_step (N : Network S)
+    (hflow : N.ZeroComplexReactionsAreFlows)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ) (s : ActiveSpecies σ) :
+    N.TrueInternalCausalEdge hflow W s (N.trueInternalCausalSpeciesStep hflow W s) := by
+  exact ⟨N.trueInternalCauseReaction hflow W s,
+    N.trueInternalCauseReaction_pos hflow W s,
+    N.trueInternalOppositeSpecies_neg W (N.trueInternalCauseReaction hflow W s)⟩
+
 private theorem signProduct_causal_iff {a b c x y : ℝ}
     (hp : 0 < (a*b)*x) (hn : (a*c)*y < 0) :
     (0 < b*c ↔ x*y < 0) := by
@@ -1914,6 +2251,702 @@ private theorem activeSpecies_nonempty (N : Network S)
   apply W.sigma_ne
   funext s
   exact hall s
+
+/-- A finite nonempty source strongly connected component exists in the full bipartite
+sign-causality graph. This preserves reaction vertices, which is necessary for the source-block
+decomposition. -/
+theorem exists_trueInternalSignCausalSource (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ) :
+    ∃ T : Finset (N.TrueInternalSignCausalVertex α σ), T.Nonempty ∧
+      (∀ a ∈ T, ∀ b ∈ T,
+        Relation.ReflTransGen (N.TrueInternalSignCausalEdge W) a b) ∧
+      (∀ a b, N.TrueInternalSignCausalEdge W a b → b ∈ T → a ∈ T) := by
+  classical
+  letI : Nonempty (ActiveSpecies σ) := N.activeSpecies_nonempty W
+  letI : Nonempty (N.TrueInternalSignCausalVertex α σ) :=
+    ⟨Sum.inl (Classical.choice inferInstance)⟩
+  exact CRNT.exists_finite_source (N.TrueInternalSignCausalEdge W)
+
+/-- Original reaction channels whose active true-internal reaction vertex lies in a chosen
+bipartite source. -/
+noncomputable def trueInternalSignSourceReactions (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (T : Finset (N.TrueInternalSignCausalVertex α σ)) : Finset N.R := by
+  classical
+  exact Finset.univ.filter (fun r =>
+    ∃ r' : N.ActiveTrueInternalReaction α, r'.1 = r ∧ Sum.inr r' ∈ T)
+
+/-- At a species vertex of a sign-causality source, the strict flux inequality remains strict
+when restricted to reaction vertices in that source. Positive terms outside the source would
+be incoming graph edges, while flow-channel terms are nonpositive by strong concordance. -/
+theorem internal_flux_mul_sigma_pos_on_trueInternalSignSourceReactions
+    (N : Network S) (hflow : N.ZeroComplexReactionsAreFlows)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalSignCausalVertex α σ))
+    (hsource : ∀ a b, N.TrueInternalSignCausalEdge W a b → b ∈ T → a ∈ T)
+    {s : ActiveSpecies σ} (hs : Sum.inl s ∈ T) :
+    0 < ∑ r ∈ N.trueInternalSignSourceReactions (α := α) (σ := σ) T,
+      (α (Sum.inl r) * N.reactionVector r s.1) * σ s.1 := by
+  apply N.internal_flux_mul_sigma_pos_on_finset W s.2 _ ?_
+  intro r hr
+  have hrA : r ∉ N.trueInternalSignSourceReactions (α := α) (σ := σ) T :=
+    (Finset.mem_sdiff.mp hr).2
+  simp only [trueInternalSignSourceReactions, Finset.mem_filter,
+    Finset.mem_univ, true_and] at hrA
+  by_cases hrflow : N.IsFlowChannel r
+  · exact original_flow_term_nonpos N hflow W hrflow s.1
+  · by_cases hα : α (Sum.inl r) = 0
+    · simp [hα]
+    · let r' : N.ActiveTrueInternalReaction α := ⟨r, ⟨hα, hrflow⟩⟩
+      by_contra hnot
+      have hpos : 0 < (α (Sum.inl r) * N.reactionVector r s.1) * σ s.1 :=
+        lt_of_not_ge hnot
+      have hedge : N.TrueInternalSignCausalEdge W (Sum.inr r') (Sum.inl s) := by
+        exact hpos
+      have hin : Sum.inr r' ∈ T := hsource _ _ hedge hs
+      exact hrA ⟨r', rfl, hin⟩
+
+/-- Every nonempty sign-causality source contains both a species vertex and a reaction vertex.
+The witness supplies a causal unit at either endpoint, and source closure keeps its neighboring
+vertex inside the component. -/
+theorem trueInternalSignSource_has_both_vertex_kinds (N : Network S)
+    (hflow : N.ZeroComplexReactionsAreFlows)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalSignCausalVertex α σ))
+    (hne : T.Nonempty)
+    (hsource : ∀ a b, N.TrueInternalSignCausalEdge W a b → b ∈ T → a ∈ T) :
+    (∃ s : ActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ r : N.ActiveTrueInternalReaction α, Sum.inr r ∈ T) := by
+  classical
+  obtain ⟨v, hv⟩ := hne
+  rcases v with s | r
+  · constructor
+    · exact ⟨s, hv⟩
+    · let r := N.trueInternalCauseReaction hflow W s
+      have hp := N.trueInternalCauseReaction_pos hflow W s
+      have hedge : N.TrueInternalSignCausalEdge W (Sum.inr r) (Sum.inl s) := hp
+      exact ⟨r, hsource _ _ hedge hv⟩
+  · constructor
+    · let s := N.trueInternalOppositeSpecies W r
+      have hn := N.trueInternalOppositeSpecies_neg W r
+      have hedge : N.TrueInternalSignCausalEdge W (Sum.inl s) (Sum.inr r) := hn
+      exact ⟨s, hsource _ _ hedge hv⟩
+    · exact ⟨r, hv⟩
+
+/-- Package the finite sign-causality source together with its nonempty species and reaction
+parts and the strict localized source inequalities. -/
+theorem exists_trueInternalSignCausalSource_data (N : Network S)
+    (hflow : N.ZeroComplexReactionsAreFlows)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ) :
+    ∃ T : Finset (N.TrueInternalSignCausalVertex α σ),
+      T.Nonempty ∧
+      (∃ s : ActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ r : N.ActiveTrueInternalReaction α, Sum.inr r ∈ T) ∧
+      (∀ a ∈ T, ∀ b ∈ T,
+        Relation.ReflTransGen (N.TrueInternalSignCausalEdge W) a b) ∧
+      (∀ a b, N.TrueInternalSignCausalEdge W a b → b ∈ T → a ∈ T) ∧
+      (∀ s : ActiveSpecies σ, Sum.inl s ∈ T →
+        0 < ∑ r ∈ N.trueInternalSignSourceReactions (α := α) (σ := σ) T,
+          (α (Sum.inl r) * N.reactionVector r s.1) * σ s.1) := by
+  obtain ⟨T, hne, hscc, hsource⟩ := N.exists_trueInternalSignCausalSource W
+  have hparts := N.trueInternalSignSource_has_both_vertex_kinds
+    hflow W T hne hsource
+  refine ⟨T, hne, hparts.1, hparts.2, hscc, hsource, ?_⟩
+  intro s hs
+  exact N.internal_flux_mul_sigma_pos_on_trueInternalSignSourceReactions
+    hflow W T hsource hs
+
+/-- A finite source can be formed after quotienting parallel and reverse channels into their
+true-reaction classes. Lifting that source to every active representative preserves predecessor
+closure, so the already-established strict source inequalities remain available. -/
+theorem exists_trueInternalQuotientSignCausalSource_data (N : Network S)
+    (hflow : N.ZeroComplexReactionsAreFlows)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ) :
+    ∃ T : Finset (N.TrueInternalQuotientVertex α σ),
+      T.Nonempty ∧
+      (∀ a ∈ T, ∀ b ∈ T,
+        Relation.ReflTransGen (N.TrueInternalQuotientCausalEdge W) a b) ∧
+      (∀ a b, N.TrueInternalQuotientCausalEdge W a b → b ∈ T → a ∈ T) ∧
+      (∃ s : ActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ r : N.ActiveTrueInternalReactionClass α, Sum.inr r ∈ T) ∧
+      (∀ s : ActiveSpecies σ, Sum.inl s ∈ T →
+        0 < ∑ r ∈ N.trueInternalSignSourceReactions
+            (α := α) (σ := σ) (N.liftTrueInternalQuotientSource T),
+          (α (Sum.inl r) * N.reactionVector r s.1) * σ s.1) := by
+  classical
+  letI : Nonempty (ActiveSpecies σ) := N.activeSpecies_nonempty W
+  letI : Nonempty (N.TrueInternalQuotientVertex α σ) :=
+    ⟨Sum.inl (Classical.choice inferInstance)⟩
+  obtain ⟨T, hne, hscc, hsource⟩ :=
+    CRNT.exists_finite_source (N.TrueInternalQuotientCausalEdge W)
+  let U := N.liftTrueInternalQuotientSource T
+  have hUne : U.Nonempty := by
+    obtain ⟨v, hv⟩ := hne
+    cases v with
+    | inl s => exact ⟨Sum.inl s, (N.mem_liftTrueInternalQuotientSource_species T s).2 hv⟩
+    | inr q =>
+        obtain ⟨r, hr⟩ := q.2
+        have hq : N.activeTrueInternalReactionClassVertex r = q := Subtype.ext hr
+        exact ⟨Sum.inr r, (N.mem_liftTrueInternalQuotientSource_reaction T r).2
+          (by simpa [hq] using hv)⟩
+  have hUsource : ∀ a b, N.TrueInternalSignCausalEdge W a b → b ∈ U → a ∈ U := by
+    intro a b hab hb
+    cases a with
+    | inl s =>
+        cases b with
+        | inl t => simp [TrueInternalSignCausalEdge] at hab
+        | inr r =>
+            have htarget : Sum.inr (N.activeTrueInternalReactionClassVertex r) ∈ T :=
+              (N.mem_liftTrueInternalQuotientSource_reaction T r).1 hb
+            have hqedge : N.TrueInternalQuotientCausalEdge W (Sum.inl s)
+                (Sum.inr (N.activeTrueInternalReactionClassVertex r)) := by
+              exact ⟨r, rfl, hab⟩
+            have hsT := hsource _ _ hqedge htarget
+            exact (N.mem_liftTrueInternalQuotientSource_species T s).2 hsT
+    | inr r =>
+        cases b with
+        | inl s =>
+            have htarget : Sum.inl s ∈ T :=
+              (N.mem_liftTrueInternalQuotientSource_species T s).1 hb
+            have hqedge : N.TrueInternalQuotientCausalEdge W
+                (Sum.inr (N.activeTrueInternalReactionClassVertex r)) (Sum.inl s) := by
+              exact ⟨r, rfl, hab⟩
+            have hrT := hsource _ _ hqedge htarget
+            exact (N.mem_liftTrueInternalQuotientSource_reaction T r).2 hrT
+        | inr q => simp [TrueInternalSignCausalEdge] at hab
+  have hparts := N.trueInternalSignSource_has_both_vertex_kinds hflow W U hUne hUsource
+  have hspecies : ∃ s : ActiveSpecies σ, Sum.inl s ∈ T := by
+    obtain ⟨s, hs⟩ := hparts.1
+    exact ⟨s, (N.mem_liftTrueInternalQuotientSource_species T s).1 hs⟩
+  have hreaction : ∃ r : N.ActiveTrueInternalReactionClass α, Sum.inr r ∈ T := by
+    obtain ⟨r, hr⟩ := hparts.2
+    exact ⟨N.activeTrueInternalReactionClassVertex r,
+      (N.mem_liftTrueInternalQuotientSource_reaction T r).1 hr⟩
+  refine ⟨T, hne, hscc, hsource, hspecies, hreaction, ?_⟩
+  intro s hs
+  exact N.internal_flux_mul_sigma_pos_on_trueInternalSignSourceReactions
+    hflow W U hUsource ((N.mem_liftTrueInternalQuotientSource_species T s).2 hs)
+
+private theorem exists_first_step_of_reflTransGen {V : Type*} {E : V → V → Prop}
+    {a b : V} (h : Relation.ReflTransGen E a b) (hne : a ≠ b) :
+    ∃ c, E a c ∧ Relation.ReflTransGen E c b := by
+  rcases Relation.ReflTransGen.cases_head h with hab | ⟨c, hac, hcb⟩
+  · exact (hne hab).elim
+  · exact ⟨c, hac, hcb⟩
+
+private theorem trueInternalQuotientCausalEdge_irrefl (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (v : N.TrueInternalQuotientVertex α σ) :
+    ¬ N.TrueInternalQuotientCausalEdge W v v := by
+  cases v <;> exact id
+
+private def trueInternalQuotientVertexIsSpecies (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} :
+    N.TrueInternalQuotientVertex α σ → Bool
+  | Sum.inl _ => true
+  | Sum.inr _ => false
+
+private theorem trueInternalQuotientCausalEdge_flips_kind (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    {a b : N.TrueInternalQuotientVertex α σ}
+    (h : N.TrueInternalQuotientCausalEdge W a b) :
+    N.trueInternalQuotientVertexIsSpecies b = !N.trueInternalQuotientVertexIsSpecies a := by
+  cases a <;> cases b <;> simp_all [TrueInternalQuotientCausalEdge,
+    trueInternalQuotientVertexIsSpecies]
+
+private theorem exists_trueInternalQuotientSource_successor (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalQuotientVertex α σ))
+    (hscc : ∀ a ∈ T, ∀ b ∈ T,
+      Relation.ReflTransGen (N.TrueInternalQuotientCausalEdge W) a b)
+    (hsource : ∀ a b, N.TrueInternalQuotientCausalEdge W a b → b ∈ T → a ∈ T)
+    (hparts : (∃ s : ActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ r : N.ActiveTrueInternalReactionClass α, Sum.inr r ∈ T))
+    (v : N.TrueInternalQuotientVertex α σ) (hv : v ∈ T) :
+    ∃ w, w ∈ T ∧ N.TrueInternalQuotientCausalEdge W v w := by
+  let target : N.TrueInternalQuotientVertex α σ :=
+    match v with
+    | Sum.inl _ => Sum.inr hparts.2.choose
+    | Sum.inr _ => Sum.inl hparts.1.choose
+  have htarget : target ∈ T := by
+    cases v with
+    | inl s => exact hparts.2.choose_spec
+    | inr r => exact hparts.1.choose_spec
+  have hvne : v ≠ target := by cases v <;> simp [target]
+  obtain ⟨w, hvw, hwt⟩ := exists_first_step_of_reflTransGen
+    (hscc v hv target htarget) hvne
+  exact ⟨w, CRNT.source_closed_under_predecessors hsource hwt htarget, hvw⟩
+
+private noncomputable def trueInternalQuotientSourceStep (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalQuotientVertex α σ))
+    (hscc : ∀ a ∈ T, ∀ b ∈ T,
+      Relation.ReflTransGen (N.TrueInternalQuotientCausalEdge W) a b)
+    (hsource : ∀ a b, N.TrueInternalQuotientCausalEdge W a b → b ∈ T → a ∈ T)
+    (hparts : (∃ s : ActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ r : N.ActiveTrueInternalReactionClass α, Sum.inr r ∈ T)) :
+    {v : N.TrueInternalQuotientVertex α σ // v ∈ T} →
+      {v : N.TrueInternalQuotientVertex α σ // v ∈ T} := by
+  classical
+  intro v
+  let hout := N.exists_trueInternalQuotientSource_successor
+    W T hscc hsource hparts v.1 v.2
+  exact ⟨Classical.choose hout, (Classical.choose_spec hout).1⟩
+
+private theorem trueInternalQuotientSourceStep_edge (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalQuotientVertex α σ))
+    (hscc : ∀ a ∈ T, ∀ b ∈ T,
+      Relation.ReflTransGen (N.TrueInternalQuotientCausalEdge W) a b)
+    (hsource : ∀ a b, N.TrueInternalQuotientCausalEdge W a b → b ∈ T → a ∈ T)
+    (hparts : (∃ s : ActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ r : N.ActiveTrueInternalReactionClass α, Sum.inr r ∈ T))
+    (v : {v : N.TrueInternalQuotientVertex α σ // v ∈ T}) :
+    N.TrueInternalQuotientCausalEdge W v.1
+      (N.trueInternalQuotientSourceStep W T hscc hsource hparts v).1 := by
+  exact (Classical.choose_spec
+    (N.exists_trueInternalQuotientSource_successor W T hscc hsource hparts v.1 v.2)).2
+
+/-- The quotient source has a simple directed cycle, so no true-reaction class repeats along
+that cycle. This addresses the channel-versus-class distinction before applying SR-cycle facts. -/
+theorem exists_simple_directed_cycle_in_trueInternalQuotientSource (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalQuotientVertex α σ))
+    (hscc : ∀ a ∈ T, ∀ b ∈ T,
+      Relation.ReflTransGen (N.TrueInternalQuotientCausalEdge W) a b)
+    (hsource : ∀ a b, N.TrueInternalQuotientCausalEdge W a b → b ∈ T → a ∈ T)
+    (hparts : (∃ s : ActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ r : N.ActiveTrueInternalReactionClass α, Sum.inr r ∈ T)) :
+    ∃ p : ℕ, 2 ≤ p ∧ Even p ∧
+      ∃ c : Fin p → N.TrueInternalQuotientVertex α σ,
+        Function.Injective c ∧ (∀ i, c i ∈ T) ∧
+        (∀ i, N.TrueInternalQuotientCausalEdge W (c i) (c (finRotate p i))) := by
+  classical
+  let f := N.trueInternalQuotientSourceStep W T hscc hsource hparts
+  letI : Nonempty {v : N.TrueInternalQuotientVertex α σ // v ∈ T} :=
+    ⟨⟨Sum.inl hparts.1.choose, hparts.1.choose_spec⟩⟩
+  obtain ⟨x, hxper⟩ := exists_periodic_point_finite f
+  let p := Function.minimalPeriod f x
+  have hp : 0 < p := Function.minimalPeriod_pos_of_mem_periodicPts hxper
+  have hkind : ∀ k : ℕ,
+      N.trueInternalQuotientVertexIsSpecies (f^[k] x).1 =
+        if k % 2 = 0 then N.trueInternalQuotientVertexIsSpecies x.1
+        else !N.trueInternalQuotientVertexIsSpecies x.1 := by
+    intro k
+    induction k with
+    | zero => simp
+    | succ k ih =>
+        have hflip := N.trueInternalQuotientCausalEdge_flips_kind W
+          (N.trueInternalQuotientSourceStep_edge W T hscc hsource hparts (f^[k] x))
+        change N.trueInternalQuotientVertexIsSpecies (f (f^[k] x)).1 =
+          !N.trueInternalQuotientVertexIsSpecies (f^[k] x).1 at hflip
+        rw [Function.iterate_succ_apply']
+        by_cases heven : k % 2 = 0
+        · have hnext : (k + 1) % 2 = 1 := by omega
+          simp [heven, hnext, ih, hflip]
+        · have hnext : (k + 1) % 2 = 0 := by omega
+          simp [heven, hnext, ih, hflip]
+  have hperiodfix : f^[p] x = x := by simpa [p] using
+    (Function.iterate_minimalPeriod (f := f) (x := x))
+  have htagfix : N.trueInternalQuotientVertexIsSpecies (f^[p] x).1 =
+      N.trueInternalQuotientVertexIsSpecies x.1 := congrArg
+        (fun z : {v : N.TrueInternalQuotientVertex α σ // v ∈ T} =>
+          N.trueInternalQuotientVertexIsSpecies z.1) hperiodfix
+  have hpeven : Even p := by
+    by_contra hnot
+    have hmod : p % 2 = 1 := Nat.odd_iff.mp (Nat.not_even_iff_odd.mp hnot)
+    have hbad : N.trueInternalQuotientVertexIsSpecies x.1 =
+        !N.trueInternalQuotientVertexIsSpecies x.1 := by
+      calc
+        N.trueInternalQuotientVertexIsSpecies x.1 =
+            N.trueInternalQuotientVertexIsSpecies (f^[p] x).1 := htagfix.symm
+        _ = !N.trueInternalQuotientVertexIsSpecies x.1 := by
+          rw [hkind p]
+          simp [hmod]
+    cases htag : N.trueInternalQuotientVertexIsSpecies x.1 <;> simp [htag] at hbad
+  have hpne : p ≠ 1 := by
+    intro hp1
+    have hfix := Function.iterate_minimalPeriod (f := f) (x := x)
+    have hp1' : Function.minimalPeriod f x = 1 := by simpa [p] using hp1
+    rw [hp1', Function.iterate_one] at hfix
+    have hstep := N.trueInternalQuotientSourceStep_edge W T hscc hsource hparts x
+    change N.TrueInternalQuotientCausalEdge W x.1 (f x).1 at hstep
+    exact N.trueInternalQuotientCausalEdge_irrefl W x.1
+      (by simpa [hfix] using hstep)
+  have hp2 : 2 ≤ p := by omega
+  refine ⟨p, hp2, hpeven, fun i => (f^[i.1] x).1, ?_, ?_, ?_⟩
+  · intro i j hij
+    have hsub : (f^[i.1] x) = (f^[j.1] x) := Subtype.ext hij
+    have hij' := Function.iterate_eq_iterate_iff_of_lt_minimalPeriod i.2 j.2
+    exact Fin.ext (hij'.mp hsub)
+  · intro i
+    exact (f^[i.1] x).2
+  · intro i
+    letI : NeZero p := ⟨by omega⟩
+    have hrot : (finRotate p i).1 = (i.1 + 1) % p := by
+      rw [finRotate_apply]
+      simp [Fin.add_def]
+    have hed := N.trueInternalQuotientSourceStep_edge W T hscc hsource hparts
+      (f^[i.1] x)
+    change N.TrueInternalQuotientCausalEdge W (f^[i.1] x).1
+      (f (f^[i.1] x)).1 at hed
+    have hnext : f (f^[i.1] x) = f^[((i.1 + 1) % p)] x := by
+      calc
+        f (f^[i.1] x) = f^[i.1 + 1] x := by
+          simpa [Nat.succ_eq_add_one] using
+            (Function.iterate_succ_apply' f i.1 x).symm
+        _ = f^[((i.1 + 1) % p)] x := by
+          symm
+          dsimp [p]
+          exact Function.iterate_mod_minimalPeriod_eq
+    change N.TrueInternalQuotientCausalEdge W (f^[i.1] x).1
+      (f^[((finRotate p i).1)] x).1
+    rw [hrot]
+    rw [← congrArg Subtype.val hnext]
+    exact hed
+
+/-- A selected positive reaction term at a source species places its reaction vertex in the
+same source component. -/
+theorem trueInternalCauseReaction_mem_signSource (N : Network S)
+    (hflow : N.ZeroComplexReactionsAreFlows)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalSignCausalVertex α σ))
+    (hsource : ∀ a b, N.TrueInternalSignCausalEdge W a b → b ∈ T → a ∈ T)
+    (s : ActiveSpecies σ) (hs : Sum.inl s ∈ T) :
+    Sum.inr (N.trueInternalCauseReaction hflow W s) ∈ T := by
+  apply hsource _ _ _ hs
+  exact N.trueInternalCauseReaction_pos hflow W s
+
+/-- The selected causal species step stays inside a sign-causality source. -/
+theorem trueInternalCausalStep_mem_signSource (N : Network S)
+    (hflow : N.ZeroComplexReactionsAreFlows)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalSignCausalVertex α σ))
+    (hsource : ∀ a b, N.TrueInternalSignCausalEdge W a b → b ∈ T → a ∈ T)
+    (s : ActiveSpecies σ) (hs : Sum.inl s ∈ T) :
+    Sum.inl (N.trueInternalCausalSpeciesStep hflow W s) ∈ T := by
+  let r := N.trueInternalCauseReaction hflow W s
+  have hr : Sum.inr r ∈ T := by
+    simpa [r] using N.trueInternalCauseReaction_mem_signSource hflow W T hsource s hs
+  have hedge : N.TrueInternalSignCausalEdge W
+      (Sum.inl (N.trueInternalCausalSpeciesStep hflow W s)) (Sum.inr r) := by
+    change (α (Sum.inl r.1) * N.reactionVector r.1
+      (N.trueInternalOppositeSpecies W r).1) * σ (N.trueInternalOppositeSpecies W r).1 < 0
+    exact N.trueInternalOppositeSpecies_neg W r
+  exact hsource _ _ hedge hr
+
+private noncomputable def trueInternalSignSourceSpeciesStep (N : Network S)
+    (hflow : N.ZeroComplexReactionsAreFlows)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalSignCausalVertex α σ))
+    (hsource : ∀ a b, N.TrueInternalSignCausalEdge W a b → b ∈ T → a ∈ T) :
+    {s : ActiveSpecies σ // Sum.inl s ∈ T} → {s : ActiveSpecies σ // Sum.inl s ∈ T} :=
+  fun s => ⟨N.trueInternalCausalSpeciesStep hflow W s.1,
+    N.trueInternalCausalStep_mem_signSource hflow W T hsource s.1 s.2⟩
+
+private theorem trueInternalSignCausalEdge_irrefl (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (v : N.TrueInternalSignCausalVertex α σ) :
+    ¬ N.TrueInternalSignCausalEdge W v v := by
+  cases v with
+  | inl s => exact id
+  | inr r => exact id
+
+private def trueInternalSignVertexIsSpecies (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} :
+    N.TrueInternalSignCausalVertex α σ → Bool
+  | Sum.inl _ => true
+  | Sum.inr _ => false
+
+private theorem trueInternalSignCausalEdge_flips_kind (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    {a b : N.TrueInternalSignCausalVertex α σ}
+    (h : N.TrueInternalSignCausalEdge W a b) :
+    N.trueInternalSignVertexIsSpecies b = !N.trueInternalSignVertexIsSpecies a := by
+  cases a <;> cases b <;> simp_all [TrueInternalSignCausalEdge,
+    trueInternalSignVertexIsSpecies]
+
+private theorem exists_trueInternalSignSource_successor (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalSignCausalVertex α σ))
+    (hscc : ∀ a ∈ T, ∀ b ∈ T,
+      Relation.ReflTransGen (N.TrueInternalSignCausalEdge W) a b)
+    (hsource : ∀ a b, N.TrueInternalSignCausalEdge W a b → b ∈ T → a ∈ T)
+    (hparts : (∃ s : ActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ r : N.ActiveTrueInternalReaction α, Sum.inr r ∈ T))
+    (v : N.TrueInternalSignCausalVertex α σ) (hv : v ∈ T) :
+    ∃ w, w ∈ T ∧ N.TrueInternalSignCausalEdge W v w := by
+  let target : N.TrueInternalSignCausalVertex α σ :=
+    match v with
+    | Sum.inl _ => Sum.inr hparts.2.choose
+    | Sum.inr _ => Sum.inl hparts.1.choose
+  have htarget : target ∈ T := by
+    cases v with
+    | inl s => exact hparts.2.choose_spec
+    | inr r => exact hparts.1.choose_spec
+  have hvne : v ≠ target := by
+    cases v <;> simp [target]
+  obtain ⟨w, hvw, hwt⟩ := exists_first_step_of_reflTransGen
+    (hscc v hv target htarget) hvne
+  exact ⟨w, CRNT.source_closed_under_predecessors hsource hwt htarget, hvw⟩
+
+private noncomputable def trueInternalSignSourceStep (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalSignCausalVertex α σ))
+    (hscc : ∀ a ∈ T, ∀ b ∈ T,
+      Relation.ReflTransGen (N.TrueInternalSignCausalEdge W) a b)
+    (hsource : ∀ a b, N.TrueInternalSignCausalEdge W a b → b ∈ T → a ∈ T)
+    (hparts : (∃ s : ActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ r : N.ActiveTrueInternalReaction α, Sum.inr r ∈ T)) :
+    {v : N.TrueInternalSignCausalVertex α σ // v ∈ T} →
+      {v : N.TrueInternalSignCausalVertex α σ // v ∈ T} := by
+  classical
+  intro v
+  let hout := N.exists_trueInternalSignSource_successor W T hscc hsource hparts v.1 v.2
+  exact ⟨Classical.choose hout, (Classical.choose_spec hout).1⟩
+
+private theorem trueInternalSignSourceStep_edge (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalSignCausalVertex α σ))
+    (hscc : ∀ a ∈ T, ∀ b ∈ T,
+      Relation.ReflTransGen (N.TrueInternalSignCausalEdge W) a b)
+    (hsource : ∀ a b, N.TrueInternalSignCausalEdge W a b → b ∈ T → a ∈ T)
+    (hparts : (∃ s : ActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ r : N.ActiveTrueInternalReaction α, Sum.inr r ∈ T))
+    (v : {v : N.TrueInternalSignCausalVertex α σ // v ∈ T}) :
+    N.TrueInternalSignCausalEdge W v.1
+      (N.trueInternalSignSourceStep W T hscc hsource hparts v).1 := by
+  exact (Classical.choose_spec
+    (N.exists_trueInternalSignSource_successor W T hscc hsource hparts v.1 v.2)).2
+
+/-- Every finite bipartite sign-causality source contains a simple directed cycle.  This
+cycle lives in the original-channel graph; quotienting parallel or reverse channels into true
+reaction vertices remains a separate step. -/
+theorem exists_simple_directed_cycle_in_trueInternalSignSource (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalSignCausalVertex α σ))
+    (hscc : ∀ a ∈ T, ∀ b ∈ T,
+      Relation.ReflTransGen (N.TrueInternalSignCausalEdge W) a b)
+    (hsource : ∀ a b, N.TrueInternalSignCausalEdge W a b → b ∈ T → a ∈ T)
+    (hparts : (∃ s : ActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ r : N.ActiveTrueInternalReaction α, Sum.inr r ∈ T)) :
+    ∃ p : ℕ, 4 ≤ p ∧ Even p ∧
+      ∃ c : Fin p → N.TrueInternalSignCausalVertex α σ,
+        Function.Injective c ∧ (∀ i, c i ∈ T) ∧
+        (∀ i, N.TrueInternalSignCausalEdge W (c i) (c (finRotate p i))) := by
+  classical
+  let f := N.trueInternalSignSourceStep W T hscc hsource hparts
+  letI : Nonempty {v : N.TrueInternalSignCausalVertex α σ // v ∈ T} :=
+    ⟨⟨Sum.inl hparts.1.choose, hparts.1.choose_spec⟩⟩
+  obtain ⟨x, hxper⟩ := exists_periodic_point_finite f
+  let p := Function.minimalPeriod f x
+  have hp : 0 < p := Function.minimalPeriod_pos_of_mem_periodicPts hxper
+  have hkind : ∀ k : ℕ,
+      N.trueInternalSignVertexIsSpecies (f^[k] x).1 =
+        if k % 2 = 0 then N.trueInternalSignVertexIsSpecies x.1
+        else !N.trueInternalSignVertexIsSpecies x.1 := by
+    intro k
+    induction k with
+    | zero => simp
+    | succ k ih =>
+        have hflip := N.trueInternalSignCausalEdge_flips_kind
+          W (N.trueInternalSignSourceStep_edge W T hscc hsource hparts (f^[k] x))
+        change N.trueInternalSignVertexIsSpecies (f (f^[k] x)).1 =
+          !N.trueInternalSignVertexIsSpecies (f^[k] x).1 at hflip
+        rw [Function.iterate_succ_apply']
+        by_cases heven : k % 2 = 0
+        · have hnext : (k + 1) % 2 = 1 := by omega
+          simp [heven, hnext, ih, hflip]
+        · have hnext : (k + 1) % 2 = 0 := by omega
+          simp [heven, hnext, ih, hflip]
+  have hperiodfix : f^[p] x = x := by simpa [p] using
+    (Function.iterate_minimalPeriod (f := f) (x := x))
+  have htagfix : N.trueInternalSignVertexIsSpecies (f^[p] x).1 =
+      N.trueInternalSignVertexIsSpecies x.1 := congrArg
+        (fun z : {v : N.TrueInternalSignCausalVertex α σ // v ∈ T} =>
+          N.trueInternalSignVertexIsSpecies z.1) hperiodfix
+  have hpeven : Even p := by
+    by_contra hnot
+    have hmod : p % 2 = 1 := Nat.odd_iff.mp (Nat.not_even_iff_odd.mp hnot)
+    have hbad : N.trueInternalSignVertexIsSpecies x.1 =
+        !N.trueInternalSignVertexIsSpecies x.1 := by
+      calc
+        N.trueInternalSignVertexIsSpecies x.1 =
+            N.trueInternalSignVertexIsSpecies (f^[p] x).1 := htagfix.symm
+        _ = !N.trueInternalSignVertexIsSpecies x.1 := by
+          rw [hkind p]
+          simp [hmod]
+    cases htag : N.trueInternalSignVertexIsSpecies x.1 <;> simp [htag] at hbad
+  have hpne : p ≠ 1 := by
+    intro hp1
+    have hfix := Function.iterate_minimalPeriod (f := f) (x := x)
+    have hp1' : Function.minimalPeriod f x = 1 := by simpa [p] using hp1
+    rw [hp1', Function.iterate_one] at hfix
+    have hloop : f x = x := hfix
+    have hstep := N.trueInternalSignSourceStep_edge W T hscc hsource hparts x
+    change N.TrueInternalSignCausalEdge W x.1 (f x).1 at hstep
+    exact N.trueInternalSignCausalEdge_irrefl W x.1
+      (by simpa [hloop] using hstep)
+  have hp2 : 2 ≤ p := by omega
+  have hpne2 : p ≠ 2 := by
+    intro hpEq
+    have hclose : f (f x) = x := by
+      simpa [hpEq, Function.iterate_succ_apply'] using hperiodfix
+    have hedge0 := N.trueInternalSignSourceStep_edge W T hscc hsource hparts x
+    change N.TrueInternalSignCausalEdge W x.1 (f x).1 at hedge0
+    have hedge1 := N.trueInternalSignSourceStep_edge W T hscc hsource hparts (f x)
+    change N.TrueInternalSignCausalEdge W (f x).1 (f (f x)).1 at hedge1
+    rw [hclose] at hedge1
+    cases hx : x.1 with
+    | inl s =>
+        cases hy : (f x).1 with
+        | inl t => simp [TrueInternalSignCausalEdge, hx, hy] at hedge0
+        | inr r =>
+            have hneg :
+                (α (Sum.inl r.1) * N.reactionVector r.1 s.1) * σ s.1 < 0 := by
+              simpa [TrueInternalSignCausalEdge, hx, hy] using hedge0
+            have hpos :
+                0 < (α (Sum.inl r.1) * N.reactionVector r.1 s.1) * σ s.1 := by
+              simpa [TrueInternalSignCausalEdge, hx, hy, hclose] using hedge1
+            linarith
+    | inr r =>
+        cases hy : (f x).1 with
+        | inl s =>
+            have hpos :
+                0 < (α (Sum.inl r.1) * N.reactionVector r.1 s.1) * σ s.1 := by
+              simpa [TrueInternalSignCausalEdge, hx, hy] using hedge0
+            have hneg :
+                (α (Sum.inl r.1) * N.reactionVector r.1 s.1) * σ s.1 < 0 := by
+              simpa [TrueInternalSignCausalEdge, hx, hy, hclose] using hedge1
+            linarith
+        | inr q => simp [TrueInternalSignCausalEdge, hx, hy] at hedge0
+  have hpmod : p % 2 = 0 := Nat.even_iff.mp hpeven
+  have hp4 : 4 ≤ p := by omega
+  refine ⟨p, hp4, hpeven, fun i => (f^[i.1] x).1, ?_, ?_, ?_⟩
+  · intro i j hij
+    have hsub : (f^[i.1] x) = (f^[j.1] x) := Subtype.ext hij
+    have hij' := Function.iterate_eq_iterate_iff_of_lt_minimalPeriod i.2 j.2
+    exact Fin.ext (hij'.mp hsub)
+  · intro i
+    exact (f^[i.1] x).2
+  · intro i
+    letI : NeZero p := ⟨by omega⟩
+    have hp1' : 1 < p := by omega
+    have hrot : (finRotate p i).1 = (i.1 + 1) % p := by
+      rw [finRotate_apply]
+      simp [Fin.add_def]
+    have hed := N.trueInternalSignSourceStep_edge W T hscc hsource hparts
+      (f^[i.1] x)
+    change N.TrueInternalSignCausalEdge W (f^[i.1] x).1
+      (f (f^[i.1] x)).1 at hed
+    have hnext : f (f^[i.1] x) = f^[((i.1 + 1) % p)] x := by
+      calc
+        f (f^[i.1] x) = f^[i.1 + 1] x := by
+          simpa [Nat.succ_eq_add_one] using
+            (Function.iterate_succ_apply' f i.1 x).symm
+        _ = f^[((i.1 + 1) % p)] x := by
+          symm
+          dsimp [p]
+          exact Function.iterate_mod_minimalPeriod_eq
+    change N.TrueInternalSignCausalEdge W (f^[i.1] x).1
+      (f^[((finRotate p i).1)] x).1
+    rw [hrot]
+    rw [← congrArg Subtype.val hnext]
+    exact hed
+
+/-- The source component contains a periodic orbit of the selected causal species step. -/
+theorem exists_periodic_trueInternalCausalSpecies_in_signSource (N : Network S)
+    (hflow : N.ZeroComplexReactionsAreFlows)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalSignCausalVertex α σ))
+    (hsource : ∀ a b, N.TrueInternalSignCausalEdge W a b → b ∈ T → a ∈ T)
+    (hspecies : ∃ s : ActiveSpecies σ, Sum.inl s ∈ T) :
+    ∃ s : ActiveSpecies σ, Sum.inl s ∈ T ∧
+      s ∈ Function.periodicPts (N.trueInternalCausalSpeciesStep hflow W) := by
+  classical
+  let f := N.trueInternalCausalSpeciesStep hflow W
+  let g := N.trueInternalSignSourceSpeciesStep hflow W T hsource
+  letI : Nonempty {s : ActiveSpecies σ // Sum.inl s ∈ T} :=
+    ⟨⟨Classical.choose hspecies, Classical.choose_spec hspecies⟩⟩
+  obtain ⟨x, hx⟩ := exists_periodic_point_finite g
+  rcases hx with ⟨n, hn, hfixed⟩
+  have hiter : ∀ k, (g^[k] x).1 = f^[k] x.1 := by
+    intro k
+    induction k with
+    | zero => rfl
+    | succ k ih =>
+        calc
+          (g^[k + 1] x).1 = (g (g^[k] x)).1 := by rw [Function.iterate_succ_apply']
+          _ = f ((g^[k] x).1) := rfl
+          _ = f (f^[k] x.1) := by rw [ih]
+          _ = f^[k + 1] x.1 := by rw [Function.iterate_succ_apply']
+  have hper : Function.IsPeriodicPt f n x.1 := by
+    change f^[n] x.1 = x.1
+    calc
+      f^[n] x.1 = (g^[n] x).1 := (hiter n).symm
+      _ = x.1 := congrArg Subtype.val hfixed
+  exact ⟨x.1, x.2, Function.mk_mem_periodicPts hn hper⟩
+
+/-- A source-contained periodic causal orbit has at least two species, and every selected
+reaction vertex on its least-period orbit also lies in the bipartite source. -/
+theorem exists_periodic_trueInternalCausalOrbit_in_signSource (N : Network S)
+    (hflow : N.ZeroComplexReactionsAreFlows)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalSignCausalVertex α σ))
+    (hsource : ∀ a b, N.TrueInternalSignCausalEdge W a b → b ∈ T → a ∈ T)
+    (hspecies : ∃ s : ActiveSpecies σ, Sum.inl s ∈ T) :
+    ∃ s : ActiveSpecies σ,
+      Sum.inl s ∈ T ∧
+      s ∈ Function.periodicPts (N.trueInternalCausalSpeciesStep hflow W) ∧
+      2 ≤ Function.minimalPeriod (N.trueInternalCausalSpeciesStep hflow W) s ∧
+      ∀ i : Fin (Function.minimalPeriod (N.trueInternalCausalSpeciesStep hflow W) s),
+        Sum.inr (N.trueInternalCauseReaction hflow W
+          ((N.trueInternalCausalSpeciesStep hflow W)^[i.1] s)) ∈ T := by
+  obtain ⟨s, hs, hsper⟩ := N.exists_periodic_trueInternalCausalSpecies_in_signSource
+    hflow W T hsource hspecies
+  refine ⟨s, hs, hsper, ?_, ?_⟩
+  · have hp := Function.minimalPeriod_pos_of_mem_periodicPts hsper
+    have hne1 : Function.minimalPeriod (N.trueInternalCausalSpeciesStep hflow W) s ≠ 1 := by
+      intro h1
+      have hfix := Function.iterate_minimalPeriod
+        (f := N.trueInternalCausalSpeciesStep hflow W) (x := s)
+      rw [h1, Function.iterate_one] at hfix
+      exact N.trueInternalCausalSpeciesStep_ne hflow W s hfix
+    omega
+  · intro i
+    have hiter_mem : ∀ k : ℕ,
+        Sum.inl ((N.trueInternalCausalSpeciesStep hflow W)^[k] s) ∈ T := by
+      intro k
+      induction k with
+      | zero => simpa using hs
+      | succ k ih =>
+          rw [Function.iterate_succ_apply']
+          exact N.trueInternalCausalStep_mem_signSource hflow W T hsource
+            _ ih
+    exact N.trueInternalCauseReaction_mem_signSource hflow W T hsource
+      ((N.trueInternalCausalSpeciesStep hflow W)^[i.1] s) (hiter_mem i.1)
 
 private theorem exists_periodic_active_species (N : Network S)
     {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
@@ -2477,15 +3510,13 @@ theorem weighted_source_inequalities_infeasible
 /-- **The end species-block contradiction (Shinar--Feinberg 5.7.1), formalized.**
 
 Suppose a strong-concordance witness gives an even true-SR cycle along which, at each species,
-exactly two reactions of the true chemistry carry a nonzero flux term: the cycle's incoming
-reaction, causal for that species' sign, and the cycle's outgoing reaction, which opposes it.
-Then no such witness exists.
+one cycle reaction is causal and the other opposes it, while every remaining reaction contributes
+nonpositively after multiplication by the species sign. Then no such witness exists. This permits
+the off-block terms at a separating species that occur in the published source argument.
 
-This is the first contradiction in the published proof.  With an explicit net-cycle identity, it
-needs no reactant/product separation.  What the full theorem still requires is
-the block decomposition reducing the general case to this one: a species of the causal source
-may meet more than two of the source's reactions, and then the two-term collapse is
-unavailable. -/
+With an explicit net-cycle identity, the contradiction itself needs no reactant/product
+separation. The full theorem still requires the graph decomposition that produces these local
+sign conditions from a general source. -/
 theorem no_degree_two_causal_cycle (N : Network S)
     {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
     (W : N.fullyOpen.StrongConcordanceWitness α σ)
@@ -2502,7 +3533,8 @@ theorem no_degree_two_causal_cycle (N : Network S)
     (hrest : ∀ i, ∀ r : N.R,
       r ≠ (C.rightEdge i).representative →
       r ≠ (C.leftEdge (finRotate n i)).representative →
-      α (Sum.inl r) * N.reactionVector r (C.species (finRotate n i)) = 0) :
+      (α (Sum.inl r) * N.reactionVector r (C.species (finRotate n i))) *
+        σ (C.species (finRotate n i)) ≤ 0) :
     False := by
   letI : NeZero n := ⟨Nat.ne_of_gt (lt_of_lt_of_le (by decide) C.nontrivial)⟩
   have hn2 : 2 ≤ n := C.nontrivial
@@ -2575,7 +3607,7 @@ theorem no_degree_two_causal_cycle (N : Network S)
   have hgain : ∀ i, (C.leftEdge (finRotate n i)).netCoeff * a (finRotate n i) <
       (C.rightEdge i).netCoeff * a i := by
     intro i
-    have hgt := N.gain_of_two_term_flux W (hσ (finRotate n i)) (hrepne i)
+    have hgt := N.gain_of_two_term_flux_of_nonpos_rest W (hσ (finRotate n i)) (hrepne i)
       (fun r h1 h2 => hrest i r h1 h2) (hcausal i) (hopp i)
     rw [hnet (C.leftEdge (finRotate n i)), hnet (C.rightEdge i),
       C.left_species (finRotate n i), hrightSp i, ha_def]
@@ -2585,14 +3617,2044 @@ theorem no_degree_two_causal_cycle (N : Network S)
     linarith [hgt]
   exact TrueSRCycle.no_strict_gain_net' N C hsc hLpos hRpos a hapos hgain
 
-/-- **Shinar--Feinberg true-SR strong-concordance theorem.** -/
+variable {S : Type} [DecidableEq S] [Fintype S]
+
+noncomputable local instance instTrueReactionFintype (N : Network S) :
+    Fintype N.TrueReaction := Fintype.ofFinite _
+
+/-- The net witness flux at a species, after summing all non-flow channels in one true-reaction
+class. -/
+noncomputable def trueInternalClassFlux (N : Network S)
+    (α : N.fullyOpen.R → ℝ) (ρ : N.TrueReaction) (s : S) : ℝ := by
+  classical
+  exact ∑ r ∈ N.nonflowOriginalChannels.filter (fun r => N.trueReaction r = ρ),
+    α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r s
+
+/-- Summing class fluxes recovers the complete internal-channel flux. -/
+theorem sum_trueInternalClassFlux (N : Network S)
+    (α : N.fullyOpen.R → ℝ) (s : S) :
+    (∑ ρ : N.TrueReaction, N.trueInternalClassFlux α ρ s) =
+      ∑ r ∈ N.nonflowOriginalChannels,
+        α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r s := by
+  classical
+  unfold trueInternalClassFlux
+  exact Finset.sum_fiberwise N.nonflowOriginalChannels N.trueReaction
+    (fun r => α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r s)
+
+/-- Strong concordance makes the sum of the internal class fluxes strictly positive at every
+active species. Flow-channel terms have already been removed by the source lemma. -/
+theorem trueInternalClassFlux_mul_sigma_pos (N : Network S)
+    (hflow : N.ZeroComplexReactionsAreFlows)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ) {s : S} (hs : σ s ≠ 0) :
+    0 < ∑ ρ : N.TrueReaction,
+      (N.trueInternalClassFlux α ρ s) * σ s := by
+  calc
+    0 < (∑ r ∈ N.nonflowOriginalChannels,
+        (α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r s) * σ s) :=
+      N.internal_flux_mul_sigma_pos_on_nonflow_channels hflow W hs
+    _ = ∑ ρ : N.TrueReaction, (N.trueInternalClassFlux α ρ s) * σ s := by
+      calc
+        _ = (∑ r ∈ N.nonflowOriginalChannels,
+            α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r s) * σ s := by
+              rw [Finset.sum_mul]
+        _ = (∑ ρ : N.TrueReaction, N.trueInternalClassFlux α ρ s) * σ s := by
+              rw [N.sum_trueInternalClassFlux]
+        _ = ∑ ρ : N.TrueReaction, (N.trueInternalClassFlux α ρ s) * σ s := by
+              rw [Finset.sum_mul]
+
+/-- In a positive source flux sum, a selected negative reaction-class term is smaller in
+magnitude than a selected positive term when all remaining class terms are nonpositive. -/
+theorem trueInternalClassFlux_two_term_gain (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {s : S}
+    (F : Finset N.TrueReaction) {ρpos ρneg : N.TrueReaction} (hne : ρpos ≠ ρneg)
+    (hmemPos : ρpos ∈ F) (hmemNeg : ρneg ∈ F)
+    (hrest : ∀ ρ ∈ F, ρ ≠ ρpos → ρ ≠ ρneg →
+      (N.trueInternalClassFlux α ρ s) * σ s ≤ 0)
+    (hsum : 0 < ∑ ρ ∈ F, (N.trueInternalClassFlux α ρ s) * σ s)
+    (hpos : 0 < (N.trueInternalClassFlux α ρpos s) * σ s)
+    (hneg : (N.trueInternalClassFlux α ρneg s) * σ s < 0) :
+    |(N.trueInternalClassFlux α ρneg s) * σ s| <
+      |(N.trueInternalClassFlux α ρpos s) * σ s| := by
+  classical
+  let pair : Finset N.TrueReaction := {ρpos, ρneg}
+  have hpairSub : pair ⊆ F := by
+    intro ρ hρ
+    simp only [pair, Finset.mem_insert, Finset.mem_singleton] at hρ
+    rcases hρ with hρ | hρ
+    · simpa [hρ] using hmemPos
+    · simpa [hρ] using hmemNeg
+  have hrestSum : (∑ ρ ∈ F \ pair,
+      (N.trueInternalClassFlux α ρ s) * σ s) ≤ 0 := by
+    apply Finset.sum_nonpos
+    intro ρ hρ
+    have hF : ρ ∈ F := (Finset.mem_sdiff.mp hρ).1
+    have hpair : ρ ∉ pair := (Finset.mem_sdiff.mp hρ).2
+    have hρpos : ρ ≠ ρpos := by
+      intro heq
+      apply hpair
+      simp [pair, heq]
+    have hρneg : ρ ≠ ρneg := by
+      intro heq
+      apply hpair
+      simp [pair, heq]
+    exact hrest ρ hF hρpos hρneg
+  have hsplit : (∑ ρ ∈ F, (N.trueInternalClassFlux α ρ s) * σ s) =
+      (∑ ρ ∈ pair, (N.trueInternalClassFlux α ρ s) * σ s) +
+        (∑ ρ ∈ F \ pair, (N.trueInternalClassFlux α ρ s) * σ s) := by
+    rw [← Finset.sum_union (Finset.disjoint_sdiff)]
+    congr 1
+    exact (Finset.union_sdiff_of_subset hpairSub).symm
+  have hpairSum :
+      (∑ ρ ∈ pair, (N.trueInternalClassFlux α ρ s) * σ s) =
+        (N.trueInternalClassFlux α ρpos s) * σ s +
+          (N.trueInternalClassFlux α ρneg s) * σ s := by
+    simp only [pair, Finset.sum_pair hne]
+  have hpairPos :
+      0 < (N.trueInternalClassFlux α ρpos s) * σ s +
+        (N.trueInternalClassFlux α ρneg s) * σ s := by
+    rw [hsplit, hpairSum] at hsum
+    linarith [hrestSum]
+  rw [abs_of_pos hpos, abs_of_neg hneg]
+  linarith
+
+/-- Aggregate form of the degree-two source-block contradiction.  It works directly with
+true-reaction fluxes: at each cycle species the selected incoming class is strictly positive,
+the next class is strictly negative, and every other class in the source contributes
+nonpositively.  The shared representative and scalar-vector relation transfer the strict
+two-term comparison to the cycle's net edge labels. -/
+theorem no_degree_two_aggregate_causal_cycle (N : Network S)
+    (hsep : N.ReactantProductSeparated)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {n : ℕ}
+    (C : N.TrueSRCycle n) (hsc : C.SCycleNet)
+    (F : Finset N.TrueReaction) (β : Fin n → ℝ)
+    (hrep : ∀ i, (C.leftEdge i).representative = (C.rightEdge i).representative)
+    (hbeta : ∀ i t, N.trueInternalClassFlux α (C.reaction i) t =
+      β i * N.reactionVector (C.rightEdge i).representative t)
+    (hclass : ∀ i, C.reaction i ∈ F)
+    (hsum : ∀ i, 0 < ∑ ρ ∈ F,
+      (N.trueInternalClassFlux α ρ (C.species (finRotate n i))) *
+        σ (C.species (finRotate n i)))
+    (hcausal : ∀ i, 0 < (N.trueInternalClassFlux α (C.reaction i)
+      (C.species (finRotate n i))) * σ (C.species (finRotate n i)))
+    (hopp : ∀ i, (N.trueInternalClassFlux α (C.reaction (finRotate n i))
+      (C.species (finRotate n i))) * σ (C.species (finRotate n i)) < 0)
+    (hrest : ∀ i ρ, ρ ∈ F → ρ ≠ C.reaction i →
+      ρ ≠ C.reaction (finRotate n i) →
+      (N.trueInternalClassFlux α ρ (C.species (finRotate n i))) *
+        σ (C.species (finRotate n i)) ≤ 0) :
+    False := by
+  classical
+  letI : NeZero n := ⟨Nat.ne_of_gt (lt_of_lt_of_le (by decide) C.nontrivial)⟩
+  have hn2 : 2 ≤ n := C.nontrivial
+  have hrotVal : ∀ i : Fin n, (finRotate n i).1 = (i.1 + 1) % n := by
+    intro i
+    have hn1 : 1 < n := by omega
+    have h := congrArg Fin.val (finRotate_apply i)
+    simpa [Fin.add_def, hn1] using h
+  have hrotNe : ∀ i : Fin n, finRotate n i ≠ i := by
+    intro i heq
+    have hv := congrArg Fin.val heq
+    rw [hrotVal i] at hv
+    have hi := i.isLt
+    rcases Nat.lt_or_ge (i.1 + 1) n with hlt | hge
+    · rw [Nat.mod_eq_of_lt hlt] at hv
+      omega
+    · have heq' : i.1 + 1 = n := by omega
+      rw [heq', Nat.mod_self] at hv
+      omega
+  have hreactionNe : ∀ i : Fin n, C.reaction i ≠ C.reaction (finRotate n i) := by
+    intro i heq
+    apply hrotNe i
+    exact (C.reaction_injective heq).symm
+  have hnet : ∀ e : N.TrueSREdge,
+      e.netCoeff = |N.reactionVector e.representative e.species| := by
+    intro e
+    rw [TrueSREdge.netCoeff, reactionVector_apply]
+  have hnetPos (e : N.TrueSREdge) : 0 < e.netCoeff := by
+    have hcoeff : 0 < (e.coeff : ℝ) := by exact_mod_cast e.coeff_pos
+    have hcoeffEq := N.edge_coeff_eq_abs_reactionVector hsep e
+    have hEq : e.netCoeff = (e.coeff : ℝ) := (hnet e).trans hcoeffEq.symm
+    rw [hEq]
+    exact hcoeff
+  have hrightSpecies (i : Fin n) :
+      (C.rightEdge i).species = C.species (finRotate n i) := by
+    rw [C.right_species i]
+    exact congrArg C.species (Fin.ext (hrotVal i).symm)
+  have hLnet (i : Fin n) :
+      (C.leftEdge (finRotate n i)).netCoeff =
+        |N.reactionVector (C.rightEdge (finRotate n i)).representative
+          (C.species (finRotate n i))| := by
+    calc
+      _ = |N.reactionVector (C.leftEdge (finRotate n i)).representative
+          (C.leftEdge (finRotate n i)).species| := hnet _
+      _ = |N.reactionVector (C.rightEdge (finRotate n i)).representative
+          (C.species (finRotate n i))| := by
+        rw [hrep (finRotate n i), C.left_species]
+  have hRnet (i : Fin n) :
+      (C.rightEdge i).netCoeff =
+        |N.reactionVector (C.rightEdge i).representative
+          (C.species (finRotate n i))| := by
+    calc
+      _ = |N.reactionVector (C.rightEdge i).representative
+          (C.rightEdge i).species| := hnet _
+      _ = |N.reactionVector (C.rightEdge i).representative
+          (C.species (finRotate n i))| := by rw [hrightSpecies i]
+  have hLpos : ∀ i, 0 < (C.leftEdge i).netCoeff := by
+    intro i
+    exact hnetPos (C.leftEdge i)
+  have hRpos : ∀ i, 0 < (C.rightEdge i).netCoeff := by
+    intro i
+    exact hnetPos (C.rightEdge i)
+  have hbetaNe : ∀ i : Fin n, β i ≠ 0 := by
+    intro i hz
+    have h := hcausal i
+    rw [hbeta i (C.species (finRotate n i)), hz, zero_mul, zero_mul] at h
+    exact (lt_irrefl 0) h
+  have ha : ∀ i, 0 < |β i| := fun i => abs_pos.mpr (hbetaNe i)
+  have hineq : ∀ i,
+      (C.leftEdge (finRotate n i)).netCoeff * |β (finRotate n i)| <
+        (C.rightEdge i).netCoeff * |β i| := by
+    intro i
+    have hsigma : σ (C.species (finRotate n i)) ≠ 0 := by
+      intro hz
+      have h := hcausal i
+      rw [hz, mul_zero] at h
+      exact (lt_irrefl 0) h
+    have hterm := N.trueInternalClassFlux_two_term_gain F (hreactionNe i)
+      (hclass i) (hclass (finRotate n i)) (hrest i) (hsum i)
+      (hcausal i) (hopp i)
+    have hflux :
+        |N.trueInternalClassFlux α (C.reaction (finRotate n i))
+          (C.species (finRotate n i))| <
+        |N.trueInternalClassFlux α (C.reaction i)
+          (C.species (finRotate n i))| := by
+      rw [abs_mul, abs_mul] at hterm
+      exact lt_of_mul_lt_mul_right hterm (le_of_lt (abs_pos.mpr hsigma))
+    have hweighted := hflux
+    rw [hbeta (finRotate n i) (C.species (finRotate n i)),
+      hbeta i (C.species (finRotate n i)), abs_mul, abs_mul] at hweighted
+    calc
+      (C.leftEdge (finRotate n i)).netCoeff * |β (finRotate n i)| =
+          |β (finRotate n i)| *
+            |N.reactionVector (C.rightEdge (finRotate n i)).representative
+              (C.species (finRotate n i))| := by rw [hLnet]; ring
+      _ < |β i| * |N.reactionVector (C.rightEdge i).representative
+            (C.species (finRotate n i))| := hweighted
+      _ = (C.rightEdge i).netCoeff * |β i| := by rw [hRnet]; ring
+  exact TrueSRCycle.no_strict_gain_net' N C hsc hLpos hRpos (fun i => |β i|) ha hineq
+
+/-- A source cycle cannot account for all positive aggregate terms at its species.  Otherwise
+the degree-two aggregate contradiction applies.  This is the first forced ear attachment that
+the source-block argument must then analyze. -/
+theorem exists_positive_off_cycle_aggregate_class (N : Network S)
+    (hsep : N.ReactantProductSeparated)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {n : ℕ}
+    (C : N.TrueSRCycle n) (hsc : C.SCycleNet)
+    (F : Finset N.TrueReaction) (β : Fin n → ℝ)
+    (hrep : ∀ i, (C.leftEdge i).representative = (C.rightEdge i).representative)
+    (hbeta : ∀ i t, N.trueInternalClassFlux α (C.reaction i) t =
+      β i * N.reactionVector (C.rightEdge i).representative t)
+    (hclass : ∀ i, C.reaction i ∈ F)
+    (hsum : ∀ i, 0 < ∑ ρ ∈ F,
+      (N.trueInternalClassFlux α ρ (C.species (finRotate n i))) *
+        σ (C.species (finRotate n i)))
+    (hcausal : ∀ i, 0 < (N.trueInternalClassFlux α (C.reaction i)
+      (C.species (finRotate n i))) * σ (C.species (finRotate n i)))
+    (hopp : ∀ i, (N.trueInternalClassFlux α (C.reaction (finRotate n i))
+      (C.species (finRotate n i))) * σ (C.species (finRotate n i)) < 0) :
+    ∃ i ρ, ρ ∈ F ∧ ρ ≠ C.reaction i ∧ ρ ≠ C.reaction (finRotate n i) ∧
+      0 < (N.trueInternalClassFlux α ρ (C.species (finRotate n i))) *
+        σ (C.species (finRotate n i)) := by
+  classical
+  by_contra hnone
+  have hrest : ∀ i ρ, ρ ∈ F → ρ ≠ C.reaction i →
+      ρ ≠ C.reaction (finRotate n i) →
+      (N.trueInternalClassFlux α ρ (C.species (finRotate n i))) *
+        σ (C.species (finRotate n i)) ≤ 0 := by
+    intro i ρ hρ hneL hneR
+    apply le_of_not_gt
+    intro hpos
+    apply hnone
+    exact ⟨i, ρ, hρ, hneL, hneR, hpos⟩
+  exact N.no_degree_two_aggregate_causal_cycle hsep C hsc F β hrep hbeta
+    hclass hsum hcausal hopp hrest
+
+/-- True-reaction classes whose aggregate internal flux is nonzero. -/
+abbrev ActiveAggregateTrueReaction (N : Network S)
+    (α : N.fullyOpen.R → ℝ) (σ : S → ℝ) :=
+  {ρ : N.TrueReaction // ∃ s : S, σ s ≠ 0 ∧ N.trueInternalClassFlux α ρ s ≠ 0}
+
+/-- Vertices of the class-aggregated sign-causality graph. -/
+abbrev AggregateActiveSpecies (σ : S → ℝ) := {s : S // σ s ≠ 0}
+
+abbrev TrueInternalAggregateVertex (N : Network S)
+    (α : N.fullyOpen.R → ℝ) (σ : S → ℝ) :=
+  AggregateActiveSpecies σ ⊕ N.ActiveAggregateTrueReaction α σ
+
+/-- Directed causal edges formed from aggregate class fluxes, so one quotient edge cannot mix
+oppositely oriented channel representatives. -/
+def TrueInternalAggregateCausalEdge (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (u v : N.TrueInternalAggregateVertex α σ) : Prop :=
+  match u, v with
+  | Sum.inl s, Sum.inr ρ =>
+      (N.trueInternalClassFlux α ρ.1 s.1) * σ s.1 < 0
+  | Sum.inr ρ, Sum.inl s =>
+      0 < (N.trueInternalClassFlux α ρ.1 s.1) * σ s.1
+  | Sum.inl _, Sum.inl _ => False
+  | Sum.inr _, Sum.inr _ => False
+
+/-- True-reaction classes represented by reaction vertices in a chosen aggregate source. -/
+noncomputable def trueInternalAggregateSourceClasses (N : Network S)
+    (α : N.fullyOpen.R → ℝ) (σ : S → ℝ)
+    (T : Finset (N.TrueInternalAggregateVertex α σ)) : Finset N.TrueReaction := by
+  classical
+  exact Finset.univ.filter (fun ρ =>
+    ∃ q : N.ActiveAggregateTrueReaction α σ, q.1 = ρ ∧ Sum.inr q ∈ T)
+
+private theorem reactionVector_cross_eq_of_sameTrueReaction (N : Network S)
+    {r q : N.R} (h : N.SameTrueReaction r q) (s t : S) :
+    N.reactionVector r t * N.reactionVector q s =
+      N.reactionVector r s * N.reactionVector q t := by
+  rcases h with h | h
+  · simp [reactionVector_apply, h.1, h.2] <;> ring
+  · simp [reactionVector_apply, h.1, h.2] <;> ring
+
+private theorem exists_finset_term_same_sign {ι : Type*} (A : Finset ι)
+    (f : ι → ℝ) (h : (∑ i ∈ A, f i) ≠ 0) :
+    ∃ i ∈ A, f i * (∑ i ∈ A, f i) > 0 := by
+  classical
+  by_cases hsum : 0 < ∑ i ∈ A, f i
+  · by_contra hnone
+    have hnonpos : ∀ i ∈ A, f i ≤ 0 := by
+      intro i hi
+      by_contra hnot
+      have hpos : 0 < f i := lt_of_not_ge hnot
+      exact hnone ⟨i, hi, mul_pos hpos hsum⟩
+    have hle : (∑ i ∈ A, f i) ≤ 0 := Finset.sum_nonpos hnonpos
+    linarith
+  · have hsum' : ∑ i ∈ A, f i < 0 := lt_of_le_of_ne (le_of_not_gt hsum) h
+    by_contra hnone
+    have hnonneg : ∀ i ∈ A, 0 ≤ f i := by
+      intro i hi
+      by_contra hnot
+      have hneg : f i < 0 := lt_of_not_ge hnot
+      exact hnone ⟨i, hi, mul_pos_of_neg_of_neg hneg hsum'⟩
+    have hge : 0 ≤ ∑ i ∈ A, f i := Finset.sum_nonneg hnonneg
+    linarith
+
+private theorem same_sign_product_preserves_neg {a b x : ℝ}
+    (hab : 0 < a * b) (hax : a * x < 0) : b * x < 0 := by
+  rcases mul_pos_iff.mp hab with ⟨ha, hb⟩ | ⟨ha, hb⟩
+  · have hx : x < 0 := by nlinarith
+    exact mul_neg_of_pos_of_neg hb hx
+  · have hx : 0 < x := by nlinarith
+    exact mul_neg_of_neg_of_pos hb hx
+
+private theorem exists_nonzero_channel_of_trueInternalClassFlux (N : Network S)
+    {α : N.fullyOpen.R → ℝ} (ρ : N.TrueReaction) (s : S)
+    (hflux : N.trueInternalClassFlux α ρ s ≠ 0) :
+    ∃ r, r ∈ N.nonflowOriginalChannels ∧ N.trueReaction r = ρ ∧
+      α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r s ≠ 0 := by
+  classical
+  let A := N.nonflowOriginalChannels.filter (fun r => N.trueReaction r = ρ)
+  by_contra hnone
+  have hz : ∀ r ∈ A,
+      α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r s = 0 := by
+    intro r hr
+    by_contra hne
+    exact hnone ⟨r, (Finset.mem_filter.mp hr).1, (Finset.mem_filter.mp hr).2, hne⟩
+  have hsum : (∑ r ∈ A,
+      α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r s) = 0 :=
+    Finset.sum_eq_zero hz
+  apply hflux
+  simpa [trueInternalClassFlux, A] using hsum
+
+/-- A nonzero aggregate flux coordinate is witnessed by a real channel incidence, which can be
+turned into a labeled true-SR edge. -/
+private theorem exists_trueSREdge_of_nonzero_trueInternalClassFlux (N : Network S)
+    {α : N.fullyOpen.R → ℝ} (ρ : N.TrueReaction) (s : S)
+    (hflux : N.trueInternalClassFlux α ρ s ≠ 0) :
+    ∃ e : N.TrueSREdge, e.species = s ∧ e.reaction = ρ := by
+  obtain ⟨r, hrNF, hrρ, hterm⟩ := N.exists_nonzero_channel_of_trueInternalClassFlux ρ s hflux
+  have hnotflow : ¬ N.IsFlowChannel r := by
+    simpa [nonflowOriginalChannels] using hrNF
+  have hν : N.reactionVector r s ≠ 0 := by
+    intro hz
+    apply hterm
+    rw [hz, mul_zero]
+  refine ⟨N.trueSREdgeOfReactionVectorNe r hnotflow s hν, ?_, ?_⟩
+  · simp
+  · rw [N.trueSREdgeOfReactionVectorNe_reaction]
+    exact hrρ
+
+/-- Every aggregate class-flux vector is a scalar multiple of any nonzero representative's
+stoichiometric vector. This is the vector-level form of quotienting parallel and reverse
+channels; it lets a single labeled SR reaction vertex represent the whole class. -/
+private theorem exists_scalar_mul_reactionVector_eq_trueInternalClassFlux (N : Network S)
+    {α : N.fullyOpen.R → ℝ} (ρ : N.TrueReaction) {r₀ : N.R} (s : S)
+    (hr₀NF : r₀ ∈ N.nonflowOriginalChannels)
+    (hr₀ρ : N.trueReaction r₀ = ρ)
+    (hν₀ : N.reactionVector r₀ s ≠ 0) :
+    ∃ β : ℝ, ∀ t : S,
+      N.trueInternalClassFlux α ρ t = β * N.reactionVector r₀ t := by
+  classical
+  let A := N.nonflowOriginalChannels.filter (fun r => N.trueReaction r = ρ)
+  have hr₀A : r₀ ∈ A := Finset.mem_filter.mpr ⟨hr₀NF, hr₀ρ⟩
+  let c : N.R → ℝ := fun r =>
+    (α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r s) /
+      N.reactionVector r₀ s
+  have hclassFlux_eq : ∀ t : S,
+      N.trueInternalClassFlux α ρ t = (∑ r ∈ A, c r) * N.reactionVector r₀ t := by
+    intro t
+    unfold trueInternalClassFlux
+    calc
+      (∑ r ∈ A,
+          α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r t) =
+        ∑ r ∈ A, c r * N.reactionVector r₀ t := by
+          apply Finset.sum_congr rfl
+          intro r hr
+          have hrρ : N.trueReaction r = ρ := (Finset.mem_filter.mp hr).2
+          have hsame : N.SameTrueReaction r r₀ :=
+            Quotient.exact (hrρ.trans hr₀ρ.symm)
+          have hcross := N.reactionVector_cross_eq_of_sameTrueReaction hsame t s
+          dsimp [c]
+          calc
+            α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r t =
+                (α (Sum.inl r : N.fullyOpen.R) *
+                (N.reactionVector r t * N.reactionVector r₀ s)) /
+                    N.reactionVector r₀ s := by
+                  field_simp [hν₀]
+            _ = (α (Sum.inl r : N.fullyOpen.R) *
+                  (N.reactionVector r s * N.reactionVector r₀ t)) /
+                    N.reactionVector r₀ s := by rw [hcross]
+            _ = (α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r s /
+                  N.reactionVector r₀ s) * N.reactionVector r₀ t := by
+                  field_simp [hν₀]
+      _ = (∑ r ∈ A, c r) * N.reactionVector r₀ t := by
+        rw [Finset.sum_mul]
+  exact ⟨∑ r ∈ A, c r, hclassFlux_eq⟩
+
+private theorem activeAggregateTrueReaction_internal (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (ρ : N.ActiveAggregateTrueReaction α σ) :
+    TrueReaction.Internal N ρ.1 := by
+  obtain ⟨s, -, hflux⟩ := ρ.2
+  obtain ⟨r, hrNF, hrρ, -⟩ := N.exists_nonzero_channel_of_trueInternalClassFlux ρ.1 s hflux
+  have hnotflow : ¬ N.IsFlowChannel r := by
+    simpa [nonflowOriginalChannels] using hrNF
+  rw [← hrρ]
+  change ¬ N.IsFlowChannel r
+  exact hnotflow
+
+/-- A nonzero aggregate class flux has a negative signed-flux coordinate.  The key point is to
+sum coefficients after orienting every channel against one representative of its true-reaction
+class; channel contributions with the opposite orientation cannot silently reverse this sign. -/
+private theorem trueInternalClassFlux_has_negative_signed_term (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ) (ρ : N.TrueReaction)
+    (s : S) (hflux : N.trueInternalClassFlux α ρ s ≠ 0) :
+    ∃ t, (N.trueInternalClassFlux α ρ t) * σ t < 0 := by
+  classical
+  let A := N.nonflowOriginalChannels.filter (fun r => N.trueReaction r = ρ)
+  obtain ⟨r₀, hr₀NF, hr₀ρ, hterm₀⟩ :=
+    N.exists_nonzero_channel_of_trueInternalClassFlux ρ s hflux
+  have hν₀ : N.reactionVector r₀ s ≠ 0 := by
+    intro hzero
+    apply hterm₀
+    rw [hzero, mul_zero]
+  let c : N.R → ℝ := fun r =>
+    (α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r s) /
+      N.reactionVector r₀ s
+  have hclassFlux_eq : ∀ t : S,
+      N.trueInternalClassFlux α ρ t =
+        (∑ r ∈ A, c r) * N.reactionVector r₀ t := by
+    intro t
+    unfold trueInternalClassFlux
+    calc
+      (∑ r ∈ A,
+          α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r t) =
+        ∑ r ∈ A, c r * N.reactionVector r₀ t := by
+          apply Finset.sum_congr rfl
+          intro r hr
+          have hrρ : N.trueReaction r = ρ := (Finset.mem_filter.mp hr).2
+          have hsame : N.SameTrueReaction r r₀ :=
+            Quotient.exact (hrρ.trans hr₀ρ.symm)
+          have hcross := N.reactionVector_cross_eq_of_sameTrueReaction hsame t s
+          dsimp [c]
+          calc
+            α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r t =
+                (α (Sum.inl r : N.fullyOpen.R) *
+                (N.reactionVector r t * N.reactionVector r₀ s)) /
+                    N.reactionVector r₀ s := by
+                  field_simp [hν₀]
+            _ = (α (Sum.inl r : N.fullyOpen.R) *
+                  (N.reactionVector r s * N.reactionVector r₀ t)) /
+                    N.reactionVector r₀ s := by rw [hcross]
+            _ = (α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r s /
+                  N.reactionVector r₀ s) * N.reactionVector r₀ t := by
+                  field_simp [hν₀]
+      _ = (∑ r ∈ A, c r) * N.reactionVector r₀ t := by
+        rw [Finset.sum_mul]
+  have hcoeff : (∑ r ∈ A, c r) ≠ 0 := by
+    intro hz
+    apply hflux
+    rw [hclassFlux_eq s, hz, zero_mul]
+  obtain ⟨r, hrA, hsameSign⟩ := exists_finset_term_same_sign A c hcoeff
+  have hα : α (Sum.inl r : N.fullyOpen.R) ≠ 0 := by
+    intro hzero
+    have hc : c r = 0 := by simp [c, hzero]
+    rw [hc, zero_mul] at hsameSign
+    exact (lt_irrefl 0 hsameSign)
+  obtain ⟨t, hneg⟩ := N.exists_internal_opposite_species W hα
+  have hcross_term :
+      α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r t =
+        c r * N.reactionVector r₀ t := by
+    have hrρ : N.trueReaction r = ρ := (Finset.mem_filter.mp hrA).2
+    have hsame : N.SameTrueReaction r r₀ :=
+      Quotient.exact (hrρ.trans hr₀ρ.symm)
+    have hcross := N.reactionVector_cross_eq_of_sameTrueReaction hsame t s
+    dsimp [c]
+    calc
+      α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r t =
+          (α (Sum.inl r : N.fullyOpen.R) *
+            (N.reactionVector r t * N.reactionVector r₀ s)) /
+              N.reactionVector r₀ s := by
+                field_simp [hν₀]
+      _ = (α (Sum.inl r : N.fullyOpen.R) *
+            (N.reactionVector r s * N.reactionVector r₀ t)) /
+              N.reactionVector r₀ s := by rw [hcross]
+      _ = (α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r s /
+            N.reactionVector r₀ s) * N.reactionVector r₀ t := by
+              field_simp [hν₀]
+  have hchannel_neg : c r *
+      (N.reactionVector r₀ t * σ t) < 0 := by
+    calc
+      c r * (N.reactionVector r₀ t * σ t) =
+          (c r * N.reactionVector r₀ t) * σ t := by ring
+      _ = (α (Sum.inl r : N.fullyOpen.R) * N.reactionVector r t) * σ t := by
+          rw [← hcross_term]
+      _ < 0 := hneg
+  have htotal_neg : (∑ r ∈ A, c r) *
+      (N.reactionVector r₀ t * σ t) < 0 :=
+    same_sign_product_preserves_neg hsameSign hchannel_neg
+  refine ⟨t, ?_⟩
+  rw [hclassFlux_eq t]
+  calc
+    ((∑ r ∈ A, c r) * N.reactionVector r₀ t) * σ t =
+        (∑ r ∈ A, c r) * (N.reactionVector r₀ t * σ t) := by ring
+    _ < 0 := htotal_neg
+
+/-- Every active aggregate class has an incoming causal edge at some active species. -/
+private theorem activeAggregateClass_has_negative_edge (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (ρ : N.ActiveAggregateTrueReaction α σ) :
+    ∃ s : AggregateActiveSpecies σ,
+      N.TrueInternalAggregateCausalEdge (Sum.inl s) (Sum.inr ρ) := by
+  obtain ⟨s, hsσ, hflux⟩ := ρ.2
+  obtain ⟨t, ht⟩ := N.trueInternalClassFlux_has_negative_signed_term W ρ.1 s hflux
+  have htσ : σ t ≠ 0 := by
+    intro hz
+    rw [hz, mul_zero] at ht
+    exact (lt_irrefl 0 ht)
+  exact ⟨⟨t, htσ⟩, ht⟩
+
+/-- A negative causal neighbor of a reaction already in a predecessor-closed source lies in
+that same source. This lets a class's positive attachment to a cycle and its negative endpoint
+be analyzed within one source graph. -/
+private theorem activeAggregateClass_negative_species_mem_source (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    (hsource : ∀ a b, N.TrueInternalAggregateCausalEdge a b → b ∈ T → a ∈ T)
+    (ρ : N.ActiveAggregateTrueReaction α σ) (hρT : Sum.inr ρ ∈ T) :
+    ∃ s : AggregateActiveSpecies σ,
+      N.TrueInternalAggregateCausalEdge (Sum.inl s) (Sum.inr ρ) ∧
+        Sum.inl s ∈ T := by
+  obtain ⟨s, hedge⟩ := N.activeAggregateClass_has_negative_edge W ρ
+  exact ⟨s, hedge, hsource _ _ hedge hρT⟩
+
+private def aggregateVertexToTrueSRVertex (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} :
+    N.TrueInternalAggregateVertex α σ → N.TrueSRVertex
+  | Sum.inl s => Sum.inl s.1
+  | Sum.inr ρ => Sum.inr ⟨ρ.1, N.activeAggregateTrueReaction_internal ρ⟩
+
+private theorem aggregateVertexToTrueSRVertex_injective (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} :
+    Function.Injective (N.aggregateVertexToTrueSRVertex (α := α) (σ := σ)) := by
+  intro a b hab
+  cases a with
+  | inl s =>
+      cases b with
+      | inl t =>
+          apply congrArg Sum.inl
+          exact Subtype.ext (Sum.inl.inj hab)
+      | inr ρ => cases hab
+  | inr ρ =>
+      cases b with
+      | inl s => cases hab
+      | inr q =>
+          apply congrArg Sum.inr
+          apply Subtype.ext
+          change
+            Sum.inr (⟨ρ.1, N.activeAggregateTrueReaction_internal ρ⟩ :
+              N.InternalTrueReaction) =
+            Sum.inr (⟨q.1, N.activeAggregateTrueReaction_internal q⟩ :
+              N.InternalTrueReaction) at hab
+          have hinternal :
+              (⟨ρ.1, N.activeAggregateTrueReaction_internal ρ⟩ : N.InternalTrueReaction) =
+                ⟨q.1, N.activeAggregateTrueReaction_internal q⟩ := Sum.inr.inj hab
+          exact congrArg (fun x : N.InternalTrueReaction => x.1) hinternal
+
+/-- Every adjacency in the underlying aggregate source graph is witnessed by a labeled edge
+of the true-chemistry SR graph. The causal orientation determines the sign, while the edge
+itself is undirected. -/
+private theorem aggregateSourceAdj_has_trueSREdge (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    (u v : {x : N.TrueInternalAggregateVertex α σ // x ∈ T})
+    (h : (CRNT.relationGraphOn
+      (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T).Adj u v) :
+    ∃ e : N.TrueSREdge,
+      e.Connects (N.aggregateVertexToTrueSRVertex u.1)
+        (N.aggregateVertexToTrueSRVertex v.1) := by
+  change u.1 ≠ v.1 ∧
+    (N.TrueInternalAggregateCausalEdge u.1 v.1 ∨
+      N.TrueInternalAggregateCausalEdge v.1 u.1) at h
+  rcases h with ⟨_, hrel⟩
+  cases hu : u.1 with
+  | inl s =>
+      cases hv : v.1 with
+      | inl s' =>
+          have : False := by
+            simpa [TrueInternalAggregateCausalEdge, hu, hv] using hrel
+          exact this.elim
+      | inr ρ =>
+          have hflux : N.trueInternalClassFlux α ρ.1 s.1 ≠ 0 := by
+            intro hz
+            rcases hrel with hneg | hpos
+            · have hneg' :
+                N.trueInternalClassFlux α ρ.1 s.1 * σ s.1 < 0 := by
+                  simpa [TrueInternalAggregateCausalEdge, hu, hv] using hneg
+              rw [hz, zero_mul] at hneg'
+              exact (lt_irrefl 0) hneg'
+            · have hpos' :
+                0 < N.trueInternalClassFlux α ρ.1 s.1 * σ s.1 := by
+                  simpa [TrueInternalAggregateCausalEdge, hu, hv] using hpos
+              rw [hz, zero_mul] at hpos'
+              exact (lt_irrefl 0) hpos'
+          obtain ⟨e, hes, her⟩ :=
+            N.exists_trueSREdge_of_nonzero_trueInternalClassFlux ρ.1 s.1 hflux
+          have hreaction :
+              (⟨e.reaction, e.internal⟩ : N.InternalTrueReaction) =
+                ⟨ρ.1, N.activeAggregateTrueReaction_internal ρ⟩ :=
+            Subtype.ext her
+          refine ⟨e, Or.inl ⟨?_, ?_⟩⟩
+          · exact congrArg Sum.inl hes.symm
+          · exact congrArg Sum.inr hreaction.symm
+  | inr ρ =>
+      cases hv : v.1 with
+      | inl s =>
+          have hflux : N.trueInternalClassFlux α ρ.1 s.1 ≠ 0 := by
+            intro hz
+            rcases hrel with hpos | hneg
+            · have hpos' :
+                0 < N.trueInternalClassFlux α ρ.1 s.1 * σ s.1 := by
+                  simpa [TrueInternalAggregateCausalEdge, hu, hv] using hpos
+              rw [hz, zero_mul] at hpos'
+              exact (lt_irrefl 0) hpos'
+            · have hneg' :
+                N.trueInternalClassFlux α ρ.1 s.1 * σ s.1 < 0 := by
+                  simpa [TrueInternalAggregateCausalEdge, hu, hv] using hneg
+              rw [hz, zero_mul] at hneg'
+              exact (lt_irrefl 0) hneg'
+          obtain ⟨e, hes, her⟩ :=
+            N.exists_trueSREdge_of_nonzero_trueInternalClassFlux ρ.1 s.1 hflux
+          have hreaction :
+              (⟨e.reaction, e.internal⟩ : N.InternalTrueReaction) =
+                ⟨ρ.1, N.activeAggregateTrueReaction_internal ρ⟩ :=
+            Subtype.ext her
+          refine ⟨e, Or.inr ⟨?_, ?_⟩⟩
+          · exact congrArg Sum.inr hreaction.symm
+          · exact congrArg Sum.inl hes.symm
+      | inr ρ' =>
+          have : False := by
+            simpa [TrueInternalAggregateCausalEdge, hu, hv] using hrel
+          exact this.elim
+
+/-- A simple path in the underlying aggregate source graph lifts to a labeled path in the
+true-chemistry SR graph. This preserves vertex simplicity and records a concrete SR incidence
+for each nonzero aggregate class flux. -/
+private noncomputable def aggregateSourcePathToTrueSRPath (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    {s : AggregateActiveSpecies σ} {ρ : N.ActiveAggregateTrueReaction α σ}
+    (hsT : Sum.inl s ∈ T) (hρT : Sum.inr ρ ∈ T)
+    (p : (CRNT.relationGraphOn
+      (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T).Walk
+        ⟨Sum.inl s, hsT⟩ ⟨Sum.inr ρ, hρT⟩)
+    (hp : p.IsPath) : N.TrueSRPath p.length := by
+  classical
+  let vertex (i : Fin (p.length + 1)) : N.TrueSRVertex :=
+    N.aggregateVertexToTrueSRVertex (p.getVert i.1).1
+  let edgeWitness (i : Fin p.length) :=
+    N.aggregateSourceAdj_has_trueSREdge T (p.getVert i.1) (p.getVert (i.1 + 1))
+      (p.adj_getVert_succ i.2)
+  let edge (i : Fin p.length) : N.TrueSREdge := Classical.choose (edgeWitness i)
+  have hconnect (i : Fin p.length) :
+      edge i |>.Connects
+        (N.aggregateVertexToTrueSRVertex (p.getVert i.1).1)
+        (N.aggregateVertexToTrueSRVertex (p.getVert (i.1 + 1)).1) :=
+    Classical.choose_spec (edgeWitness i)
+  have hstartEndNe :
+      (⟨Sum.inl s, hsT⟩ : {x : N.TrueInternalAggregateVertex α σ // x ∈ T}) ≠
+        ⟨Sum.inr ρ, hρT⟩ := by
+    intro h
+    exact Sum.inl_ne_inr (congrArg Subtype.val h)
+  have hlength : 0 < p.length :=
+    (SimpleGraph.Walk.not_nil_iff_lt_length).mp (p.not_nil_of_ne hstartEndNe)
+  refine {
+    length_pos := hlength
+    edge := edge
+    vertex := vertex
+    connects := ?_
+    edge_simple := ?_
+    vertex_simple := ?_
+    starts_at_species := ?_
+    ends_at_reaction := ?_
+  }
+  · intro i
+    simpa [edge, vertex, edgeWitness, Fin.castSucc, Fin.succ] using hconnect i
+  · intro i j hsame
+    have hspecies := hsame.1
+    have hreac := hsame.2.1
+    have hinternal :
+        (⟨(edge i).reaction, (edge i).internal⟩ : N.InternalTrueReaction) =
+          ⟨(edge j).reaction, (edge j).internal⟩ := Subtype.ext hreac
+    have hci := hconnect i
+    have hcj := hconnect j
+    have hpairs :
+        (vertex (Fin.castSucc i) = vertex (Fin.castSucc j) ∧
+          vertex i.succ = vertex j.succ) ∨
+        (vertex (Fin.castSucc i) = vertex j.succ ∧
+          vertex i.succ = vertex (Fin.castSucc j)) := by
+      rcases hci with ⟨hi0, hi1⟩ | ⟨hi0, hi1⟩ <;>
+        rcases hcj with ⟨hj0, hj1⟩ | ⟨hj0, hj1⟩
+      · exact Or.inl ⟨hi0.trans ((congrArg Sum.inl hspecies).trans hj0.symm),
+          hi1.trans ((congrArg Sum.inr hinternal).trans hj1.symm)⟩
+      · exact Or.inr ⟨hi0.trans ((congrArg Sum.inl hspecies).trans hj1.symm),
+          hi1.trans ((congrArg Sum.inr hinternal).trans hj0.symm)⟩
+      · exact Or.inr ⟨hi0.trans ((congrArg Sum.inr hinternal).trans hj1.symm),
+          hi1.trans ((congrArg Sum.inl hspecies).trans hj0.symm)⟩
+      · exact Or.inl ⟨hi0.trans ((congrArg Sum.inr hinternal).trans hj0.symm),
+          hi1.trans ((congrArg Sum.inl hspecies).trans hj1.symm)⟩
+    have hvertexEq (a b : Fin (p.length + 1)) (hab : vertex a = vertex b) :
+        p.getVert a.1 = p.getVert b.1 := by
+      apply Subtype.ext
+      exact N.aggregateVertexToTrueSRVertex_injective (by simpa [vertex] using hab)
+    rcases hpairs with ⟨h00, h11⟩ | ⟨h01, h10⟩
+    · have hij := hp.getVert_injOn (Nat.le_of_lt i.2) (Nat.le_of_lt j.2)
+        (hvertexEq (Fin.castSucc i) (Fin.castSucc j) h00)
+      exact Fin.ext hij
+    · have hcross₁ := hp.getVert_injOn (Nat.le_of_lt i.2) (Nat.succ_le_of_lt j.2)
+        (hvertexEq (Fin.castSucc i) j.succ h01)
+      have hcross₂ := hp.getVert_injOn (Nat.succ_le_of_lt i.2) (Nat.le_of_lt j.2)
+        (hvertexEq i.succ (Fin.castSucc j) h10)
+      have hi : i.1 = j.1 + 1 := by simpa using hcross₁
+      have hj : i.1 + 1 = j.1 := by simpa using hcross₂
+      omega
+  · intro i j hij
+    apply Fin.ext
+    have hmap := N.aggregateVertexToTrueSRVertex_injective (by simpa [vertex] using hij)
+    exact hp.getVert_injOn (Nat.le_of_lt_succ i.2) (Nat.le_of_lt_succ j.2)
+      (Subtype.ext hmap)
+  · refine ⟨s.1, ?_⟩
+    change N.aggregateVertexToTrueSRVertex (p.getVert 0).1 = Sum.inl s.1
+    rw [p.getVert_zero]
+    rfl
+  · refine ⟨⟨ρ.1, N.activeAggregateTrueReaction_internal ρ⟩, ?_⟩
+    change N.aggregateVertexToTrueSRVertex (p.getVert p.length).1 =
+      Sum.inr ⟨ρ.1, N.activeAggregateTrueReaction_internal ρ⟩
+    rw [p.getVert_length]
+    rfl
+
+/-- At every active species, the strict total flux supplies a positive edge from an active
+aggregate reaction class. -/
+private theorem exists_positive_aggregateClass_predecessor (N : Network S)
+    (hflow : N.ZeroComplexReactionsAreFlows)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (s : AggregateActiveSpecies σ) :
+    ∃ ρ : N.ActiveAggregateTrueReaction α σ,
+      N.TrueInternalAggregateCausalEdge (Sum.inr ρ) (Sum.inl s) := by
+  classical
+  have hsum : 0 < ∑ ρ : N.TrueReaction,
+      (N.trueInternalClassFlux α ρ s.1) * σ s.1 :=
+    N.trueInternalClassFlux_mul_sigma_pos hflow W s.2
+  obtain ⟨ρ, -, hprod⟩ := exists_finset_term_same_sign Finset.univ
+    (fun ρ : N.TrueReaction => N.trueInternalClassFlux α ρ s.1 * σ s.1)
+    (ne_of_gt hsum)
+  have hpos : 0 < N.trueInternalClassFlux α ρ s.1 * σ s.1 := by
+    rcases mul_pos_iff.mp hprod with ⟨hterm, _⟩ | ⟨_, htot⟩
+    · exact hterm
+    · linarith
+  have hflux : N.trueInternalClassFlux α ρ s.1 ≠ 0 := by
+    intro hz
+    rw [hz, zero_mul] at hpos
+    exact (lt_irrefl 0 hpos)
+  let q : N.ActiveAggregateTrueReaction α σ := ⟨ρ, ⟨s.1, s.2, hflux⟩⟩
+  exact ⟨q, hpos⟩
+
+/-- Strict species flux remains strict when restricted to the reaction classes in a causal
+source: a positive omitted class term would be an incoming edge and source closure would include
+that class. -/
+theorem trueInternalAggregateSource_flux_pos (N : Network S)
+    (hflow : N.ZeroComplexReactionsAreFlows)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ)
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    (hsource : ∀ a b, N.TrueInternalAggregateCausalEdge a b → b ∈ T → a ∈ T)
+    (s : AggregateActiveSpecies σ) (hs : Sum.inl s ∈ T) :
+    0 < ∑ ρ ∈ N.trueInternalAggregateSourceClasses α σ T,
+      (N.trueInternalClassFlux α ρ s.1) * σ s.1 := by
+  classical
+  let f : N.TrueReaction → ℝ := fun ρ =>
+    (N.trueInternalClassFlux α ρ s.1) * σ s.1
+  let F := N.trueInternalAggregateSourceClasses α σ T
+  have hglobal : 0 < ∑ ρ : N.TrueReaction, f ρ := by
+    simpa [f] using N.trueInternalClassFlux_mul_sigma_pos hflow W s.2
+  have houtside : ∀ ρ ∈ Fᶜ, f ρ ≤ 0 := by
+    intro ρ hρ
+    by_contra hnot
+    have hpos : 0 < f ρ := lt_of_not_ge hnot
+    have hflux : N.trueInternalClassFlux α ρ s.1 ≠ 0 := by
+      intro hz
+      dsimp [f] at hpos
+      rw [hz, zero_mul] at hpos
+      exact (lt_irrefl 0 hpos)
+    let q : N.ActiveAggregateTrueReaction α σ := ⟨ρ, ⟨s.1, s.2, hflux⟩⟩
+    have hedge : N.TrueInternalAggregateCausalEdge (Sum.inr q) (Sum.inl s) := hpos
+    have hqT : Sum.inr q ∈ T := hsource _ _ hedge hs
+    have hqF : ρ ∈ F := by
+      change ρ ∈ Finset.univ.filter (fun ρ : N.TrueReaction =>
+        ∃ q : N.ActiveAggregateTrueReaction α σ, q.1 = ρ ∧ Sum.inr q ∈ T)
+      simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+      exact ⟨q, rfl, hqT⟩
+    exact (Finset.mem_compl.mp hρ) hqF
+  have hsum_outside : (∑ ρ ∈ Fᶜ, f ρ) ≤ 0 :=
+    Finset.sum_nonpos houtside
+  have hsplit : (∑ ρ : N.TrueReaction, f ρ) =
+      (∑ ρ ∈ F, f ρ) + (∑ ρ ∈ Fᶜ, f ρ) := by
+    rw [← Finset.sum_add_sum_compl F f]
+  rw [show (∑ ρ ∈ N.trueInternalAggregateSourceClasses α σ T,
+      (N.trueInternalClassFlux α ρ s.1) * σ s.1) = ∑ ρ ∈ F, f ρ by rfl]
+  linarith [hglobal, hsplit]
+
+/-- A finite source component of the aggregate sign-causality graph contains both species and
+true-reaction vertices. Unlike an existential-channel quotient edge, every edge here uses the
+net flux of its whole true-reaction class. -/
+theorem exists_trueInternalAggregateCausalSource_data (N : Network S)
+    (hflow : N.ZeroComplexReactionsAreFlows)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (W : N.fullyOpen.StrongConcordanceWitness α σ) :
+    ∃ T : Finset (N.TrueInternalAggregateVertex α σ),
+      T.Nonempty ∧
+      (∀ a ∈ T, ∀ b ∈ T,
+        Relation.ReflTransGen (N.TrueInternalAggregateCausalEdge) a b) ∧
+      (∀ a b, N.TrueInternalAggregateCausalEdge a b → b ∈ T → a ∈ T) ∧
+      (CRNT.relationGraphOn N.TrueInternalAggregateCausalEdge T).Connected ∧
+      (∃ s : AggregateActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ ρ : N.ActiveAggregateTrueReaction α σ, Sum.inr ρ ∈ T) ∧
+      (∀ s : AggregateActiveSpecies σ, Sum.inl s ∈ T →
+        0 < ∑ ρ ∈ N.trueInternalAggregateSourceClasses α σ T,
+          (N.trueInternalClassFlux α ρ s.1) * σ s.1) := by
+  classical
+  letI : Nonempty (AggregateActiveSpecies σ) := by
+    by_contra h
+    have hall : ∀ s : S, σ s = 0 := by
+      intro s
+      by_contra hs
+      exact h ⟨⟨s, hs⟩⟩
+    apply W.sigma_ne
+    funext s
+    exact hall s
+  letI : Nonempty (N.TrueInternalAggregateVertex α σ) :=
+    ⟨Sum.inl (Classical.choice inferInstance)⟩
+  obtain ⟨T, hne, hscc, hsource⟩ :=
+    CRNT.exists_finite_source (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ))
+  have hconnected : (CRNT.relationGraphOn N.TrueInternalAggregateCausalEdge T).Connected :=
+    CRNT.relationGraphOn_connected_of_source N.TrueInternalAggregateCausalEdge T
+      hne hscc hsource
+  obtain ⟨v, hv⟩ := hne
+  cases v with
+  | inl s =>
+      have hspecies : ∃ s : AggregateActiveSpecies σ, Sum.inl s ∈ T := ⟨s, hv⟩
+      obtain ⟨ρ, hedge⟩ := N.exists_positive_aggregateClass_predecessor hflow W s
+      have hρ : Sum.inr ρ ∈ T := hsource _ _ hedge hv
+      have hlocal : ∀ s : AggregateActiveSpecies σ, Sum.inl s ∈ T →
+          0 < ∑ ρ ∈ N.trueInternalAggregateSourceClasses α σ T,
+            (N.trueInternalClassFlux α ρ s.1) * σ s.1 := by
+        intro s hs
+        exact N.trueInternalAggregateSource_flux_pos hflow W T hsource s hs
+      exact ⟨T, ⟨Sum.inl s, hv⟩, hscc, hsource, hconnected, hspecies, ⟨ρ, hρ⟩, hlocal⟩
+  | inr ρ =>
+      have hreaction : ∃ ρ : N.ActiveAggregateTrueReaction α σ, Sum.inr ρ ∈ T := ⟨ρ, hv⟩
+      obtain ⟨s, hedge⟩ := N.activeAggregateClass_has_negative_edge W ρ
+      have hs : Sum.inl s ∈ T := hsource _ _ hedge hv
+      have hlocal : ∀ s : AggregateActiveSpecies σ, Sum.inl s ∈ T →
+          0 < ∑ ρ ∈ N.trueInternalAggregateSourceClasses α σ T,
+            (N.trueInternalClassFlux α ρ s.1) * σ s.1 := by
+        intro s hs
+        exact N.trueInternalAggregateSource_flux_pos hflow W T hsource s hs
+      exact ⟨T, ⟨Sum.inr ρ, hv⟩, hscc, hsource, hconnected, ⟨s, hs⟩, hreaction, hlocal⟩
+
+private def trueInternalAggregateVertexIsSpecies (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} :
+    N.TrueInternalAggregateVertex α σ → Bool
+  | Sum.inl _ => true
+  | Sum.inr _ => false
+
+private theorem trueInternalAggregateCausalEdge_flips_kind (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    {a b : N.TrueInternalAggregateVertex α σ}
+    (h : N.TrueInternalAggregateCausalEdge a b) :
+    N.trueInternalAggregateVertexIsSpecies b =
+      !N.trueInternalAggregateVertexIsSpecies a := by
+  cases a <;> cases b <;> simp_all [TrueInternalAggregateCausalEdge,
+    trueInternalAggregateVertexIsSpecies]
+
+private theorem trueInternalAggregateCausalEdge_irrefl (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (v : N.TrueInternalAggregateVertex α σ) :
+    ¬ N.TrueInternalAggregateCausalEdge v v := by
+  cases v <;> simp [TrueInternalAggregateCausalEdge]
+
+private theorem exists_trueInternalAggregateSource_successor (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    (hscc : ∀ a ∈ T, ∀ b ∈ T,
+      Relation.ReflTransGen (N.TrueInternalAggregateCausalEdge) a b)
+    (hsource : ∀ a b, N.TrueInternalAggregateCausalEdge a b → b ∈ T → a ∈ T)
+    (hparts : (∃ s : AggregateActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ ρ : N.ActiveAggregateTrueReaction α σ, Sum.inr ρ ∈ T))
+    (v : N.TrueInternalAggregateVertex α σ) (hv : v ∈ T) :
+    ∃ w, w ∈ T ∧ N.TrueInternalAggregateCausalEdge v w := by
+  let target : N.TrueInternalAggregateVertex α σ :=
+    match v with
+    | Sum.inl _ => Sum.inr hparts.2.choose
+    | Sum.inr _ => Sum.inl hparts.1.choose
+  have htarget : target ∈ T := by
+    cases v with
+    | inl _ => exact hparts.2.choose_spec
+    | inr _ => exact hparts.1.choose_spec
+  have hvne : v ≠ target := by cases v <;> simp [target]
+  obtain ⟨w, hvw, hwt⟩ := exists_first_step_of_reflTransGen
+    (hscc v hv target htarget) hvne
+  exact ⟨w, CRNT.source_closed_under_predecessors hsource hwt htarget, hvw⟩
+
+private noncomputable def trueInternalAggregateSourceStep (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    (hscc : ∀ a ∈ T, ∀ b ∈ T,
+      Relation.ReflTransGen (N.TrueInternalAggregateCausalEdge) a b)
+    (hsource : ∀ a b, N.TrueInternalAggregateCausalEdge a b → b ∈ T → a ∈ T)
+    (hparts : (∃ s : AggregateActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ ρ : N.ActiveAggregateTrueReaction α σ, Sum.inr ρ ∈ T)) :
+    {v : N.TrueInternalAggregateVertex α σ // v ∈ T} →
+      {v : N.TrueInternalAggregateVertex α σ // v ∈ T} := by
+  classical
+  intro v
+  let hout := N.exists_trueInternalAggregateSource_successor T hscc hsource hparts v.1 v.2
+  exact ⟨Classical.choose hout, (Classical.choose_spec hout).1⟩
+
+private theorem trueInternalAggregateSourceStep_edge (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    (hscc : ∀ a ∈ T, ∀ b ∈ T,
+      Relation.ReflTransGen (N.TrueInternalAggregateCausalEdge) a b)
+    (hsource : ∀ a b, N.TrueInternalAggregateCausalEdge a b → b ∈ T → a ∈ T)
+    (hparts : (∃ s : AggregateActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ ρ : N.ActiveAggregateTrueReaction α σ, Sum.inr ρ ∈ T))
+    (v : {v : N.TrueInternalAggregateVertex α σ // v ∈ T}) :
+    N.TrueInternalAggregateCausalEdge v.1
+      (N.trueInternalAggregateSourceStep T hscc hsource hparts v).1 := by
+  exact (Classical.choose_spec
+    (N.exists_trueInternalAggregateSource_successor T hscc hsource hparts v.1 v.2)).2
+
+/-- Every finite aggregate sign-causality source contains a simple directed cycle. Its vertices
+are true-reaction classes, so no reaction-class repetition is hidden by channel representatives. -/
+theorem exists_simple_directed_cycle_in_trueInternalAggregateSource (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    (hscc : ∀ a ∈ T, ∀ b ∈ T,
+      Relation.ReflTransGen (N.TrueInternalAggregateCausalEdge) a b)
+    (hsource : ∀ a b, N.TrueInternalAggregateCausalEdge a b → b ∈ T → a ∈ T)
+    (hparts : (∃ s : AggregateActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ ρ : N.ActiveAggregateTrueReaction α σ, Sum.inr ρ ∈ T)) :
+    ∃ p : ℕ, 2 ≤ p ∧ Even p ∧
+      ∃ c : Fin p → N.TrueInternalAggregateVertex α σ,
+        Function.Injective c ∧ (∀ i, c i ∈ T) ∧
+        (∀ i, N.TrueInternalAggregateCausalEdge (c i) (c (finRotate p i))) := by
+  classical
+  let f := N.trueInternalAggregateSourceStep T hscc hsource hparts
+  letI : Nonempty {v : N.TrueInternalAggregateVertex α σ // v ∈ T} :=
+    ⟨⟨Sum.inl hparts.1.choose, hparts.1.choose_spec⟩⟩
+  obtain ⟨x, hxper⟩ := exists_periodic_point_finite f
+  let p := Function.minimalPeriod f x
+  have hp : 0 < p := Function.minimalPeriod_pos_of_mem_periodicPts hxper
+  have hkind : ∀ k : ℕ,
+      N.trueInternalAggregateVertexIsSpecies (f^[k] x).1 =
+        if k % 2 = 0 then N.trueInternalAggregateVertexIsSpecies x.1
+        else !N.trueInternalAggregateVertexIsSpecies x.1 := by
+    intro k
+    induction k with
+    | zero => simp
+    | succ k ih =>
+        have hflip := N.trueInternalAggregateCausalEdge_flips_kind
+          (N.trueInternalAggregateSourceStep_edge T hscc hsource hparts (f^[k] x))
+        change N.trueInternalAggregateVertexIsSpecies (f (f^[k] x)).1 =
+          !N.trueInternalAggregateVertexIsSpecies (f^[k] x).1 at hflip
+        rw [Function.iterate_succ_apply']
+        by_cases heven : k % 2 = 0
+        · have hnext : (k + 1) % 2 = 1 := by omega
+          simp [heven, hnext, ih, hflip]
+        · have hnext : (k + 1) % 2 = 0 := by omega
+          simp [heven, hnext, ih, hflip]
+  have hperiodfix : f^[p] x = x := by
+    simpa [p] using (Function.iterate_minimalPeriod (f := f) (x := x))
+  have htagfix : N.trueInternalAggregateVertexIsSpecies (f^[p] x).1 =
+      N.trueInternalAggregateVertexIsSpecies x.1 := congrArg
+        (fun z : {v : N.TrueInternalAggregateVertex α σ // v ∈ T} =>
+          N.trueInternalAggregateVertexIsSpecies z.1) hperiodfix
+  have hpeven : Even p := by
+    by_contra hnot
+    have hmod : p % 2 = 1 := Nat.odd_iff.mp (Nat.not_even_iff_odd.mp hnot)
+    have hbad : N.trueInternalAggregateVertexIsSpecies x.1 =
+        !N.trueInternalAggregateVertexIsSpecies x.1 := by
+      calc
+        N.trueInternalAggregateVertexIsSpecies x.1 =
+            N.trueInternalAggregateVertexIsSpecies (f^[p] x).1 := htagfix.symm
+        _ = !N.trueInternalAggregateVertexIsSpecies x.1 := by
+          rw [hkind p]
+          simp [hmod]
+    cases htag : N.trueInternalAggregateVertexIsSpecies x.1 <;> simp [htag] at hbad
+  have hpne : p ≠ 1 := by
+    intro hp1
+    have hfix := Function.iterate_minimalPeriod (f := f) (x := x)
+    have hp1' : Function.minimalPeriod f x = 1 := by simpa [p] using hp1
+    rw [hp1', Function.iterate_one] at hfix
+    have hstep := N.trueInternalAggregateSourceStep_edge T hscc hsource hparts x
+    change N.TrueInternalAggregateCausalEdge x.1 (f x).1 at hstep
+    exact N.trueInternalAggregateCausalEdge_irrefl x.1 (by simpa [hfix] using hstep)
+  have hp2 : 2 ≤ p := by omega
+  refine ⟨p, hp2, hpeven, fun i => (f^[i.1] x).1, ?_, ?_, ?_⟩
+  · intro i j hij
+    have hsub : (f^[i.1] x) = (f^[j.1] x) := Subtype.ext hij
+    have hij' := Function.iterate_eq_iterate_iff_of_lt_minimalPeriod i.2 j.2
+    exact Fin.ext (hij'.mp hsub)
+  · intro i
+    exact (f^[i.1] x).2
+  · intro i
+    letI : NeZero p := ⟨by omega⟩
+    have hrot : (finRotate p i).1 = (i.1 + 1) % p := by
+      rw [finRotate_apply]
+      simp [Fin.add_def]
+    have hed := N.trueInternalAggregateSourceStep_edge T hscc hsource hparts
+      (f^[i.1] x)
+    change N.TrueInternalAggregateCausalEdge (f^[i.1] x).1
+      (f (f^[i.1] x)).1 at hed
+    have hnext : f (f^[i.1] x) = f^[((i.1 + 1) % p)] x := by
+      calc
+        f (f^[i.1] x) = f^[i.1 + 1] x := by
+          simpa [Nat.succ_eq_add_one] using
+            (Function.iterate_succ_apply' f i.1 x).symm
+        _ = f^[((i.1 + 1) % p)] x := by
+          symm
+          dsimp [p]
+          exact Function.iterate_mod_minimalPeriod_eq
+    change N.TrueInternalAggregateCausalEdge (f^[i.1] x).1
+      (f^[((finRotate p i).1)] x).1
+    rw [hrot]
+    rw [← congrArg Subtype.val hnext]
+    exact hed
+
+/-- Rotate a simple bipartite directed cycle, if needed, so that its first vertex is a species.
+This leaves the cycle edges and vertex injectivity unchanged. -/
+private theorem rotate_trueInternalAggregateCycle_to_species (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {p : ℕ}
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    (hp2 : 2 ≤ p) (c : Fin p → N.TrueInternalAggregateVertex α σ)
+    (hcinj : Function.Injective c)
+    (hcT : ∀ i, c i ∈ T)
+    (hcedge : ∀ i, N.TrueInternalAggregateCausalEdge (c i) (c (finRotate p i))) :
+    ∃ d : Fin p → N.TrueInternalAggregateVertex α σ,
+      Function.Injective d ∧
+      (∀ i, d i ∈ T) ∧
+      (∃ s : AggregateActiveSpecies σ, d ⟨0, by omega⟩ = Sum.inl s) ∧
+      (∀ i, N.TrueInternalAggregateCausalEdge (d i) (d (finRotate p i))) := by
+  classical
+  letI : NeZero p := ⟨by omega⟩
+  by_cases hspecies : N.trueInternalAggregateVertexIsSpecies (c 0) = true
+  · refine ⟨c, hcinj, ?_, ?_, hcedge⟩
+    · exact hcT
+    · cases h : c 0 with
+      | inl s => exact ⟨s, by simpa using h⟩
+      | inr ρ => simp [trueInternalAggregateVertexIsSpecies, h] at hspecies
+  · have hreaction : N.trueInternalAggregateVertexIsSpecies (c 0) = false := by
+      cases h : N.trueInternalAggregateVertexIsSpecies (c 0) <;> simp_all
+    let d : Fin p → N.TrueInternalAggregateVertex α σ := fun i => c (finRotate p i)
+    have hrot0 : finRotate p (0 : Fin p) = (1 : Fin p) := by
+      apply Fin.ext
+      have hp1 : 1 < p := by omega
+      have h := congrArg Fin.val (finRotate_apply (0 : Fin p))
+      simpa [Fin.add_def, hp1] using h
+    have hflip := N.trueInternalAggregateCausalEdge_flips_kind (hcedge 0)
+    change N.trueInternalAggregateVertexIsSpecies (c (finRotate p 0)) =
+      !N.trueInternalAggregateVertexIsSpecies (c 0) at hflip
+    rw [hrot0, hreaction] at hflip
+    have hd0 : N.trueInternalAggregateVertexIsSpecies (d 0) = true := by
+      simpa [d] using hflip
+    refine ⟨d, ?_, ?_, ?_, ?_⟩
+    · intro i j hij
+      apply (finRotate p).injective
+      apply hcinj
+      exact hij
+    · intro i
+      exact hcT (finRotate p i)
+    · cases h : d 0 with
+      | inl s => exact ⟨s, by simpa using h⟩
+      | inr ρ => simp [trueInternalAggregateVertexIsSpecies, h] at hd0
+    · intro i
+      exact hcedge (finRotate p i)
+
+private theorem trueInternalAggregateCycle_length_even_half (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {p : ℕ}
+    (hp2 : 2 ≤ p) (hpeven : Even p)
+    (c : Fin p → N.TrueInternalAggregateVertex α σ)
+    (hstart : ∃ s : AggregateActiveSpecies σ,
+      c ⟨0, by omega⟩ = Sum.inl s)
+    (hcedge : ∀ i, N.TrueInternalAggregateCausalEdge (c i) (c (finRotate p i))) :
+    ∃ n : ℕ, p = 2 * n ∧ 2 ≤ n := by
+  classical
+  have hp4 : 4 ≤ p := by
+    by_contra hnot
+    have hlt : p < 4 := Nat.lt_of_not_ge hnot
+    have hpeq : p = 2 := by
+      have hmod := Nat.even_iff.mp hpeven
+      omega
+    subst p
+    letI : NeZero 2 := ⟨by decide⟩
+    have hrot0 : finRotate 2 (0 : Fin 2) = 1 := by
+      apply Fin.ext
+      have h := congrArg Fin.val (finRotate_apply (0 : Fin 2))
+      norm_num [Fin.add_def] at h ⊢
+    have hrot1 : finRotate 2 (1 : Fin 2) = 0 := by
+      apply Fin.ext
+      have h := congrArg Fin.val (finRotate_apply (1 : Fin 2))
+      norm_num [Fin.add_def] at h ⊢
+    obtain ⟨s, hs⟩ := hstart
+    have hs' : c (0 : Fin 2) = Sum.inl s := by simpa using hs
+    have h01 := hcedge (0 : Fin 2)
+    rw [hs', hrot0] at h01
+    cases hq : c 1 with
+    | inl t => rw [hq] at h01; simp [TrueInternalAggregateCausalEdge] at h01
+    | inr q =>
+        rw [hq] at h01
+        have hneg :
+            N.trueInternalClassFlux α q.1 s.1 * σ s.1 < 0 := by
+          change N.trueInternalClassFlux α q.1 s.1 * σ s.1 < 0 at h01
+          exact h01
+        have h10 := hcedge (1 : Fin 2)
+        rw [hq, hrot1, hs'] at h10
+        have hpos :
+            0 < N.trueInternalClassFlux α q.1 s.1 * σ s.1 := by
+          change 0 < N.trueInternalClassFlux α q.1 s.1 * σ s.1 at h10
+          exact h10
+        linarith
+  refine ⟨p / 2, ?_, ?_⟩
+  · have hmod := Nat.even_iff.mp hpeven
+    omega
+  · omega
+
+private def aggregateEvenCycleIndex (n : ℕ) (i : Fin n) : Fin (2 * n) :=
+  ⟨2 * i.1, by omega⟩
+
+private def aggregateOddCycleIndex (n : ℕ) (i : Fin n) : Fin (2 * n) :=
+  ⟨2 * i.1 + 1, by omega⟩
+
+private theorem finRotate_aggregateEvenIndex (n : ℕ) (hn : 2 ≤ n) (i : Fin n) :
+    finRotate (2 * n) (aggregateEvenCycleIndex n i) = aggregateOddCycleIndex n i := by
+  letI : NeZero n := ⟨by omega⟩
+  letI : NeZero (2 * n) := ⟨by omega⟩
+  apply Fin.ext
+  have hrot :
+      (finRotate (2 * n) (aggregateEvenCycleIndex n i)).1 =
+        (2 * i.1 + 1) % (2 * n) := by
+    rw [finRotate_apply]
+    simp [Fin.add_def, aggregateEvenCycleIndex, aggregateOddCycleIndex]
+  rw [hrot, Nat.mod_eq_of_lt (by omega)]
+  simp [aggregateOddCycleIndex]
+
+private theorem finRotate_aggregateOddIndex (n : ℕ) (hn : 2 ≤ n) (i : Fin n) :
+    finRotate (2 * n) (aggregateOddCycleIndex n i) =
+      aggregateEvenCycleIndex n (finRotate n i) := by
+  letI : NeZero n := ⟨by omega⟩
+  letI : NeZero (2 * n) := ⟨by omega⟩
+  apply Fin.ext
+  have hn1 : 1 < n := by omega
+  have hp1 : 1 < 2 * n := by omega
+  have hsmall : (finRotate n i).1 = (i.1 + 1) % n := by
+    have h := congrArg Fin.val (finRotate_apply i)
+    simpa [Fin.add_def, hn1] using h
+  have hlarge :
+      (finRotate (2 * n) (aggregateOddCycleIndex n i)).1 =
+        (2 * i.1 + 2) % (2 * n) := by
+    have h := congrArg Fin.val (finRotate_apply (aggregateOddCycleIndex n i))
+    simpa [aggregateOddCycleIndex, Fin.add_def, hp1] using h
+  change (finRotate (2 * n) (aggregateOddCycleIndex n i)).1 =
+    2 * (finRotate n i).1
+  rcases Nat.lt_or_ge (i.1 + 1) n with hlt | hge
+  · have hsmall' : (finRotate n i).1 = i.1 + 1 := by
+      rw [Nat.mod_eq_of_lt hlt] at hsmall
+      exact hsmall
+    rw [hlarge, hsmall', Nat.mod_eq_of_lt (by omega)]
+    rfl
+  · have heq : i.1 + 1 = n := by omega
+    have hsmall' : (finRotate n i).1 = 0 := by
+      rw [heq, Nat.mod_self] at hsmall
+      exact hsmall
+    rw [hlarge, hsmall']
+    rw [show 2 * i.1 + 2 = 2 * n by omega]
+    rw [Nat.mod_self]
+
+private theorem trueSRCycle_of_simple_aggregate_cycle (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {p : ℕ}
+    (hp2 : 2 ≤ p) (hpeven : Even p)
+    (c : Fin p → N.TrueInternalAggregateVertex α σ)
+    (hcinj : Function.Injective c)
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    (hcT : ∀ i, c i ∈ T)
+    (hstart : ∃ s : AggregateActiveSpecies σ,
+      c ⟨0, by omega⟩ = Sum.inl s)
+    (hcedge : ∀ i, N.TrueInternalAggregateCausalEdge (c i) (c (finRotate p i))) :
+    ∃ n : ℕ, 2 ≤ n ∧ ∃ C : N.TrueSRCycle n,
+      C.Even ∧
+      (∀ i, C.isCPair i ↔
+        σ (C.species i) * σ (C.species (finRotate n i)) < 0) ∧
+      (∀ i, (C.leftEdge i).representative = (C.rightEdge i).representative) ∧
+      (∀ i, ∃ s : AggregateActiveSpecies σ,
+        s.1 = C.species i ∧ Sum.inl s ∈ T) ∧
+      (∀ i, C.reaction i ∈ N.trueInternalAggregateSourceClasses α σ T) ∧
+      ∃ β : Fin n → ℝ,
+        (∀ i t, N.trueInternalClassFlux α (C.reaction i) t =
+          β i * N.reactionVector (C.rightEdge i).representative t) ∧
+        (∀ i, N.trueInternalClassFlux α (C.reaction i) (C.species i) *
+          σ (C.species i) < 0) ∧
+        (∀ i, 0 < N.trueInternalClassFlux α (C.reaction i)
+          (C.species (finRotate n i)) * σ (C.species (finRotate n i))) := by
+  classical
+  obtain ⟨n, hpn, hn2⟩ :=
+    N.trueInternalAggregateCycle_length_even_half hp2 hpeven c hstart hcedge
+  subst p
+  letI : NeZero n := ⟨by omega⟩
+  letI : NeZero (2 * n) := ⟨by omega⟩
+  have hkind : ∀ k : ℕ, ∀ hk : k < 2 * n,
+      N.trueInternalAggregateVertexIsSpecies (c ⟨k, hk⟩) =
+        if k % 2 = 0 then true else false := by
+    intro k
+    induction k with
+    | zero =>
+        intro hk
+        obtain ⟨s, hs⟩ := hstart
+        have hzero : (⟨0, hk⟩ : Fin (2 * n)) = ⟨0, by omega⟩ := by
+          apply Fin.ext
+          rfl
+        rw [hzero, hs]
+        simp [trueInternalAggregateVertexIsSpecies]
+    | succ k ih =>
+        intro hk
+        have hklt : k < 2 * n := by omega
+        have hrot : finRotate (2 * n) ⟨k, hklt⟩ = ⟨k + 1, hk⟩ := by
+          apply Fin.ext
+          rw [finRotate_apply]
+          simp [Fin.add_def, Nat.mod_eq_of_lt hk]
+        have hflip := N.trueInternalAggregateCausalEdge_flips_kind
+          (hcedge ⟨k, hklt⟩)
+        change N.trueInternalAggregateVertexIsSpecies
+            (c (finRotate (2 * n) ⟨k, hklt⟩)) =
+          !N.trueInternalAggregateVertexIsSpecies (c ⟨k, hklt⟩) at hflip
+        rw [hrot, ih hklt] at hflip
+        by_cases heven : k % 2 = 0
+        · have hnext : (k + 1) % 2 = 1 := by omega
+          simpa [heven, hnext] using hflip
+        · have hnext : (k + 1) % 2 = 0 := by omega
+          simpa [heven, hnext] using hflip
+  have hspeciesAt : ∀ i : Fin n,
+      ∃ s : AggregateActiveSpecies σ,
+        c (aggregateEvenCycleIndex n i) = Sum.inl s := by
+    intro i
+    have htag : N.trueInternalAggregateVertexIsSpecies
+        (c (aggregateEvenCycleIndex n i)) = true := by
+      have h := hkind (2 * i.1) (by omega)
+      simpa [aggregateEvenCycleIndex] using h
+    cases hv : c (aggregateEvenCycleIndex n i) with
+    | inl s => exact ⟨s, rfl⟩
+    | inr ρ => simp [trueInternalAggregateVertexIsSpecies, hv] at htag
+  have hreactionAt : ∀ i : Fin n,
+      ∃ ρ : N.ActiveAggregateTrueReaction α σ,
+        c (aggregateOddCycleIndex n i) = Sum.inr ρ := by
+    intro i
+    have htag : N.trueInternalAggregateVertexIsSpecies
+        (c (aggregateOddCycleIndex n i)) = false := by
+      have h := hkind (2 * i.1 + 1) (by omega)
+      simpa [aggregateOddCycleIndex] using h
+    cases hv : c (aggregateOddCycleIndex n i) with
+    | inl s => simp [trueInternalAggregateVertexIsSpecies, hv] at htag
+    | inr ρ => exact ⟨ρ, rfl⟩
+  let sp : Fin n → AggregateActiveSpecies σ := fun i => Classical.choose (hspeciesAt i)
+  let rx : Fin n → N.ActiveAggregateTrueReaction α σ :=
+    fun i => Classical.choose (hreactionAt i)
+  have hsp : ∀ i, c (aggregateEvenCycleIndex n i) = Sum.inl (sp i) :=
+    fun i => Classical.choose_spec (hspeciesAt i)
+  have hrx : ∀ i, c (aggregateOddCycleIndex n i) = Sum.inr (rx i) :=
+    fun i => Classical.choose_spec (hreactionAt i)
+  have hspT : ∀ i, Sum.inl (sp i) ∈ T := by
+    intro i
+    have h := hcT (aggregateEvenCycleIndex n i)
+    rw [hsp i] at h
+    exact h
+  have hrxT : ∀ i, Sum.inr (rx i) ∈ T := by
+    intro i
+    have h := hcT (aggregateOddCycleIndex n i)
+    rw [hrx i] at h
+    exact h
+  have hneg : ∀ i : Fin n,
+      N.trueInternalClassFlux α (rx i).1 (sp i).1 * σ (sp i).1 < 0 := by
+    intro i
+    have hedge := hcedge (aggregateEvenCycleIndex n i)
+    rw [hsp i, finRotate_aggregateEvenIndex n hn2 i, hrx i] at hedge
+    change N.trueInternalClassFlux α (rx i).1 (sp i).1 * σ (sp i).1 < 0 at hedge
+    exact hedge
+  have hpos : ∀ i : Fin n,
+      0 < N.trueInternalClassFlux α (rx i).1 (sp (finRotate n i)).1 *
+        σ (sp (finRotate n i)).1 := by
+    intro i
+    have hedge := hcedge (aggregateOddCycleIndex n i)
+    rw [hrx i, finRotate_aggregateOddIndex n hn2 i,
+      hsp (finRotate n i)] at hedge
+    change 0 < N.trueInternalClassFlux α (rx i).1 (sp (finRotate n i)).1 *
+      σ (sp (finRotate n i)).1 at hedge
+    exact hedge
+  let repWitness (i : Fin n) :=
+    N.exists_nonzero_channel_of_trueInternalClassFlux (rx i).1 (sp i).1
+      (by
+        intro hz
+        have hneg_i := hneg i
+        rw [hz, zero_mul] at hneg_i
+        exact (lt_irrefl (0 : ℝ)) hneg_i)
+  let rep (i : Fin n) : N.R := Classical.choose (repWitness i)
+  have hrepSpec (i : Fin n) := Classical.choose_spec (repWitness i)
+  have hrepNF (i : Fin n) : rep i ∈ N.nonflowOriginalChannels := (hrepSpec i).1
+  have hrepClass (i : Fin n) : N.trueReaction (rep i) = (rx i).1 := (hrepSpec i).2.1
+  have hterm (i : Fin n) :
+      α (Sum.inl (rep i) : N.fullyOpen.R) *
+        N.reactionVector (rep i) (sp i).1 ≠ 0 := (hrepSpec i).2.2
+  have hνleft (i : Fin n) : N.reactionVector (rep i) (sp i).1 ≠ 0 := by
+    intro hz
+    apply hterm i
+    rw [hz, mul_zero]
+  have hscalar (i : Fin n) : ∃ β : ℝ, ∀ t : S,
+      N.trueInternalClassFlux α (rx i).1 t = β * N.reactionVector (rep i) t :=
+    N.exists_scalar_mul_reactionVector_eq_trueInternalClassFlux (rx i).1
+      (sp i).1 (hrepNF i) (hrepClass i) (hνleft i)
+  let beta (i : Fin n) : ℝ := Classical.choose (hscalar i)
+  have hbeta (i : Fin n) (t : S) :
+      N.trueInternalClassFlux α (rx i).1 t = beta i * N.reactionVector (rep i) t :=
+    Classical.choose_spec (hscalar i) t
+  have hbetaNe (i : Fin n) : beta i ≠ 0 := by
+    intro hz
+    have hflux : N.trueInternalClassFlux α (rx i).1 (sp i).1 ≠ 0 := by
+      intro hz0
+      have hneg_i := hneg i
+      rw [hz0, zero_mul] at hneg_i
+      exact (lt_irrefl (0 : ℝ)) hneg_i
+    have hzero : N.trueInternalClassFlux α (rx i).1 (sp i).1 = 0 := by
+      rw [hbeta i (sp i).1, hz]
+      simp
+    exact hflux hzero
+  have hνright (i : Fin n) :
+      N.reactionVector (rep i) (sp (finRotate n i)).1 ≠ 0 := by
+    intro hz
+    have hposi := hpos i
+    rw [hbeta i (sp (finRotate n i)).1, hz, mul_zero, zero_mul] at hposi
+    exact (lt_irrefl (0 : ℝ)) hposi
+  have hnotflow (i : Fin n) : ¬ N.IsFlowChannel (rep i) := by
+    simpa [nonflowOriginalChannels] using hrepNF i
+  let leftE (i : Fin n) : N.TrueSREdge :=
+    N.trueSREdgeOfReactionVectorNe (rep i) (hnotflow i) (sp i).1 (hνleft i)
+  let rightE (i : Fin n) : N.TrueSREdge :=
+    N.trueSREdgeOfReactionVectorNe (rep i) (hnotflow i)
+      (sp (finRotate n i)).1 (hνright i)
+  let C : N.TrueSRCycle n := {
+    nontrivial := hn2
+    species := fun i => (sp i).1
+    reaction := fun i => (rx i).1
+    leftEdge := leftE
+    rightEdge := rightE
+    left_species := by intro i; simp [leftE]
+    left_reaction := by
+      intro i
+      rw [N.trueSREdgeOfReactionVectorNe_reaction, hrepClass]
+    right_species := by
+      intro i
+      simp only [rightE, trueSREdgeOfReactionVectorNe_species]
+      have hrot : finRotate n i =
+          (⟨(i.1 + 1) % n, Nat.mod_lt _ (by omega)⟩ : Fin n) := by
+        apply Fin.ext
+        rw [finRotate_apply]
+        simp [Fin.add_def]
+      rw [hrot]
+    right_reaction := by
+      intro i
+      rw [N.trueSREdgeOfReactionVectorNe_reaction, hrepClass]
+    species_injective := by
+      intro i j hij
+      have hvertices : c (aggregateEvenCycleIndex n i) =
+          c (aggregateEvenCycleIndex n j) := by
+        rw [hsp i, hsp j]
+        exact congrArg Sum.inl (Subtype.ext hij)
+      have hidx := hcinj hvertices
+      apply Fin.ext
+      have hv := congrArg Fin.val hidx
+      simpa [aggregateEvenCycleIndex] using hv
+    reaction_injective := by
+      intro i j hij
+      have hvertices : c (aggregateOddCycleIndex n i) =
+          c (aggregateOddCycleIndex n j) := by
+        rw [hrx i, hrx j]
+        exact congrArg Sum.inr (Subtype.ext hij)
+      have hidx := hcinj hvertices
+      apply Fin.ext
+      have hv := congrArg Fin.val hidx
+      simpa [aggregateOddCycleIndex] using hv
+  }
+  have hpairRV : ∀ i : Fin n,
+      ((leftE i).endpoint = (rightE i).endpoint) ↔
+        0 < N.reactionVector (rep i) (sp i).1 *
+          N.reactionVector (rep i) (sp (finRotate n i)).1 := by
+    intro i
+    have hsame := N.trueSREdge_sameEndpoint_iff_direction_mul_pos
+      (rep i) (hnotflow i) (sp i).1 (sp (finRotate n i)).1
+      (hνleft i) (hνright i)
+    have hdirL : N.reactionDirectionSign (rep i) (sp i).1 =
+        -N.reactionVector (rep i) (sp i).1 := by
+      simp [reactionDirectionSign, reactionVector_apply]
+    have hdirR : N.reactionDirectionSign (rep i) (sp (finRotate n i)).1 =
+        -N.reactionVector (rep i) (sp (finRotate n i)).1 := by
+      simp [reactionDirectionSign, reactionVector_apply]
+    rw [hdirL, hdirR] at hsame
+    have hnegmul :
+        (0 < (-N.reactionVector (rep i) (sp i).1) *
+          (-N.reactionVector (rep i) (sp (finRotate n i)).1)) ↔
+        0 < N.reactionVector (rep i) (sp i).1 *
+          N.reactionVector (rep i) (sp (finRotate n i)).1 := by
+      constructor <;> intro h <;> nlinarith
+    simpa [leftE, rightE] using hsame.trans hnegmul
+  have hfluxProduct : ∀ i : Fin n,
+      (N.reactionVector (rep i) (sp i).1 * σ (sp i).1) *
+        (N.reactionVector (rep i) (sp (finRotate n i)).1 *
+          σ (sp (finRotate n i)).1) < 0 := by
+    intro i
+    have hneg' : beta i *
+        (N.reactionVector (rep i) (sp i).1 * σ (sp i).1) < 0 := by
+      calc
+        beta i * (N.reactionVector (rep i) (sp i).1 * σ (sp i).1) =
+            (beta i * N.reactionVector (rep i) (sp i).1) * σ (sp i).1 := by ring
+        _ = N.trueInternalClassFlux α (rx i).1 (sp i).1 * σ (sp i).1 := by
+          rw [hbeta i]
+        _ < 0 := hneg i
+    have hpos' : beta i *
+        (N.reactionVector (rep i) (sp (finRotate n i)).1 *
+          σ (sp (finRotate n i)).1) > 0 := by
+      calc
+        beta i * (N.reactionVector (rep i) (sp (finRotate n i)).1 *
+            σ (sp (finRotate n i)).1) =
+            (beta i * N.reactionVector (rep i) (sp (finRotate n i)).1) *
+              σ (sp (finRotate n i)).1 := by ring
+        _ = N.trueInternalClassFlux α (rx i).1
+              (sp (finRotate n i)).1 * σ (sp (finRotate n i)).1 := by
+          rw [hbeta i]
+        _ > 0 := hpos i
+    rcases lt_or_gt_of_ne (hbetaNe i) with hbneg | hbpos
+    · have hleft : 0 < N.reactionVector (rep i) (sp i).1 * σ (sp i).1 := by
+        by_contra h
+        have hle : N.reactionVector (rep i) (sp i).1 * σ (sp i).1 ≤ 0 :=
+          le_of_not_gt h
+        have hnonneg := mul_nonneg_of_nonpos_of_nonpos hbneg.le hle
+        exact (not_lt_of_ge hnonneg) hneg'
+      have hright : N.reactionVector (rep i) (sp (finRotate n i)).1 *
+          σ (sp (finRotate n i)).1 < 0 := by
+        by_contra h
+        have hge : 0 ≤ N.reactionVector (rep i) (sp (finRotate n i)).1 *
+            σ (sp (finRotate n i)).1 := le_of_not_gt h
+        have hnonpos := mul_nonpos_of_nonpos_of_nonneg hbneg.le hge
+        exact (not_lt_of_ge hnonpos) hpos'
+      exact mul_neg_of_pos_of_neg hleft hright
+    · have hleft : N.reactionVector (rep i) (sp i).1 * σ (sp i).1 < 0 := by
+        by_contra h
+        have hge : 0 ≤ N.reactionVector (rep i) (sp i).1 * σ (sp i).1 :=
+          le_of_not_gt h
+        have hnonneg := mul_nonneg hbpos.le hge
+        exact (not_lt_of_ge hnonneg) hneg'
+      have hright : 0 < N.reactionVector (rep i) (sp (finRotate n i)).1 *
+          σ (sp (finRotate n i)).1 := by
+        by_contra h
+        have hle : N.reactionVector (rep i) (sp (finRotate n i)).1 *
+            σ (sp (finRotate n i)).1 ≤ 0 := le_of_not_gt h
+        have hnonpos := mul_nonpos_of_nonneg_of_nonpos hbpos.le hle
+        exact (not_lt_of_ge hnonpos) hpos'
+      exact mul_neg_of_neg_of_pos hleft hright
+  have hsignPair : ∀ i : Fin n,
+      (0 < N.reactionVector (rep i) (sp i).1 *
+        N.reactionVector (rep i) (sp (finRotate n i)).1) ↔
+      σ (sp i).1 * σ (sp (finRotate n i)).1 < 0 := by
+    intro i
+    have hprod :
+        (N.reactionVector (rep i) (sp i).1 *
+          N.reactionVector (rep i) (sp (finRotate n i)).1) *
+        (σ (sp i).1 * σ (sp (finRotate n i)).1) < 0 := by
+      calc
+        _ = (N.reactionVector (rep i) (sp i).1 * σ (sp i).1) *
+            (N.reactionVector (rep i) (sp (finRotate n i)).1 *
+              σ (sp (finRotate n i)).1) := by ring
+        _ < 0 := hfluxProduct i
+    have hνne : N.reactionVector (rep i) (sp i).1 *
+        N.reactionVector (rep i) (sp (finRotate n i)).1 ≠ 0 :=
+      mul_ne_zero (hνleft i) (hνright i)
+    constructor
+    · intro hνpos
+      by_contra hσ
+      have hσge : 0 ≤ σ (sp i).1 * σ (sp (finRotate n i)).1 := le_of_not_gt hσ
+      exact (not_lt_of_ge
+        (mul_nonneg (le_of_lt hνpos) hσge)) hprod
+    · intro hσneg
+      rcases lt_or_gt_of_ne hνne with hνneg | hνpos
+      · have hnonneg := mul_nonneg_of_nonpos_of_nonpos
+          (le_of_lt hνneg) (le_of_lt hσneg)
+        exact False.elim ((not_lt_of_ge hnonneg) hprod)
+      · exact hνpos
+  have hpair : ∀ i : Fin n,
+      C.isCPair i ↔ σ (C.species i) * σ (C.species (finRotate n i)) < 0 := by
+    intro i
+    change (C.leftEdge i).endpoint = (C.rightEdge i).endpoint ↔ _
+    change (leftE i).endpoint = (rightE i).endpoint ↔ _
+    rw [hpairRV i, hsignPair i]
+  have hspeciesNonzero : ∀ i : Fin n, σ (C.species i) ≠ 0 := by
+    intro i
+    exact (sp i).2
+  have heven : C.Even := by
+    change Even ((Finset.univ.filter C.isCPair).card)
+    rw [show Finset.univ.filter C.isCPair =
+        Finset.univ.filter
+          (fun i => σ (C.species i) * σ (C.species (finRotate n i)) < 0) by
+      ext i
+      simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+      exact hpair i]
+    exact cyclic_sign_changes_even (fun i => σ (C.species i)) hspeciesNonzero
+  refine ⟨n, hn2, C, heven, hpair, ?_, ?_, ?_, ?_⟩
+  · intro i
+    simp [C, leftE, rightE]
+  · intro i
+    refine ⟨sp i, ?_, hspT i⟩
+    simp [C]
+  · intro i
+    change (rx i).1 ∈ N.trueInternalAggregateSourceClasses α σ T
+    change (rx i).1 ∈ Finset.univ.filter (fun ρ : N.TrueReaction =>
+      ∃ q : N.ActiveAggregateTrueReaction α σ, q.1 = ρ ∧ Sum.inr q ∈ T)
+    simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+    exact ⟨rx i, rfl, hrxT i⟩
+  · refine ⟨beta, ?_⟩
+    refine ⟨?_, ?_, ?_⟩
+    · intro i t
+      simpa [C, rightE] using hbeta i t
+    · intro i
+      simpa [C] using hneg i
+    · intro i
+      simpa [C] using hpos i
+
+/-- The sign-change certificate for a causal cycle is invariant under cycle rotation. -/
+private theorem rotated_trueSRCycle_pair_iff_signChange (N : Network S)
+    {σ : S → ℝ} {n : ℕ} (C : N.TrueSRCycle n)
+    (hpair : ∀ i, C.isCPair i ↔
+      σ (C.species i) * σ (C.species (finRotate n i)) < 0)
+    (r : ℕ) (i : Fin n) :
+    (C.rotate r).isCPair i ↔
+      σ ((C.rotate r).species i) *
+        σ ((C.rotate r).species (finRotate n i)) < 0 := by
+  let j : Fin n := ⟨(i.1 + r) % n,
+    Nat.mod_lt _ (by have := C.nontrivial; omega)⟩
+  have hidx := C.rotateIndex_successor r i
+  change C.isCPair j ↔ _
+  rw [hpair j]
+  change σ (C.species j) * σ (C.species (finRotate n j)) < 0 ↔ _
+  rw [← hidx]
+  rfl
+
+private theorem trueSRCycle_even_of_signChange (N : Network S) {n : ℕ}
+    (C : N.TrueSRCycle n) (σ : S → ℝ)
+    (hσ : ∀ i, σ (C.species i) ≠ 0)
+    (hpair : ∀ i, C.isCPair i ↔
+      σ (C.species i) * σ (C.species (finRotate n i)) < 0) : C.Even := by
+  classical
+  let a : Fin n → ℝ := fun i => σ (C.species i)
+  haveI : NeZero n := ⟨by have := C.nontrivial; omega⟩
+  have hne : ∀ i, a i ≠ 0 := hσ
+  have hEven := cyclic_sign_changes_even a hne
+  rw [TrueSRCycle.Even, TrueSRCycle.numCPairs]
+  rw [show (Finset.univ.filter C.isCPair) =
+      Finset.univ.filter (fun i => a i * a (finRotate n i) < 0) by
+    ext i
+    simp only [Finset.mem_filter, Finset.mem_univ, true_and, a]
+    exact hpair i]
+  exact hEven
+
+/-- At a reaction used with opposite causal signs at two species, reactant/product separation
+identifies a c-pair exactly with a sign change of the species values. -/
+private theorem class_flux_pair_iff_signChange (N : Network S)
+    (hsep : N.ReactantProductSeparated)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} (ρ : N.TrueReaction)
+    (r : N.R) (hr : ¬ N.IsFlowChannel r) (β : ℝ) (s t : S)
+    (hbeta : ∀ u, N.trueInternalClassFlux α ρ u = β * N.reactionVector r u)
+    (hpos : 0 < N.trueInternalClassFlux α ρ s * σ s)
+    (hneg : N.trueInternalClassFlux α ρ t * σ t < 0) :
+    (N.trueSREdgeOfReactionVectorNe r hr t
+    (by
+        intro hz
+        rw [hbeta t, hz] at hneg
+        simp at hneg)).endpoint =
+      (N.trueSREdgeOfReactionVectorNe r hr s
+        (by
+          intro hz
+          rw [hbeta s, hz] at hpos
+          simp at hpos)).endpoint ↔ σ t * σ s < 0 := by
+  have ht : N.reactionVector r t ≠ 0 := by
+    intro hz
+    rw [hbeta t, hz] at hneg
+    simp at hneg
+  have hs : N.reactionVector r s ≠ 0 := by
+    intro hz
+    rw [hbeta s, hz] at hpos
+    simp at hpos
+  have hprod := signProduct_causal_iff
+    (by simpa [hbeta s, mul_assoc] using hpos)
+    (by simpa [hbeta t, mul_assoc] using hneg)
+  have hsame := N.trueSREdge_sameEndpoint_iff_direction_mul_pos r hr t s ht hs
+  have hdt : N.reactionDirectionSign r t = -N.reactionVector r t := by
+    simp [reactionDirectionSign, reactionVector_apply]
+  have hds : N.reactionDirectionSign r s = -N.reactionVector r s := by
+    simp [reactionDirectionSign, reactionVector_apply]
+  rw [hdt, hds] at hsame
+  have hvec :
+      (0 < (-N.reactionVector r t) * (-N.reactionVector r s)) ↔
+        0 < N.reactionVector r t * N.reactionVector r s := by
+    constructor <;> intro h <;> nlinarith
+  calc
+    _ ↔ 0 < N.reactionVector r t * N.reactionVector r s := hsame.trans hvec
+    _ ↔ σ t * σ s < 0 := by
+      simpa [mul_comm, mul_left_comm, mul_assoc] using hprod
+
+private theorem finRotate_eq_succ_of_lt {n : ℕ} (i : Fin n)
+    (hi : i.1 + 1 < n) : finRotate n i = ⟨i.1 + 1, hi⟩ := by
+  apply Fin.ext
+  have h := congrArg Fin.val (finRotate_apply i)
+  simpa [Fin.add_def, Nat.mod_eq_of_lt hi] using h
+
+private theorem finRotate_last_zero (k : ℕ) :
+    finRotate (k + 1) (Fin.last k) = ⟨0, by omega⟩ := by
+  apply Fin.ext
+  have h := congrArg Fin.val (finRotate_apply (Fin.last k))
+  simpa [Fin.add_def] using h
+
+/-- A chord from a cycle species to a nonadjacent reaction, when its reaction is causal at the
+start and opposing at the other end of the arc, closes an even cycle sharing an S-to-R path with
+the original. This is the concrete `hSR.2` obstruction for an extra class that lies on the cycle. -/
+private theorem no_nonneighbor_chord (N : Network S)
+    (hsep : N.ReactantProductSeparated) (hSR : N.TrueSRStrongCriterion)
+    {n : ℕ} {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} (C : N.TrueSRCycle n)
+    (i0 : Fin n) (hi0 : i0.1 = 0)
+    (hσ : ∀ i, σ (C.species i) ≠ 0)
+    (hpair : ∀ i, C.isCPair i ↔
+      σ (C.species i) * σ (C.species (finRotate n i)) < 0)
+    (k : Fin n) (e : N.TrueSREdge)
+    (hes : e.species = C.species i0) (her : e.reaction = C.reaction k)
+    (hk0 : k ≠ i0) (hklast : k ≠ (⟨n - 1, by have := C.nontrivial; omega⟩ : Fin n))
+    (β : ℝ)
+    (hbeta : ∀ u, N.trueInternalClassFlux α (C.reaction k) u =
+      β * N.reactionVector (C.rightEdge k).representative u)
+    (hpos : 0 < N.trueInternalClassFlux α (C.reaction k) (C.species i0) * σ (C.species i0))
+    (hneg : N.trueInternalClassFlux α (C.reaction k) (C.species k) * σ (C.species k) < 0) :
+    False := by
+  classical
+  have hidx0 : i0 = ⟨0, by have := C.nontrivial; omega⟩ := Fin.ext hi0
+  have hkpos : 0 < k.1 := by
+    by_contra h
+    have hkval : k.1 = 0 := by omega
+    exact hk0 (Fin.ext (by rw [hi0]; exact hkval))
+  have hkn : k.1 < n := k.isLt
+  let r := (C.rightEdge k).representative
+  have hr : ¬ N.IsFlowChannel r := by
+    have hi : TrueReaction.Internal N (N.trueReaction r) := by
+      rw [(C.rightEdge k).representative_class]
+      exact (C.rightEdge k).internal
+    change ¬ N.IsFlowChannel r at hi
+    exact hi
+  have hfluxS : N.trueInternalClassFlux α (C.reaction k) (C.species i0) ≠ 0 := by
+    intro hz
+    rw [hz, zero_mul] at hpos
+    exact (lt_irrefl 0) hpos
+  have hfluxT : N.trueInternalClassFlux α (C.reaction k) (C.species k) ≠ 0 := by
+    intro hz
+    rw [hz, zero_mul] at hneg
+    exact (lt_irrefl 0) hneg
+  have hrvecS : N.reactionVector r (C.species i0) ≠ 0 := by
+    intro hz
+    apply hfluxS
+    rw [hbeta, hz]
+    simp
+  have hrvecT : N.reactionVector r (C.species k) ≠ 0 := by
+    intro hz
+    apply hfluxT
+    rw [hbeta, hz]
+    simp
+  let es := N.trueSREdgeOfReactionVectorNe r hr (C.species i0) hrvecS
+  let et := N.trueSREdgeOfReactionVectorNe r hr (C.species k) hrvecT
+  have hesS : es.species = C.species i0 := by simp [es]
+  have hetS : et.species = C.species k := by simp [et]
+  have hesR : es.reaction = C.reaction k := by
+    rw [Network.trueSREdgeOfReactionVectorNe_reaction]
+    exact (C.rightEdge k).representative_class.trans (C.right_reaction k)
+  have hetR : et.reaction = C.reaction k := by
+    rw [Network.trueSREdgeOfReactionVectorNe_reaction]
+    exact (C.rightEdge k).representative_class.trans (C.right_reaction k)
+  have hEndS : e.endpoint = es.endpoint :=
+    N.trueSREdge_endpoint_eq_of_same_class_and_species hsep e es
+      (her.trans hesR.symm) (hes.trans hesS.symm)
+  have hEndT : (C.leftEdge k).endpoint = et.endpoint :=
+    N.trueSREdge_endpoint_eq_of_same_class_and_species hsep (C.leftEdge k) et
+      ((C.left_reaction k).trans hetR.symm) (by rw [C.left_species k, hetS])
+  have hpairChord : et.endpoint = es.endpoint ↔
+      σ (C.species k) * σ (C.species i0) < 0 := by
+    have hpos' : 0 < N.trueInternalClassFlux α (C.reaction k)
+        (C.species i0) * σ (C.species i0) := hpos
+    exact N.class_flux_pair_iff_signChange hsep (C.reaction k) r hr β
+      (C.species i0) (C.species k) hbeta hpos' hneg
+  have hes0 : e.species = C.species (⟨0, by have := C.nontrivial; omega⟩ : Fin n) := by
+    simpa [hidx0] using hes
+  let D := C.closeInitialArcWithChord k.1 hkn hkpos e hes0 her
+  have hDpair : ∀ j, D.isCPair j ↔
+      σ (D.species j) * σ (D.species (finRotate (k.1 + 1) j)) < 0 := by
+    intro j
+    by_cases hj : j.1 < k.1
+    · let idx : Fin n := ⟨j.1, by omega⟩
+      have hidxlt : idx.1 + 1 < n := by change j.1 + 1 < n; omega
+      have hidxSucc : finRotate n idx = ⟨j.1 + 1, hidxlt⟩ :=
+        finRotate_eq_succ_of_lt idx hidxlt
+      have hjSucc : finRotate (k.1 + 1) j = ⟨j.1 + 1, by omega⟩ :=
+        finRotate_eq_succ_of_lt j (by omega)
+      have hfields : D.isCPair j ↔ C.isCPair idx := by
+        simp [TrueSRCycle.isCPair, D, idx, hj,
+          Network.TrueSRCycle.closeInitialArcWithChord_leftEdge,
+          Network.TrueSRCycle.closeInitialArcWithChord_rightEdge]
+      have hspecies : D.species j = C.species idx := by
+        simp [D, idx, Network.TrueSRCycle.closeInitialArcWithChord_species]
+      have hnext : D.species (finRotate (k.1 + 1) j) =
+          C.species (finRotate n idx) := by
+        rw [hjSucc, hidxSucc]
+        simp [D, idx, Network.TrueSRCycle.closeInitialArcWithChord_species]
+      rw [hfields, hpair idx, hspecies, hnext]
+    · have hjlast : j = Fin.last k.1 := by
+        apply Fin.ext
+        change j.1 = k.1
+        have := j.isLt
+        omega
+      have hspeciesLast : D.species j = C.species k := by
+        rw [hjlast]
+        simp [D, Network.TrueSRCycle.closeInitialArcWithChord_species]
+      have hnextLast : D.species (finRotate (k.1 + 1) j) = C.species i0 := by
+        rw [hjlast, finRotate_last_zero]
+        simp [D, Network.TrueSRCycle.closeInitialArcWithChord_species, hidx0]
+      have hpairLast : D.isCPair j ↔ et.endpoint = es.endpoint := by
+        rw [hjlast, TrueSRCycle.isCPair]
+        simp only [D, Network.TrueSRCycle.closeInitialArcWithChord_leftEdge,
+          Network.TrueSRCycle.closeInitialArcWithChord_rightEdge]
+        simpa [hEndT, hEndS]
+      rw [hpairLast, hpairChord, hspeciesLast, hnextLast]
+  have hDσ : ∀ j, σ (D.species j) ≠ 0 := by
+    intro j
+    let idx : Fin n := ⟨j.1, by have := j.isLt; omega⟩
+    have hsp : D.species j = C.species idx := by
+      simp [D, idx, Network.TrueSRCycle.closeInitialArcWithChord_species]
+    rw [hsp]
+    exact hσ idx
+  have hCEven := N.trueSRCycle_even_of_signChange C σ hσ hpair
+  have hDEven := N.trueSRCycle_even_of_signChange D σ hDσ hDpair
+  have hnot : ¬ C.ContainsEdge e := by
+    intro hcontains
+    rcases hcontains with ⟨j, hinc⟩ | ⟨j, hinc⟩
+    · have hreaction : C.reaction j = C.reaction k := by
+        calc
+          C.reaction j = (C.leftEdge j).reaction := (C.left_reaction j).symm
+          _ = e.reaction := hinc.2.1.symm
+          _ = C.reaction k := her
+      have hidx : j = k := C.reaction_injective hreaction
+      have hspecies : C.species i0 = C.species j := by
+        calc
+          C.species i0 = e.species := hes.symm
+          _ = (C.leftEdge j).species := hinc.1
+          _ = C.species j := C.left_species j
+      have hzero : i0 = j := C.species_injective hspecies
+      exact hk0 (hidx.symm.trans hzero.symm)
+    · have hreaction : C.reaction j = C.reaction k := by
+        calc
+          C.reaction j = (C.rightEdge j).reaction := (C.right_reaction j).symm
+          _ = e.reaction := hinc.2.1.symm
+          _ = C.reaction k := her
+      have hidx : j = k := C.reaction_injective hreaction
+      have hspecies : i0 = finRotate n k := by
+        have hsp0 : e.species = C.species i0 := hes
+        have hsp1 := hinc.1
+        have hnext : finRotate n k =
+            (⟨(k.1 + 1) % n, Nat.mod_lt _ (by omega)⟩ : Fin n) := by
+          apply Fin.ext
+          have h := congrArg Fin.val (finRotate_apply k)
+          simpa [Fin.add_def] using h
+        rw [hidx, C.right_species k] at hsp1
+        rw [← hnext] at hsp1
+        exact C.species_injective (hsp0.symm.trans hsp1)
+      have hkval : k.1 + 1 < n := by
+        have hklastVal : k.1 ≠ n - 1 := by
+          intro hval
+          apply hklast
+          apply Fin.ext
+          exact hval
+        have hn := C.nontrivial
+        omega
+      have hrotVal : (finRotate n k).1 = k.1 + 1 := by
+        have h := congrArg Fin.val (finRotate_apply k)
+        simpa [Fin.add_def, Nat.mod_eq_of_lt hkval] using h
+      have hzero := congrArg Fin.val hspecies
+      rw [hrotVal] at hzero
+      omega
+  exact TrueSRCycle.no_close_arc_chord_of_trueSRCriterion N hSR C hCEven k.1 hkn hkpos e hes0 her hnot hDEven
+
+/-- **Shinar--Feinberg true-SR strong-concordance theorem.**
+
+Reactant/product separation is required to identify true-SR edge labels with net stoichiometric
+coefficients. The hypothesis is necessary; see `CRNT/Examples/TrueSRNetCoeffCounterexample.lean`.
+-/
 theorem stronglyConcordant_fullyOpen_of_trueSRCriterion
-    (N : Network S) (hflow : N.ZeroComplexReactionsAreFlows)
+    (N : Network S) (hsep : N.ReactantProductSeparated)
+    (hflow : N.ZeroComplexReactionsAreFlows)
     (hSR : N.TrueSRStrongCriterion) :
     N.fullyOpen.StronglyConcordant := by
-  -- Convert a hypothetical strong-concordance witness to its sign-causality graph.
-  -- A source block contains an even cycle.  The s-cycle and no-S-to-R-intersection
-  -- hypotheses force the contradiction via the standard ear-decomposition argument.
+  classical
+  unfold StronglyConcordant
+  by_contra hnot
+  obtain ⟨α, σ, W⟩ := hnot
+  obtain ⟨T, hne, hscc, hsource, hconnected, hspecies, hreactions, hlocal⟩ :=
+    N.exists_trueInternalAggregateCausalSource_data hflow W
+  have hparts : (∃ s : AggregateActiveSpecies σ, Sum.inl s ∈ T) ∧
+      (∃ ρ : N.ActiveAggregateTrueReaction α σ, Sum.inr ρ ∈ T) :=
+    ⟨hspecies, hreactions⟩
+  obtain ⟨p, hp2, hpeven, c, hcinj, hcT, hcedge⟩ :=
+    N.exists_simple_directed_cycle_in_trueInternalAggregateSource T hscc hsource hparts
+  obtain ⟨d, hdinj, hdT, hdstart, hdedge⟩ :=
+    N.rotate_trueInternalAggregateCycle_to_species T hp2 c hcinj hcT hcedge
+  obtain ⟨n, hn2, C, hCeven, hCpair, hrep, hCspT, hCrxnT, beta, hbeta, hneg, hpos⟩ :=
+    N.trueSRCycle_of_simple_aggregate_cycle hp2 hpeven d hdinj T hdT hdstart hdedge
+  have hSCycle : C.SCycle := hSR.1 C hCeven
+  have hSCycleNet : C.SCycleNet :=
+    (TrueSRCycle.sCycleNet_iff_sCycle_of_separated N hsep C).mpr hSCycle
+  let F := N.trueInternalAggregateSourceClasses α σ T
+  have hsum : ∀ i, 0 < ∑ ρ ∈ F,
+      (N.trueInternalClassFlux α ρ (C.species (finRotate n i))) *
+        σ (C.species (finRotate n i)) := by
+    intro i
+    obtain ⟨s, hsSpecies, hsT⟩ := hCspT (finRotate n i)
+    have h := hlocal s hsT
+    simpa [F, hsSpecies] using h
+  have hclass : ∀ i, C.reaction i ∈ F := hCrxnT
+  have hcausal : ∀ i, 0 <
+      (N.trueInternalClassFlux α (C.reaction i) (C.species (finRotate n i))) *
+        σ (C.species (finRotate n i)) := hpos
+  have hopp : ∀ i,
+      (N.trueInternalClassFlux α (C.reaction (finRotate n i))
+        (C.species (finRotate n i))) * σ (C.species (finRotate n i)) < 0 := by
+    intro i
+    exact hneg (finRotate n i)
+  obtain ⟨i, ρ, hρF, hρneLeft, hρneRight, hρpos⟩ :=
+    N.exists_positive_off_cycle_aggregate_class hsep C hSCycleNet F beta hrep hbeta
+      hclass hsum hcausal hopp
+  have hσi : σ (C.species (finRotate n i)) ≠ 0 := by
+    intro hz
+    have h := hcausal i
+    rw [hz, mul_zero] at h
+    exact (lt_irrefl 0) h
+  let s : AggregateActiveSpecies σ := ⟨C.species (finRotate n i), hσi⟩
+  have hclassInT :
+      ∃ q : N.ActiveAggregateTrueReaction α σ, q.1 = ρ ∧ Sum.inr q ∈ T := by
+    simpa [F, trueInternalAggregateSourceClasses] using hρF
+  obtain ⟨q, hqρ, hqT⟩ := hclassInT
+  have hattachment :
+      N.TrueInternalAggregateCausalEdge (Sum.inr q) (Sum.inl s) := by
+    change 0 < N.trueInternalClassFlux α q.1 s.1 * σ s.1
+    rw [hqρ]
+    exact hρpos
+  obtain ⟨t, htailEdge, htT⟩ :=
+    N.activeAggregateClass_negative_species_mem_source W T hsource q hqT
+  have htail := htailEdge
+  change N.trueInternalClassFlux α q.1 t.1 * σ t.1 < 0 at htail
+  have hhead : 0 < N.trueInternalClassFlux α q.1 s.1 * σ s.1 := by
+    simpa [s, hqρ] using hρpos
+  have htailNeHead : t.1 ≠ s.1 := by
+    intro heq
+    have hnegAtHead :
+        N.trueInternalClassFlux α q.1 s.1 * σ s.1 < 0 := by
+      simpa [heq] using htail
+    linarith
+  have hcycleReactionT :
+      ∃ qC : N.ActiveAggregateTrueReaction α σ,
+        qC.1 = C.reaction i ∧ Sum.inr qC ∈ T := by
+    simpa [F, trueInternalAggregateSourceClasses] using hCrxnT i
+  obtain ⟨qC, hqC, hqCT⟩ := hcycleReactionT
+  have htailCycleReactionNe :
+      (⟨Sum.inl t, htT⟩ : {v : N.TrueInternalAggregateVertex α σ // v ∈ T}) ≠
+        ⟨Sum.inr qC, hqCT⟩ := by
+    intro heq
+    have hval := congrArg Subtype.val heq
+    exact Sum.inl_ne_inr hval
+  obtain ⟨sourcePath, hsourcePath⟩ :=
+    CRNT.relationGraphOn_exists_isPath_of_source
+      (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T hne hscc hsource
+      (Sum.inl t) (Sum.inr qC) htT hqCT
+  let sourceSRPath : N.TrueSRPath sourcePath.length :=
+    N.aggregateSourcePathToTrueSRPath T htT hqCT sourcePath hsourcePath
+  have hsourceSRPathOdd : Odd sourcePath.length := sourceSRPath.odd_length
+  have hsourcePathNonempty : 0 < sourcePath.length := by
+    obtain ⟨k, hk⟩ := hsourceSRPathOdd
+    omega
+  have htailFlux : N.trueInternalClassFlux α q.1 t.1 ≠ 0 := by
+    intro hz
+    rw [hz, zero_mul] at htail
+    exact (lt_irrefl 0) htail
+  have hheadFlux : N.trueInternalClassFlux α q.1 s.1 ≠ 0 := by
+    intro hz
+    rw [hz, zero_mul] at hhead
+    exact (lt_irrefl 0) hhead
+  obtain ⟨eTail, heTailSpecies, heTailReaction⟩ :=
+    N.exists_trueSREdge_of_nonzero_trueInternalClassFlux q.1 t.1 htailFlux
+  obtain ⟨eHead, heHeadSpecies, heHeadReaction⟩ :=
+    N.exists_trueSREdge_of_nonzero_trueInternalClassFlux q.1 s.1 hheadFlux
+  have hspeciesTailHead : eTail.species ≠ eHead.species := by
+    rw [heTailSpecies, heHeadSpecies]
+    exact htailNeHead
+  have hsameReaction : eTail.reaction = eHead.reaction :=
+    heTailReaction.trans heHeadReaction.symm
+  have hσC : ∀ j, σ (C.species j) ≠ 0 := by
+    intro j
+    obtain ⟨s, hs, _⟩ := hCspT j
+    rw [← hs]
+    exact s.2
+  have hρnotCycle : ∀ j, C.reaction j ≠ ρ := by
+    intro j hρj
+    letI : NeZero n := ⟨by have := C.nontrivial; omega⟩
+    let startIdx : Fin n := finRotate n i
+    let Crot : N.TrueSRCycle n := C.rotate startIdx.1
+    let zeroIdx : Fin n := ⟨0, by have := C.nontrivial; omega⟩
+    let lastIdx : Fin n := ⟨n - 1, by have := C.nontrivial; omega⟩
+    let rotIdx (a : Fin n) : Fin n := a + startIdx
+    let k : Fin n := j - startIdx
+    have hrotk : rotIdx k = j := by
+      dsimp [rotIdx, k]
+      exact sub_add_cancel j startIdx
+    have hrotzero : rotIdx zeroIdx = startIdx := by
+      dsimp [rotIdx, zeroIdx]
+      exact zero_add startIdx
+    have hstart : startIdx = i + 1 := by
+      exact finRotate_apply i
+    have hlast : lastIdx = -1 := by
+      apply Fin.ext
+      have hlt : n - 1 < n := by have := C.nontrivial; omega
+      have hlt1 : 1 < n := by have := C.nontrivial; omega
+      simp [lastIdx, Fin.neg_def]
+      rw [Nat.mod_eq_of_lt hlt1, Nat.mod_eq_of_lt hlt]
+    have hrotlast : rotIdx lastIdx = i := by
+      dsimp [rotIdx]
+      calc
+        lastIdx + startIdx = -1 + (i + 1) := by rw [hlast, hstart]
+        _ = i := by abel
+    have hCrotSpecies (a : Fin n) : Crot.species a = C.species (rotIdx a) := by
+      simp [Crot, rotIdx, Fin.add_def]
+    have hCrotReaction (a : Fin n) : Crot.reaction a = C.reaction (rotIdx a) := by
+      simp [Crot, rotIdx, Fin.add_def]
+    have hCrotRightRep (a : Fin n) :
+        (Crot.rightEdge a).representative = (C.rightEdge (rotIdx a)).representative := by
+      simp [Crot, rotIdx, Fin.add_def]
+    have hRρ : Crot.reaction k = ρ := by
+      rw [hCrotReaction, hrotk, hρj]
+    have hk0 : k ≠ zeroIdx := by
+      intro hk
+      apply hρneRight
+      calc
+        ρ = Crot.reaction k := hRρ.symm
+        _ = Crot.reaction zeroIdx := congrArg Crot.reaction hk
+        _ = C.reaction (finRotate n i) := by
+          rw [hCrotReaction, hrotzero]
+    have hklast : k ≠ lastIdx := by
+      intro hk
+      apply hρneLeft
+      calc
+        ρ = Crot.reaction k := hRρ.symm
+        _ = Crot.reaction lastIdx := congrArg Crot.reaction hk
+        _ = C.reaction i := by rw [hCrotReaction, hrotlast]
+    have hσrot : ∀ a, σ (Crot.species a) ≠ 0 := by
+      intro a
+      rw [hCrotSpecies]
+      exact hσC (rotIdx a)
+    have hpairrot : ∀ a, Crot.isCPair a ↔
+        σ (Crot.species a) * σ (Crot.species (finRotate n a)) < 0 := by
+      intro a
+      simpa [Crot] using
+        N.rotated_trueSRCycle_pair_iff_signChange C hCpair startIdx.1 a
+    let βrot : Fin n → ℝ := fun a => beta (rotIdx a)
+    have hbetaRot : ∀ a u, N.trueInternalClassFlux α (Crot.reaction a) u =
+        βrot a * N.reactionVector (Crot.rightEdge a).representative u := by
+      intro a u
+      rw [hCrotReaction, hCrotRightRep]
+      exact hbeta (rotIdx a) u
+    have hposrot : 0 < N.trueInternalClassFlux α (Crot.reaction k)
+        (Crot.species zeroIdx) * σ (Crot.species zeroIdx) := by
+      rw [hCrotReaction, hrotk, hρj, hCrotSpecies, hrotzero]
+      exact hρpos
+    let jprev : Fin n := (finRotate n).symm j
+    have hjprev : finRotate n jprev = j := Equiv.apply_symm_apply (finRotate n) j
+    have hnegOriginal :
+        N.trueInternalClassFlux α (C.reaction j) (C.species j) * σ (C.species j) < 0 := by
+      simpa [jprev, hjprev] using hopp jprev
+    have hnegrot :  N.trueInternalClassFlux α (Crot.reaction k)
+        (Crot.species k) * σ (Crot.species k) < 0 := by
+      simpa [hCrotReaction, hCrotSpecies, hrotk, hρj] using hnegOriginal
+    have heHeadSpecies' : eHead.species = Crot.species zeroIdx := by
+      rw [heHeadSpecies]
+      simp [s, Crot, zeroIdx, startIdx, finRotate_apply, Fin.add_def]
+    have heHeadReaction' : eHead.reaction = Crot.reaction k :=
+      heHeadReaction.trans (hqρ.trans hRρ.symm)
+    exact N.no_nonneighbor_chord hsep hSR Crot zeroIdx rfl hσrot hpairrot
+      k eHead heHeadSpecies' heHeadReaction' hk0 hklast (βrot k) (hbetaRot k)
+      hposrot hnegrot
   sorry
 
 /-- For weakly normal/nondegenerate networks, the same SR condition implies strong
@@ -2602,7 +5664,7 @@ theorem stronglyConcordant_of_trueSRCriterion_of_weaklyNormal
     (hflow : N.ZeroComplexReactionsAreFlows)
     (hSR : N.TrueSRStrongCriterion) : N.StronglyConcordant := by
   exact N.stronglyConcordant_of_fullyOpen_of_weaklyNormal hsep hwn
-    (N.stronglyConcordant_fullyOpen_of_trueSRCriterion hflow hSR)
+    (N.stronglyConcordant_fullyOpen_of_trueSRCriterion hsep hflow hSR)
 
 /-- In particular this applies to every weakly reversible network. -/
 theorem stronglyConcordant_of_trueSRCriterion_of_weaklyReversible
