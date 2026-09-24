@@ -1000,6 +1000,31 @@ theorem finite_relativeSourceOrderCone_range (N : Network S) :
     exact N.relativeSourceOrderCone_eq_of_sameSourceOrder horder
   exact hfinite.subset hsub
 
+/-- A direction belongs to the source-order chamber it itself selects. -/
+theorem toEuclid_mem_relativeSourceOrderCone (N : Network S) (w : S → ℝ) :
+    CRNT.toEuclid w ∈ N.relativeSourceOrderCone w := by
+  change (∀ r q,
+    N.sourceLogProjection w r ≤ N.sourceLogProjection w q →
+      N.sourceLogProjection
+        (CRNT.toEuclid.symm (CRNT.toEuclid w)) r ≤
+        N.sourceLogProjection
+          (CRNT.toEuclid.symm (CRNT.toEuclid w)) q)
+  intro r q h
+  simpa using h
+
+/-- The finite family of relative source-order chambers covers the stoichiometric subspace:
+each stoichiometric vector is contained in the chamber indexed by its own projection order.
+Combined with `finite_relativeSourceOrderCone_range` and the lineality lemma, this gives the
+cover and salience components of the candidate fan inside stoichiometric space. -/
+theorem relativeSourceOrderCone_covers_stoichSubspace (N : Network S)
+    {z : EuclideanSpace ℝ S}
+    (hz : CRNT.toEuclid.symm z ∈ N.stoichSubspace) :
+    ∃ w : S → ℝ, w ∈ N.stoichSubspace ∧
+      z = CRNT.toEuclid w ∧ z ∈ N.relativeSourceOrderCone w := by
+  refine ⟨CRNT.toEuclid.symm z, hz,
+    (CRNT.toEuclid.apply_symm_apply z).symm, ?_⟩
+  simpa using N.toEuclid_mem_relativeSourceOrderCone (CRNT.toEuclid.symm z)
+
 /-- **Pointwise toric inclusion for a complex-balanced field.** At every positive state `x`, the
 mass-action vector field lies in the polar cone of the source-order cone determined by
 `log(x/xstar)`. This is the exact finite-dimensional toric differential-inclusion statement: the
