@@ -107,6 +107,56 @@ theorem rotateIndex_successor (C : N.TrueSRCycle n) (r : ℕ) (i : Fin n) :
   rw [hleft, hright]
   exact (rot_succ hn r i).symm
 
+private noncomputable def rotateIndexEquiv (n r : ℕ) (hn : 0 < n) : Fin n ≃ Fin n := by
+  letI : NeZero n := ⟨by omega⟩
+  exact {
+    toFun := fun i => i + ⟨r % n, Nat.mod_lt _ hn⟩
+    invFun := fun i => i - ⟨r % n, Nat.mod_lt _ hn⟩
+    left_inv := by intro i; exact add_sub_cancel_right i ⟨r % n, Nat.mod_lt _ hn⟩
+    right_inv := by intro i; exact sub_add_cancel i ⟨r % n, Nat.mod_lt _ hn⟩
+  }
+
+private theorem rotateIndexEquiv_apply {n r : ℕ} (hn : 0 < n) (i : Fin n) :
+    (rotateIndexEquiv n r hn i).1 = (i.1 + r) % n := by
+  simp [rotateIndexEquiv, Fin.add_def]
+
+/-- Rotating a simple cycle only changes where its cyclic indexing begins, so it preserves the
+number of c-pairs. -/
+theorem rotate_numCPairs (C : N.TrueSRCycle n) (r : ℕ) :
+    (C.rotate r).numCPairs = C.numCPairs := by
+  classical
+  let hn : 0 < n := by have := C.nontrivial; omega
+  let e := rotateIndexEquiv n r hn
+  have hpair (i : Fin n) : (C.rotate r).isCPair i ↔ C.isCPair (e i) := by
+    unfold TrueSRCycle.isCPair
+    rw [rotate_leftEdge, rotate_rightEdge]
+    have hi : e i = ⟨(i.1 + r) % n, Nat.mod_lt _ hn⟩ := by
+      apply Fin.ext
+      exact rotateIndexEquiv_apply hn i
+    rw [hi]
+  have hset : (Finset.univ.filter (C.rotate r).isCPair) =
+      (Finset.univ.filter C.isCPair).image e.symm := by
+    ext i
+    simp only [Finset.mem_filter, Finset.mem_univ, true_and, Finset.mem_image]
+    constructor
+    · intro hi
+      exact ⟨e i, (hpair i).mp hi, e.symm_apply_apply i⟩
+    · rintro ⟨j, hj, hji⟩
+      have hje : j = e i := by
+        have := congrArg e hji
+        simpa using this
+      rw [hpair i, ← hje]
+      exact hj
+  unfold TrueSRCycle.numCPairs
+  rw [hset, Finset.card_image_of_injective _ e.symm.injective]
+
+/-- Evenness of an e-cycle is unchanged by cyclically rotating its indexing. -/
+theorem rotate_even (C : N.TrueSRCycle n) (r : ℕ) (hE : C.Even) :
+    (C.rotate r).Even := by
+  unfold TrueSRCycle.Even at hE ⊢
+  rw [rotate_numCPairs]
+  exact hE
+
 /-- **An arc of a cycle starting at an arbitrary position**, obtained by rotating first. -/
 noncomputable def arcPathFrom (C : N.TrueSRCycle n) (r : ℕ) (k : ℕ) (hk : k < n) :
     N.TrueSRPath (2 * k + 1) :=

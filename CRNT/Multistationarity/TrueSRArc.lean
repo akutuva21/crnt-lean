@@ -215,6 +215,19 @@ theorem initialArcPath_edge_odd (q : Fin (2 * k + 1)) (h : q.1 % 2 ≠ 0) :
       C.rightEdge ⟨q.1 / 2, arcIdx' hk (by have := q.isLt; omega)⟩ :=
   arcEdge_odd C k hk h
 
+/-- Even-position vertices on an initial arc are the corresponding cycle species. -/
+theorem initialArcPath_vertex_even (p : Fin (2 * k + 2)) (h : p.1 % 2 = 0) :
+    (C.initialArcPath k hk).vertex p =
+      Sum.inl (C.species ⟨p.1 / 2, arcIdx' hk p.isLt⟩) :=
+  arcVertex_even C k hk h
+
+/-- Odd-position vertices on an initial arc are the corresponding cycle reactions. -/
+theorem initialArcPath_vertex_odd (p : Fin (2 * k + 2)) (h : p.1 % 2 ≠ 0) :
+    (C.initialArcPath k hk).vertex p =
+      Sum.inr ⟨C.reaction ⟨p.1 / 2, arcIdx' hk p.isLt⟩,
+        C.reaction_internal ⟨p.1 / 2, arcIdx' hk p.isLt⟩⟩ :=
+  arcVertex_odd C k hk h
+
 end Arc
 
 end CRNT.Network.TrueSRCycle

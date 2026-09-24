@@ -85,3 +85,39 @@ theorem glued_length (P : N.TrueSRPath L) (Q : N.TrueSRPath M) :
   exact ⟨j, i, by omega, by omega, by omega⟩
 
 end CRNT.Network.TrueSRPath
+
+namespace CRNT.Network.TrueSRCycle
+
+variable {S : Type} [DecidableEq S] [Fintype S] {N : Network S} {n : ℕ}
+
+/-- The initial arc starts at cycle species zero. -/
+theorem initialArcPath_startSpecies (C : N.TrueSRCycle n) (k : ℕ) (hk : k < n) :
+    (C.initialArcPath k hk).startSpecies = C.species ⟨0, by omega⟩ := by
+  let P := C.initialArcPath k hk
+  have hzero := P.vertex_zero
+  have hexplicit : P.vertex 0 = Sum.inl (C.species ⟨0, by omega⟩) := by
+    simpa [P] using
+      (C.initialArcPath_vertex_even k hk ⟨0, by omega⟩ (by simp))
+  exact Sum.inl.inj (hzero.symm.trans hexplicit)
+
+/-- The initial arc ends at cycle reaction `k`. -/
+theorem initialArcPath_endReaction (C : N.TrueSRCycle n) (k : ℕ) (hk : k < n) :
+    (C.initialArcPath k hk).endReaction =
+      ⟨C.reaction ⟨k, hk⟩, C.reaction_internal ⟨k, hk⟩⟩ := by
+  let P := C.initialArcPath k hk
+  have hlast := P.vertex_last
+  have hidx :
+      (⟨(Fin.last (2 * k + 1)).1 / 2,
+        by have := Fin.last (2 * k + 1); have := hk; omega⟩ : Fin n) =
+        ⟨k, hk⟩ := by
+    apply Fin.ext
+    change (Fin.last (2 * k + 1)).1 / 2 = k
+    rw [show (Fin.last (2 * k + 1)).1 = 2 * k + 1 by rfl]
+    omega
+  have hexplicit : P.vertex (Fin.last (2 * k + 1)) =
+      Sum.inr ⟨C.reaction ⟨k, hk⟩, C.reaction_internal ⟨k, hk⟩⟩ := by
+    rw [C.initialArcPath_vertex_odd k hk (Fin.last (2 * k + 1)) (by simp)]
+    rw [hidx]
+  exact Sum.inr.inj (hlast.symm.trans hexplicit)
+
+end CRNT.Network.TrueSRCycle

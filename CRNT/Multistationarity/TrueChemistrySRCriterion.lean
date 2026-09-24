@@ -7,6 +7,11 @@ import CRNT.Graph.FiniteSource
 import CRNT.Multistationarity.TrueSRSingleSharedEdge
 import CRNT.Multistationarity.TrueSRCycleChord
 import CRNT.Multistationarity.TrueSRMinimalChord
+import CRNT.Multistationarity.TrueSRChordParity
+import CRNT.Multistationarity.TrueSREdgePath
+import CRNT.Multistationarity.TrueSRGlueCPairs
+import CRNT.Multistationarity.TrueSRCycleReverse
+import CRNT.Multistationarity.TrueSRNoArcChord
 
 /-!
 # True-chemistry SR criteria for concordance and strong concordance
