@@ -6,6 +6,7 @@ import CRNT.Multistationarity.GainPotential
 import CRNT.Graph.FiniteSource
 import CRNT.Multistationarity.TrueSRSingleSharedEdge
 import CRNT.Multistationarity.TrueSRCycleChord
+import CRNT.Multistationarity.TrueSRMinimalChord
 
 /-!
 # True-chemistry SR criteria for concordance and strong concordance
@@ -4380,6 +4381,177 @@ private noncomputable def aggregateSourcePathToTrueSRPath (N : Network S)
       Sum.inr ⟨ρ.1, N.activeAggregateTrueReaction_internal ρ⟩
     rw [p.getVert_length]
     rfl
+
+/-- Prefix a source path from an off-cycle reaction class with its edge to a cycle species.
+When all vertices of the source path before its terminal reaction avoid the cycle, this gives an
+edge-disjoint chord whose interior avoids the cycle. -/
+private theorem aggregateSourceReactionPath_prefix_chord (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {n : ℕ}
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    (C : N.TrueSRCycle n)
+    {s : AggregateActiveSpecies σ} {q qC : N.ActiveAggregateTrueReaction α σ}
+    (hsT : Sum.inl s ∈ T) (hqT : Sum.inr q ∈ T) (hqCT : Sum.inr qC ∈ T)
+    (hsCycle : C.HasSpecies s.1) (hqCCycle : C.HasReaction qC.1)
+    (hqOffCycle : ¬ C.HasReaction q.1)
+    (hqs : N.TrueInternalAggregateCausalEdge (Sum.inr q) (Sum.inl s))
+    (p : (CRNT.relationGraphOn
+      (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T).Walk
+        ⟨Sum.inr q, hqT⟩ ⟨Sum.inr qC, hqCT⟩)
+    (hp : p.IsPath)
+    (hinterior : ∀ j, j < p.length →
+      ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex (p.getVert j).1)) :
+    ∃ P : N.TrueSRPath (p.length + 1),
+      C.IsChord P ∧
+      P.vertex 0 = Sum.inl s.1 ∧
+      P.vertex (Fin.last (p.length + 1)) = Sum.inr
+        ⟨qC.1, N.activeAggregateTrueReaction_internal qC⟩ ∧
+      (∀ j : Fin (p.length + 1 + 1), j.1 ≠ 0 → j.1 ≠ p.length + 1 →
+        ¬ C.HasVertex (P.vertex j)) := by
+  classical
+  have hn : 2 ≤ n := C.nontrivial
+  let result : ℕ → Prop := fun m =>
+    ∃ P : N.TrueSRPath m,
+      C.IsChord P ∧
+      P.vertex 0 = Sum.inl s.1 ∧
+      P.vertex (Fin.last m) = Sum.inr
+        ⟨qC.1, N.activeAggregateTrueReaction_internal qC⟩ ∧
+      (∀ j : Fin (m + 1), j.1 ≠ 0 → j.1 ≠ m → ¬ C.HasVertex (P.vertex j))
+  let qv : {v : N.TrueInternalAggregateVertex α σ // v ∈ T} := ⟨Sum.inr q, hqT⟩
+  let sv : {v : N.TrueInternalAggregateVertex α σ // v ∈ T} := ⟨Sum.inl s, hsT⟩
+  have hadj : (CRNT.relationGraphOn
+      (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T).Adj sv qv := by
+    refine ⟨?_, Or.inr hqs⟩
+    exact Sum.inl_ne_inr
+  let p' := SimpleGraph.Walk.cons hadj p
+  have hsNotMem : sv ∉ p.support := by
+    intro hmem
+    obtain ⟨j, hjEq, hjle⟩ :=
+      (SimpleGraph.Walk.mem_support_iff_exists_getVert (p := p)).mp hmem
+    by_cases hj : j < p.length
+    · apply hinterior j hj
+      change C.HasVertex (N.aggregateVertexToTrueSRVertex (p.getVert j).1)
+      rw [hjEq]
+      change C.HasSpecies s.1
+      exact hsCycle
+    · have hjlen : j = p.length := by omega
+      subst j
+      have hval : Sum.inl s = Sum.inr qC := by
+        have hEq : sv = p.getVert p.length := hjEq.symm
+        have hEq' := hEq.trans p.getVert_length
+        have hval := congrArg Subtype.val hEq'
+        simpa [sv] using hval
+      exact Sum.inl_ne_inr hval
+  have hp' : p'.IsPath := (SimpleGraph.Walk.cons_isPath_iff hadj p).2 ⟨hp, hsNotMem⟩
+  let P := N.aggregateSourcePathToTrueSRPath T hsT hqCT p' hp'
+  have hlen : p'.length = p.length + 1 := by simp [p']
+  have hstart : P.vertex 0 = Sum.inl s.1 := by
+    change N.aggregateVertexToTrueSRVertex (p'.getVert 0).1 = Sum.inl s.1
+    rw [p'.getVert_zero]
+    rfl
+  have hend : P.vertex (Fin.last p'.length) =
+      Sum.inr ⟨qC.1, N.activeAggregateTrueReaction_internal qC⟩ := by
+    change N.aggregateVertexToTrueSRVertex (p'.getVert p'.length).1 = _
+    rw [p'.getVert_length]
+    rfl
+  have hqNeqC : q ≠ qC := by
+    intro h
+    apply hqOffCycle
+    simpa [h] using hqCCycle
+  have hsourceEndpointsNe :
+      (⟨Sum.inr q, hqT⟩ : {v : N.TrueInternalAggregateVertex α σ // v ∈ T}) ≠
+        ⟨Sum.inr qC, hqCT⟩ := by
+    intro h
+    apply hqNeqC
+    exact Sum.inr.inj (congrArg Subtype.val h)
+  have hpPositive : 0 < p.length :=
+    (SimpleGraph.Walk.not_nil_iff_lt_length).mp (p.not_nil_of_ne hsourceEndpointsNe)
+  have hinteriorP :
+      ∀ j : Fin (p'.length + 1), j.1 ≠ 0 → j.1 ≠ p'.length →
+        ¬ C.HasVertex (P.vertex j) := by
+    intro j hj0 hjend hCj
+    have hjpos : 0 < j.1 := Nat.pos_of_ne_zero hj0
+    have hjlt : j.1 - 1 < p.length := by
+      have hjle : j.1 ≤ p'.length := by omega
+      have hjltlen : j.1 < p'.length := by omega
+      have hjltlen' : j.1 < p.length + 1 := by simpa [p'] using hjltlen
+      omega
+    have hget : p'.getVert j.1 = p.getVert (j.1 - 1) := by
+      simpa [p'] using
+        (SimpleGraph.Walk.getVert_cons p hadj (Nat.ne_of_gt hjpos))
+    change C.HasVertex (N.aggregateVertexToTrueSRVertex (p'.getVert j.1).1) at hCj
+    rw [hget] at hCj
+    exact hinterior (j.1 - 1) hjlt hCj
+  have hstartSpecies : C.HasSpecies P.startSpecies := by
+    have hsEq : P.startSpecies = s.1 := by
+      apply Sum.inl.inj
+      calc
+        Sum.inl P.startSpecies = P.vertex 0 := P.vertex_zero.symm
+        _ = Sum.inl s.1 := hstart
+    obtain ⟨j, hj⟩ := hsCycle
+    exact ⟨j, hj.trans hsEq.symm⟩
+  have hendReaction : C.HasReaction P.endReaction.1 := by
+    have hrEq : P.endReaction =
+        (⟨qC.1, N.activeAggregateTrueReaction_internal qC⟩ : N.InternalTrueReaction) := by
+      apply Sum.inr.inj
+      calc
+        Sum.inr P.endReaction = P.vertex (Fin.last p'.length) := P.vertex_last.symm
+        _ = Sum.inr ⟨qC.1, N.activeAggregateTrueReaction_internal qC⟩ := hend
+    obtain ⟨j, hj⟩ := hqCCycle
+    exact ⟨j, hj.trans (congrArg Subtype.val hrEq).symm⟩
+  have hpathLengthAtLeastTwo : 2 ≤ p'.length := by
+    rw [hlen]
+    omega
+  have hinteriorEndpoint : ∀ a : Fin p'.length,
+      C.HasVertex (P.vertex (Fin.castSucc a)) →
+      C.HasVertex (P.vertex a.succ) → False := by
+    intro a hstartC hendC
+    by_cases ha0 : a.1 = 0
+    · have hj0 : (a.succ).1 ≠ 0 := by simp [ha0]
+      have hjL : (a.succ).1 ≠ p'.length := by
+        have hval : (a.succ).1 = 1 := by simp [ha0]
+        rw [hval]
+        omega
+      exact (hinteriorP a.succ hj0 hjL) hendC
+    · have hj0 : (Fin.castSucc a).1 ≠ 0 := by simpa using ha0
+      have hjL : (Fin.castSucc a).1 ≠ p'.length := by
+        have hlt := a.isLt
+        simp only [Fin.coe_castSucc]
+        omega
+      exact (hinteriorP (Fin.castSucc a) hj0 hjL) hstartC
+  have hcycleEdgeLeftDisjoint : ∀ a t,
+      ¬ (P.edge a).SameIncidence (C.leftEdge t) := by
+    intro a t hsame
+    have hsp : C.HasVertex (Sum.inl (P.edge a).species) := by
+      change C.HasSpecies (P.edge a).species
+      exact ⟨t, (C.left_species t).symm.trans hsame.1.symm⟩
+    have hrx : C.HasVertex
+        (Sum.inr ⟨(P.edge a).reaction, (P.edge a).internal⟩) := by
+      change C.HasReaction (P.edge a).reaction
+      exact ⟨t, (C.left_reaction t).symm.trans hsame.2.1.symm⟩
+    rcases P.connects a with ⟨ha0, ha1⟩ | ⟨ha0, ha1⟩
+    · exact hinteriorEndpoint a (by rw [ha0]; exact hsp) (by rw [ha1]; exact hrx)
+    · exact hinteriorEndpoint a (by rw [ha0]; exact hrx) (by rw [ha1]; exact hsp)
+  have hcycleEdgeRightDisjoint : ∀ a t,
+      ¬ (P.edge a).SameIncidence (C.rightEdge t) := by
+    intro a t hsame
+    have hsp : C.HasVertex (Sum.inl (P.edge a).species) := by
+      change C.HasSpecies (P.edge a).species
+      exact ⟨⟨(t.1 + 1) % n, Nat.mod_lt _ (by omega)⟩,
+        (C.right_species t).symm.trans hsame.1.symm⟩
+    have hrx : C.HasVertex
+        (Sum.inr ⟨(P.edge a).reaction, (P.edge a).internal⟩) := by
+      change C.HasReaction (P.edge a).reaction
+      exact ⟨t, (C.right_reaction t).symm.trans hsame.2.1.symm⟩
+    rcases P.connects a with ⟨ha0, ha1⟩ | ⟨ha0, ha1⟩
+    · exact hinteriorEndpoint a (by rw [ha0]; exact hsp) (by rw [ha1]; exact hrx)
+    · exact hinteriorEndpoint a (by rw [ha0]; exact hrx) (by rw [ha1]; exact hsp)
+  have hchord : C.IsChord P :=
+    ⟨hstartSpecies, hendReaction, hcycleEdgeLeftDisjoint, hcycleEdgeRightDisjoint⟩
+  have hresult : result p'.length := by
+    dsimp [result]
+    exact ⟨P, hchord, hstart, hend, hinteriorP⟩
+  change result (p.length + 1)
+  exact hlen ▸ hresult
 
 /-- At every active species, the strict total flux supplies a positive edge from an active
 aggregate reaction class. -/
