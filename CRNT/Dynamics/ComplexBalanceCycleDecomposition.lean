@@ -789,6 +789,58 @@ noncomputable def relativeSourceOrderCone (N : Network S) (w : S → ℝ) :
     rw [hproj r, hproj q]
     exact mul_le_mul_of_nonneg_left (hz r q hp) c.2
 
+/-- Each source projection, transported to Euclidean coordinates, is a continuous linear
+functional. -/
+theorem continuous_sourceLogProjection_toEuclid_symm (N : Network S) (r : N.R) :
+    Continuous (fun z : EuclideanSpace ℝ S =>
+      N.sourceLogProjection (CRNT.toEuclid.symm z) r) := by
+  have hrepr : (fun z : EuclideanSpace ℝ S =>
+      N.sourceLogProjection (CRNT.toEuclid.symm z) r) =
+      fun z => ∑ s, CRNT.exponentVector (N.sourceIdx r).val s * z s := by
+    funext z
+    have hz : ∀ s, (CRNT.toEuclid.symm z) s = z s := by
+      intro s
+      have h := congrArg (fun v : EuclideanSpace ℝ S => v s)
+        (CRNT.toEuclid.apply_symm_apply z)
+      simpa only [CRNT.toEuclid_apply] using h
+    simp [sourceLogProjection, CRNT.exponentVector, hz]
+  rw [hrepr]
+  exact continuous_finsetSum Finset.univ fun s _ =>
+    continuous_const.mul (EuclideanSpace.proj s).continuous
+
+/-- A relative source-order cone is an intersection of finitely many closed half-spaces,
+one for each ordered source pair selected by its reference direction. -/
+theorem isClosed_relativeSourceOrderCone (N : Network S) (w : S → ℝ) :
+    IsClosed (N.relativeSourceOrderCone w : Set (EuclideanSpace ℝ S)) := by
+  classical
+  change IsClosed {z : EuclideanSpace ℝ S | ∀ r q,
+    N.sourceLogProjection w r ≤ N.sourceLogProjection w q →
+      N.sourceLogProjection (CRNT.toEuclid.symm z) r ≤
+        N.sourceLogProjection (CRNT.toEuclid.symm z) q}
+  let I := {p : N.R × N.R //
+    N.sourceLogProjection w p.1 ≤ N.sourceLogProjection w p.2}
+  have hEq :
+      {z : EuclideanSpace ℝ S | ∀ r q,
+        N.sourceLogProjection w r ≤ N.sourceLogProjection w q →
+          N.sourceLogProjection (CRNT.toEuclid.symm z) r ≤
+            N.sourceLogProjection (CRNT.toEuclid.symm z) q} =
+      ⋂ p : I, {z : EuclideanSpace ℝ S |
+        N.sourceLogProjection (CRNT.toEuclid.symm z) p.1.1 ≤
+          N.sourceLogProjection (CRNT.toEuclid.symm z) p.1.2} := by
+    ext z
+    simp only [Set.mem_setOf_eq, Set.mem_iInter]
+    constructor
+    · intro hz p
+      exact hz p.1.1 p.1.2 p.2
+    · intro hz r q hp
+      exact hz ⟨(r, q), hp⟩
+  rw [hEq]
+  apply isClosed_iInter
+  intro p
+  exact isClosed_le
+    (N.continuous_sourceLogProjection_toEuclid_symm p.1.1)
+    (N.continuous_sourceLogProjection_toEuclid_symm p.1.2)
+
 /-- In a weakly reversible network, every reaction target is also a reaction source. The
 length-zero return path is handled by the original reaction; otherwise the first edge of the
 return path starts at the target. -/
