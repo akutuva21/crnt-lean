@@ -3,6 +3,7 @@ import CRNT.Equilibria.ComplexBalanceLinearStability
 import CRNT.Theorems.DeficiencyZero.Toric
 import CRNT.Dynamics.ToricEmbeddingOrder
 import CRNT.Geometry.ConeFace
+import CRNT.Geometry.ToricFan
 
 namespace CRNT.Network
 open scoped BigOperators InnerProductSpace
@@ -440,6 +441,142 @@ theorem sourceLogProjection_eq_inner_toEuclid (N : Network S) (w : S → ℝ)
   rw [CRNT.inner_toEuclid]
   simp [sourceLogProjection, CRNT.exponentVector]
 
+/-- A reaction vector is the difference of its target and source exponent vectors. -/
+theorem reactionVector_eq_exponentVector_target_sub_source
+    (N : Network S) (r : N.R) :
+    N.reactionVector r =
+      CRNT.exponentVector (N.reaction r).target -
+        CRNT.exponentVector (N.reaction r).source := by
+  funext s
+  simp [CRNT.exponentVector, reactionVector_apply]
+
+/-- The Euclidean image of the stoichiometric subspace. -/
+noncomputable def euclideanStoichSubspace (N : Network S) :
+    Submodule ℝ (EuclideanSpace ℝ S) :=
+  Submodule.map CRNT.toEuclid.toLinearMap N.stoichSubspace
+
+/-- The orthogonal projection of a logarithmic direction onto the stoichiometric subspace. -/
+noncomputable def relativeLogStoichProjection (N : Network S) (u : S → ℝ) : S → ℝ :=
+  CRNT.toEuclid.symm
+    (N.euclideanStoichSubspace.starProjection (CRNT.toEuclid u))
+
+theorem relativeLogStoichProjection_mem (N : Network S) (u : S → ℝ) :
+    N.relativeLogStoichProjection u ∈ N.stoichSubspace := by
+  have hp := N.euclideanStoichSubspace.starProjection_apply_mem (CRNT.toEuclid u)
+  rw [euclideanStoichSubspace, Submodule.mem_map] at hp
+  rcases hp with ⟨v, hv, hvp⟩
+  change CRNT.toEuclid.symm
+    ((Submodule.map CRNT.toEuclid.toLinearMap N.stoichSubspace).starProjection
+      (CRNT.toEuclid u)) ∈ N.stoichSubspace
+  rw [← hvp]
+  simpa using hv
+
+/-- Any two linked complexes differ by a vector in the stoichiometric subspace. The proof
+telescopes the reaction vectors along the undirected path, allowing a negative reaction vector
+when a path edge is traversed against its orientation. -/
+theorem exponentVector_sub_mem_stoichSubspace_of_linked
+    (N : Network S) {c d : Complex S} (hcd : N.Linked c d) :
+    CRNT.exponentVector d - CRNT.exponentVector c ∈ N.stoichSubspace := by
+  induction hcd with
+  | refl => simp
+  | @tail a d _ had ih =>
+      have hstep : CRNT.exponentVector d - CRNT.exponentVector a ∈
+          N.stoichSubspace := by
+        rcases had with hforward | hbackward
+        · obtain ⟨r, hs, ht⟩ := hforward
+          have hvec : CRNT.exponentVector d - CRNT.exponentVector a =
+              N.reactionVector r := by
+            rw [← ht, ← hs, N.reactionVector_eq_exponentVector_target_sub_source]
+          rw [hvec]
+          exact N.reactionVector_mem_stoichSubspace r
+        · obtain ⟨r, hs, ht⟩ := hbackward
+          have hvec : CRNT.exponentVector d - CRNT.exponentVector a =
+              -N.reactionVector r := by
+            rw [← hs, ← ht, N.reactionVector_eq_exponentVector_target_sub_source]
+            abel
+          rw [hvec]
+          exact N.stoichSubspace.neg_mem (N.reactionVector_mem_stoichSubspace r)
+      have hsum : CRNT.exponentVector d - CRNT.exponentVector c =
+          (CRNT.exponentVector a - CRNT.exponentVector c) +
+            (CRNT.exponentVector d - CRNT.exponentVector a) := by
+        ext s
+        simp
+      rw [hsum]
+      exact N.stoichSubspace.add_mem ih hstep
+
+/-- The difference of source projections depends only on a stoichiometric projection of its
+direction when the two source complexes are linked. -/
+theorem sourceLogProjection_sub_eq_of_linked_orthogonal
+    (N : Network S) {u w : S → ℝ}
+    (horth : CRNT.toEuclid (u - w) ∈ N.euclideanStoichSubspaceᗮ)
+    (r q : N.R) (hlinked : N.Linked (N.sourceIdx r).val (N.sourceIdx q).val) :
+    N.sourceLogProjection u r - N.sourceLogProjection u q =
+      N.sourceLogProjection w r - N.sourceLogProjection w q := by
+  have hdiff := N.exponentVector_sub_mem_stoichSubspace_of_linked hlinked.symm
+  have hinner :
+      ⟪CRNT.toEuclid (u - w),
+        CRNT.toEuclid (CRNT.exponentVector (N.sourceIdx r).val -
+          CRNT.exponentVector (N.sourceIdx q).val)⟫_ℝ = 0 := by
+    have hdiffE :
+        CRNT.toEuclid (CRNT.exponentVector (N.sourceIdx r).val -
+          CRNT.exponentVector (N.sourceIdx q).val) ∈ N.euclideanStoichSubspace := by
+      rw [euclideanStoichSubspace, Submodule.mem_map]
+      refine ⟨CRNT.exponentVector (N.sourceIdx r).val -
+        CRNT.exponentVector (N.sourceIdx q).val, hdiff, ?_⟩
+      rfl
+    have hzero := Submodule.inner_right_of_mem_orthogonal hdiffE horth
+    simpa [real_inner_comm] using hzero
+  have hproj (v : S → ℝ) :
+    N.sourceLogProjection v r - N.sourceLogProjection v q =
+        ⟪CRNT.toEuclid (CRNT.exponentVector (N.sourceIdx r).val -
+          CRNT.exponentVector (N.sourceIdx q).val),
+          CRNT.toEuclid v⟫_ℝ := by
+    rw [N.sourceLogProjection_eq_inner_toEuclid, N.sourceLogProjection_eq_inner_toEuclid]
+    rw [← inner_sub_left]
+    rfl
+  rw [hproj u, hproj w]
+  have hinner' :
+      ⟪CRNT.toEuclid (CRNT.exponentVector (N.sourceIdx r).val -
+          CRNT.exponentVector (N.sourceIdx q).val),
+        CRNT.toEuclid (u - w)⟫_ℝ = 0 := by
+    simpa only [real_inner_comm] using hinner
+  have hsplit : u - w + w = u := sub_add_cancel u w
+  rw [← hsplit, CRNT.toEuclid.map_add, inner_add_right, hinner']
+  simp
+
+/-- Every reaction source appearing along a positive-flux path is linked to the path's initial
+complex. This lets cycle estimates use only source-order comparisons within one linkage class. -/
+theorem positiveFluxPath_source_linked
+    (N : Network S) {v : N.R → ℝ} {rs : List N.R} {a b : N.ComplexIdx}
+    (hp : N.IsPositiveFluxPath v rs a b) {r : N.R} (hr : r ∈ rs) :
+    N.Linked a.val (N.sourceIdx r).val := by
+  induction rs generalizing a with
+  | nil => simp at hr
+  | cons e rs ih =>
+      rcases hp with ⟨hsource, _, htail⟩
+      simp only [List.mem_cons] at hr
+      rcases hr with hre | hr
+      · subst r
+        simpa [hsource] using Linked.refl N (N.sourceIdx e).val
+      · have hEdge : N.Linked a.val (N.targetIdx e).val := by
+          rw [← hsource]
+          exact N.linked_of_reaction e
+        exact Linked.trans hEdge (ih htail hr)
+
+theorem sourceLogProjection_sub_eq_relativeLogStoichProjection_of_linked
+    (N : Network S) (u : S → ℝ) (r q : N.R)
+    (hlinked : N.Linked (N.sourceIdx r).val (N.sourceIdx q).val) :
+    N.sourceLogProjection u r - N.sourceLogProjection u q =
+      N.sourceLogProjection (N.relativeLogStoichProjection u) r -
+        N.sourceLogProjection (N.relativeLogStoichProjection u) q := by
+  have horth : CRNT.toEuclid (u - N.relativeLogStoichProjection u) ∈
+      N.euclideanStoichSubspaceᗮ := by
+    change CRNT.toEuclid u -
+        N.euclideanStoichSubspace.starProjection (CRNT.toEuclid u) ∈
+      N.euclideanStoichSubspaceᗮ
+    exact N.euclideanStoichSubspace.sub_starProjection_mem_orthogonal _
+  exact N.sourceLogProjection_sub_eq_of_linked_orthogonal horth r q hlinked
+
 /-- The sum of source-exponent differences for the ordering constraints imposed by `w₂` but
 absent from `w₁`. It is a supporting normal for the intersection of their order cones. -/
 noncomputable def relativeSourceOrderIntersectionNormal (N : Network S)
@@ -662,8 +799,8 @@ theorem exists_uniform_equilibriumSourceFactor_bounds
 
 /-- **Relative-source-order dissipation for the full complex-balanced field.** Let
 `w = log(x / xstar)` be the relative logarithmic state. If a test direction `z` preserves the
-strict ordering of source complexes induced by `w`, then the full mass-action vector field has
-nonpositive projection onto `z`.
+strict ordering of linked source complexes induced by `w`, then the full mass-action vector field
+has nonpositive projection onto `z`.
 
 The proof decomposes the positive equilibrium flux into closed walks. On each walk the coefficient
 is a common nonnegative cycle-flow weight times the exact exponential `exp(source · w)`, so strict
@@ -673,7 +810,7 @@ theorem massActionVectorField_projected_nonpos_of_relativeSourceOrder
     (N : Network S) (κ : N.RateConstants) {x xstar : Concentration S}
     (hx : x.Positive) (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
     (z : S → ℝ)
-    (horder : ∀ r q,
+    (horder : ∀ r q, N.Linked (N.sourceIdx r).val (N.sourceIdx q).val →
       N.sourceLogProjection z r < N.sourceLogProjection z q →
         N.sourceLogProjection (fun s => Real.log (x s) - Real.log (xstar s)) r <
           N.sourceLogProjection (fun s => Real.log (x s) - Real.log (xstar s)) q) :
@@ -760,6 +897,13 @@ theorem massActionVectorField_projected_nonpos_of_relativeSourceOrder
   apply Finset.sum_nonpos
   intro i _
   obtain ⟨cycleFlow, base, hcycleFlow, hpath⟩ := hwalks i
+  have hsourceLinked (j : Fin (rs i).length) :
+      N.Linked base.val (N.sourceIdx ((rs i).get j)).val :=
+    N.positiveFluxPath_source_linked hpath (List.get_mem (rs i) j)
+  have hlinked (j l : Fin (rs i).length) :
+      N.Linked (N.sourceIdx ((rs i).get j)).val
+        (N.sourceIdx ((rs i).get l)).val :=
+    Linked.trans (hsourceLinked j).symm (hsourceLinked l)
   have hcycle := N.closedWalk_reactionList_projected_nonpos_of_order
     hpath (toEuclid logrel) (toEuclid z)
     (by
@@ -768,7 +912,8 @@ theorem massActionVectorField_projected_nonpos_of_relativeSourceOrder
           N.sourceLogProjection z ((rs i).get l) := by
         rw [← hprojection z ((rs i).get j), ← hprojection z ((rs i).get l)]
         exact hjl
-      have hrel := horder ((rs i).get j) ((rs i).get l) hz
+      have hrel := horder ((rs i).get j) ((rs i).get l)
+        (hlinked j l) hz
       rw [hprojection logrel ((rs i).get j), hprojection logrel ((rs i).get l)]
       exact hrel)
   have hcycleSum : ((rs i).map f).sum ≤ 0 := by
@@ -1449,6 +1594,26 @@ theorem relativeSourceOrderStoichCone_inf_eq_intersectionPointCone
       have h₀order := ((N.mem_relativeSourceOrderStoichCone w₂).mp hz₀.2).1 r q hw
       simpa [w₀, z₀] using hz₀order r q h₀order
 
+/-- In the packaged proper-cone family, every pairwise intersection is represented by another
+member. This is the closure property required by the finite fan construction. -/
+theorem relativeSourceOrderStoichProperCone_inf_eq_member
+    (N : Network S) (w₁ w₂ : S → ℝ) :
+    ∃ w : S → ℝ,
+      N.relativeSourceOrderStoichProperCone w =
+        N.relativeSourceOrderStoichProperCone w₁ ⊓
+          N.relativeSourceOrderStoichProperCone w₂ := by
+  let z₀ : EuclideanSpace ℝ S :=
+    ∑ p : N.R × N.R, N.relativeSourceOrderIntersectionWitness w₁ w₂ p.1 p.2
+  let w₀ : S → ℝ := CRNT.toEuclid.symm z₀
+  refine ⟨w₀, ?_⟩
+  apply ProperCone.ext
+  intro z
+  change z ∈ N.relativeSourceOrderStoichCone w₀ ↔
+    z ∈ N.relativeSourceOrderStoichCone w₁ ⊓
+      N.relativeSourceOrderStoichCone w₂
+  exact Iff.of_eq ((congrArg (fun C : PointedCone ℝ (EuclideanSpace ℝ S) => z ∈ C)
+    (N.relativeSourceOrderStoichCone_inf_eq_intersectionPointCone w₁ w₂)).symm)
+
 /-- The finite weak-order signature of the reaction-source projections selected by `w`. -/
 noncomputable def relativeSourceOrderSignature (N : Network S) (w : S → ℝ) :
     N.R → N.R → Bool :=
@@ -1578,6 +1743,48 @@ theorem finite_relativeSourceOrderStoichProperCone_range (N : Network S) :
     exact N.relativeSourceOrderStoichProperCone_eq_of_sameSourceOrder horder
   exact hfinite.subset hsub
 
+/-- The exact finite family of stoichiometrically restricted source-order cones, packaged as
+the cone data consumed by the toric differential-inclusion layer. -/
+noncomputable def relativeSourceOrderStoichConeFamily (N : Network S) :
+    Finset (ProperCone ℝ (EuclideanSpace ℝ S)) := by
+  classical
+  exact (N.finite_relativeSourceOrderStoichProperCone_range).toFinset
+
+@[simp] theorem mem_relativeSourceOrderStoichConeFamily
+    (N : Network S) {C : ProperCone ℝ (EuclideanSpace ℝ S)} :
+    C ∈ N.relativeSourceOrderStoichConeFamily ↔
+      C ∈ Set.range (N.relativeSourceOrderStoichProperCone) := by
+  classical
+  change C ∈ (N.finite_relativeSourceOrderStoichProperCone_range).toFinset ↔ _
+  exact N.finite_relativeSourceOrderStoichProperCone_range.mem_toFinset
+
+/-- The finite family is closed under pairwise intersections: each intersection is represented
+by the finite sum of comparison witnesses and therefore remains one of its cones. -/
+theorem relativeSourceOrderStoichConeFamily_inter_mem
+    (N : Network S) {C₁ C₂ : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (h₁ : C₁ ∈ N.relativeSourceOrderStoichConeFamily)
+    (h₂ : C₂ ∈ N.relativeSourceOrderStoichConeFamily) :
+    C₁ ⊓ C₂ ∈ N.relativeSourceOrderStoichConeFamily := by
+  rw [N.mem_relativeSourceOrderStoichConeFamily] at h₁ h₂ ⊢
+  rcases h₁ with ⟨w₁, rfl⟩
+  rcases h₂ with ⟨w₂, rfl⟩
+  obtain ⟨w, hw⟩ := N.relativeSourceOrderStoichProperCone_inf_eq_member w₁ w₂
+  exact ⟨w, hw⟩
+
+/-- Pairwise intersections in the finite family are common exposed faces of both cones. Combined
+with intersection closure, this supplies the polyhedral-complex intersection law. -/
+theorem relativeSourceOrderStoichConeFamily_inter_commonExposedFace
+    (N : Network S) {C₁ C₂ : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (h₁ : C₁ ∈ N.relativeSourceOrderStoichConeFamily)
+    (h₂ : C₂ ∈ N.relativeSourceOrderStoichConeFamily) :
+    CRNT.IsExposedFaceOf (C₁ ⊓ C₂) C₁ ∧
+      CRNT.IsExposedFaceOf (C₁ ⊓ C₂) C₂ := by
+  rw [N.mem_relativeSourceOrderStoichConeFamily] at h₁ h₂
+  rcases h₁ with ⟨w₁, rfl⟩
+  rcases h₂ with ⟨w₂, rfl⟩
+  exact ⟨N.relativeSourceOrderStoichProperCone_inter_isExposedFaceOf w₁ w₂,
+    N.relativeSourceOrderStoichProperCone_inter_isExposedFaceOf_right w₁ w₂⟩
+
 /-- A direction belongs to the source-order chamber it itself selects. -/
 theorem toEuclid_mem_relativeSourceOrderCone (N : Network S) (w : S → ℝ) :
     CRNT.toEuclid w ∈ N.relativeSourceOrderCone w := by
@@ -1624,6 +1831,23 @@ theorem stoich_of_mem_relativeSourceOrderStoichProperCone
   rcases hC with ⟨w, rfl⟩
   exact (N.mem_relativeSourceOrderStoichCone w).mp hz |>.2
 
+/-- The exact finite family covers every stoichiometric direction. -/
+theorem exists_relativeSourceOrderStoichConeFamily_mem
+    (N : Network S) {z : EuclideanSpace ℝ S}
+    (hz : CRNT.toEuclid.symm z ∈ N.stoichSubspace) :
+    ∃ C ∈ N.relativeSourceOrderStoichConeFamily, z ∈ C := by
+  obtain ⟨C, hC, hzC⟩ := N.exists_relativeSourceOrderStoichProperCone_mem hz
+  exact ⟨C, (N.mem_relativeSourceOrderStoichConeFamily).2 hC, hzC⟩
+
+/-- Every cone in the finite family remains inside the stoichiometric subspace. -/
+theorem stoich_of_mem_relativeSourceOrderStoichConeFamily
+    (N : Network S) {C : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (hC : C ∈ N.relativeSourceOrderStoichConeFamily)
+    {z : EuclideanSpace ℝ S} (hz : z ∈ C) :
+    CRNT.toEuclid.symm z ∈ N.stoichSubspace :=
+  N.stoich_of_mem_relativeSourceOrderStoichProperCone
+    ((N.mem_relativeSourceOrderStoichConeFamily).1 hC) hz
+
 /-- **Pointwise toric inclusion for a complex-balanced field.** At every positive state `x`, the
 mass-action vector field lies in the polar cone of the source-order cone determined by
 `log(x/xstar)`. This is the exact finite-dimensional toric differential-inclusion statement: the
@@ -1642,12 +1866,12 @@ theorem massActionVectorField_mem_polar_relativeSourceOrderCone
       N.sourceLogProjection (fun s => Real.log (x s) - Real.log (xstar s)) q →
     N.sourceLogProjection (CRNT.toEuclid.symm z) r ≤
       N.sourceLogProjection (CRNT.toEuclid.symm z) q) at hz
-  have horder : ∀ r q,
+  have horder : ∀ r q, N.Linked (N.sourceIdx r).val (N.sourceIdx q).val →
       N.sourceLogProjection (CRNT.toEuclid.symm z) r <
         N.sourceLogProjection (CRNT.toEuclid.symm z) q →
       N.sourceLogProjection (fun s => Real.log (x s) - Real.log (xstar s)) r <
         N.sourceLogProjection (fun s => Real.log (x s) - Real.log (xstar s)) q := by
-    intro r q htest
+    intro r q _ htest
     by_contra hnot
     have hreverse :
         N.sourceLogProjection (fun s => Real.log (x s) - Real.log (xstar s)) q ≤
@@ -1669,6 +1893,162 @@ theorem massActionVectorField_mem_polar_relativeSourceOrderCone
             CRNT.inner_toEuclid _ _
   rw [hinner]
   exact hproj
+
+/-- Restricting the source-order chamber to stoichiometric directions preserves the pointwise
+toric inclusion for the mass-action field. This is the form consumed by the finite cone family. -/
+theorem massActionVectorField_mem_polar_relativeSourceOrderStoichCone
+    (N : Network S) (κ : N.RateConstants) {x xstar : Concentration S}
+    (hx : x.Positive) (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar) :
+    CRNT.toEuclid (N.massActionVectorField κ x) ∈
+      polarCone (N.relativeSourceOrderStoichCone
+        (fun s => Real.log (x s) - Real.log (xstar s))) := by
+  have hfield := N.massActionVectorField_mem_polar_relativeSourceOrderCone κ hx hxs hcb
+  rw [mem_polarCone] at hfield ⊢
+  intro z hz
+  exact hfield ((N.mem_relativeSourceOrderStoichCone _).mp hz).1
+
+/-- At every positive state, the mass-action field lies in the polar of the finite chamber
+selected by the projection of its relative logarithm onto stoichiometric space. The projection
+preserves every source comparison within a linkage class, which is exactly what the closed-cycle
+entropy estimate needs. -/
+theorem massActionVectorField_mem_polar_relativeSourceOrderStoichProjection
+    (N : Network S) (κ : N.RateConstants) {x xstar : Concentration S}
+    (hx : x.Positive) (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar) :
+    CRNT.toEuclid (N.massActionVectorField κ x) ∈
+      polarCone (N.relativeSourceOrderStoichCone
+        (N.relativeLogStoichProjection
+          (fun s => Real.log (x s) - Real.log (xstar s)))) := by
+  let u : S → ℝ := fun s => Real.log (x s) - Real.log (xstar s)
+  let w : S → ℝ := N.relativeLogStoichProjection u
+  have horth : CRNT.toEuclid (u - w) ∈ N.euclideanStoichSubspaceᗮ := by
+    change CRNT.toEuclid u -
+        N.euclideanStoichSubspace.starProjection (CRNT.toEuclid u) ∈
+      N.euclideanStoichSubspaceᗮ
+    exact N.euclideanStoichSubspace.sub_starProjection_mem_orthogonal _
+  rw [mem_polarCone]
+  intro z hz
+  have hzorder := (N.mem_relativeSourceOrderStoichCone w).mp hz |>.1
+  change (∀ r q,
+      N.sourceLogProjection w r ≤ N.sourceLogProjection w q →
+        N.sourceLogProjection (CRNT.toEuclid.symm z) r ≤
+          N.sourceLogProjection (CRNT.toEuclid.symm z) q) at hzorder
+  have horder : ∀ r q, N.Linked (N.sourceIdx r).val (N.sourceIdx q).val →
+      N.sourceLogProjection (CRNT.toEuclid.symm z) r <
+        N.sourceLogProjection (CRNT.toEuclid.symm z) q →
+      N.sourceLogProjection u r < N.sourceLogProjection u q := by
+    intro r q hlinked htest
+    have hnot : ¬ N.sourceLogProjection w q ≤ N.sourceLogProjection w r := by
+      intro hreverse
+      exact (not_lt_of_ge (hzorder q r hreverse)) htest
+    have hw : N.sourceLogProjection w r < N.sourceLogProjection w q :=
+      lt_of_not_ge hnot
+    have hsame := N.sourceLogProjection_sub_eq_of_linked_orthogonal
+      horth r q hlinked
+    have hdiff : N.sourceLogProjection u r - N.sourceLogProjection u q < 0 := by
+      rw [hsame]
+      exact sub_neg.mpr hw
+    exact sub_neg.mp hdiff
+  have hproj := N.massActionVectorField_projected_nonpos_of_relativeSourceOrder
+    κ hx hxs hcb (CRNT.toEuclid.symm z) horder
+  have hinner :
+      ⟪z, CRNT.toEuclid (N.massActionVectorField κ x)⟫_ℝ =
+        ∑ s, (CRNT.toEuclid.symm z) s * N.massActionVectorField κ x s := by
+    calc
+      ⟪z, CRNT.toEuclid (N.massActionVectorField κ x)⟫_ℝ =
+          ⟪CRNT.toEuclid (CRNT.toEuclid.symm z),
+            CRNT.toEuclid (N.massActionVectorField κ x)⟫_ℝ := by
+              rw [LinearEquiv.apply_symm_apply]
+      _ = ∑ s, (CRNT.toEuclid.symm z) s * N.massActionVectorField κ x s :=
+            CRNT.inner_toEuclid _ _
+  rw [hinner]
+  exact hproj
+
+/-- Reorient a stoichiometrically restricted source-order cone so its nonnegative dual is the
+nonpositive polar used by the cycle-dissipation argument. -/
+noncomputable def relativeSourceOrderNegativeCone (N : Network S) (w : S → ℝ) :
+    ProperCone ℝ (EuclideanSpace ℝ S) :=
+  (N.relativeSourceOrderStoichProperCone w).comap
+    (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S)))
+
+@[simp] theorem mem_relativeSourceOrderNegativeCone (N : Network S) (w : S → ℝ)
+    (z : EuclideanSpace ℝ S) :
+    z ∈ N.relativeSourceOrderNegativeCone w ↔
+      -z ∈ N.relativeSourceOrderStoichProperCone w := by
+  simp [relativeSourceOrderNegativeCone, ProperCone.mem_comap]
+
+/-- The exact finite family of sign-reversed chambers for the nonnegative-dual toric field. -/
+noncomputable def relativeSourceOrderNegativeConeFamily (N : Network S) :
+    CRNT.Fan (EuclideanSpace ℝ S) := by
+  classical
+  exact N.relativeSourceOrderStoichConeFamily.image fun C =>
+    C.comap (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S)))
+
+/-- Every sign-reversed chamber is a member of the finite toric generator family. -/
+theorem relativeSourceOrderNegativeCone_mem_family (N : Network S) (w : S → ℝ) :
+    N.relativeSourceOrderNegativeCone w ∈ N.relativeSourceOrderNegativeConeFamily := by
+  classical
+  rw [relativeSourceOrderNegativeConeFamily]
+  apply Finset.mem_image.mpr
+  refine ⟨N.relativeSourceOrderStoichProperCone w, ?_, rfl⟩
+  exact (N.mem_relativeSourceOrderStoichConeFamily).2 ⟨w, rfl⟩
+
+/-- The projected relative log state lies in the negative of its selected source-order cone. -/
+theorem negativeRelativeLogStoichProjection_mem_relativeSourceOrderNegativeCone
+    (N : Network S) (u : S → ℝ) :
+    -CRNT.toEuclid (N.relativeLogStoichProjection u) ∈
+      N.relativeSourceOrderNegativeCone (N.relativeLogStoichProjection u) := by
+  rw [N.mem_relativeSourceOrderNegativeCone, neg_neg]
+  change CRNT.toEuclid (N.relativeLogStoichProjection u) ∈
+    N.relativeSourceOrderStoichCone (N.relativeLogStoichProjection u)
+  exact (N.mem_relativeSourceOrderStoichCone _).2
+    ⟨N.toEuclid_mem_relativeSourceOrderCone _, N.relativeLogStoichProjection_mem u⟩
+
+/-- **Complex-balanced vector field in the finite toric field.** At every positive concentration,
+the projected relative logarithmic state is in one sign-reversed source-order chamber, and the
+full mass-action vector field is in that chamber's nonnegative dual. Hence the vector field is a
+member of the toric field generated by the exact finite family of source-order chambers. -/
+theorem massActionVectorField_mem_relativeSourceOrderToricField
+    (N : Network S) (κ : N.RateConstants) {x xstar : Concentration S}
+    (hx : x.Positive) (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {δ : ℝ} (hδ : 0 < δ) :
+    CRNT.toEuclid (N.massActionVectorField κ x) ∈
+      CRNT.toricField N.relativeSourceOrderNegativeConeFamily δ
+        (-CRNT.toEuclid (N.relativeLogStoichProjection
+          (fun s => Real.log (x s) - Real.log (xstar s)))) := by
+  let u : S → ℝ := fun s => Real.log (x s) - Real.log (xstar s)
+  let w : S → ℝ := N.relativeLogStoichProjection u
+  let C : ProperCone ℝ (EuclideanSpace ℝ S) :=
+    N.relativeSourceOrderNegativeCone w
+  have hstate : -CRNT.toEuclid w ∈ C := by
+    change -CRNT.toEuclid w ∈ N.relativeSourceOrderNegativeCone w
+    exact N.negativeRelativeLogStoichProjection_mem_relativeSourceOrderNegativeCone u
+  have hdist : Metric.infDist (-CRNT.toEuclid w) (C : Set (EuclideanSpace ℝ S)) = 0 :=
+    Metric.infDist_zero_of_mem hstate
+  have hnear : Metric.infDist (-CRNT.toEuclid w) (C : Set (EuclideanSpace ℝ S)) < δ := by
+    rw [hdist]
+    exact hδ
+  have hCmem : C ∈ N.relativeSourceOrderNegativeConeFamily := by
+    change N.relativeSourceOrderNegativeCone w ∈
+      N.relativeSourceOrderNegativeConeFamily
+    exact N.relativeSourceOrderNegativeCone_mem_family w
+  have hpolar := N.massActionVectorField_mem_polar_relativeSourceOrderStoichProjection
+    κ hx hxs hcb
+  have hdual : CRNT.toEuclid (N.massActionVectorField κ x) ∈
+      CRNT.coneDual (C : Set (EuclideanSpace ℝ S)) := by
+    rw [CRNT.mem_coneDual]
+    intro z hz
+    have hneg : -z ∈ N.relativeSourceOrderStoichProperCone w := by
+      change z ∈ N.relativeSourceOrderNegativeCone w at hz
+      exact (N.mem_relativeSourceOrderNegativeCone w z).mp hz
+    have hpolar' :
+        CRNT.toEuclid (N.massActionVectorField κ x) ∈
+          CRNT.polarCone (N.relativeSourceOrderStoichCone w) := by
+      simpa [u, w] using hpolar
+    have hle : ⟪-z, CRNT.toEuclid (N.massActionVectorField κ x)⟫_ℝ ≤ 0 :=
+      (CRNT.mem_polarCone.mp hpolar') hneg
+    rw [inner_neg_left] at hle
+    linarith
+  exact CRNT.coneDual_le_toricField hCmem hnear hdual
 
 /-- **Eventual order-cone dissipation on every logarithmic ray.** Fix a positive complex-balanced
 equilibrium and any direction `w` in log-concentration space. Along `xₜ = exp(t w)`, the field
