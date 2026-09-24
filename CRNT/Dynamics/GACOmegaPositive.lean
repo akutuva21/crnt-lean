@@ -1,5 +1,6 @@
 import CRNT.Dynamics.GlobalStability
 import CRNT.Dynamics.BoundaryOmegaSiphon
+import CRNT.Dynamics.CriticalSiphonOmega
 import CRNT.Dynamics.SiphonFaceWeakReversibility
 
 /-!
@@ -91,6 +92,38 @@ theorem complexBalanced_and_massActionVectorField_eq_zero_of_mem_boundaryOmega_s
   constructor
   · simpa [hγ0] using hpair.1
   · simpa [hγ0] using hpair.2
+
+/-- A boundary omega point with a nonempty zero set exposes a lower-rank complex-balanced face.
+The zero set is critical by affine conservation, the avoiding-face restriction is complex-balanced
+at the filled state, and criticality forces its stoichiometric rank to be strictly smaller than the
+parent rank. This packages the structural data needed by a rank-induction boundary argument. -/
+theorem criticalBoundaryOmegaFace_lowerRank
+    (N : Network S) (hwr : N.WeaklyReversible) (κ : N.RateConstants)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {xstar x₀ : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar)
+    (hγ0 : ∀ x, γ x 0 = x) (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    {K : Set (Concentration S)} (hK : IsCompact K)
+    (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hgenω : ∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      HasDerivAt (γ y) (N.massActionVectorField κ (γ y t)) t)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    (hωaff : ∀ z ∈ omegaLimit atTop ϕ {x₀}, (z - x₀ : Concentration S) ∈ N.stoichSubspace)
+    (hx₀ : x₀.Positive)
+    {c : ℝ} (hωc : ∀ z ∈ omegaLimit atTop ϕ {x₀}, relEntropy xstar z = c)
+    {w : Concentration S} (hw : w ∈ omegaLimit atTop ϕ {x₀})
+    {P : Finset S} (hzeroSet : ∀ s, s ∈ P ↔ w s = 0) (hPne : P.Nonempty) :
+    N.IsCriticalSiphon P ∧
+      (N.restrictReactions (N.avoidingSiphonReactions P)).IsComplexBalanced
+        (κ.restrict (N.avoidingSiphonReactions P)) (fillSiphonFace P xstar w) ∧
+      (N.restrictReactions (N.avoidingSiphonReactions P)).stoichRank < N.stoichRank ∧
+      N.massActionVectorField κ w = 0 := by
+  have hcrit : N.IsCriticalSiphon P :=
+    N.isCriticalSiphon_zeroSet_of_mem_omegaLimit κ hϕγ hK hmaps hωnn hgenω hωaff hx₀
+      hw hzeroSet hPne
+  have hface := N.complexBalanced_and_massActionVectorField_eq_zero_of_mem_boundaryOmega_siphon
+    hwr κ hxs hcb hγ0 hϕγ hgenω hωnn hωc hw hcrit.2.1 hzeroSet
+  exact ⟨hcrit, hface.1, N.restrictReactions_avoiding_siphon_stoichRank_lt hcrit, hface.2⟩
 
 /-- Complex balance of a filled siphon-face state places its log-ratio to the reference in the
 orthogonal complement of the face subnetwork's stoichiometric subspace. This is the toric
