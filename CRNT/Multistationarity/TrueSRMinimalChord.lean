@@ -92,6 +92,45 @@ theorem minimal_chord_interior_disjoint {C : N.TrueSRCycle n} {P : N.TrueSRPath 
       (isChord_initialSegment hC p.1 (by omega) hoddp hrx)
     omega
 
+/-- Any edge-disjoint chord can be shortened until its interior misses the cycle.  At an
+interior reaction use the initial segment; at an interior species use the terminal segment.
+Each cut remains a chord and strictly decreases its length, so the process terminates. -/
+theorem exists_chord_with_interior_off_cycle {C : N.TrueSRCycle n}
+    {P : N.TrueSRPath L} (hC : C.IsChord P) :
+    ∃ M : ℕ, ∃ Q : N.TrueSRPath M, C.IsChord Q ∧
+      ∀ p : Fin (M + 1), p.1 ≠ 0 → p.1 ≠ M → ¬ C.HasVertex (Q.vertex p) := by
+  induction L using Nat.strong_induction_on with
+  | h L ih =>
+      classical
+      by_cases hclean : ∀ p : Fin (L + 1),
+          p.1 ≠ 0 → p.1 ≠ L → ¬ C.HasVertex (P.vertex p)
+      · exact ⟨L, P, hC, hclean⟩
+      · have hhit : ∃ p : Fin (L + 1),
+            p.1 ≠ 0 ∧ p.1 ≠ L ∧ C.HasVertex (P.vertex p) := by
+          by_contra h
+          apply hclean
+          intro p hp0 hpL hvertex
+          exact h ⟨p, hp0, hpL, hvertex⟩
+        obtain ⟨p, hp0, hpL, hvertex⟩ := hhit
+        rcases Nat.even_or_odd p.1 with heven | hodd
+        · have hpar : p.1 % 2 = 0 := Nat.even_iff.mp heven
+          have hlt : p.1 < L := by omega
+          have hspecies : C.HasSpecies (P.speciesAt p hpar) := by
+            rw [P.vertex_eq_speciesAt p hpar] at hvertex
+            exact hvertex
+          let Q := P.terminalSegment p.1 hlt hpar
+          have hQ : C.IsChord Q := P.isChord_terminalSegment hC p.1 hlt hpar hspecies
+          have hshort : L - p.1 < L :=
+            terminalSegment_length_lt (by omega) hlt
+          exact ih (L - p.1) hshort hQ
+        · have hpar : p.1 % 2 = 1 := Nat.odd_iff.mp hodd
+          have hreaction : C.HasReaction (P.reactionAt p (by omega)).1 := by
+            rw [P.vertex_eq_reactionAt p (by omega)] at hvertex
+            exact hvertex
+          let Q := P.initialSegment p.1 (by omega) hpar
+          have hQ : C.IsChord Q := P.isChord_initialSegment hC p.1 (by omega) hpar hreaction
+          exact ih p.1 (by omega) hQ
+
 end TrueSRPath
 
 end CRNT.Network
