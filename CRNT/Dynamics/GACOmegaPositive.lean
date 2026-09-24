@@ -39,11 +39,11 @@ namespace Network
 
 variable {S : Type} [DecidableEq S] [Fintype S]
 
-/-- **Boundary omega-points are face equilibria.** If the zero set of a boundary omega-point is a
-siphon, then constant relative entropy and forward invariance of the omega-limit set force that
-point to be an equilibrium. The proof restricts the weakly reversible complex-balanced system to
-the reactions that do not require the absent species. -/
-theorem massActionVectorField_eq_zero_of_mem_boundaryOmega_siphon
+/-- **Boundary omega-points induce complex-balanced face equilibria.** If the zero set of a
+boundary omega-point is a siphon, constant relative entropy and forward invariance force its
+filled state to be complex-balanced for the weakly reversible subnetwork that avoids the absent
+species. The original boundary point is also stationary for the full network. -/
+theorem complexBalanced_and_massActionVectorField_eq_zero_of_mem_boundaryOmega_siphon
     (N : Network S) (hwr : N.WeaklyReversible) (κ : N.RateConstants)
     {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
     {xstar x₀ : Concentration S} (hxs : xstar.Positive)
@@ -56,7 +56,9 @@ theorem massActionVectorField_eq_zero_of_mem_boundaryOmega_siphon
     {w : Concentration S} (hw : w ∈ omegaLimit atTop ϕ {x₀})
     {P : Finset S} (hP : N.IsSiphon P)
     (hzeroSet : ∀ s, s ∈ P ↔ w s = 0) :
-    N.massActionVectorField κ w = 0 := by
+    (N.restrictReactions (N.avoidingSiphonReactions P)).IsComplexBalanced
+        (κ.restrict (N.avoidingSiphonReactions P)) (fillSiphonFace P xstar w) ∧
+      N.massActionVectorField κ w = 0 := by
   have hwposOutside : ∀ s, s ∉ P → 0 < w s := by
     intro s hs
     have hnotzero : w s ≠ 0 := by
@@ -79,9 +81,37 @@ theorem massActionVectorField_eq_zero_of_mem_boundaryOmega_siphon
   have hpositive : ∀ s, s ∉ P → 0 < γ w 0 s := by
     intro s hs
     simpa [hγ0] using hwposOutside s hs
-  exact N.massActionVectorField_eq_zero_of_confined_constantEntropy_siphonFaceOrbit
-    κ hP hwr hxs hcb (hγ0 w) hface0 hnonneg hpositive (hgenω w hw)
-    (fun t ht => hωc (γ w t) (hyωt t ht))
+  have hconstant : ∀ t, 0 ≤ t → relEntropy xstar (γ w t) = c :=
+    fun t ht => hωc (γ w t) (hyωt t ht)
+  have hface : ∀ t, 0 ≤ t → γ w t ∈ N.SiphonFace P :=
+    N.siphonFace_forwardInvariant_of_relEntropy_le κ hP hxs (hgenω w hw) hnonneg
+      (fun t ht => (hconstant t ht).le) hface0
+  have hpair := N.complexBalanced_and_massActionVectorField_eq_zero_of_constantEntropy_siphonFaceOrbit
+    κ hP hwr hxs hcb (hγ0 w) hface hpositive (hgenω w hw) hconstant
+  constructor
+  · simpa [hγ0] using hpair.1
+  · simpa [hγ0] using hpair.2
+
+/-- **Boundary omega-points are face equilibria.** Every point whose zero set is a siphon is
+stationary for the full network. This is the stationarity projection of
+`complexBalanced_and_massActionVectorField_eq_zero_of_mem_boundaryOmega_siphon`, which also
+returns complex balance of the filled face state. -/
+theorem massActionVectorField_eq_zero_of_mem_boundaryOmega_siphon
+    (N : Network S) (hwr : N.WeaklyReversible) (κ : N.RateConstants)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {xstar x₀ : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar)
+    (hγ0 : ∀ x, γ x 0 = x) (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hgenω : ∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      HasDerivAt (γ y) (N.massActionVectorField κ (γ y t)) t)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    {c : ℝ} (hωc : ∀ z ∈ omegaLimit atTop ϕ {x₀}, relEntropy xstar z = c)
+    {w : Concentration S} (hw : w ∈ omegaLimit atTop ϕ {x₀})
+    {P : Finset S} (hP : N.IsSiphon P)
+    (hzeroSet : ∀ s, s ∈ P ↔ w s = 0) :
+    N.massActionVectorField κ w = 0 :=
+  (N.complexBalanced_and_massActionVectorField_eq_zero_of_mem_boundaryOmega_siphon
+    hwr κ hxs hcb hγ0 hϕγ hgenω hωnn hωc hw hP hzeroSet).2
 
 /-- Compactness makes the zero set of any boundary omega point a siphon, so every such point is a
 stationary point of the full complex-balanced vector field. -/
