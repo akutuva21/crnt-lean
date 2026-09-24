@@ -324,8 +324,9 @@ theorem relEntropy_fillSiphonFace
 /-- A boundary orbit that stays in a siphon face and has constant relative entropy can only
 accumulate at an equilibrium of the full vector field. Filling the absent coordinates turns the
 face orbit into a positive trajectory of the weakly reversible face subnetwork; the constant
-entropy forces its restricted dissipation to vanish. -/
-theorem massActionVectorField_eq_zero_of_constantEntropy_siphonFaceOrbit
+entropy forces its restricted dissipation to vanish. The theorem returns both the resulting
+complex balance of the filled face state and stationarity of the original state. -/
+theorem complexBalanced_and_massActionVectorField_eq_zero_of_constantEntropy_siphonFaceOrbit
     (N : Network S) (κ : N.RateConstants) {P : Finset S}
     (hP : N.IsSiphon P) (hwr : N.WeaklyReversible)
     {xstar x : Concentration S} (hxs : xstar.Positive)
@@ -336,7 +337,10 @@ theorem massActionVectorField_eq_zero_of_constantEntropy_siphonFaceOrbit
     (hderiv : ∀ t, 0 ≤ t →
       HasDerivAt γ (N.massActionVectorField κ (γ t)) t)
     {c : ℝ} (hconstantEntropy : ∀ t, 0 ≤ t → relEntropy xstar (γ t) = c) :
-    N.massActionVectorField κ x = 0 := by
+    (N.restrictReactions (N.avoidingSiphonReactions P)).IsComplexBalanced
+        (κ.restrict (N.avoidingSiphonReactions P))
+        (fillSiphonFace P xstar (γ 0)) ∧
+      N.massActionVectorField κ x = 0 := by
   classical
   let E := N.avoidingSiphonReactions P
   let Nf := N.restrictReactions E
@@ -415,12 +419,34 @@ theorem massActionVectorField_eq_zero_of_constantEntropy_siphonFaceOrbit
     exact N.restrictReactions_avoiding_siphon_complexBalanced κ hP hwr hcb
   have hcbη : Nf.IsComplexBalanced κf (η 0) :=
     Nf.complexBalanced_of_dissipation_eq_zero κf hηpos hxs hcbf hfaceDiss
+  refine ⟨hcbη, ?_⟩
   have hsteady := hcbη.isMassActionSteadyState Nf κf
   funext s
   calc
     N.massActionVectorField κ x s = Nf.massActionVectorField κf (η 0) s :=
       congrFun hfields0 s
     _ = 0 := hsteady s
+
+/-- A boundary orbit that stays in a siphon face and has constant relative entropy can only
+accumulate at an equilibrium of the full vector field. Filling the absent coordinates turns the
+face orbit into a positive trajectory of the weakly reversible face subnetwork; the constant
+entropy forces its restricted dissipation to vanish. This projection preserves the original
+stationarity interface while the stronger paired theorem also exposes complex balance of the
+filled face state. -/
+theorem massActionVectorField_eq_zero_of_constantEntropy_siphonFaceOrbit
+    (N : Network S) (κ : N.RateConstants) {P : Finset S}
+    (hP : N.IsSiphon P) (hwr : N.WeaklyReversible)
+    {xstar x : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar)
+    {γ : ℝ → Concentration S} (hγ0 : γ 0 = x)
+    (hface : ∀ t, 0 ≤ t → γ t ∈ N.SiphonFace P)
+    (hpositive : ∀ s, s ∉ P → 0 < γ 0 s)
+    (hderiv : ∀ t, 0 ≤ t →
+      HasDerivAt γ (N.massActionVectorField κ (γ t)) t)
+    {c : ℝ} (hconstantEntropy : ∀ t, 0 ≤ t → relEntropy xstar (γ t) = c) :
+    N.massActionVectorField κ x = 0 :=
+  (N.complexBalanced_and_massActionVectorField_eq_zero_of_constantEntropy_siphonFaceOrbit
+    κ hP hwr hxs hcb hγ0 hface hpositive hderiv hconstantEntropy).2
 
 /-- Entropy confinement supplies forward invariance of the siphon face. The initial point may be
 on the boundary; positivity is required only in the coordinates complementary to that face. -/
