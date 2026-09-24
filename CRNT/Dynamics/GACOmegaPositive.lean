@@ -92,6 +92,33 @@ theorem complexBalanced_and_massActionVectorField_eq_zero_of_mem_boundaryOmega_s
   · simpa [hγ0] using hpair.1
   · simpa [hγ0] using hpair.2
 
+/-- Complex balance of a filled siphon-face state places its log-ratio to the reference in the
+orthogonal complement of the face subnetwork's stoichiometric subspace. This is the toric
+constraint on boundary omega equilibria after restricting to reactions that avoid the siphon. -/
+theorem logRatio_fillSiphonFace_mem_orthogonalFaceStoich
+    (N : Network S) (κ : N.RateConstants) {P : Finset S}
+    (hP : N.IsSiphon P) (hwr : N.WeaklyReversible)
+    {xstar x : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar)
+    (hxoutside : ∀ s, s ∉ P → 0 < x s)
+    (hcbface :
+      (N.restrictReactions (N.avoidingSiphonReactions P)).IsComplexBalanced
+        (κ.restrict (N.avoidingSiphonReactions P)) (fillSiphonFace P xstar x)) :
+    (fun s => Real.log (fillSiphonFace P xstar x s) - Real.log (xstar s)) ∈
+      orthSum (N.restrictReactions (N.avoidingSiphonReactions P)).stoichSubspace := by
+  let Nf := N.restrictReactions (N.avoidingSiphonReactions P)
+  let κf := κ.restrict (N.avoidingSiphonReactions P)
+  have hfillpos : (fillSiphonFace P xstar x).Positive := by
+    intro s
+    by_cases hs : s ∈ P
+    · simpa [fillSiphonFace, hs] using hxs s
+    · simpa [fillSiphonFace, hs] using hxoutside s hs
+  have hwrf : Nf.WeaklyReversible :=
+    N.restrictReactions_avoiding_siphon_weaklyReversible hP hwr
+  have hcbstar : Nf.IsComplexBalanced κf xstar :=
+    N.restrictReactions_avoiding_siphon_complexBalanced κ hP hwr hcb
+  exact Nf.logRatio_orthogonal_of_complexBalanced hwrf κf hfillpos hxs hcbface hcbstar
+
 /-- **Boundary omega-points are face equilibria.** Every point whose zero set is a siphon is
 stationary for the full network. This is the stationarity projection of
 `complexBalanced_and_massActionVectorField_eq_zero_of_mem_boundaryOmega_siphon`, which also
