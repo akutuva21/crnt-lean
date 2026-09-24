@@ -2,6 +2,7 @@ import CRNT.Geometry.ZeroSeparatingSurface
 import CRNT.Geometry.FaithfulCurve2D
 import Mathlib.LinearAlgebra.Dimension.Constructions
 import Mathlib.Analysis.InnerProductSpace.Projection.Submodule
+import Mathlib.Data.Set.Finite.List
 
 /-!
 # The dimension induction of the zero-separating surface
@@ -103,6 +104,866 @@ namespace ZeroSeparatingInduction
 
 open scoped InnerProductSpace
 open ZeroSeparatingCurve2D
+
+/-! ## Finite interpolation of tile scales
+
+Section 7.4.3 of Craciun's general-dimensional construction inserts tile scales along finite chains
+between prescribed endpoint scales. The lemmas here formalize that scalar interpolation, including
+a common order-of-magnitude factor for any finite family once each chain's endpoint order is known.
+The binary-word indexing is also formalized below; pre-blueprints and geometric tiling remain open.
+https://arxiv.org/html/1501.02860v3
+-/
+
+/-- Linear interpolation across a finite tile-scale chain. The `n + 2` values include both
+endpoints and `n` strict intermediate scales. -/
+noncomputable def tileScaleInterpolation {n : ℕ} (lo hi : ℝ) (i : Fin (n + 2)) : ℝ :=
+  lo + (hi - lo) * ((i.val : ℝ) / ((n + 1 : ℕ) : ℝ))
+
+/-- The two endpoints of the interpolated tile-scale chain are the prescribed scales. -/
+theorem tileScaleInterpolation_endpoints {n : ℕ} {lo hi : ℝ} :
+    tileScaleInterpolation lo hi (0 : Fin (n + 2)) = lo ∧
+      tileScaleInterpolation lo hi (Fin.last (n + 1)) = hi := by
+  constructor
+  · simp [tileScaleInterpolation]
+  · change lo + (hi - lo) *
+      (((n + 1 : ℕ) : ℝ) / ((n + 1 : ℕ) : ℝ)) = hi
+    rw [div_self (by positivity : ((n + 1 : ℕ) : ℝ) ≠ 0)]
+    ring
+
+/-- Between any two strictly ordered endpoint scales, a finite chain admits arbitrarily many
+strictly ordered intermediate scales. This is the scale-insertion step used when refining a tile
+chain in the general-dimensional zero-separating construction. -/
+theorem strictMono_tileScaleInterpolation {n : ℕ} {lo hi : ℝ} (hlohi : lo < hi) :
+    StrictMono (tileScaleInterpolation lo hi : Fin (n + 2) → ℝ) := by
+  intro i j hij
+  dsimp [tileScaleInterpolation]
+  have hval : (i.val : ℝ) < j.val := by exact_mod_cast hij
+  have hden : (0 : ℝ) < ((n + 1 : ℕ) : ℝ) := by positivity
+  have hfrac :
+      (i.val : ℝ) / ((n + 1 : ℕ) : ℝ) <
+        (j.val : ℝ) / ((n + 1 : ℕ) : ℝ) :=
+    div_lt_div_of_pos_right hval hden
+  exact add_lt_add_right (mul_lt_mul_of_pos_left hfrac (sub_pos.mpr hlohi)) lo
+
+/-- Interpolated scales stay nonnegative when the lower endpoint is nonnegative and the endpoint
+order is increasing. -/
+theorem tileScaleInterpolation_nonneg {n : ℕ} {lo hi : ℝ} (hlo : 0 ≤ lo)
+    (hlohi : lo ≤ hi) (i : Fin (n + 2)) : 0 ≤ tileScaleInterpolation lo hi i := by
+  dsimp [tileScaleInterpolation]
+  apply add_nonneg hlo
+  apply mul_nonneg
+  · exact sub_nonneg.mpr hlohi
+  · apply div_nonneg
+    · exact Nat.cast_nonneg _
+    · positivity
+
+/-- A nonnegative lower endpoint and a larger upper endpoint admit a single strict scale factor for
+every adjacent pair in the finite interpolation. In the paper's order-of-magnitude notation, this
+gives one `q < 1` with `lower < q * upper` throughout the chain. -/
+theorem exists_separated_tileScaleInterpolation {n : ℕ} {lo hi : ℝ}
+    (hlo : 0 ≤ lo) (hlohi : lo < hi) :
+    ∃ q : ℝ, 0 < q ∧ q < 1 ∧
+      ∀ i : Fin (n + 1),
+        tileScaleInterpolation lo hi i.castSucc <
+          q * tileScaleInterpolation lo hi i.succ := by
+  let den : ℝ := ((n + 1 : ℕ) : ℝ)
+  let step : ℝ := (hi - lo) / den
+  let a : ℝ := step / (2 * hi)
+  let q : ℝ := 1 - a
+  have hden : 0 < den := by positivity
+  have hden1 : 1 ≤ den := by
+    dsimp [den]
+    exact_mod_cast Nat.succ_le_succ (Nat.zero_le n)
+  have hgap : 0 < hi - lo := sub_pos.mpr hlohi
+  have hstep : 0 < step := div_pos hgap hden
+  have hstep_le_gap : step ≤ hi - lo := by
+    dsimp [step]
+    exact div_le_self hgap.le hden1
+  have hstep_le_hi : step ≤ hi := le_trans hstep_le_gap (by linarith)
+  have hhi : 0 < hi := lt_of_le_of_lt hlo hlohi
+  have htwohi : 0 < 2 * hi := mul_pos (by norm_num) hhi
+  have ha : 0 < a := div_pos hstep htwohi
+  have ha_le_half : a ≤ 1 / 2 := by
+    dsimp [a]
+    calc
+      step / (2 * hi) ≤ hi / (2 * hi) := div_le_div_of_nonneg_right hstep_le_hi (le_of_lt htwohi)
+      _ = 1 / 2 := by field_simp [ne_of_gt hhi]
+  refine ⟨q, ?_, ?_, ?_⟩
+  · dsimp [q]
+    linarith
+  · dsimp [q]
+    linarith
+  · intro i
+    let lower := tileScaleInterpolation lo hi i.castSucc
+    let upper := tileScaleInterpolation lo hi i.succ
+    have hinc : upper - lower = step := by
+      dsimp [upper, lower, tileScaleInterpolation, step, den]
+      push_cast
+      field_simp
+      ring
+    have hupper : upper ≤ hi := by
+      have hmono := strictMono_tileScaleInterpolation (n := n) hlohi
+      have hle : i.succ ≤ Fin.last (n + 1) := Fin.le_last _
+      calc
+        upper = tileScaleInterpolation lo hi i.succ := rfl
+        _ ≤ tileScaleInterpolation lo hi (Fin.last (n + 1)) := hmono.monotone hle
+        _ = hi := (tileScaleInterpolation_endpoints (n := n) (lo := lo) (hi := hi)).2
+    have hmul : a * upper ≤ step / 2 := by
+      have hmul' : a * upper ≤ a * hi := mul_le_mul_of_nonneg_left hupper (le_of_lt ha)
+      have hahi : a * hi = step / 2 := by
+        dsimp [a]
+        field_simp [ne_of_gt hhi]
+      linarith
+    have hdiff : q * upper - lower = (step - a * upper) := by
+      dsimp [q]
+      rw [← hinc]
+      ring
+    have hpos : 0 < q * upper - lower := by
+      rw [hdiff]
+      linarith
+    linarith
+
+/-- A finite family of ordered endpoint pairs has one common strict separation factor for all its
+interpolated chains. The finite maximum of the chainwise factors remains below `1`; this is the
+scalar compatibility statement needed for a common order-of-magnitude constant. -/
+theorem exists_uniformly_separated_tileScaleInterpolations {ι : Type*} [Fintype ι]
+    (n : ι → ℕ) (lo hi : ι → ℝ) (hlo : ∀ c, 0 ≤ lo c)
+    (hlohi : ∀ c, lo c < hi c) :
+    ∃ q : ℝ, 0 < q ∧ q < 1 ∧
+      ∀ c (i : Fin (n c + 1)),
+        tileScaleInterpolation (lo c) (hi c) i.castSucc <
+          q * tileScaleInterpolation (lo c) (hi c) i.succ := by
+  classical
+  let qc : ι → ℝ := fun c =>
+    Classical.choose (exists_separated_tileScaleInterpolation (n := n c) (hlo c) (hlohi c))
+  have hqc (c : ι) : 0 < qc c ∧ qc c < 1 ∧
+      ∀ i : Fin (n c + 1),
+        tileScaleInterpolation (lo c) (hi c) i.castSucc <
+          qc c * tileScaleInterpolation (lo c) (hi c) i.succ := by
+    exact Classical.choose_spec
+      (exists_separated_tileScaleInterpolation (n := n c) (hlo c) (hlohi c))
+  by_cases hI : (Finset.univ : Finset ι).Nonempty
+  · let Q : Finset ℝ := Finset.univ.image qc
+    have hQ : Q.Nonempty := by
+      obtain ⟨c, hc⟩ := hI
+      exact ⟨qc c, Finset.mem_image.mpr ⟨c, hc, rfl⟩⟩
+    let q : ℝ := Q.max' hQ
+    have hqmax (c : ι) : qc c ≤ q := by
+      dsimp [q]
+      exact Finset.le_max' _ _ (Finset.mem_image.mpr ⟨c, Finset.mem_univ c, rfl⟩)
+    have hqpos : 0 < q := by
+      obtain ⟨c, hc⟩ := hI
+      exact lt_of_lt_of_le (hqc c).1 (hqmax c)
+    have hq_lt : q < 1 := by
+      have hmem := Q.max'_mem hQ
+      obtain ⟨c, _, hval⟩ := Finset.mem_image.mp hmem
+      dsimp [q]
+      rw [← hval]
+      exact (hqc c).2.1
+    refine ⟨q, hqpos, hq_lt, ?_⟩
+    intro c i
+    have hupperpos : 0 < tileScaleInterpolation (lo c) (hi c) i.succ := by
+      have hmono := strictMono_tileScaleInterpolation (n := n c) (hlohi c)
+      have hfirst := (tileScaleInterpolation_endpoints (n := n c)
+        (lo := lo c) (hi := hi c)).1
+      have hlt : (0 : Fin (n c + 2)) < i.succ :=
+        Fin.pos_iff_ne_zero.mpr (Fin.succ_ne_zero _)
+      have hstrict := hmono hlt
+      rw [hfirst] at hstrict
+      linarith [hlo c]
+    have hsep := (hqc c).2.2 i
+    exact lt_of_lt_of_le hsep
+      (mul_le_mul_of_nonneg_right (hqmax c) (le_of_lt hupperpos))
+  · refine ⟨1 / 2, by norm_num, by norm_num, ?_⟩
+    intro c
+    exact (hI ⟨c, Finset.mem_univ c⟩).elim
+
+/-- Finitely many independent refinement chains can be interpolated at once. Each chain keeps its
+own prescribed endpoints, and its inserted tile scales are strictly ordered. Since chains are
+represented separately here, the theorem imposes no cross-chain constraints; the word-to-chain map
+and its compatibility with blueprint geometry are separate obligations. -/
+theorem exists_simultaneous_tileScaleInterpolations {ι : Type*} [Fintype ι]
+    (n : ι → ℕ) (lo hi : ι → ℝ) (hlohi : ∀ c, lo c < hi c) :
+    ∃ σ : ∀ c, Fin (n c + 2) → ℝ,
+      ∀ c, σ c 0 = lo c ∧ σ c (Fin.last (n c + 1)) = hi c ∧ StrictMono (σ c) := by
+  refine ⟨fun c i => tileScaleInterpolation (lo c) (hi c) i, ?_⟩
+  intro c
+  exact ⟨(tileScaleInterpolation_endpoints).1,
+    (tileScaleInterpolation_endpoints).2, strictMono_tileScaleInterpolation (hlohi c)⟩
+
+/-! ## Binary-word indexing of independent scale chains
+
+Every finite binary word either consists entirely of ones, or has a unique last zero. In the latter
+case it is a prefix followed by that zero and a string of trailing ones. These are exactly the
+disjoint scale chains used in the general-dimensional blueprint construction.
+-/
+
+/-- Scan a word written from right to left. The option stores the prefix before its last zero;
+`none` marks the all-ones special chain. The natural number counts trailing ones. -/
+def binaryChainScan : List Bool → Option (List Bool) × ℕ
+  | [] => (none, 0)
+  | true :: xs =>
+      let d := binaryChainScan xs
+      (d.1, d.2 + 1)
+  | false :: xs => (some xs.reverse, 0)
+
+/-- If the scan finds no zero, its input consists entirely of ones. -/
+theorem binaryChainScan_reconstruct_none {w : List Bool}
+    (h : (binaryChainScan w).1 = none) :
+    w = List.replicate (binaryChainScan w).2 true := by
+  induction w with
+  | nil => simp [binaryChainScan]
+  | cons b w ih =>
+      cases b with
+      | false => simp [binaryChainScan] at h
+      | true =>
+          cases hs : binaryChainScan w with
+          | mk p k =>
+              have hp : p = none := by simpa only [binaryChainScan, hs] using h
+              have htail : (binaryChainScan w).1 = none := by rw [hs]; exact hp
+              have hrec : w = List.replicate k true := by
+                simpa only [hs] using ih htail
+              simp only [binaryChainScan, hs]
+              change true :: w = List.replicate (k + 1) true
+              calc
+                true :: w = true :: List.replicate k true := by rw [hrec]
+                _ = List.replicate (k + 1) true := by simp [List.replicate_succ]
+
+/-- If the scan finds a zero, its input is a string of trailing ones after the last zero. -/
+theorem binaryChainScan_reconstruct_some {w p : List Bool}
+    (h : (binaryChainScan w).1 = some p) :
+    w = List.replicate (binaryChainScan w).2 true ++ (p ++ [false]).reverse := by
+  induction w with
+  | nil => simp [binaryChainScan] at h
+  | cons b w ih =>
+      cases b with
+      | false =>
+          have hp : w.reverse = p := by simpa [binaryChainScan] using h
+          subst p
+          simp [binaryChainScan, List.reverse_append]
+      | true =>
+          cases hs : binaryChainScan w with
+          | mk p' k =>
+              have hp : p' = some p := by simpa only [binaryChainScan, hs] using h
+              have htail : (binaryChainScan w).1 = some p := by rw [hs]; exact hp
+              have hrec : w = List.replicate k true ++ (p ++ [false]).reverse := by
+                simpa only [hs] using ih htail
+              simp only [binaryChainScan, hs]
+              change true :: w = List.replicate (k + 1) true ++ (p ++ [false]).reverse
+              calc
+                true :: w = true ::
+                    (List.replicate k true ++ (p ++ [false]).reverse) := by rw [hrec]
+                _ = List.replicate (k + 1) true ++ (p ++ [false]).reverse := by
+                  simp [List.replicate_succ]
+
+/-- The binary-word chain index: prefix before the last zero, plus the number of trailing ones.
+The all-ones word is assigned to the exceptional `none` chain. -/
+def binaryWordChainIndex (w : List Bool) : Option (List Bool) × ℕ :=
+  binaryChainScan w.reverse
+
+/-- Reconstruct a binary word from its canonical chain index. -/
+theorem binaryWordChainIndex_reconstruct (w : List Bool) :
+    match (binaryWordChainIndex w).1 with
+    | none => w = List.replicate (binaryWordChainIndex w).2 true
+    | some p => w = p ++ [false] ++ List.replicate (binaryWordChainIndex w).2 true := by
+  dsimp [binaryWordChainIndex]
+  cases h : (binaryChainScan w.reverse).1 with
+  | none =>
+      simpa using congrArg List.reverse (binaryChainScan_reconstruct_none h)
+  | some p =>
+      simpa [List.reverse_append, List.append_assoc] using
+        congrArg List.reverse (binaryChainScan_reconstruct_some h)
+
+/-- The scanner recognizes the word represented by one ordinary scale chain. -/
+theorem binaryChainScan_trailingOnes (p : List Bool) (k : ℕ) :
+    binaryChainScan (List.replicate k true ++ false :: p.reverse) = (some p, k) := by
+  induction k with
+  | zero => simp [binaryChainScan]
+  | succ k ih => simp [List.replicate_succ, binaryChainScan, ih]
+
+/-- Each word on an ordinary chain maps back to that chain's unique prefix and tile index. -/
+theorem binaryWordChainIndex_of_chainWord (p : List Bool) (k : ℕ) :
+    binaryWordChainIndex (p ++ [false] ++ List.replicate k true) = (some p, k) := by
+  simp [binaryWordChainIndex, List.reverse_append, List.append_assoc,
+    binaryChainScan_trailingOnes]
+
+/-- A word with no zero belongs to the exceptional all-ones chain at its length. -/
+theorem binaryChainScan_replicate_true (k : ℕ) :
+    binaryChainScan (List.replicate k true) = (none, k) := by
+  induction k with
+  | zero => rfl
+  | succ k ih =>
+      rw [List.replicate_succ]
+      simp [binaryChainScan, ih]
+
+theorem binaryWordChainIndex_of_replicate_true (k : ℕ) :
+    binaryWordChainIndex (List.replicate k true) = (none, k) := by
+  simp only [binaryWordChainIndex, List.reverse_replicate]
+  exact binaryChainScan_replicate_true k
+
+/-- Chain ownership is unique: a word cannot lie on two different last-zero chains or at two
+different trailing-one positions. -/
+theorem binaryWordChainIndex_representation_unique {w p q : List Bool} {k m : ℕ}
+    (hp : w = p ++ [false] ++ List.replicate k true)
+    (hq : w = q ++ [false] ++ List.replicate m true) : p = q ∧ k = m := by
+  have h₁ : binaryWordChainIndex w = (some p, k) := by
+    rw [hp]
+    exact binaryWordChainIndex_of_chainWord p k
+  have h₂ : binaryWordChainIndex w = (some q, m) := by
+    rw [hq]
+    exact binaryWordChainIndex_of_chainWord q m
+  rw [h₁] at h₂
+  injection h₂ with hpq hkm
+  exact ⟨Option.some.inj hpq, hkm⟩
+
+/-- The all-ones chain index equals the word length. -/
+theorem binaryWordChainIndex_length_of_none {w : List Bool} {k : ℕ}
+    (hidx : binaryWordChainIndex w = (none, k)) : w.length = k := by
+  have hword : w = List.replicate k true := by
+    simpa [hidx] using binaryWordChainIndex_reconstruct w
+  have hlen := congrArg List.length hword
+  simpa using hlen
+
+/-- On an ordinary chain, prefix length plus the last zero and the trailing-one count equals the
+word length. -/
+theorem binaryWordChainIndex_length_of_some {w p : List Bool} {k : ℕ}
+    (hidx : binaryWordChainIndex w = (some p, k)) : p.length + 1 + k = w.length := by
+  have hword : w = p ++ [false] ++ List.replicate k true := by
+    simpa [hidx] using binaryWordChainIndex_reconstruct w
+  have hlen := congrArg List.length hword
+  simp only [List.length_append, List.length_cons, List.length_nil, List.length_replicate] at hlen
+  omega
+
+/-- For a word of length at most `n`, its chain index lies among the `n + 2` interpolation
+vertices: the ordinary chains have `n - (|prefix| + 1)` inserted tile positions. -/
+theorem binaryWordChainIndex_scaleIndex_lt {n : ℕ} {w : List Bool} (hw : w.length ≤ n) :
+    match binaryWordChainIndex w with
+    | (none, k) => k < n + 2
+    | (some p, k) => k < n - (p.length + 1) + 2 := by
+  cases hidx : binaryWordChainIndex w with
+  | mk chainPrefix k =>
+      cases chainPrefix with
+      | none =>
+          have hlen := binaryWordChainIndex_length_of_none hidx
+          omega
+      | some p =>
+          have hlen := binaryWordChainIndex_length_of_some hidx
+          have hbase : p.length + 1 ≤ n := by omega
+          have hsub : (n - (p.length + 1)) + (p.length + 1) = n :=
+            Nat.sub_add_cancel hbase
+          omega
+
+/-- A positional code for binary words, with later letters carrying larger powers of two. -/
+def binaryWordValue : List Bool → ℕ
+  | [] => 0
+  | b :: w => (if b then 1 else 0) + 2 * binaryWordValue w
+
+/-- Appending a bit adds its place value at the end of the word. -/
+theorem binaryWordValue_append_bit (w : List Bool) (b : Bool) :
+    binaryWordValue (w ++ [b]) =
+      binaryWordValue w + (if b then 2 ^ w.length else 0) := by
+  induction w with
+  | nil =>
+      cases b
+      · rfl
+      · rfl
+  | cons a w ih =>
+      cases b
+      · simp [binaryWordValue, ih]
+      · simp [binaryWordValue, ih, List.length_cons, Nat.pow_succ]
+        ring
+
+/-- The longest child prefix on the ordinary chain rooted at `p ++ [false]`. -/
+def binaryWordMaxChildPrefix (n : ℕ) (p : List Bool) : List Bool :=
+  p ++ [false] ++ List.replicate (n - (p.length + 1)) true
+
+/-- Base epsilon value at the zero-ending word, padded by trailing ones to the common depth. -/
+noncomputable def binaryWordLowerEndpointScale (n : ℕ) (q : ℝ) (p : List Bool) : ℝ :=
+  q ^ binaryWordValue (p ++ [false] ++ List.replicate (n - p.length) true)
+
+/-- Base epsilon value at the maximal zero-ending descendant of the ordinary chain rooted at `p`. -/
+noncomputable def binaryWordUpperEndpointScale (n : ℕ) (q : ℝ) (p : List Bool) : ℝ :=
+  q ^ binaryWordValue (binaryWordMaxChildPrefix n p ++ [false])
+
+/-- The special upper endpoint for the all-ones chain is the scale of the word `1^n 0`. -/
+noncomputable def binaryWordAllOnesEndpointScale (n : ℕ) (q : ℝ) : ℝ :=
+  q ^ binaryWordValue (List.replicate n true ++ [false])
+
+/-- A run of `k + 1` ones is a run of `k` ones followed by one final `true`. -/
+theorem replicate_true_succ_append (k : ℕ) :
+    List.replicate (k + 1) true = List.replicate k true ++ [true] := by
+  induction k with
+  | zero => rfl
+  | succ k ih =>
+      calc
+        List.replicate ((k + 1) + 1) true = true :: List.replicate (k + 1) true := by
+          simp [List.replicate_succ]
+        _ = true :: (List.replicate k true ++ [true]) := by rw [ih]
+        _ = (true :: List.replicate k true) ++ [true] := rfl
+        _ = List.replicate (k + 1) true ++ [true] := by simp [List.replicate_succ]
+
+/-- The maximal child prefix of any admissible ordinary chain has length exactly `n`. -/
+theorem binaryWordMaxChildPrefix_length {n : ℕ} {p : List Bool}
+    (hp : p.length + 1 ≤ n) : (binaryWordMaxChildPrefix n p).length = n := by
+  simp [binaryWordMaxChildPrefix, List.length_replicate]
+  omega
+
+/-- The upper endpoint of one ordinary chain is exactly the lower endpoint of its maximal child
+chain. -/
+theorem binaryWordUpperEndpointScale_eq_lower_maxChild {n : ℕ} (q : ℝ) (p : List Bool)
+    (hp : p.length + 1 ≤ n) :
+    binaryWordUpperEndpointScale n q p =
+      binaryWordLowerEndpointScale n q (binaryWordMaxChildPrefix n p) := by
+  unfold binaryWordUpperEndpointScale binaryWordLowerEndpointScale
+  rw [binaryWordMaxChildPrefix_length hp]
+  simp
+
+/-- Ordered base epsilons are compatible with every last-zero chain: the child word differs from
+the padded parent word only in the final bit, so its binary code is smaller and its `q`-power is
+larger for `0 < q < 1`. -/
+theorem binaryWordLowerEndpointScale_lt_upper {n : ℕ} {q : ℝ} {p : List Bool}
+    (hq0 : 0 < q) (hq1 : q < 1) (hp : p.length + 1 ≤ n) :
+    binaryWordLowerEndpointScale n q p < binaryWordUpperEndpointScale n q p := by
+  let child := binaryWordMaxChildPrefix n p
+  have hsub : n - p.length = n - (p.length + 1) + 1 := by omega
+  have hparent : p ++ [false] ++ List.replicate (n - p.length) true =
+      child ++ [true] := by
+    rw [hsub, replicate_true_succ_append]
+    simp [child, binaryWordMaxChildPrefix, List.append_assoc]
+  have hcode : binaryWordValue (child ++ [false]) < binaryWordValue (child ++ [true]) := by
+    rw [binaryWordValue_append_bit, binaryWordValue_append_bit]
+    simp
+  change q ^ binaryWordValue (p ++ [false] ++ List.replicate (n - p.length) true) <
+      q ^ binaryWordValue (binaryWordMaxChildPrefix n p ++ [false])
+  rw [hparent]
+  exact pow_lt_pow_right_of_lt_one₀ hq0 hq1 hcode
+
+/-- Evaluate a word scale from a chain index whose interpolation position is in range. -/
+noncomputable def binaryWordTileScaleAtIndex (n : ℕ) (lo hi : List Bool → ℝ)
+    (specialHi : ℝ) (chainIndex : Option (List Bool) × ℕ)
+    (hbound : match chainIndex with
+      | (none, k) => k < n + 2
+      | (some p, k) => k < n - (p.length + 1) + 2) : ℝ :=
+  match chainIndex, hbound with
+  | (none, k), hk => tileScaleInterpolation (n := n) 0 specialHi ⟨k, hk⟩
+  | (some p, k), hk =>
+      tileScaleInterpolation (n := n - (p.length + 1)) (lo p) (hi p) ⟨k, hk⟩
+
+/-- Assign each binary word of length at most `n` the interpolated tile scale at its unique
+last-zero chain position. The all-ones chain uses lower endpoint `0`; ordinary chains use their
+preassigned endpoint scales `lo p` and `hi p`. -/
+noncomputable def binaryWordTileScale (n : ℕ) (lo hi : List Bool → ℝ) (specialHi : ℝ)
+    (w : List Bool) (hw : w.length ≤ n) : ℝ :=
+  binaryWordTileScaleAtIndex n lo hi specialHi (binaryWordChainIndex w)
+    (binaryWordChainIndex_scaleIndex_lt hw)
+
+/-- The blueprint-compatible tile scale obtained from binary base epsilons. Ordinary last-zero
+chains use the epsilon at their zero-ending word and the epsilon at their maximal child; the
+all-ones chain ends at the epsilon for `1^n0`. -/
+noncomputable def coherentBinaryWordTileScale (n : ℕ) (q : ℝ)
+    (w : List Bool) (hw : w.length ≤ n) : ℝ :=
+  binaryWordTileScale n (binaryWordLowerEndpointScale n q)
+    (binaryWordUpperEndpointScale n q) (binaryWordAllOnesEndpointScale n q) w hw
+
+/-- The scale assignment agrees with interpolation along each ordinary last-zero chain. -/
+theorem binaryWordChainWord_scaleIndex_lt {n : ℕ} (p : List Bool) (k : ℕ)
+    (hk : (p ++ [false] ++ List.replicate k true).length ≤ n) :
+    k < n - (p.length + 1) + 2 := by
+  have hlen : p.length + (k + 1) ≤ n := by
+    simpa [List.length_append, List.length_replicate] using hk
+  have hbase : p.length + 1 ≤ n := by omega
+  have hsub : (n - (p.length + 1)) + (p.length + 1) = n :=
+    Nat.sub_add_cancel hbase
+  omega
+
+/-- The all-ones chain positions also fit in the `n + 2` interpolation vertices. -/
+theorem binaryWordAllOnes_scaleIndex_lt {n k : ℕ}
+    (hk : (List.replicate k true).length ≤ n) : k < n + 2 := by
+  have hlen : k ≤ n := by simpa using hk
+  omega
+
+/-- On the exceptional no-zero chain, the scale assignment uses the lower endpoint `0` and the
+special upper endpoint. -/
+theorem binaryWordTileScale_on_allOnes {n : ℕ} (lo hi : List Bool → ℝ) (specialHi : ℝ)
+    (k : ℕ) (hk : (List.replicate k true).length ≤ n) :
+    binaryWordTileScale n lo hi specialHi (List.replicate k true) hk =
+      tileScaleInterpolation (n := n) 0 specialHi
+        ⟨k, binaryWordAllOnes_scaleIndex_lt hk⟩ := by
+  have hidx := binaryWordChainIndex_of_replicate_true k
+  unfold binaryWordTileScale
+  simp_rw [hidx]
+  rfl
+
+theorem binaryWordTileScale_on_chainWord {n : ℕ} (lo hi : List Bool → ℝ) (specialHi : ℝ)
+    (p : List Bool) (k : ℕ) (hk : (p ++ [false] ++ List.replicate k true).length ≤ n) :
+    binaryWordTileScale n lo hi specialHi (p ++ [false] ++ List.replicate k true) hk =
+      tileScaleInterpolation (n := n - (p.length + 1)) (lo p) (hi p)
+        ⟨k, binaryWordChainWord_scaleIndex_lt p k hk⟩ := by
+  unfold binaryWordTileScale
+  simp_rw [binaryWordChainIndex_of_chainWord p k]
+  rfl
+
+/-- Ordered endpoint scales make the assigned word scales strictly increase with the number of
+trailing ones on a fixed ordinary last-zero chain. -/
+theorem binaryWordTileScale_strictMono_on_chainWord {n : ℕ}
+    (lo hi : List Bool → ℝ) (specialHi : ℝ) (p : List Bool)
+    (hlohi : lo p < hi p) {k m : ℕ} (hkm : k < m)
+    (hk : (p ++ [false] ++ List.replicate k true).length ≤ n)
+    (hm : (p ++ [false] ++ List.replicate m true).length ≤ n) :
+    binaryWordTileScale n lo hi specialHi (p ++ [false] ++ List.replicate k true) hk <
+      binaryWordTileScale n lo hi specialHi (p ++ [false] ++ List.replicate m true) hm := by
+  rw [binaryWordTileScale_on_chainWord, binaryWordTileScale_on_chainWord]
+  apply strictMono_tileScaleInterpolation hlohi
+  exact Fin.mk_lt_mk.mpr hkm
+
+/-- Every ordinary word chain inherits a single multiplicative separation factor from its endpoint
+scales. Consecutive words with one additional trailing `true` are separated by the same `q < 1`;
+the finite-chain lemma supplies this scalar fact independently of geometric compatibility. -/
+theorem exists_binaryWordTileScale_separation_on_chain {n : ℕ}
+    (lo hi : List Bool → ℝ) (specialHi : ℝ) (p : List Bool)
+    (hlo : 0 ≤ lo p) (hlohi : lo p < hi p) :
+    ∃ q : ℝ, 0 < q ∧ q < 1 ∧
+      ∀ k : ℕ,
+        (hkSucc : (p ++ [false] ++ List.replicate (k + 1) true).length ≤ n) →
+        binaryWordTileScale n lo hi specialHi
+            (p ++ [false] ++ List.replicate k true)
+            (by
+              have hlen : p.length + (k + 1) ≤ n := by
+                have hsucc : p.length + ((k + 1) + 1) ≤ n := by
+                  simpa [List.length_append, List.length_replicate] using hkSucc
+                omega
+              simpa [List.length_append, List.length_replicate] using hlen) <
+          q * binaryWordTileScale n lo hi specialHi
+            (p ++ [false] ++ List.replicate (k + 1) true) hkSucc := by
+  let N := n - (p.length + 1)
+  obtain ⟨q, hqpos, hqone, hsep⟩ :=
+    exists_separated_tileScaleInterpolation (n := N) (hlo := hlo) (hlohi := hlohi)
+  refine ⟨q, hqpos, hqone, ?_⟩
+  intro k hkSucc
+  have hlenSucc : p.length + ((k + 1) + 1) ≤ n := by
+    simpa [List.length_append, List.length_replicate] using hkSucc
+  have hlen : p.length + (k + 1) ≤ n := by omega
+  have hk : (p ++ [false] ++ List.replicate k true).length ≤ n := by
+    simpa [List.length_append, List.length_replicate] using hlen
+  have htileIndex := binaryWordChainWord_scaleIndex_lt p (k + 1) hkSucc
+  have hindex : k < N + 1 := by dsimp [N]; omega
+  have hchainSep := hsep ⟨k, hindex⟩
+  calc
+    binaryWordTileScale n lo hi specialHi (p ++ [false] ++ List.replicate k true) hk =
+        tileScaleInterpolation (n := N) (lo p) (hi p)
+          ⟨k, binaryWordChainWord_scaleIndex_lt p k hk⟩ :=
+      binaryWordTileScale_on_chainWord lo hi specialHi p k hk
+    _ < q * tileScaleInterpolation (n := N) (lo p) (hi p)
+          ⟨k + 1, binaryWordChainWord_scaleIndex_lt p (k + 1) hkSucc⟩ := by
+      simpa [tileScaleInterpolation] using hchainSep
+    _ = q * binaryWordTileScale n lo hi specialHi
+          (p ++ [false] ++ List.replicate (k + 1) true) hkSucc := by
+      rw [binaryWordTileScale_on_chainWord lo hi specialHi p (k + 1) hkSucc]
+
+/-- A finite family of ordinary word chains admits one common multiplicative separation factor.
+This specializes the finite endpoint-pair maximum to the actual last-zero word indexing. -/
+theorem exists_uniform_binaryWordTileScale_separation_on_chains {ι : Type*} [Fintype ι]
+    {n : ℕ} (chainPrefix : ι → List Bool) (lo hi : List Bool → ℝ) (specialHi : ℝ)
+    (hlo : ∀ c, 0 ≤ lo (chainPrefix c))
+    (hlohi : ∀ c, lo (chainPrefix c) < hi (chainPrefix c)) :
+    ∃ q : ℝ, 0 < q ∧ q < 1 ∧
+      ∀ c k,
+        (hkSucc : (chainPrefix c ++ [false] ++ List.replicate (k + 1) true).length ≤ n) →
+        binaryWordTileScale n lo hi specialHi
+            (chainPrefix c ++ [false] ++ List.replicate k true)
+            (by
+              have hlen : (chainPrefix c).length + (k + 1) ≤ n := by
+                have hsucc : (chainPrefix c).length + ((k + 1) + 1) ≤ n := by
+                  simpa [List.length_append, List.length_replicate] using hkSucc
+                omega
+              simpa [List.length_append, List.length_replicate] using hlen) <
+          q * binaryWordTileScale n lo hi specialHi
+            (chainPrefix c ++ [false] ++ List.replicate (k + 1) true) hkSucc := by
+  let chainN : ι → ℕ := fun c => n - ((chainPrefix c).length + 1)
+  obtain ⟨q, hqpos, hqone, hsep⟩ :=
+    exists_uniformly_separated_tileScaleInterpolations chainN
+      (fun c => lo (chainPrefix c)) (fun c => hi (chainPrefix c)) hlo hlohi
+  refine ⟨q, hqpos, hqone, ?_⟩
+  intro c k hkSucc
+  have hlenSucc : (chainPrefix c).length + ((k + 1) + 1) ≤ n := by
+    simpa [List.length_append, List.length_replicate] using hkSucc
+  have hlen : (chainPrefix c).length + (k + 1) ≤ n := by omega
+  have hk : (chainPrefix c ++ [false] ++ List.replicate k true).length ≤ n := by
+    simpa [List.length_append, List.length_replicate] using hlen
+  have htileIndex := binaryWordChainWord_scaleIndex_lt (chainPrefix c) (k + 1) hkSucc
+  have hindex : k < chainN c + 1 := by dsimp [chainN]; omega
+  have hchainSep := hsep c ⟨k, hindex⟩
+  calc
+    binaryWordTileScale n lo hi specialHi
+        (chainPrefix c ++ [false] ++ List.replicate k true) hk =
+      tileScaleInterpolation (n := chainN c) (lo (chainPrefix c)) (hi (chainPrefix c))
+        ⟨k, binaryWordChainWord_scaleIndex_lt (chainPrefix c) k hk⟩ := by
+          simpa [chainN] using
+            binaryWordTileScale_on_chainWord lo hi specialHi (chainPrefix c) k hk
+    _ < q * tileScaleInterpolation (n := chainN c) (lo (chainPrefix c)) (hi (chainPrefix c))
+          ⟨k + 1, binaryWordChainWord_scaleIndex_lt (chainPrefix c) (k + 1) hkSucc⟩ := by
+      simpa [tileScaleInterpolation] using hchainSep
+    _ = q * binaryWordTileScale n lo hi specialHi
+          (chainPrefix c ++ [false] ++ List.replicate (k + 1) true) hkSucc := by
+      rw [binaryWordTileScale_on_chainWord lo hi specialHi (chainPrefix c) (k + 1) hkSucc]
+
+/-- The all-ones chain has the same adjacent multiplicative separation whenever its special upper
+endpoint is positive. -/
+theorem exists_binaryWordTileScale_separation_on_allOnes {n : ℕ}
+    (lo hi : List Bool → ℝ) (specialHi : ℝ) (hspecial : 0 < specialHi) :
+    ∃ q : ℝ, 0 < q ∧ q < 1 ∧
+      ∀ k : ℕ,
+        (hkSucc : (List.replicate (k + 1) true).length ≤ n) →
+        binaryWordTileScale n lo hi specialHi (List.replicate k true)
+            (by
+              have hlen : k ≤ n := by
+                have hsucc : k + 1 ≤ n := by simpa using hkSucc
+                omega
+              simpa using hlen) <
+          q * binaryWordTileScale n lo hi specialHi
+            (List.replicate (k + 1) true) hkSucc := by
+  obtain ⟨q, hqpos, hqone, hsep⟩ :=
+    exists_separated_tileScaleInterpolation (n := n) (lo := 0) (hi := specialHi)
+      (by norm_num) hspecial
+  refine ⟨q, hqpos, hqone, ?_⟩
+  intro k hkSucc
+  have hlenSucc : k + 1 ≤ n := by simpa using hkSucc
+  have hlen : k ≤ n := by omega
+  have hk : (List.replicate k true).length ≤ n := by simpa using hlen
+  calc
+    binaryWordTileScale n lo hi specialHi (List.replicate k true) hk =
+        tileScaleInterpolation (n := n) 0 specialHi
+          ⟨k, binaryWordAllOnes_scaleIndex_lt hk⟩ :=
+      binaryWordTileScale_on_allOnes lo hi specialHi k hk
+    _ < q * tileScaleInterpolation (n := n) 0 specialHi
+          ⟨k + 1, binaryWordAllOnes_scaleIndex_lt hkSucc⟩ := by
+      simpa [tileScaleInterpolation] using hsep ⟨k, by omega⟩
+    _ = q * binaryWordTileScale n lo hi specialHi (List.replicate (k + 1) true) hkSucc := by
+      rw [binaryWordTileScale_on_allOnes]
+
+/-- The endpoint-inclusive binary scale family has one common strict separation factor. The two
+ordinary-chain endpoint conditions cover the last actual word to the linked child epsilon; the two
+all-ones conditions cover its final word to the exceptional endpoint. -/
+theorem exists_uniform_coherentBinaryWordTileScale_full_chain_separation {n : ℕ} {q : ℝ}
+    (hq0 : 0 < q) (hq1 : q < 1) :
+    ∃ ρ : ℝ, 0 < ρ ∧ ρ < 1 ∧
+      (∀ (p : List Bool) (k : ℕ),
+        (hkSucc : (p ++ [false] ++ List.replicate (k + 1) true).length ≤ n) →
+        coherentBinaryWordTileScale n q
+            (p ++ [false] ++ List.replicate k true)
+            (by
+              have hsucc : p.length + ((k + 1) + 1) ≤ n := by
+                simpa [List.length_append, List.length_replicate] using hkSucc
+              have hlen : p.length + (k + 1) ≤ n := by omega
+              simpa [List.length_append, List.length_replicate] using hlen) <
+          ρ * coherentBinaryWordTileScale n q
+            (p ++ [false] ++ List.replicate (k + 1) true) hkSucc) ∧
+      (∀ p : List Bool, (hp : p.length + 1 ≤ n) →
+        coherentBinaryWordTileScale n q (binaryWordMaxChildPrefix n p)
+            (by rw [binaryWordMaxChildPrefix_length hp]) <
+          ρ * binaryWordUpperEndpointScale n q p) ∧
+      (∀ (k : ℕ),
+        (hkSucc : (List.replicate (k + 1) true).length ≤ n) →
+        coherentBinaryWordTileScale n q (List.replicate k true)
+            (by
+              have hsucc : k + 1 ≤ n := by simpa using hkSucc
+              have hlen : k ≤ n := by omega
+              simpa using hlen) <
+          ρ * coherentBinaryWordTileScale n q (List.replicate (k + 1) true) hkSucc) ∧
+      coherentBinaryWordTileScale n q (List.replicate n true)
+          (by simp [List.length_replicate]) <
+        ρ * binaryWordAllOnesEndpointScale n q := by
+  classical
+  let Prefix := {p : List Bool // p.length < n}
+  letI : Fintype Prefix := (List.finite_length_lt Bool n).fintype
+  let chainDepth : Option Prefix → ℕ := fun c =>
+    match c with
+    | none => n
+    | some p => n - (p.val.length + 1)
+  let chainLo : Option Prefix → ℝ := fun c =>
+    match c with
+    | none => 0
+    | some p => binaryWordLowerEndpointScale n q p.val
+  let chainHi : Option Prefix → ℝ := fun c =>
+    match c with
+    | none => binaryWordAllOnesEndpointScale n q
+    | some p => binaryWordUpperEndpointScale n q p.val
+  obtain ⟨ρ, hρpos, hρlt, hsep⟩ :=
+    exists_uniformly_separated_tileScaleInterpolations
+      (n := chainDepth) (lo := chainLo) (hi := chainHi)
+      (hlo := by
+        intro c
+        cases c with
+        | none => norm_num [chainLo]
+        | some p => exact (pow_pos hq0 _).le)
+      (hlohi := by
+        intro c
+        cases c with
+        | none =>
+            exact pow_pos hq0 _
+        | some p =>
+            apply binaryWordLowerEndpointScale_lt_upper hq0 hq1
+            omega)
+  refine ⟨ρ, hρpos, hρlt, ?_, ?_, ?_, ?_⟩
+  · intro p k hkSucc
+    have hsucc : p.length + ((k + 1) + 1) ≤ n := by
+      simpa [List.length_append, List.length_replicate] using hkSucc
+    have hbase : p.length + 1 ≤ n := by omega
+    have hp : p.length < n := by omega
+    have hprev : (p ++ [false] ++ List.replicate k true).length ≤ n := by
+      have hlen : p.length + (k + 1) ≤ n := by omega
+      simpa [List.length_append, List.length_replicate] using hlen
+    let c : Option Prefix := some ⟨p, hp⟩
+    have hidx : k < chainDepth c + 1 := by
+      dsimp [c, chainDepth]
+      omega
+    have hfamily := hsep c ⟨k, hidx⟩
+    calc
+      coherentBinaryWordTileScale n q (p ++ [false] ++ List.replicate k true) hprev =
+          tileScaleInterpolation (binaryWordLowerEndpointScale n q p)
+            (binaryWordUpperEndpointScale n q p)
+            ⟨k, binaryWordChainWord_scaleIndex_lt p k hprev⟩ := by
+        rw [coherentBinaryWordTileScale]
+        exact binaryWordTileScale_on_chainWord
+          (binaryWordLowerEndpointScale n q) (binaryWordUpperEndpointScale n q)
+          (binaryWordAllOnesEndpointScale n q) p k hprev
+      _ < ρ * tileScaleInterpolation (binaryWordLowerEndpointScale n q p)
+            (binaryWordUpperEndpointScale n q p)
+            ⟨k + 1, binaryWordChainWord_scaleIndex_lt p (k + 1) hkSucc⟩ := by
+        simpa [c, chainDepth, chainLo, chainHi] using hfamily
+      _ = ρ * coherentBinaryWordTileScale n q
+            (p ++ [false] ++ List.replicate (k + 1) true) hkSucc := by
+        rw [coherentBinaryWordTileScale]
+        exact congrArg (fun z : ℝ => ρ * z)
+          (binaryWordTileScale_on_chainWord
+            (binaryWordLowerEndpointScale n q) (binaryWordUpperEndpointScale n q)
+            (binaryWordAllOnesEndpointScale n q) p (k + 1) hkSucc).symm
+  · intro p hp
+    have hp' : p.length < n := by omega
+    let depth := n - (p.length + 1)
+    let c : Option Prefix := some ⟨p, hp'⟩
+    have hmax : (binaryWordMaxChildPrefix n p).length ≤ n := by
+      rw [binaryWordMaxChildPrefix_length hp]
+    have hfamily := hsep c (Fin.last depth)
+    have hraw : tileScaleInterpolation (binaryWordLowerEndpointScale n q p)
+          (binaryWordUpperEndpointScale n q p)
+          ((Fin.last depth).castSucc) <
+        ρ * tileScaleInterpolation (binaryWordLowerEndpointScale n q p)
+          (binaryWordUpperEndpointScale n q p) ((Fin.last depth).succ) := by
+      simpa [c, depth, chainDepth, chainLo, chainHi] using hfamily
+    have hleftIdx : (Fin.last depth).castSucc =
+        (⟨depth, by omega⟩ : Fin (depth + 2)) := by
+      apply Fin.ext
+      rfl
+    have hrightIdx : (Fin.last depth).succ = Fin.last (depth + 1) := by
+      apply Fin.ext
+      rfl
+    rw [hleftIdx, hrightIdx,
+      (tileScaleInterpolation_endpoints (n := depth)
+        (lo := binaryWordLowerEndpointScale n q p)
+        (hi := binaryWordUpperEndpointScale n q p)).2] at hraw
+    calc
+      coherentBinaryWordTileScale n q (binaryWordMaxChildPrefix n p) hmax =
+          tileScaleInterpolation (binaryWordLowerEndpointScale n q p)
+            (binaryWordUpperEndpointScale n q p)
+            ⟨depth, binaryWordChainWord_scaleIndex_lt p depth hmax⟩ := by
+        rw [coherentBinaryWordTileScale]
+        have hword : binaryWordMaxChildPrefix n p =
+            p ++ [false] ++ List.replicate depth true := by
+          simp [depth, binaryWordMaxChildPrefix]
+        have hwordLen : (p ++ [false] ++ List.replicate depth true).length ≤ n := by
+          rw [← hword]
+          exact hmax
+        have hscale : binaryWordTileScale n (binaryWordLowerEndpointScale n q)
+            (binaryWordUpperEndpointScale n q) (binaryWordAllOnesEndpointScale n q)
+            (binaryWordMaxChildPrefix n p) hmax =
+          binaryWordTileScale n (binaryWordLowerEndpointScale n q)
+            (binaryWordUpperEndpointScale n q) (binaryWordAllOnesEndpointScale n q)
+            (p ++ [false] ++ List.replicate depth true) hwordLen := by
+          cases hword
+          rfl
+        rw [hscale]
+        exact binaryWordTileScale_on_chainWord
+          (binaryWordLowerEndpointScale n q) (binaryWordUpperEndpointScale n q)
+          (binaryWordAllOnesEndpointScale n q) p depth hwordLen
+      _ < ρ * binaryWordUpperEndpointScale n q p := hraw
+  · intro k hkSucc
+    have hlen : k ≤ n := by
+      have hsucc : k + 1 ≤ n := by simpa using hkSucc
+      omega
+    have hidx : k < n + 1 := by omega
+    have hfamily := hsep none ⟨k, hidx⟩
+    have hprev : (List.replicate k true).length ≤ n := by simpa using hlen
+    calc
+      coherentBinaryWordTileScale n q (List.replicate k true) hprev =
+          tileScaleInterpolation 0 (binaryWordAllOnesEndpointScale n q)
+            ⟨k, binaryWordAllOnes_scaleIndex_lt hprev⟩ := by
+        rw [coherentBinaryWordTileScale]
+        exact binaryWordTileScale_on_allOnes
+          (binaryWordLowerEndpointScale n q) (binaryWordUpperEndpointScale n q)
+          (binaryWordAllOnesEndpointScale n q) k hprev
+      _ < ρ * tileScaleInterpolation 0 (binaryWordAllOnesEndpointScale n q)
+            ⟨k + 1, binaryWordAllOnes_scaleIndex_lt hkSucc⟩ := by
+        simpa [chainDepth, chainLo, chainHi] using hfamily
+      _ = ρ * coherentBinaryWordTileScale n q (List.replicate (k + 1) true) hkSucc := by
+        rw [coherentBinaryWordTileScale]
+        exact congrArg (fun z : ℝ => ρ * z)
+          (binaryWordTileScale_on_allOnes
+            (binaryWordLowerEndpointScale n q) (binaryWordUpperEndpointScale n q)
+            (binaryWordAllOnesEndpointScale n q) (k + 1) hkSucc).symm
+  · have hfamily := hsep (none : Option Prefix) (Fin.last n)
+    have hraw : tileScaleInterpolation 0 (binaryWordAllOnesEndpointScale n q)
+          ((Fin.last n).castSucc) <
+        ρ * tileScaleInterpolation 0 (binaryWordAllOnesEndpointScale n q)
+          ((Fin.last n).succ) := by
+      simpa [chainDepth, chainLo, chainHi] using hfamily
+    have hleftIdx : (Fin.last n).castSucc = (⟨n, by omega⟩ : Fin (n + 2)) := by
+      apply Fin.ext
+      rfl
+    have hrightIdx : (Fin.last n).succ = Fin.last (n + 1) := by
+      apply Fin.ext
+      rfl
+    rw [hleftIdx, hrightIdx,
+      (tileScaleInterpolation_endpoints (n := n) (lo := 0)
+        (hi := binaryWordAllOnesEndpointScale n q)).2] at hraw
+    have hword : (List.replicate n true).length ≤ n := by simp [List.length_replicate]
+    calc
+      coherentBinaryWordTileScale n q (List.replicate n true) hword =
+          tileScaleInterpolation 0 (binaryWordAllOnesEndpointScale n q)
+            ⟨n, binaryWordAllOnes_scaleIndex_lt hword⟩ := by
+        rw [coherentBinaryWordTileScale]
+        exact binaryWordTileScale_on_allOnes
+          (binaryWordLowerEndpointScale n q) (binaryWordUpperEndpointScale n q)
+          (binaryWordAllOnesEndpointScale n q) n hword
+      _ < ρ * binaryWordAllOnesEndpointScale n q := hraw
+
+/-- The binary endpoint assignment admits one common multiplicative separation factor across every
+actual adjacent pair of words. -/
+theorem exists_uniform_coherentBinaryWordTileScale_separation {n : ℕ} {q : ℝ}
+    (hq0 : 0 < q) (hq1 : q < 1) :
+    ∃ ρ : ℝ, 0 < ρ ∧ ρ < 1 ∧
+      (∀ (p : List Bool) (k : ℕ),
+        (hkSucc : (p ++ [false] ++ List.replicate (k + 1) true).length ≤ n) →
+        coherentBinaryWordTileScale n q
+            (p ++ [false] ++ List.replicate k true)
+            (by
+              have hsucc : p.length + ((k + 1) + 1) ≤ n := by
+                simpa [List.length_append, List.length_replicate] using hkSucc
+              have hlen : p.length + (k + 1) ≤ n := by omega
+              simpa [List.length_append, List.length_replicate] using hlen) <
+          ρ * coherentBinaryWordTileScale n q
+            (p ++ [false] ++ List.replicate (k + 1) true) hkSucc) ∧
+      (∀ (k : ℕ),
+        (hkSucc : (List.replicate (k + 1) true).length ≤ n) →
+        coherentBinaryWordTileScale n q (List.replicate k true)
+            (by
+              have hsucc : k + 1 ≤ n := by simpa using hkSucc
+              have hlen : k ≤ n := by omega
+              simpa using hlen) <
+          ρ * coherentBinaryWordTileScale n q (List.replicate (k + 1) true) hkSucc) := by
+  obtain ⟨ρ, hρpos, hρlt, hordinary, _, hallones, _⟩ :=
+    exists_uniform_coherentBinaryWordTileScale_full_chain_separation hq0 hq1
+  exact ⟨ρ, hρpos, hρlt, hordinary, hallones⟩
 
 /-! ## The ruled-surface step -/
 
