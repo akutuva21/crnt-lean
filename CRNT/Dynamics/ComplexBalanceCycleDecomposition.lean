@@ -1785,6 +1785,328 @@ theorem relativeSourceOrderStoichConeFamily_inter_commonExposedFace
   exact ⟨N.relativeSourceOrderStoichProperCone_inter_isExposedFaceOf w₁ w₂,
     N.relativeSourceOrderStoichProperCone_inter_isExposedFaceOf_right w₁ w₂⟩
 
+/-- Every exposed face of a stoichiometrically restricted source-order cone contains a point
+whose weak source order records exactly the comparisons that can be strict on that face. This is
+the finite-arrangement interior-point construction: sum one face witness for each comparison that
+is not identically an equality on the face. -/
+private theorem exists_relativeSourceOrderFace_orderPoint
+    (N : Network S) (w : S → ℝ) {D : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (hD : CRNT.IsExposedFaceOf D (N.relativeSourceOrderStoichProperCone w)) :
+    ∃ z ∈ D, ∀ r q : N.R,
+      N.sourceLogProjection w r ≤ N.sourceLogProjection w q →
+        (0 < N.sourceLogProjection (CRNT.toEuclid.symm z) q -
+            N.sourceLogProjection (CRNT.toEuclid.symm z) r ↔
+          ∃ y ∈ D, 0 < N.sourceLogProjection (CRNT.toEuclid.symm y) q -
+            N.sourceLogProjection (CRNT.toEuclid.symm y) r) := by
+  classical
+  obtain ⟨a, ha, hface⟩ := hD
+  have hDsubset : ∀ z, z ∈ D → z ∈ N.relativeSourceOrderStoichProperCone w := by
+    intro z hz
+    have hzmem := congrArg (fun A : Set (EuclideanSpace ℝ S) => z ∈ A) hface
+    have hzface : z ∈ CRNT.exposedFace
+        (N.relativeSourceOrderStoichProperCone w : PointedCone ℝ (EuclideanSpace ℝ S)) a := by
+      simpa only [SetLike.mem_coe] using hzmem.mp hz
+    exact (CRNT.mem_exposedFace.mp hzface).1
+  let gap : EuclideanSpace ℝ S → N.R × N.R → ℝ := fun z p =>
+    N.sourceLogProjection (CRNT.toEuclid.symm z) p.2 -
+      N.sourceLogProjection (CRNT.toEuclid.symm z) p.1
+  let strict : N.R × N.R → Prop := fun p =>
+    N.sourceLogProjection w p.1 ≤ N.sourceLogProjection w p.2 ∧
+      ∃ z ∈ D, 0 < gap z p
+  let witness : N.R × N.R → EuclideanSpace ℝ S := fun p =>
+    if h : strict p then Classical.choose h.2 else 0
+  let z : EuclideanSpace ℝ S := ∑ p : N.R × N.R, witness p
+  have hwitness_mem : ∀ p : N.R × N.R, witness p ∈ D := by
+    intro p
+    by_cases h : strict p
+    · dsimp [witness]
+      rw [dif_pos h]
+      exact (Classical.choose_spec h.2).1
+    · simp [witness, h]
+  have hzD : z ∈ D := by
+    change z ∈ (D : PointedCone ℝ (EuclideanSpace ℝ S))
+    dsimp [z]
+    exact Submodule.sum_mem _ (fun p _ => hwitness_mem p)
+  have hgap_sum (p : N.R × N.R) : gap z p = ∑ q : N.R × N.R, gap (witness q) p := by
+    dsimp [gap, z]
+    rw [N.sourceLogProjection_symm_sum, N.sourceLogProjection_symm_sum,
+      ← Finset.sum_sub_distrib]
+  have hw_order_on_D {y : EuclideanSpace ℝ S} (hy : y ∈ D)
+      {r q : N.R} (horder : N.sourceLogProjection w r ≤ N.sourceLogProjection w q) :
+      N.sourceLogProjection (CRNT.toEuclid.symm y) r ≤
+        N.sourceLogProjection (CRNT.toEuclid.symm y) q := by
+    have hyC := hDsubset y hy
+    change y ∈ N.relativeSourceOrderStoichCone w at hyC
+    exact (N.mem_relativeSourceOrderStoichCone w).mp hyC |>.1 r q horder
+  have hterm_nonneg (p : N.R × N.R) (q : N.R) (r : N.R)
+      (horder : N.sourceLogProjection w r ≤ N.sourceLogProjection w q) :
+      0 ≤ gap (witness p) (r, q) := by
+    dsimp [gap]
+    have hproj := hw_order_on_D (hwitness_mem p) horder
+    linarith
+  have hgap_nonneg (r q : N.R)
+      (horder : N.sourceLogProjection w r ≤ N.sourceLogProjection w q) :
+      0 ≤ gap z (r, q) := by
+    rw [hgap_sum]
+    exact Finset.sum_nonneg fun p _ => hterm_nonneg p q r horder
+  have hgap_pos_of_strict (p : N.R × N.R) (h : strict p) : 0 < gap z p := by
+    have hterm_pos : 0 < gap (witness p) p := by
+      dsimp [witness]
+      rw [dif_pos h]
+      exact (Classical.choose_spec h.2).2
+    rw [hgap_sum]
+    exact Finset.sum_pos' (fun q _ => hterm_nonneg q p.2 p.1 h.1)
+      ⟨p, Finset.mem_univ p, hterm_pos⟩
+  have hgap_zero_of_not_strict (p : N.R × N.R)
+      (horder : N.sourceLogProjection w p.1 ≤ N.sourceLogProjection w p.2)
+      (h : ¬ strict p) : gap z p = 0 := by
+    rw [hgap_sum]
+    apply Finset.sum_eq_zero
+    intro q _
+    have hnonneg := hterm_nonneg q p.2 p.1 horder
+    have hnotpos : ¬ 0 < gap (witness q) p := by
+      intro hpos
+      exact h ⟨horder, witness q, hwitness_mem q, hpos⟩
+    linarith
+  refine ⟨z, hzD, ?_⟩
+  intro r q horder
+  constructor
+  · intro hpos
+    by_contra hnot
+    have hnotStrict : ¬ strict (r, q) := fun h => hnot h.2
+    have hz0 := hgap_zero_of_not_strict (r, q) horder hnotStrict
+    linarith
+  · rintro ⟨y, hyD, hpos⟩
+    exact hgap_pos_of_strict (r, q) ⟨horder, y, hyD, hpos⟩
+
+/-- An exposed face of a stoichiometrically restricted source-order cone is the intersection
+with the source-order cone selected by a point in that face. The face point is strict exactly on
+the comparisons that are not forced to equality; a small perturbation then shows that these
+comparisons cut out precisely the exposed face. -/
+theorem relativeSourceOrderStoichProperCone_exposedFace_eq_inter
+    (N : Network S) (w : S → ℝ) {D : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (hD : CRNT.IsExposedFaceOf D (N.relativeSourceOrderStoichProperCone w)) :
+    ∃ v : S → ℝ,
+      D = N.relativeSourceOrderStoichProperCone w ⊓
+        N.relativeSourceOrderStoichProperCone v := by
+  classical
+  have hD' := hD
+  obtain ⟨a, ha, hface⟩ := hD
+  obtain ⟨z, hzD, hzorder⟩ := N.exists_relativeSourceOrderFace_orderPoint w hD'
+  let v : S → ℝ := CRNT.toEuclid.symm z
+  let gap (x : EuclideanSpace ℝ S) (r q : N.R) : ℝ :=
+    N.sourceLogProjection (CRNT.toEuclid.symm x) q -
+      N.sourceLogProjection (CRNT.toEuclid.symm x) r
+  have hDsubset : ∀ x, x ∈ D → x ∈ N.relativeSourceOrderStoichProperCone w := by
+    intro x hx
+    have hxmem := congrArg (fun A : Set (EuclideanSpace ℝ S) => x ∈ A) hface
+    have hxface : x ∈ CRNT.exposedFace
+        (N.relativeSourceOrderStoichProperCone w : PointedCone ℝ (EuclideanSpace ℝ S)) a := by
+      simpa only [SetLike.mem_coe] using hxmem.mp hx
+    exact (CRNT.mem_exposedFace.mp hxface).1
+  have hDface_zero : ∀ x, x ∈ D → ⟪a, x⟫_ℝ = 0 := by
+    intro x hx
+    have hxmem := congrArg (fun A : Set (EuclideanSpace ℝ S) => x ∈ A) hface
+    have hxface : x ∈ CRNT.exposedFace
+        (N.relativeSourceOrderStoichProperCone w : PointedCone ℝ (EuclideanSpace ℝ S)) a := by
+      simpa only [SetLike.mem_coe] using hxmem.mp hx
+    exact (CRNT.mem_exposedFace.mp hxface).2
+  have hzC : z ∈ N.relativeSourceOrderStoichProperCone w := hDsubset z hzD
+  have hzStoich : CRNT.toEuclid.symm z ∈ N.stoichSubspace := by
+    change z ∈ N.relativeSourceOrderStoichCone w at hzC
+    exact (N.mem_relativeSourceOrderStoichCone w).mp hzC |>.2
+  have hD_subset_v : ∀ x, x ∈ D →
+      x ∈ N.relativeSourceOrderStoichProperCone v := by
+    intro x hx
+    have hxC := hDsubset x hx
+    change x ∈ N.relativeSourceOrderStoichCone v
+    apply (N.mem_relativeSourceOrderStoichCone v).2
+    constructor
+    · intro r q horderV
+      by_cases horderW : N.sourceLogProjection w r ≤ N.sourceLogProjection w q
+      · have hxorder := (N.mem_relativeSourceOrderStoichCone w).mp hxC |>.1
+        exact hxorder r q horderW
+      · have horderW' : N.sourceLogProjection w q ≤ N.sourceLogProjection w r :=
+          le_of_not_ge horderW
+        have hzrev : N.sourceLogProjection v q ≤ N.sourceLogProjection v r := by
+          have hzorderC := (N.mem_relativeSourceOrderStoichCone w).mp hzC |>.1
+          exact hzorderC q r horderW'
+        have hvEq : N.sourceLogProjection v r = N.sourceLogProjection v q :=
+          le_antisymm horderV hzrev
+        have hgapzZero : gap z q r = 0 := by
+          dsimp [gap, v] at hvEq ⊢
+          linarith
+        have hnoWitness : ¬ ∃ y ∈ D, 0 < gap y q r := by
+          intro he
+          have hgapzPos := (hzorder q r horderW').2 he
+          change 0 < gap z q r at hgapzPos
+          rw [hgapzZero] at hgapzPos
+          linarith
+        have hxorderW := (N.mem_relativeSourceOrderStoichCone w).mp hxC |>.1
+        have hxgapNonneg : 0 ≤ gap x q r := by
+          dsimp [gap]
+          linarith [hxorderW q r horderW']
+        have hxgapNonpos : gap x q r ≤ 0 := by
+          by_contra hpos
+          exact hnoWitness ⟨x, hx, lt_of_not_ge hpos⟩
+        have hxgapZero : gap x q r = 0 := le_antisymm hxgapNonpos hxgapNonneg
+        change N.sourceLogProjection (CRNT.toEuclid.symm x) r ≤
+          N.sourceLogProjection (CRNT.toEuclid.symm x) q
+        change N.sourceLogProjection (CRNT.toEuclid.symm x) r -
+          N.sourceLogProjection (CRNT.toEuclid.symm x) q = 0 at hxgapZero
+        linarith
+    · have hxStoich : CRNT.toEuclid.symm x ∈ N.stoichSubspace := by
+        change x ∈ N.relativeSourceOrderStoichCone w at hxC
+        exact (N.mem_relativeSourceOrderStoichCone w).mp hxC |>.2
+      exact hxStoich
+  have hgap_sub_smul (ε : ℝ) (x : EuclideanSpace ℝ S) (r q : N.R) :
+      gap (z - ε • x) r q = gap z r q - ε * gap x r q := by
+    have hproj (t : EuclideanSpace ℝ S) (j : N.R) :
+        N.sourceLogProjection (CRNT.toEuclid.symm (z - ε • x)) j =
+          N.sourceLogProjection (CRNT.toEuclid.symm z) j -
+            ε * N.sourceLogProjection (CRNT.toEuclid.symm x) j := by
+      rw [N.sourceLogProjection_eq_inner_toEuclid, N.sourceLogProjection_eq_inner_toEuclid,
+        N.sourceLogProjection_eq_inner_toEuclid]
+      simp only [CRNT.toEuclid.apply_symm_apply, map_sub, map_smul]
+      rw [inner_sub_right, real_inner_smul_right]
+    dsimp [gap]
+    rw [hproj x q, hproj x r]
+    ring
+  refine ⟨v, ?_⟩
+  apply ProperCone.ext
+  intro x
+  constructor
+  · intro hx
+    have hxC := hDsubset x hx
+    have hxV := hD_subset_v x hx
+    exact ⟨hxC, hxV⟩
+  · rintro ⟨hxC, hxV⟩
+    have hxStoich : CRNT.toEuclid.symm x ∈ N.stoichSubspace := by
+      change x ∈ N.relativeSourceOrderStoichCone w at hxC
+      exact (N.mem_relativeSourceOrderStoichCone w).mp hxC |>.2
+    have hxorderW : ∀ r q : N.R,
+        N.sourceLogProjection w r ≤ N.sourceLogProjection w q →
+          N.sourceLogProjection (CRNT.toEuclid.symm x) r ≤
+            N.sourceLogProjection (CRNT.toEuclid.symm x) q := by
+      change x ∈ N.relativeSourceOrderStoichCone w at hxC
+      exact (N.mem_relativeSourceOrderStoichCone w).mp hxC |>.1
+    have hxorderV : ∀ r q : N.R,
+        N.sourceLogProjection v r ≤ N.sourceLogProjection v q →
+          N.sourceLogProjection (CRNT.toEuclid.symm x) r ≤
+            N.sourceLogProjection (CRNT.toEuclid.symm x) q := by
+      change x ∈ N.relativeSourceOrderStoichCone v at hxV
+      exact (N.mem_relativeSourceOrderStoichCone v).mp hxV |>.1
+    let active : Finset (N.R × N.R) :=
+      Finset.univ.filter (fun p => 0 < gap z p.1 p.2)
+    let ratio : N.R × N.R → ℝ := fun p =>
+      gap z p.1 p.2 / (1 + |gap x p.1 p.2|)
+    have heps : ∃ ε : ℝ, 0 < ε ∧ ∀ p : N.R × N.R,
+        0 < gap z p.1 p.2 → ε * |gap x p.1 p.2| < gap z p.1 p.2 := by
+      by_cases hactive : active.Nonempty
+      · let ε := (active.image ratio).min' (Finset.image_nonempty.mpr hactive)
+        have hminpos : 0 < ε := by
+          dsimp [ε]
+          obtain ⟨p, hp, hEq⟩ := Finset.mem_image.mp
+            (Finset.min'_mem (active.image ratio) (Finset.image_nonempty.mpr hactive))
+          have hp' := (Finset.mem_filter.mp hp).2
+          rw [← hEq]
+          dsimp [ratio]
+          positivity
+        refine ⟨ε, hminpos, ?_⟩
+        intro p hp
+        have hpActive : p ∈ active := by
+          simp [active, hp]
+        have hpRatio : ratio p ∈ active.image ratio :=
+          Finset.mem_image.mpr ⟨p, hpActive, rfl⟩
+        have hminle : ε ≤ ratio p :=
+          Finset.min'_le (active.image ratio) _ hpRatio
+        calc
+          ε * |gap x p.1 p.2| ≤ ratio p * |gap x p.1 p.2| :=
+            mul_le_mul_of_nonneg_right hminle (abs_nonneg _)
+          _ < gap z p.1 p.2 := by
+            have hratio : ratio p * |gap x p.1 p.2| =
+                gap z p.1 p.2 * |gap x p.1 p.2| /
+                  (1 + |gap x p.1 p.2|) := by
+              dsimp [ratio]
+              ring
+            have hden : 0 < 1 + |gap x p.1 p.2| := by positivity
+            have habs : |gap x p.1 p.2| < 1 + |gap x p.1 p.2| := by
+              have := abs_nonneg (gap x p.1 p.2)
+              linarith
+            rw [hratio]
+            exact (div_lt_iff₀ hden).2
+              (mul_lt_mul_of_pos_left habs hp)
+      · refine ⟨1, by norm_num, ?_⟩
+        intro p hp
+        exact (hactive ⟨p, by simp [active, hp]⟩).elim
+    obtain ⟨ε, hε, hepsbound⟩ := heps
+    have hxgapVzero (r q : N.R)
+        (horder : N.sourceLogProjection w r ≤ N.sourceLogProjection w q)
+        (hzero : gap z r q = 0) : gap x r q = 0 := by
+      have hzv : N.sourceLogProjection v r = N.sourceLogProjection v q := by
+        dsimp [gap, v] at hzero ⊢
+        linarith
+      have hxrv := hxorderV r q (by rw [hzv])
+      have hxqr := hxorderV q r (by rw [hzv])
+      dsimp [gap]
+      linarith
+    have hperturbOrder : ∀ r q : N.R,
+        N.sourceLogProjection w r ≤ N.sourceLogProjection w q →
+          N.sourceLogProjection (CRNT.toEuclid.symm (z - ε • x)) r ≤
+            N.sourceLogProjection (CRNT.toEuclid.symm (z - ε • x)) q := by
+      intro r q horder
+      have hzGap : 0 ≤ gap z r q := by
+        have hzorderW := (N.mem_relativeSourceOrderStoichCone w).mp hzC |>.1
+        dsimp [gap]
+        linarith [hzorderW r q horder]
+      by_cases hpos : 0 < gap z r q
+      · have hxGap : 0 ≤ gap x r q := by
+          dsimp [gap]
+          linarith [hxorderW r q horder]
+        have hbound := hepsbound (r, q) hpos
+        rw [abs_of_nonneg hxGap] at hbound
+        have hgap := hgap_sub_smul ε x r q
+        have hperturbGap : 0 ≤ gap (z - ε • x) r q := by
+          rw [hgap]
+          linarith
+        dsimp [gap] at hperturbGap ⊢
+        linarith
+      · have hzero : gap z r q = 0 := le_antisymm (le_of_not_gt hpos) hzGap
+        have hxzero := hxgapVzero r q horder hzero
+        have hperturbGap : 0 ≤ gap (z - ε • x) r q := by
+          rw [hgap_sub_smul, hzero, hxzero]
+          simp
+        dsimp [gap] at hperturbGap ⊢
+        linarith
+    have hperturbStoich : CRNT.toEuclid.symm (z - ε • x) ∈ N.stoichSubspace := by
+      have hlin := N.stoichSubspace.smul_mem ε hxStoich
+      have hdiff := N.stoichSubspace.sub_mem hzStoich hlin
+      simpa only [map_sub, map_smul] using hdiff
+    have hperturbC : z - ε • x ∈ N.relativeSourceOrderStoichProperCone w := by
+      change z - ε • x ∈ N.relativeSourceOrderStoichCone w
+      exact (N.mem_relativeSourceOrderStoichCone w).2 ⟨hperturbOrder, hperturbStoich⟩
+    have hdualNonneg (t : EuclideanSpace ℝ S)
+        (ht : t ∈ N.relativeSourceOrderStoichProperCone w) : 0 ≤ ⟪a, t⟫_ℝ := by
+      have h := CRNT.mem_coneDual.mp ha ht
+      simpa [real_inner_comm] using h
+    have hzInner : ⟪a, z⟫_ℝ = 0 := hDface_zero z hzD
+    have hxInnerNonneg : 0 ≤ ⟪a, x⟫_ℝ := hdualNonneg x hxC
+    have hperturbInner := hdualNonneg (z - ε • x) hperturbC
+    have heq : ⟪a, z - ε • x⟫_ℝ = -ε * ⟪a, x⟫_ℝ := by
+      rw [inner_sub_right, real_inner_smul_right, hzInner]
+      simp
+    have hmulNonneg : 0 ≤ -ε * ⟪a, x⟫_ℝ := by
+      rw [← heq]
+      exact hperturbInner
+    have hxInnerZero : ⟪a, x⟫_ℝ = 0 := by
+      have hnonpos : ⟪a, x⟫_ℝ ≤ 0 := by nlinarith
+      exact le_antisymm hnonpos hxInnerNonneg
+    have hxmem := congrArg (fun A : Set (EuclideanSpace ℝ S) => x ∈ A) hface
+    have hxface : x ∈ CRNT.exposedFace
+        (N.relativeSourceOrderStoichProperCone w : PointedCone ℝ (EuclideanSpace ℝ S)) a :=
+      CRNT.mem_exposedFace.mpr ⟨hxC, hxInnerZero⟩
+    exact hxmem.mpr hxface
+
 /-- A direction belongs to the source-order chamber it itself selects. -/
 theorem toEuclid_mem_relativeSourceOrderCone (N : Network S) (w : S → ℝ) :
     CRNT.toEuclid w ∈ N.relativeSourceOrderCone w := by
