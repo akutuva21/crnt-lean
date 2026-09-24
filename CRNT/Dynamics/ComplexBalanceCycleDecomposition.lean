@@ -2,6 +2,7 @@ import CRNT.Graph.CirculationDecomposition
 import CRNT.Equilibria.ComplexBalanceLinearStability
 import CRNT.Theorems.DeficiencyZero.Toric
 import CRNT.Dynamics.ToricEmbeddingOrder
+import CRNT.Geometry.ConeFace
 
 namespace CRNT.Network
 open scoped BigOperators InnerProductSpace
@@ -430,6 +431,55 @@ theorem closedWalk_reactionList_projected_nonpos_of_order
 /-- The source-complex pairing with a logarithmic direction. -/
 def sourceLogProjection (N : Network S) (w : S → ℝ) (r : N.R) : ℝ :=
   ∑ s, ((N.sourceIdx r).val s : ℝ) * w s
+
+/-- Source-log projection is the Euclidean pairing with the source exponent vector. -/
+theorem sourceLogProjection_eq_inner_toEuclid (N : Network S) (w : S → ℝ)
+    (r : N.R) :
+    N.sourceLogProjection w r =
+      ⟪toEuclid (CRNT.exponentVector (N.sourceIdx r).val), toEuclid w⟫_ℝ := by
+  rw [CRNT.inner_toEuclid]
+  simp [sourceLogProjection, CRNT.exponentVector]
+
+/-- The sum of source-exponent differences for the ordering constraints imposed by `w₂` but
+absent from `w₁`. It is a supporting normal for the intersection of their order cones. -/
+noncomputable def relativeSourceOrderIntersectionNormal (N : Network S)
+    (w₁ w₂ : S → ℝ) : EuclideanSpace ℝ S := by
+  classical
+  exact ∑ p : N.R × N.R,
+    if ¬ N.sourceLogProjection w₁ p.1 ≤ N.sourceLogProjection w₁ p.2 ∧
+        N.sourceLogProjection w₂ p.1 ≤ N.sourceLogProjection w₂ p.2 then
+      toEuclid (CRNT.exponentVector (N.sourceIdx p.1).val) -
+        toEuclid (CRNT.exponentVector (N.sourceIdx p.2).val)
+    else 0
+
+/-- Pairing with the intersection normal sums the projection gaps for comparisons imposed by
+`w₂` that are absent from `w₁`. -/
+theorem inner_relativeSourceOrderIntersectionNormal_eq (N : Network S)
+    (w₁ w₂ : S → ℝ) (z : EuclideanSpace ℝ S) :
+    ⟪N.relativeSourceOrderIntersectionNormal w₁ w₂, z⟫_ℝ =
+      ∑ p : N.R × N.R,
+        if ¬ N.sourceLogProjection w₁ p.1 ≤ N.sourceLogProjection w₁ p.2 ∧
+            N.sourceLogProjection w₂ p.1 ≤ N.sourceLogProjection w₂ p.2 then
+          N.sourceLogProjection (CRNT.toEuclid.symm z) p.1 -
+            N.sourceLogProjection (CRNT.toEuclid.symm z) p.2
+        else 0 := by
+  classical
+  have hproj (r : N.R) :
+      N.sourceLogProjection (CRNT.toEuclid.symm z) r =
+        ⟪toEuclid (CRNT.exponentVector (N.sourceIdx r).val), z⟫_ℝ := by
+    rw [N.sourceLogProjection_eq_inner_toEuclid]
+    rw [CRNT.toEuclid.apply_symm_apply z]
+  unfold relativeSourceOrderIntersectionNormal
+  rw [sum_inner]
+  apply Finset.sum_congr rfl
+  intro p _
+  rcases p with ⟨r, q⟩
+  by_cases h :
+      ¬ N.sourceLogProjection w₁ r ≤ N.sourceLogProjection w₁ q ∧
+        N.sourceLogProjection w₂ r ≤ N.sourceLogProjection w₂ q
+  · rw [if_pos h, if_pos h, inner_sub_left, ← hproj q, ← hproj r]
+  · rw [if_neg h, if_neg h]
+    simp
 
 /-- The fixed equilibrium factor attached to one reaction source monomial. -/
 noncomputable def equilibriumSourceFactor (N : Network S) (xstar : Concentration S) (r : N.R) : ℝ :=
@@ -1021,6 +1071,383 @@ theorem relativeSourceOrderStoichCone_lineality_eq_zero
   have hz' := (N.mem_relativeSourceOrderStoichCone w).mp hz
   have hnegz' := (N.mem_relativeSourceOrderStoichCone w).mp hnegz
   exact N.relativeSourceOrderCone_lineality_eq_zero w hz'.1 hnegz'.1 hz'.2 hwr
+
+/-- The intersection normal has nonnegative pairing on its first source-order cone. -/
+theorem inner_relativeSourceOrderIntersectionNormal_nonneg
+    (N : Network S) (w₁ w₂ : S → ℝ) {z : EuclideanSpace ℝ S}
+    (hz : z ∈ N.relativeSourceOrderCone w₁) :
+    0 ≤ ⟪N.relativeSourceOrderIntersectionNormal w₁ w₂, z⟫_ℝ := by
+  classical
+  rw [N.inner_relativeSourceOrderIntersectionNormal_eq]
+  have horder : ∀ r q : N.R,
+      N.sourceLogProjection w₁ r ≤ N.sourceLogProjection w₁ q →
+        N.sourceLogProjection (CRNT.toEuclid.symm z) r ≤
+          N.sourceLogProjection (CRNT.toEuclid.symm z) q := by
+    change (∀ r q, _ ≤ _ → _ ≤ _) at hz
+    exact hz
+  apply Finset.sum_nonneg
+  intro p _
+  rcases p with ⟨r, q⟩
+  by_cases h :
+      ¬ N.sourceLogProjection w₁ r ≤ N.sourceLogProjection w₁ q ∧
+        N.sourceLogProjection w₂ r ≤ N.sourceLogProjection w₂ q
+  · rw [if_pos h]
+    exact sub_nonneg.mpr (horder q r (le_of_not_ge h.1))
+  · rw [if_neg h]
+
+/-- If the intersection normal pairs to zero with a vector in its first cone, every new
+source-order comparison imposed by the second reference has zero projection gap. -/
+theorem sourceOrderIntersectionGap_eq_zero_of_inner_eq_zero
+    (N : Network S) (w₁ w₂ : S → ℝ) {z : EuclideanSpace ℝ S}
+    (hz : z ∈ N.relativeSourceOrderCone w₁)
+    (hzero : ⟪N.relativeSourceOrderIntersectionNormal w₁ w₂, z⟫_ℝ = 0)
+    {r q : N.R}
+    (hinv : ¬ N.sourceLogProjection w₁ r ≤ N.sourceLogProjection w₁ q ∧
+      N.sourceLogProjection w₂ r ≤ N.sourceLogProjection w₂ q) :
+    N.sourceLogProjection (CRNT.toEuclid.symm z) q =
+      N.sourceLogProjection (CRNT.toEuclid.symm z) r := by
+  classical
+  have horder : ∀ a b : N.R,
+      N.sourceLogProjection w₁ a ≤ N.sourceLogProjection w₁ b →
+        N.sourceLogProjection (CRNT.toEuclid.symm z) a ≤
+          N.sourceLogProjection (CRNT.toEuclid.symm z) b := by
+    change (∀ a b, _ ≤ _ → _ ≤ _) at hz
+    exact hz
+  have hnonneg : ∀ p ∈ (Finset.univ : Finset (N.R × N.R)),
+      0 ≤ if ¬ N.sourceLogProjection w₁ p.1 ≤ N.sourceLogProjection w₁ p.2 ∧
+          N.sourceLogProjection w₂ p.1 ≤ N.sourceLogProjection w₂ p.2 then
+        N.sourceLogProjection (CRNT.toEuclid.symm z) p.1 -
+          N.sourceLogProjection (CRNT.toEuclid.symm z) p.2
+      else 0 := by
+    intro p _
+    rcases p with ⟨a, b⟩
+    by_cases h :
+        ¬ N.sourceLogProjection w₁ a ≤ N.sourceLogProjection w₁ b ∧
+          N.sourceLogProjection w₂ a ≤ N.sourceLogProjection w₂ b
+    · rw [if_pos h]
+      exact sub_nonneg.mpr (horder b a (le_of_not_ge h.1))
+    · rw [if_neg h]
+  have hsum := N.inner_relativeSourceOrderIntersectionNormal_eq w₁ w₂ z
+  rw [hzero] at hsum
+  have hterms := (Finset.sum_eq_zero_iff_of_nonneg hnonneg).mp hsum.symm
+  have hterm := hterms (r, q) (Finset.mem_univ _)
+  have hgap := by simpa [hinv.1, hinv.2] using hterm
+  linarith
+
+/-- The intersection normal has nonpositive pairing on the second source-order cone. -/
+theorem inner_relativeSourceOrderIntersectionNormal_nonpos
+    (N : Network S) (w₁ w₂ : S → ℝ) {z : EuclideanSpace ℝ S}
+    (hz : z ∈ N.relativeSourceOrderCone w₂) :
+    ⟪N.relativeSourceOrderIntersectionNormal w₁ w₂, z⟫_ℝ ≤ 0 := by
+  classical
+  rw [N.inner_relativeSourceOrderIntersectionNormal_eq]
+  have horder : ∀ r q : N.R,
+      N.sourceLogProjection w₂ r ≤ N.sourceLogProjection w₂ q →
+        N.sourceLogProjection (CRNT.toEuclid.symm z) r ≤
+          N.sourceLogProjection (CRNT.toEuclid.symm z) q := by
+    change (∀ r q, _ ≤ _ → _ ≤ _) at hz
+    exact hz
+  apply Finset.sum_nonpos
+  intro p _
+  rcases p with ⟨r, q⟩
+  by_cases h :
+      ¬ N.sourceLogProjection w₁ r ≤ N.sourceLogProjection w₁ q ∧
+        N.sourceLogProjection w₂ r ≤ N.sourceLogProjection w₂ q
+  · rw [if_pos h]
+    exact sub_nonpos.mpr (horder r q h.2)
+  · rw [if_neg h]
+
+/-- The intersection of two stoichiometrically restricted source-order cones is an exposed
+face of the first cone. The supporting normal is the sum of the inequalities present in the
+second order and absent in the first. -/
+theorem relativeSourceOrderStoichCone_inf_eq_exposedFace
+    (N : Network S) (w₁ w₂ : S → ℝ) :
+    N.relativeSourceOrderStoichCone w₁ ⊓ N.relativeSourceOrderStoichCone w₂ =
+      CRNT.exposedFace (N.relativeSourceOrderStoichCone w₁)
+        (N.relativeSourceOrderIntersectionNormal w₁ w₂) := by
+  ext z
+  rw [Submodule.mem_inf, CRNT.mem_exposedFace]
+  constructor
+  · rintro ⟨hz₁, hz₂⟩
+    have hcone₁ : z ∈ N.relativeSourceOrderCone w₁ :=
+      (N.mem_relativeSourceOrderStoichCone w₁).mp hz₁ |>.1
+    have hcone₂ : z ∈ N.relativeSourceOrderCone w₂ :=
+      (N.mem_relativeSourceOrderStoichCone w₂).mp hz₂ |>.1
+    refine ⟨hz₁, ?_⟩
+    exact le_antisymm
+      (N.inner_relativeSourceOrderIntersectionNormal_nonpos w₁ w₂ hcone₂)
+      (N.inner_relativeSourceOrderIntersectionNormal_nonneg w₁ w₂ hcone₁)
+  · rintro ⟨hz₁, hzero⟩
+    have hz₁' := (N.mem_relativeSourceOrderStoichCone w₁).mp hz₁
+    have hcone₁ := hz₁'.1
+    have horder₁ : ∀ r q : N.R,
+        N.sourceLogProjection w₁ r ≤ N.sourceLogProjection w₁ q →
+          N.sourceLogProjection (CRNT.toEuclid.symm z) r ≤
+            N.sourceLogProjection (CRNT.toEuclid.symm z) q := by
+      change (∀ r q, _ ≤ _ → _ ≤ _) at hcone₁
+      exact hcone₁
+    have hcone₂ : z ∈ N.relativeSourceOrderCone w₂ := by
+      change (∀ r q,
+        N.sourceLogProjection w₂ r ≤ N.sourceLogProjection w₂ q →
+          N.sourceLogProjection (CRNT.toEuclid.symm z) r ≤
+            N.sourceLogProjection (CRNT.toEuclid.symm z) q)
+      intro r q hw₂
+      by_cases hw₁ : N.sourceLogProjection w₁ r ≤ N.sourceLogProjection w₁ q
+      · exact horder₁ r q hw₁
+      · have hgap := N.sourceOrderIntersectionGap_eq_zero_of_inner_eq_zero
+          w₁ w₂ hcone₁ hzero ⟨hw₁, hw₂⟩
+        rw [hgap]
+    exact ⟨hz₁, (N.mem_relativeSourceOrderStoichCone w₂).2 ⟨hcone₂, hz₁'.2⟩⟩
+
+/-- The supporting normal for two restricted source-order cones belongs to the dual of the
+first cone. -/
+theorem relativeSourceOrderIntersectionNormal_mem_coneDual
+    (N : Network S) (w₁ w₂ : S → ℝ) :
+    N.relativeSourceOrderIntersectionNormal w₁ w₂ ∈
+      CRNT.coneDual
+        (N.relativeSourceOrderStoichProperCone w₁ : Set (EuclideanSpace ℝ S)) := by
+  rw [CRNT.mem_coneDual]
+  intro z hz
+  rw [real_inner_comm]
+  exact N.inner_relativeSourceOrderIntersectionNormal_nonneg w₁ w₂
+    ((N.mem_relativeSourceOrderStoichCone w₁).mp hz).1
+
+/-- Pairwise intersections in the finite restricted source-order family are exposed faces of
+each participating cone, with a possibly different supporting normal for each side. -/
+theorem relativeSourceOrderStoichProperCone_inter_isExposedFaceOf
+    (N : Network S) (w₁ w₂ : S → ℝ) :
+    CRNT.IsExposedFaceOf
+      (N.relativeSourceOrderStoichProperCone w₁ ⊓
+        N.relativeSourceOrderStoichProperCone w₂)
+      (N.relativeSourceOrderStoichProperCone w₁) := by
+  refine ⟨N.relativeSourceOrderIntersectionNormal w₁ w₂,
+    N.relativeSourceOrderIntersectionNormal_mem_coneDual w₁ w₂, ?_⟩
+  ext z
+  have hface := congrArg (fun C : PointedCone ℝ (EuclideanSpace ℝ S) => z ∈ C)
+    (N.relativeSourceOrderStoichCone_inf_eq_exposedFace w₁ w₂)
+  simpa only [relativeSourceOrderStoichProperCone, ProperCone.toPointedCone,
+    ClosedSubmodule.toSubmodule_inf, SetLike.mem_coe, Submodule.mem_inf] using
+    Iff.of_eq hface
+
+/-- The same intersection is an exposed face of its second participating cone. -/
+theorem relativeSourceOrderStoichProperCone_inter_isExposedFaceOf_right
+    (N : Network S) (w₁ w₂ : S → ℝ) :
+    CRNT.IsExposedFaceOf
+      (N.relativeSourceOrderStoichProperCone w₁ ⊓
+        N.relativeSourceOrderStoichProperCone w₂)
+      (N.relativeSourceOrderStoichProperCone w₂) := by
+  simpa only [inf_comm] using
+    (N.relativeSourceOrderStoichProperCone_inter_isExposedFaceOf w₂ w₁)
+
+/-- The nonnegative projection gap for the source ordering chosen by `w`. For any point of its
+relative source-order cone, the selected comparison is respected; this gap records its slack. -/
+noncomputable def relativeSourceOrderIntersectionGap (N : Network S) (w : S → ℝ)
+    (z : EuclideanSpace ℝ S) (r q : N.R) : ℝ :=
+  if N.sourceLogProjection w r ≤ N.sourceLogProjection w q then
+    N.sourceLogProjection (CRNT.toEuclid.symm z) q -
+      N.sourceLogProjection (CRNT.toEuclid.symm z) r
+  else
+    N.sourceLogProjection (CRNT.toEuclid.symm z) r -
+      N.sourceLogProjection (CRNT.toEuclid.symm z) q
+
+/-- The selected projection gap is nonnegative throughout its source-order cone. -/
+theorem relativeSourceOrderIntersectionGap_nonneg (N : Network S) (w : S → ℝ)
+    {z : EuclideanSpace ℝ S} (hz : z ∈ N.relativeSourceOrderStoichCone w)
+    (r q : N.R) :
+    0 ≤ N.relativeSourceOrderIntersectionGap w z r q := by
+  have horder := (N.mem_relativeSourceOrderStoichCone w).mp hz |>.1
+  by_cases hw : N.sourceLogProjection w r ≤ N.sourceLogProjection w q
+  · simp only [relativeSourceOrderIntersectionGap, if_pos hw]
+    exact sub_nonneg.mpr (horder r q hw)
+  · have hrev : N.sourceLogProjection w q ≤ N.sourceLogProjection w r :=
+      le_of_lt (not_le.mp hw)
+    simp only [relativeSourceOrderIntersectionGap, if_neg hw]
+    exact sub_nonneg.mpr (horder q r hrev)
+
+/-- A point in the intersection of two source-order cones that has positive slack for a
+comparison. -/
+noncomputable def relativeSourceOrderIntersectionWitness (N : Network S)
+    (w₁ w₂ : S → ℝ) (r q : N.R) : EuclideanSpace ℝ S := by
+  classical
+  exact if h : ∃ z : EuclideanSpace ℝ S,
+      z ∈ N.relativeSourceOrderStoichCone w₁ ⊓ N.relativeSourceOrderStoichCone w₂ ∧
+      0 < N.relativeSourceOrderIntersectionGap w₁ z r q then
+    Classical.choose h
+  else 0
+
+/-- Each selected witness lies in both source-order cones. If no point has positive slack, the
+zero vector is the witness. -/
+theorem relativeSourceOrderIntersectionWitness_mem (N : Network S)
+    (w₁ w₂ : S → ℝ) (r q : N.R) :
+    N.relativeSourceOrderIntersectionWitness w₁ w₂ r q ∈
+      N.relativeSourceOrderStoichCone w₁ ⊓ N.relativeSourceOrderStoichCone w₂ := by
+  classical
+  unfold relativeSourceOrderIntersectionWitness
+  split_ifs with h
+  · exact (Classical.choose_spec h).1
+  · exact zero_mem _
+
+/-- When positive slack exists in the intersection, its chosen witness has positive slack. -/
+theorem relativeSourceOrderIntersectionWitness_gap_pos (N : Network S)
+    (w₁ w₂ : S → ℝ) (r q : N.R)
+    (h : ∃ z : EuclideanSpace ℝ S,
+      z ∈ N.relativeSourceOrderStoichCone w₁ ⊓ N.relativeSourceOrderStoichCone w₂ ∧
+        0 < N.relativeSourceOrderIntersectionGap w₁ z r q) :
+    0 < N.relativeSourceOrderIntersectionGap w₁
+      (N.relativeSourceOrderIntersectionWitness w₁ w₂ r q) r q := by
+  classical
+  unfold relativeSourceOrderIntersectionWitness
+  have h' : ∃ z : EuclideanSpace ℝ S,
+      z ∈ N.relativeSourceOrderStoichCone w₁ ⊓ N.relativeSourceOrderStoichCone w₂ ∧
+        0 < N.relativeSourceOrderIntersectionGap w₁ z r q := h
+  simp only [dif_pos h']
+  exact (Classical.choose_spec h').2
+
+/-- Additivity of source projections after transporting a finite sum from Euclidean coordinates. -/
+private theorem sourceLogProjection_symm_sum (N : Network S) {ι : Type*} [Fintype ι]
+    (v : ι → EuclideanSpace ℝ S) (r : N.R) :
+    N.sourceLogProjection (CRNT.toEuclid.symm (∑ i, v i)) r =
+      ∑ i, N.sourceLogProjection (CRNT.toEuclid.symm (v i)) r := by
+  rw [N.sourceLogProjection_eq_inner_toEuclid, CRNT.toEuclid.apply_symm_apply, inner_sum]
+  apply Finset.sum_congr rfl
+  intro i _
+  rw [N.sourceLogProjection_eq_inner_toEuclid]
+  rw [CRNT.toEuclid.apply_symm_apply]
+
+/-- The gap of the finite sum of all comparison witnesses is the sum of their gaps. -/
+theorem relativeSourceOrderIntersectionGap_point_eq_sum (N : Network S)
+    (w₁ w₂ : S → ℝ) (r q : N.R) :
+    N.relativeSourceOrderIntersectionGap w₁
+        (∑ p : N.R × N.R, N.relativeSourceOrderIntersectionWitness w₁ w₂ p.1 p.2) r q =
+      ∑ p : N.R × N.R,
+        N.relativeSourceOrderIntersectionGap w₁
+          (N.relativeSourceOrderIntersectionWitness w₁ w₂ p.1 p.2) r q := by
+  classical
+  unfold relativeSourceOrderIntersectionGap
+  by_cases hw : N.sourceLogProjection w₁ r ≤ N.sourceLogProjection w₁ q
+  · simp only [if_pos hw]
+    rw [sourceLogProjection_symm_sum, sourceLogProjection_symm_sum,
+      ← Finset.sum_sub_distrib]
+  · simp only [if_neg hw]
+    rw [sourceLogProjection_symm_sum, sourceLogProjection_symm_sum,
+      ← Finset.sum_sub_distrib]
+
+/-- The point made by summing all comparison witnesses lies in the intersection cone. -/
+theorem relativeSourceOrderIntersectionPoint_mem (N : Network S) (w₁ w₂ : S → ℝ) :
+    (∑ p : N.R × N.R, N.relativeSourceOrderIntersectionWitness w₁ w₂ p.1 p.2) ∈
+      N.relativeSourceOrderStoichCone w₁ ⊓ N.relativeSourceOrderStoichCone w₂ := by
+  apply Submodule.sum_mem _
+  intro p _
+  exact N.relativeSourceOrderIntersectionWitness_mem w₁ w₂ p.1 p.2
+
+/-- If a comparison has positive slack anywhere in the intersection, it has positive slack at the
+point formed by summing all witnesses. All other witness gaps are nonnegative. -/
+theorem relativeSourceOrderIntersectionPoint_gap_pos (N : Network S)
+    (w₁ w₂ : S → ℝ) {z : EuclideanSpace ℝ S} {r q : N.R}
+    (hz : z ∈ N.relativeSourceOrderStoichCone w₁ ⊓ N.relativeSourceOrderStoichCone w₂)
+    (hgap : 0 < N.relativeSourceOrderIntersectionGap w₁ z r q) :
+    0 < N.relativeSourceOrderIntersectionGap w₁
+      (∑ p : N.R × N.R, N.relativeSourceOrderIntersectionWitness w₁ w₂ p.1 p.2) r q := by
+  classical
+  have hchosen := N.relativeSourceOrderIntersectionWitness_gap_pos w₁ w₂ r q ⟨z, hz, hgap⟩
+  rw [N.relativeSourceOrderIntersectionGap_point_eq_sum]
+  apply Finset.sum_pos'
+  · intro p _
+    have hp := (N.relativeSourceOrderIntersectionWitness_mem w₁ w₂ p.1 p.2).1
+    exact N.relativeSourceOrderIntersectionGap_nonneg w₁ hp r q
+  · exact ⟨(r, q), Finset.mem_univ _, hchosen⟩
+
+/-- If the summed witness point has zero slack for a comparison, every point in the intersection
+has zero slack for that comparison. -/
+theorem relativeSourceOrderIntersectionGap_eq_zero_of_point_eq_zero (N : Network S)
+    (w₁ w₂ : S → ℝ) {z : EuclideanSpace ℝ S} {r q : N.R}
+    (hz : z ∈ N.relativeSourceOrderStoichCone w₁ ⊓ N.relativeSourceOrderStoichCone w₂)
+    (hpoint : N.relativeSourceOrderIntersectionGap w₁
+        (∑ p : N.R × N.R, N.relativeSourceOrderIntersectionWitness w₁ w₂ p.1 p.2) r q = 0) :
+    N.relativeSourceOrderIntersectionGap w₁ z r q = 0 := by
+  have hnonneg := N.relativeSourceOrderIntersectionGap_nonneg w₁ hz.1 r q
+  by_contra hne
+  have hpos : 0 < N.relativeSourceOrderIntersectionGap w₁ z r q :=
+    lt_of_le_of_ne hnonneg (Ne.symm hne)
+  have hsumpos := N.relativeSourceOrderIntersectionPoint_gap_pos w₁ w₂ hz hpos
+  rw [hpoint] at hsumpos
+  exact (lt_irrefl 0 hsumpos)
+
+/-- The intersection of two stoichiometrically restricted source-order cones is another cone in
+the same family. The finite sum of witnesses for all reaction-pair comparisons selects a point
+whose weak source order describes exactly the common refinement. This is the closure step needed
+to turn the finite source-order cover into fan data. -/
+theorem relativeSourceOrderStoichCone_inf_eq_intersectionPointCone
+    (N : Network S) (w₁ w₂ : S → ℝ) :
+    N.relativeSourceOrderStoichCone w₁ ⊓ N.relativeSourceOrderStoichCone w₂ =
+      N.relativeSourceOrderStoichCone
+        (CRNT.toEuclid.symm
+          (∑ p : N.R × N.R, N.relativeSourceOrderIntersectionWitness w₁ w₂ p.1 p.2)) := by
+  classical
+  let z₀ : EuclideanSpace ℝ S :=
+    ∑ p : N.R × N.R, N.relativeSourceOrderIntersectionWitness w₁ w₂ p.1 p.2
+  let w₀ : S → ℝ := CRNT.toEuclid.symm z₀
+  have hz₀ : z₀ ∈ N.relativeSourceOrderStoichCone w₁ ⊓
+      N.relativeSourceOrderStoichCone w₂ := by
+    simpa [z₀] using N.relativeSourceOrderIntersectionPoint_mem w₁ w₂
+  apply PointedCone.ext
+  intro z
+  change (z ∈ N.relativeSourceOrderStoichCone w₁ ∧
+      z ∈ N.relativeSourceOrderStoichCone w₂) ↔
+    z ∈ N.relativeSourceOrderStoichCone w₀
+  rw [N.mem_relativeSourceOrderStoichCone, N.mem_relativeSourceOrderStoichCone,
+    N.mem_relativeSourceOrderStoichCone]
+  constructor
+  · rintro ⟨⟨hz₁, hS⟩, ⟨hz₂, _⟩⟩
+    refine ⟨?_, hS⟩
+    change ∀ r q,
+      N.sourceLogProjection w₀ r ≤ N.sourceLogProjection w₀ q →
+        N.sourceLogProjection (CRNT.toEuclid.symm z) r ≤
+          N.sourceLogProjection (CRNT.toEuclid.symm z) q
+    intro r q h₀
+    by_cases hw₁ : N.sourceLogProjection w₁ r ≤ N.sourceLogProjection w₁ q
+    · exact hz₁ r q hw₁
+    · have hrev : N.sourceLogProjection w₁ q ≤ N.sourceLogProjection w₁ r :=
+        le_of_lt (not_le.mp hw₁)
+      have h₀rev :=
+        ((N.mem_relativeSourceOrderStoichCone w₁).mp hz₀.1).1 q r hrev
+      have h₀eq : N.sourceLogProjection w₀ r = N.sourceLogProjection w₀ q := by
+        exact le_antisymm h₀ h₀rev
+      have hgap₀ : N.relativeSourceOrderIntersectionGap w₁ z₀ r q = 0 := by
+        simp only [relativeSourceOrderIntersectionGap, if_neg hw₁]
+        change N.sourceLogProjection w₀ r - N.sourceLogProjection w₀ q = 0
+        exact sub_eq_zero.mpr h₀eq
+      have hz₁stoich : z ∈ N.relativeSourceOrderStoichCone w₁ :=
+        (N.mem_relativeSourceOrderStoichCone w₁).2 ⟨hz₁, hS⟩
+      have hz₂stoich : z ∈ N.relativeSourceOrderStoichCone w₂ :=
+        (N.mem_relativeSourceOrderStoichCone w₂).2 ⟨hz₂, hS⟩
+      have hzinter : z ∈ N.relativeSourceOrderStoichCone w₁ ⊓
+          N.relativeSourceOrderStoichCone w₂ := by
+        exact ⟨hz₁stoich, hz₂stoich⟩
+      have hgapz :=
+        N.relativeSourceOrderIntersectionGap_eq_zero_of_point_eq_zero w₁ w₂
+          hzinter
+          (by simpa [z₀] using hgap₀)
+      have hzEq : N.sourceLogProjection (CRNT.toEuclid.symm z) r =
+          N.sourceLogProjection (CRNT.toEuclid.symm z) q := by
+        exact sub_eq_zero.mp (by simpa [relativeSourceOrderIntersectionGap, hw₁] using hgapz)
+      exact le_of_eq hzEq
+  · rintro ⟨hz₀order, hS⟩
+    refine ⟨⟨?_, hS⟩, ⟨?_, hS⟩⟩
+    · change ∀ r q,
+        N.sourceLogProjection w₁ r ≤ N.sourceLogProjection w₁ q →
+          N.sourceLogProjection (CRNT.toEuclid.symm z) r ≤
+            N.sourceLogProjection (CRNT.toEuclid.symm z) q
+      intro r q hw
+      have h₀order := ((N.mem_relativeSourceOrderStoichCone w₁).mp hz₀.1).1 r q hw
+      simpa [w₀, z₀] using hz₀order r q h₀order
+    · change ∀ r q,
+        N.sourceLogProjection w₂ r ≤ N.sourceLogProjection w₂ q →
+          N.sourceLogProjection (CRNT.toEuclid.symm z) r ≤
+            N.sourceLogProjection (CRNT.toEuclid.symm z) q
+      intro r q hw
+      have h₀order := ((N.mem_relativeSourceOrderStoichCone w₂).mp hz₀.2).1 r q hw
+      simpa [w₀, z₀] using hz₀order r q h₀order
 
 /-- The finite weak-order signature of the reaction-source projections selected by `w`. -/
 noncomputable def relativeSourceOrderSignature (N : Network S) (w : S → ℝ) :
