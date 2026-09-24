@@ -5627,6 +5627,112 @@ private theorem no_nonneighbor_chord (N : Network S)
       omega
   exact TrueSRCycle.no_close_arc_chord_of_trueSRCriterion N hSR C hCEven k.1 hkn hkpos e hes0 her hnot hDEven
 
+/-! A clean species-to-reaction chord across the cycle's right edge is forbidden.  This is the
+path form of `no_nonneighbor_chord`: the endpoints are a cycle species and its predecessor
+reaction, while the chord itself may have any length. -/
+private theorem no_clean_predecessor_chord_of_trueSRCriterion (N : Network S)
+    (hSR : N.TrueSRStrongCriterion) {n L : ℕ}
+    (C : N.TrueSRCycle n) (hCeven : C.Even) (i : Fin n)
+    (P : N.TrueSRPath L) (hchord : C.IsChord P)
+    (hclean : ∀ p : Fin (L + 1), p.1 ≠ 0 → p.1 ≠ L →
+      ¬ C.HasVertex (P.vertex p))
+    (hstart : P.vertex 0 = Sum.inl (C.species (finRotate n i)))
+    (hend : P.vertex (Fin.last L) =
+      Sum.inr ⟨C.reaction i, C.reaction_internal i⟩)
+    (hlarge : 2 ≤ L) : False := by
+  classical
+  obtain ⟨k, hn⟩ : ∃ k : ℕ, n = k + 2 := by
+    refine ⟨n - 2, ?_⟩
+    have := C.nontrivial
+    omega
+  subst n
+  let startIdx : Fin (k + 2) := finRotate (k + 2) i
+  let zeroIdx : Fin (k + 2) := ⟨0, by omega⟩
+  let lastIdx : Fin (k + 2) := Fin.last (k + 1)
+  let rotIdx (a : Fin (k + 2)) : Fin (k + 2) := a + startIdx
+  have hstartIdx : startIdx = i + 1 := finRotate_apply i
+  have hlast : lastIdx = -1 := by
+    apply Fin.ext
+    have hlt : k + 1 < k + 2 := by omega
+    have hlt1 : 1 < k + 2 := by omega
+    simp [lastIdx, Fin.neg_def]
+  have hrotlast : rotIdx lastIdx = i := by
+    dsimp [rotIdx]
+    calc
+      lastIdx + startIdx = -1 + (i + 1) := by rw [hlast, hstartIdx]
+      _ = i := by abel
+  have hrotzero : rotIdx zeroIdx = startIdx := by
+    dsimp [rotIdx, zeroIdx]
+    exact zero_add startIdx
+  let Crot : N.TrueSRCycle (k + 2) := C.rotate startIdx.1
+  have hrotSpecies (a : Fin (k + 2)) : Crot.species a = C.species (rotIdx a) := by
+    simp [Crot, rotIdx, Fin.add_def]
+  have hrotReaction (a : Fin (k + 2)) : Crot.reaction a = C.reaction (rotIdx a) := by
+    simp [Crot, rotIdx, Fin.add_def]
+  have hrotLeft (a : Fin (k + 2)) : Crot.leftEdge a = C.leftEdge (rotIdx a) := by
+    simp [Crot, rotIdx, Fin.add_def]
+  have hrotRight (a : Fin (k + 2)) : Crot.rightEdge a = C.rightEdge (rotIdx a) := by
+    simp [Crot, rotIdx, Fin.add_def]
+  have hrotSurj (b : Fin (k + 2)) : ∃ a, rotIdx a = b := by
+    refine ⟨b - startIdx, ?_⟩
+    dsimp [rotIdx]
+    exact sub_add_cancel b startIdx
+  have hspeciesIff (s : S) : Crot.HasSpecies s ↔ C.HasSpecies s := by
+    constructor
+    · rintro ⟨a, ha⟩
+      exact ⟨rotIdx a, (hrotSpecies a).trans ha⟩
+    · rintro ⟨b, hb⟩
+      obtain ⟨a, ha⟩ := hrotSurj b
+      exact ⟨a, by rw [hrotSpecies, ha, hb]⟩
+  have hreactionsIff (ρ : N.TrueReaction) : Crot.HasReaction ρ ↔ C.HasReaction ρ := by
+    constructor
+    · rintro ⟨a, ha⟩
+      exact ⟨rotIdx a, (hrotReaction a).trans ha⟩
+    · rintro ⟨b, hb⟩
+      obtain ⟨a, ha⟩ := hrotSurj b
+      exact ⟨a, by rw [hrotReaction, ha, hb]⟩
+  have hverticesIff (v : N.TrueSRVertex) : Crot.HasVertex v ↔ C.HasVertex v := by
+    cases v with
+    | inl s => exact hspeciesIff s
+    | inr ρ => exact hreactionsIff ρ.1
+  have hchordRot : Crot.IsChord P := by
+    rcases hchord with ⟨hs, hρ, hleft, hright⟩
+    refine ⟨(hspeciesIff _).2 hs, (hreactionsIff _).2 hρ, ?_, ?_⟩
+    · intro p a hsame
+      apply hleft p (rotIdx a)
+      simpa [hrotLeft a] using hsame
+    · intro p a hsame
+      apply hright p (rotIdx a)
+      simpa [hrotRight a] using hsame
+  have hcleanRot : ∀ p : Fin (L + 1), p.1 ≠ 0 → p.1 ≠ L →
+      ¬ Crot.HasVertex (P.vertex p) := by
+    intro p hp0 hpL hon
+    exact hclean p hp0 hpL ((hverticesIff _).mp hon)
+  have hCrotEven : Crot.Even := C.rotate_even startIdx.1 hCeven
+  have hCrotStart : Crot.species zeroIdx = C.species (finRotate (k + 2) i) := by
+    rw [hrotSpecies, hrotzero]
+  have hPstart : P.vertex 0 = Sum.inl (Crot.species zeroIdx) := by
+    rw [hstart, hCrotStart]
+  have hCrotEnd : Crot.reaction lastIdx = C.reaction i := by
+    rw [hrotReaction, hrotlast]
+  have hPend : P.vertex (Fin.last L) =
+      Sum.inr ⟨Crot.reaction lastIdx, Crot.reaction_internal lastIdx⟩ := by
+    calc
+      P.vertex (Fin.last L) = Sum.inr ⟨C.reaction i, C.reaction_internal i⟩ := hend
+      _ = Sum.inr ⟨Crot.reaction lastIdx, Crot.reaction_internal lastIdx⟩ := by
+        apply congrArg Sum.inr
+        apply Subtype.ext
+        exact hCrotEnd.symm
+  have hPstartBase : P.startSpecies = Crot.species zeroIdx := by
+    have hz := P.vertex_zero
+    exact Sum.inl.inj (hz.symm.trans hPstart)
+  have hPendBase : P.endReaction.1 = Crot.reaction lastIdx := by
+    have hz := P.vertex_last
+    have heq := Sum.inr.inj (hz.symm.trans hPend)
+    exact congrArg Subtype.val heq
+  exact N.no_arc_chord_of_trueSRCriterion hSR Crot hCrotEven P hchordRot
+    hcleanRot hPstartBase hPendBase hlarge
+
 /-- **Shinar--Feinberg true-SR strong-concordance theorem.**
 
 Reactant/product separation is required to identify true-SR edge labels with net stoichiometric
@@ -5832,7 +5938,62 @@ theorem stronglyConcordant_fullyOpen_of_trueSRCriterion
     exact N.no_nonneighbor_chord hsep hSR Crot zeroIdx rfl hσrot hpairrot
       k eHead heHeadSpecies' heHeadReaction' hk0 hklast (βrot k) (hbetaRot k)
       hposrot hnegrot
-  sorry
+  have hqOffCycle : ¬ C.HasReaction q.1 := by
+    rintro ⟨j, hj⟩
+    apply hρnotCycle j
+    calc
+      C.reaction j = q.1 := hj
+      _ = ρ := hqρ
+  have hsT : Sum.inl s ∈ T := by
+    obtain ⟨s', hsSpecies, hsT⟩ := hCspT (finRotate n i)
+    have hsEq : s' = s := by
+      apply Subtype.ext
+      exact hsSpecies
+    simpa [hsEq] using hsT
+  have hsCycle : C.HasSpecies s.1 := by
+    refine ⟨finRotate n i, ?_⟩
+    rfl
+  have hqCCycle : C.HasReaction qC.1 := ⟨i, hqC.symm⟩
+  have hqNeC : q.1 ≠ qC.1 := by
+    intro heq
+    apply hρnotCycle i
+    calc
+      C.reaction i = qC.1 := hqC.symm
+      _ = q.1 := heq.symm
+      _ = ρ := hqρ
+  have hqPathEndpointsNe :
+      (⟨Sum.inr q, hqT⟩ : {v : N.TrueInternalAggregateVertex α σ // v ∈ T}) ≠
+        ⟨Sum.inr qC, hqCT⟩ := by
+    intro heq
+    have hqeq : q = qC := by
+      injection (congrArg Subtype.val heq)
+    exact hqNeC (congrArg (fun x : N.ActiveAggregateTrueReaction α σ => x.1) hqeq)
+  obtain ⟨qPath, hqPath⟩ :=
+    CRNT.relationGraphOn_exists_isPath_of_source
+      (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T hne hscc hsource
+      (Sum.inr q) (Sum.inr qC) hqT hqCT
+  have hqPathNonempty : 0 < qPath.length :=
+    (SimpleGraph.Walk.not_nil_iff_lt_length).mp (qPath.not_nil_of_ne hqPathEndpointsNe)
+  by_cases hqPathClean : ∀ j, j < qPath.length →
+      ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex (qPath.getVert j).1)
+  · obtain ⟨P, hPChord, hPStartRaw, hPEndRaw, hPclean⟩ :=
+      N.aggregateSourceReactionPath_prefix_chord T C hsT hqT hqCT hsCycle hqCCycle
+        hqOffCycle hattachment qPath hqPath hqPathClean
+    have hPstart : P.vertex 0 = Sum.inl (C.species (finRotate n i)) := by
+      simpa [s] using hPStartRaw
+    have hPend : P.vertex (Fin.last (qPath.length + 1)) =
+        Sum.inr ⟨C.reaction i, C.reaction_internal i⟩ := by
+      calc
+        P.vertex (Fin.last (qPath.length + 1)) =
+            Sum.inr ⟨qC.1, N.activeAggregateTrueReaction_internal qC⟩ := hPEndRaw
+        _ = Sum.inr ⟨C.reaction i, C.reaction_internal i⟩ := by
+          apply congrArg Sum.inr
+          apply Subtype.ext
+          exact hqC
+    have hPlarge : 2 ≤ qPath.length + 1 := by omega
+    exact N.no_clean_predecessor_chord_of_trueSRCriterion hSR C hCeven i P
+      hPChord hPclean hPstart hPend hPlarge
+  · sorry
 
 /-- For weakly normal/nondegenerate networks, the same SR condition implies strong
 concordance of the original network. -/
