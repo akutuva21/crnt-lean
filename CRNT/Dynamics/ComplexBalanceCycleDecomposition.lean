@@ -2026,6 +2026,29 @@ theorem stoich_of_mem_relativeSourceOrderNegativeConeFamily
   have hnegStoich := N.stoich_of_mem_relativeSourceOrderStoichConeFamily hD hnegz
   simpa using N.stoichSubspace.neg_mem hnegStoich
 
+/-- The sign-reversed finite family is closed under pairwise intersections. Preimage under
+negation commutes with intersection, so this is inherited directly from the source-order chamber
+family. -/
+theorem relativeSourceOrderNegativeConeFamily_inter_mem
+    (N : Network S) {C₁ C₂ : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (h₁ : C₁ ∈ N.relativeSourceOrderNegativeConeFamily)
+    (h₂ : C₂ ∈ N.relativeSourceOrderNegativeConeFamily) :
+    C₁ ⊓ C₂ ∈ N.relativeSourceOrderNegativeConeFamily := by
+  classical
+  rw [relativeSourceOrderNegativeConeFamily] at h₁ h₂ ⊢
+  rcases Finset.mem_image.mp h₁ with ⟨D₁, hD₁, rfl⟩
+  rcases Finset.mem_image.mp h₂ with ⟨D₂, hD₂, rfl⟩
+  have hD := N.relativeSourceOrderStoichConeFamily_inter_mem hD₁ hD₂
+  have hpreimage :
+      D₁.comap (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S))) ⊓
+          D₂.comap (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S))) =
+        (D₁ ⊓ D₂).comap (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S))) := by
+    apply ProperCone.ext
+    intro z
+    simp
+  rw [hpreimage]
+  exact Finset.mem_image.mpr ⟨D₁ ⊓ D₂, hD, rfl⟩
+
 /-- The projected relative log state lies in the negative of its selected source-order cone. -/
 theorem negativeRelativeLogStoichProjection_mem_relativeSourceOrderNegativeCone
     (N : Network S) (u : S → ℝ) :
