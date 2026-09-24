@@ -969,6 +969,59 @@ theorem relativeSourceOrderCone_lineality_eq_zero
       (CRNT.toEuclid.apply_symm_apply z).symm
     _ = 0 := by simp [u, hu]
 
+/-- Restrict a relative source-order cone to the Euclidean image of the stoichiometric
+subspace. -/
+noncomputable def relativeSourceOrderStoichCone (N : Network S) (w : S → ℝ) :
+    PointedCone ℝ (EuclideanSpace ℝ S) :=
+  N.relativeSourceOrderCone w ⊓
+    PointedCone.ofSubmodule
+      (Submodule.map (σ₁₂ := RingHom.id ℝ) CRNT.toEuclid.toLinearMap
+        N.stoichSubspace)
+
+@[simp] theorem mem_relativeSourceOrderStoichCone (N : Network S) (w : S → ℝ)
+    {z : EuclideanSpace ℝ S} :
+    z ∈ N.relativeSourceOrderStoichCone w ↔
+      z ∈ N.relativeSourceOrderCone w ∧
+        CRNT.toEuclid.symm z ∈ N.stoichSubspace := by
+  simp only [relativeSourceOrderStoichCone, Submodule.mem_inf,
+    PointedCone.mem_ofSubmodule_iff, Submodule.mem_map]
+  constructor
+  · rintro ⟨hcone, u, hu, huz⟩
+    refine ⟨hcone, ?_⟩
+    rw [← huz]
+    simpa using hu
+  · rintro ⟨hcone, hu⟩
+    refine ⟨hcone, CRNT.toEuclid.symm z, hu, ?_⟩
+    exact CRNT.toEuclid.apply_symm_apply z
+
+/-- The stoichiometrically restricted source-order cone is closed. Its first factor is a
+finite intersection of closed half-spaces; its second factor is a finite-dimensional
+subspace. -/
+theorem isClosed_relativeSourceOrderStoichCone (N : Network S) (w : S → ℝ) :
+    IsClosed (N.relativeSourceOrderStoichCone w : Set (EuclideanSpace ℝ S)) := by
+  rw [relativeSourceOrderStoichCone, Submodule.coe_inf, PointedCone.coe_ofSubmodule]
+  exact (N.isClosed_relativeSourceOrderCone w).inter
+    (Submodule.closed_of_finiteDimensional
+      (Submodule.map (σ₁₂ := RingHom.id ℝ) CRNT.toEuclid.toLinearMap
+        N.stoichSubspace))
+
+/-- The restricted source-order cone, packaged as a closed cone for use by the toric-fan
+interfaces. -/
+noncomputable def relativeSourceOrderStoichProperCone (N : Network S) (w : S → ℝ) :
+    ProperCone ℝ (EuclideanSpace ℝ S) := by
+  exact ⟨N.relativeSourceOrderStoichCone w,
+    N.isClosed_relativeSourceOrderStoichCone w⟩
+
+/-- Weak reversibility makes each stoichiometrically restricted source-order cone salient:
+the cone and its negative intersect only at zero. -/
+theorem relativeSourceOrderStoichCone_lineality_eq_zero
+    (N : Network S) (w : S → ℝ) (hwr : N.WeaklyReversible)
+    {z : EuclideanSpace ℝ S} (hz : z ∈ N.relativeSourceOrderStoichCone w)
+    (hnegz : -z ∈ N.relativeSourceOrderStoichCone w) : z = 0 := by
+  have hz' := (N.mem_relativeSourceOrderStoichCone w).mp hz
+  have hnegz' := (N.mem_relativeSourceOrderStoichCone w).mp hnegz
+  exact N.relativeSourceOrderCone_lineality_eq_zero w hz'.1 hnegz'.1 hz'.2 hwr
+
 /-- The finite weak-order signature of the reaction-source projections selected by `w`. -/
 noncomputable def relativeSourceOrderSignature (N : Network S) (w : S → ℝ) :
     N.R → N.R → Bool :=
@@ -1052,6 +1105,52 @@ theorem finite_relativeSourceOrderCone_range (N : Network S) :
     exact N.relativeSourceOrderCone_eq_of_sameSourceOrder horder
   exact hfinite.subset hsub
 
+/-- Restricting two identical source-order chambers to the same stoichiometric subspace
+preserves their equality. -/
+theorem relativeSourceOrderStoichProperCone_eq_of_sameSourceOrder (N : Network S)
+    {w₁ w₂ : S → ℝ}
+    (horder : ∀ r q : N.R,
+      (N.sourceLogProjection w₁ r ≤ N.sourceLogProjection w₁ q) ↔
+        (N.sourceLogProjection w₂ r ≤ N.sourceLogProjection w₂ q)) :
+    N.relativeSourceOrderStoichProperCone w₁ =
+      N.relativeSourceOrderStoichProperCone w₂ := by
+  apply ProperCone.ext
+  intro z
+  change z ∈ N.relativeSourceOrderStoichCone w₁ ↔
+    z ∈ N.relativeSourceOrderStoichCone w₂
+  rw [N.mem_relativeSourceOrderStoichCone, N.mem_relativeSourceOrderStoichCone]
+  rw [N.relativeSourceOrderCone_eq_of_sameSourceOrder horder]
+
+/-- There are only finitely many closed source-order cones after restriction to the
+stoichiometric subspace. -/
+theorem finite_relativeSourceOrderStoichProperCone_range (N : Network S) :
+    (Set.range (N.relativeSourceOrderStoichProperCone)).Finite := by
+  classical
+  let f : (N.R → N.R → Bool) → ProperCone ℝ (EuclideanSpace ℝ S) :=
+    fun σ => N.relativeSourceOrderStoichProperCone (N.relativeSourceOrderWitness σ)
+  have hfinite : (Set.range f).Finite := by
+    simpa [Set.range] using
+      (Set.toFinite (Set.univ : Set (N.R → N.R → Bool))).image f
+  have hsub : Set.range (N.relativeSourceOrderStoichProperCone) ⊆ Set.range f := by
+    rintro C ⟨w, rfl⟩
+    let σ := N.relativeSourceOrderSignature w
+    have hreal : ∃ v, N.relativeSourceOrderSignature v = σ := ⟨w, rfl⟩
+    have hsig := N.relativeSourceOrderSignature_witness_eq hreal
+    have horder : ∀ r q : N.R,
+        (N.sourceLogProjection (N.relativeSourceOrderWitness σ) r ≤
+          N.sourceLogProjection (N.relativeSourceOrderWitness σ) q) ↔
+        (N.sourceLogProjection w r ≤ N.sourceLogProjection w q) := by
+      intro r q
+      rw [← N.relativeSourceOrderSignature_le_iff
+          (N.relativeSourceOrderWitness σ) r q, hsig,
+        N.relativeSourceOrderSignature_le_iff w r q]
+    refine ⟨σ, ?_⟩
+    change N.relativeSourceOrderStoichProperCone
+        (N.relativeSourceOrderWitness σ) =
+      N.relativeSourceOrderStoichProperCone w
+    exact N.relativeSourceOrderStoichProperCone_eq_of_sameSourceOrder horder
+  exact hfinite.subset hsub
+
 /-- A direction belongs to the source-order chamber it itself selects. -/
 theorem toEuclid_mem_relativeSourceOrderCone (N : Network S) (w : S → ℝ) :
     CRNT.toEuclid w ∈ N.relativeSourceOrderCone w := by
@@ -1076,6 +1175,27 @@ theorem relativeSourceOrderCone_covers_stoichSubspace (N : Network S)
   refine ⟨CRNT.toEuclid.symm z, hz,
     (CRNT.toEuclid.apply_symm_apply z).symm, ?_⟩
   simpa using N.toEuclid_mem_relativeSourceOrderCone (CRNT.toEuclid.symm z)
+
+/-- The finite family of closed stoichiometric source-order cones covers exactly the
+stoichiometric subspace: every vector in that subspace belongs to one of the cones, and every
+cone member remains stoichiometric. -/
+theorem exists_relativeSourceOrderStoichProperCone_mem
+    (N : Network S) {z : EuclideanSpace ℝ S}
+    (hz : CRNT.toEuclid.symm z ∈ N.stoichSubspace) :
+    ∃ C ∈ Set.range (N.relativeSourceOrderStoichProperCone), z ∈ C := by
+  obtain ⟨w, hw, rfl, hcone⟩ := N.relativeSourceOrderCone_covers_stoichSubspace hz
+  refine ⟨N.relativeSourceOrderStoichProperCone w, ⟨w, rfl⟩, ?_⟩
+  change CRNT.toEuclid w ∈ N.relativeSourceOrderStoichCone w
+  exact (N.mem_relativeSourceOrderStoichCone w).2 ⟨hcone, hw⟩
+
+/-- Membership in any cone of the candidate finite family implies stoichiometric membership. -/
+theorem stoich_of_mem_relativeSourceOrderStoichProperCone
+    (N : Network S) {C : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (hC : C ∈ Set.range (N.relativeSourceOrderStoichProperCone))
+    {z : EuclideanSpace ℝ S} (hz : z ∈ C) :
+    CRNT.toEuclid.symm z ∈ N.stoichSubspace := by
+  rcases hC with ⟨w, rfl⟩
+  exact (N.mem_relativeSourceOrderStoichCone w).mp hz |>.2
 
 /-- **Pointwise toric inclusion for a complex-balanced field.** At every positive state `x`, the
 mass-action vector field lies in the polar cone of the source-order cone determined by
