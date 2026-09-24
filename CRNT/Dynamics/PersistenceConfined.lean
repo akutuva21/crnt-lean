@@ -191,7 +191,7 @@ This drops the dissipativity hypothesis of `siphonFace_forwardInvariant`: the on
 the field. -/
 theorem siphonFace_forwardInvariant_confined (N : Network S) (κ : N.RateConstants)
     {P : Finset S} (hP : N.IsSiphon P) {γ : ℝ → Concentration S} {B : ℝ}
-    (hderiv : ∀ t, HasDerivAt γ (N.massActionVectorField κ (γ t)) t)
+    (hderiv : ∀ t, 0 ≤ t → HasDerivAt γ (N.massActionVectorField κ (γ t)) t)
     (hnn : ∀ t, 0 ≤ t → (γ t).Nonnegative)
     (hbox : ∀ t, 0 ≤ t → ∀ s, γ t s ≤ B)
     (h0 : γ 0 ∈ N.SiphonFace P) :
@@ -202,7 +202,7 @@ theorem siphonFace_forwardInvariant_confined (N : Network S) (κ : N.RateConstan
   left
   -- `deriv (fun u => faceSum P (γ u)) t = ∑ s ∈ P, f(γ t) s`, then apply `faceSum_field_le`
   have hcoord : ∀ s, HasDerivAt (fun u => γ u s) (N.massActionVectorField κ (γ t) s) t :=
-    fun s => (hasDerivAt_pi.mp (hderiv t)) s
+    fun s => (hasDerivAt_pi.mp (hderiv t ht)) s
   have hgderiv : HasDerivAt (fun u => faceSum P (γ u))
       (∑ s ∈ P, N.massActionVectorField κ (γ t) s) t := by
     have hsum := HasDerivAt.sum (u := P) (A := fun s => fun u => γ u s)

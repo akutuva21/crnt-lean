@@ -1,4 +1,6 @@
 import CRNT.Dynamics.GlobalStability
+import CRNT.Dynamics.BoundaryOmegaSiphon
+import CRNT.Dynamics.SiphonFaceWeakReversibility
 
 /-!
 # A single positive ω-limit point forces global convergence
@@ -36,6 +38,97 @@ namespace CRNT
 namespace Network
 
 variable {S : Type} [DecidableEq S] [Fintype S]
+
+/-- **Boundary omega-points are face equilibria.** If the zero set of a boundary omega-point is a
+siphon, then constant relative entropy and forward invariance of the omega-limit set force that
+point to be an equilibrium. The proof restricts the weakly reversible complex-balanced system to
+the reactions that do not require the absent species. -/
+theorem massActionVectorField_eq_zero_of_mem_boundaryOmega_siphon
+    (N : Network S) (hwr : N.WeaklyReversible) (κ : N.RateConstants)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {xstar x₀ : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar)
+    (hγ0 : ∀ x, γ x 0 = x) (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hgenω : ∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      HasDerivAt (γ y) (N.massActionVectorField κ (γ y t)) t)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    {c : ℝ} (hωc : ∀ z ∈ omegaLimit atTop ϕ {x₀}, relEntropy xstar z = c)
+    {w : Concentration S} (hw : w ∈ omegaLimit atTop ϕ {x₀})
+    {P : Finset S} (hP : N.IsSiphon P)
+    (hzeroSet : ∀ s, s ∈ P ↔ w s = 0) :
+    N.massActionVectorField κ w = 0 := by
+  have hwposOutside : ∀ s, s ∉ P → 0 < w s := by
+    intro s hs
+    have hnotzero : w s ≠ 0 := by
+      intro hz
+      exact hs ((hzeroSet s).2 hz)
+    exact lt_of_le_of_ne (hωnn w hw s) (Ne.symm hnotzero)
+  have hface0 : γ w 0 ∈ N.SiphonFace P := by
+    have hwface : w ∈ N.SiphonFace P := by
+      apply (mem_siphonFace_iff N).mpr
+      have hwnn := hωnn w hw
+      exact ⟨hwnn, (faceSum_eq_zero_iff hwnn).2 (fun s hs => (hzeroSet s).1 hs)⟩
+    simpa [hγ0] using hwface
+  have hyωt : ∀ t : ℝ, 0 ≤ t → γ w t ∈ omegaLimit atTop ϕ {x₀} := by
+    intro t ht
+    have hflow := (Flow.isInvariant_omegaLimit atTop ϕ {x₀}
+      (fun s => tendsto_atTop_mono (fun _ => le_add_self) tendsto_id) ⟨t, ht⟩) hw
+    exact (hϕγ w ⟨t, ht⟩) ▸ hflow
+  have hnonneg : ∀ t, 0 ≤ t → (γ w t).Nonnegative :=
+    fun t ht => hωnn (γ w t) (hyωt t ht)
+  have hpositive : ∀ s, s ∉ P → 0 < γ w 0 s := by
+    intro s hs
+    simpa [hγ0] using hwposOutside s hs
+  exact N.massActionVectorField_eq_zero_of_confined_constantEntropy_siphonFaceOrbit
+    κ hP hwr hxs hcb (hγ0 w) hface0 hnonneg hpositive (hgenω w hw)
+    (fun t ht => hωc (γ w t) (hyωt t ht))
+
+/-- Compactness makes the zero set of any boundary omega point a siphon, so every such point is a
+stationary point of the full complex-balanced vector field. -/
+theorem massActionVectorField_eq_zero_of_mem_boundaryOmega
+    (N : Network S) (hwr : N.WeaklyReversible) (κ : N.RateConstants)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {xstar x₀ : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar)
+    (hγ0 : ∀ x, γ x 0 = x) (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    {K : Set (Concentration S)} (hK : IsCompact K)
+    (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hgenω : ∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      HasDerivAt (γ y) (N.massActionVectorField κ (γ y t)) t)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    {c : ℝ} (hωc : ∀ z ∈ omegaLimit atTop ϕ {x₀}, relEntropy xstar z = c)
+    {w : Concentration S} (hw : w ∈ omegaLimit atTop ϕ {x₀})
+    {P : Finset S} (hzeroSet : ∀ s, s ∈ P ↔ w s = 0) :
+    N.massActionVectorField κ w = 0 := by
+  have hP : N.IsSiphon P :=
+    N.isSiphon_zeroSet_of_mem_omegaLimit κ hϕγ hK hmaps hωnn hgenω hw hzeroSet
+  exact N.massActionVectorField_eq_zero_of_mem_boundaryOmega_siphon hwr κ hxs hcb hγ0 hϕγ
+    hgenω hωnn hωc hw hP hzeroSet
+
+/-- Every point in the omega-limit set is stationary once relative entropy is constant there.
+The zero set may be empty: the face argument also covers positive omega-points by taking
+`P = ∅`. -/
+theorem massActionVectorField_eq_zero_on_omegaLimit
+    (N : Network S) (hwr : N.WeaklyReversible) (κ : N.RateConstants)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {xstar x₀ : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar)
+    (hγ0 : ∀ x, γ x 0 = x) (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    {K : Set (Concentration S)} (hK : IsCompact K)
+    (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hgenω : ∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      HasDerivAt (γ y) (N.massActionVectorField κ (γ y t)) t)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    {c : ℝ} (hωc : ∀ z ∈ omegaLimit atTop ϕ {x₀}, relEntropy xstar z = c) :
+    ∀ w ∈ omegaLimit atTop ϕ {x₀}, N.massActionVectorField κ w = 0 := by
+  classical
+  intro w hw
+  let P : Finset S := Finset.univ.filter (fun s => w s = 0)
+  have hzeroSet : ∀ s, s ∈ P ↔ w s = 0 := by
+    intro s
+    simp [P]
+  exact N.massActionVectorField_eq_zero_of_mem_boundaryOmega hwr κ hxs hcb hγ0 hϕγ
+    hK hmaps hgenω hωnn hωc hw hzeroSet
 
 /-- **One positive ω-limit point ⇒ `ω = {x*}`.** For a weakly reversible network with a positive
 complex-balanced reference `x*` and a positive start `x₀` in its class, suppose the mass-action
