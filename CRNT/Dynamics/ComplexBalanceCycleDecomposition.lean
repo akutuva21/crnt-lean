@@ -2049,6 +2049,78 @@ theorem relativeSourceOrderNegativeConeFamily_inter_mem
   rw [hpreimage]
   exact Finset.mem_image.mpr ⟨D₁ ⊓ D₂, hD, rfl⟩
 
+/-- Negation transports an exposed-face certificate to the corresponding sign-reversed cones.
+The supporting functional changes from `a` to `-a`, since both the cone and every point in it are
+reoriented. -/
+private theorem isExposedFaceOf_comap_neg
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    {D C : ProperCone ℝ E} (h : CRNT.IsExposedFaceOf D C) :
+    CRNT.IsExposedFaceOf
+      (D.comap (-(ContinuousLinearMap.id ℝ E)))
+      (C.comap (-(ContinuousLinearMap.id ℝ E))) := by
+  obtain ⟨a, ha, hface⟩ := h
+  refine ⟨-a, ?_, ?_⟩
+  · rw [CRNT.mem_coneDual]
+    intro x hx
+    have hxC : -x ∈ C := by simpa using hx
+    have hnonneg : 0 ≤ ⟪-x, a⟫_ℝ := CRNT.mem_coneDual.mp ha hxC
+    simpa [inner_neg_left, inner_neg_right] using hnonneg
+  ·
+    apply Set.ext
+    intro x
+    change x ∈ D.comap (-(ContinuousLinearMap.id ℝ E)) ↔
+      x ∈ CRNT.exposedFace
+        (C.comap (-(ContinuousLinearMap.id ℝ E) : E →L[ℝ] E) : PointedCone ℝ E) (-a)
+    rw [CRNT.mem_exposedFace]
+    constructor
+    · intro hx
+      have hxD : -x ∈ D := by simpa using hx
+      have hxDset : (-x : E) ∈ ((D : PointedCone ℝ E) : Set E) := by simpa using hxD
+      have hface_mem := congrArg (fun A : Set E => (-x : E) ∈ A) hface
+      have hxface : -x ∈ CRNT.exposedFace (C : PointedCone ℝ E) a :=
+        hface_mem.mp hxDset
+      rcases CRNT.mem_exposedFace.mp hxface with ⟨hxC, hzero⟩
+      exact ⟨by simpa using hxC,
+        by simpa [inner_neg_left, inner_neg_right] using hzero⟩
+    · rintro ⟨hxC, hzero⟩
+      have hxnegC : -x ∈ C := by simpa using hxC
+      have hzero' : ⟪a, -x⟫_ℝ = 0 := by
+        simpa [inner_neg_left, inner_neg_right] using hzero
+      have hxface : -x ∈ CRNT.exposedFace (C : PointedCone ℝ E) a :=
+        CRNT.mem_exposedFace.mpr ⟨hxnegC, hzero'⟩
+      have hxface_set : (-x : E) ∈
+          (CRNT.exposedFace (C : PointedCone ℝ E) a : Set E) := by simpa using hxface
+      have hface_mem := congrArg (fun A : Set E => (-x : E) ∈ A) hface
+      have hxDset : (-x : E) ∈ ((D : PointedCone ℝ E) : Set E) :=
+        hface_mem.mpr hxface_set
+      have hxD : -x ∈ D := by simpa using hxDset
+      simpa using hxD
+
+/-- Pairwise intersections in the sign-reversed family are common exposed faces of both cones.
+The positive source-order family already has supporting normals for both sides; the preceding
+transport lemma reverses each normal and carries the face equations across negation. -/
+theorem relativeSourceOrderNegativeConeFamily_inter_commonExposedFace
+    (N : Network S) {C₁ C₂ : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (h₁ : C₁ ∈ N.relativeSourceOrderNegativeConeFamily)
+    (h₂ : C₂ ∈ N.relativeSourceOrderNegativeConeFamily) :
+    CRNT.IsExposedFaceOf (C₁ ⊓ C₂) C₁ ∧
+      CRNT.IsExposedFaceOf (C₁ ⊓ C₂) C₂ := by
+  classical
+  rw [relativeSourceOrderNegativeConeFamily] at h₁ h₂
+  rcases Finset.mem_image.mp h₁ with ⟨D₁, hD₁, rfl⟩
+  rcases Finset.mem_image.mp h₂ with ⟨D₂, hD₂, rfl⟩
+  have hfaces := N.relativeSourceOrderStoichConeFamily_inter_commonExposedFace hD₁ hD₂
+  have hpreimage :
+      D₁.comap (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S))) ⊓
+          D₂.comap (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S))) =
+        (D₁ ⊓ D₂).comap (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S))) := by
+    apply ProperCone.ext
+    intro z
+    simp
+  constructor
+  · simpa only [hpreimage] using isExposedFaceOf_comap_neg hfaces.1
+  · simpa only [hpreimage] using isExposedFaceOf_comap_neg hfaces.2
+
 /-- The projected relative log state lies in the negative of its selected source-order cone. -/
 theorem negativeRelativeLogStoichProjection_mem_relativeSourceOrderNegativeCone
     (N : Network S) (u : S → ℝ) :
