@@ -255,15 +255,19 @@ theorem persistentFrom_of_comparableGrowthDescent
   exact N.omegaLimit_positive_of_comparableGrowthDescent κ hϕγ hK hKcl hmaps
     hωnn hgenω hωaff hx0 hdesc
 
-/-- **Weak omega-interior certificate for fixed rates.**  For every positive bounded orbit whose
-omega-limit dynamics are genuine, nonnegative, and remain in the stoichiometric affine class, the
-omega-limit set contains at least one strictly positive point.  This is strictly weaker than
+/-- **Weak omega-interior certificate for fixed rates.**  For every positive bounded genuine
+mass-action orbit whose omega-limit dynamics are genuine, nonnegative, and remain in the
+stoichiometric affine class, the omega-limit set contains at least one strictly positive point.
+This is strictly weaker than
 `BoundaryOmegaExcluded`: complex-balanced LaSalle theory upgrades a single positive omega-point to
 the full singleton omega-limit conclusion. -/
 def PositiveOmegaPointForRates (N : Network S) (κ : N.RateConstants) : Prop :=
   ∀ {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
     {x₀ : Concentration S},
     (∀ x (t : ℝ≥0), ϕ t x = γ x t) →
+    -- The initial orbit must solve the ODE as well as its omega-limit orbits.
+    -- Otherwise the contracting flow in `CRNT.Examples.OmegaPointFakeFlow` refutes this.
+    (∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t) →
     (∃ K : Set (Concentration S), IsCompact K ∧ ∀ t : ℝ≥0, ϕ t x₀ ∈ K) →
     (∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y) →
     (∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
@@ -272,12 +276,40 @@ def PositiveOmegaPointForRates (N : Network S) (κ : N.RateConstants) : Prop :=
     x₀.Positive →
     ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive
 
+/-- The positive-omega kernel closes when the stoichiometric subspace is trivial: compactness
+makes the omega-limit set nonempty, and affine invariance pins every omega-point to the positive
+initial state. This is the zero-dimensional base case for a dimension-inductive proof of the full
+complex-balanced theorem. -/
+theorem positiveOmegaPointForRates_of_trivialStoichSubspace
+    (N : Network S) (κ : N.RateConstants)
+    (hzero : N.stoichSubspace = ⊥) :
+    N.PositiveOmegaPointForRates κ := by
+  intro ϕ γ x₀ hϕγ _hsol hbounded _hωnn _hgenω hωaff hx₀
+  obtain ⟨K, hKcpt, hmaps⟩ := hbounded
+  have hsubK : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆ K := by
+    rintro z ⟨t, -, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst x
+    exact hmaps t
+  have habs : ∃ v ∈ (atTop : Filter ℝ≥0),
+      closure (Set.image2 ϕ v {x₀}) ⊆ K :=
+    ⟨Set.univ, univ_mem,
+      (IsClosed.closure_subset_iff hKcpt.isClosed).mpr hsubK⟩
+  obtain ⟨p, hp⟩ :=
+    nonempty_omegaLimit_of_isCompact_absorbing atTop ϕ {x₀} hKcpt habs
+      (Set.singleton_nonempty x₀)
+  have hpaff : (p - x₀ : Concentration S) ∈ N.stoichSubspace := hωaff p hp
+  rw [hzero] at hpaff
+  simp only [Submodule.mem_bot] at hpaff
+  have hpeq : p = x₀ := sub_eq_zero.mp hpaff
+  exact ⟨p, hp, by simpa [hpeq] using hx₀⟩
+
 /-- Boundary omega-exclusion implies the weaker positive-omega-point certificate. -/
 theorem positiveOmegaPointForRates_of_boundaryOmegaExcluded
     (N : Network S) (κ : N.RateConstants)
     (hboundary : N.BoundaryOmegaExcluded κ) :
     N.PositiveOmegaPointForRates κ := by
-  intro ϕ γ x₀ hϕγ hbounded hωnn hgenω hωaff hx0
+  intro ϕ γ x₀ hϕγ _hsol hbounded hωnn hgenω hωaff hx0
   obtain ⟨K, hKcpt, hmaps⟩ := hbounded
   have hsubK : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆ K := by
     rintro z ⟨t, -, x, hx, rfl⟩
@@ -311,7 +343,7 @@ theorem positiveOmegaPointForRates_of_comparableGrowthDescentForRates
     (N : Network S) (κ : N.RateConstants)
     (hdescRates : N.ComparableGrowthDescentForRates κ) :
     N.PositiveOmegaPointForRates κ := by
-  intro ϕ γ x₀ hϕγ hbounded hωnn hgenω hωaff hx0
+  intro ϕ γ x₀ hϕγ _hsol hbounded hωnn hgenω hωaff hx0
   obtain ⟨K, hKcpt, hmaps⟩ := hbounded
   have hdesc : N.ComparableGrowthDescent ϕ x₀ :=
     hdescRates hϕγ ⟨K, hKcpt, hKcpt.isClosed, hmaps⟩ hωnn hgenω hωaff hx0
@@ -430,7 +462,7 @@ theorem complexBalanced_persistentForRates_of_positiveOmegaPointForRates
     rw [← hclt]
     exact hγd y t
   have hex : ∃ p ∈ omegaLimit atTop ϕ {x₀}, Concentration.Positive p :=
-    hpositiveOmega hϕγ ⟨SC, hSCcpt, horbit_SC⟩ hωnn hgenω hωaff hx0
+    hpositiveOmega hϕγ hsol ⟨SC, hSCcpt, horbit_SC⟩ hωnn hgenω hωaff hx0
   have hAnti : AntitoneOn (fun t => relEntropy xeq (γ x₀ t)) (Set.Ici 0) := by
     have hcont : Continuous (fun t => relEntropy xeq (γ x₀ t)) :=
       (relEntropy_continuous hxeqclass.2).comp
@@ -672,6 +704,313 @@ theorem complexBalanced_genuinePermanent_of_boundaryOmegaExcluded
   N.complexBalanced_genuinePermanent_of_persistentForRates κ hxs hcb
     (N.complexBalanced_persistentForRates_of_boundaryOmegaExcluded κ hxs hcb hboundary)
 
+/-- Along a nonzero stoichiometric direction, relative entropy has strictly positive radial
+derivative away from its reference point. This is the scalar monotonicity ingredient for the
+rank-one persistence case. -/
+theorem relativeEntropy_logDirection_smul_pos
+    {xstar v : Concentration S} (hxs : xstar.Positive) (hv : v ≠ 0)
+    {a : ℝ} (ha : a ≠ 0) (hx : (xstar + a • v).Positive) :
+    0 < a * ∑ s, (Real.log ((xstar + a • v) s) - Real.log (xstar s)) * v s := by
+  have hterm_pos : ∀ s, v s ≠ 0 →
+      0 < a * ((Real.log ((xstar + a • v) s) - Real.log (xstar s)) * v s) := by
+    intro s hvs
+    have hprod_ne : a * v s ≠ 0 := mul_ne_zero ha hvs
+    by_cases hprod : 0 < a * v s
+    · have horder : xstar s < (xstar + a • v) s := by
+        simpa [Pi.add_apply, Pi.smul_apply, smul_eq_mul] using hprod
+      have hlog : 0 < Real.log ((xstar + a • v) s) - Real.log (xstar s) :=
+        sub_pos.mpr (Real.log_lt_log (hxs s) horder)
+      have hmul : 0 < (a * v s) *
+          (Real.log ((xstar + a • v) s) - Real.log (xstar s)) :=
+        mul_pos hprod hlog
+      convert hmul using 1 <;> ring
+    · have hprod : a * v s < 0 := lt_of_le_of_ne (le_of_not_gt hprod) hprod_ne
+      have horder : (xstar + a • v) s < xstar s := by
+        simpa [Pi.add_apply, Pi.smul_apply, smul_eq_mul] using hprod
+      have hlog : Real.log ((xstar + a • v) s) - Real.log (xstar s) < 0 :=
+        sub_neg.mpr (Real.log_lt_log (hx s) horder)
+      have hmul : 0 < (a * v s) *
+          (Real.log ((xstar + a • v) s) - Real.log (xstar s)) :=
+        mul_pos_of_neg_of_neg hprod hlog
+      convert hmul using 1 <;> ring
+  have hterm_nonneg : ∀ s,
+      0 ≤ a * ((Real.log ((xstar + a • v) s) - Real.log (xstar s)) * v s) := by
+    intro s
+    by_cases hvs : v s = 0
+    · simp [hvs]
+    · exact (hterm_pos s hvs).le
+  have ⟨s₀, hs₀⟩ : ∃ s, v s ≠ 0 := by
+    by_contra h
+    push_neg at h
+    exact hv (funext h)
+  have hsum : 0 < ∑ s, a *
+      ((Real.log ((xstar + a • v) s) - Real.log (xstar s)) * v s) :=
+    Finset.sum_pos' (fun s _ => hterm_nonneg s)
+      ⟨s₀, Finset.mem_univ s₀, hterm_pos s₀ hs₀⟩
+  calc
+    0 < ∑ s, a *
+        ((Real.log ((xstar + a • v) s) - Real.log (xstar s)) * v s) := hsum
+    _ = a * ∑ s, (Real.log ((xstar + a • v) s) - Real.log (xstar s)) * v s := by
+      rw [Finset.mul_sum]
+
+/-- In stoichiometric rank one, a positive complex-balanced orbit stays on the line segment
+between its initial state and the positive equilibrium in that class. Relative entropy dissipation
+makes the scalar displacement move monotonically toward zero; compactness then supplies a positive
+omega-limit point. -/
+theorem positiveOmegaPointForRates_of_complexBalanced_of_stoichRank_one
+    (N : Network S) (κ : N.RateConstants) {xstar : Concentration S}
+    (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    (hrank : N.stoichRank = 1) :
+    N.PositiveOmegaPointForRates κ := by
+  intro ϕ γ x₀ hϕγ hsol hbounded _hωnn _hgenω _hωaff hx₀
+  have hwr : N.WeaklyReversible := N.weaklyReversible_of_positive_complexBalanced κ hxs hcb
+  obtain ⟨xeq, hxeqClass, hxeqcb⟩ :=
+    N.exists_isComplexBalanced_in_positiveClass κ hxs hcb hx₀
+  obtain ⟨hx₀compat, hxeqpos⟩ := hxeqClass
+  have hfinrank : Module.finrank ℝ N.stoichSubspace = 1 := by
+    simpa [Network.stoichRank] using hrank
+  have hSneq : N.stoichSubspace ≠ ⊥ := by
+    intro hbot
+    rw [hbot] at hfinrank
+    simp at hfinrank
+  obtain ⟨v, hvS, hv0⟩ := N.stoichSubspace.ne_bot_iff.mp hSneq
+  have hspan : N.stoichSubspace = ℝ ∙ v :=
+    eq_span_singleton_of_mem_of_finrank_eq_one hfinrank hvS hv0
+  obtain ⟨s₀, hs₀⟩ : ∃ s, v s ≠ 0 := by
+    by_contra h
+    push_neg at h
+    exact hv0 (funext h)
+  let α : ℝ → ℝ := fun t => (γ x₀ t s₀ - xeq s₀) / v s₀
+  let β : ℝ → ℝ := fun t => N.massActionVectorField κ (γ x₀ t) s₀ / v s₀
+  have hγ0 : γ x₀ 0 = x₀ := by
+    have h := hϕγ x₀ 0
+    simpa using h.symm
+  have hΓ0pos : (γ x₀ 0).Positive := by rw [hγ0]; exact hx₀
+  have hΓpos : ∀ t, 0 ≤ t → (γ x₀ t).Positive := N.genuineOrbit_pos κ hΓ0pos hsol
+  have hdisp : ∀ t, 0 ≤ t → γ x₀ t - xeq ∈ N.stoichSubspace := by
+    intro t ht
+    have hsol' : ∀ τ ∈ Set.Icc (0 : ℝ) t,
+        HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ τ)) τ := by
+      intro τ hτ
+      exact hsol τ hτ.1
+    have hmove := N.sub_mem_stoichSubspace_of_solution κ ht hsol'
+    rw [hγ0] at hmove
+    have hcompat : x₀ - xeq ∈ N.stoichSubspace := hx₀compat.symm
+    have heq : γ x₀ t - xeq = (γ x₀ t - x₀) + (x₀ - xeq) := by ring
+    rw [heq]
+    exact N.stoichSubspace.add_mem hmove hcompat
+  have hαrepr : ∀ t, 0 ≤ t → γ x₀ t = xeq + α t • v := by
+    intro t ht
+    have hmem : γ x₀ t - xeq ∈ ℝ ∙ v := by rw [← hspan]; exact hdisp t ht
+    obtain ⟨b, hb⟩ := Submodule.mem_span_singleton.mp hmem
+    have hbcoord : b * v s₀ = γ x₀ t s₀ - xeq s₀ := by
+      simpa [Pi.smul_apply, smul_eq_mul] using congrFun hb s₀
+    have hbval : b = α t := by
+      dsimp [α]
+      calc
+        b = (b * v s₀) / v s₀ := by field_simp [hs₀]
+        _ = (γ x₀ t s₀ - xeq s₀) / v s₀ := by rw [hbcoord]
+    have hvect : γ x₀ t - xeq = α t • v := by rw [← hbval]; exact hb.symm
+    have hadd := congrArg (fun z => z + xeq) hvect
+    simpa [add_comm] using hadd
+  have hx₀repr : x₀ = xeq + α 0 • v := by
+    have h := hαrepr 0 le_rfl
+    rw [hγ0] at h
+    exact h
+  have hαderiv : ∀ t, 0 ≤ t → HasDerivAt α (β t) t := by
+    intro t ht
+    dsimp [α, β]
+    exact ((hasDerivAt_pi.mp (hsol t ht)) s₀).sub_const (xeq s₀) |>.div_const (v s₀)
+  have hfieldrepr : ∀ t, 0 ≤ t →
+      N.massActionVectorField κ (γ x₀ t) = β t • v := by
+    intro t ht
+    have hfmem := N.massActionVectorField_mem_stoichSubspace κ (γ x₀ t)
+    have hfspan : N.massActionVectorField κ (γ x₀ t) ∈ ℝ ∙ v := by
+      rw [← hspan]
+      exact hfmem
+    obtain ⟨b, hb⟩ := Submodule.mem_span_singleton.mp hfspan
+    have hbcoord : b * v s₀ = N.massActionVectorField κ (γ x₀ t) s₀ := by
+      simpa [Pi.smul_apply, smul_eq_mul] using congrFun hb s₀
+    have hbval : b = β t := by
+      dsimp [β]
+      calc
+        b = (b * v s₀) / v s₀ := by field_simp [hs₀]
+        _ = N.massActionVectorField κ (γ x₀ t) s₀ / v s₀ := by rw [hbcoord]
+    rw [← hbval]
+    exact hb.symm
+  have hαbeta : ∀ t, 0 ≤ t → α t * β t ≤ 0 := by
+    intro t ht
+    by_cases hα0 : α t = 0
+    · simp [hα0]
+    · have hposrepr : (xeq + α t • v).Positive := by
+        rw [← hαrepr t ht]
+        exact hΓpos t ht
+      have hdir := relativeEntropy_logDirection_smul_pos hxeqpos hv0 hα0 hposrepr
+      rw [← hαrepr t ht] at hdir
+      have hdiss := N.dissipation_nonpos κ (hΓpos t ht) hxeqpos hxeqcb
+      have hfactor :
+          (∑ s, (Real.log (γ x₀ t s) - Real.log (xeq s)) *
+              N.massActionVectorField κ (γ x₀ t) s) =
+            β t * ∑ s, (Real.log (γ x₀ t s) - Real.log (xeq s)) * v s := by
+        calc
+          _ = ∑ s, β t * ((Real.log (γ x₀ t s) - Real.log (xeq s)) * v s) := by
+            apply Finset.sum_congr rfl
+            intro s _
+            rw [hfieldrepr t ht]
+            simp only [Pi.smul_apply, smul_eq_mul]
+            ring
+          _ = β t * ∑ s, (Real.log (γ x₀ t s) - Real.log (xeq s)) * v s := by
+            rw [Finset.mul_sum]
+      rw [hfactor] at hdiss
+      by_cases hαpos : 0 < α t
+      · have hdirpos : 0 < ∑ s, (Real.log (γ x₀ t s) - Real.log (xeq s)) * v s := by
+          nlinarith [hdir]
+        have hβnonpos : β t ≤ 0 := by
+          by_contra hβ
+          have hβpos : 0 < β t := lt_of_not_ge hβ
+          exact (not_le_of_gt (mul_pos hβpos hdirpos)) hdiss
+        exact mul_nonpos_of_nonneg_of_nonpos hαpos.le hβnonpos
+      · have hαneg : α t < 0 := by
+          rcases lt_or_eq_of_le (le_of_not_gt hαpos) with hlt | heq
+          · exact hlt
+          · exact (hα0 heq).elim
+        have hdirneg : ∑ s, (Real.log (γ x₀ t s) - Real.log (xeq s)) * v s < 0 := by
+          nlinarith [hdir]
+        have hβnonneg : 0 ≤ β t := by
+          by_contra hβ
+          have hβneg : β t < 0 := lt_of_not_ge hβ
+          exact (not_le_of_gt (mul_pos_of_neg_of_neg hβneg hdirneg)) hdiss
+        exact mul_nonpos_of_nonpos_of_nonneg hαneg.le hβnonneg
+  let E : ℝ → ℝ := α * α
+  have hEderiv : ∀ t, 0 ≤ t → HasDerivAt E (β t * α t + α t * β t) t := by
+    intro t ht
+    have h := (hαderiv t ht).mul (hαderiv t ht)
+    simpa [E] using h
+  have hEanti : AntitoneOn E (Set.Ici 0) := by
+    have hcont : ContinuousOn E (Set.Ici 0) := by
+      intro t ht
+      exact (hEderiv t ht).continuousAt.continuousWithinAt
+    refine antitoneOn_of_deriv_nonpos (convex_Ici 0) hcont ?_ ?_
+    · intro t ht
+      rw [interior_Ici, Set.mem_Ioi] at ht
+      exact (hEderiv t ht.le).differentiableAt.differentiableWithinAt
+    · intro t ht
+      rw [interior_Ici, Set.mem_Ioi] at ht
+      rw [(hEderiv t ht.le).deriv]
+      nlinarith [hαbeta t ht.le]
+  have hsqle : ∀ t, 0 ≤ t → α t ^ 2 ≤ α 0 ^ 2 := by
+    intro t ht
+    have hE := hEanti (Set.mem_Ici.mpr le_rfl) (Set.mem_Ici.mpr ht) ht
+    simpa [E, Pi.mul_apply, pow_two] using hE
+  have hαcont : ∀ T, 0 ≤ T → ContinuousOn α (Set.Icc 0 T) := by
+    intro T hT t ht
+    exact (hαderiv t ht.1).continuousAt.continuousWithinAt
+  have horbit_segment : ∀ t, 0 ≤ t → ∀ s,
+      min (x₀ s) (xeq s) ≤ γ x₀ t s := by
+    intro t ht s
+    have hsquare := hsqle t ht
+    by_cases hαstart : α 0 = 0
+    · have hαt : α t = 0 := by rw [hαstart] at hsquare; nlinarith [sq_nonneg (α t)]
+      have hcoord : γ x₀ t s = xeq s := by
+        rw [hαrepr t ht, hαt]
+        simp
+      rw [hcoord]
+      exact min_le_right (x₀ s) (xeq s)
+    · by_cases hαstartpos : 0 < α 0
+      · have hαtnonneg : 0 ≤ α t := by
+          by_contra h
+          have hαtneg : α t < 0 := lt_of_not_ge h
+          have hzero_mem : 0 ∈ Set.Icc (α t) (α 0) := ⟨hαtneg.le, hαstartpos.le⟩
+          obtain ⟨u, hu, huzero⟩ :=
+            intermediate_value_Icc' ht (hαcont t ht) hzero_mem
+          have hEut := hEanti (Set.mem_Ici.mpr hu.1) (Set.mem_Ici.mpr ht) hu.2
+          change α t * α t ≤ α u * α u at hEut
+          rw [huzero] at hEut
+          nlinarith [sq_nonneg (α t)]
+        have hαtle : α t ≤ α 0 := by nlinarith [hsquare, sq_nonneg (α t - α 0)]
+        let θ : ℝ := α t / α 0
+        have hθ0 : 0 ≤ θ := div_nonneg hαtnonneg hαstartpos.le
+        have hθ1 : θ ≤ 1 := (div_le_one hαstartpos).2 hαtle
+        have hcoord : γ x₀ t s = (1 - θ) * xeq s + θ * x₀ s := by
+          rw [hαrepr t ht, hx₀repr]
+          simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul]
+          dsimp [θ]
+          field_simp [ne_of_gt hαstartpos]
+          ring
+        rw [hcoord]
+        calc
+          min (x₀ s) (xeq s) = (1 - θ) * min (x₀ s) (xeq s) +
+              θ * min (x₀ s) (xeq s) := by ring
+          _ ≤ (1 - θ) * xeq s + θ * x₀ s := add_le_add
+              (mul_le_mul_of_nonneg_left (min_le_right (x₀ s) (xeq s)) (sub_nonneg.mpr hθ1))
+              (mul_le_mul_of_nonneg_left (min_le_left (x₀ s) (xeq s)) hθ0)
+      · have hαstartne : α 0 ≠ 0 := hαstart
+        have hαstartneg : α 0 < 0 := by
+          rcases lt_or_eq_of_le (le_of_not_gt hαstartpos) with hlt | heq
+          · exact hlt
+          · exact (hαstartne heq).elim
+        have hαtnonpos : α t ≤ 0 := by
+          by_contra h
+          have hαtpos : 0 < α t := lt_of_not_ge h
+          have hzero_mem : 0 ∈ Set.Icc (α 0) (α t) := ⟨hαstartneg.le, hαtpos.le⟩
+          obtain ⟨u, hu, huzero⟩ := intermediate_value_Icc ht (hαcont t ht) hzero_mem
+          have hEut := hEanti (Set.mem_Ici.mpr hu.1) (Set.mem_Ici.mpr ht) hu.2
+          change α t * α t ≤ α u * α u at hEut
+          rw [huzero] at hEut
+          nlinarith [sq_nonneg (α t)]
+        have hαstartle : α 0 ≤ α t := by nlinarith [hsquare, sq_nonneg (α t - α 0)]
+        let θ : ℝ := α t / α 0
+        have hθ0 : 0 ≤ θ := by
+          dsimp [θ]
+          have hnum : 0 ≤ -α t := by linarith
+          have hden : 0 < -α 0 := by linarith
+          have hdiv := div_nonneg hnum hden.le
+          simpa using hdiv
+        have hθ1 : θ ≤ 1 := (div_le_one_of_neg hαstartneg).2 hαstartle
+        have hcoord : γ x₀ t s = (1 - θ) * xeq s + θ * x₀ s := by
+          rw [hαrepr t ht, hx₀repr]
+          simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul]
+          dsimp [θ]
+          field_simp [ne_of_lt hαstartneg]
+          ring
+        rw [hcoord]
+        calc
+          min (x₀ s) (xeq s) = (1 - θ) * min (x₀ s) (xeq s) +
+              θ * min (x₀ s) (xeq s) := by ring
+          _ ≤ (1 - θ) * xeq s + θ * x₀ s := add_le_add
+              (mul_le_mul_of_nonneg_left (min_le_right (x₀ s) (xeq s)) (sub_nonneg.mpr hθ1))
+              (mul_le_mul_of_nonneg_left (min_le_left (x₀ s) (xeq s)) hθ0)
+  obtain ⟨K, hK, hmaps⟩ := hbounded
+  have himageK : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆ K := by
+    rintro z ⟨t, -, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst x
+    exact hmaps t
+  have habs : ∃ u ∈ (atTop : Filter ℝ≥0),
+      closure (Set.image2 ϕ u {x₀}) ⊆ K := by
+    refine ⟨Set.univ, univ_mem, ?_⟩
+    exact (IsClosed.closure_subset_iff hK.isClosed).mpr himageK
+  obtain ⟨p, hp⟩ :=
+    nonempty_omegaLimit_of_isCompact_absorbing atTop ϕ {x₀} hK habs
+      (Set.singleton_nonempty x₀)
+  refine ⟨p, hp, ?_⟩
+  intro s
+  have hclosed : IsClosed {z : Concentration S | min (x₀ s) (xeq s) ≤ z s} :=
+    isClosed_le continuous_const (continuous_apply s)
+  have horbit : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆
+      {z : Concentration S | min (x₀ s) (xeq s) ≤ z s} := by
+    rintro z ⟨t, -, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst x
+    rw [hϕγ x₀ t]
+    exact horbit_segment t t.coe_nonneg s
+  have hcl := hclosed.closure_subset_iff.mpr horbit
+  have hpcoord : min (x₀ s) (xeq s) ≤ p s := by
+    have hsub := (omegaLimit_subset_closure_image2 (f := atTop) (ϕ := ϕ)
+      (s := {x₀}) (u := Set.univ) univ_mem)
+    exact (hsub.trans hcl) hp
+  exact lt_of_lt_of_le (lt_min (hx₀ s) (hxeqpos s)) hpcoord
+
 /-- **Deep permanence kernel for the Global Attractor Theorem.**  Every positive
 complex-balanced mass-action system is class-uniformly permanent for genuine forward
 trajectories.  This is the toric-differential-inclusion / zero-separating-surface content of
@@ -682,11 +1021,19 @@ theorem complexBalanced_genuinePermanent
     (hcb : N.IsComplexBalanced κ xstar) :
     N.GenuinePermanentForRates κ := by
   apply N.complexBalanced_genuinePermanent_of_positiveOmegaPointForRates κ hxs hcb
-  -- Remaining deep kernel, now in its weakest orbit form used by the proof: every positive bounded
-  -- orbit whose omega-limit dynamics are genuine/nonnegative/stoichiometrically compatible has
-  -- at least one strictly positive omega-limit point.  Complex-balanced LaSalle theory above then
-  -- upgrades that single interior omega-point to the full singleton omega-limit and permanence.
-  sorry
+  by_cases hncs : N.HasNoCriticalSiphon
+  · exact N.positiveOmegaPointForRates_of_boundaryOmegaExcluded κ
+      (N.boundaryOmegaExcluded_of_hasNoCriticalSiphon κ hncs)
+  · by_cases hzero : N.stoichSubspace = ⊥
+    · exact N.positiveOmegaPointForRates_of_trivialStoichSubspace κ hzero
+    · by_cases hrank : N.stoichRank = 1
+      · exact N.positiveOmegaPointForRates_of_complexBalanced_of_stoichRank_one
+          κ hxs hcb hrank
+      · -- Remaining deep kernel: every positive bounded genuine mass-action orbit with a
+        -- nonempty critical siphon and stoichiometric rank at least two has a positive omega-point.
+        -- Complex-balanced LaSalle theory above then upgrades that point to permanence; the
+        -- general boundary-exclusion argument is still required here.
+        sorry
 
 /-- The trajectory-level permanence theorem implies the older flow-quantified standard
 permanence API whenever a genuine global mass-action flow is supplied. -/
