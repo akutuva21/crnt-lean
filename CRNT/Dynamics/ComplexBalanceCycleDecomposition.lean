@@ -2026,6 +2026,22 @@ theorem stoich_of_mem_relativeSourceOrderNegativeConeFamily
   have hnegStoich := N.stoich_of_mem_relativeSourceOrderStoichConeFamily hD hnegz
   simpa using N.stoichSubspace.neg_mem hnegStoich
 
+/-- The union of the sign-reversed source-order cones is exactly the stoichiometric subspace.
+This packages the two directions of the relative cover: every stoichiometric vector belongs to
+some cone, and no cone contains a direction outside the stoichiometric subspace. -/
+theorem iUnion_relativeSourceOrderNegativeConeFamily (N : Network S) :
+    (⋃ C ∈ N.relativeSourceOrderNegativeConeFamily,
+        (C : Set (EuclideanSpace ℝ S))) =
+      {z | CRNT.toEuclid.symm z ∈ N.stoichSubspace} := by
+  ext z
+  simp only [Set.mem_iUnion, SetLike.mem_coe]
+  constructor
+  · rintro ⟨C, hC, hz⟩
+    exact N.stoich_of_mem_relativeSourceOrderNegativeConeFamily hC hz
+  · intro hz
+    rcases N.exists_relativeSourceOrderNegativeConeFamily_mem hz with ⟨C, hC, hzC⟩
+    exact ⟨C, ⟨hC, hzC⟩⟩
+
 /-- The sign-reversed finite family is closed under pairwise intersections. Preimage under
 negation commutes with intersection, so this is inherited directly from the source-order chamber
 family. -/
