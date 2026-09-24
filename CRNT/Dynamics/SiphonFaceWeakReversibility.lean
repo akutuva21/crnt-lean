@@ -125,6 +125,73 @@ theorem restrictReactions_avoiding_siphon_weaklyReversible
       (fun q hq => Finset.mem_filter.mpr ⟨Finset.mem_univ q, hq⟩) hback htgt
   simpa using hback'
 
+/-- A critical siphon forces a strict stoichiometric rank drop on its avoiding face.  Every
+reaction vector retained on the face vanishes on the siphon coordinates.  If the full
+stoichiometric space also vanished there, the indicator of the siphon would be a positive
+conservation law supported exactly on it, contradicting criticality. -/
+theorem restrictReactions_avoiding_siphon_stoichRank_lt
+    (N : Network S) {P : Finset S} (hcrit : N.IsCriticalSiphon P) :
+    (N.restrictReactions (N.avoidingSiphonReactions P)).stoichRank < N.stoichRank := by
+  classical
+  let E := N.avoidingSiphonReactions P
+  let Nf := N.restrictReactions E
+  let K : Submodule ℝ (S → ℝ) := {
+    carrier := {v | ∀ s ∈ P, v s = 0}
+    zero_mem' := by
+      intro s hs
+      rfl
+    add_mem' := by
+      intro v w hv hw s hs
+      simp [hv s hs, hw s hs]
+    smul_mem' := by
+      intro a v hv s hs
+      simp [hv s hs]
+  }
+  have hfaceK : Nf.stoichSubspace ≤ K := by
+    apply Submodule.span_le.mpr
+    rintro v ⟨r, rfl⟩
+    intro s hs
+    have hsrc : ComplexAvoids P (N.reaction r.1).source := by
+      simpa [E, avoidingSiphonReactions] using r.2
+    have htgt : ComplexAvoids P (N.reaction r.1).target :=
+      N.complexAvoids_target_of_source_avoids_siphon hcrit.2.1 hsrc
+    change ((N.reaction r.1).target s : ℝ) -
+      ((N.reaction r.1).source s : ℝ) = 0
+    rw [htgt s hs, hsrc s hs]
+    norm_num
+  have hparent_not_le : ¬ N.stoichSubspace ≤ K := by
+    intro hparent
+    let v : S → ℝ := fun s => if s ∈ P then 1 else 0
+    have hvnonneg : ∀ s, 0 ≤ v s := by
+      intro s
+      by_cases hs : s ∈ P <;> simp [v, hs]
+    have hvpos : ∀ s, 0 < v s ↔ s ∈ P := by
+      intro s
+      by_cases hs : s ∈ P <;> simp [v, hs]
+    have hconserve : ∀ r : N.R, ∑ s, v s * N.reactionVector r s = 0 := by
+      intro r
+      have hr : N.reactionVector r ∈ N.stoichSubspace :=
+        N.reactionVector_mem_stoichSubspace r
+      have hz : ∀ s ∈ P, N.reactionVector r s = 0 := hparent hr
+      apply Finset.sum_eq_zero
+      intro s _
+      by_cases hs : s ∈ P
+      · have hz' : ((N.reaction r).target s : ℝ) -
+            ((N.reaction r).source s : ℝ) = 0 := by
+          simpa [Network.reactionVector_apply] using hz s hs
+        simp [v, hs, hz']
+      · simp [v, hs]
+    exact hcrit.2.2 ⟨v, hvnonneg, hvpos, hconserve⟩
+  have hle : Nf.stoichSubspace ≤ N.stoichSubspace := by
+    simpa [Nf, E] using N.restrictReactions_stoichSubspace_le E
+  have hne : Nf.stoichSubspace ≠ N.stoichSubspace := by
+    intro heq
+    apply hparent_not_le
+    rw [← heq]
+    exact hfaceK
+  have hlt : Nf.stoichSubspace < N.stoichSubspace := lt_of_le_of_ne hle hne
+  exact Submodule.finrank_lt_finrank_of_lt hlt
+
 /-- Complex balance restricts to the weakly reversible subnetwork on the complement of a siphon.
 The siphon condition and weak reversibility ensure no reaction edge crosses between the two
 complex sets, so every inflow and outflow at a retained complex is unchanged by restriction. -/
