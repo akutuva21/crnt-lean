@@ -119,6 +119,35 @@ theorem logRatio_fillSiphonFace_mem_orthogonalFaceStoich
     N.restrictReactions_avoiding_siphon_complexBalanced κ hP hwr hcb
   exact Nf.logRatio_orthogonal_of_complexBalanced hwrf κf hfillpos hxs hcbface hcbstar
 
+/-- A boundary omega point whose zero set is a siphon carries the face subnetwork's toric
+constraint: after filling its zero coordinates from the positive reference, the log-ratio is
+orthogonal to every face-subnetwork reaction direction. -/
+theorem logRatio_fillSiphonFace_mem_orthogonalFaceStoich_of_mem_boundaryOmega_siphon
+    (N : Network S) (hwr : N.WeaklyReversible) (κ : N.RateConstants)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {xstar x₀ : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar)
+    (hγ0 : ∀ x, γ x 0 = x) (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hgenω : ∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      HasDerivAt (γ y) (N.massActionVectorField κ (γ y t)) t)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    {c : ℝ} (hωc : ∀ z ∈ omegaLimit atTop ϕ {x₀}, relEntropy xstar z = c)
+    {w : Concentration S} (hw : w ∈ omegaLimit atTop ϕ {x₀})
+    {P : Finset S} (hP : N.IsSiphon P)
+    (hzeroSet : ∀ s, s ∈ P ↔ w s = 0) :
+    (fun s => Real.log (fillSiphonFace P xstar w s) - Real.log (xstar s)) ∈
+      orthSum (N.restrictReactions (N.avoidingSiphonReactions P)).stoichSubspace := by
+  have hfacePair := N.complexBalanced_and_massActionVectorField_eq_zero_of_mem_boundaryOmega_siphon
+    hwr κ hxs hcb hγ0 hϕγ hgenω hωnn hωc hw hP hzeroSet
+  have hwposOutside : ∀ s, s ∉ P → 0 < w s := by
+    intro s hs
+    have hnotzero : w s ≠ 0 := by
+      intro hz
+      exact hs ((hzeroSet s).2 hz)
+    exact lt_of_le_of_ne (hωnn w hw s) (Ne.symm hnotzero)
+  exact N.logRatio_fillSiphonFace_mem_orthogonalFaceStoich κ hP hwr hxs hcb
+    hwposOutside hfacePair.1
+
 /-- **Boundary omega-points are face equilibria.** Every point whose zero set is a siphon is
 stationary for the full network. This is the stationarity projection of
 `complexBalanced_and_massActionVectorField_eq_zero_of_mem_boundaryOmega_siphon`, which also
