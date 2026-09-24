@@ -2107,6 +2107,27 @@ theorem relativeSourceOrderStoichProperCone_exposedFace_eq_inter
       CRNT.mem_exposedFace.mpr ⟨hxC, hxInnerZero⟩
     exact hxmem.mpr hxface
 
+/-- The finite stoichiometric source-order family is closed under exposed faces. The face theorem
+represents any exposed face as an intersection with another chamber, and pairwise intersection
+closure keeps that face in the family. -/
+theorem relativeSourceOrderStoichConeFamily_exposedFace_mem
+    (N : Network S) {C D : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (hC : C ∈ N.relativeSourceOrderStoichConeFamily)
+    (hface : CRNT.IsExposedFaceOf D C) :
+    D ∈ N.relativeSourceOrderStoichConeFamily := by
+  rw [N.mem_relativeSourceOrderStoichConeFamily] at hC
+  rcases hC with ⟨w, rfl⟩
+  obtain ⟨v, hEq⟩ := N.relativeSourceOrderStoichProperCone_exposedFace_eq_inter w hface
+  have hleft : N.relativeSourceOrderStoichProperCone w ∈
+      N.relativeSourceOrderStoichConeFamily :=
+    (N.mem_relativeSourceOrderStoichConeFamily).2 ⟨w, rfl⟩
+  have hright : N.relativeSourceOrderStoichProperCone v ∈
+      N.relativeSourceOrderStoichConeFamily :=
+    (N.mem_relativeSourceOrderStoichConeFamily).2 ⟨v, rfl⟩
+  have hinter := N.relativeSourceOrderStoichConeFamily_inter_mem hleft hright
+  rw [← hEq] at hinter
+  exact hinter
+
 /-- A direction belongs to the source-order chamber it itself selects. -/
 theorem toEuclid_mem_relativeSourceOrderCone (N : Network S) (w : S → ℝ) :
     CRNT.toEuclid w ∈ N.relativeSourceOrderCone w := by
@@ -2434,6 +2455,24 @@ private theorem isExposedFaceOf_comap_neg
       have hxD : -x ∈ D := by simpa using hxDset
       simpa using hxD
 
+/-- Pulling a face back by negation is involutive, so the exposed-face transport above is
+reversible as well. -/
+private theorem isExposedFaceOf_uncomap_neg
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    {D C : ProperCone ℝ E}
+    (h : CRNT.IsExposedFaceOf D
+      (C.comap (-(ContinuousLinearMap.id ℝ E)))) :
+    CRNT.IsExposedFaceOf
+      (D.comap (-(ContinuousLinearMap.id ℝ E))) C := by
+  have h' := isExposedFaceOf_comap_neg h
+  have hdouble (K : ProperCone ℝ E) :
+      (K.comap (-(ContinuousLinearMap.id ℝ E))).comap
+        (-(ContinuousLinearMap.id ℝ E)) = K := by
+    apply ProperCone.ext
+    intro x
+    simp
+  simpa only [hdouble C] using h'
+
 /-- Pairwise intersections in the sign-reversed family are common exposed faces of both cones.
 The positive source-order family already has supporting normals for both sides; the preceding
 transport lemma reverses each normal and carries the face equations across negation. -/
@@ -2458,6 +2497,31 @@ theorem relativeSourceOrderNegativeConeFamily_inter_commonExposedFace
   constructor
   · simpa only [hpreimage] using isExposedFaceOf_comap_neg hfaces.1
   · simpa only [hpreimage] using isExposedFaceOf_comap_neg hfaces.2
+
+/-- The sign-reversed family is closed under exposed faces. Negation carries an exposed-face
+certificate back to the positive source-order family, whose exposed-face closure is already
+proved, then the involutive preimage returns the resulting cone to this family. -/
+theorem relativeSourceOrderNegativeConeFamily_exposedFace_mem
+    (N : Network S) {C D : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (hC : C ∈ N.relativeSourceOrderNegativeConeFamily)
+    (hface : CRNT.IsExposedFaceOf D C) :
+    D ∈ N.relativeSourceOrderNegativeConeFamily := by
+  classical
+  rw [relativeSourceOrderNegativeConeFamily] at hC ⊢
+  obtain ⟨C₀, hC₀, rfl⟩ := Finset.mem_image.mp hC
+  have hface₀ : CRNT.IsExposedFaceOf
+      (D.comap (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S)))) C₀ :=
+    isExposedFaceOf_uncomap_neg hface
+  have hD₀ := N.relativeSourceOrderStoichConeFamily_exposedFace_mem hC₀ hface₀
+  apply Finset.mem_image.mpr
+  refine ⟨D.comap (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S))), hD₀, ?_⟩
+  have hdouble (K : ProperCone ℝ (EuclideanSpace ℝ S)) :
+      (K.comap (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S)))).comap
+        (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S))) = K := by
+    apply ProperCone.ext
+    intro x
+    simp
+  exact hdouble D
 
 /-- The projected relative log state lies in the negative of its selected source-order cone. -/
 theorem negativeRelativeLogStoichProjection_mem_relativeSourceOrderNegativeCone
