@@ -123,5 +123,183 @@ theorem massActionVectorField_mem_toricField_relativeSourceOrderNegativeConeStoi
   have htoric := CRNT.coneDual_le_toricField hC hnear hdual
   simpa [v, X, C, Cambient] using htoric
 
+
+private theorem euclideanStoichSubspace_subtypeL_isClosedEmbedding (N : Network S) :
+    Topology.IsClosedEmbedding N.euclideanStoichSubspace.subtypeL := by
+  apply Submodule.isClosedEmbedding_subtypeL
+  exact Submodule.closed_of_finiteDimensional N.euclideanStoichSubspace
+
+private theorem properMap_subtype_eq_pointedMap (N : Network S)
+    (C : ProperCone ℝ N.euclideanStoichSubspace) :
+    ((ProperCone.map N.euclideanStoichSubspace.subtypeL C :
+      ProperCone ℝ (EuclideanSpace ℝ S)) : PointedCone ℝ (EuclideanSpace ℝ S)) =
+      PointedCone.map N.euclideanStoichSubspace.subtypeL.toLinearMap
+        (C : PointedCone ℝ N.euclideanStoichSubspace) := by
+  apply PointedCone.ext
+  intro x
+  change x ∈ ProperCone.map N.euclideanStoichSubspace.subtypeL C ↔
+    x ∈ PointedCone.map N.euclideanStoichSubspace.subtypeL.toLinearMap
+      (C : PointedCone ℝ N.euclideanStoichSubspace)
+  rw [ProperCone.mem_map]
+  have hclosed : IsClosed
+      (N.euclideanStoichSubspace.subtypeL '' (C : Set N.euclideanStoichSubspace)) :=
+    (N.euclideanStoichSubspace_subtypeL_isClosedEmbedding.isClosed_iff_image_isClosed).mp
+      C.isClosed
+  change x ∈ closure
+      (N.euclideanStoichSubspace.subtypeL '' (C : Set N.euclideanStoichSubspace)) ↔ _
+  rw [hclosed.closure_eq, PointedCone.mem_map]
+  simp only [Set.mem_image]
+  exact Iff.rfl
+
+private theorem map_comap_negativeStoichFamily (N : Network S)
+    {C : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (hC : C ∈ N.relativeSourceOrderNegativeConeFamily) :
+    ProperCone.map N.euclideanStoichSubspace.subtypeL
+        (C.comap N.euclideanStoichSubspace.subtypeL) = C := by
+  have hV : ∀ x : EuclideanSpace ℝ S, x ∈ C →
+      x ∈ N.euclideanStoichSubspace := by
+    intro x hx
+    rw [Network.euclideanStoichSubspace, Submodule.mem_map]
+    refine ⟨CRNT.toEuclid.symm x,
+      N.stoich_of_mem_relativeSourceOrderNegativeConeFamily hC hx, ?_⟩
+    exact CRNT.toEuclid.apply_symm_apply x
+  have himage :
+      N.euclideanStoichSubspace.subtypeL ''
+          (C.comap N.euclideanStoichSubspace.subtypeL :
+            Set N.euclideanStoichSubspace) = (C : Set (EuclideanSpace ℝ S)) := by
+    ext x
+    constructor
+    · rintro ⟨z, hz, rfl⟩
+      exact ProperCone.mem_comap.mp hz
+    · intro hx
+      refine ⟨⟨x, hV x hx⟩, ProperCone.mem_comap.mpr hx, rfl⟩
+  apply ProperCone.ext
+  intro x
+  rw [ProperCone.mem_map]
+  have hclosed : IsClosed
+      (N.euclideanStoichSubspace.subtypeL ''
+        (C.comap N.euclideanStoichSubspace.subtypeL :
+          Set N.euclideanStoichSubspace)) := by
+    rw [himage]
+    exact C.isClosed
+  change x ∈ closure
+      (N.euclideanStoichSubspace.subtypeL ''
+        (C.comap N.euclideanStoichSubspace.subtypeL :
+          Set N.euclideanStoichSubspace)) ↔ _
+  rw [hclosed.closure_eq, himage]
+  rfl
+
+private theorem comap_map_subtype_eq (N : Network S)
+    (C : ProperCone ℝ N.euclideanStoichSubspace) :
+    (ProperCone.map N.euclideanStoichSubspace.subtypeL C).comap
+        N.euclideanStoichSubspace.subtypeL = C := by
+  have hmap := N.properMap_subtype_eq_pointedMap C
+  have hinj : Function.Injective
+      N.euclideanStoichSubspace.subtypeL.toLinearMap := by
+    intro x y h
+    exact Subtype.ext h
+  apply ProperCone.ext
+  intro x
+  constructor
+  · intro hx
+    have hproper : N.euclideanStoichSubspace.subtypeL x ∈
+        (ProperCone.map N.euclideanStoichSubspace.subtypeL C :
+          PointedCone ℝ (EuclideanSpace ℝ S)) := ProperCone.mem_comap.mp hx
+    have hx' : N.euclideanStoichSubspace.subtypeL x ∈
+        PointedCone.map N.euclideanStoichSubspace.subtypeL.toLinearMap
+          (C : PointedCone ℝ N.euclideanStoichSubspace) := by
+      simpa only [hmap] using hproper
+    obtain ⟨y, hy, hxy⟩ := PointedCone.mem_map.mp hx'
+    have : y = x := hinj hxy
+    simpa [this] using hy
+  · intro hx
+    apply ProperCone.mem_comap.mpr
+    have hx' : N.euclideanStoichSubspace.subtypeL x ∈
+        PointedCone.map N.euclideanStoichSubspace.subtypeL.toLinearMap
+          (C : PointedCone ℝ N.euclideanStoichSubspace) :=
+      PointedCone.mem_map.mpr ⟨x, hx, rfl⟩
+    have hproper : N.euclideanStoichSubspace.subtypeL x ∈
+        (ProperCone.map N.euclideanStoichSubspace.subtypeL C :
+          PointedCone ℝ (EuclideanSpace ℝ S)) := by
+      simpa only [hmap] using hx'
+    exact ProperCone.mem_comap.mpr hproper
+
+private theorem comap_inf_stoich (N : Network S)
+    (C D : ProperCone ℝ (EuclideanSpace ℝ S)) :
+    (C ⊓ D).comap N.euclideanStoichSubspace.subtypeL =
+      C.comap N.euclideanStoichSubspace.subtypeL ⊓
+        D.comap N.euclideanStoichSubspace.subtypeL := by
+  apply ProperCone.ext
+  intro z
+  simp
+
+/-- Every exposed face of a cone in the intrinsic negative source-order fan is again in the fan. -/
+theorem relativeSourceOrderNegativeConeStoichFan_faces_mem (N : Network S)
+    {C : ProperCone ℝ N.euclideanStoichSubspace}
+    (hC : C ∈ N.relativeSourceOrderNegativeConeStoichFan)
+    {D : ProperCone ℝ N.euclideanStoichSubspace}
+    (hface : CRNT.IsExposedFaceOf D C) :
+    D ∈ N.relativeSourceOrderNegativeConeStoichFan := by
+  classical
+  rw [relativeSourceOrderNegativeConeStoichFan] at hC ⊢
+  obtain ⟨C₀, hC₀, rfl⟩ := Finset.mem_image.mp hC
+  have hface' : PointedCone.IsFaceOf (D : PointedCone ℝ N.euclideanStoichSubspace)
+      (C₀.comap N.euclideanStoichSubspace.subtypeL :
+        PointedCone ℝ N.euclideanStoichSubspace) :=
+    CRNT.isExposedFaceOf_isFaceOf hface
+  have hinj : Function.Injective
+      N.euclideanStoichSubspace.subtypeL.toLinearMap := by
+    intro x y h
+    exact Subtype.ext h
+  have hmapped := PointedCone.IsFaceOf.map
+    N.euclideanStoichSubspace.subtypeL.toLinearMap hinj hface'
+  have hmapped' :
+      ((ProperCone.map N.euclideanStoichSubspace.subtypeL D :
+        ProperCone ℝ (EuclideanSpace ℝ S)) :
+          PointedCone ℝ (EuclideanSpace ℝ S)).IsFaceOf C₀ := by
+    rw [← N.map_comap_negativeStoichFamily hC₀,
+      N.properMap_subtype_eq_pointedMap]
+    simpa only [N.properMap_subtype_eq_pointedMap] using hmapped
+  have hD₀ := N.relativeSourceOrderNegativeConeFamily_face_mem hC₀ hmapped'
+  apply Finset.mem_image.mpr
+  refine ⟨ProperCone.map N.euclideanStoichSubspace.subtypeL D, hD₀, ?_⟩
+  exact N.comap_map_subtype_eq D
+
+/-- Intersections of cones in the intrinsic negative source-order family belong to the family. -/
+theorem relativeSourceOrderNegativeConeStoichFan_inter_mem (N : Network S)
+    {C D : ProperCone ℝ N.euclideanStoichSubspace}
+    (hC : C ∈ N.relativeSourceOrderNegativeConeStoichFan)
+    (hD : D ∈ N.relativeSourceOrderNegativeConeStoichFan) :
+    C ⊓ D ∈ N.relativeSourceOrderNegativeConeStoichFan := by
+  classical
+  rw [relativeSourceOrderNegativeConeStoichFan] at hC hD ⊢
+  obtain ⟨C₀, hC₀, rfl⟩ := Finset.mem_image.mp hC
+  obtain ⟨D₀, hD₀, rfl⟩ := Finset.mem_image.mp hD
+  have hCD := N.relativeSourceOrderNegativeConeFamily_inter_mem hC₀ hD₀
+  refine Finset.mem_image.mpr ⟨C₀ ⊓ D₀, hCD, ?_⟩
+  exact (N.comap_inf_stoich C₀ D₀).symm
+
+/-- **The intrinsic negative source-order family is a finite polyhedral fan.** Its exposed faces and
+intersections come from the ambient source-order fan; coverage follows by restricting the ambient
+cover to the stoichiometric subspace. -/
+theorem relativeSourceOrderNegativeConeStoichFan_isPolyhedralFan (N : Network S) :
+    CRNT.IsPolyhedralFan N.relativeSourceOrderNegativeConeStoichFan := by
+  classical
+  refine ⟨?_, ?_, ?_⟩
+  · intro C hC D hface
+    exact N.relativeSourceOrderNegativeConeStoichFan_faces_mem hC hface
+  · intro C hC D hD
+    refine ⟨C ⊓ D, N.relativeSourceOrderNegativeConeStoichFan_inter_mem hC hD, ?_⟩
+    ext z
+    simp
+  · ext z
+    simp only [Set.mem_iUnion, SetLike.mem_coe, Set.mem_univ]
+    constructor
+    · intro _
+      trivial
+    · intro _
+      obtain ⟨C, hC, hz⟩ := N.exists_relativeSourceOrderNegativeConeStoichFan_mem z
+      exact ⟨C, hC, hz⟩
+
 end Network
 end CRNT
