@@ -460,4 +460,106 @@ theorem shortestRelPath_incoming_is_last_edge {E : V → V → Prop} {T : Finset
   have hlt := hbefore j hju
   omega
 
+/-- A shortest directed path from a fixed vertex to a distinguished set is injective and
+meets that set only at its endpoint. -/
+theorem exists_shortest_relPath_to_good {E : V → V → Prop} {T : Finset V}
+    (Good : V → Prop) (hclosed : ∀ x y, E x y → y ∈ T → x ∈ T)
+    {a b : V} (hbT : b ∈ T) (h : Relation.ReflTransGen E a b) (hbGood : Good b) :
+    ∃ (k : ℕ) (P : RelPath E T k),
+      P.vertex ⟨0, by omega⟩ = a ∧ Good (P.vertex ⟨k, by omega⟩) ∧
+        Function.Injective P.vertex ∧
+        (∀ i : Fin (k + 1), i.1 ≠ k → ¬ Good (P.vertex i)) ∧
+        ∀ (l : ℕ) (Q : RelPath E T l),
+          Q.vertex ⟨0, by omega⟩ = a → Good (Q.vertex ⟨l, by omega⟩) → k ≤ l := by
+  classical
+  obtain ⟨k₀, P₀, hP₀start, hP₀last⟩ := exists_relPath_of_reflTransGen hclosed hbT h
+  let HasPath : ℕ → Prop := fun l =>
+    ∃ Q : RelPath E T l, Q.vertex ⟨0, by omega⟩ = a ∧ Good (Q.vertex ⟨l, by omega⟩)
+  have hHasPath : ∃ l, HasPath l :=
+    ⟨k₀, P₀, hP₀start, hP₀last ▸ hbGood⟩
+  let k := Nat.find hHasPath
+  have hk : HasPath k := Nat.find_spec hHasPath
+  obtain ⟨P, hPstart, hPgood⟩ := hk
+  have hmin : ∀ (l : ℕ) (Q : RelPath E T l),
+      Q.vertex ⟨0, by omega⟩ = a → Good (Q.vertex ⟨l, by omega⟩) → k ≤ l := by
+    intro l Q hQstart hQgood
+    exact Nat.find_min' hHasPath ⟨Q, hQstart, hQgood⟩
+  have hinj : Function.Injective P.vertex := by
+    intro i j hij
+    have hi := i.isLt
+    have hj := j.isLt
+    rcases lt_trichotomy i.1 j.1 with hlt | heq | hgt
+    · have hveq : P.vertex ⟨i.1, by omega⟩ = P.vertex ⟨j.1, by omega⟩ := by
+        simpa using hij
+      let Q := P.splice i.1 j.1 hlt (by omega) hveq
+      have hQstart : Q.vertex ⟨0, by omega⟩ = a := by
+        change (P.splice i.1 j.1 hlt (by omega) hveq).vertex ⟨0, by omega⟩ = a
+        rw [RelPath.splice_vertex_zero]
+        exact hPstart
+      have hQgood : Good (Q.vertex ⟨k - (j.1 - i.1), by omega⟩) := by
+        change Good ((P.splice i.1 j.1 hlt (by omega) hveq).vertex
+          ⟨k - (j.1 - i.1), by omega⟩)
+        rw [RelPath.splice_vertex_last]
+        exact hPgood
+      have hshort := hmin (k - (j.1 - i.1)) Q hQstart hQgood
+      omega
+    · exact Fin.ext heq
+    · have hveq : P.vertex ⟨j.1, by omega⟩ = P.vertex ⟨i.1, by omega⟩ := by
+        simpa using hij.symm
+      let Q := P.splice j.1 i.1 hgt (by omega) hveq
+      have hQstart : Q.vertex ⟨0, by omega⟩ = a := by
+        change (P.splice j.1 i.1 hgt (by omega) hveq).vertex ⟨0, by omega⟩ = a
+        rw [RelPath.splice_vertex_zero]
+        exact hPstart
+      have hQgood : Good (Q.vertex ⟨k - (i.1 - j.1), by omega⟩) := by
+        change Good ((P.splice j.1 i.1 hgt (by omega) hveq).vertex
+          ⟨k - (i.1 - j.1), by omega⟩)
+        rw [RelPath.splice_vertex_last]
+        exact hPgood
+      have hshort := hmin (k - (i.1 - j.1)) Q hQstart hQgood
+      omega
+  have hlate : ∀ i : Fin (k + 1), i.1 ≠ k → ¬ Good (P.vertex i) := by
+    intro i hik hGood
+    have hilt := i.isLt
+    have hiLt : i.1 < k := by omega
+    let Q := P.take i.1 (by omega)
+    have hQstart : Q.vertex ⟨0, by omega⟩ = a := by
+      change (P.take i.1 (by omega)).vertex ⟨0, by omega⟩ = a
+      rw [RelPath.take_vertex_zero]
+      exact hPstart
+    have hQgood : Good (Q.vertex ⟨i.1, by omega⟩) := by
+      change Good ((P.take i.1 (by omega)).vertex ⟨i.1, by omega⟩)
+      rw [RelPath.take_vertex_last]
+      have hidx : (⟨i.1, by omega⟩ : Fin (k + 1)) = i := Fin.ext rfl
+      rw [hidx]
+      exact hGood
+    have hshort := hmin i.1 Q hQstart hQgood
+    omega
+  exact ⟨k, P, hPstart, hPgood, hinj, hlate, hmin⟩
+
+/-- Forget the vertex-set bookkeeping and read a `RelPath` as a reflexive-transitive chain. -/
+theorem relPath_reflTransGen {E : V → V → Prop} {T : Finset V} {k : ℕ}
+    (P : RelPath E T k) :
+    Relation.ReflTransGen E (P.vertex ⟨0, by omega⟩) (P.vertex ⟨k, by omega⟩) := by
+  induction k with
+  | zero =>
+      exact Relation.ReflTransGen.refl
+  | succ k ih =>
+      let pshort := P.take k (by omega)
+      have hprefix :
+          Relation.ReflTransGen E (P.vertex ⟨0, by omega⟩) (P.vertex ⟨k, by omega⟩) := by
+        simpa [pshort, RelPath.take_vertex_zero, RelPath.take_vertex_last] using ih pshort
+      have hlast : E (P.vertex ⟨k, by omega⟩) (P.vertex ⟨k + 1, by omega⟩) := by
+        have h := P.step (⟨k, by omega⟩ : Fin (k + 1))
+        have hfirst : Fin.castSucc (⟨k, by omega⟩ : Fin (k + 1)) =
+            (⟨k, by omega⟩ : Fin (k + 1 + 1)) := Fin.ext rfl
+        have hsecond : (⟨k, by omega⟩ : Fin (k + 1)).succ =
+            (⟨k + 1, by omega⟩ : Fin (k + 1 + 1)) := Fin.ext rfl
+        rw [hfirst, hsecond] at h
+        exact h
+      have hend : (⟨k + 1, by omega⟩ : Fin (k + 1 + 1)) =
+          (⟨Nat.succ k, by omega⟩ : Fin (Nat.succ k + 1)) := Fin.ext rfl
+      rw [hend]
+      exact Relation.ReflTransGen.tail hprefix hlast
+
 end CRNT
