@@ -3516,6 +3516,87 @@ theorem weighted_source_inequalities_infeasible
   rw [hswapF, hswapE] at hstrict
   exact absurd hstrict (not_lt.mpr hle)
 
+/-- **The reaction-block source contradiction from cycle gains.**
+
+Each reaction in an R-block contributes one directed causal unit from `source r` to `target r`.
+Its outgoing and incoming edge labels are `e r` and `f r`, and `w r` is the reaction magnitude.
+If the source inequality is strict at every species and every simple directed cycle has gain at
+most one, the gain-potential theorem supplies positive species multipliers.  The resulting
+reaction-wise inequalities contradict the source inequalities by
+`weighted_source_inequalities_infeasible`.
+
+Parallel causal units are retained: the gain of a species pair is the maximum over all reactions
+joining that ordered pair.  A network-specific R-block proof only needs to establish the simple
+cycle bound from the s-cycle condition. -/
+theorem weighted_source_inequalities_infeasible_of_unit_graph
+    {Sp Rx : Type} [Fintype Sp] [DecidableEq Sp] [Nonempty Sp]
+    [Fintype Rx] [Nonempty Rx]
+    (source target : Rx → Sp) (e f w : Rx → ℝ)
+    (he : ∀ r, 0 < e r) (hf : ∀ r, 0 < f r) (hw : ∀ r, 0 ≤ w r)
+    (hsrc : ∀ s,
+      (∑ r, (if s = source r then e r else 0) * w r) <
+        ∑ r, (if s = target r then f r else 0) * w r)
+    (hsimple : ∀ (s : Sp) (q : List Sp), (s :: q).Nodup →
+      CRNT.seqGain
+        (fun u v => max 0 (Finset.univ.sup' Finset.univ_nonempty (fun r =>
+          if source r = u ∧ target r = v then f r / e r else 0)))
+        (s :: q ++ [s]) ≤ 1) :
+    False := by
+  classical
+  let G : Sp → Sp → ℝ := fun u v =>
+    max 0 (Finset.univ.sup' Finset.univ_nonempty (fun r =>
+      if source r = u ∧ target r = v then f r / e r else 0))
+  have hG : ∀ u v, 0 ≤ G u v := by
+    intro u v
+    exact le_max_left 0 _
+  obtain ⟨M, hM, hmultG⟩ :=
+    CRNT.exists_feasible_multipliers_of_simple G hG (by simpa [G] using hsimple)
+  let ein : Sp → Rx → ℝ := fun s r => if s = target r then f r else 0
+  let eout : Sp → Rx → ℝ := fun s r => if s = source r then e r else 0
+  have hsourceGain (r : Rx) : f r / e r ≤ G (source r) (target r) := by
+    dsimp [G]
+    calc
+      f r / e r ≤ Finset.univ.sup' Finset.univ_nonempty (fun q =>
+          if source q = source r ∧ target q = target r then f q / e q else 0) := by
+        have hle := Finset.le_sup' (fun q : Rx =>
+            if source q = source r ∧ target q = target r then f q / e q else (0 : ℝ))
+            (Finset.mem_univ r)
+        have hEq : (if source r = source r ∧ target r = target r then
+            f r / e r else (0 : ℝ)) = f r / e r := by simp
+        rw [hEq] at hle
+        exact hle
+      _ ≤ max 0 _ := le_max_right _ _
+  have hreactionBound (r : Rx) : f r * M (target r) ≤ e r * M (source r) := by
+    have hgain : (f r / e r) * M (target r) ≤ M (source r) := by
+      exact le_trans
+        (mul_le_mul_of_nonneg_right (hsourceGain r) (le_of_lt (hM (target r))))
+        (hmultG (source r) (target r))
+    calc
+      f r * M (target r) = e r * ((f r / e r) * M (target r)) := by
+        field_simp [ne_of_gt (he r)]
+      _ ≤ e r * M (source r) :=
+        mul_le_mul_of_nonneg_left hgain (le_of_lt (he r))
+  have hfin (r : Rx) : (∑ s, ein s r * M s) = f r * M (target r) := by
+    rw [Finset.sum_eq_single (target r)]
+    · simp [ein]
+    · intro s _ hne
+      simp [ein, hne]
+    · intro hnot
+      exact (hnot (Finset.mem_univ _)).elim
+  have hfout (r : Rx) : (∑ s, eout s r * M s) = e r * M (source r) := by
+    rw [Finset.sum_eq_single (source r)]
+    · simp [eout]
+    · intro s _ hne
+      simp [eout, hne]
+    · intro hnot
+      exact (hnot (Finset.mem_univ _)).elim
+  have hmult : ∀ r, (∑ s, ein s r * M s) ≤ ∑ s, eout s r * M s := by
+    intro r
+    rw [hfin, hfout]
+    exact hreactionBound r
+  exact weighted_source_inequalities_infeasible w hw ein eout M hM
+    (by simpa [ein, eout] using hsrc) hmult
+
 /-- **The end species-block contradiction (Shinar--Feinberg 5.7.1), formalized.**
 
 Suppose a strong-concordance witness gives an even true-SR cycle along which, at each species,
