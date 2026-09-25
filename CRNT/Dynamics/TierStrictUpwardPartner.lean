@@ -1,4 +1,5 @@
 import CRNT.Dynamics.TierScaleTruncation
+import CRNT.Dynamics.TierScaleMagnitude
 
 /-!
 # Structural partner in the strict-upward case of Lemma 4.5
@@ -191,6 +192,49 @@ noncomputable def TierDescending.strictUpwardScalePartner
   have hsameTr := D.same_truncated_of_gaps_zero ibad hzero
   exact htrSrc.not_same_reverse (D.truncatedSequence_positive ibad)
     (TierSame.symm (D.truncatedSequence_positive ibad) hsameTr)
+
+
+/-- Under tier descent, the positive entropy contribution of an upward reaction is negligible
+relative to the source monomial of a top-tier descending partner. -/
+theorem TierDescending.upwardContribution_suppressed
+    {N : Network S} (htd : N.TierDescending)
+    {xs : ℕ → Concentration S} (htrans : N.IsTransversalTierSequence xs)
+    (D : N.TierScaleDecomposition xs) (r : N.R)
+    (hup : TierStrictBelow xs (N.reaction r).source (N.reaction r).target) :
+    ∃ rstar : N.R,
+      TierStrictBelow xs (N.reaction rstar).target (N.reaction rstar).source ∧
+      Tendsto (fun n =>
+        (tierMonomial (xs n) (N.reaction r).source /
+          tierMonomial (xs n) (N.reaction rstar).source) *
+          |Real.log (tierMonomial (xs n) (N.reaction r).target /
+            tierMonomial (xs n) (N.reaction r).source)|)
+        atTop (𝓝 0) := by
+  classical
+  obtain ⟨rstar, hbad, hsrc, hdesc, hidx⟩ :=
+    htd.strictUpwardScalePartner htrans D r hup
+  let ibad : Fin D.levels := Classical.choose
+    (D.strict_first (N.source_mem_complexes r) (N.target_mem_complexes r) hbad)
+  let isrc : Fin D.levels := Classical.choose
+    (D.strict_first (N.source_mem_complexes r) (N.source_mem_complexes rstar) hsrc)
+  have hibad := Classical.choose_spec
+    (D.strict_first (N.source_mem_complexes r) (N.target_mem_complexes r) hbad)
+  have hisrc := Classical.choose_spec
+    (D.strict_first (N.source_mem_complexes r) (N.source_mem_complexes rstar) hsrc)
+  have hidx' : isrc ≤ ibad := by
+    simpa [ibad, isrc] using hidx
+  have hbadBefore : ∀ j : Fin D.levels, j < ibad →
+      tierDirectionGap (D.direction j) (N.reaction r).target (N.reaction r).source = 0 := by
+    intro j hj
+    have hz := hibad.1 j hj
+    calc
+      tierDirectionGap (D.direction j) (N.reaction r).target (N.reaction r).source
+        = -tierDirectionGap (D.direction j) (N.reaction r).source (N.reaction r).target := by
+          simp [tierDirectionGap]
+      _ = 0 := by rw [hz]; ring
+  refine ⟨rstar, hdesc, ?_⟩
+  exact D.scale_suppressed_log_ratio_tendsto_zero htrans.1.1
+    (N.reaction r).source (N.reaction r).target (N.reaction rstar).source
+    isrc ibad hidx' hisrc.1 hisrc.2 hbadBefore
 
 end Network
 end CRNT
