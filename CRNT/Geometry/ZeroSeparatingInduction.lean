@@ -1,6 +1,6 @@
 import CRNT.Geometry.ZeroSeparatingSurface
 import CRNT.Geometry.FaithfulCurve2D
-import CRNT.Geometry.LogProjectiveSmoothSection
+import CRNT.Geometry.LogProjectiveFaceCompatibility
 import Mathlib.LinearAlgebra.Dimension.Constructions
 import Mathlib.Analysis.InnerProductSpace.Projection.Submodule
 import Mathlib.Data.Set.Finite.List
@@ -114,8 +114,10 @@ a common order-of-magnitude factor for any finite family once each chain's endpo
 The binary-word indexing is also formalized below; pre-blueprints and geometric tiling remain open.
 `LogProjectiveSection.existsUnique_sectionPoint_with_coordinates` and
 `LogProjectiveSection.exists_contDiff_local_sectionScale` supply the pointwise and smooth local
-inverse for one affine face plane of the logarithmic projective chart; multi-face gluing remains a
-separate obligation.
+inverse for one affine face plane of the logarithmic projective chart.
+`LogProjectiveFaceCompatibility.existsUnique_common_sectionScale` gives an exact sufficient
+condition for two such sections to share a ray point; proving the blueprint's fiber-balance
+condition and gluing all faces remain separate obligations.
 https://arxiv.org/html/1501.02860v3
 -/
 
