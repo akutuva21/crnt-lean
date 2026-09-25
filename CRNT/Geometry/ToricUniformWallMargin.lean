@@ -412,6 +412,47 @@ theorem Network.exists_negativeLogWall_margin_on_small_patch
     exact hdiam x hx q hq
   exact hchart q hqball
 
+/-- A compact patch can be covered by finitely many small balls, each carrying one fixed
+inward wall on the entire ball. The radius is chosen so each patch has diameter below the local
+chart radius. -/
+theorem Network.exists_finite_negativeLogWall_patch_cover
+    (N : Network S) (κ : N.RateConstants)
+    {K : Set (EuclideanSpace ℝ S)} (hK : IsCompact K)
+    (z : K → N.euclideanStoichSubspace) (t : Finset K) {ε δ : ℝ}
+    (hδ : 0 < δ)
+    (hcover : ∀ y ∈ K, ∃ p ∈ t, ∀ q ∈ Metric.ball y δ,
+      ε < ⟪(z p).1, toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ) :
+    ∃ C : Finset K,
+      K ⊆ ⋃ c ∈ C, Metric.ball c.1 (δ / 3) ∧
+      (∀ c ∈ C, ∃ p ∈ t, ∀ q ∈ Metric.ball c.1 (δ / 3),
+        ε < ⟪(z p).1, toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ) ∧
+      (∀ c ∈ C, ∀ x ∈ Metric.ball c.1 (δ / 3), ∀ y ∈ Metric.ball c.1 (δ / 3),
+        dist x y < δ) := by
+  let U : EuclideanSpace ℝ S → Set (EuclideanSpace ℝ S) :=
+    fun x => Metric.ball x (δ / 3)
+  have hopen : ∀ x ∈ K, IsOpen (U x) := by
+    intro x hx
+    exact Metric.isOpen_ball
+  have hmem : ∀ x ∈ K, x ∈ U x := by
+    intro x hx
+    exact Metric.mem_ball_self (div_pos hδ (by norm_num))
+  obtain ⟨C, hCcover⟩ := SmoothBarrierGluing.exists_finite_chart_centers hK U hopen hmem
+  refine ⟨C, ?_, ?_, ?_⟩
+  · simpa [U] using hCcover
+  · intro c hc
+    obtain ⟨p, hp, hchart⟩ := hcover c.1 c.2
+    refine ⟨p, hp, ?_⟩
+    intro q hq
+    apply hchart q
+    rw [Metric.mem_ball] at hq ⊢
+    exact lt_of_lt_of_le hq (by nlinarith [hδ])
+  · intro c hc x hx y hy
+    rw [Metric.mem_ball] at hx hy
+    calc
+      dist x y ≤ dist x c.1 + dist c.1 y := dist_triangle x c.1 y
+      _ < δ / 3 + δ / 3 := add_lt_add hx (by simpa [dist_comm] using hy)
+      _ < δ := by linarith
+
 
 /-- **Finite active-wall toric field glues with one strict derivative margin.**  The common compact
 wall margin supplied by weak reversibility feeds directly into `smoothWallList_descends_strictly`:
