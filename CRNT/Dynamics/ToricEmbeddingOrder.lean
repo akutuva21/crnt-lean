@@ -107,6 +107,32 @@ theorem polarCone_inner_lt_zero_of_positivePerturbation {s : Set E} {n v : E}
   have hprod : 0 < ε * ⟪v, v⟫_ℝ := mul_pos hε hnorm
   linarith
 
+/-- **Strict support at interior points.** A nonzero polar direction pairs strictly negatively
+with every interior point of the cone, by perturbing that point a small distance along the polar
+direction while staying inside the cone. -/
+theorem polarCone_inner_lt_zero_of_mem_interior {s : Set E} {n v : E}
+    (hv : v ∈ polarCone s) (hne : v ≠ 0) (hn : n ∈ interior s) :
+    ⟪n, v⟫_ℝ < 0 := by
+  have hsn := mem_interior_iff_mem_nhds.mp hn
+  obtain ⟨r, hr, hball⟩ := Metric.mem_nhds_iff.mp hsn
+  have hperturb : ∃ ε : ℝ, 0 < ε ∧ n + ε • v ∈ s := by
+    let ε : ℝ := r / (‖v‖ + 1)
+    have hε : 0 < ε := by
+      dsimp [ε]
+      positivity
+    have hratio : ‖v‖ / (‖v‖ + 1) < 1 := by
+      apply (div_lt_iff₀ (by positivity : 0 < ‖v‖ + 1)).2
+      nlinarith [norm_nonneg v]
+    have hdist : dist (n + ε • v) n < r := by
+      rw [dist_eq_norm, add_sub_cancel_left, norm_smul, Real.norm_eq_abs, abs_of_pos hε]
+      dsimp [ε]
+      calc
+        r / (‖v‖ + 1) * ‖v‖ = r * (‖v‖ / (‖v‖ + 1)) := by ring
+        _ < r * 1 := mul_lt_mul_of_pos_left hratio hr
+        _ = r := by ring
+    exact ⟨ε, hε, hball (Metric.mem_ball.mpr hdist)⟩
+  exact polarCone_inner_lt_zero_of_positivePerturbation hv hne hperturb
+
 end PolarCone
 
 section GeneratedConeE

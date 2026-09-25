@@ -123,6 +123,66 @@ theorem massActionVectorField_mem_toricField_relativeSourceOrderNegativeConeStoi
   have htoric := CRNT.coneDual_le_toricField hC hnear hdual
   simpa [v, X, C, Cambient] using htoric
 
+/-- **Strict attraction inside an intrinsic source-order chamber.** At a positive
+non-equilibrium, the mass-action field pairs strictly positively with every interior direction
+of the selected negative source-order cone in stoichiometric space. The pointwise toric inclusion
+gives the weak sign; nonvanishing of the field upgrades it to strictness on the chamber interior. -/
+theorem massActionVectorField_inner_pos_of_mem_interior_sourceOrderNegativeCone
+    (N : Network S) (κ : N.RateConstants) {x xstar : Concentration S}
+    (hx : x.Positive) (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    (hnotcb : ¬ N.IsComplexBalanced κ x)
+    {z : N.euclideanStoichSubspace}
+    (hz : z ∈ interior (((N.relativeSourceOrderNegativeCone
+      (N.relativeLogStoichProjection
+        (fun s => Real.log (x s) - Real.log (xstar s)))).comap
+          N.euclideanStoichSubspace.subtypeL :
+            ProperCone ℝ N.euclideanStoichSubspace) : Set N.euclideanStoichSubspace)) :
+    0 < ⟪z, ⟨CRNT.toEuclid (N.massActionVectorField κ x), by
+      rw [Network.euclideanStoichSubspace, Submodule.mem_map]
+      exact ⟨N.massActionVectorField κ x,
+        N.massActionVectorField_stoichForFan κ x, rfl⟩⟩⟫_ℝ := by
+  let w : S → ℝ := N.relativeLogStoichProjection
+    (fun s => Real.log (x s) - Real.log (xstar s))
+  let v : N.euclideanStoichSubspace := ⟨CRNT.toEuclid (N.massActionVectorField κ x), by
+    rw [Network.euclideanStoichSubspace, Submodule.mem_map]
+    exact ⟨N.massActionVectorField κ x,
+      N.massActionVectorField_stoichForFan κ x, rfl⟩⟩
+  have hpolarAmbient := N.massActionVectorField_mem_polar_relativeSourceOrderStoichProjection
+    κ hx hxs hcb
+  have hfieldne := N.massActionVectorField_ne_zero_of_not_complexBalanced
+    κ hx hxs hcb hnotcb
+  have hvne : v ≠ 0 := by
+    intro hv
+    apply hfieldne
+    apply CRNT.toEuclid.injective
+    exact congrArg Subtype.val hv
+  have hpolar : -v ∈ CRNT.polarCone
+      (((N.relativeSourceOrderNegativeCone w).comap
+        N.euclideanStoichSubspace.subtypeL :
+          ProperCone ℝ N.euclideanStoichSubspace) : Set N.euclideanStoichSubspace) := by
+    rw [CRNT.mem_polarCone]
+    intro q hq
+    have hqAmbient : q.1 ∈ N.relativeSourceOrderNegativeCone w :=
+      ProperCone.mem_comap.mp hq
+    have hqPositive : -q.1 ∈ N.relativeSourceOrderStoichCone w := by
+      change q.1 ∈ N.relativeSourceOrderNegativeCone w at hqAmbient
+      exact (N.mem_relativeSourceOrderNegativeCone w q.1).mp hqAmbient
+    have hle := (CRNT.mem_polarCone.mp hpolarAmbient) hqPositive
+    have hinner : ⟪q, -v⟫_ℝ =
+        ⟪-q.1, CRNT.toEuclid (N.massActionVectorField κ x)⟫_ℝ := by
+      simp [v]
+    rw [hinner]
+    exact hle
+  have hstrict := CRNT.polarCone_inner_lt_zero_of_mem_interior hpolar
+    (by
+      intro hv
+      apply hvne
+      exact neg_eq_zero.mp hv) hz
+  have hneg : -⟪z, v⟫_ℝ < 0 := by
+    simpa only [inner_neg_right] using hstrict
+  have hpos : 0 < ⟪z, v⟫_ℝ := by linarith
+  simpa [v] using hpos
+
 /-- The relative-log toric field on concentrations.  Its state is a concentration vector, while
 its admissible velocities are the image in concentration coordinates of the intrinsic
 stoichiometric toric field. -/
