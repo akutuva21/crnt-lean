@@ -389,6 +389,29 @@ theorem Network.exists_finite_negativeLogWallCover_on_compact
       simpa [U, p.1.2] using hqU
     exact lt_of_le_of_lt (hεle p.1 p.2) hqMargin
 
+/-- **A small tile inherits one inward wall.** If every point of a compact patch has a radius-`δ`
+neighborhood on which some selected wall pairs with the field above `ε`, then every nonempty tile
+inside the patch with diameter below `δ` lies in one such wall chart. This is the local support
+fact consumed by the faithful tile construction. -/
+theorem Network.exists_negativeLogWall_margin_on_small_patch
+    (N : Network S) (κ : N.RateConstants)
+    {K : Set (EuclideanSpace ℝ S)}
+    (z : K → N.euclideanStoichSubspace) (t : Finset K) {ε δ : ℝ}
+    (hcover : ∀ y ∈ K, ∃ p ∈ t, ∀ q ∈ Metric.ball y δ,
+      ε < ⟪(z p).1, toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ)
+    {T : Set (EuclideanSpace ℝ S)} (hne : T.Nonempty) (hTK : T ⊆ K)
+    (hdiam : ∀ x ∈ T, ∀ y ∈ T, dist x y < δ) :
+    ∃ p ∈ t, ∀ q ∈ T,
+      ε < ⟪(z p).1, toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ := by
+  obtain ⟨x, hx⟩ := hne
+  obtain ⟨p, hp, hchart⟩ := hcover x (hTK hx)
+  refine ⟨p, hp, ?_⟩
+  intro q hq
+  have hqball : q ∈ Metric.ball x δ := by
+    rw [Metric.mem_ball, dist_comm]
+    exact hdiam x hx q hq
+  exact hchart q hqball
+
 
 /-- **Finite active-wall toric field glues with one strict derivative margin.**  The common compact
 wall margin supplied by weak reversibility feeds directly into `smoothWallList_descends_strictly`:
