@@ -26,12 +26,12 @@ variable {ι : Type*} [Fintype ι]
 noncomputable def weightedExpLevel (b y : ι → ℝ) (t : ℝ) : ℝ :=
   ∑ i, b i * Real.exp (-(t * y i))
 
-/-- An ordered projective ray meets every positive fraction of its total affine weight exactly
-once. The strict decrease comes from any one positive coefficient; the endpoint at scale zero is
-the full weight, while the ray tends to zero as the scale tends to infinity. -/
-theorem existsUnique_sectionScale (b y : ι → ℝ) {a : ℝ}
+/-- A ray with positive coordinates meets every positive fraction of its total affine weight
+exactly once. Strict decrease follows from any positive coefficient, and the finite weighted
+exponential sum tends to zero as the scale tends to infinity. -/
+theorem existsUnique_sectionScale_of_positive (b y : ι → ℝ) {a : ℝ}
     (hb : ∀ i, 0 ≤ b i) (hbsum : 0 < ∑ i, b i)
-    (hy : ∀ i, 1 ≤ y i) (ha0 : 0 < a) (ha1 : a < 1) :
+    (hy : ∀ i, 0 < y i) (ha0 : 0 < a) (ha1 : a < 1) :
     ∃! t : ℝ, 0 < t ∧ weightedExpLevel b y t = a * (∑ i, b i) := by
   let F : ℝ → ℝ := weightedExpLevel b y
   have hFcont : Continuous F := by
@@ -39,6 +39,17 @@ theorem existsUnique_sectionScale (b y : ι → ℝ) {a : ℝ}
     fun_prop
   have hF0 : F 0 = ∑ i, b i := by
     simp [F, weightedExpLevel]
+  have hFzero : Tendsto F atTop (nhds 0) := by
+    change Tendsto (fun t : ℝ => ∑ i, b i * Real.exp (-(t * y i))) atTop (nhds 0)
+    rw [← Finset.sum_const_zero]
+    refine tendsto_finsetSum (Finset.univ : Finset ι) fun i _ => ?_
+    have harg : Tendsto (fun t : ℝ => t * y i) atTop atTop :=
+      (tendsto_mul_const_atTop_of_pos (hy i)).2 tendsto_id
+    have hexp : Tendsto (fun t : ℝ => Real.exp (-(t * y i))) atTop (nhds 0) := by
+      change Tendsto ((fun u : ℝ => Real.exp (-u)) ∘ (fun t => t * y i))
+        atTop (nhds 0)
+      exact Real.tendsto_exp_neg_atTop_nhds_zero.comp harg
+    simpa using (tendsto_const_nhds.mul hexp)
   have hpositiveTerm : ∃ i, 0 < b i := by
     by_contra h
     have hall : ∀ i, b i ≤ 0 := fun i => le_of_not_gt (fun hi => h ⟨i, hi⟩)
@@ -51,38 +62,21 @@ theorem existsUnique_sectionScale (b y : ι → ℝ) {a : ℝ}
   have hFanti {s t : ℝ} (hst : s < t) : F t < F s := by
     apply Finset.sum_lt_sum
     · intro i _
-      have hypos : 0 < y i := lt_of_lt_of_le zero_lt_one (hy i)
       have harg : -(t * y i) < -(s * y i) :=
-        neg_lt_neg (mul_lt_mul_of_pos_right hst hypos)
+        neg_lt_neg (mul_lt_mul_of_pos_right hst (hy i))
       exact mul_le_mul_of_nonneg_left (Real.exp_le_exp.mpr harg.le) (hb i)
     · refine ⟨i₀, Finset.mem_univ _, ?_⟩
-      have hypos : 0 < y i₀ := lt_of_lt_of_le zero_lt_one (hy i₀)
       have harg : -(t * y i₀) < -(s * y i₀) :=
-        neg_lt_neg (mul_lt_mul_of_pos_right hst hypos)
+        neg_lt_neg (mul_lt_mul_of_pos_right hst (hy i₀))
       exact mul_lt_mul_of_pos_left (Real.exp_lt_exp.mpr harg) hi₀
-  have hev : ∀ᶠ t : ℝ in atTop, Real.exp (-t) < a :=
-    Real.tendsto_exp_neg_atTop_nhds_zero.eventually (Iio_mem_nhds ha0)
+  have htargetpos : 0 < a * (∑ i, b i) := mul_pos ha0 hbsum
+  have hev : ∀ᶠ t : ℝ in atTop, F t < a * (∑ i, b i) :=
+    hFzero.eventually (Iio_mem_nhds htargetpos)
   obtain ⟨B, hB⟩ := Filter.eventually_atTop.1 hev
   let T : ℝ := max B 1
   have hTB : B ≤ T := le_max_left _ _
   have hTpos : 0 < T := lt_of_lt_of_le zero_lt_one (le_max_right _ _)
-  have hTexp : Real.exp (-T) < a := hB T hTB
-  have hFTbound : F T ≤ (∑ i, b i) * Real.exp (-T) := by
-    calc
-      F T = ∑ i, b i * Real.exp (-(T * y i)) := rfl
-      _ ≤ ∑ i, b i * Real.exp (-T) := by
-        apply Finset.sum_le_sum
-        intro i _
-        have harg : -(T * y i) ≤ -T := by
-          have hmul : T ≤ T * y i := by nlinarith [hy i, hTpos.le]
-          linarith
-        exact mul_le_mul_of_nonneg_left (Real.exp_le_exp.mpr harg) (hb i)
-      _ = (∑ i, b i) * Real.exp (-T) := by rw [Finset.sum_mul]
-  have hFT : F T < a * (∑ i, b i) := by
-    calc
-      F T ≤ (∑ i, b i) * Real.exp (-T) := hFTbound
-      _ < (∑ i, b i) * a := mul_lt_mul_of_pos_left hTexp hbsum
-      _ = a * (∑ i, b i) := by ring
+  have hFT : F T < a * (∑ i, b i) := hB T hTB
   have htargetle : a * (∑ i, b i) ≤ F 0 := by
     rw [hF0]
     calc
@@ -110,6 +104,15 @@ theorem existsUnique_sectionScale (b y : ι → ℝ) {a : ℝ}
     rw [hteq, huF] at hlt
     exact (lt_irrefl _ hlt)
 
+/-- An ordered projective ray meets every positive fraction of its total affine weight exactly
+once. This is the `yᵢ ≥ 1` specialization used by the logarithmic projective chart. -/
+theorem existsUnique_sectionScale (b y : ι → ℝ) {a : ℝ}
+    (hb : ∀ i, 0 ≤ b i) (hbsum : 0 < ∑ i, b i)
+    (hy : ∀ i, 1 ≤ y i) (ha0 : 0 < a) (ha1 : a < 1) :
+    ∃! t : ℝ, 0 < t ∧ weightedExpLevel b y t = a * (∑ i, b i) :=
+  existsUnique_sectionScale_of_positive b y hb hbsum
+    (fun i => lt_of_lt_of_le zero_lt_one (hy i)) ha0 ha1
+
 /-- The positive point on a projective ray at scale `t`. -/
 noncomputable def sectionPoint (y : ι → ℝ) (t : ℝ) : ι → ℝ :=
   fun i => Real.exp (-(t * y i))
@@ -129,23 +132,23 @@ theorem sectionPoint_logProjective (y : ι → ℝ) {t : ℝ} (ht : 0 < t)
   simp only [sectionPoint, Real.log_exp, hy₀]
   field_simp
 
-/-- Every ordered projective ray has a positive representative on the affine section, with exactly
-the requested logarithmic projective coordinates. -/
+/-- Every positive normalized projective ray has a representative below one on the affine section,
+with exactly the requested logarithmic projective coordinates. -/
 theorem exists_sectionPoint_with_coordinates (b y : ι → ℝ) {a : ℝ} {i₀ : ι}
     (hb : ∀ i, 0 ≤ b i) (hbsum : 0 < ∑ i, b i)
-    (hy : ∀ i, 1 ≤ y i) (hy₀ : y i₀ = 1)
+    (hy : ∀ i, 0 < y i) (hy₀ : y i₀ = 1)
     (ha0 : 0 < a) (ha1 : a < 1) :
     ∃ x : ι → ℝ, (∀ i, 0 < x i ∧ x i < 1) ∧
       (∑ i, b i * x i) = a * (∑ i, b i) ∧
       (∀ i, Real.log (x i) / Real.log (x i₀) = y i) := by
   obtain ⟨t, ⟨ht, hlevel⟩, _⟩ :=
-    existsUnique_sectionScale b y hb hbsum hy ha0 ha1
+    existsUnique_sectionScale_of_positive b y hb hbsum hy ha0 ha1
   refine ⟨sectionPoint y t, ?_, sectionPoint_mem_level b y hlevel, ?_⟩
   · intro i
     constructor
     · exact Real.exp_pos _
     · apply (Real.exp_lt_one_iff).2
-      have hty : 0 < t * y i := mul_pos ht (lt_of_lt_of_le zero_lt_one (hy i))
+      have hty : 0 < t * y i := mul_pos ht (hy i)
       linarith
   · intro i
     exact sectionPoint_logProjective y ht hy₀ i
@@ -188,19 +191,19 @@ theorem exists_scale_of_sectionPoint_coordinates (b y : ι → ℝ) {a : ℝ} {i
       _ = a * (∑ i, b i) := hxlevel
   exact ⟨t, ht, funext hpoint, hroot⟩
 
-/-- The positive affine section has exactly one point with any prescribed ordered logarithmic
-projective coordinates. Thus each individual face plane in the blueprint chart has a set-theoretic
-inverse, before proving smooth dependence or gluing neighboring faces. -/
+/-- The positive affine section has exactly one point with any prescribed positive normalized
+logarithmic projective coordinates. Thus each individual face plane in the blueprint chart has a
+set-theoretic inverse, before gluing neighboring faces. -/
 theorem existsUnique_sectionPoint_with_coordinates (b y : ι → ℝ) {a : ℝ} {i₀ : ι}
     (hb : ∀ i, 0 ≤ b i) (hbsum : 0 < ∑ i, b i)
-    (hy : ∀ i, 1 ≤ y i) (hy₀ : y i₀ = 1)
+    (hy : ∀ i, 0 < y i) (hy₀ : y i₀ = 1)
     (ha0 : 0 < a) (ha1 : a < 1) :
     ∃! x : ι → ℝ,
       (∀ i, 0 < x i ∧ x i < 1) ∧
       (∑ i, b i * x i) = a * (∑ i, b i) ∧
       (∀ i, Real.log (x i) / Real.log (x i₀) = y i) := by
   obtain ⟨t, ⟨ht, hlevel⟩, hunique⟩ :=
-    existsUnique_sectionScale b y hb hbsum hy ha0 ha1
+    existsUnique_sectionScale_of_positive b y hb hbsum hy ha0 ha1
   let x := sectionPoint y t
   have hx :
       (∀ i, 0 < x i ∧ x i < 1) ∧
@@ -211,7 +214,7 @@ theorem existsUnique_sectionPoint_with_coordinates (b y : ι → ℝ) {a : ℝ} 
       constructor
       · exact Real.exp_pos _
       · apply (Real.exp_lt_one_iff).2
-        have hty : 0 < t * y i := mul_pos ht (lt_of_lt_of_le zero_lt_one (hy i))
+        have hty : 0 < t * y i := mul_pos ht (hy i)
         linarith
     · intro i
       exact sectionPoint_logProjective y ht hy₀ i

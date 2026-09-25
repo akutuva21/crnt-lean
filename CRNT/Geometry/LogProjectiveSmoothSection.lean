@@ -110,13 +110,13 @@ theorem normalizedCoordinates_eq_of_anchor (i₀ : ι) (y : ι → ℝ) (hy₀ :
     simp [normalizedCoordinates, hy₀]
   · simp [normalizedCoordinates, hi]
 
-/-- The unique section scale varies smoothly near every ordered projective ray. The local implicit
-branch agrees with the pointwise unique positive scale wherever the nearby coordinates remain in
-the ordered region. This gives a smooth local inverse for each individual affine section; it says
-nothing about gluing different tile faces. -/
+/-- The unique section scale varies smoothly near every positive projective ray. The local implicit
+branch agrees with the pointwise unique positive scale wherever the nearby coordinates remain
+positive. This gives a smooth local inverse for each individual affine section; it says nothing
+about gluing different tile faces. -/
 theorem exists_contDiff_local_sectionScale (b y : ι → ℝ) {a : ℝ} {i₀ : ι}
     (hb : ∀ i, 0 ≤ b i) (hbsum : 0 < ∑ i, b i)
-    (hy : ∀ i, 1 ≤ y i) (hy₀ : y i₀ = 1)
+    (hy : ∀ i, 0 < y i) (hy₀ : y i₀ = 1)
     (ha0 : 0 < a) (ha1 : a < 1) {t₀ : ℝ} (ht₀ : 0 < t₀)
     (hroot : weightedExpLevel b y t₀ = a * (∑ i, b i)) :
     ∃ ψ : ({i : ι // i ≠ i₀} → ℝ) → ℝ,
@@ -125,7 +125,7 @@ theorem exists_contDiff_local_sectionScale (b y : ι → ℝ) {a : ℝ} {i₀ : 
       ∀ᶠ z in 𝓝 (fun j : {i : ι // i ≠ i₀} => y j),
         0 < ψ z ∧
         weightedExpLevel b (normalizedCoordinates i₀ z) (ψ z) = a * (∑ i, b i) ∧
-        ((∀ i, 1 ≤ normalizedCoordinates i₀ z i) →
+        ((∀ i, 0 < normalizedCoordinates i₀ z i) →
           ∃! s : ℝ,
             (0 < s ∧ weightedExpLevel b (normalizedCoordinates i₀ z) s =
               a * (∑ i, b i)) ∧ s = ψ z) := by
@@ -141,8 +141,7 @@ theorem exists_contDiff_local_sectionScale (b y : ι → ℝ) {a : ℝ} {i₀ : 
     simp [f, sectionEquation, hcoords, hroot]
   let d : ℝ := ∑ i, b i * Real.exp (-(t₀ * y i)) * (-y i)
   have hd : d < 0 := by
-    exact weightedExpLevel_scale_deriv_neg b y t₀ hb hbsum
-      (fun i => lt_of_lt_of_le zero_lt_one (hy i))
+    exact weightedExpLevel_scale_deriv_neg b y t₀ hb hbsum hy
   have hslice : HasDerivAt (fun s : ℝ => f (z₀, s)) d t₀ := by
     have hlevel := (hasDerivAt_weightedExpLevel b y t₀).sub_const
       (a * (∑ i, b i))
@@ -196,7 +195,7 @@ theorem exists_contDiff_local_sectionScale (b y : ι → ℝ) {a : ℝ} {i₀ : 
   have hscaleBranch : ∀ᶠ z in 𝓝 z₀,
       0 < ψ z ∧
       weightedExpLevel b (normalizedCoordinates i₀ z) (ψ z) = a * (∑ i, b i) ∧
-      ((∀ i, 1 ≤ normalizedCoordinates i₀ z i) →
+      ((∀ i, 0 < normalizedCoordinates i₀ z i) →
         ∃! s : ℝ,
           (0 < s ∧ weightedExpLevel b (normalizedCoordinates i₀ z) s =
             a * (∑ i, b i)) ∧ s = ψ z) := by
@@ -209,7 +208,7 @@ theorem exists_contDiff_local_sectionScale (b y : ι → ℝ) {a : ℝ} {i₀ : 
       exact sub_eq_zero.mp heq'
     refine ⟨hpos, hlevel, ?_⟩
     intro hzcoords
-    obtain ⟨s, hs, hunique⟩ := existsUnique_sectionScale b
+    obtain ⟨s, hs, hunique⟩ := existsUnique_sectionScale_of_positive b
       (normalizedCoordinates i₀ z) hb hbsum hzcoords ha0 ha1
     have hbranch : ψ z = s := hunique (ψ z) ⟨hpos, hlevel⟩
     refine ⟨s, ⟨hs, hbranch.symm⟩, ?_⟩
@@ -219,6 +218,87 @@ theorem exists_contDiff_local_sectionScale (b y : ι → ℝ) {a : ℝ} {i₀ : 
       _ = s := hbranch
   refine ⟨ψ, hψsmooth, ?_, hscaleBranch⟩
   simpa [z₀] using hψbase
+
+/-- The canonical positive section scale on normalized coordinates with positive entries. It is
+totalized by zero outside that open coordinate domain. -/
+noncomputable def positiveSectionScale (b : ι → ℝ) (a : ℝ) (i₀ : ι)
+    (hb : ∀ i, 0 ≤ b i) (hbsum : 0 < ∑ i, b i) (ha0 : 0 < a) (ha1 : a < 1)
+    (z : ({i : ι // i ≠ i₀} → ℝ)) : ℝ := by
+  classical
+  exact if hz : ∀ i, 0 < normalizedCoordinates i₀ z i then
+    Classical.choose
+      (existsUnique_sectionScale_of_positive b (normalizedCoordinates i₀ z)
+        hb hbsum hz ha0 ha1).exists
+  else 0
+
+/-- On its positive-coordinate domain, the canonical section scale is the unique positive root of
+the affine-level equation. -/
+theorem positiveSectionScale_spec (b : ι → ℝ) (a : ℝ) (i₀ : ι)
+    (hb : ∀ i, 0 ≤ b i) (hbsum : 0 < ∑ i, b i) (ha0 : 0 < a) (ha1 : a < 1)
+    (z : ({i : ι // i ≠ i₀} → ℝ))
+    (hz : ∀ i, 0 < normalizedCoordinates i₀ z i) :
+    0 < positiveSectionScale b a i₀ hb hbsum ha0 ha1 z ∧
+      weightedExpLevel b (normalizedCoordinates i₀ z)
+        (positiveSectionScale b a i₀ hb hbsum ha0 ha1 z) = a * (∑ i, b i) := by
+  classical
+  rw [positiveSectionScale, dite_eq_left hz]
+  exact Classical.choose_spec
+    (existsUnique_sectionScale_of_positive b (normalizedCoordinates i₀ z)
+      hb hbsum hz ha0 ha1).exists
+
+/-- The canonical section scale is smooth at every normalized ray with positive coordinates. Its
+local implicit branches agree with the globally chosen root by uniqueness. -/
+theorem contDiffAt_positiveSectionScale (b : ι → ℝ) (a : ℝ) (i₀ : ι)
+    (hb : ∀ i, 0 ≤ b i) (hbsum : 0 < ∑ i, b i) (ha0 : 0 < a) (ha1 : a < 1)
+    (z : ({i : ι // i ≠ i₀} → ℝ))
+    (hz : ∀ i, 0 < normalizedCoordinates i₀ z i) :
+    ContDiffAt ℝ ∞ (positiveSectionScale b a i₀ hb hbsum ha0 ha1) z := by
+  classical
+  let y := normalizedCoordinates i₀ z
+  have hy : ∀ i, 0 < y i := by
+    intro i
+    exact hz i
+  have hy₀ : y i₀ = 1 := by simp [y, normalizedCoordinates]
+  have hroot := positiveSectionScale_spec b a i₀ hb hbsum ha0 ha1 z hz
+  obtain ⟨ψ, hψsmooth, hψbase, hψbranch⟩ :=
+    exists_contDiff_local_sectionScale b y hb hbsum hy hy₀ ha0 ha1
+      (t₀ := positiveSectionScale b a i₀ hb hbsum ha0 ha1 z) hroot.1 hroot.2
+  have hcoords : (fun j : {i : ι // i ≠ i₀} => y j) = z := by
+    funext j
+    simp [y, normalizedCoordinates, j.property]
+  rw [hcoords] at hψsmooth hψbase hψbranch
+  have hcoordinate : ∀ i, ContinuousAt
+      (fun w : ({i : ι // i ≠ i₀} → ℝ) => normalizedCoordinates i₀ w i) z := by
+    intro i
+    by_cases hi : i = i₀
+    · simpa [normalizedCoordinates, hi] using
+        (continuousAt_const (x := z) :
+          ContinuousAt (fun _ : ({i : ι // i ≠ i₀} → ℝ) => (1 : ℝ)) z)
+    · simpa [normalizedCoordinates, hi] using
+        (continuousAt_apply (⟨i, hi⟩ : {i : ι // i ≠ i₀}) z)
+  have hcoordsNear : ∀ᶠ w in 𝓝 z, ∀ i, 0 < normalizedCoordinates i₀ w i := by
+    simpa only [Filter.Eventually, Set.ofPred_forall] using
+      (Filter.iInter_mem.2 fun i =>
+        (hcoordinate i).eventually (Ioi_mem_nhds (hz i)))
+  have heq :
+      positiveSectionScale b a i₀ hb hbsum ha0 ha1 =ᶠ[𝓝 z] ψ := by
+    filter_upwards [hcoordsNear, hψbranch] with w hwcoords hbranch
+    obtain ⟨hψpos, hψlevel, _⟩ := hbranch
+    have hglobal := positiveSectionScale_spec b a i₀ hb hbsum ha0 ha1 w hwcoords
+    obtain ⟨t, ht, hunique⟩ := existsUnique_sectionScale_of_positive b
+      (normalizedCoordinates i₀ w) hb hbsum hwcoords ha0 ha1
+    calc
+      positiveSectionScale b a i₀ hb hbsum ha0 ha1 w = t := hunique _ hglobal
+      _ = ψ w := (hunique _ ⟨hψpos, hψlevel⟩).symm
+  exact hψsmooth.congr_of_eventuallyEq heq
+
+/-- The canonical section scale is smooth on the open domain of positive normalized coordinates. -/
+theorem contDiffOn_positiveSectionScale (b : ι → ℝ) (a : ℝ) (i₀ : ι)
+    (hb : ∀ i, 0 ≤ b i) (hbsum : 0 < ∑ i, b i) (ha0 : 0 < a) (ha1 : a < 1) :
+    ContDiffOn ℝ ∞ (positiveSectionScale b a i₀ hb hbsum ha0 ha1)
+      {z | ∀ i, 0 < normalizedCoordinates i₀ z i} := by
+  intro z hz
+  exact (contDiffAt_positiveSectionScale b a i₀ hb hbsum ha0 ha1 z hz).contDiffWithinAt
 
 end LogProjectiveSection
 end CRNT
