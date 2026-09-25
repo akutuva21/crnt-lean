@@ -108,6 +108,37 @@ theorem affineForm_eq_on_projectiveFibers_iff (b c y : ι → ℝ) :
             intro v hv
             exact (hfiberC v).symm
 
+/-- On a ray with pairwise distinct projective coordinates, exact agreement of two affine forms
+for every projective-coordinate test function forces their weights to agree coordinatewise. The
+quantification over all test functions is essential: agreement of the two scalar level equations
+at one scale alone does not imply this conclusion. -/
+theorem eq_of_affineForm_eq_of_injective (b c y : ι → ℝ)
+    (hy : Function.Injective y)
+    (hform : ∀ φ : ℝ → ℝ,
+      (∑ i, b i * φ (y i)) = (∑ i, c i * φ (y i))) :
+    b = c := by
+  classical
+  have hfiber : ∀ v, projectiveFiberWeight y b v = projectiveFiberWeight y c v :=
+    (affineForm_eq_on_projectiveFibers_iff b c y).mp hform
+  funext i
+  have hfilter : Finset.univ.filter (fun j : ι => y j = y i) = {i} := by
+    ext j
+    simp only [Finset.mem_filter, Finset.mem_univ, true_and, Finset.mem_singleton]
+    constructor
+    · intro hji
+      exact hy hji
+    · intro hji
+      subst j
+      rfl
+  have hbi : projectiveFiberWeight y b (y i) = b i := by
+    simp [projectiveFiberWeight, hfilter]
+  have hci : projectiveFiberWeight y c (y i) = c i := by
+    simp [projectiveFiberWeight, hfilter]
+  calc
+    b i = projectiveFiberWeight y b (y i) := hbi.symm
+    _ = projectiveFiberWeight y c (y i) := hfiber (y i)
+    _ = c i := hci
+
 /-- Matching total weights on every projective-coordinate fiber forces identical weighted
 exponential levels at every logarithmic ray scale. -/
 theorem weightedExpLevel_eq_of_projectiveFiberWeight_eq (b c y : ι → ℝ) (t : ℝ)
