@@ -3,6 +3,7 @@ import CRNT.Geometry.FanWallsCrossed
 import CRNT.Geometry.ToricStrictSupport
 import CRNT.Dynamics.DissipationBound
 import CRNT.Dynamics.ComplexBalanceStoichFanInclusion
+import Mathlib.Topology.MetricSpace.Pseudo.Lemmas
 
 namespace CRNT
 open scoped InnerProductSpace
@@ -276,8 +277,9 @@ theorem Network.massActionVectorField_inner_negRelativeLogStoichProjection_pos
 complex-balanced equilibria, the negative projected relative-log gradient supplies a positive
 wall direction at every point, including source-order ties where the selected closed chamber has
 empty interior. Continuity and compactness produce finitely many such directions with a common
-positive margin. This is local wall data only; tile offsets and a single separating band require
-additional gluing hypotheses. -/
+positive margin. Compactness also gives a uniform radius: every ball of that radius around a point
+of `K` lies in one selected wall's strict-positive chart. This is the local-to-tile step; a single
+separating surface still requires the separate blueprint gluing. -/
 theorem Network.exists_finite_negativeLogWallCover_on_compact
     (N : Network S) (κ : N.RateConstants) {xstar : Concentration S}
     (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
@@ -289,8 +291,10 @@ theorem Network.exists_finite_negativeLogWallCover_on_compact
         (N.relativeLogStoichProjection
           (fun s => Real.log (toEuclid.symm p.1 s) - Real.log (xstar s)))) ∧
       ∃ t : Finset K, ∃ ε : ℝ, 0 < ε ∧
-        ∀ y ∈ K, ∃ p ∈ t,
-          ε ≤ ⟪(z p).1, toEuclid (N.massActionVectorField κ (toEuclid.symm y))⟫_ℝ := by
+        ((∀ y ∈ K, ∃ p ∈ t,
+            ε ≤ ⟪(z p).1, toEuclid (N.massActionVectorField κ (toEuclid.symm y))⟫_ℝ) ∧
+          ∃ δ : ℝ, 0 < δ ∧ ∀ y ∈ K, ∃ p ∈ t, ∀ q ∈ Metric.ball y δ,
+            ε < ⟪(z p).1, toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ) := by
   classical
   let u (p : K) : S → ℝ := fun s =>
     Real.log (toEuclid.symm p.1 s) - Real.log (xstar s)
@@ -355,16 +359,35 @@ theorem Network.exists_finite_negativeLogWallCover_on_compact
   have hεle (p : K) (hp : p ∈ t) : ε ≤ margin p := by
     dsimp [ε]
     exact Finset.inf'_le _ hp
-  refine ⟨z, hz, t, ε, hε, ?_⟩
-  intro y hy
-  have hycover := htcover hy
-  rcases Set.mem_iUnion.mp hycover with ⟨p, hpcover⟩
-  rcases Set.mem_iUnion.mp hpcover with ⟨hp, hyU⟩
-  refine ⟨p, hp, ?_⟩
-  have hyMargin : margin p < wallField (z p) y := by
-    change y ∈ U p.1 at hyU
-    simpa [U, p.2] using hyU
-  exact le_of_lt (lt_of_le_of_lt (hεle p hp) hyMargin)
+  refine ⟨z, hz, t, ε, hε, ?_, ?_⟩
+  · intro y hy
+    have hycover := htcover hy
+    rcases Set.mem_iUnion.mp hycover with ⟨p, hpcover⟩
+    rcases Set.mem_iUnion.mp hpcover with ⟨hp, hyU⟩
+    refine ⟨p, hp, ?_⟩
+    have hyMargin : margin p < wallField (z p) y := by
+      change y ∈ U p.1 at hyU
+      simpa [U, p.2] using hyU
+    exact le_of_lt (lt_of_le_of_lt (hεle p hp) hyMargin)
+  · let I := {p : K // p ∈ t}
+    have hopenI : ∀ p : I, IsOpen (U p.1.1) := fun p => hopen p.1.1 p.1.2
+    have hcoverI : K ⊆ ⋃ p : I, U p.1.1 := by
+      intro y hy
+      have hycover := htcover hy
+      rcases Set.mem_iUnion.mp hycover with ⟨p, hpcover⟩
+      rcases Set.mem_iUnion.mp hpcover with ⟨hp, hyU⟩
+      exact Set.mem_iUnion.2 ⟨⟨p, hp⟩, hyU⟩
+    obtain ⟨δ, hδ, hballs⟩ := lebesgue_number_lemma_of_metric hK hopenI hcoverI
+    refine ⟨δ, hδ, ?_⟩
+    intro y hy
+    obtain ⟨p, hball⟩ := hballs y hy
+    refine ⟨p.1, p.2, ?_⟩
+    intro q hq
+    have hqU : q ∈ U p.1.1 := hball hq
+    have hqMargin : margin p.1 < wallField (z p.1) q := by
+      change q ∈ U p.1.1 at hqU
+      simpa [U, p.1.2] using hqU
+    exact lt_of_le_of_lt (hεle p.1 p.2) hqMargin
 
 
 /-- **Finite active-wall toric field glues with one strict derivative margin.**  The common compact
