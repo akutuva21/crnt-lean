@@ -125,6 +125,63 @@ theorem criticalBoundaryOmegaFace_lowerRank
     hwr κ hxs hcb hγ0 hϕγ hgenω hωnn hωc hw hcrit.2.1 hzeroSet
   exact ⟨hcrit, hface.1, N.restrictReactions_avoiding_siphon_stoichRank_lt hcrit, hface.2⟩
 
+/-- **Exact output of a boundary-face rank reduction.** A compact forward orbit either already
+has a positive omega-point, or it has a boundary omega-point whose zero set is a nonempty critical
+siphon and whose avoiding-face network has strictly smaller stoichiometric rank and a positive
+complex-balanced face equilibrium. This is the structural alternative supplied by the existing
+face analysis; it does not transfer that face equilibrium back into the parent orbit's omega-limit
+set. -/
+theorem positiveOmega_or_lowerRankCriticalBoundaryFace
+    (N : Network S) (hwr : N.WeaklyReversible) (κ : N.RateConstants)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {xstar x₀ : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar)
+    (hγ0 : ∀ x, γ x 0 = x) (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    {K : Set (Concentration S)} (hK : IsCompact K)
+    (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hgenω : ∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      HasDerivAt (γ y) (N.massActionVectorField κ (γ y t)) t)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    (hωaff : ∀ z ∈ omegaLimit atTop ϕ {x₀},
+      (z - x₀ : Concentration S) ∈ N.stoichSubspace)
+    (hx₀ : x₀.Positive)
+    {c : ℝ} (hωc : ∀ z ∈ omegaLimit atTop ϕ {x₀}, relEntropy xstar z = c) :
+    (∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive) ∨
+      ∃ w ∈ omegaLimit atTop ϕ {x₀}, ∃ P : Finset S,
+        P.Nonempty ∧ (∀ s, s ∈ P ↔ w s = 0) ∧ N.IsCriticalSiphon P ∧
+        (N.restrictReactions (N.avoidingSiphonReactions P)).IsComplexBalanced
+          (κ.restrict (N.avoidingSiphonReactions P)) (fillSiphonFace P xstar w) ∧
+        (N.restrictReactions (N.avoidingSiphonReactions P)).stoichRank < N.stoichRank ∧
+        N.massActionVectorField κ w = 0 := by
+  classical
+  have hsubK : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆ K := by
+    rintro z ⟨t, -, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst x
+    exact hmaps t
+  have habs : ∃ v ∈ (atTop : Filter ℝ≥0),
+      closure (Set.image2 ϕ v {x₀}) ⊆ K :=
+    ⟨Set.univ, univ_mem,
+      (IsClosed.closure_subset_iff hK.isClosed).mpr hsubK⟩
+  obtain ⟨p, hp⟩ :=
+    nonempty_omegaLimit_of_isCompact_absorbing atTop ϕ {x₀} hK habs
+      (Set.singleton_nonempty x₀)
+  by_cases hall : ∀ w ∈ omegaLimit atTop ϕ {x₀}, w.Positive
+  · exact Or.inl ⟨p, hp, hall p hp⟩
+  · push Not at hall
+    obtain ⟨w, hw, hwnp⟩ := hall
+    obtain ⟨s, hs⟩ : ∃ s, ¬ 0 < w s := not_forall.mp hwnp
+    have hs0 : w s = 0 := le_antisymm (not_lt.mp hs) (hωnn w hw s)
+    let P : Finset S := Finset.univ.filter (fun s => w s = 0)
+    have hzeroSet : ∀ s, s ∈ P ↔ w s = 0 := by
+      intro s
+      simp [P]
+    have hPne : P.Nonempty := ⟨s, (hzeroSet s).2 hs0⟩
+    obtain ⟨hPcrit, hfacecb, hrank, hsteady⟩ :=
+      N.criticalBoundaryOmegaFace_lowerRank hwr κ hxs hcb hγ0 hϕγ hK hmaps
+        hgenω hωnn hωaff hx₀ hωc hw hzeroSet hPne
+    exact Or.inr ⟨w, hw, P, hPne, hzeroSet, hPcrit, hfacecb, hrank, hsteady⟩
+
 /-- Complex balance of a filled siphon-face state places its log-ratio to the reference in the
 orthogonal complement of the face subnetwork's stoichiometric subspace. This is the toric
 constraint on boundary omega equilibria after restricting to reactions that avoid the siphon. -/
