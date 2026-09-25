@@ -236,5 +236,60 @@ theorem TierDescending.upwardContribution_suppressed
     (N.reaction r).source (N.reaction r).target (N.reaction rstar).source
     isrc ibad hidx' hisrc.1 hisrc.2 hbadBefore
 
+/-- Every upward-reaction logarithm is negligible relative to any top-source monomial, not merely
+the partner selected by the truncated-tier argument. The partner source is itself no larger than a
+top source, so its ratio to that top monomial has a finite limit; multiply this by the suppression
+estimate above. -/
+theorem TierDescending.upwardContribution_suppressed_by_topSource
+    {N : Network S} (htd : N.TierDescending)
+    {xs : ℕ → Concentration S} (htrans : N.IsTransversalTierSequence xs)
+    (D : N.TierScaleDecomposition xs) (r rtop : N.R)
+    (hup : TierStrictBelow xs (N.reaction r).source (N.reaction r).target)
+    (htop : N.IsTopSourceTier xs rtop) :
+    Tendsto (fun n =>
+      (tierMonomial (xs n) (N.reaction r).source /
+        tierMonomial (xs n) (N.reaction rtop).source) *
+        |Real.log (tierMonomial (xs n) (N.reaction r).target /
+          tierMonomial (xs n) (N.reaction r).source)|)
+      atTop (𝓝 0) := by
+  obtain ⟨rstar, _hpartnerDown, hsupp⟩ :=
+    htd.upwardContribution_suppressed htrans D r hup
+  obtain ⟨c, hratio⟩ : ∃ c : ℝ, Tendsto
+      (fun n => tierMonomial (xs n) (N.reaction rstar).source /
+        tierMonomial (xs n) (N.reaction rtop).source)
+      atTop (𝓝 c) := by
+    rcases htop rstar with hstrict | hsame
+    · exact ⟨0, hstrict⟩
+    · obtain ⟨c, _hc, hsame⟩ := hsame
+      exact ⟨c, hsame⟩
+  have hprod : Tendsto (fun n =>
+      ((tierMonomial (xs n) (N.reaction r).source /
+        tierMonomial (xs n) (N.reaction rstar).source) *
+        |Real.log (tierMonomial (xs n) (N.reaction r).target /
+          tierMonomial (xs n) (N.reaction r).source)|) *
+        (tierMonomial (xs n) (N.reaction rstar).source /
+          tierMonomial (xs n) (N.reaction rtop).source))
+      atTop (𝓝 0) := by
+    simpa using hsupp.mul hratio
+  have heq : (fun n =>
+      ((tierMonomial (xs n) (N.reaction r).source /
+        tierMonomial (xs n) (N.reaction rstar).source) *
+        |Real.log (tierMonomial (xs n) (N.reaction r).target /
+          tierMonomial (xs n) (N.reaction r).source)|) *
+        (tierMonomial (xs n) (N.reaction rstar).source /
+          tierMonomial (xs n) (N.reaction rtop).source)) =
+      (fun n =>
+        (tierMonomial (xs n) (N.reaction r).source /
+          tierMonomial (xs n) (N.reaction rtop).source) *
+          |Real.log (tierMonomial (xs n) (N.reaction r).target /
+            tierMonomial (xs n) (N.reaction r).source)|) := by
+    funext n
+    have hb : 0 < tierMonomial (xs n) (N.reaction rstar).source :=
+      tierMonomial_pos_of_positiveSequence htrans.1.1 n (N.reaction rstar).source
+    have hc : 0 < tierMonomial (xs n) (N.reaction rtop).source :=
+      tierMonomial_pos_of_positiveSequence htrans.1.1 n (N.reaction rtop).source
+    field_simp [ne_of_gt hb, ne_of_gt hc]
+  exact hprod.congr' (Filter.Eventually.of_forall fun n => congrFun heq n)
+
 end Network
 end CRNT
