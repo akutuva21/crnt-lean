@@ -1,6 +1,7 @@
 import CRNT.Dynamics.ComplexBalanceCycleDecomposition
 import CRNT.Dynamics.ComplexBalanceStoichFan
 import CRNT.Dynamics.ToricInclusion
+import CRNT.Geometry.FanRefinement
 
 /-!
 # Toric-field inclusion on stoichiometric space
@@ -17,6 +18,27 @@ namespace CRNT
 namespace Network
 
 variable {S : Type} [DecidableEq S] [Fintype S]
+
+/-- The intrinsic source-order fan has dual-finitely-generated cells, with the finite
+half-space representation proved in `ComplexBalanceStoichFan`. -/
+theorem relativeSourceOrderStoichFan_hasDualFGCells (N : Network S) :
+    CRNT.FanRefinement.HasDualFGCells N.relativeSourceOrderStoichFan := by
+  intro C hC
+  rw [N.mem_relativeSourceOrderStoichFan] at hC
+  rcases hC with ⟨w, rfl⟩
+  exact N.relativeSourceOrderConeInStoich_dualFG w
+
+/-- The common refinement of the toric source-order fan with any dual-finitely-generated
+polyhedral fan is again a polyhedral fan. This is the entry point for combining toric chambers
+with a simplicial subdivision in the zero-separating construction. -/
+theorem relativeSourceOrderStoichFan_intersection_isPolyhedralFan
+    (N : Network S) (G : CRNT.Fan N.euclideanStoichSubspace)
+    (hG : CRNT.IsPolyhedralFan G) (hGdual : CRNT.FanRefinement.HasDualFGCells G) :
+    CRNT.IsPolyhedralFan
+      (CRNT.FanRefinement.intersectionFamily N.relativeSourceOrderStoichFan G) :=
+  CRNT.FanRefinement.intersectionFamily_isPolyhedralFan_of_dualFG
+    N.relativeSourceOrderStoichFan_isPolyhedralFan hG
+    N.relativeSourceOrderStoichFan_hasDualFGCells hGdual
 
 private theorem massActionVectorField_stoichForFan (N : Network S) (κ : N.RateConstants)
     (x : Concentration S) : N.massActionVectorField κ x ∈ N.stoichSubspace := by

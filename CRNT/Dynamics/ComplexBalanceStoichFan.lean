@@ -1,5 +1,7 @@
 import CRNT.Dynamics.ComplexBalanceCycleDecomposition
 import CRNT.Geometry.ConeFace
+import Mathlib.Analysis.InnerProductSpace.Projection.Basic
+import Mathlib.Geometry.Convex.Cone.DualFinite
 
 /-!
 # The source-order fan on stoichiometric space
@@ -13,12 +15,71 @@ differential-inclusion argument.
 namespace CRNT
 namespace Network
 
+open scoped InnerProductSpace
+
 variable {S : Type} [DecidableEq S] [Fintype S]
 
 /-- A source-order cone regarded as a cone in the stoichiometric subspace itself. -/
 noncomputable def relativeSourceOrderConeInStoich (N : Network S) (w : S → ℝ) :
     ProperCone ℝ N.euclideanStoichSubspace :=
   (N.relativeSourceOrderStoichProperCone w).comap N.euclideanStoichSubspace.subtypeL
+
+private noncomputable def sourceOrderNormal (N : Network S) (p : N.R × N.R) :
+    N.euclideanStoichSubspace :=
+  N.euclideanStoichSubspace.orthogonalProjectionOnto
+    (toEuclid (CRNT.exponentVector (N.sourceIdx p.2).val) -
+      toEuclid (CRNT.exponentVector (N.sourceIdx p.1).val))
+
+/-- Every intrinsic source-order cone is cut out by finitely many half-spaces. Its dual-finite
+generation certificate is given by the projected differences of source-complex exponent vectors
+for the ordered pairs selected by `w`. -/
+theorem relativeSourceOrderConeInStoich_dualFG (N : Network S) (w : S → ℝ) :
+    (N.relativeSourceOrderConeInStoich w : PointedCone ℝ N.euclideanStoichSubspace).DualFG
+      (innerₗ N.euclideanStoichSubspace) := by
+  classical
+  let I : Finset (N.R × N.R) := Finset.univ.filter fun p =>
+    N.sourceLogProjection w p.1 ≤ N.sourceLogProjection w p.2
+  let T : Finset N.euclideanStoichSubspace := I.image (N.sourceOrderNormal)
+  refine ⟨T, ?_⟩
+  apply PointedCone.ext
+  intro z
+  have hzstoich : toEuclid.symm z.1 ∈ N.stoichSubspace := by
+    have hzproperty := z.2
+    change z.1 ∈ Submodule.map CRNT.toEuclid.toLinearMap N.stoichSubspace at hzproperty
+    rw [Submodule.mem_map] at hzproperty
+    rcases hzproperty with ⟨u, hu, huz⟩
+    rw [← huz]
+    simpa using hu
+  rw [PointedCone.mem_dual]
+  change (∀ ⦃y⦄, y ∈ (T : Set N.euclideanStoichSubspace) →
+      0 ≤ ⟪y, z⟫_ℝ) ↔
+    z.1 ∈ N.relativeSourceOrderStoichCone w
+  rw [N.mem_relativeSourceOrderStoichCone]
+  simp only [hzstoich, and_true]
+  change (∀ ⦃y⦄, y ∈ (T : Set N.euclideanStoichSubspace) →
+      0 ≤ ⟪y, z⟫_ℝ) ↔
+    (∀ r q, N.sourceLogProjection w r ≤ N.sourceLogProjection w q →
+      N.sourceLogProjection (toEuclid.symm z.1) r ≤
+        N.sourceLogProjection (toEuclid.symm z.1) q)
+  have hdiff (p : N.R × N.R) :
+      ⟪N.sourceOrderNormal p, z⟫_ℝ =
+        N.sourceLogProjection (toEuclid.symm z.1) p.2 -
+          N.sourceLogProjection (toEuclid.symm z.1) p.1 := by
+    simp [sourceOrderNormal, inner_sub_left, N.sourceLogProjection_eq_inner_toEuclid]
+  constructor
+  · intro h r q hrq
+    have hmem : N.sourceOrderNormal (r, q) ∈ T := by
+      apply Finset.mem_image.mpr
+      refine ⟨(r, q), ?_, rfl⟩
+      exact Finset.mem_filter.mpr ⟨Finset.mem_univ _, hrq⟩
+    have hnonneg := h hmem
+    rw [hdiff] at hnonneg
+    exact sub_nonneg.mp hnonneg
+  · intro h y hy
+    rcases Finset.mem_image.mp hy with ⟨p, hp, rfl⟩
+    rcases Finset.mem_filter.mp hp with ⟨_, hporder⟩
+    rw [hdiff]
+    exact sub_nonneg.mpr (h p.1 p.2 hporder)
 
 private theorem finite_range_relativeSourceOrderConeInStoich (N : Network S) :
     (Set.range N.relativeSourceOrderConeInStoich).Finite := by
