@@ -1,5 +1,6 @@
 import Mathlib.Logic.Relation
 import Mathlib.Data.Finset.Basic
+import Mathlib.Data.Nat.Find
 import Mathlib.Order.Basic
 
 /-!
@@ -49,6 +50,30 @@ def tail (P : RelPath E T k) (m : ℕ) (hm : m ≤ k) : RelPath E T (k - m) wher
         = (⟨m + (i.succ).1, by omega⟩ : Fin (k + 1)) := Fin.ext rfl
     rw [h1, h2] at h
     exact h
+
+/-- The initial segment of a directed walk, ending at position `m`. -/
+def take (P : RelPath E T k) (m : ℕ) (hm : m ≤ k) : RelPath E T m where
+  vertex := fun i => P.vertex ⟨i.1, by have := i.isLt; omega⟩
+  mem := fun i => P.mem _
+  step := by
+    intro i
+    have hi := i.isLt
+    have h := P.step ⟨i.1, by omega⟩
+    have h1 : (Fin.castSucc (⟨i.1, by omega⟩ : Fin k)) =
+        (⟨(Fin.castSucc i).1, by omega⟩ : Fin (k + 1)) := Fin.ext rfl
+    have h2 : ((⟨i.1, by omega⟩ : Fin k).succ) =
+        (⟨i.succ.1, by omega⟩ : Fin (k + 1)) := Fin.ext rfl
+    rw [h1, h2] at h
+    exact h
+
+@[simp] theorem take_vertex (P : RelPath E T k) (m : ℕ) (hm : m ≤ k)
+    (i : Fin (m + 1)) : (P.take m hm).vertex i = P.vertex ⟨i.1, by have := i.isLt; omega⟩ := rfl
+
+theorem take_vertex_zero (P : RelPath E T k) (m : ℕ) (hm : m ≤ k) :
+    (P.take m hm).vertex ⟨0, by omega⟩ = P.vertex ⟨0, by omega⟩ := rfl
+
+theorem take_vertex_last (P : RelPath E T k) (m : ℕ) (hm : m ≤ k) :
+    (P.take m hm).vertex ⟨m, by omega⟩ = P.vertex ⟨m, by omega⟩ := rfl
 
 @[simp] theorem tail_vertex (P : RelPath E T k) (m : ℕ) (hm : m ≤ k) (i : Fin (k - m + 1)) :
     (P.tail m hm).vertex i = P.vertex ⟨m + i.1, by have := i.isLt; omega⟩ := rfl
@@ -325,5 +350,84 @@ theorem exists_minimal_relPath {E : V → V → Prop} {T : Finset V} (Good : V �
         exact hg
       · rw [RelPath.splice_vertex_last]
         exact hb
+
+/-- A shortest directed path from a distinguished set to a fixed target is simple, leaves the
+set immediately, and has minimum length among all such paths. -/
+theorem exists_shortest_relPath {E : V → V → Prop} {T : Finset V} (Good : V → Prop)
+    (hclosed : ∀ x y, E x y → y ∈ T → x ∈ T) {a₀ b : V} (hbT : b ∈ T)
+    (hga₀ : Good a₀) (h : Relation.ReflTransGen E a₀ b) :
+    ∃ (k : ℕ) (P : RelPath E T k),
+      Good (P.vertex ⟨0, by omega⟩) ∧ P.vertex ⟨k, by omega⟩ = b ∧
+        Function.Injective P.vertex ∧
+        (∀ i : Fin (k + 1), i.1 ≠ 0 → ¬ Good (P.vertex i)) ∧
+        ∀ (l : ℕ) (Q : RelPath E T l),
+          Good (Q.vertex ⟨0, by omega⟩) → Q.vertex ⟨l, by omega⟩ = b → k ≤ l := by
+  classical
+  obtain ⟨k₀, P₀, h₀, h₀last⟩ := exists_relPath_of_reflTransGen hclosed hbT h
+  let HasPath : ℕ → Prop := fun l =>
+    ∃ Q : RelPath E T l, Good (Q.vertex ⟨0, by omega⟩) ∧
+      Q.vertex ⟨l, by omega⟩ = b
+  have hHasPath : ∃ l, HasPath l := ⟨k₀, P₀, by rw [h₀]; exact hga₀, h₀last⟩
+  let k := Nat.find hHasPath
+  have hk : HasPath k := Nat.find_spec hHasPath
+  obtain ⟨P, hPzero, hPlast⟩ := hk
+  have hmin : ∀ (l : ℕ) (Q : RelPath E T l),
+      Good (Q.vertex ⟨0, by omega⟩) → Q.vertex ⟨l, by omega⟩ = b → k ≤ l := by
+    intro l Q hQzero hQlast
+    exact Nat.find_min' hHasPath ⟨Q, hQzero, hQlast⟩
+  have hinj : Function.Injective P.vertex := by
+    intro i j hij
+    have hi := i.isLt
+    have hj := j.isLt
+    rcases lt_trichotomy i.1 j.1 with hlt | heq | hgt
+    · have hveq : P.vertex ⟨i.1, by omega⟩ = P.vertex ⟨j.1, by omega⟩ := by
+        simpa using hij
+      let Q := P.splice i.1 j.1 hlt (by omega) hveq
+      have hQzero : Good (Q.vertex ⟨0, by omega⟩) := by
+        change Good ((P.splice i.1 j.1 hlt (by omega) hveq).vertex ⟨0, by omega⟩)
+        rw [RelPath.splice_vertex_zero]
+        exact hPzero
+      have hQlast : Q.vertex ⟨k - (j.1 - i.1), by omega⟩ = b := by
+        change (P.splice i.1 j.1 hlt (by omega) hveq).vertex
+          ⟨k - (j.1 - i.1), by omega⟩ = b
+        rw [RelPath.splice_vertex_last]
+        exact hPlast
+      have hshort := hmin (k - (j.1 - i.1)) Q hQzero hQlast
+      omega
+    · exact Fin.ext heq
+    · have hveq : P.vertex ⟨j.1, by omega⟩ = P.vertex ⟨i.1, by omega⟩ := by
+        simpa using hij.symm
+      let Q := P.splice j.1 i.1 hgt (by omega) hveq
+      have hQzero : Good (Q.vertex ⟨0, by omega⟩) := by
+        change Good ((P.splice j.1 i.1 hgt (by omega) hveq).vertex ⟨0, by omega⟩)
+        rw [RelPath.splice_vertex_zero]
+        exact hPzero
+      have hQlast : Q.vertex ⟨k - (i.1 - j.1), by omega⟩ = b := by
+        change (P.splice j.1 i.1 hgt (by omega) hveq).vertex
+          ⟨k - (i.1 - j.1), by omega⟩ = b
+        rw [RelPath.splice_vertex_last]
+        exact hPlast
+      have hshort := hmin (k - (i.1 - j.1)) Q hQzero hQlast
+      omega
+  have hlate : ∀ i : Fin (k + 1), i.1 ≠ 0 → ¬ Good (P.vertex i) := by
+    intro i hi0 hGood
+    let Q := P.tail i.1 (by omega)
+    have hQzero : Good (Q.vertex ⟨0, by omega⟩) := by
+      change Good ((P.tail i.1 (by omega)).vertex ⟨0, by omega⟩)
+      rw [RelPath.tail_vertex]
+      have heq : (⟨i.1 + 0, by omega⟩ : Fin (k + 1)) = i := Fin.ext (by simp)
+      rw [heq]
+      exact hGood
+    have hQlast : Q.vertex ⟨k - i.1, by omega⟩ = b := by
+      change (P.tail i.1 (by omega)).vertex ⟨k - i.1, by omega⟩ = b
+      rw [RelPath.tail_vertex]
+      have hle : i.1 ≤ k := by omega
+      have hv : i.1 + (k - i.1) = k := Nat.add_sub_of_le hle
+      have heq : (⟨i.1 + (k - i.1), by omega⟩ : Fin (k + 1)) =
+          (⟨k, by omega⟩ : Fin (k + 1)) := Fin.ext hv
+      exact (congrArg P.vertex heq).trans hPlast
+    have hshort := hmin (k - i.1) Q hQzero hQlast
+    omega
+  exact ⟨k, P, hPzero, hPlast, hinj, hlate, hmin⟩
 
 end CRNT

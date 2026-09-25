@@ -6315,16 +6315,22 @@ private theorem exists_directed_chord (N : Network S)
       2 ≤ m ∧ Function.Injective P.vertex ∧ Good (P.vertex ⟨0, by omega⟩) ∧
         P.vertex ⟨m, by omega⟩ = Sum.inl s ∧
         (∃ i : Fin (m + 1), i.1 + 1 = m ∧ P.vertex i = Sum.inr q) ∧
-        ∀ i : Fin (m + 1), i.1 ≠ 0 → i.1 ≠ m → ¬ Good (P.vertex i))
+        (∀ i : Fin (m + 1), i.1 ≠ 0 → i.1 ≠ m → ¬ Good (P.vertex i)) ∧
+        (∀ (l : ℕ) (R : CRNT.RelPath
+          (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T l),
+          Good (R.vertex ⟨0, by omega⟩) → R.vertex ⟨l, by omega⟩ = Sum.inr q → m - 1 ≤ l))
     ∨ (∃ (m : ℕ) (Q : CRNT.RelPath
         (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T m),
       Q.vertex ⟨0, by omega⟩ = Sum.inl s ∧ Q.vertex ⟨m, by omega⟩ = Sum.inr q ∧
-        ∀ i : Fin (m + 1), i.1 ≠ 0 → ¬ Good (Q.vertex i)) := by
+        (∀ i : Fin (m + 1), i.1 ≠ 0 → ¬ Good (Q.vertex i)) ∧
+        (∀ (l : ℕ) (R : CRNT.RelPath
+          (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T l),
+          Good (R.vertex ⟨0, by omega⟩) → R.vertex ⟨l, by omega⟩ = Sum.inr q → m ≤ l)) := by
   classical
-  obtain ⟨m, Q, hg0, hqm, hinj, hlate⟩ :=
-    CRNT.exists_minimal_relPath Good hsource hqT ha₀ hreach
+  obtain ⟨m, Q, hg0, hqm, hinj, hlate, hshortest⟩ :=
+    CRNT.exists_shortest_relPath Good hsource hqT ha₀ hreach
   by_cases hstart : Q.vertex ⟨0, by omega⟩ = Sum.inl s
-  · exact Or.inr ⟨m, Q, hstart, hqm, hlate⟩
+  · exact Or.inr ⟨m, Q, hstart, hqm, hlate, hshortest⟩
   · have hnew : ∀ i, Q.vertex i ≠ Sum.inl s := by
       intro i hi
       by_cases hi0 : i.1 = 0
@@ -6345,7 +6351,7 @@ private theorem exists_directed_chord (N : Network S)
         exact hqm
       exact hqOff (by rw [← hqeq]; exact hg0)
     refine Or.inl ⟨m + 1, Q.concat (Sum.inl s) hsT hstep, by omega,
-      ?_, ?_, ?_, ?_, ?_⟩
+      ?_, ?_, ?_, ?_, ?_, ?_⟩
     · exact Q.concat_injective (Sum.inl s) hsT hstep hinj hnew
     · rw [Q.concat_vertex_le (Sum.inl s) hsT hstep ⟨0, by omega⟩
         (show ((⟨0, by omega⟩ : Fin (m + 1 + 1))).1 ≤ m by show (0 : ℕ) ≤ m; omega)]
@@ -6358,6 +6364,8 @@ private theorem exists_directed_chord (N : Network S)
       have hilt := i.isLt
       rw [Q.concat_vertex_le (Sum.inl s) hsT hstep i (by omega)]
       exact hlate ⟨i.1, by omega⟩ (by simpa using hi0)
+    · intro l R hRgood hRlast
+      simpa using hshortest l R hRgood hRlast
 
 
 /-- Each species-to-species glued cycle has exactly the edges of its two defining paths. -/
@@ -6844,21 +6852,29 @@ theorem stronglyConcordant_fullyOpen_of_trueSRCriterion
                   P'.vertex j = Sum.inr q) ∧
                 (∀ j : Fin (M' + 1), j.1 ≠ 0 → j.1 ≠ M' → ¬ Good (P'.vertex j)) ∧
                 (∃ s0 : AggregateActiveSpecies σ,
-                  P'.vertex ⟨0, by omega⟩ = Sum.inl s0)) ∨
+                  P'.vertex ⟨0, by omega⟩ = Sum.inl s0) ∧
+                (∀ (l : ℕ) (R : CRNT.RelPath
+                  (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T l),
+                  Good (R.vertex ⟨0, by omega⟩) →
+                  R.vertex ⟨l, by omega⟩ = Sum.inr q → M' - 1 ≤ l)) ∨
              (∃ (M' : ℕ) (Q' : CRNT.RelPath
                 (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T M'),
                 Q'.vertex ⟨0, by omega⟩ = Sum.inl s ∧
                 Q'.vertex ⟨M', by omega⟩ = Sum.inr q ∧
-                (∀ j : Fin (M' + 1), j.1 ≠ 0 → ¬ Good (Q'.vertex j)))) → False := by
+                (∀ j : Fin (M' + 1), j.1 ≠ 0 → ¬ Good (Q'.vertex j)) ∧
+                (∀ (l : ℕ) (R : CRNT.RelPath
+                  (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T l),
+                  Good (R.vertex ⟨0, by omega⟩) →
+                  R.vertex ⟨l, by omega⟩ = Sum.inr q → M' ≤ l))) → False := by
           intro h
           sorry
         rcases hdir with
-          ⟨M', P', hM'2, hP'inj, hP'g0, hP'last, hP'pred, hP'int⟩ |
-          ⟨M', Q', hQ'0, hQ'M, hQ'late⟩
+          ⟨M', P', hM'2, hP'inj, hP'g0, hP'last, hP'pred, hP'late, hP'min⟩ |
+          ⟨M', Q', hQ'0, hQ'M, hQ'late, hQ'min⟩
         · cases hv0 : P'.vertex ⟨0, by omega⟩ with
           | inl s0 =>
               exact False.elim (hResidual (Or.inl ⟨M', P', hM'2, hP'inj, hP'g0,
-                hP'last, hP'pred, hP'int, ⟨s0, hv0⟩⟩))
+                hP'last, hP'pred, hP'late, ⟨s0, hv0⟩, hP'min⟩))
           | inr ρ0 =>
               exfalso
               have hρ₀On : C.HasReaction ρ0.1 := by
@@ -6909,10 +6925,11 @@ theorem stronglyConcordant_fullyOpen_of_trueSRCriterion
                 have hplt := p.isLt
                 rw [hRdef, N.relPathToTrueSRPathRev_vertex T P' hP'inj (by omega)
                   hP'last hv0] at hon
-                exact hP'int ⟨M' - p.1, by omega⟩
+                exact hP'late ⟨M' - p.1, by omega⟩
                   (by show M' - p.1 ≠ 0; omega)
                   (by show M' - p.1 ≠ M'; omega) hon
-        · exact False.elim (hResidual (Or.inr ⟨M', Q', hQ'0, hQ'M, hQ'late⟩))
+        · exact False.elim (hResidual (Or.inr ⟨M', Q', hQ'0, hQ'M,
+            hQ'late, hQ'min⟩))
     obtain ⟨M, Q, hQ0, hQlast, hQnd⟩ := hspan
     exact no_spanning_path_of_trueSRCriterion hSR C hCeven
       (fun e f hr hs => N.trueSREdge_endpoint_eq_of_same_class_and_species hsep e f hr hs)
