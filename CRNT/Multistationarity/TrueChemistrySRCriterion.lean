@@ -32,6 +32,165 @@ The graph-to-sign-causality proof is long and intentionally isolated in one theo
 -/
 
 namespace CRNT
+
+/-- A directed ear adjoined to an existing vertex set. Its path is simple, has distinct old
+endpoints, and has no old interior vertices; `covers_new` says the enlarged vertex set is exactly
+the old set together with the ear vertices. -/
+structure DirectedEar {V : Type*} (E : V → V → Prop)
+    (old new : Finset V) where
+  length : ℕ
+  path : RelPath E new length
+  injective : Function.Injective path.vertex
+  endpoints_distinct :
+    path.vertex ⟨0, by omega⟩ ≠ path.vertex ⟨length, by omega⟩
+  start_mem : path.vertex ⟨0, by omega⟩ ∈ old
+  end_mem : path.vertex ⟨length, by omega⟩ ∈ old
+  old_subset : old ⊆ new
+  interior_new : ∀ i : Fin (length + 1), i.1 ≠ 0 → i.1 ≠ length →
+    path.vertex i ∉ old
+  covers_new : ∀ v, v ∈ new → v ∈ old ∨ ∃ i : Fin (length + 1), path.vertex i = v
+
+/-- Adding a directed ear to a strongly connected directed subgraph preserves strong
+connectivity. The route from an ear vertex to the end follows the ear; the route from the end to
+an ear vertex returns to its start through the old strongly connected subgraph. -/
+theorem DirectedEar.stronglyConnected {V : Type*} {E : V → V → Prop}
+    {old new : Finset V} (D : DirectedEar E old new)
+    (hsc : ∀ a ∈ old, ∀ b ∈ old, Relation.ReflTransGen E a b) :
+    ∀ a ∈ new, ∀ b ∈ new, Relation.ReflTransGen E a b := by
+  let start : V := D.path.vertex ⟨0, by omega⟩
+  let finish : V := D.path.vertex ⟨D.length, by omega⟩
+  have hpath : Relation.ReflTransGen E start finish := by
+    exact relPath_reflTransGen D.path
+  have hprefix (i : Fin (D.length + 1)) :
+      Relation.ReflTransGen E start (D.path.vertex i) := by
+    let Q := D.path.take i.1 (by omega)
+    have hQ := relPath_reflTransGen Q
+    have hQstart : Q.vertex ⟨0, by omega⟩ = start := by
+      change (D.path.take i.1 (by omega)).vertex ⟨0, by omega⟩ = _
+      rw [RelPath.take_vertex_zero]
+    have hQfinish : Q.vertex ⟨i.1, by omega⟩ = D.path.vertex i := by
+      change (D.path.take i.1 (by omega)).vertex ⟨i.1, by omega⟩ = _
+      rw [RelPath.take_vertex_last]
+    rw [hQstart, hQfinish] at hQ
+    exact hQ
+  have hsuffix (i : Fin (D.length + 1)) :
+      Relation.ReflTransGen E (D.path.vertex i) finish := by
+    let Q := D.path.tail i.1 (by omega)
+    have hQ := relPath_reflTransGen Q
+    have hQstart : Q.vertex ⟨0, by omega⟩ = D.path.vertex i := by
+      change (D.path.tail i.1 (by omega)).vertex ⟨0, by omega⟩ = _
+      rw [RelPath.tail_vertex]
+      exact congrArg D.path.vertex (Fin.ext (by simp))
+    have hQfinish : Q.vertex ⟨D.length - i.1, by omega⟩ = finish := by
+      change (D.path.tail i.1 (by omega)).vertex ⟨D.length - i.1, by omega⟩ = _
+      rw [RelPath.tail_vertex]
+      change D.path.vertex ⟨i.1 + (D.length - i.1), by omega⟩ =
+        D.path.vertex ⟨D.length, by omega⟩
+      apply congrArg D.path.vertex
+      have hi : i.1 ≤ D.length := by omega
+      have hidx : i.1 + (D.length - i.1) = D.length := by omega
+      exact Fin.ext hidx
+    rw [hQstart, hQfinish] at hQ
+    exact hQ
+  have htoFinish (a : V) (ha : a ∈ new) :
+      Relation.ReflTransGen E a finish := by
+    rcases D.covers_new a ha with haOld | ⟨i, hi⟩
+    · have htoStart : Relation.ReflTransGen E a start := hsc a haOld start D.start_mem
+      exact htoStart.trans hpath
+    · rw [← hi]
+      exact hsuffix i
+  have hfromFinish (b : V) (hb : b ∈ new) :
+      Relation.ReflTransGen E finish b := by
+    rcases D.covers_new b hb with hbOld | ⟨i, hi⟩
+    · exact hsc finish D.end_mem b hbOld
+    · rw [← hi]
+      exact (hsc finish D.end_mem start D.start_mem).trans (hprefix i)
+  intro a ha b hb
+  exact (htoFinish a ha).trans (hfromFinish b hb)
+
+/-- A directed ear in a bipartite relation preserves strong connectivity, and its endpoints are
+in the same part exactly when its length is even. This is the first S/R classification step for
+an ear extension; excluding mixed-part ears still needs the even-cycle intersection hypothesis. -/
+theorem DirectedEar.stronglyConnected_and_bipartite_endpoint_parity
+    {A B : Type*} {E : Sum A B → Sum A B → Prop}
+    {old new : Finset (Sum A B)} (D : DirectedEar E old new)
+    (hsc : ∀ a ∈ old, ∀ b ∈ old, Relation.ReflTransGen E a b)
+    (hcrossover : ∀ a b, E a b →
+      (match a with | Sum.inl _ => true | Sum.inr _ => false) ≠
+        (match b with | Sum.inl _ => true | Sum.inr _ => false)) :
+    (∀ a ∈ new, ∀ b ∈ new, Relation.ReflTransGen E a b) ∧
+      ((match D.path.vertex ⟨0, by omega⟩ with
+        | Sum.inl _ => true | Sum.inr _ => false) =
+       (match D.path.vertex ⟨D.length, by omega⟩ with
+        | Sum.inl _ => true | Sum.inr _ => false) ↔ D.length % 2 = 0) := by
+  constructor
+  · exact D.stronglyConnected hsc
+  · have hside : ∀ (m : ℕ) (hm : m ≤ D.length),
+        (match D.path.vertex ⟨m, by omega⟩ with
+          | Sum.inl _ => true | Sum.inr _ => false) =
+          if m % 2 = 0 then
+            (match D.path.vertex ⟨0, by omega⟩ with
+              | Sum.inl _ => true | Sum.inr _ => false)
+          else ! (match D.path.vertex ⟨0, by omega⟩ with
+              | Sum.inl _ => true | Sum.inr _ => false) := by
+      intro m
+      induction m with
+      | zero => intro _; simp
+      | succ m ih =>
+          intro hm
+          have hmlt : m < D.length := by omega
+          have hstep := D.path.step ⟨m, hmlt⟩
+          change E (D.path.vertex ⟨m, by omega⟩)
+            (D.path.vertex ⟨m + 1, by omega⟩) at hstep
+          have hcross := hcrossover _ _ hstep
+          have hflip :
+              (match D.path.vertex ⟨m + 1, by omega⟩ with
+                | Sum.inl _ => true | Sum.inr _ => false) =
+              ! (match D.path.vertex ⟨m, by omega⟩ with
+                | Sum.inl _ => true | Sum.inr _ => false) := by
+            cases hprev : D.path.vertex ⟨m, by omega⟩ <;>
+              cases hnext : D.path.vertex ⟨m + 1, by omega⟩ <;>
+              simp_all
+          rw [hflip, ih (by omega)]
+          by_cases heven : m % 2 = 0
+          · have hnext : (m + 1) % 2 = 1 := by omega
+            simp [heven, hnext]
+          · have hodd : m % 2 = 1 := by omega
+            have hnext : (m + 1) % 2 = 0 := by omega
+            simp [heven, hodd, hnext]
+    have hlast := hside D.length le_rfl
+    constructor
+    · intro heq
+      rw [hlast] at heq
+      by_cases hpar : D.length % 2 = 0
+      · exact hpar
+      · cases hstart : (match D.path.vertex ⟨0, by omega⟩ with
+            | Sum.inl _ => true | Sum.inr _ => false) <;>
+          simp [hpar, hstart] at heq
+    · intro hpar
+      rw [hlast, hpar]
+      rfl
+
+/-- A directed-ear decomposition records a starting subgraph and a finite sequence of ear
+extensions. Existence of such a decomposition is a separate graph-theoretic theorem; this
+inductive witness exposes the strong-connectivity induction used after the decomposition is
+constructed. -/
+inductive DirectedEarDecomposition {V : Type*} (E : V → V → Prop)
+    (base : Finset V) : Finset V → Prop where
+  | refl : DirectedEarDecomposition E base base
+  | add {old new : Finset V} : DirectedEarDecomposition E base old →
+      DirectedEar E old new → DirectedEarDecomposition E base new
+
+/-- Strong connectivity propagates through every stage of a directed-ear decomposition. -/
+theorem stronglyConnected_of_directedEarDecomposition {V : Type*} {E : V → V → Prop}
+    {base final : Finset V}
+    (hbase : ∀ a ∈ base, ∀ b ∈ base, Relation.ReflTransGen E a b)
+    (D : DirectedEarDecomposition E base final) :
+    ∀ a ∈ final, ∀ b ∈ final, Relation.ReflTransGen E a b := by
+  induction D with
+  | refl => exact hbase
+  | @add old new previous ear ih => exact ear.stronglyConnected ih
+
 namespace Network
 
 variable {S : Type} [DecidableEq S] [Fintype S]
@@ -3455,6 +3614,179 @@ theorem exists_cycle_multipliers {n : ℕ} (hn : 2 ≤ n) (e f : Fin n → ℝ)
         _ = P i.1 * e i := by field_simp
     linarith [h2]
 
+/-- Removing a leaf block preserves the strict source inequalities on the reduced species set.
+
+The finite set U is the species side of the block and s₀ its unique separator. B is the
+reaction side. Reactions outside the block meet U only at s₀, while reactions in the block
+meet no species outside U. Positive multipliers on U turn the block reaction inequalities
+into a nonpositive weighted block contribution. Since the full source inequalities are strict,
+the exterior reactions must satisfy a strict source inequality at the separator. At species
+outside U, removing B changes nothing. This is the algebraic leaf-removal step used after a
+source-block decomposition has been obtained. -/
+theorem source_inequalities_survive_leaf_block
+    {Sp Rx : Type} [Fintype Sp] [DecidableEq Sp] [Fintype Rx] [DecidableEq Rx]
+    (e f : Sp → Rx → ℝ) (w : Rx → ℝ)
+    (U : Finset Sp) (B : Finset Rx) (s₀ : Sp) (M : Sp → ℝ)
+    (hw : ∀ r, 0 ≤ w r)
+    (hs₀ : s₀ ∈ U)
+    (hM : ∀ s, s ∈ U → 0 < M s)
+    (hsrc : ∀ s, (∑ r : Rx, e s r * w r) < ∑ r : Rx, f s r * w r)
+    (hmult : ∀ r, r ∈ B →
+      (∑ s ∈ U, f s r * M s) ≤ ∑ s ∈ U, e s r * M s)
+    (houtside : ∀ s, s ∈ U → s ≠ s₀ → ∀ r, r ∉ B →
+      e s r = 0 ∧ f s r = 0)
+    (hblockOutside : ∀ r, r ∈ B → ∀ s, s ∉ U →
+      e s r = 0 ∧ f s r = 0) :
+    ∀ s, s ∉ U.erase s₀ →
+      (∑ r ∈ Finset.univ \ B, e s r * w r) <
+        ∑ r ∈ Finset.univ \ B, f s r * w r := by
+  classical
+  have hUnonempty : U.Nonempty := ⟨s₀, hs₀⟩
+  have hstrict :
+      (∑ s ∈ U, M s * (∑ r : Rx, e s r * w r)) <
+        ∑ s ∈ U, M s * (∑ r : Rx, f s r * w r) := by
+    refine Finset.sum_lt_sum_of_nonempty hUnonempty ?_
+    intro s hs
+    exact mul_lt_mul_of_pos_left (hsrc s) (hM s hs)
+  have hswapE :
+      (∑ s ∈ U, M s * (∑ r : Rx, e s r * w r)) =
+        ∑ r : Rx, w r * (∑ s ∈ U, e s r * M s) := by
+    calc
+      _ = ∑ s ∈ U, ∑ r : Rx, M s * (e s r * w r) := by
+        simp [Finset.mul_sum]
+      _ = ∑ r : Rx, ∑ s ∈ U, M s * (e s r * w r) := Finset.sum_comm
+      _ = _ := by
+        refine Finset.sum_congr rfl ?_
+        intro r hr
+        rw [Finset.mul_sum]
+        refine Finset.sum_congr rfl ?_
+        intro s hs
+        ring
+  have hswapF :
+      (∑ s ∈ U, M s * (∑ r : Rx, f s r * w r)) =
+        ∑ r : Rx, w r * (∑ s ∈ U, f s r * M s) := by
+    calc
+      _ = ∑ s ∈ U, ∑ r : Rx, M s * (f s r * w r) := by
+        simp [Finset.mul_sum]
+      _ = ∑ r : Rx, ∑ s ∈ U, M s * (f s r * w r) := Finset.sum_comm
+      _ = _ := by
+        refine Finset.sum_congr rfl ?_
+        intro r hr
+        rw [Finset.mul_sum]
+        refine Finset.sum_congr rfl ?_
+        intro s hs
+        ring
+  have haggregate :
+      (∑ r : Rx, w r * (∑ s ∈ U, e s r * M s)) <
+        ∑ r : Rx, w r * (∑ s ∈ U, f s r * M s) := by
+    simpa only [hswapE, hswapF] using hstrict
+  have hblock :
+      (∑ r ∈ B, w r * (∑ s ∈ U, f s r * M s)) ≤
+        ∑ r ∈ B, w r * (∑ s ∈ U, e s r * M s) := by
+    refine Finset.sum_le_sum ?_
+    intro r hr
+    exact mul_le_mul_of_nonneg_left (hmult r hr) (hw r)
+  have hsplit (g : Rx → ℝ) :
+      (∑ r : Rx, g r) =
+        (∑ r ∈ B, g r) + ∑ r ∈ Finset.univ \ B, g r := by
+    rw [← Finset.sum_union (Finset.disjoint_sdiff)]
+    congr 1
+    exact (Finset.union_sdiff_of_subset (Finset.subset_univ B)).symm
+  have hexterior :
+      (∑ r ∈ Finset.univ \ B, w r * (∑ s ∈ U, e s r * M s)) <
+        ∑ r ∈ Finset.univ \ B, w r * (∑ s ∈ U, f s r * M s) := by
+    rw [hsplit (fun r => w r * (∑ s ∈ U, e s r * M s)),
+      hsplit (fun r => w r * (∑ s ∈ U, f s r * M s))] at haggregate
+    linarith
+  have houterE (r : Rx) (hr : r ∈ Finset.univ \ B) :
+      (∑ s ∈ U, e s r * M s) = e s₀ r * M s₀ := by
+    rw [← Finset.add_sum_erase U (fun s => e s r * M s) hs₀]
+    have hzero : (∑ s ∈ U.erase s₀, e s r * M s) = 0 := by
+      apply Finset.sum_eq_zero
+      intro s hs
+      rcases Finset.mem_erase.mp hs with ⟨hsne, hsU⟩
+      obtain ⟨hcoef, _⟩ := houtside s hsU hsne r (Finset.mem_sdiff.mp hr).2
+      rw [hcoef, zero_mul]
+    rw [hzero, add_zero]
+  have houterF (r : Rx) (hr : r ∈ Finset.univ \ B) :
+      (∑ s ∈ U, f s r * M s) = f s₀ r * M s₀ := by
+    rw [← Finset.add_sum_erase U (fun s => f s r * M s) hs₀]
+    have hzero : (∑ s ∈ U.erase s₀, f s r * M s) = 0 := by
+      apply Finset.sum_eq_zero
+      intro s hs
+      rcases Finset.mem_erase.mp hs with ⟨hsne, hsU⟩
+      obtain ⟨_, hcoef⟩ := houtside s hsU hsne r (Finset.mem_sdiff.mp hr).2
+      rw [hcoef, zero_mul]
+    rw [hzero, add_zero]
+  have hexteriorSep :
+      (∑ r ∈ Finset.univ \ B,
+        w r * ((∑ s ∈ U, f s r * M s) - ∑ s ∈ U, e s r * M s)) =
+        M s₀ *
+          ((∑ r ∈ Finset.univ \ B, f s₀ r * w r) -
+            ∑ r ∈ Finset.univ \ B, e s₀ r * w r) := by
+    calc
+      _ = ∑ r ∈ Finset.univ \ B,
+          w r * (f s₀ r * M s₀ - e s₀ r * M s₀) := by
+        apply Finset.sum_congr rfl
+        intro r hr
+        rw [houterF r hr, houterE r hr]
+      _ = ∑ r ∈ Finset.univ \ B,
+          M s₀ * (f s₀ r * w r - e s₀ r * w r) := by
+        apply Finset.sum_congr rfl
+        intro r hr
+        ring
+      _ = M s₀ * ∑ r ∈ Finset.univ \ B,
+          (f s₀ r * w r - e s₀ r * w r) := by
+        rw [Finset.mul_sum]
+      _ = _ := by rw [Finset.sum_sub_distrib]
+  have hseparator :
+      (∑ r ∈ Finset.univ \ B, e s₀ r * w r) <
+        ∑ r ∈ Finset.univ \ B, f s₀ r * w r := by
+    have hdiff :
+        0 < ∑ r ∈ Finset.univ \ B,
+          w r * ((∑ s ∈ U, f s r * M s) - ∑ s ∈ U, e s r * M s) := by
+      calc
+        0 <
+            (∑ r ∈ Finset.univ \ B, w r * (∑ s ∈ U, f s r * M s)) -
+              ∑ r ∈ Finset.univ \ B, w r * (∑ s ∈ U, e s r * M s) :=
+          sub_pos.mpr hexterior
+        _ = _ := by
+          rw [← Finset.sum_sub_distrib]
+          apply Finset.sum_congr rfl
+          intro r hr
+          ring
+    rw [hexteriorSep] at hdiff
+    have hflux :
+        0 < (∑ r ∈ Finset.univ \ B, f s₀ r * w r) -
+          ∑ r ∈ Finset.univ \ B, e s₀ r * w r := by
+      nlinarith [hM s₀ hs₀]
+    linarith
+  intro s hsReduced
+  by_cases hs₀' : s = s₀
+  · simpa [hs₀'] using hseparator
+  · have hsnotU : s ∉ U := by
+      intro hsU
+      exact hsReduced (Finset.mem_erase.mpr ⟨hs₀', hsU⟩)
+    have hblockE : (∑ r ∈ B, e s r * w r) = 0 := by
+      apply Finset.sum_eq_zero
+      intro r hr
+      rw [(hblockOutside r hr s hsnotU).1, zero_mul]
+    have hblockF : (∑ r ∈ B, f s r * w r) = 0 := by
+      apply Finset.sum_eq_zero
+      intro r hr
+      rw [(hblockOutside r hr s hsnotU).2, zero_mul]
+    have hsourceE :
+        (∑ r : Rx, e s r * w r) =
+          ∑ r ∈ Finset.univ \ B, e s r * w r := by
+      rw [hsplit, hblockE, zero_add]
+    have hsourceF :
+        (∑ r : Rx, f s r * w r) =
+          ∑ r ∈ Finset.univ \ B, f s r * w r := by
+      rw [hsplit, hblockF, zero_add]
+    have hs := hsrc s
+    rw [hsourceE, hsourceF] at hs
+    exact hs
+
 /-- **The multiplier contradiction (Shinar--Feinberg 5.8), as pure algebra.**
 
 This is the engine of the end reaction-block argument, stated without any reaction-network
@@ -3994,6 +4326,17 @@ def TrueInternalAggregateCausalEdge (N : Network S)
       0 < (N.trueInternalClassFlux α ρ.1 s.1) * σ s.1
   | Sum.inl _, Sum.inl _ => False
   | Sum.inr _, Sum.inr _ => False
+
+/-- One active species and one reaction class cannot carry causal aggregate edges in both
+directions: the two directions demand opposite strict signs of the same class flux. -/
+private theorem aggregateCausalEdge_not_both_directions (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    {s : AggregateActiveSpecies σ} {q : N.ActiveAggregateTrueReaction α σ}
+    (h : N.TrueInternalAggregateCausalEdge (Sum.inl s) (Sum.inr q))
+    (h' : N.TrueInternalAggregateCausalEdge (Sum.inr q) (Sum.inl s)) : False := by
+  change N.trueInternalClassFlux α q.1 s.1 * σ s.1 < 0 at h
+  change 0 < N.trueInternalClassFlux α q.1 s.1 * σ s.1 at h'
+  linarith
 
 /-- True-reaction classes represented by reaction vertices in a chosen aggregate source. -/
 noncomputable def trueInternalAggregateSourceClasses (N : Network S)
@@ -4965,7 +5308,114 @@ private theorem relPathToTrueSRPathRev_vertex (N : Network S)
     (hlast : P.vertex ⟨0, by omega⟩ = Sum.inr ρ) (i : Fin (k + 1)) :
     (N.relPathToTrueSRPathRev T P hinj hk h0 hlast).vertex i =
       N.aggregateVertexToTrueSRVertex
-        (P.vertex ⟨k - i.1, by have := i.isLt; omega⟩) := rfl
+      (P.vertex ⟨k - i.1, by have := i.isLt; omega⟩) := rfl
+
+/-- A simple directed ear from a cycle species to a cycle reaction cannot have an
+off-cycle interior. This is the mixed-endpoint ear case used by the source-block induction.
+The reverse orientation is handled by reading the resulting true-SR path backwards. -/
+private theorem no_species_reaction_ear_of_trueSRCriterion (N : Network S)
+    (hSR : N.TrueSRStrongCriterion) {n : ℕ} {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (C : N.TrueSRCycle n) (hC : C.Even)
+    (T : Finset (N.TrueInternalAggregateVertex α σ)) {k : ℕ}
+    (P : CRNT.RelPath (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T k)
+    (hinj : Function.Injective P.vertex) (hk : 3 ≤ k)
+    {s : AggregateActiveSpecies σ} {ρ : N.ActiveAggregateTrueReaction α σ}
+    (hstart : P.vertex ⟨0, by omega⟩ = Sum.inl s)
+    (hlast : P.vertex ⟨k, by omega⟩ = Sum.inr ρ)
+    (hsC : C.HasSpecies s.1) (hρC : C.HasReaction ρ.1)
+    (hinterior : ∀ i : Fin (k + 1), i.1 ≠ 0 → i.1 ≠ k →
+      ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex (P.vertex i))) : False := by
+  have hkpos : 0 < k := by omega
+  let Z := N.relPathToTrueSRPath T P hinj hkpos hstart hlast
+  have hZstart : Z.vertex ⟨0, by omega⟩ = Sum.inl s.1 := by
+    change N.aggregateVertexToTrueSRVertex (P.vertex ⟨0, by omega⟩) = _
+    rw [hstart]
+    rfl
+  have hZstartC : C.HasSpecies Z.startSpecies := by
+    have hv := Z.vertex_zero
+    rw [show (0 : Fin (k + 1)) = ⟨0, by omega⟩ from Fin.ext rfl, hZstart] at hv
+    rw [← Sum.inl.inj hv]
+    exact hsC
+  have hZlast : Z.vertex (Fin.last k) =
+      Sum.inr ⟨ρ.1, N.activeAggregateTrueReaction_internal ρ⟩ := by
+    change N.aggregateVertexToTrueSRVertex (P.vertex ⟨k, by omega⟩) = _
+    rw [hlast]
+    rfl
+  have hvlast := Z.vertex_last
+  rw [hZlast] at hvlast
+  have hZreaction : (Z.endReaction).1 = ρ.1 :=
+    congrArg Subtype.val (Sum.inr.inj hvlast).symm
+  have hZendC : C.HasReaction (Z.endReaction).1 := by
+    rw [hZreaction]
+    exact hρC
+  have hZinterior : ∀ i : Fin (k + 1), i.1 ≠ 0 → i.1 ≠ k →
+      ¬ C.HasVertex (Z.vertex i) := by
+    intro i hi0 hik hvertex
+    have haggregate :
+        C.HasVertex (N.aggregateVertexToTrueSRVertex (P.vertex i)) := by
+      simpa [Z, relPathToTrueSRPath] using hvertex
+    exact hinterior i hi0 hik haggregate
+  exact no_offCycle_interior_path_of_trueSRCriterion hSR C hC Z hZstartC hZendC
+    hZinterior hk
+
+/-- The reverse orientation of a mixed-endpoint ear is also forbidden: read its lifted
+true-SR path from the cycle species to the cycle reaction. -/
+private theorem no_reaction_species_ear_of_trueSRCriterion (N : Network S)
+    (hSR : N.TrueSRStrongCriterion) {n : ℕ} {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (C : N.TrueSRCycle n) (hC : C.Even)
+    (T : Finset (N.TrueInternalAggregateVertex α σ)) {k : ℕ}
+    (P : CRNT.RelPath (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T k)
+    (hinj : Function.Injective P.vertex) (hk : 3 ≤ k)
+    {s : AggregateActiveSpecies σ} {ρ : N.ActiveAggregateTrueReaction α σ}
+    (hstart : P.vertex ⟨0, by omega⟩ = Sum.inr ρ)
+    (hlast : P.vertex ⟨k, by omega⟩ = Sum.inl s)
+    (hρC : C.HasReaction ρ.1) (hsC : C.HasSpecies s.1)
+    (hinterior : ∀ i : Fin (k + 1), i.1 ≠ 0 → i.1 ≠ k →
+      ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex (P.vertex i))) : False := by
+  have hkpos : 0 < k := by omega
+  let Z := N.relPathToTrueSRPathRev T P hinj hkpos hlast hstart
+  have hZstart : Z.vertex ⟨0, by omega⟩ = Sum.inl s.1 := by
+    change N.aggregateVertexToTrueSRVertex (P.vertex ⟨k, by omega⟩) = _
+    rw [hlast]
+    rfl
+  have hZstartC : C.HasSpecies Z.startSpecies := by
+    have hv := Z.vertex_zero
+    rw [show (0 : Fin (k + 1)) = ⟨0, by omega⟩ from Fin.ext rfl, hZstart] at hv
+    rw [← Sum.inl.inj hv]
+    exact hsC
+  have hZlast : Z.vertex (Fin.last k) =
+      Sum.inr ⟨ρ.1, N.activeAggregateTrueReaction_internal ρ⟩ := by
+    change N.aggregateVertexToTrueSRVertex
+      (P.vertex ⟨k - (Fin.last k).1, by have := (Fin.last k).isLt; omega⟩) = _
+    have hindex :
+        (⟨k - (Fin.last k).1, by have := (Fin.last k).isLt; omega⟩ : Fin (k + 1)) =
+          (⟨0, by omega⟩ : Fin (k + 1)) := by
+      apply Fin.ext
+      simp
+    rw [hindex, hstart]
+    rfl
+  have hvlast := Z.vertex_last
+  rw [hZlast] at hvlast
+  have hZreaction : (Z.endReaction).1 = ρ.1 :=
+    congrArg Subtype.val (Sum.inr.inj hvlast).symm
+  have hZendC : C.HasReaction (Z.endReaction).1 := by
+    rw [hZreaction]
+    exact hρC
+  have hZinterior : ∀ i : Fin (k + 1), i.1 ≠ 0 → i.1 ≠ k →
+      ¬ C.HasVertex (Z.vertex i) := by
+    intro i hi0 hik hvertex
+    have hindex0 : k - i.1 ≠ 0 := by omega
+    have hindexK : k - i.1 ≠ k := by omega
+    have hv := N.relPathToTrueSRPathRev_vertex T P hinj hkpos hlast hstart i
+    have haggregate :
+        C.HasVertex (N.aggregateVertexToTrueSRVertex
+          (P.vertex ⟨k - i.1, by have := i.isLt; omega⟩)) := by
+      have hvertex' := hvertex
+      rw [hv] at hvertex'
+      exact hvertex'
+    exact hinterior ⟨k - i.1, by have := i.isLt; omega⟩ hindex0 hindexK haggregate
+  exact no_offCycle_interior_path_of_trueSRCriterion hSR C hC Z hZstartC hZendC
+    hZinterior hk
 
 
 /-- Prefix a source path from an off-cycle reaction class with its edge to a cycle species.
@@ -5977,8 +6427,19 @@ private theorem trueSRCycle_of_directed_species_loop (N : Network S)
         _ = P.vertex ⟨0, by omega⟩ := rfl
         _ = Sum.inr q := hend
     exact Sum.inl_ne_inr hval
+  have hmne1 : m ≠ 1 := by
+    intro hm1
+    subst m
+    have hstep := P.step ⟨0, by omega⟩
+    change N.TrueInternalAggregateCausalEdge
+      (P.vertex ⟨0, by omega⟩) (P.vertex ⟨1, by omega⟩) at hstep
+    rw [hstart, hend] at hstep
+    exact N.aggregateCausalEdge_not_both_directions hstep hclose
   let R := N.relPathToTrueSRPath T P hinj hmpos hstart hend
   have hOdd : Odd m := R.odd_length
+  have hm3 : 3 ≤ m := by
+    obtain ⟨k, hk⟩ := hOdd
+    omega
   have hmEven : Even (m + 1) := by
     obtain ⟨k, hk⟩ := hOdd
     exact ⟨k + 1, by omega⟩
