@@ -191,6 +191,112 @@ theorem stronglyConnected_of_directedEarDecomposition {V : Type*} {E : V → V �
   | refl => exact hbase
   | @add old new previous ear ih => exact ear.stronglyConnected ih
 
+
+/-- A finite directed subgraph of an ambient relation.  Keeping its edge relation explicit is
+needed to distinguish a genuine ear from a path that reuses an old edge. -/
+structure DirectedSubgraph {V : Type*} (E : V → V → Prop) where
+  vertexSet : Finset V
+  edge : V → V → Prop
+  edge_in_ambient : ∀ {a b}, edge a b → E a b
+  edge_src_mem : ∀ {a b}, edge a b → a ∈ vertexSet
+  edge_tgt_mem : ∀ {a b}, edge a b → b ∈ vertexSet
+
+/-- An ear extension records both old and new directed edges.  Its path is simple, has distinct
+old endpoints, has no old interior vertices, and every ear edge is fresh in the old subgraph. -/
+structure DirectedEarExtension {V : Type*} {E : V → V → Prop}
+    (old : DirectedSubgraph E) (new : Finset V) where
+  length : ℕ
+  path : RelPath E new length
+  injective : Function.Injective path.vertex
+  endpoints_distinct :
+    path.vertex ⟨0, by omega⟩ ≠ path.vertex ⟨length, by omega⟩
+  start_mem : path.vertex ⟨0, by omega⟩ ∈ old.vertexSet
+  end_mem : path.vertex ⟨length, by omega⟩ ∈ old.vertexSet
+  old_subset : old.vertexSet ⊆ new
+  interior_new : ∀ i : Fin (length + 1), i.1 ≠ 0 → i.1 ≠ length →
+    path.vertex i ∉ old.vertexSet
+  edge_fresh : ∀ i : Fin length,
+    ¬ old.edge (path.vertex (Fin.castSucc i)) (path.vertex i.succ)
+  covers_new : ∀ v, v ∈ new → v ∈ old.vertexSet ∨
+    ∃ i : Fin (length + 1), path.vertex i = v
+
+/-- The edge relation after adjoining an ear is exactly the old edges plus its path edges. -/
+def DirectedEarExtension.edge {V : Type*} {E : V → V → Prop}
+    {old : DirectedSubgraph E} {new : Finset V}
+    (D : DirectedEarExtension old new) (a b : V) : Prop :=
+  old.edge a b ∨ ∃ i : Fin D.length,
+    D.path.vertex (Fin.castSucc i) = a ∧ D.path.vertex i.succ = b
+
+/-- Adjoining a directed ear gives a subgraph of the same ambient relation. -/
+def DirectedEarExtension.toSubgraph {V : Type*} {E : V → V → Prop}
+    {old : DirectedSubgraph E} {new : Finset V}
+    (D : DirectedEarExtension old new) : DirectedSubgraph E where
+  vertexSet := new
+  edge := D.edge
+  edge_in_ambient := by
+    intro a b h
+    rcases h with hold | ⟨i, ha, hb⟩
+    · exact old.edge_in_ambient hold
+    · have hstep := D.path.step i
+      rw [← ha, ← hb]
+      exact hstep
+  edge_src_mem := by
+    intro a b h
+    rcases h with hold | ⟨i, ha, hb⟩
+    · exact D.old_subset (old.edge_src_mem hold)
+    · rw [← ha]
+      exact D.path.mem _
+  edge_tgt_mem := by
+    intro a b h
+    rcases h with hold | ⟨i, ha, hb⟩
+    · exact D.old_subset (old.edge_tgt_mem hold)
+    · rw [← hb]
+      exact D.path.mem _
+
+/-- Forgetting which edges were old turns an edge-aware extension into a directed ear in the
+adjoined subgraph. -/
+def DirectedEarExtension.toDirectedEar {V : Type*} {E : V → V → Prop}
+    {old : DirectedSubgraph E} {new : Finset V}
+    (D : DirectedEarExtension old new) :
+    DirectedEar D.edge old.vertexSet new where
+  length := D.length
+  path := {
+    vertex := D.path.vertex
+    mem := D.path.mem
+    step := by
+      intro i
+      exact Or.inr ⟨i, rfl, rfl⟩
+  }
+  injective := D.injective
+  endpoints_distinct := D.endpoints_distinct
+  start_mem := D.start_mem
+  end_mem := D.end_mem
+  old_subset := D.old_subset
+  interior_new := D.interior_new
+  covers_new := D.covers_new
+
+/-- Strong connectivity survives adjoining an ear, when connectivity in the old graph is
+witnessed using only old edges. -/
+theorem DirectedEarExtension.stronglyConnected {V : Type*} {E : V → V → Prop}
+    {old : DirectedSubgraph E} {new : Finset V}
+    (D : DirectedEarExtension old new)
+    (hsc : ∀ a ∈ old.vertexSet, ∀ b ∈ old.vertexSet,
+      Relation.ReflTransGen old.edge a b) :
+    ∀ a ∈ new, ∀ b ∈ new, Relation.ReflTransGen D.edge a b := by
+  have hsc' : ∀ a ∈ old.vertexSet, ∀ b ∈ old.vertexSet,
+      Relation.ReflTransGen D.edge a b := by
+    intro a ha b hb
+    have lift : ∀ {x y}, Relation.ReflTransGen old.edge x y →
+        Relation.ReflTransGen D.edge x y := by
+      intro x y hxy
+      induction hxy with
+      | refl => exact Relation.ReflTransGen.refl
+      | @tail u v hprev hedge ih =>
+          exact Relation.ReflTransGen.tail ih (Or.inl hedge)
+    exact lift (hsc a ha b hb)
+  exact D.toDirectedEar.stronglyConnected hsc'
+
+
 namespace Network
 
 variable {S : Type} [DecidableEq S] [Fintype S]
