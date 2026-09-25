@@ -5421,6 +5421,7 @@ private theorem trueSRCycle_of_simple_aggregate_cycle (N : Network S)
       c ⟨0, by omega⟩ = Sum.inl s)
     (hcedge : ∀ i, N.TrueInternalAggregateCausalEdge (c i) (c (finRotate p i))) :
     ∃ n : ℕ, 2 ≤ n ∧ ∃ C : N.TrueSRCycle n,
+      ∃ heq : p = 2 * n,
       C.Even ∧
       (∀ i, C.isCPair i ↔
         σ (C.species i) * σ (C.species (finRotate n i)) < 0) ∧
@@ -5428,6 +5429,11 @@ private theorem trueSRCycle_of_simple_aggregate_cycle (N : Network S)
       (∀ i, ∃ s : AggregateActiveSpecies σ,
         s.1 = C.species i ∧ Sum.inl s ∈ T) ∧
       (∀ i, C.reaction i ∈ N.trueInternalAggregateSourceClasses α σ T) ∧
+      (∀ i, N.aggregateVertexToTrueSRVertex
+        (c (Fin.cast heq.symm (aggregateEvenCycleIndex n i))) = Sum.inl (C.species i)) ∧
+      (∀ i, N.aggregateVertexToTrueSRVertex
+        (c (Fin.cast heq.symm (aggregateOddCycleIndex n i))) =
+          Sum.inr ⟨C.reaction i, C.reaction_internal i⟩) ∧
       ∃ β : Fin n → ℝ,
         (∀ i t, N.trueInternalClassFlux α (C.reaction i) t =
           β i * N.reactionVector (C.rightEdge i).representative t) ∧
@@ -5744,7 +5750,7 @@ private theorem trueSRCycle_of_simple_aggregate_cycle (N : Network S)
       simp only [Finset.mem_filter, Finset.mem_univ, true_and]
       exact hpair i]
     exact cyclic_sign_changes_even (fun i => σ (C.species i)) hspeciesNonzero
-  refine ⟨n, hn2, C, heven, hpair, ?_, ?_, ?_, ?_⟩
+  refine ⟨n, hn2, C, rfl, heven, hpair, ?_, ?_, ?_, ?_, ?_, ?_⟩
   · intro i
     simp [C, leftE, rightE]
   · intro i
@@ -5756,6 +5762,10 @@ private theorem trueSRCycle_of_simple_aggregate_cycle (N : Network S)
       ∃ q : N.ActiveAggregateTrueReaction α σ, q.1 = ρ ∧ Sum.inr q ∈ T)
     simp only [Finset.mem_filter, Finset.mem_univ, true_and]
     exact ⟨rx i, rfl, hrxT i⟩
+  · intro i
+    simpa [aggregateVertexToTrueSRVertex, hsp, C]
+  · intro i
+    simpa [aggregateVertexToTrueSRVertex, hrx, C]
   · refine ⟨beta, ?_⟩
     refine ⟨?_, ?_, ?_⟩
     · intro i t
@@ -5838,7 +5848,7 @@ private theorem trueSRCycle_of_directed_species_loop (N : Network S)
         (P.vertex ⟨m, by omega⟩) (P.vertex ⟨0, by omega⟩)
       rw [hend, hstart]
       exact hclose
-  obtain ⟨n, hn, C, hC, _⟩ :=
+  obtain ⟨n, hn, C, _, hC, _⟩ :=
     N.trueSRCycle_of_simple_aggregate_cycle (by omega) hmEven c hcinj T hcT
       hstartC hcedge
   exact ⟨n, hn, C, hC⟩
@@ -6480,7 +6490,8 @@ theorem stronglyConcordant_fullyOpen_of_trueSRCriterion
     N.exists_simple_directed_cycle_in_trueInternalAggregateSource T hscc hsource hparts
   obtain ⟨d, hdinj, hdT, hdstart, hdedge⟩ :=
     N.rotate_trueInternalAggregateCycle_to_species T hp2 c hcinj hcT hcedge
-  obtain ⟨n, hn2, C, hCeven, hCpair, hrep, hCspT, hCrxnT, beta, hbeta, hneg, hpos⟩ :=
+  obtain ⟨n, hn2, C, hcycleEq, hCeven, hCpair, hrep, hCspT, hCrxnT,
+      hcycleVertexSp, hcycleVertexRx, beta, hbeta, hneg, hpos⟩ :=
     N.trueSRCycle_of_simple_aggregate_cycle hp2 hpeven d hdinj T hdT hdstart hdedge
   have hSCycle : C.SCycle := hSR.1 C hCeven
   have hSCycleNet : C.SCycleNet :=
