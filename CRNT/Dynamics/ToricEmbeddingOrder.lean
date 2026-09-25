@@ -88,6 +88,25 @@ def polarCone (s : Set E) : PointedCone ℝ E where
     y ∈ polarCone s ↔ ∀ ⦃x⦄, x ∈ s → ⟪x, y⟫_ℝ ≤ 0 :=
   Iff.rfl
 
+/-- **A polar direction pairs strictly with any point that can move a little along it inside
+the cone.** If `v ∈ Cᵒ` is nonzero and `n + ε v ∈ C` for some `ε > 0`, then
+`⟪n, v⟫ < 0`. This is the strict-support step used when a toric chamber admits an inward
+perturbation in the velocity direction. -/
+theorem polarCone_inner_lt_zero_of_positivePerturbation {s : Set E} {n v : E}
+    (hv : v ∈ polarCone s) (hne : v ≠ 0)
+    (hperturb : ∃ ε : ℝ, 0 < ε ∧ n + ε • v ∈ s) :
+    ⟪n, v⟫_ℝ < 0 := by
+  rcases hperturb with ⟨ε, hε, hmem⟩
+  have hle := (mem_polarCone.mp hv) hmem
+  have hnorm : 0 < ⟪v, v⟫_ℝ := by
+    rw [real_inner_self_eq_norm_sq]
+    exact sq_pos_of_pos (norm_pos_iff.mpr hne)
+  rw [inner_add_left, real_inner_smul_left] at hle
+  by_contra hnot
+  have hn : 0 ≤ ⟪n, v⟫_ℝ := le_of_not_gt hnot
+  have hprod : 0 < ε * ⟪v, v⟫_ℝ := mul_pos hε hnorm
+  linarith
+
 end PolarCone
 
 section GeneratedConeE

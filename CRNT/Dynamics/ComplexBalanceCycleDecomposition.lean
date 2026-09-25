@@ -2543,6 +2543,46 @@ theorem negativeRelativeLogStoichProjection_mem_relativeSourceOrderNegativeCone
   exact (N.mem_relativeSourceOrderStoichCone _).2
     ⟨N.toEuclid_mem_relativeSourceOrderCone _, N.relativeLogStoichProjection_mem u⟩
 
+/-- A positive non-equilibrium of a complex-balanced system cannot have zero velocity: zero
+velocity makes the relative-entropy dissipation vanish, which forces complex balance. -/
+theorem massActionVectorField_ne_zero_of_not_complexBalanced
+    (N : Network S) (κ : N.RateConstants) {x xstar : Concentration S}
+    (hx : x.Positive) (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    (hnotcb : ¬ N.IsComplexBalanced κ x) :
+    N.massActionVectorField κ x ≠ 0 := by
+  intro hzero
+  have hdiss : (∑ s, (Real.log (x s) - Real.log (xstar s)) *
+      N.massActionVectorField κ x s) = 0 := by
+    apply Finset.sum_eq_zero
+    intro s hs
+    rw [congrFun hzero s]
+    simp
+  exact hnotcb (complexBalanced_of_dissipation_eq_zero N κ hx hxs hcb hdiss)
+
+/-- **Strict source-order support away from complex balance.** The field belongs to the polar of
+the source-order cone selected by the projected relative logarithm. If a point in that cone can be
+perturbed a positive distance along the field while remaining in the cone, the pairing is strict:
+the field is nonzero away from complex balance, so polar membership rules out equality. -/
+theorem massActionVectorField_inner_lt_zero_of_positiveConePerturbation
+    (N : Network S) (κ : N.RateConstants) {x xstar : Concentration S}
+    (hx : x.Positive) (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    (hnotcb : ¬ N.IsComplexBalanced κ x)
+    {z : EuclideanSpace ℝ S}
+    (hperturb : ∃ ε : ℝ, 0 < ε ∧ z + ε • CRNT.toEuclid
+      (N.massActionVectorField κ x) ∈ N.relativeSourceOrderStoichCone
+        (N.relativeLogStoichProjection
+          (fun s => Real.log (x s) - Real.log (xstar s)))) :
+    ⟪z, CRNT.toEuclid (N.massActionVectorField κ x)⟫_ℝ < 0 := by
+  have hpolar := N.massActionVectorField_mem_polar_relativeSourceOrderStoichProjection
+    κ hx hxs hcb
+  have hfieldne := N.massActionVectorField_ne_zero_of_not_complexBalanced
+    κ hx hxs hcb hnotcb
+  have hne : CRNT.toEuclid (N.massActionVectorField κ x) ≠ 0 := by
+    intro h
+    apply hfieldne
+    exact CRNT.toEuclid.injective h
+  exact CRNT.polarCone_inner_lt_zero_of_positivePerturbation hpolar hne hperturb
+
 /-- **Complex-balanced vector field in the finite toric field.** At every positive concentration,
 the projected relative logarithmic state is in one sign-reversed source-order chamber, and the
 full mass-action vector field is in that chamber's nonnegative dual. Hence the vector field is a
