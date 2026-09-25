@@ -15,6 +15,7 @@ import CRNT.Multistationarity.TrueSRCycleReverse
 import CRNT.Multistationarity.TrueSRNoArcChord
 import CRNT.Multistationarity.TrueSRChordExtraction
 import CRNT.Multistationarity.TrueSRSpeciesPath
+import CRNT.Multistationarity.TrueSRReactionInteriorPath
 
 /-!
 # True-chemistry SR criteria for concordance and strong concordance
@@ -7794,162 +7795,203 @@ theorem stronglyConcordant_fullyOpen_of_trueSRCriterion
           · refine hmid p.1 hppos (by omega) ?_
             change C.HasVertex (N.aggregateVertexToTrueSRVertex (V.getVert p.1).1)
             exact hp1
-      · have hreach : Relation.ReflTransGen
+      · -- `v` is a species vertex.  Rerun the escape from an on-cycle *reaction* class: a chord
+        -- with a reaction endpoint meets `C` in an S-to-R path, which `hSR.2` forbids.
+        exfalso
+        have hreach : Relation.ReflTransGen
             (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ))
             (Sum.inr qC) (Sum.inr q) := hscc _ hqCT _ hqT
-        let Good : N.TrueInternalAggregateVertex α σ → Prop := fun x =>
-          C.HasVertex (N.aggregateVertexToTrueSRVertex x)
-        have hdir := N.exists_directed_chord T hsource Good
-          hqT hsT hqOff hsOnC hattachment hqCOn hreach
-        have hResidual :
-            ((∃ (M' : ℕ) (P' : CRNT.RelPath
-                (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T M'),
-                2 ≤ M' ∧ Function.Injective P'.vertex ∧
-                Good (P'.vertex ⟨0, by omega⟩) ∧
-                P'.vertex ⟨M', by omega⟩ = Sum.inl s ∧
-                (∃ j : Fin (M' + 1), j.1 + 1 = M' ∧
-                  P'.vertex j = Sum.inr q) ∧
-                (∀ j : Fin (M' + 1), j.1 ≠ 0 → j.1 ≠ M' → ¬ Good (P'.vertex j)) ∧
-                (∃ s0 : AggregateActiveSpecies σ,
-                  P'.vertex ⟨0, by omega⟩ = Sum.inl s0) ∧
-                (∀ (l : ℕ) (R : CRNT.RelPath
-                  (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T l),
-                  Good (R.vertex ⟨0, by omega⟩) →
-                  R.vertex ⟨l, by omega⟩ = Sum.inr q → M' - 1 ≤ l) ∧
-                (∀ j : Fin (M' + 1), P'.vertex j = Sum.inl t → j.1 + 2 = M')) ∨
-             (∃ (M' : ℕ) (Q' : CRNT.RelPath
-                (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T M'),
-                Function.Injective Q'.vertex ∧
-                Q'.vertex ⟨0, by omega⟩ = Sum.inl s ∧
-                Q'.vertex ⟨M', by omega⟩ = Sum.inr q ∧
-                (∀ j : Fin (M' + 1), j.1 ≠ 0 → ¬ Good (Q'.vertex j)) ∧
-                (∀ (l : ℕ) (R : CRNT.RelPath
-                  (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T l),
-                  Good (R.vertex ⟨0, by omega⟩) →
-                  R.vertex ⟨l, by omega⟩ = Sum.inr q → M' ≤ l) ∧
-                (∀ j : Fin (M' + 1), Q'.vertex j = Sum.inl t → j.1 + 1 = M'))) → False := by
-          intro h
-          sorry
-        rcases hdir with
-          ⟨M', P', hM'2, hP'inj, hP'g0, hP'last, hP'pred, hP'late, hP'min⟩ |
-          ⟨M', Q', hQ'inj, hQ'0, hQ'M, hQ'late, hQ'min⟩
-        · cases hv0 : P'.vertex ⟨0, by omega⟩ with
-          | inl s0 =>
-              have hPtail : ∀ j : Fin (M' + 1),
-                  P'.vertex j = Sum.inl t → j.1 + 2 = M' := by
-                intro j hj
-                have hjlt : j.1 < M' := by
-                  by_contra hnot
-                  have hjval : j.1 = M' := by omega
-                  have hjfin : j = (⟨M', by omega⟩ : Fin (M' + 1)) :=
-                    Fin.ext hjval
-                  rw [hjfin, hP'last] at hj
-                  exact htailNeHead (congrArg Subtype.val (Sum.inl.inj hj).symm)
-                rcases hP'pred with ⟨jQ, hjQ, hqQ⟩
-                have hjQval : jQ.1 = M' - 1 := by omega
-                have hjQfin : (⟨M' - 1, by omega⟩ : Fin (M' + 1)) = jQ :=
-                  Fin.ext hjQval.symm
-                have hprefixLast :
-                    (P'.take (M' - 1) (by omega)).vertex ⟨M' - 1, by omega⟩ =
-                      Sum.inr q := by
-                  rw [RelPath.take_vertex_last]
-                  rw [hjQfin]
-                  exact hqQ
-                have hprefixGood : Good
-                    ((P'.take (M' - 1) (by omega)).vertex ⟨0, by omega⟩) := by
-                  rw [RelPath.take_vertex_zero]
-                  exact hP'g0
-                have hbefore : ∀ k : Fin ((M' - 1) + 1),
-                    (P'.take (M' - 1) (by omega)).vertex k = Sum.inl t →
-                    k.1 < M' - 1 := by
-                  intro k hkt
-                  by_contra hnot
-                  have hkval : k.1 = M' - 1 := by omega
-                  have hkfin : k = ⟨M' - 1, by omega⟩ := Fin.ext hkval
-                  rw [hkfin, hprefixLast] at hkt
-                  exact Sum.inr_ne_inl hkt
-                let jpre : Fin ((M' - 1) + 1) := ⟨j.1, by omega⟩
-                have hju : (P'.take (M' - 1) (by omega)).vertex jpre = Sum.inl t := by
-                  simpa [jpre] using hj
-                have hlastEdge := CRNT.shortestRelPath_incoming_is_last_edge
-                  (P := P'.take (M' - 1) (by omega)) hP'min hqT hprefixGood
-                  hprefixLast htailEdge hbefore jpre hju
-                dsimp [jpre] at hlastEdge
+        obtain ⟨m, Q0, hg0, hqm, hQ0inj, hQ0late⟩ :=
+          CRNT.exists_minimal_relPath
+            (fun x : N.TrueInternalAggregateVertex α σ =>
+              ∃ ρ' : N.ActiveAggregateTrueReaction α σ,
+                x = Sum.inr ρ' ∧ C.HasReaction ρ'.1)
+            hsource hqT ⟨qC, rfl, ⟨i, hqC.symm⟩⟩ hreach
+        obtain ⟨ρ0, hρ0eq, hρ0C⟩ := hg0
+        have hmpos : 0 < m := by
+          rcases Nat.eq_zero_or_pos m with h0 | h
+          · exfalso
+            have hidx : (⟨0, by omega⟩ : Fin (m + 1)) = ⟨m, by omega⟩ := Fin.ext (by omega)
+            have hq0 : Q0.vertex ⟨0, by omega⟩ = Sum.inr q := by rw [hidx]; exact hqm
+            have hρq : (Sum.inr ρ0 : N.TrueInternalAggregateVertex α σ) = Sum.inr q := by
+              rw [← hρ0eq]; exact hq0
+            have hρ0q : ρ0 = q := by injection hρq
+            exact hqOffCycle (by rw [← hρ0q]; exact hρ0C)
+          · exact h
+        suffices H : ∀ (M : ℕ) (P : CRNT.RelPath
+            (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T M),
+            0 < M → Function.Injective P.vertex →
+            P.vertex ⟨0, by omega⟩ = Sum.inr ρ0 →
+            P.vertex ⟨M, by omega⟩ = Sum.inl s →
+            (∀ j : Fin (M + 1), j.1 ≠ 0 →
+              ¬ ∃ ρ' : N.ActiveAggregateTrueReaction α σ,
+                  P.vertex j = Sum.inr ρ' ∧ C.HasReaction ρ'.1) → False by
+          by_cases hhit : ∃ j : Fin (m + 1), Q0.vertex j = Sum.inl s
+          · obtain ⟨j, hj⟩ := hhit
+            have hjlt := j.isLt
+            have hj0 : j.1 ≠ 0 := by
+              intro h0
+              have hidxj : (⟨0, by omega⟩ : Fin (m + 1)) = j := by
+                apply Fin.ext
+                show (0 : ℕ) = j.1
                 omega
-              exact False.elim (hResidual (Or.inl ⟨M', P', hM'2, hP'inj, hP'g0,
-                hP'last, hP'pred, hP'late, ⟨s0, hv0⟩, hP'min, hPtail⟩))
-          | inr ρ0 =>
-              exfalso
-              have hρ₀On : C.HasReaction ρ0.1 := by
-                have h := hP'g0
-                rw [hv0] at h
-                exact h
-              set R := N.relPathToTrueSRPathRev T P' hP'inj (by omega) hP'last hv0
-                with hRdef
-              have hRodd : Odd M' := R.odd_length
-              have hM'3 : 3 ≤ M' := by
-                obtain ⟨c, hc⟩ := hRodd
-                omega
-              refine no_offCycle_interior_path_of_trueSRCriterion hSR C hCeven R
-                ?_ ?_ ?_ hM'3
-              · have hv : R.vertex ⟨0, by omega⟩ = Sum.inl (s.1 : S) := by
-                  rw [hRdef]
-                  rw [N.relPathToTrueSRPathRev_vertex T P' hP'inj (by omega)
-                    hP'last hv0 ⟨0, by omega⟩]
-                  change N.aggregateVertexToTrueSRVertex
-                    (P'.vertex ⟨M', by omega⟩) = Sum.inl s.1
-                  rw [hP'last]
-                  rfl
-                have hstart := R.vertex_zero
-                rw [show (0 : Fin (M' + 1)) = ⟨0, by omega⟩ from Fin.ext rfl, hv]
-                  at hstart
-                rw [← Sum.inl.inj hstart]
-                exact ⟨finRotate n i, rfl⟩
-              · have hv : R.vertex ⟨M', by omega⟩ =
-                    Sum.inr (⟨ρ0.1, N.activeAggregateTrueReaction_internal ρ0⟩ :
-                      N.InternalTrueReaction) := by
-                  rw [hRdef]
-                  rw [N.relPathToTrueSRPathRev_vertex T P' hP'inj (by omega)
-                    hP'last hv0 ⟨M', by omega⟩]
-                  have hidx :
-                      (⟨M' - (⟨M', by omega⟩ : Fin (M' + 1)).1, by omega⟩ :
-                        Fin (M' + 1)) = ⟨0, by omega⟩ := by
-                    apply Fin.ext
-                    simp
-                  rw [hidx]
-                  rw [hv0]
-                  rfl
-                have hlastR := R.vertex_last
-                rw [show (Fin.last M') = (⟨M', by omega⟩ : Fin (M' + 1))
-                  from Fin.ext rfl, hv] at hlastR
-                rw [← congrArg Subtype.val (Sum.inr.inj hlastR)]
-                exact hρ₀On
-              · intro p hp0 hpM hon
-                have hplt := p.isLt
-                rw [hRdef, N.relPathToTrueSRPathRev_vertex T P' hP'inj (by omega)
-                  hP'last hv0] at hon
-                exact hP'late ⟨M' - p.1, by omega⟩
-                  (by show M' - p.1 ≠ 0; omega)
-                  (by show M' - p.1 ≠ M'; omega) hon
-        · have hQtail : ∀ j : Fin (M' + 1),
-              Q'.vertex j = Sum.inl t → j.1 + 1 = M' := by
-            intro j hj
-            have hbefore : ∀ k : Fin (M' + 1),
-                Q'.vertex k = Sum.inl t → k.1 < M' := by
-              intro k hkt
-              by_contra hnot
-              have hkval : k.1 = M' := by omega
-              have hkfin : k = (⟨M', by omega⟩ : Fin (M' + 1)) :=
-                Fin.ext hkval
-              rw [hkfin, hQ'M] at hkt
-              exact Sum.inr_ne_inl hkt
-            have hQgood : Good (Q'.vertex ⟨0, by omega⟩) := by
-              rw [hQ'0]
-              exact hsOnC
-            exact CRNT.shortestRelPath_incoming_is_last_edge Q' hQ'min hqT
-              hQgood hQ'M htailEdge hbefore j hj
-          exact False.elim (hResidual (Or.inr ⟨M', Q', hQ'inj, hQ'0, hQ'M,
-            hQ'late, hQ'min, hQtail⟩))
+              have hv : Q0.vertex ⟨0, by omega⟩ = Sum.inl s := by
+                rw [hidxj]
+                exact hj
+              rw [hρ0eq] at hv
+              exact Sum.inr_ne_inl hv
+            refine H j.1 (Q0.init j.1 (by omega)) (by omega)
+              (Q0.init_injective j.1 (by omega) hQ0inj) ?_ ?_ ?_
+            · rw [CRNT.RelPath.init_vertex]; exact hρ0eq
+            · rw [CRNT.RelPath.init_vertex]
+              rw [show (⟨(⟨j.1, by omega⟩ : Fin (j.1 + 1)).1, by omega⟩ : Fin (m + 1)) = j from
+                Fin.ext rfl]
+              exact hj
+            · intro l hl0
+              rw [CRNT.RelPath.init_vertex]
+              exact hQ0late ⟨l.1, by have := l.isLt; omega⟩ hl0
+          · push_neg at hhit
+            have hstep : N.TrueInternalAggregateCausalEdge (Q0.vertex ⟨m, by omega⟩)
+                (Sum.inl s) := by rw [hqm]; exact hattachment
+            refine H (m + 1) (Q0.concat (Sum.inl s) hsT hstep) (by omega)
+              (Q0.concat_injective (Sum.inl s) hsT hstep hQ0inj hhit) ?_ ?_ ?_
+            · rw [Q0.concat_vertex_le (Sum.inl s) hsT hstep ⟨0, by omega⟩
+                (show ((⟨0, by omega⟩ : Fin (m + 1 + 1))).1 ≤ m by show (0:ℕ) ≤ m; omega)]
+              exact hρ0eq
+            · exact Q0.concat_vertex_last (Sum.inl s) hsT hstep
+            · intro l hl0
+              have hllt := l.isLt
+              by_cases hlm : l.1 ≤ m
+              · rw [Q0.concat_vertex_le (Sum.inl s) hsT hstep l hlm]
+                exact hQ0late ⟨l.1, by omega⟩ hl0
+              · have hle : l = (⟨m + 1, by omega⟩ : Fin (m + 1 + 1)) := by
+                  apply Fin.ext
+                  show l.1 = m + 1
+                  omega
+                rw [hle, Q0.concat_vertex_last (Sum.inl s) hsT hstep]
+                rintro ⟨ρ', hρ', -⟩
+                exact Sum.inl_ne_inr hρ'
+        intro M P hMpos hPinj hP0 hPM hPlate
+        set R := N.relPathToTrueSRPathRev T P hPinj hMpos hPM hP0 with hRdef
+        have hvR : ∀ p : Fin (M + 1), R.vertex p =
+            N.aggregateVertexToTrueSRVertex (P.vertex ⟨M - p.1, by have := p.isLt; omega⟩) := by
+          intro p
+          rw [hRdef]
+          exact N.relPathToTrueSRPathRev_vertex T P hPinj hMpos hPM hP0 p
+        refine no_reaction_interior_path_of_neighbourFree_of_trueSRCriterion hSR C hCeven
+          (fun e f hr hs => N.trueSREdge_endpoint_eq_of_same_class_and_species hsep e f hr hs)
+          R ?_ ?_ ?_ ?_
+        · rw [hvR ⟨0, by omega⟩,
+            show (⟨M - (⟨0, by omega⟩ : Fin (M + 1)).1, by omega⟩ : Fin (M + 1))
+              = ⟨M, by omega⟩ from Fin.ext (by show M - 0 = M; omega), hPM]
+          exact ⟨finRotate n i, rfl⟩
+        · rw [hvR ⟨M, by omega⟩,
+            show (⟨M - (⟨M, by omega⟩ : Fin (M + 1)).1, by omega⟩ : Fin (M + 1))
+              = ⟨0, by omega⟩ from Fin.ext (by show M - M = 0; omega), hP0]
+          exact hρ0C
+        · intro p hpM hpodd hon
+          have hplt := p.isLt
+          obtain ⟨ρ', hρ'⟩ := R.exists_reaction_of_odd p hpodd
+          rw [hvR p] at hρ' hon
+          cases hv : P.vertex ⟨M - p.1, by omega⟩ with
+          | inl s' =>
+              rw [hv] at hρ'
+              have hbad : (Sum.inl s'.1 : N.TrueSRVertex) = Sum.inr ρ' := hρ'
+              exact Sum.inl_ne_inr hbad
+          | inr ρ'' =>
+              rw [hv] at hon
+              exact hPlate ⟨M - p.1, by omega⟩ (by show M - p.1 ≠ 0; omega) ⟨ρ'', hv, hon⟩
+        · -- The final edge realises the first causal step out of the on-cycle reaction `ρ0`.
+          intro t k hes her
+          have hM1 : M - 1 < M := by omega
+          have hRM : R.vertex ⟨M, by omega⟩ =
+              Sum.inr (⟨ρ0.1, N.activeAggregateTrueReaction_internal ρ0⟩ :
+                N.InternalTrueReaction) := by
+            rw [hvR ⟨M, by omega⟩,
+              show (⟨M - (⟨M, by omega⟩ : Fin (M + 1)).1, by omega⟩ : Fin (M + 1))
+                = ⟨0, by omega⟩ from Fin.ext (by show M - M = 0; omega), hP0]
+            rfl
+          have hRM1 : R.vertex ⟨M - 1, by omega⟩ =
+              N.aggregateVertexToTrueSRVertex (P.vertex ⟨1, by omega⟩) := by
+            rw [hvR ⟨M - 1, by omega⟩]
+            exact congrArg _ (congrArg P.vertex
+              (Fin.ext (by show M - (M - 1) = 1; omega)))
+          have hconn := R.connects ⟨M - 1, hM1⟩
+          rw [show (Fin.castSucc (⟨M - 1, hM1⟩ : Fin M))
+                = (⟨M - 1, by omega⟩ : Fin (M + 1)) from Fin.ext rfl,
+            show ((⟨M - 1, hM1⟩ : Fin M).succ) = (⟨M, by omega⟩ : Fin (M + 1)) from
+              Fin.ext (by show M - 1 + 1 = M; omega)] at hconn
+          -- the terminal vertex is a reaction vertex, so the edge runs species-to-reaction
+          obtain ⟨hcu, hcv⟩ : R.vertex ⟨M - 1, by omega⟩
+                = Sum.inl (R.edge ⟨M - 1, hM1⟩).species ∧
+              R.vertex ⟨M, by omega⟩
+                = Sum.inr ⟨(R.edge ⟨M - 1, hM1⟩).reaction,
+                    (R.edge ⟨M - 1, hM1⟩).internal⟩ := by
+            rcases hconn with h | h
+            · exact h
+            · exfalso
+              rw [hRM] at h
+              exact Sum.inr_ne_inl h.2
+          -- the edge's reaction class is `ρ0`
+          have hereac : (R.edge ⟨M - 1, hM1⟩).reaction = ρ0.1 := by
+            rw [hRM] at hcv
+            exact (congrArg Subtype.val (Sum.inr.inj hcv)).symm
+          -- the edge's species is the species reached by the first causal step
+          have hstep0 := P.step ⟨0, by omega⟩
+          rw [show (Fin.castSucc (⟨0, by omega⟩ : Fin M)) = (⟨0, by omega⟩ : Fin (M + 1)) from
+              Fin.ext rfl,
+            show ((⟨0, by omega⟩ : Fin M).succ) = (⟨1, by omega⟩ : Fin (M + 1)) from
+              Fin.ext rfl, hP0] at hstep0
+          refine ⟨?_, ?_⟩
+          · -- the first step is *positive*, whereas the cycle flux at `C.species k` is negative
+            intro htk
+            cases hv1 : P.vertex ⟨1, by omega⟩ with
+            | inr ρ' =>
+                rw [hv1] at hstep0
+                exact hstep0
+            | inl x =>
+                rw [hv1] at hstep0
+                have hxe : x.1 = (R.edge ⟨M - 1, hM1⟩).species := by
+                  rw [hRM1, hv1] at hcu
+                  exact Sum.inl.inj hcu
+                have hpos0 : 0 < N.trueInternalClassFlux α ρ0.1 x.1 * σ x.1 := hstep0
+                have hxk : x.1 = C.species k := by rw [hxe, hes, htk]
+                have hrk : ρ0.1 = C.reaction k := by rw [← hereac, her]
+                rw [hxk, hrk] at hpos0
+                have hkprev : finRotate n ((finRotate n).symm k) = k :=
+                  Equiv.apply_symm_apply (finRotate n) k
+                have hnegk : N.trueInternalClassFlux α (C.reaction k) (C.species k)
+                    * σ (C.species k) < 0 := by
+                  have hh := hopp ((finRotate n).symm k)
+                  rw [hkprev] at hh
+                  exact hh
+                linarith
+          · -- **FRONTIER.**  What is left is the degenerate configuration: the minimal
+            -- reaction-start chord's first causal step follows `ρ0`'s own cycle edge
+            -- `C.rightEdge k`.  It is spelled out below as `hposx` together with `hxsucc`:
+            -- a positive class flux from the on-cycle reaction `C.reaction k` into its own
+            -- cycle-successor species.  Neither conjunct of `TrueSRStrongCriterion` reaches
+            -- it -- see `HANDOFF_hole1_reaction_start.md` for the gain computation showing
+            -- that the two glued cycles are even and impose the same s-cycle condition, and
+            -- for the rearrangements already ruled out.
+            intro htk1
+            cases hv1 : P.vertex ⟨1, by omega⟩ with
+            | inr ρ' =>
+                rw [hv1] at hstep0
+                exact hstep0
+            | inl x =>
+                rw [hv1] at hstep0
+                have hxe : x.1 = (R.edge ⟨M - 1, hM1⟩).species := by
+                  rw [hRM1, hv1] at hcu
+                  exact Sum.inl.inj hcu
+                have hposx : 0 < N.trueInternalClassFlux α ρ0.1 x.1 * σ x.1 := hstep0
+                have hrk : ρ0.1 = C.reaction k := by rw [← hereac, her]
+                have hteq : t = (⟨(k.1 + 1) % n,
+                    Nat.mod_lt _ (by have := C.nontrivial; omega)⟩ : Fin n) := Fin.ext htk1
+                have hxsucc : x.1 = C.species (⟨(k.1 + 1) % n,
+                    Nat.mod_lt _ (by have := C.nontrivial; omega)⟩ : Fin n) := by
+                  rw [hxe, hes, hteq]
+                sorry
     obtain ⟨M, Q, hQ0, hQlast, hQnd⟩ := hspan
     exact no_spanning_path_of_trueSRCriterion hSR C hCeven
       (fun e f hr hs => N.trueSREdge_endpoint_eq_of_same_class_and_species hsep e f hr hs)
