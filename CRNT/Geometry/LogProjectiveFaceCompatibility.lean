@@ -43,6 +43,71 @@ theorem totalWeight_eq_of_projectiveFiberWeight_eq (b c y : ι → ℝ)
       exact hfiber v
     _ = ∑ i, c i := hcgroup
 
+/-- Two affine normals define the same linear form on every vector that is constant on the
+projective-coordinate fibers exactly when their total weights agree on each fiber. This makes the
+fiber-balance hypothesis a necessary and sufficient compatibility condition on a tied-coordinate
+stratum, rather than only a sufficient condition for matching one exponential ray. -/
+theorem affineForm_eq_on_projectiveFibers_iff (b c y : ι → ℝ) :
+    (∀ φ : ℝ → ℝ, (∑ i, b i * φ (y i)) = (∑ i, c i * φ (y i))) ↔
+      ∀ v, projectiveFiberWeight y b v = projectiveFiberWeight y c v := by
+  classical
+  constructor
+  · intro h v
+    have htest := h (fun q => if q = v then (1 : ℝ) else 0)
+    simpa [projectiveFiberWeight, Finset.sum_filter, eq_comm] using htest
+  · intro hfiber φ
+    let V := Finset.univ.image y
+    have hmap (i : ι) (hi : i ∈ Finset.univ) : y i ∈ V :=
+      Finset.mem_image_of_mem y hi
+    have hbgroup :
+        (∑ v ∈ V, ∑ i ∈ Finset.univ.filter (fun i => y i = v), b i * φ (y i)) =
+          ∑ i, b i * φ (y i) := by
+      simpa [V] using Finset.sum_fiberwise_of_maps_to hmap (fun i => b i * φ (y i))
+    have hcgroup :
+        (∑ v ∈ V, ∑ i ∈ Finset.univ.filter (fun i => y i = v), c i * φ (y i)) =
+          ∑ i, c i * φ (y i) := by
+      simpa [V] using Finset.sum_fiberwise_of_maps_to hmap (fun i => c i * φ (y i))
+    have hfiberB (v : ℝ) :
+        (∑ i ∈ Finset.univ.filter (fun i => y i = v), b i * φ (y i)) =
+          projectiveFiberWeight y b v * φ v := by
+      calc
+        (∑ i ∈ Finset.univ.filter (fun i => y i = v), b i * φ (y i)) =
+            ∑ i ∈ Finset.univ.filter (fun i => y i = v), b i * φ v := by
+              apply Finset.sum_congr rfl
+              intro i hi
+              rw [(Finset.mem_filter.mp hi).2]
+        _ = (∑ i ∈ Finset.univ.filter (fun i => y i = v), b i) * φ v := by
+              rw [Finset.sum_mul]
+        _ = projectiveFiberWeight y b v * φ v := rfl
+    have hfiberC (v : ℝ) :
+        (∑ i ∈ Finset.univ.filter (fun i => y i = v), c i * φ (y i)) =
+          projectiveFiberWeight y c v * φ v := by
+      calc
+        (∑ i ∈ Finset.univ.filter (fun i => y i = v), c i * φ (y i)) =
+            ∑ i ∈ Finset.univ.filter (fun i => y i = v), c i * φ v := by
+              apply Finset.sum_congr rfl
+              intro i hi
+              rw [(Finset.mem_filter.mp hi).2]
+        _ = (∑ i ∈ Finset.univ.filter (fun i => y i = v), c i) * φ v := by
+              rw [Finset.sum_mul]
+        _ = projectiveFiberWeight y c v * φ v := rfl
+    calc
+      (∑ i, b i * φ (y i)) =
+          ∑ v ∈ V, projectiveFiberWeight y b v * φ v := by
+            rw [← hbgroup]
+            apply Finset.sum_congr rfl
+            intro v hv
+            exact hfiberB v
+      _ = ∑ v ∈ V, projectiveFiberWeight y c v * φ v := by
+            apply Finset.sum_congr rfl
+            intro v hv
+            rw [hfiber v]
+      _ = ∑ i, c i * φ (y i) := by
+            rw [← hcgroup]
+            apply Finset.sum_congr rfl
+            intro v hv
+            exact (hfiberC v).symm
+
 /-- Matching total weights on every projective-coordinate fiber forces identical weighted
 exponential levels at every logarithmic ray scale. -/
 theorem weightedExpLevel_eq_of_projectiveFiberWeight_eq (b c y : ι → ℝ) (t : ℝ)
