@@ -1,5 +1,6 @@
 import CRNT.Geometry.ZeroSeparatingInduction
 import CRNT.Geometry.FaithfulCurve
+import CRNT.Geometry.ConeFace
 
 /-!
 # Fan refinement and faithful transfer to a coarser fan
@@ -67,6 +68,78 @@ some cell of `F`: each coarse cell is subdivided into finer cells, so the finer 
 coarse one. -/
 def Refines [CompleteSpace E] (F' F : Fan E) : Prop :=
   ∀ C' ∈ F', ∃ C ∈ F, (C' : Set E) ⊆ (C : Set E)
+
+/-- The finite family of pairwise intersections of two cone families. Each cell lies in a cell
+of either input family. This is only the cell data for a common refinement: proving exposed-face
+closure is still necessary before it can be called a polyhedral fan. -/
+noncomputable def intersectionFamily [CompleteSpace E] (F G : Fan E) : Fan E := by
+  classical
+  exact (F.product G).image (fun p : ProperCone ℝ E × ProperCone ℝ E => p.1 ⊓ p.2)
+
+/-- Every cell in the pairwise intersection family is contained in a cell of the left family. -/
+theorem intersectionFamily_refines_left [CompleteSpace E] {F G : Fan E} :
+    Refines (intersectionFamily F G) F := by
+  classical
+  intro C' hC'
+  rcases Finset.mem_image.mp hC' with ⟨⟨C, D⟩, hp, hEq⟩
+  rcases Finset.mem_product.mp hp with ⟨hC, hD⟩
+  subst C'
+  exact ⟨C, hC, inf_le_left⟩
+
+/-- Every cell in the pairwise intersection family is contained in a cell of the right family. -/
+theorem intersectionFamily_refines_right [CompleteSpace E] {F G : Fan E} :
+    Refines (intersectionFamily F G) G := by
+  classical
+  intro C' hC'
+  rcases Finset.mem_image.mp hC' with ⟨⟨C, D⟩, hp, hEq⟩
+  rcases Finset.mem_product.mp hp with ⟨hC, hD⟩
+  subst C'
+  exact ⟨D, hD, inf_le_right⟩
+
+/-- Pairwise intersections of two polyhedral fans cover the ambient space. -/
+theorem intersectionFamily_covers [CompleteSpace E] {F G : Fan E}
+    (hF : IsPolyhedralFan F) (hG : IsPolyhedralFan G) :
+    (⋃ C ∈ intersectionFamily F G, (C : Set E)) = Set.univ := by
+  classical
+  ext x
+  constructor
+  · intro _
+    simp
+  · intro _
+    have hxF : ∃ C ∈ F, x ∈ (C : Set E) := by
+      have hx := congrArg (fun s : Set E => x ∈ s) hF.covers
+      simpa using hx
+    have hxG : ∃ D ∈ G, x ∈ (D : Set E) := by
+      have hx := congrArg (fun s : Set E => x ∈ s) hG.covers
+      simpa using hx
+    rcases hxF with ⟨C, hC, hxC⟩
+    rcases hxG with ⟨D, hD, hxD⟩
+    refine Set.mem_iUnion.mpr ⟨C ⊓ D, ?_⟩
+    refine Set.mem_iUnion.mpr ⟨?_, ?_⟩
+    · apply Finset.mem_image.mpr
+      exact ⟨(C, D), Finset.mem_product.mpr ⟨hC, hD⟩, rfl⟩
+    · simpa using And.intro hxC hxD
+
+/-- The pairwise intersection family satisfies the common-intersection axiom when both inputs
+do. Exposed-face closure, the remaining polyhedral-fan axiom, is not provided by these data. -/
+theorem intersectionFamily_inter_common [CompleteSpace E] {F G : Fan E}
+    (hF : IsPolyhedralFan F) (hG : IsPolyhedralFan G) :
+    ∀ C ∈ intersectionFamily F G, ∀ D ∈ intersectionFamily F G,
+      ∃ H ∈ intersectionFamily F G, (H : Set E) = (C : Set E) ∩ (D : Set E) := by
+  classical
+  intro C hC D hD
+  rcases Finset.mem_image.mp hC with ⟨⟨C₁, D₁⟩, hpair₁, rfl⟩
+  rcases Finset.mem_product.mp hpair₁ with ⟨hC₁, hD₁⟩
+  rcases Finset.mem_image.mp hD with ⟨⟨C₂, D₂⟩, hpair₂, rfl⟩
+  rcases Finset.mem_product.mp hpair₂ with ⟨hC₂, hD₂⟩
+  obtain ⟨C₃, hC₃, hmeetC⟩ := hF.inter_common C₁ hC₁ C₂ hC₂
+  obtain ⟨D₃, hD₃, hmeetD⟩ := hG.inter_common D₁ hD₁ D₂ hD₂
+  refine ⟨C₃ ⊓ D₃, ?_, ?_⟩
+  · apply Finset.mem_image.mpr
+    exact ⟨(C₃, D₃), Finset.mem_product.mpr ⟨hC₃, hD₃⟩, rfl⟩
+  · ext x
+    simp [hmeetC, hmeetD]
+    tauto
 
 /-- **Admissibility transfers from fine to coarse.** If a finer cell `C'` is contained in a coarse
 cell `C` and the normal `n` attracts toward `C'` (`n ∈ C'`), then `n` attracts toward `C`: the
