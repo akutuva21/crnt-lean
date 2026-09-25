@@ -297,6 +297,59 @@ theorem DirectedEarExtension.stronglyConnected {V : Type*} {E : V → V → Prop
   exact D.toDirectedEar.stronglyConnected hsc'
 
 
+/-- A simple directed path whose endpoints lie in an old subgraph and whose interior avoids its
+vertices defines a genuine ear extension.  Freshness follows from the endpoint membership
+recorded by `DirectedSubgraph`: every path edge touches an interior vertex. -/
+noncomputable def DirectedEarExtension.ofRelPath {V : Type*} [DecidableEq V]
+    {E : V → V → Prop} (old : DirectedSubgraph E) {base : Finset V} {k : ℕ}
+    (P : RelPath E base k) (hinj : Function.Injective P.vertex)
+    (hk : 2 ≤ k)
+    (hendpoints : P.vertex ⟨0, by omega⟩ ≠ P.vertex ⟨k, by omega⟩)
+    (hstart : P.vertex ⟨0, by omega⟩ ∈ old.vertexSet)
+    (hend : P.vertex ⟨k, by omega⟩ ∈ old.vertexSet)
+    (hint : ∀ i : Fin (k + 1), i.1 ≠ 0 → i.1 ≠ k →
+      P.vertex i ∉ old.vertexSet) :
+    DirectedEarExtension old (old.vertexSet ∪ Finset.univ.image P.vertex) where
+  length := k
+  path := {
+    vertex := P.vertex
+    mem := by
+      intro i
+      exact Finset.mem_union_right _ (Finset.mem_image.mpr ⟨i, Finset.mem_univ _, rfl⟩)
+    step := P.step
+  }
+  injective := hinj
+  endpoints_distinct := hendpoints
+  start_mem := hstart
+  end_mem := hend
+  old_subset := Finset.subset_union_left
+  interior_new := hint
+  edge_fresh := by
+    intro i hedge
+    have hsrc := old.edge_src_mem hedge
+    have htgt := old.edge_tgt_mem hedge
+    by_cases hi0 : i.1 = 0
+    · have hs0 : i.succ.1 ≠ 0 := by
+        simp only [Fin.val_succ]
+        omega
+      have hsk : i.succ.1 ≠ k := by
+        simp only [Fin.val_succ]
+        have hi := i.isLt
+        omega
+      exact hint i.succ hs0 hsk htgt
+    · have hs0 : (Fin.castSucc i).1 ≠ 0 := by
+        simpa using hi0
+      have hsk : (Fin.castSucc i).1 ≠ k := by
+        simpa using Nat.ne_of_lt i.isLt
+      exact hint (Fin.castSucc i) hs0 hsk hsrc
+  covers_new := by
+    intro v hv
+    rcases Finset.mem_union.mp hv with hold | hpath
+    · exact Or.inl hold
+    · rcases Finset.mem_image.mp hpath with ⟨i, _, hi⟩
+      exact Or.inr ⟨i, hi⟩
+
+
 namespace Network
 
 variable {S : Type} [DecidableEq S] [Fintype S]
