@@ -1,6 +1,8 @@
 import CRNT.Geometry.ZeroSeparatingInduction
 import CRNT.Geometry.FaithfulCurve
 import CRNT.Geometry.ConeFace
+import CRNT.Geometry.FiniteConeClosed
+import Mathlib.Geometry.Convex.Cone.DualFinite
 
 /-!
 # Fan refinement and faithful transfer to a coarser fan
@@ -140,6 +142,253 @@ theorem intersectionFamily_inter_common [CompleteSpace E] {F G : Fan E}
   · ext x
     simp [hmeetC, hmeetD]
     tauto
+
+
+/-- Closed-cone version of a supporting hyperplane. -/
+noncomputable def properSupportingHyperplane (a : E) : ProperCone ℝ E where
+  toSubmodule := Submodule.restrictScalars (Nonneg ℝ) (LinearMap.ker (innerₗ E a))
+  isClosed' := by
+    change IsClosed {x : E | ⟪a, x⟫_ℝ = 0}
+    exact isClosed_singleton.preimage (continuous_const.inner continuous_id)
+
+@[simp] theorem mem_properSupportingHyperplane {a x : E} :
+    x ∈ properSupportingHyperplane a ↔ ⟪a, x⟫_ℝ = 0 := by
+  change x ∈ (LinearMap.ker (innerₗ E a) : Submodule ℝ E) ↔ _
+  simp [LinearMap.mem_ker, innerₗ_apply_apply]
+
+/-- Exposed face represented as a closed cone, for use in the closed-cone fan family. -/
+noncomputable def properExposedFace (C : ProperCone ℝ E) (a : E) : ProperCone ℝ E :=
+  C ⊓ properSupportingHyperplane a
+
+@[simp] theorem mem_properExposedFace {C : ProperCone ℝ E} {a x : E} :
+    x ∈ properExposedFace C a ↔ x ∈ C ∧ ⟪a, x⟫_ℝ = 0 := by
+  simp [properExposedFace]
+
+/-- A closed exposed face belongs to its input fan. -/
+theorem properExposedFace_isExposedFaceOf [CompleteSpace E] {C : ProperCone ℝ E} {a : E}
+    (ha : a ∈ coneDual (C : Set E)) : IsExposedFaceOf (properExposedFace C a) C := by
+  refine ⟨a, ha, ?_⟩
+  ext x
+  simp [properExposedFace, properSupportingHyperplane, mem_exposedFace,
+    LinearMap.mem_ker, innerₗ_apply_apply]
+
+/-- Dual decomposition condition needed to prove exposed-face closure for pairwise intersections. -/
+def HasIntersectionDualDecomposition [CompleteSpace E] (F G : Fan E) : Prop :=
+  ∀ C ∈ F, ∀ D ∈ G, ∀ a : E,
+    a ∈ coneDual ((C : Set E) ∩ (D : Set E)) →
+      ∃ b c : E, a = b + c ∧ b ∈ coneDual (C : Set E) ∧ c ∈ coneDual (D : Set E)
+
+/-- If dual vectors of each cell intersection split between input dual cones, then the
+pairwise-intersection family is closed under exposed faces. -/
+theorem intersectionFamily_faces_mem [CompleteSpace E] {F G : Fan E}
+    (hF : IsPolyhedralFan F) (hG : IsPolyhedralFan G)
+    (hdual : HasIntersectionDualDecomposition F G) :
+    ∀ C' ∈ intersectionFamily F G, ∀ H : ProperCone ℝ E,
+      IsExposedFaceOf H C' → H ∈ intersectionFamily F G := by
+  classical
+  intro K hK H hHK
+  rcases Finset.mem_image.mp hK with ⟨⟨C, D⟩, hpair, rfl⟩
+  rcases Finset.mem_product.mp hpair with ⟨hC, hD⟩
+  rcases hHK with ⟨a, ha, hset⟩
+  have ha' : a ∈ coneDual ((C : Set E) ∩ (D : Set E)) := by
+    rw [mem_coneDual]
+    rw [mem_coneDual] at ha
+    intro x hx
+    have hx' : x ∈ (C ⊓ D : ProperCone ℝ E) := by simpa using hx
+    exact ha hx'
+  obtain ⟨b, c, hab, hb, hc⟩ := hdual C hC D hD a ha'
+  let C' := properExposedFace C b
+  let D' := properExposedFace D c
+  have hC' : C' ∈ F := hF.faces_mem C hC C' (properExposedFace_isExposedFaceOf hb)
+  have hD' : D' ∈ G := hG.faces_mem D hD D' (properExposedFace_isExposedFaceOf hc)
+  have hcell : C' ⊓ D' ∈ intersectionFamily F G := by
+    apply Finset.mem_image.mpr
+    exact ⟨(C', D'), Finset.mem_product.mpr ⟨hC', hD'⟩, rfl⟩
+  have hset' : ((H : PointedCone ℝ E) : Set E) =
+      ((C' ⊓ D' : ProperCone ℝ E) : PointedCone ℝ E) := by
+    rw [hset]
+    ext x
+    change ((x ∈ C ∧ x ∈ D) ∧ ⟪a, x⟫_ℝ = 0) ↔
+      ((x ∈ C ∧ ⟪b, x⟫_ℝ = 0) ∧ x ∈ D ∧ ⟪c, x⟫_ℝ = 0)
+    have hinner : ⟪a, x⟫_ℝ = ⟪b, x⟫_ℝ + ⟪c, x⟫_ℝ := by
+      calc
+        ⟪a, x⟫_ℝ = ⟪b + c, x⟫_ℝ := by rw [hab]
+        _ = ⟪x, b + c⟫_ℝ := real_inner_comm _ _
+        _ = ⟪x, b⟫_ℝ + ⟪x, c⟫_ℝ := inner_add_right (𝕜 := ℝ) x b c
+        _ = ⟪b, x⟫_ℝ + ⟪c, x⟫_ℝ := by rw [real_inner_comm x b, real_inner_comm x c]
+    constructor
+    · rintro ⟨⟨hxC, hxD⟩, hzero⟩
+      have hbn := inner_nonneg_of_mem_coneDual hb hxC
+      have hcn := inner_nonneg_of_mem_coneDual hc hxD
+      have hsum : ⟪b, x⟫_ℝ + ⟪c, x⟫_ℝ = 0 := by rw [← hinner, hzero]
+      have hbzero : ⟪b, x⟫_ℝ = 0 := by nlinarith
+      have hczero : ⟪c, x⟫_ℝ = 0 := by nlinarith
+      exact ⟨⟨hxC, hbzero⟩, hxD, hczero⟩
+    · rintro ⟨⟨hxC, hbzero⟩, hxD, hczero⟩
+      refine ⟨⟨hxC, hxD⟩, ?_⟩
+      rw [hinner, hbzero, hczero]
+      ring
+  have hpc : (H : PointedCone ℝ E) =
+      (C' ⊓ D' : ProperCone ℝ E) := SetLike.coe_injective hset'
+  have hcone : H = C' ⊓ D' := ProperCone.toPointedCone_injective hpc
+  rw [hcone]
+  exact hcell
+
+/-- Pairwise intersections form a polyhedral fan once the dual-decomposition condition holds. -/
+theorem intersectionFamily_isPolyhedralFan [CompleteSpace E] {F G : Fan E}
+    (hF : IsPolyhedralFan F) (hG : IsPolyhedralFan G)
+    (hdual : HasIntersectionDualDecomposition F G) :
+    IsPolyhedralFan (intersectionFamily F G) :=
+  ⟨intersectionFamily_faces_mem hF hG hdual,
+    intersectionFamily_inter_common hF hG,
+    intersectionFamily_covers hF hG⟩
+
+
+/-- The dual of a finitely generated cone is the dual of its generators. -/
+theorem coneDual_hull_eq [CompleteSpace E] (T : Finset E) :
+    (coneDual (PointedCone.hull ℝ (T : Set E) : Set E) : Set E) =
+      (PointedCone.dual (innerₗ E) (T : Set E) : Set E) := by
+  ext x
+  change x ∈ coneDual (PointedCone.hull ℝ (T : Set E) : Set E) ↔
+    x ∈ PointedCone.dual (innerₗ E) (T : Set E)
+  rw [mem_coneDual]
+  change (∀ ⦃y⦄, y ∈ PointedCone.hull ℝ (T : Set E) → 0 ≤ ⟪y, x⟫_ℝ) ↔
+    x ∈ PointedCone.dual (innerₗ E) (T : Set E)
+  rw [PointedCone.mem_dual]
+  constructor
+  · intro h y hy
+    exact h (PointedCone.subset_hull hy)
+  · intro h y hy
+    induction hy using Submodule.span_induction with
+    | mem y hy => exact h hy
+    | zero => simp
+    | add y z _ _ hy hz =>
+        rw [inner_add_left (𝕜 := ℝ)]
+        exact add_nonneg hy hz
+    | smul c y _ hy =>
+        rw [← Nonneg.coe_smul, real_inner_smul_left]
+        exact mul_nonneg c.2 hy
+
+/-- For dual-finitely-generated cones, every dual vector of an intersection splits as a sum
+of dual vectors of the two cones. -/
+theorem coneDual_intersection_decomp_of_dualFG [CompleteSpace E] {C D : ProperCone ℝ E}
+    (hCfin : (C : PointedCone ℝ E).DualFG (innerₗ E))
+    (hDfin : (D : PointedCone ℝ E).DualFG (innerₗ E))
+    {a : E} (ha : a ∈ coneDual ((C : Set E) ∩ (D : Set E))) :
+    ∃ b c : E, a = b + c ∧ b ∈ coneDual (C : Set E) ∧ c ∈ coneDual (D : Set E) := by
+  classical
+  obtain ⟨S, hCfin⟩ := hCfin
+  obtain ⟨T, hDfin⟩ := hDfin
+  let A : ProperCone ℝ E := properConeOfFinset S
+  let B : ProperCone ℝ E := properConeOfFinset T
+  let U : ProperCone ℝ E := properConeOfFinset (S ∪ T)
+  have hAco : (A : Set E) = (PointedCone.hull ℝ (S : Set E) : Set E) := by
+    simpa [A] using coe_properConeOfFinset S
+  have hBco : (B : Set E) = (PointedCone.hull ℝ (T : Set E) : Set E) := by
+    simpa [B] using coe_properConeOfFinset T
+  have hUco : (U : Set E) = (PointedCone.hull ℝ (S ∪ T : Set E) : Set E) := by
+    simpa [U] using coe_properConeOfFinset (S ∪ T)
+  have hAdualSet : (coneDual (A : Set E) : Set E) =
+      (PointedCone.dual (innerₗ E) (S : Set E) : Set E) := by
+    rw [hAco]
+    exact coneDual_hull_eq S
+  have hBdualSet : (coneDual (B : Set E) : Set E) =
+      (PointedCone.dual (innerₗ E) (T : Set E) : Set E) := by
+    rw [hBco]
+    exact coneDual_hull_eq T
+  have hUdualSet : (coneDual (U : Set E) : Set E) =
+      (PointedCone.dual (innerₗ E) ((S ∪ T : Finset E) : Set E) : Set E) := by
+    rw [hUco]
+    simpa only [Finset.coe_union] using coneDual_hull_eq (S ∪ T)
+  have hAdual : (coneDual (A : Set E) : PointedCone ℝ E) =
+      PointedCone.dual (innerₗ E) (S : Set E) := SetLike.coe_injective hAdualSet
+  have hBdual : (coneDual (B : Set E) : PointedCone ℝ E) =
+      PointedCone.dual (innerₗ E) (T : Set E) := SetLike.coe_injective hBdualSet
+  have hUdual : (coneDual (U : Set E) : PointedCone ℝ E) =
+      PointedCone.dual (innerₗ E) ((S ∪ T : Finset E) : Set E) := SetLike.coe_injective hUdualSet
+  have hCset : (C : Set E) = (coneDual (A : Set E) : Set E) := by
+    ext x
+    change x ∈ (C : PointedCone ℝ E) ↔
+      x ∈ (coneDual (A : Set E) : PointedCone ℝ E)
+    rw [← hCfin, hAdual]
+  have hDset : (D : Set E) = (coneDual (B : Set E) : Set E) := by
+    ext x
+    change x ∈ (D : PointedCone ℝ E) ↔
+      x ∈ (coneDual (B : Set E) : PointedCone ℝ E)
+    rw [← hDfin, hBdual]
+  have hCdualSet : (coneDual (C : Set E) : Set E) = (A : Set E) := by
+    calc
+      (coneDual (C : Set E) : Set E) =
+          (coneDual (coneDual (A : Set E) : Set E) : Set E) := by rw [hCset]
+      _ = (A : Set E) := congrArg (fun K : ProperCone ℝ E => (K : Set E)) (cone_dual_dual A)
+  have hDdualSet : (coneDual (D : Set E) : Set E) = (B : Set E) := by
+    calc
+      (coneDual (D : Set E) : Set E) =
+          (coneDual (coneDual (B : Set E) : Set E) : Set E) := by rw [hDset]
+      _ = (B : Set E) := congrArg (fun K : ProperCone ℝ E => (K : Set E)) (cone_dual_dual B)
+  have hKset : (C : Set E) ∩ (D : Set E) = (coneDual (U : Set E) : Set E) := by
+    ext x
+    rw [hCset, hDset, hAdualSet, hBdualSet, hUdualSet]
+    change (x ∈ PointedCone.dual (innerₗ E) (S : Set E) ∧
+      x ∈ PointedCone.dual (innerₗ E) (T : Set E)) ↔
+      x ∈ PointedCone.dual (innerₗ E) ((S ∪ T : Finset E) : Set E)
+    rw [show ((S ∪ T : Finset E) : Set E) = (S : Set E) ∪ (T : Set E) by simp]
+    rw [PointedCone.dual_union]
+    simp
+  have hKinf : (C ⊓ D : ProperCone ℝ E) = coneDual (U : Set E) := by
+    apply ProperCone.ext
+    intro x
+    have hmem : x ∈ (C ⊓ D : ProperCone ℝ E) ↔ x ∈ coneDual (U : Set E) := by
+      change (x ∈ (C : Set E) ∧ x ∈ (D : Set E)) ↔
+        x ∈ (coneDual (U : Set E) : Set E)
+      exact Iff.of_eq (congrArg (fun s : Set E => x ∈ s) hKset)
+    exact hmem
+  have hKdual : (coneDual ((C : Set E) ∩ (D : Set E)) : Set E) = (U : Set E) := by
+    have hInfSet : (C ⊓ D : ProperCone ℝ E) = (C : Set E) ∩ (D : Set E) := by
+      ext x
+      simp
+    rw [← hInfSet, hKinf]
+    exact congrArg (fun K : ProperCone ℝ E => (K : Set E)) (cone_dual_dual U)
+  have haU : a ∈ (U : Set E) := by
+    rw [← hKdual]
+    exact ha
+  have hUsup : (U : PointedCone ℝ E) =
+      (A : PointedCone ℝ E) ⊔ (B : PointedCone ℝ E) := by
+    apply PointedCone.ext
+    intro x
+    change x ∈ Submodule.span (Nonneg ℝ) ((S ∪ T : Finset E) : Set E) ↔
+      x ∈ Submodule.span (Nonneg ℝ) (S : Set E) ⊔
+        Submodule.span (Nonneg ℝ) (T : Set E)
+    rw [Finset.coe_union, Submodule.span_union]
+  have haSup : a ∈ (A : PointedCone ℝ E) ⊔ (B : PointedCone ℝ E) := by
+    change a ∈ (U : PointedCone ℝ E) at haU
+    rw [hUsup] at haU
+    exact haU
+  rcases Submodule.mem_sup.mp haSup with ⟨b, hbA, c, hcB, hbc⟩
+  have hb : b ∈ coneDual (C : Set E) := by
+    exact (Iff.of_eq (congrArg (fun s : Set E => b ∈ s) hCdualSet)).mpr hbA
+  have hc : c ∈ coneDual (D : Set E) := by
+    exact (Iff.of_eq (congrArg (fun s : Set E => c ∈ s) hDdualSet)).mpr hcB
+  exact ⟨b, c, hbc.symm, hb, hc⟩
+
+/-- Every cell of a fan is dual-finitely-generated. -/
+def HasDualFGCells [CompleteSpace E] (F : Fan E) : Prop :=
+  ∀ C ∈ F, (C : PointedCone ℝ E).DualFG (innerₗ E)
+
+/-- Dual-finitely-generated cells provide the decomposition used for exposed-face closure. -/
+theorem intersectionFamily_dualDecomposition [CompleteSpace E] {F G : Fan E}
+    (hF : HasDualFGCells F) (hG : HasDualFGCells G) :
+    HasIntersectionDualDecomposition F G := by
+  intro C hC D hD a ha
+  exact coneDual_intersection_decomp_of_dualFG (hF C hC) (hG D hD) ha
+
+/-- The pairwise-intersection family is a polyhedral fan when both input fans have
+dual-finitely-generated cells. -/
+theorem intersectionFamily_isPolyhedralFan_of_dualFG [CompleteSpace E] {F G : Fan E}
+    (hF : IsPolyhedralFan F) (hG : IsPolyhedralFan G)
+    (hFdual : HasDualFGCells F) (hGdual : HasDualFGCells G) :
+    IsPolyhedralFan (intersectionFamily F G) :=
+  intersectionFamily_isPolyhedralFan hF hG (intersectionFamily_dualDecomposition hFdual hGdual)
 
 /-- **Admissibility transfers from fine to coarse.** If a finer cell `C'` is contained in a coarse
 cell `C` and the normal `n` attracts toward `C'` (`n ∈ C'`), then `n` attracts toward `C`: the
