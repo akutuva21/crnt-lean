@@ -127,6 +127,102 @@ theorem Network.exists_uniform_sourceOrderInterior_margin_on_compact
   change 0 < f p at hstrict
   exact hstrict
 
+/-- **Finite source-order wall cover of a compact positive patch.** If every point of a compact
+positive non-equilibrium patch has an interior direction in its selected source-order chamber,
+continuity gives a neighborhood with a positive margin for that direction. Compactness extracts
+finitely many such directions and one common margin, with at least one selected wall supporting at
+each point. This is the finite local wall data needed before the blueprint's separate tile and
+offset gluing step. -/
+theorem Network.exists_finite_sourceOrderWallCover_on_compact
+    (N : Network S) (κ : N.RateConstants) {xstar : Concentration S}
+    (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {K : Set (EuclideanSpace ℝ S)} (hK : IsCompact K) (hne : K.Nonempty)
+    (hpos : ∀ p ∈ K, Concentration.Positive (toEuclid.symm p))
+    (hnotcb : ∀ p ∈ K, ¬ N.IsComplexBalanced κ (toEuclid.symm p))
+    (hdir : ∀ p ∈ K, ∃ z : N.euclideanStoichSubspace,
+      z ∈ interior (((N.relativeSourceOrderNegativeCone
+        (N.relativeLogStoichProjection
+          (fun s => Real.log (toEuclid.symm p s) - Real.log (xstar s)))).comap
+            N.euclideanStoichSubspace.subtypeL :
+              ProperCone ℝ N.euclideanStoichSubspace) : Set N.euclideanStoichSubspace)) :
+    ∃ z : K → N.euclideanStoichSubspace,
+      (∀ p, z p ∈ interior (((N.relativeSourceOrderNegativeCone
+        (N.relativeLogStoichProjection
+          (fun s => Real.log (toEuclid.symm p.1 s) - Real.log (xstar s)))).comap
+            N.euclideanStoichSubspace.subtypeL :
+              ProperCone ℝ N.euclideanStoichSubspace) : Set N.euclideanStoichSubspace)) ∧
+      ∃ t : Finset K, ∃ ε : ℝ, 0 < ε ∧
+        ∀ y ∈ K, ∃ p ∈ t,
+          ε ≤ ⟪(z p).1, toEuclid (N.massActionVectorField κ (toEuclid.symm y))⟫_ℝ := by
+  classical
+  let z : K → N.euclideanStoichSubspace := fun p => Classical.choose (hdir p.1 p.2)
+  have hz (p : K) : z p ∈ interior (((N.relativeSourceOrderNegativeCone
+      (N.relativeLogStoichProjection
+        (fun s => Real.log (toEuclid.symm p.1 s) - Real.log (xstar s)))).comap
+          N.euclideanStoichSubspace.subtypeL :
+            ProperCone ℝ N.euclideanStoichSubspace) : Set N.euclideanStoichSubspace) :=
+    Classical.choose_spec (hdir p.1 p.2)
+  let wallField (w : N.euclideanStoichSubspace) (y : EuclideanSpace ℝ S) : ℝ :=
+    ⟪w.1, toEuclid (N.massActionVectorField κ (toEuclid.symm y))⟫_ℝ
+  have hfield : Continuous (fun y : EuclideanSpace ℝ S =>
+      toEuclid (N.massActionVectorField κ (toEuclid.symm y))) := by
+    exact (LinearMap.continuous_of_finiteDimensional (toEuclid (ι := S)).toLinearMap).comp
+      ((Network.continuous_massActionVectorField N κ).comp
+        (LinearMap.continuous_of_finiteDimensional (toEuclid (ι := S)).symm.toLinearMap))
+  have hwallContinuous (w : N.euclideanStoichSubspace) : Continuous (wallField w) := by
+    dsimp [wallField]
+    exact continuous_const.inner hfield
+  have hwallPositive (p : K) : 0 < wallField (z p) p.1 := by
+    have hstrict := N.massActionVectorField_inner_pos_of_mem_interior_sourceOrderNegativeCone
+      κ (hpos p.1 p.2) hxs hcb (hnotcb p.1 p.2) (hz p)
+    change 0 < wallField (z p) p.1 at hstrict
+    exact hstrict
+  let margin (p : K) : ℝ := wallField (z p) p.1 / 2
+  let U : EuclideanSpace ℝ S → Set (EuclideanSpace ℝ S) := fun x =>
+    if hx : x ∈ K then
+      {y | margin ⟨x, hx⟩ < wallField (z ⟨x, hx⟩) y}
+    else Set.univ
+  have hopen : ∀ x ∈ K, IsOpen (U x) := by
+    intro x hx
+    have heq : U x = {y | margin ⟨x, hx⟩ < wallField (z ⟨x, hx⟩) y} := by
+      simp [U, hx]
+    rw [heq]
+    exact isOpen_lt continuous_const (hwallContinuous (z ⟨x, hx⟩))
+  have hmem : ∀ x ∈ K, x ∈ U x := by
+    intro x hx
+    have hposx := hwallPositive ⟨x, hx⟩
+    simp only [U, dif_pos hx, Set.mem_setOf_eq]
+    dsimp [margin]
+    linarith
+  obtain ⟨t, htcover⟩ :=
+    SmoothBarrierGluing.exists_finite_chart_centers hK U hopen hmem
+  have htne : t.Nonempty := by
+    by_contra h
+    have ht0 : t = ∅ := Finset.not_nonempty_iff_eq_empty.mp h
+    obtain ⟨x, hx⟩ := hne
+    have hxcover := htcover hx
+    simp [ht0] at hxcover
+  obtain ⟨p₀, hp₀, hmin⟩ := Finset.exists_mem_eq_inf' htne margin
+  let ε : ℝ := t.inf' htne margin
+  have hε : 0 < ε := by
+    dsimp [ε]
+    rw [hmin]
+    dsimp [margin]
+    exact half_pos (hwallPositive p₀)
+  have hεle (p : K) (hp : p ∈ t) : ε ≤ margin p := by
+    dsimp [ε]
+    exact Finset.inf'_le _ hp
+  refine ⟨z, hz, t, ε, hε, ?_⟩
+  intro y hy
+  have hycover := htcover hy
+  rcases Set.mem_iUnion.mp hycover with ⟨p, hpcover⟩
+  rcases Set.mem_iUnion.mp hpcover with ⟨hp, hyU⟩
+  refine ⟨p, hp, ?_⟩
+  have hyMargin : margin p < wallField (z p) y := by
+    change y ∈ U p.1 at hyU
+    simpa [U, p.2] using hyU
+  exact le_of_lt (lt_of_le_of_lt (hεle p hp) hyMargin)
+
 
 /-- **Finite active-wall toric field glues with one strict derivative margin.**  The common compact
 wall margin supplied by weak reversibility feeds directly into `smoothWallList_descends_strictly`:
