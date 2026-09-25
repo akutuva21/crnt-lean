@@ -2,6 +2,7 @@ import CRNT.Geometry.SmoothBarrierGluing
 import CRNT.Geometry.FanWallsCrossed
 import CRNT.Geometry.ToricStrictSupport
 import CRNT.Dynamics.DissipationBound
+import CRNT.Dynamics.ComplexBalanceStoichFanInclusion
 
 namespace CRNT
 open scoped InnerProductSpace
@@ -88,6 +89,43 @@ theorem Network.WeaklyReversible.exists_uniform_toric_activeWallList_margin_on_c
         rcases hq with rfl | hq
         · exact le_trans (min_le_right _ _) (hmt p hp)
         · exact le_trans (min_le_right _ _) (hmst q hq p hp)
+
+
+/-- **Uniform source-order margin on one compact chamber patch.** If a fixed stoichiometric
+direction lies in the interior of the selected negative source-order cone at every point of a
+compact positive patch, and the patch avoids complex-balanced equilibria, strict chamber attraction
+has a uniform positive margin there. This is the local quantitative input for finite tile gluing;
+the remaining blueprint argument must arrange that each tile's band stays inside its chamber patch.
+-/
+theorem Network.exists_uniform_sourceOrderInterior_margin_on_compact
+    (N : Network S) (κ : N.RateConstants) {xstar : Concentration S}
+    (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {K : Set (EuclideanSpace ℝ S)} (hK : IsCompact K) (hne : K.Nonempty)
+    (hpos : ∀ p ∈ K, Concentration.Positive (toEuclid.symm p))
+    (hnotcb : ∀ p ∈ K, ¬ N.IsComplexBalanced κ (toEuclid.symm p))
+    {z : N.euclideanStoichSubspace}
+    (hz : ∀ p ∈ K,
+      z ∈ interior (((N.relativeSourceOrderNegativeCone
+        (N.relativeLogStoichProjection
+          (fun s => Real.log (toEuclid.symm p s) - Real.log (xstar s)))).comap
+            N.euclideanStoichSubspace.subtypeL :
+              ProperCone ℝ N.euclideanStoichSubspace) : Set N.euclideanStoichSubspace)) :
+    ∃ ε : ℝ, 0 < ε ∧ ∀ p ∈ K,
+      ε ≤ ⟪z.1, toEuclid (N.massActionVectorField κ (toEuclid.symm p))⟫_ℝ := by
+  let f : EuclideanSpace ℝ S → ℝ := fun p =>
+    ⟪z.1, toEuclid (N.massActionVectorField κ (toEuclid.symm p))⟫_ℝ
+  have hfield : Continuous (fun p : EuclideanSpace ℝ S =>
+      toEuclid (N.massActionVectorField κ (toEuclid.symm p))) := by
+    exact (LinearMap.continuous_of_finiteDimensional (toEuclid (ι := S)).toLinearMap).comp
+      ((Network.continuous_massActionVectorField N κ).comp
+        (LinearMap.continuous_of_finiteDimensional (toEuclid (ι := S)).symm.toLinearMap))
+  have hf : Continuous f := continuous_const.inner hfield
+  apply SmoothBarrierGluing.exists_uniform_pos_margin_on_compact hK hne hf.continuousOn
+  intro p hp
+  have hstrict := N.massActionVectorField_inner_pos_of_mem_interior_sourceOrderNegativeCone
+    κ (hpos p hp) hxs hcb (hnotcb p hp) (hz p hp)
+  change 0 < f p at hstrict
+  exact hstrict
 
 
 /-- **Finite active-wall toric field glues with one strict derivative margin.**  The common compact
