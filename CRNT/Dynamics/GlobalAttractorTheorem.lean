@@ -1,4 +1,5 @@
 import CRNT.Dynamics.ComplexBalanceCycleDecomposition
+import CRNT.Dynamics.ComplexBalanceStoichFan
 import CRNT.Dynamics.GlobalPersistence
 import CRNT.Dynamics.SiphonDimensionDescent
 import CRNT.Dynamics.ToricInclusion

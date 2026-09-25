@@ -214,6 +214,86 @@ theorem isPolyhedralFan_empty_clauses :
   · intro C hC; exact absurd hC (Finset.notMem_empty C)
   · intro C hC; exact absurd hC (Finset.notMem_empty C)
 
+/-- Pull a proper cone back along negation. Its carrier is the negative of the original cone. -/
+noncomputable def negatedProperCone (C : ProperCone ℝ E) : ProperCone ℝ E :=
+  C.comap (-(ContinuousLinearMap.id ℝ E))
+
+omit [CompleteSpace E] in
+@[simp] theorem mem_negatedProperCone {C : ProperCone ℝ E} {x : E} :
+    x ∈ negatedProperCone C ↔ -x ∈ C := by
+  simp [negatedProperCone]
+
+omit [CompleteSpace E] in
+/-- Negating a cone twice recovers the original cone. -/
+@[simp] theorem negatedProperCone_negatedProperCone (C : ProperCone ℝ E) :
+    negatedProperCone (negatedProperCone C) = C := by
+  apply ProperCone.ext
+  intro x
+  simp
+
+/-- The finite cone family obtained by negating every cone of a fan. -/
+noncomputable def negatedFan (F : Fan E) : Fan E :=
+  by
+    classical
+    exact F.image negatedProperCone
+
+/-- Negation preserves the polyhedral-fan axioms. Face cuts transform by negating their
+supporting functional; intersections and coverage transform under the same involution. -/
+theorem IsPolyhedralFan.negated {F : Fan E} (hF : IsPolyhedralFan F) :
+    IsPolyhedralFan (negatedFan F) := by
+  classical
+  refine ⟨?_, ?_, ?_⟩
+  · intro C hC D hD
+    rw [negatedFan, Finset.mem_image] at hC
+    obtain ⟨C₀, hC₀, rfl⟩ := hC
+    obtain ⟨a, ha, hset⟩ := hD
+    have ha' : -a ∈ coneDual (C₀ : Set E) := by
+      rw [mem_coneDual]
+      intro x hx
+      have hx' : -x ∈ negatedProperCone C₀ := by
+        rw [mem_negatedProperCone]
+        simpa using hx
+      have hpair := (mem_coneDual.mp ha) hx'
+      simpa using hpair
+    let D₀ : ProperCone ℝ E := negatedProperCone D
+    have hD₀ : IsExposedFaceOf D₀ C₀ := by
+      refine ⟨-a, ha', ?_⟩
+      change (D₀ : Set E) =
+        (exposedFace (C₀ : PointedCone ℝ E) (-a) : Set E)
+      ext x
+      change x ∈ D₀ ↔ x ∈ exposedFace (C₀ : PointedCone ℝ E) (-a)
+      have hDset (y : E) : y ∈ D ↔
+          y ∈ exposedFace (negatedProperCone C₀ : PointedCone ℝ E) a := by
+        exact Iff.of_eq (congrArg (fun A : Set E => y ∈ A) hset)
+      rw [mem_negatedProperCone, hDset, mem_exposedFace]
+      simp
+    have hD₀F : D₀ ∈ F := hF.faces_mem C₀ hC₀ D₀ hD₀
+    rw [negatedFan]
+    apply Finset.mem_image.mpr
+    refine ⟨D₀, hD₀F, ?_⟩
+    exact negatedProperCone_negatedProperCone D
+  · intro C hC D hD
+    rw [negatedFan, Finset.mem_image] at hC hD
+    obtain ⟨C₀, hC₀, rfl⟩ := hC
+    obtain ⟨D₀, hD₀, rfl⟩ := hD
+    obtain ⟨G₀, hG₀, hGset⟩ := hF.inter_common C₀ hC₀ D₀ hD₀
+    refine ⟨negatedProperCone G₀, ?_, ?_⟩
+    · rw [negatedFan]
+      exact Finset.mem_image.mpr ⟨G₀, hG₀, rfl⟩
+    · ext x
+      change -x ∈ G₀ ↔ -x ∈ C₀ ∧ -x ∈ D₀
+      have hmem := congrArg (fun A : Set E => -x ∈ A) hGset
+      exact Iff.of_eq hmem
+  · ext x
+    simp only [Set.mem_iUnion, SetLike.mem_coe, Set.mem_univ, iff_true]
+    have hcover : -x ∈ ⋃ C ∈ F, (C : Set E) := by
+      rw [hF.covers]
+      trivial
+    simp only [Set.mem_iUnion] at hcover
+    obtain ⟨C, hC, hxC⟩ := hcover
+    exact ⟨negatedProperCone C, Finset.mem_image.mpr ⟨C, hC, rfl⟩,
+      by simpa using hxC⟩
+
 end Fan
 
 end CRNT
