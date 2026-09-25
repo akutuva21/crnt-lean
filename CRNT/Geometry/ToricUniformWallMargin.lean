@@ -223,6 +223,149 @@ theorem Network.exists_finite_sourceOrderWallCover_on_compact
     simpa [U, p.2] using hyU
   exact le_of_lt (lt_of_le_of_lt (hεle p hp) hyMargin)
 
+/-- The negative relative-log gradient belongs to the selected closed source-order cone and has
+strictly positive pairing with the mass-action field away from complex balance. The projection
+does not change the pairing because the field lies in the stoichiometric subspace. -/
+theorem Network.massActionVectorField_inner_negRelativeLogStoichProjection_pos
+    (N : Network S) (κ : N.RateConstants) {x xstar : Concentration S}
+    (hx : x.Positive) (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    (hnotcb : ¬ N.IsComplexBalanced κ x) :
+    0 < ⟪-toEuclid (N.relativeLogStoichProjection
+      (fun s => Real.log (x s) - Real.log (xstar s))),
+      toEuclid (N.massActionVectorField κ x)⟫_ℝ := by
+  let u : S → ℝ := fun s => Real.log (x s) - Real.log (xstar s)
+  let X : EuclideanSpace ℝ S := toEuclid u
+  let F : EuclideanSpace ℝ S := toEuclid (N.massActionVectorField κ x)
+  have hfieldStoich : N.massActionVectorField κ x ∈ N.stoichSubspace := by
+    rw [N.massActionVectorField_eq_sum κ x]
+    exact Submodule.sum_mem _ fun r _ =>
+      Submodule.smul_mem _ _ (N.reactionVector_mem_stoichSubspace r)
+  have hF : F ∈ N.euclideanStoichSubspace := by
+    change toEuclid (N.massActionVectorField κ x) ∈ N.euclideanStoichSubspace
+    rw [Network.euclideanStoichSubspace, Submodule.mem_map]
+    exact ⟨N.massActionVectorField κ x, hfieldStoich, rfl⟩
+  let P : EuclideanSpace ℝ S := N.euclideanStoichSubspace.starProjection X
+  have horth : ⟪X - P, F⟫_ℝ = 0 :=
+    N.euclideanStoichSubspace.starProjection_inner_eq_zero X F hF
+  have hproj : toEuclid (N.relativeLogStoichProjection u) = P := by
+    simp [P, relativeLogStoichProjection, X]
+  have hpair : ⟪X, F⟫_ℝ = ⟪P, F⟫_ℝ := by
+    calc
+      ⟪X, F⟫_ℝ = ⟪(X - P) + P, F⟫_ℝ := by congr 1; abel
+      _ = ⟪X - P, F⟫_ℝ + ⟪P, F⟫_ℝ := inner_add_left _ _ _
+      _ = ⟪P, F⟫_ℝ := by rw [horth, zero_add]
+  have hdiss : (∑ s, u s * N.massActionVectorField κ x s) < 0 := by
+    have hle := N.dissipation_nonpos κ hx hxs hcb
+    by_contra hnot
+    have hge : 0 ≤ ∑ s, u s * N.massActionVectorField κ x s := not_lt.mp hnot
+    have heq : (∑ s, u s * N.massActionVectorField κ x s) = 0 := le_antisymm hle hge
+    exact hnotcb (N.complexBalanced_of_dissipation_eq_zero κ hx hxs hcb (by simpa [u] using heq))
+  have hpairFull : ⟪X, F⟫_ℝ = ∑ s, u s * N.massActionVectorField κ x s := by
+    simp [X, F, u, inner_toEuclid]
+  have hpairProj :
+      ⟪toEuclid (N.relativeLogStoichProjection u), F⟫_ℝ =
+        ∑ s, u s * N.massActionVectorField κ x s := by
+    rw [hproj]
+    exact hpair.symm.trans hpairFull
+  have hresult : 0 < -⟪toEuclid (N.relativeLogStoichProjection u), F⟫_ℝ := by
+    rw [hpairProj]
+    exact neg_pos.mpr hdiss
+  simpa [u, F] using hresult
+
+/-- **Finite tie-safe source-order wall cover.** On a compact positive patch avoiding
+complex-balanced equilibria, the negative projected relative-log gradient supplies a positive
+wall direction at every point, including source-order ties where the selected closed chamber has
+empty interior. Continuity and compactness produce finitely many such directions with a common
+positive margin. This is local wall data only; tile offsets and a single separating band require
+additional gluing hypotheses. -/
+theorem Network.exists_finite_negativeLogWallCover_on_compact
+    (N : Network S) (κ : N.RateConstants) {xstar : Concentration S}
+    (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {K : Set (EuclideanSpace ℝ S)} (hK : IsCompact K) (hne : K.Nonempty)
+    (hpos : ∀ p ∈ K, Concentration.Positive (toEuclid.symm p))
+    (hnotcb : ∀ p ∈ K, ¬ N.IsComplexBalanced κ (toEuclid.symm p)) :
+    ∃ z : K → N.euclideanStoichSubspace,
+      (∀ p, (z p).1 ∈ N.relativeSourceOrderNegativeCone
+        (N.relativeLogStoichProjection
+          (fun s => Real.log (toEuclid.symm p.1 s) - Real.log (xstar s)))) ∧
+      ∃ t : Finset K, ∃ ε : ℝ, 0 < ε ∧
+        ∀ y ∈ K, ∃ p ∈ t,
+          ε ≤ ⟪(z p).1, toEuclid (N.massActionVectorField κ (toEuclid.symm y))⟫_ℝ := by
+  classical
+  let u (p : K) : S → ℝ := fun s =>
+    Real.log (toEuclid.symm p.1 s) - Real.log (xstar s)
+  let z (p : K) : N.euclideanStoichSubspace :=
+    ⟨-toEuclid (N.relativeLogStoichProjection (u p)), by
+      rw [Network.euclideanStoichSubspace, Submodule.mem_map]
+      refine ⟨-N.relativeLogStoichProjection (u p),
+        N.stoichSubspace.neg_mem (N.relativeLogStoichProjection_mem (u p)), ?_⟩
+      simp⟩
+  have hz (p : K) : (z p).1 ∈ N.relativeSourceOrderNegativeCone
+      (N.relativeLogStoichProjection (u p)) := by
+    change -toEuclid (N.relativeLogStoichProjection (u p)) ∈ _
+    exact N.negativeRelativeLogStoichProjection_mem_relativeSourceOrderNegativeCone (u p)
+  let wallField (w : N.euclideanStoichSubspace) (y : EuclideanSpace ℝ S) : ℝ :=
+    ⟪w.1, toEuclid (N.massActionVectorField κ (toEuclid.symm y))⟫_ℝ
+  have hfield : Continuous (fun y : EuclideanSpace ℝ S =>
+      toEuclid (N.massActionVectorField κ (toEuclid.symm y))) := by
+    exact (LinearMap.continuous_of_finiteDimensional (toEuclid (ι := S)).toLinearMap).comp
+      ((Network.continuous_massActionVectorField N κ).comp
+        (LinearMap.continuous_of_finiteDimensional (toEuclid (ι := S)).symm.toLinearMap))
+  have hwallContinuous (w : N.euclideanStoichSubspace) : Continuous (wallField w) := by
+    dsimp [wallField]
+    exact continuous_const.inner hfield
+  have hwallPositive (p : K) : 0 < wallField (z p) p.1 := by
+    have h := N.massActionVectorField_inner_negRelativeLogStoichProjection_pos κ
+      (hpos p.1 p.2) hxs hcb (hnotcb p.1 p.2)
+    change 0 < ⟪-toEuclid (N.relativeLogStoichProjection (u p)),
+      toEuclid (N.massActionVectorField κ (toEuclid.symm p.1))⟫_ℝ at h
+    simpa [wallField, z, u] using h
+  let margin (p : K) : ℝ := wallField (z p) p.1 / 2
+  let U : EuclideanSpace ℝ S → Set (EuclideanSpace ℝ S) := fun x =>
+    if hx : x ∈ K then
+      {y | margin ⟨x, hx⟩ < wallField (z ⟨x, hx⟩) y}
+    else Set.univ
+  have hopen : ∀ x ∈ K, IsOpen (U x) := by
+    intro x hx
+    have heq : U x = {y | margin ⟨x, hx⟩ < wallField (z ⟨x, hx⟩) y} := by
+      simp [U, hx]
+    rw [heq]
+    exact isOpen_lt continuous_const (hwallContinuous (z ⟨x, hx⟩))
+  have hmem : ∀ x ∈ K, x ∈ U x := by
+    intro x hx
+    have hposx := hwallPositive ⟨x, hx⟩
+    simp only [U, dif_pos hx, Set.mem_setOf_eq]
+    dsimp [margin]
+    linarith
+  obtain ⟨t, htcover⟩ :=
+    SmoothBarrierGluing.exists_finite_chart_centers hK U hopen hmem
+  have htne : t.Nonempty := by
+    by_contra h
+    have ht0 : t = ∅ := Finset.not_nonempty_iff_eq_empty.mp h
+    obtain ⟨x, hx⟩ := hne
+    have hxcover := htcover hx
+    simp [ht0] at hxcover
+  obtain ⟨p₀, hp₀, hmin⟩ := Finset.exists_mem_eq_inf' htne margin
+  let ε : ℝ := t.inf' htne margin
+  have hε : 0 < ε := by
+    dsimp [ε]
+    rw [hmin]
+    dsimp [margin]
+    exact half_pos (hwallPositive p₀)
+  have hεle (p : K) (hp : p ∈ t) : ε ≤ margin p := by
+    dsimp [ε]
+    exact Finset.inf'_le _ hp
+  refine ⟨z, hz, t, ε, hε, ?_⟩
+  intro y hy
+  have hycover := htcover hy
+  rcases Set.mem_iUnion.mp hycover with ⟨p, hpcover⟩
+  rcases Set.mem_iUnion.mp hpcover with ⟨hp, hyU⟩
+  refine ⟨p, hp, ?_⟩
+  have hyMargin : margin p < wallField (z p) y := by
+    change y ∈ U p.1 at hyU
+    simpa [U, p.2] using hyU
+  exact le_of_lt (lt_of_le_of_lt (hεle p hp) hyMargin)
+
 
 /-- **Finite active-wall toric field glues with one strict derivative margin.**  The common compact
 wall margin supplied by weak reversibility feeds directly into `smoothWallList_descends_strictly`:
