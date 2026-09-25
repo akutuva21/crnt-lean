@@ -123,69 +123,151 @@ theorem massActionVectorField_mem_toricField_relativeSourceOrderNegativeConeStoi
   have htoric := CRNT.coneDual_le_toricField hC hnear hdual
   simpa [v, X, C, Cambient] using htoric
 
-/-- The relative-log toric field on concentrations.  Its state is a positive concentration
-vector, while its admissible velocities are the image in concentration coordinates of the
-intrinsic stoichiometric toric field.  At nonpositive states the field is unrestricted so that
-ODE-selection lemmas can be stated without global positivity side conditions. -/
+/-- The relative-log toric field on concentrations.  Its state is a concentration vector, while
+its admissible velocities are the image in concentration coordinates of the intrinsic
+stoichiometric toric field. -/
 noncomputable def relativeSourceOrderToricInclusionField (N : Network S)
     (xstar : Concentration S) (δ : ℝ) :
-    DifferentialInclusion.Field (Concentration S) := by
-  classical
-  exact fun x =>
-    if x.Positive then
-      let u : S → ℝ := fun s => Real.log (x s) - Real.log (xstar s)
-      let w := N.relativeLogStoichProjection u
-      let X : N.euclideanStoichSubspace := ⟨CRNT.toEuclid w, by
-        rw [Network.euclideanStoichSubspace, Submodule.mem_map]
-        exact ⟨w, N.relativeLogStoichProjection_mem u, rfl⟩⟩
-      (fun v : N.euclideanStoichSubspace => CRNT.toEuclid.symm v.1) ''
-        (CRNT.toricField N.relativeSourceOrderNegativeConeStoichFan δ (-X) :
-          Set N.euclideanStoichSubspace)
-    else Set.univ
+    DifferentialInclusion.Field (Concentration S) := fun x =>
+  let u : S → ℝ := fun s => Real.log (x s) - Real.log (xstar s)
+  let w := N.relativeLogStoichProjection u
+  let X : N.euclideanStoichSubspace := ⟨CRNT.toEuclid w, by
+    rw [Network.euclideanStoichSubspace, Submodule.mem_map]
+    exact ⟨w, N.relativeLogStoichProjection_mem u, rfl⟩⟩
+  (fun v : N.euclideanStoichSubspace => CRNT.toEuclid.symm v.1) ''
+    (CRNT.toricField N.relativeSourceOrderNegativeConeStoichFan δ (-X) :
+      Set N.euclideanStoichSubspace)
 
-/-- **Mass-action selects the relative-log toric field.** For a positive complex-balanced
-equilibrium `xstar`, the genuine mass-action velocity is admitted at every concentration.  At
-positive states this is the intrinsic polar-cone inclusion; at other states the field is
-unrestricted. -/
+/-- **Mass-action selects the relative-log toric field.** At every positive concentration, the
+genuine mass-action velocity belongs to the intrinsic toric field built from the source-order fan. -/
 theorem massActionVectorField_mem_relativeSourceOrderToricInclusionField
     (N : Network S) (κ : N.RateConstants) {xstar : Concentration S}
     (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar) {δ : ℝ} (hδ : 0 < δ)
-    (x : Concentration S) :
+    {x : Concentration S} (hx : x.Positive) :
     N.massActionVectorField κ x ∈
       N.relativeSourceOrderToricInclusionField xstar δ x := by
   classical
-  unfold relativeSourceOrderToricInclusionField
-  by_cases hx : x.Positive
-  · simp only [hx]
-    let u : S → ℝ := fun s => Real.log (x s) - Real.log (xstar s)
-    let w := N.relativeLogStoichProjection u
-    let X : N.euclideanStoichSubspace := ⟨CRNT.toEuclid w, by
-      rw [Network.euclideanStoichSubspace, Submodule.mem_map]
-      exact ⟨w, N.relativeLogStoichProjection_mem u, rfl⟩⟩
-    let v : N.euclideanStoichSubspace := ⟨CRNT.toEuclid (N.massActionVectorField κ x), by
-      rw [Network.euclideanStoichSubspace, Submodule.mem_map]
-      exact ⟨N.massActionVectorField κ x,
-        N.massActionVectorField_stoichForFan κ x, rfl⟩⟩
-    have hv := N.massActionVectorField_mem_toricField_relativeSourceOrderNegativeConeStoichFan
-      κ hx hxs hcb hδ
-    have hvX : v ∈ CRNT.toricField N.relativeSourceOrderNegativeConeStoichFan δ (-X) := by
-      simpa [v, X, u, w] using hv
-    simpa [v] using Set.mem_image_of_mem
-      (fun q : N.euclideanStoichSubspace => CRNT.toEuclid.symm q.1) hvX
-  · simp [hx]
+  let u : S → ℝ := fun s => Real.log (x s) - Real.log (xstar s)
+  let w := N.relativeLogStoichProjection u
+  let X : N.euclideanStoichSubspace := ⟨CRNT.toEuclid w, by
+    rw [Network.euclideanStoichSubspace, Submodule.mem_map]
+    exact ⟨w, N.relativeLogStoichProjection_mem u, rfl⟩⟩
+  let v : N.euclideanStoichSubspace := ⟨CRNT.toEuclid (N.massActionVectorField κ x), by
+    rw [Network.euclideanStoichSubspace, Submodule.mem_map]
+    exact ⟨N.massActionVectorField κ x,
+      N.massActionVectorField_stoichForFan κ x, rfl⟩⟩
+  have hv := N.massActionVectorField_mem_toricField_relativeSourceOrderNegativeConeStoichFan
+    κ hx hxs hcb hδ
+  have hvX : v ∈ CRNT.toricField N.relativeSourceOrderNegativeConeStoichFan δ (-X) := by
+    simpa [v, X, u, w] using hv
+  change N.massActionVectorField κ x ∈
+    (fun q : N.euclideanStoichSubspace => CRNT.toEuclid.symm q.1) ''
+      (CRNT.toricField N.relativeSourceOrderNegativeConeStoichFan δ (-X) :
+        Set N.euclideanStoichSubspace)
+  simpa [v] using Set.mem_image_of_mem
+    (fun q : N.euclideanStoichSubspace => CRNT.toEuclid.symm q.1) hvX
+
+/-- Every velocity allowed by the relative-log toric field lies in the stoichiometric subspace. -/
+theorem velocity_mem_stoichSubspace_of_mem_relativeSourceOrderToricInclusionField
+    (N : Network S) (xstar : Concentration S) (δ : ℝ) {x v : Concentration S}
+    (hv : v ∈ N.relativeSourceOrderToricInclusionField xstar δ x) :
+    v ∈ N.stoichSubspace := by
+  classical
+  simp only [relativeSourceOrderToricInclusionField, Set.mem_image] at hv
+  rcases hv with ⟨q, _hq, hqv⟩
+  have hqmem : q.1 ∈ N.euclideanStoichSubspace := q.property
+  change q.1 ∈ Submodule.map CRNT.toEuclid.toLinearMap N.stoichSubspace at hqmem
+  rw [Submodule.mem_map] at hqmem
+  rcases hqmem with ⟨z, hz, hzeq⟩
+  have hqz : CRNT.toEuclid.symm q.1 = z := by
+    apply CRNT.toEuclid.injective
+    simpa using hzeq.symm
+  have hvz : v = z := hqv.symm.trans hqz
+  rw [hvz]
+  exact hz
 
 /-- A genuine mass-action trajectory is a solution of the relative-log toric inclusion. -/
 theorem isInclusionSolution_massAction_relativeSourceOrder
     (N : Network S) (κ : N.RateConstants) {xstar : Concentration S}
     (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar) {δ : ℝ} (hδ : 0 < δ)
     {γ : ℝ → Concentration S}
+    (hpos : ∀ t, (γ t).Positive)
     (hderiv : ∀ t, HasDerivAt γ (N.massActionVectorField κ (γ t)) t) :
     DifferentialInclusion.IsInclusionSolution
       (fun x => N.relativeSourceOrderToricInclusionField xstar δ x) γ := by
-  apply DifferentialInclusion.IsInclusionSolution.of_ode hderiv
-  intro x
-  exact N.massActionVectorField_mem_relativeSourceOrderToricInclusionField
-    κ hxs hcb hδ x
+  intro t
+  have hd := hderiv t
+  have hv := N.massActionVectorField_mem_relativeSourceOrderToricInclusionField
+    κ hxs hcb hδ (hpos t)
+  have hderiv' : deriv γ t = N.massActionVectorField κ (γ t) := hd.deriv
+  constructor
+  · rw [hderiv']
+    exact hd
+  · rw [hderiv']
+    exact hv
+
+/-- A positive forward mass-action solution is an interval solution of the relative-log toric
+inclusion on nonnegative time. -/
+theorem isInclusionSolutionOn_massAction_relativeSourceOrder
+    (N : Network S) (κ : N.RateConstants) {xstar : Concentration S}
+    (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar) {δ : ℝ} (hδ : 0 < δ)
+    {γ : ℝ → Concentration S}
+    (hpos : ∀ t, t ∈ Set.Ici (0 : ℝ) → (γ t).Positive)
+    (hderiv : ∀ t, t ∈ Set.Ici (0 : ℝ) →
+      HasDerivWithinAt γ (N.massActionVectorField κ (γ t)) (Set.Ici (0 : ℝ)) t) :
+    DifferentialInclusion.IsInclusionSolutionOn
+      (fun x => N.relativeSourceOrderToricInclusionField xstar δ x) γ (Set.Ici 0) := by
+  intro t ht
+  have hd := hderiv t ht
+  have hderiv' : derivWithin γ (Set.Ici (0 : ℝ)) t =
+      N.massActionVectorField κ (γ t) := hd.derivWithin (uniqueDiffOn_Ici 0 t ht)
+  refine ⟨?_, ?_⟩
+  · rw [hderiv']
+    exact hd
+  · rw [hderiv']
+    exact N.massActionVectorField_mem_relativeSourceOrderToricInclusionField
+      κ hxs hcb hδ (hpos t ht)
+
+/-- A curve solving the relative-log toric inclusion stays in its initial stoichiometric affine
+class. -/
+theorem sub_mem_stoichSubspace_of_relativeSourceOrderToricInclusionSolution
+    (N : Network S) (xstar : Concentration S) (δ : ℝ)
+    {γ : ℝ → Concentration S} (hsol : DifferentialInclusion.IsInclusionSolution
+      (fun x => N.relativeSourceOrderToricInclusionField xstar δ x) γ)
+    {a b : ℝ} (hab : a ≤ b) :
+    γ b - γ a ∈ N.stoichSubspace := by
+  rw [← orthSum_orthSum N.stoichSubspace, mem_orthSum]
+  intro w hw
+  have hp : ∀ t ∈ Set.Icc a b,
+      HasDerivWithinAt (fun τ => ∑ i, w i * γ τ i) (0 : ℝ) (Set.Icc a b) t := by
+    intro t ht
+    have hzero : (∑ i, w i * deriv γ t i) = 0 := by
+      exact (mem_orthSum.mp hw) _
+        (N.velocity_mem_stoichSubspace_of_mem_relativeSourceOrderToricInclusionField
+          xstar δ (x := γ t) (v := deriv γ t) (hsol t).2)
+    have hfun : (fun τ : ℝ => ∑ i, w i * γ τ i) =
+        ∑ i ∈ (Finset.univ : Finset S), (fun τ : ℝ => w i * γ τ i) := by
+      funext τ
+      rw [Finset.sum_apply]
+    have hd := HasDerivAt.sum (u := (Finset.univ : Finset S))
+      (fun i _ => HasDerivAt.const_mul (w i) ((hasDerivAt_pi.mp (hsol t).1) i))
+    rw [hzero] at hd
+    rw [hfun]
+    exact hd.hasDerivWithinAt
+  have hconst : (∑ i, w i * γ b i) = (∑ i, w i * γ a i) := by
+    have hle := Convex.norm_image_sub_le_of_norm_hasDerivWithin_le (C := 0) hp
+      (fun t _ => by simp) (convex_Icc a b) ⟨le_refl a, hab⟩ ⟨hab, le_refl b⟩
+    simp only [zero_mul] at hle
+    have h0 : ‖(∑ i, w i * γ b i) - (∑ i, w i * γ a i)‖ = 0 :=
+      le_antisymm hle (norm_nonneg _)
+    rwa [norm_eq_zero, sub_eq_zero] at h0
+  calc
+    ∑ i, (γ b - γ a) i * w i
+        = ∑ i, (w i * γ b i - w i * γ a i) :=
+          Finset.sum_congr rfl fun i _ => by rw [Pi.sub_apply]; ring
+    _ = (∑ i, w i * γ b i) - (∑ i, w i * γ a i) :=
+          Finset.sum_sub_distrib (f := fun i => w i * γ b i) (g := fun i => w i * γ a i)
+    _ = 0 := by rw [hconst, sub_self]
 
 
 private theorem euclideanStoichSubspace_subtypeL_isClosedEmbedding (N : Network S) :
