@@ -6267,6 +6267,118 @@ private theorem exists_directed_chord (N : Network S)
       exact hlate ⟨i.1, by omega⟩ (by simpa using hi0)
 
 
+/-- Each species-to-species glued cycle has exactly the edges of its two defining paths. -/
+private theorem ssGlueCycle_containsEdge_iff_speciesPaths {N : Network S} {i j : ℕ}
+    (P : N.TrueSRSSPath (2 * j + 2)) (Q : N.TrueSRSSPath (2 * i + 2))
+    (h : TrueSRSSPath.SSGluable P Q) (e : N.TrueSREdge) :
+    (TrueSRSSPath.ssGlueCycle P Q h).ContainsEdge e ↔
+      (∃ p, e.SameIncidence (P.edge p)) ∨ (∃ q, e.SameIncidence (Q.edge q)) := by
+  simp only [TrueSRSSPath.ssGlueCycle_eq, TrueSRPath.glueCycle_containsEdge_iff]
+  constructor
+  · rintro (⟨p, hp⟩ | ⟨q, hq⟩)
+    · left
+      exact ⟨⟨p.1, by have := p.isLt; have := P.two_le_length; omega⟩, by
+        simpa [TrueSRSSPath.toPath_edge] using hp⟩
+    · by_cases hlt : q.1 < 2 * i + 2
+      · right
+        exact ⟨⟨q.1, hlt⟩, by
+          have hq' := hq
+          rw [TrueSRSSPath.partner,
+            TrueSRSSPath.extend_edge_lt Q P.lastEdge
+              (TrueSRSSPath.extend_hes P Q h)
+              (TrueSRSSPath.extend_hnew P Q h)
+              (TrueSRSSPath.extend_hedge P Q h) q (by omega)] at hq'
+          simpa using hq'⟩
+      · left
+        have hlast : q.1 = 2 * i + 2 := by
+          have := q.isLt
+          omega
+        have hqidx : q = ⟨2 * i + 2, by omega⟩ := Fin.ext hlast
+        rw [hqidx] at hq
+        refine ⟨⟨2 * j + 1, by omega⟩, ?_⟩
+        rw [TrueSRSSPath.partner,
+          TrueSRSSPath.extend_edge_last Q P.lastEdge
+            (TrueSRSSPath.extend_hes P Q h)
+            (TrueSRSSPath.extend_hnew P Q h)
+            (TrueSRSSPath.extend_hedge P Q h) ⟨2 * i + 2, by omega⟩ (by omega),
+          TrueSRSSPath.lastEdge] at hq
+        simpa [hlast] using hq
+  · rintro (⟨p, hp⟩ | ⟨q, hq⟩)
+    · by_cases hlt : p.1 < 2 * j + 1
+      · left
+        exact ⟨⟨p.1, by omega⟩, by
+          simpa [TrueSRSSPath.toPath_edge] using hp⟩
+      · right
+        have hlast : p.1 = 2 * j + 1 := by
+          have := p.isLt
+          omega
+        refine ⟨⟨2 * i + 2, by omega⟩, ?_⟩
+        let r : Fin (2 * i + 2 + 1) := Fin.last (2 * i + 2)
+        have hr : r = (⟨2 * i + 2, by omega⟩ : Fin (2 * i + 2 + 1)) := by
+          apply Fin.ext
+          rfl
+        rw [← hr]
+        rw [TrueSRSSPath.partner,
+          TrueSRSSPath.extend_edge_last Q P.lastEdge
+            (TrueSRSSPath.extend_hes P Q h)
+            (TrueSRSSPath.extend_hnew P Q h)
+            (TrueSRSSPath.extend_hedge P Q h) r (by simp [r]),
+          TrueSRSSPath.lastEdge]
+        have hlastEdge : p = ⟨2 * j + 1, by omega⟩ := Fin.ext hlast
+        rw [hlastEdge] at hp
+        simpa using hp
+    · right
+      have hqL : q.1 < 2 * i + 2 := q.isLt
+      let r : Fin (2 * i + 2 + 1) := ⟨q.1, by omega⟩
+      exact ⟨⟨q.1, by omega⟩, by
+        rw [TrueSRSSPath.partner,
+          TrueSRSSPath.extend_edge_lt Q P.lastEdge
+            (TrueSRSSPath.extend_hes P Q h)
+            (TrueSRSSPath.extend_hnew P Q h)
+            (TrueSRSSPath.extend_hedge P Q h) r hqL]
+        simpa [r] using hq⟩
+
+/-- Two cycles glued from three pairwise compatible species-to-species paths have exactly
+the first path as their common edge set. The common path's endpoints are both species. -/
+private theorem speciesEar_glue_common_edges {N : Network S} {i j k : ℕ}
+    (P : N.TrueSRSSPath (2 * j + 2))
+    (Q : N.TrueSRSSPath (2 * i + 2))
+    (R : N.TrueSRSSPath (2 * k + 2))
+    (hPQ : TrueSRSSPath.SSGluable P Q)
+    (hPR : TrueSRSSPath.SSGluable P R)
+    (hQR : TrueSRSSPath.SSGluable Q R) :
+    let D₁ := TrueSRSSPath.ssGlueCycle P Q hPQ
+    let D₂ := TrueSRSSPath.ssGlueCycle P R hPR
+    (∀ p : Fin (2 * j + 2), D₁.ContainsEdge (P.edge p) ∧ D₂.ContainsEdge (P.edge p)) ∧
+    (∀ e, D₁.ContainsEdge e → D₂.ContainsEdge e →
+      ∃ p : Fin (2 * j + 2), e.SameIncidence (P.edge p)) ∧
+    (∃ s₀ s₁, P.vertex 0 = Sum.inl s₀ ∧
+      P.vertex (Fin.last (2 * j + 2)) = Sum.inl s₁) := by
+  classical
+  let D₁ := TrueSRSSPath.ssGlueCycle P Q hPQ
+  let D₂ := TrueSRSSPath.ssGlueCycle P R hPR
+  change (∀ p : Fin (2 * j + 2), D₁.ContainsEdge (P.edge p) ∧ D₂.ContainsEdge (P.edge p)) ∧ _
+  constructor
+  · intro p
+    constructor
+    · exact (ssGlueCycle_containsEdge_iff_speciesPaths P Q hPQ (P.edge p)).2
+        (Or.inl ⟨p, TrueSREdge.SameIncidence.refl _⟩)
+    · exact (ssGlueCycle_containsEdge_iff_speciesPaths P R hPR (P.edge p)).2
+        (Or.inl ⟨p, TrueSREdge.SameIncidence.refl _⟩)
+  · constructor
+    · intro e he₁ he₂
+      rcases (ssGlueCycle_containsEdge_iff_speciesPaths P Q hPQ e).1 he₁ with hP | hQ
+      · exact hP
+      · rcases (ssGlueCycle_containsEdge_iff_speciesPaths P R hPR e).1 he₂ with hP | hR
+        · exact False.elim (hPQ.edge_disjoint hP.choose hQ.choose
+            (TrueSREdge.SameIncidence.trans (TrueSREdge.SameIncidence.symm hP.choose_spec)
+              hQ.choose_spec))
+        · exact False.elim (hQR.edge_disjoint hQ.choose hR.choose
+            (TrueSREdge.SameIncidence.trans (TrueSREdge.SameIncidence.symm hQ.choose_spec)
+              hR.choose_spec))
+    · exact ⟨P.starts_at_species.choose, P.ends_at_species.choose,
+        P.starts_at_species.choose_spec, P.ends_at_species.choose_spec⟩
+
 /-- **Shinar--Feinberg true-SR strong-concordance theorem.**
 
 Reactant/product separation is required to identify true-SR edge labels with net stoichiometric
