@@ -125,6 +125,58 @@ theorem restrictReactions_avoiding_siphon_weaklyReversible
       (fun q hq => Finset.mem_filter.mpr ⟨Finset.mem_univ q, hq⟩) hback htgt
   simpa using hback'
 
+/-- **A critical siphon has a transverse stoichiometric direction.** If every stoichiometric
+vector vanished on `P`, the indicator of `P` would be a nonnegative conservation law supported
+exactly there, contradicting criticality. Thus some stoichiometric displacement changes a siphon
+coordinate. This is the directional content behind the rank drop of the avoiding-face network. -/
+theorem exists_stoichVector_nonzero_on_criticalSiphon
+    (N : Network S) {P : Finset S} (hcrit : N.IsCriticalSiphon P) :
+    ∃ v : S → ℝ, v ∈ N.stoichSubspace ∧ ∃ s ∈ P, v s ≠ 0 := by
+  classical
+  let K : Submodule ℝ (S → ℝ) := {
+    carrier := {v | ∀ s ∈ P, v s = 0}
+    zero_mem' := by intro s hs; rfl
+    add_mem' := by intro v w hv hw s hs; simp [hv s hs, hw s hs]
+    smul_mem' := by intro a v hv s hs; simp [hv s hs]
+  }
+  have hnot : ¬ N.stoichSubspace ≤ K := by
+    intro hparent
+    let w : S → ℝ := fun s => if s ∈ P then 1 else 0
+    have hwnn : ∀ s, 0 ≤ w s := by
+      intro s
+      by_cases hs : s ∈ P <;> simp [w, hs]
+    have hwpos : ∀ s, 0 < w s ↔ s ∈ P := by
+      intro s
+      by_cases hs : s ∈ P <;> simp [w, hs]
+    have hwcons : ∀ r : N.R, ∑ s, w s * N.reactionVector r s = 0 := by
+      intro r
+      have hr : N.reactionVector r ∈ N.stoichSubspace :=
+        N.reactionVector_mem_stoichSubspace r
+      have hz : ∀ s ∈ P, N.reactionVector r s = 0 := hparent hr
+      apply Finset.sum_eq_zero
+      intro s _
+      by_cases hs : s ∈ P
+      · have hz' : ((N.reaction r).target s : ℝ) -
+            ((N.reaction r).source s : ℝ) = 0 := by
+          simpa [Network.reactionVector_apply] using hz s hs
+        simp [w, hs, hz']
+      · simp [w, hs]
+    exact hcrit.2.2 ⟨w, hwnn, hwpos, hwcons⟩
+  have hv : ∃ v : S → ℝ, v ∈ N.stoichSubspace ∧ v ∉ K := by
+    by_contra h
+    apply hnot
+    intro v hvS
+    by_contra hvK
+    exact h ⟨v, hvS, hvK⟩
+  obtain ⟨v, hvS, hvK⟩ := hv
+  have hs : ∃ s ∈ P, v s ≠ 0 := by
+    by_contra h
+    apply hvK
+    intro s hsP
+    by_contra hvs
+    exact h ⟨s, hsP, hvs⟩
+  exact ⟨v, hvS, hs⟩
+
 /-- A critical siphon forces a strict stoichiometric rank drop on its avoiding face.  Every
 reaction vector retained on the face vanishes on the siphon coordinates.  If the full
 stoichiometric space also vanished there, the indicator of the siphon would be a positive
@@ -159,29 +211,10 @@ theorem restrictReactions_avoiding_siphon_stoichRank_lt
       ((N.reaction r.1).source s : ℝ) = 0
     rw [htgt s hs, hsrc s hs]
     norm_num
+  obtain ⟨v, hvS, s, hsP, hvs⟩ := N.exists_stoichVector_nonzero_on_criticalSiphon hcrit
   have hparent_not_le : ¬ N.stoichSubspace ≤ K := by
     intro hparent
-    let v : S → ℝ := fun s => if s ∈ P then 1 else 0
-    have hvnonneg : ∀ s, 0 ≤ v s := by
-      intro s
-      by_cases hs : s ∈ P <;> simp [v, hs]
-    have hvpos : ∀ s, 0 < v s ↔ s ∈ P := by
-      intro s
-      by_cases hs : s ∈ P <;> simp [v, hs]
-    have hconserve : ∀ r : N.R, ∑ s, v s * N.reactionVector r s = 0 := by
-      intro r
-      have hr : N.reactionVector r ∈ N.stoichSubspace :=
-        N.reactionVector_mem_stoichSubspace r
-      have hz : ∀ s ∈ P, N.reactionVector r s = 0 := hparent hr
-      apply Finset.sum_eq_zero
-      intro s _
-      by_cases hs : s ∈ P
-      · have hz' : ((N.reaction r).target s : ℝ) -
-            ((N.reaction r).source s : ℝ) = 0 := by
-          simpa [Network.reactionVector_apply] using hz s hs
-        simp [v, hs, hz']
-      · simp [v, hs]
-    exact hcrit.2.2 ⟨v, hvnonneg, hvpos, hconserve⟩
+    exact hvs (hparent hvS s hsP)
   have hle : Nf.stoichSubspace ≤ N.stoichSubspace := by
     simpa [Nf, E] using N.restrictReactions_stoichSubspace_le E
   have hne : Nf.stoichSubspace ≠ N.stoichSubspace := by
