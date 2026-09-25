@@ -40,6 +40,59 @@ theorem relativeSourceOrderStoichFan_intersection_isPolyhedralFan
     N.relativeSourceOrderStoichFan_isPolyhedralFan hG
     N.relativeSourceOrderStoichFan_hasDualFGCells hGdual
 
+/-- A common refinement preserves the coarse fan's toric field by adding admissible polar cones.
+If `x` is within `δ` of a coarse cell `C`, choose a nearby point in `C` and a fine cell `D`
+containing that point. The intersection cell `C ⊓ D` remains within `δ`, and its dual contains
+the dual of `C`. -/
+theorem toricField_subset_intersectionFamily_of_right_covers
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    (F G : CRNT.Fan E) (δ : ℝ) (x : E)
+    (hGcover : ∀ y : E, ∃ D ∈ G, y ∈ (D : Set E)) :
+    (CRNT.toricField F δ x : Set E) ⊆
+      (CRNT.toricField (CRNT.FanRefinement.intersectionFamily F G) δ x : Set E) := by
+  classical
+  apply Submodule.span_mono
+  intro z hz
+  rcases CRNT.mem_toricGenerators.mp hz with ⟨C, hC, hdist, hzC⟩
+  have hCne : (C : Set E).Nonempty := ⟨0, zero_mem C⟩
+  obtain ⟨y, hyC, hxy⟩ := (Metric.infDist_lt_iff hCne).mp hdist
+  obtain ⟨D, hD, hyD⟩ := hGcover y
+  let H : ProperCone ℝ E := C ⊓ D
+  have hHmem : H ∈ CRNT.FanRefinement.intersectionFamily F G := by
+    apply Finset.mem_image.mpr
+    exact ⟨(C, D), Finset.mem_product.mpr ⟨hC, hD⟩, rfl⟩
+  have hyH : y ∈ (H : Set E) := by
+    change y ∈ C ⊓ D
+    exact ⟨hyC, hyD⟩
+  have hdistH : Metric.infDist x (H : Set E) < δ :=
+    lt_of_le_of_lt (Metric.infDist_le_dist_of_mem hyH) hxy
+  have hzH : z ∈ CRNT.coneDual (H : Set E) := by
+    rw [CRNT.mem_coneDual]
+    intro v hv
+    have hvC : v ∈ (C : Set E) := by
+      change v ∈ C ⊓ D at hv
+      exact hv.1
+    exact (CRNT.mem_coneDual.mp hzC) hvC
+  exact CRNT.mem_toricGenerators.mpr ⟨H, hHmem, hdistH, hzH⟩
+
+/-- The intrinsic complex-balanced source-order field embeds into the field of its common
+refinement with any covering fan. This is the field-level transfer needed before a refined
+zero-separating surface can control the original mass-action inclusion. -/
+theorem toricField_relativeSourceOrderStoichFan_subset_commonRefinement
+    (N : Network S) (G : CRNT.Fan N.euclideanStoichSubspace) (δ : ℝ) (x : N.euclideanStoichSubspace)
+    (hG : CRNT.IsPolyhedralFan G) :
+    (CRNT.toricField N.relativeSourceOrderNegativeStoichFan δ x :
+        Set N.euclideanStoichSubspace) ⊆
+      (CRNT.toricField
+        (CRNT.FanRefinement.intersectionFamily N.relativeSourceOrderNegativeStoichFan G)
+        δ x : Set N.euclideanStoichSubspace) := by
+  apply toricField_subset_intersectionFamily_of_right_covers
+  intro y
+  have hyG : ∃ D ∈ G, y ∈ (D : Set N.euclideanStoichSubspace) := by
+    have hy := congrArg (fun s : Set N.euclideanStoichSubspace => y ∈ s) hG.covers
+    simpa using hy
+  exact hyG
+
 private theorem massActionVectorField_stoichForFan (N : Network S) (κ : N.RateConstants)
     (x : Concentration S) : N.massActionVectorField κ x ∈ N.stoichSubspace := by
   rw [N.massActionVectorField_eq_sum κ x]
@@ -209,6 +262,30 @@ theorem massActionVectorField_mem_toricField_relativeSourceOrderNegativeStoichFa
   simpa only [N.relativeSourceOrderNegativeConeStoichFan_eq_relativeSourceOrderNegativeStoichFan]
     using N.massActionVectorField_mem_toricField_relativeSourceOrderNegativeConeStoichFan
       κ hx hxs hcb hδ
+
+/-- The complex-balanced mass-action selector also lies in every covering common refinement of
+the intrinsic source-order fan. This combines the network-specific selector with the field
+inclusion proved above. -/
+theorem massActionVectorField_mem_toricField_relativeSourceOrderNegativeStoichFan_intersection
+    (N : Network S) (κ : N.RateConstants) (G : CRNT.Fan N.euclideanStoichSubspace)
+    (hG : CRNT.IsPolyhedralFan G) {x xstar : Concentration S}
+    (hx : x.Positive) (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {δ : ℝ} (hδ : 0 < δ) :
+    let u : S → ℝ := fun s => Real.log (x s) - Real.log (xstar s)
+    let w := N.relativeLogStoichProjection u
+    ⟨CRNT.toEuclid (N.massActionVectorField κ x), by
+      rw [Network.euclideanStoichSubspace, Submodule.mem_map]
+      exact ⟨N.massActionVectorField κ x,
+        N.massActionVectorField_stoichForFan κ x, rfl⟩⟩ ∈
+      CRNT.toricField
+        (CRNT.FanRefinement.intersectionFamily N.relativeSourceOrderNegativeStoichFan G)
+        δ (-⟨CRNT.toEuclid w, by
+          rw [Network.euclideanStoichSubspace, Submodule.mem_map]
+          exact ⟨w, N.relativeLogStoichProjection_mem u, rfl⟩⟩) := by
+  dsimp
+  apply N.toricField_relativeSourceOrderStoichFan_subset_commonRefinement G δ _ hG
+  exact N.massActionVectorField_mem_toricField_relativeSourceOrderNegativeStoichFan
+    κ hx hxs hcb hδ
 
 /-- **Strict attraction inside an intrinsic source-order chamber.** At a positive
 non-equilibrium, the mass-action field pairs strictly positively with every interior direction
