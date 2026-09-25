@@ -75,6 +75,22 @@ theorem take_vertex_zero (P : RelPath E T k) (m : ℕ) (hm : m ≤ k) :
 theorem take_vertex_last (P : RelPath E T k) (m : ℕ) (hm : m ≤ k) :
     (P.take m hm).vertex ⟨m, by omega⟩ = P.vertex ⟨m, by omega⟩ := rfl
 
+/-- The initial segment of a directed walk, up to position `m`. -/
+def init (P : RelPath E T k) (m : ℕ) (hm : m ≤ k) : RelPath E T m :=
+  P.take m hm
+
+@[simp] theorem init_vertex (P : RelPath E T k) (m : ℕ) (hm : m ≤ k)
+    (i : Fin (m + 1)) :
+    (P.init m hm).vertex i = P.vertex ⟨i.1, by have := i.isLt; omega⟩ := rfl
+
+theorem init_injective (P : RelPath E T k) (m : ℕ) (hm : m ≤ k)
+    (hinj : Function.Injective P.vertex) : Function.Injective (P.init m hm).vertex := by
+  intro a b hab
+  have hidx : (⟨a.1, by have := a.isLt; omega⟩ : Fin (k + 1)) =
+      ⟨b.1, by have := b.isLt; omega⟩ := hinj (by simpa [init] using hab)
+  have hv : a.1 = b.1 := congrArg (fun z : Fin (k + 1) => z.1) hidx
+  exact Fin.ext hv
+
 @[simp] theorem tail_vertex (P : RelPath E T k) (m : ℕ) (hm : m ≤ k) (i : Fin (k - m + 1)) :
     (P.tail m hm).vertex i = P.vertex ⟨m + i.1, by have := i.isLt; omega⟩ := rfl
 
