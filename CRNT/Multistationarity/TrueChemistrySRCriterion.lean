@@ -7120,6 +7120,166 @@ private theorem speciesEar_glue_common_edges {N : Network S} {i j k : ℕ}
     · exact ⟨P.starts_at_species.choose, P.ends_at_species.choose,
         P.starts_at_species.choose_spec, P.ends_at_species.choose_spec⟩
 
+/-- A c-pair at one of the reaction vertices of a species-to-species path. The index `r`
+selects the reaction between path edges `2r` and `2r+1`, including the terminal reaction. -/
+private def ssPathCPairAt {N : Network S} {j : ℕ} (P : N.TrueSRSSPath (2 * j + 2))
+    (r : Fin (j + 1)) : Prop :=
+  (P.edge ⟨2 * r.1, by have := r.isLt; omega⟩).endpoint =
+    (P.edge ⟨2 * r.1 + 1, by have := r.isLt; omega⟩).endpoint
+
+private noncomputable def ssPathCPairs {N : Network S} {j : ℕ}
+    (P : N.TrueSRSSPath (2 * j + 2)) : ℕ := by
+  classical
+  exact (Finset.univ.filter (ssPathCPairAt P)).card
+
+/-- The glued cycle from two species-to-species paths has exactly the c-pairs internal to
+those paths. There is no extra c-pair at either shared species endpoint. -/
+private theorem ssGlueCycle_numCPairs {N : Network S} {i j : ℕ}
+    (P : N.TrueSRSSPath (2 * j + 2)) (Q : N.TrueSRSSPath (2 * i + 2))
+    (h : TrueSRSSPath.SSGluable P Q) :
+    (TrueSRSSPath.ssGlueCycle P Q h).numCPairs = ssPathCPairs P + ssPathCPairs Q := by
+  classical
+  let Ppath := P.toPath
+  let Qpath := TrueSRSSPath.partner P Q h
+  let hPQ := TrueSRSSPath.gluable_of_ssGluable P Q h
+  let hn : 2 ≤ (i + 1) + j + 1 := by omega
+  let D := TrueSRPath.glueCycle Ppath Qpath hPQ hn
+  have hsplit := TrueSRPath.glueCycle_numCPairs_split Ppath Qpath hPQ hn (by omega)
+  have hPinternal :
+      (Finset.univ.filter (TrueSRPath.CPairAt Ppath)).card +
+        (if ssPathCPairAt P (Fin.last j) then 1 else 0) = ssPathCPairs P := by
+    change (Finset.univ.filter (TrueSRPath.CPairAt (j := j) Ppath)).card +
+        (if ssPathCPairAt P (Fin.last j) then 1 else 0) =
+      (Finset.univ.filter (ssPathCPairAt P)).card
+    let emb : Fin j → Fin (j + 1) := fun r => ⟨r.1, by omega⟩
+    have hemb : ∀ r : Fin j,
+        TrueSRPath.CPairAt Ppath r ↔
+          (P.edge ⟨2 * (emb r).1, by have := (emb r).isLt; omega⟩).endpoint =
+            (P.edge ⟨2 * (emb r).1 + 1, by have := (emb r).isLt; omega⟩).endpoint := by
+      intro r
+      simp [Ppath, emb, TrueSRPath.CPairAt, TrueSRSSPath.toPath_edge]
+    have hinternalSet :
+        (Finset.univ.filter (TrueSRPath.CPairAt Ppath)).image emb =
+          Finset.univ.filter (fun r : Fin (j + 1) =>
+            r.1 < j ∧ ssPathCPairAt P r) := by
+      ext r
+      simp only [Finset.mem_image, Finset.mem_filter, Finset.mem_univ, true_and]
+      constructor
+      · rintro ⟨k, hk, hkr⟩
+        have hval := congrArg Fin.val hkr
+        refine ⟨by dsimp [emb] at hval; have := k.isLt; omega, ?_⟩
+        rw [← hkr]
+        exact (hemb k).mp hk
+      · rintro ⟨hr, hpair⟩
+        refine ⟨⟨r.1, hr⟩, ?_, ?_⟩
+        · exact (hemb ⟨r.1, hr⟩).mpr (by simpa [emb, ssPathCPairAt] using hpair)
+        · apply Fin.ext
+          rfl
+    have hinj : Function.Injective emb := by
+      intro a b hab
+      apply Fin.ext
+      exact congrArg (fun x : Fin (j + 1) => x.1) hab
+    have hsplitSet :
+        Finset.univ.filter (fun r : Fin (j + 1) => ssPathCPairAt P r) =
+          (Finset.univ.filter (fun r : Fin (j + 1) =>
+            r.1 < j ∧ ssPathCPairAt P r)) ∪
+          (Finset.univ.filter (fun r : Fin (j + 1) =>
+            r.1 = j ∧ ssPathCPairAt P r)) := by
+      ext r
+      by_cases hr : r.1 < j <;> simp [hr] <;> omega
+    have hdisj : Disjoint
+        (Finset.univ.filter (fun r : Fin (j + 1) => r.1 < j ∧ ssPathCPairAt P r))
+        (Finset.univ.filter (fun r : Fin (j + 1) => r.1 = j ∧ ssPathCPairAt P r)) := by
+      apply Finset.disjoint_left.mpr
+      intro r hr1 hr2
+      simp only [Finset.mem_filter, Finset.mem_univ, true_and] at hr1 hr2
+      omega
+    have htermCard :
+        (Finset.univ.filter (fun r : Fin (j + 1) =>
+          r.1 = j ∧ ssPathCPairAt P r)).card =
+          if ssPathCPairAt P (Fin.last j) then 1 else 0 := by
+      by_cases hp : ssPathCPairAt P (Fin.last j)
+      · have hset : Finset.univ.filter (fun r : Fin (j + 1) =>
+            r.1 = j ∧ ssPathCPairAt P r) = {Fin.last j} := by
+          ext r
+          simp only [Finset.mem_filter, Finset.mem_univ, true_and,
+            Finset.mem_singleton]
+          constructor
+          · rintro ⟨hr, _⟩
+            apply Fin.ext
+            simpa using hr
+          · intro hr
+            subst r
+            exact ⟨rfl, hp⟩
+        rw [hset]
+        simp [hp]
+      · have hset : Finset.univ.filter (fun r : Fin (j + 1) =>
+            r.1 = j ∧ ssPathCPairAt P r) = ∅ := by
+          ext r
+          simp only [Finset.mem_filter, Finset.mem_univ, true_and,
+            Finset.notMem_empty, iff_false]
+          rintro ⟨hr, hpair⟩
+          have heq : r = Fin.last j := Fin.ext (by simpa using hr)
+          exact hp (heq ▸ hpair)
+        rw [hset]
+        simp [hp]
+    have hcardInternal :
+        (Finset.univ.filter (fun r : Fin (j + 1) => r.1 < j ∧ ssPathCPairAt P r)).card =
+          (Finset.univ.filter (TrueSRPath.CPairAt Ppath)).card := by
+      rw [← hinternalSet, Finset.card_image_of_injective _ hinj]
+    rw [hsplitSet, Finset.card_union_of_disjoint hdisj, hcardInternal, htermCard]
+  have hQpairs :
+      (Finset.univ.filter (TrueSRPath.CPairAt (j := i + 1) Qpath)).card = ssPathCPairs Q := by
+    change (Finset.univ.filter (TrueSRPath.CPairAt (j := i + 1) Qpath)).card =
+      (Finset.univ.filter (ssPathCPairAt Q)).card
+    apply congrArg Finset.card
+    ext r
+    simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+    have h0 : 2 * r.1 < 2 * i + 2 := by have := r.isLt; omega
+    have h1 : 2 * r.1 + 1 < 2 * i + 2 := by have := r.isLt; omega
+    simp [Qpath, TrueSRSSPath.partner, TrueSRPath.CPairAt, ssPathCPairAt, h0, h1]
+  have hseam :
+      (if D.isCPair ⟨j, by omega⟩ then 1 else 0) =
+        if ssPathCPairAt P (Fin.last j) then 1 else 0 := by
+    change (if (TrueSRPath.glueCycle Ppath Qpath hPQ hn).isCPair ⟨j, by omega⟩
+        then 1 else 0) = _
+    rw [TrueSRPath.glueCycle_isCPair_seam Ppath Qpath hPQ hn (by omega)]
+    simp only [Ppath, TrueSRSSPath.toPath_edge]
+    rw [show Qpath = TrueSRSSPath.partner P Q h from rfl,
+      TrueSRSSPath.partner, TrueSRSSPath.extend_edge_last]
+    · rfl
+    · change ¬ 2 * (i + 1) < 2 * i + 2
+      omega
+  have hcount : D.numCPairs = ssPathCPairs P + ssPathCPairs Q := by
+    change (Finset.univ.filter D.isCPair).card = _
+    rw [hsplit, ← hPinternal, hseam, ← hQpairs]
+  simpa [D, Ppath, Qpath, hPQ, hn, TrueSRSSPath.ssGlueCycle_eq] using hcount
+
+/-- For three pairwise gluable species-to-species paths, if the cycles from the first path
+with each of the other two are even, then the cycle from the other two is even as well. This is
+the S-to-S parity step used in the source-block ear classification. -/
+private theorem ss_three_glued_even_of_two {N : Network S} {i j k : ℕ}
+    (P : N.TrueSRSSPath (2 * j + 2)) (Q : N.TrueSRSSPath (2 * i + 2))
+    (R : N.TrueSRSSPath (2 * k + 2))
+    (hPQ : TrueSRSSPath.SSGluable P Q)
+    (hPR : TrueSRSSPath.SSGluable P R)
+    (hQR : TrueSRSSPath.SSGluable Q R)
+    (hPQeven : (TrueSRSSPath.ssGlueCycle P Q hPQ).Even)
+    (hPReven : (TrueSRSSPath.ssGlueCycle P R hPR).Even) :
+    (TrueSRSSPath.ssGlueCycle Q R hQR).Even := by
+  have hpq : Even (ssPathCPairs P + ssPathCPairs Q) := by
+    rw [← ssGlueCycle_numCPairs P Q hPQ]
+    exact hPQeven
+  have hpr : Even (ssPathCPairs P + ssPathCPairs R) := by
+    rw [← ssGlueCycle_numCPairs P R hPR]
+    exact hPReven
+  have hpq0 : (ssPathCPairs P + ssPathCPairs Q) % 2 = 0 := Nat.even_iff.mp hpq
+  have hpr0 : (ssPathCPairs P + ssPathCPairs R) % 2 = 0 := Nat.even_iff.mp hpr
+  have hqr0 : (ssPathCPairs Q + ssPathCPairs R) % 2 = 0 := by omega
+  change Even (TrueSRSSPath.ssGlueCycle Q R hQR).numCPairs
+  rw [ssGlueCycle_numCPairs Q R hQR]
+  exact Nat.even_iff.mpr hqr0
+
 /-- **Shinar--Feinberg true-SR strong-concordance theorem.**
 
 Reactant/product separation is required to identify true-SR edge labels with net stoichiometric
