@@ -1,6 +1,6 @@
 import CRNT.Geometry.ZeroSeparatingSurface
 import CRNT.Geometry.FaithfulCurve2D
-import CRNT.Geometry.LogProjectiveSection
+import CRNT.Geometry.LogProjectiveSmoothSection
 import Mathlib.LinearAlgebra.Dimension.Constructions
 import Mathlib.Analysis.InnerProductSpace.Projection.Submodule
 import Mathlib.Data.Set.Finite.List
@@ -112,9 +112,10 @@ Section 7.4.3 of Craciun's general-dimensional construction inserts tile scales 
 between prescribed endpoint scales. The lemmas here formalize that scalar interpolation, including
 a common order-of-magnitude factor for any finite family once each chain's endpoint order is known.
 The binary-word indexing is also formalized below; pre-blueprints and geometric tiling remain open.
-`LogProjectiveSection.existsUnique_sectionPoint_with_coordinates` supplies the pointwise
-general-dimensional inverse for one affine face plane of the logarithmic projective chart; smooth
-dependence and multi-face gluing remain separate obligations.
+`LogProjectiveSection.existsUnique_sectionPoint_with_coordinates` and
+`LogProjectiveSection.exists_contDiff_local_sectionScale` supply the pointwise and smooth local
+inverse for one affine face plane of the logarithmic projective chart; multi-face gluing remains a
+separate obligation.
 https://arxiv.org/html/1501.02860v3
 -/
 
