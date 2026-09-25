@@ -218,6 +218,52 @@ noncomputable def smoothWallList (La : (E →L[ℝ] ℝ) × ℝ) :
   | [] => wallBarrier La.1 La.2
   | Mb :: rest => smoothMaxF (wallBarrier La.1 La.2) (smoothWallList Mb rest)
 
+omit [CompleteSpace E] in
+/-- **Finite offset selection at one point.** If the distinguished head wall is strictly below a
+chosen level at `x`, offsets for any finite list of additional wall normals can be chosen so that
+their nested smooth maximum remains strictly below that level at `x`. The offsets only control
+the barrier values; they do not impose any sign condition on the wall derivatives. -/
+theorem exists_smoothWallList_offsets_below_at
+    (La : (E →L[ℝ] ℝ) × ℝ) (normals : List (E →L[ℝ] ℝ)) (x : E) {c : ℝ}
+    (hhead : wallBarrier La.1 La.2 x < c) :
+    ∃ walls : List ((E →L[ℝ] ℝ) × ℝ),
+      walls.map Prod.fst = normals ∧ smoothWallList La walls x < c := by
+  induction normals generalizing La c with
+  | nil => exact ⟨[], rfl, by simpa [smoothWallList] using hhead⟩
+  | cons M rest ih =>
+      let f : E → ℝ := wallBarrier La.1 La.2
+      have hgap : 0 < Real.exp c - Real.exp (f x) :=
+        sub_pos.mpr (Real.exp_lt_exp.mpr hhead)
+      let d : ℝ := Real.log ((Real.exp c - Real.exp (f x)) / 2)
+      have hdarg : 0 < (Real.exp c - Real.exp (f x)) / 2 := half_pos hgap
+      have hexpd : Real.exp d = (Real.exp c - Real.exp (f x)) / 2 := by
+        dsimp [d]
+        exact Real.exp_log hdarg
+      have hbudget : Real.exp (f x) + Real.exp d < Real.exp c := by
+        rw [hexpd]
+        linarith
+      let b : ℝ := M x + d - 1
+      have hM : wallBarrier M b x < d := by
+        dsimp [wallBarrier, b]
+        linarith
+      obtain ⟨tail, hmap, htail⟩ := ih (La := (M, b)) (c := d) hM
+      have htailExp :
+          Real.exp (smoothWallList (M, b) tail x) < Real.exp d :=
+        Real.exp_lt_exp.mpr htail
+      have hsum :
+          Real.exp (f x) + Real.exp (smoothWallList (M, b) tail x) < Real.exp c := by
+        calc
+          Real.exp (f x) + Real.exp (smoothWallList (M, b) tail x) <
+              Real.exp (f x) + Real.exp d := by
+                simpa [add_comm] using add_lt_add_right htailExp (Real.exp (f x))
+          _ < Real.exp c := hbudget
+      refine ⟨(M, b) :: tail, ?_, ?_⟩
+      · simp [hmap]
+      · change smoothMaxF f (smoothWallList (M, b) tail) x < c
+        unfold smoothMaxF
+        rw [Real.log_lt_iff_lt_exp (by positivity)]
+        exact hsum
+
 /-- **Finite fan-wall gluing with a uniform strict margin.** If every oriented wall functional sees
 at least `ε` of the vector field at `x`, their smooth affine barrier has directional derivative at
 most `-ε`.  Thus finite seam gluing loses no strict inward margin. -/
@@ -354,6 +400,25 @@ theorem smoothWallList_sublevel_separated
       _ ≤ 1 * ‖x‖ := mul_le_mul_of_nonneg_right hL (norm_nonneg x)
       _ = ‖x‖ := one_mul _
   exact le_trans hLx hnorm
+
+/-- **Finite offsets with start inclusion and origin separation.** A distinguished head normal that
+strictly supports the start beyond radius `r` fixes its offset at `c + r`; all tail offsets can then
+be lowered until the smooth-wall value at the start is below `c`. The same head wall separates the
+resulting sublevel from the open `r`-ball. -/
+theorem exists_start_separating_smoothWallList_offsets
+    (L : E →L[ℝ] ℝ) (normals : List (E →L[ℝ] ℝ)) (x₀ : E)
+    {c r : ℝ} (hL : ‖L‖ ≤ 1) (hr : 0 < r) (hrx : r < L x₀) :
+    ∃ walls : List ((E →L[ℝ] ℝ) × ℝ),
+      walls.map Prod.fst = normals ∧
+        smoothWallList (L, c + r) walls x₀ < c ∧
+        {x | smoothWallList (L, c + r) walls x ≤ c} ⊆ (Metric.ball 0 r)ᶜ := by
+  have hhead : wallBarrier L (c + r) x₀ < c := by
+    simp [wallBarrier]
+    linarith
+  obtain ⟨walls, hmap, hstart⟩ :=
+    exists_smoothWallList_offsets_below_at (L, c + r) normals x₀ hhead
+  exact ⟨walls, hmap, hstart,
+    smoothWallList_sublevel_separated hL hr le_rfl walls⟩
 
 end SmoothBarrierGluing
 end CRNT
