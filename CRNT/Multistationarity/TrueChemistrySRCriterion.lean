@@ -5765,6 +5765,84 @@ private theorem trueSRCycle_of_simple_aggregate_cycle (N : Network S)
     · intro i
       simpa [C] using hpos i
 
+/-- A simple directed aggregate path from a species to a reaction class closes to an even
+true-SR cycle when that reaction has a causal edge back to the start species. This packages
+the cycle extraction needed for the degenerate directed-chord case. -/
+private theorem trueSRCycle_of_directed_species_loop (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    {T : Finset (N.TrueInternalAggregateVertex α σ)} {m : ℕ}
+    (P : CRNT.RelPath (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T m)
+    (hinj : Function.Injective P.vertex)
+    {s : AggregateActiveSpecies σ} {q : N.ActiveAggregateTrueReaction α σ}
+    (hstart : P.vertex ⟨0, by omega⟩ = Sum.inl s)
+    (hend : P.vertex ⟨m, by omega⟩ = Sum.inr q)
+    (hclose : N.TrueInternalAggregateCausalEdge (Sum.inr q) (Sum.inl s)) :
+    ∃ n, 2 ≤ n ∧ ∃ C : N.TrueSRCycle n, C.Even := by
+  classical
+  have hmpos : 0 < m := by
+    by_contra h
+    have hm0 : m = 0 := by omega
+    subst m
+    have hval : Sum.inl s = Sum.inr q := by
+      calc
+        Sum.inl s = P.vertex ⟨0, by omega⟩ := hstart.symm
+        _ = P.vertex ⟨0, by omega⟩ := rfl
+        _ = Sum.inr q := hend
+    exact Sum.inl_ne_inr hval
+  let R := N.relPathToTrueSRPath T P hinj hmpos hstart hend
+  have hOdd : Odd m := R.odd_length
+  have hmEven : Even (m + 1) := by
+    obtain ⟨k, hk⟩ := hOdd
+    exact ⟨k + 1, by omega⟩
+  let c : Fin (m + 1) → N.TrueInternalAggregateVertex α σ :=
+    fun i => P.vertex ⟨i.1, by have := i.isLt; omega⟩
+  have hcinj : Function.Injective c := by
+    intro i j hij
+    apply Fin.ext
+    have hidx : (⟨i.1, by omega⟩ : Fin (m + 1)) = ⟨j.1, by omega⟩ := by
+      exact hinj (by simpa [c] using hij)
+    exact congrArg Fin.val hidx
+  have hcT : ∀ i, c i ∈ T := by
+    intro i
+    exact P.mem ⟨i.1, by have := i.isLt; omega⟩
+  have hstartC : ∃ s' : AggregateActiveSpecies σ,
+      c ⟨0, by omega⟩ = Sum.inl s' := ⟨s, by simpa [c] using hstart⟩
+  have hcedge : ∀ i, N.TrueInternalAggregateCausalEdge (c i)
+      (c (finRotate (m + 1) i)) := by
+    intro i
+    have hi := i.isLt
+    by_cases hlt : i.1 < m
+    · let j : Fin m := ⟨i.1, hlt⟩
+      have hi1 : i.1 + 1 < m + 1 := by omega
+      have hrot : finRotate (m + 1) i = ⟨i.1 + 1, by omega⟩ := by
+        apply Fin.ext
+        have h := congrArg Fin.val (finRotate_apply i)
+        simpa [Fin.add_def, Nat.mod_eq_of_lt hi1] using h
+      have hleft : i = Fin.castSucc j := Fin.ext rfl
+      have hright : (⟨i.1 + 1, by omega⟩ : Fin (m + 1)) = j.succ := Fin.ext rfl
+      have hleftV : P.vertex i = P.vertex (Fin.castSucc j) := congrArg P.vertex hleft
+      have hrightV : P.vertex (finRotate (m + 1) i) = P.vertex j.succ :=
+        congrArg P.vertex (hrot.trans hright)
+      change N.TrueInternalAggregateCausalEdge (P.vertex i)
+        (P.vertex (finRotate (m + 1) i))
+      rw [hleftV, hrightV]
+      exact P.step j
+    · have hiM : i.1 = m := by omega
+      have hlast : i = Fin.last m := Fin.ext hiM
+      have hrot : finRotate (m + 1) (Fin.last m) = (⟨0, by omega⟩ : Fin (m + 1)) := by
+        apply Fin.ext
+        have h := congrArg Fin.val (finRotate_apply (Fin.last m))
+        simpa [Fin.add_def] using h
+      rw [hlast, hrot]
+      change N.TrueInternalAggregateCausalEdge
+        (P.vertex ⟨m, by omega⟩) (P.vertex ⟨0, by omega⟩)
+      rw [hend, hstart]
+      exact hclose
+  obtain ⟨n, hn, C, hC, _⟩ :=
+    N.trueSRCycle_of_simple_aggregate_cycle (by omega) hmEven c hcinj T hcT
+      hstartC hcedge
+  exact ⟨n, hn, C, hC⟩
+
 /-- The sign-change certificate for a causal cycle is invariant under cycle rotation. -/
 private theorem rotated_trueSRCycle_pair_iff_signChange (N : Network S)
     {σ : S → ℝ} {n : ℕ} (C : N.TrueSRCycle n)
