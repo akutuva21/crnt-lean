@@ -1,4 +1,5 @@
 import CRNT.Dynamics.ComplexBalanceCycleDecomposition
+import CRNT.Dynamics.ComplexBalanceStoichFan
 import CRNT.Dynamics.ToricInclusion
 
 /-!
@@ -31,8 +32,48 @@ noncomputable def relativeSourceOrderNegativeConeStoichFan (N : Network S) :
   exact N.relativeSourceOrderNegativeConeFamily.image fun C =>
     C.comap N.euclideanStoichSubspace.subtypeL
 
-/-- The negative chamber selected by a projected relative logarithm occurs in the restricted fan. -/
-theorem relativeSourceOrderNegativeConeInStoich_mem_fan (N : Network S) (w : S → ℝ) :
+/-- Restricting an ambient sign-reversed source-order cone to stoichiometric space is exactly the
+sign-reversal of the corresponding intrinsic source-order cone. -/
+theorem relativeSourceOrderNegativeCone_comap_eq_negatedIntrinsic (N : Network S)
+    (w : S → ℝ) :
+    (N.relativeSourceOrderNegativeCone w).comap N.euclideanStoichSubspace.subtypeL =
+      CRNT.negatedProperCone (N.relativeSourceOrderConeInStoich w) := by
+  apply ProperCone.ext
+  intro z
+  simp [relativeSourceOrderNegativeCone, relativeSourceOrderConeInStoich,
+    CRNT.negatedProperCone]
+
+/-- The earlier ambient-comap presentation of the negative fan is definitionally equivalent, as a
+finite family of cones, to the complete sign-reversed fan built directly on stoichiometric space.
+This identifies the fan used by the mass-action selector with the intrinsic complete fan. -/
+theorem relativeSourceOrderNegativeConeStoichFan_eq_relativeSourceOrderNegativeStoichFan
+    (N : Network S) :
+    N.relativeSourceOrderNegativeConeStoichFan = N.relativeSourceOrderNegativeStoichFan := by
+  classical
+  apply Finset.ext
+  intro C
+  rw [relativeSourceOrderNegativeConeStoichFan, relativeSourceOrderNegativeConeFamily,
+    relativeSourceOrderNegativeStoichFan, CRNT.negatedFan]
+  simp only [Finset.mem_image]
+  constructor
+  · rintro ⟨A, ⟨D, hD, rfl⟩, rfl⟩
+    obtain ⟨w, rfl⟩ := (N.mem_relativeSourceOrderStoichConeFamily).mp hD
+    refine ⟨N.relativeSourceOrderConeInStoich w, ?_, ?_⟩
+    · rw [N.mem_relativeSourceOrderStoichFan]
+      exact ⟨w, rfl⟩
+    · exact N.relativeSourceOrderNegativeCone_comap_eq_negatedIntrinsic w
+  · rintro ⟨D, hD, rfl⟩
+    obtain ⟨w, rfl⟩ := (N.mem_relativeSourceOrderStoichFan).mp hD
+    refine ⟨(N.relativeSourceOrderStoichProperCone w).comap
+      (-(ContinuousLinearMap.id ℝ (EuclideanSpace ℝ S))), ?_, ?_⟩
+    · refine ⟨N.relativeSourceOrderStoichProperCone w, ?_, rfl⟩
+      exact (N.mem_relativeSourceOrderStoichConeFamily).mpr ⟨w, rfl⟩
+    · symm
+      exact N.relativeSourceOrderNegativeCone_comap_eq_negatedIntrinsic w
+
+/-- The ambient negative chamber selected by a projected relative logarithm occurs after restriction
+in the ambient-comap presentation of the fan. -/
+theorem relativeSourceOrderNegativeConeComapInStoich_mem_fan (N : Network S) (w : S → ℝ) :
     (N.relativeSourceOrderNegativeCone w).comap N.euclideanStoichSubspace.subtypeL ∈
       N.relativeSourceOrderNegativeConeStoichFan := by
   classical
@@ -90,8 +131,12 @@ theorem massActionVectorField_mem_toricField_relativeSourceOrderNegativeConeStoi
   let Cambient : ProperCone ℝ (EuclideanSpace ℝ S) := N.relativeSourceOrderNegativeCone w
   let C : ProperCone ℝ N.euclideanStoichSubspace :=
     Cambient.comap N.euclideanStoichSubspace.subtypeL
-  have hC : C ∈ N.relativeSourceOrderNegativeConeStoichFan :=
-    N.relativeSourceOrderNegativeConeInStoich_mem_fan w
+  have hC : C ∈ N.relativeSourceOrderNegativeConeStoichFan := by
+    change (N.relativeSourceOrderNegativeCone w).comap
+      N.euclideanStoichSubspace.subtypeL ∈ N.relativeSourceOrderNegativeConeStoichFan
+    rw [N.relativeSourceOrderNegativeConeStoichFan_eq_relativeSourceOrderNegativeStoichFan]
+    rw [N.relativeSourceOrderNegativeCone_comap_eq_negatedIntrinsic w]
+    exact N.relativeSourceOrderNegativeConeInStoich_mem_fan w
   have hX : -X ∈ C := by
     change (N.euclideanStoichSubspace.subtypeL (-X)) ∈ Cambient
     have hstate : -CRNT.toEuclid w ∈ Cambient :=
@@ -122,6 +167,26 @@ theorem massActionVectorField_mem_toricField_relativeSourceOrderNegativeConeStoi
     exact neg_nonneg.mpr hle
   have htoric := CRNT.coneDual_le_toricField hC hnear hdual
   simpa [v, X, C, Cambient] using htoric
+
+/-- The mass-action selector theorem with the complete negative fan named intrinsically on
+stoichiometric space. -/
+theorem massActionVectorField_mem_toricField_relativeSourceOrderNegativeStoichFan
+    (N : Network S) (κ : N.RateConstants) {x xstar : Concentration S}
+    (hx : x.Positive) (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {δ : ℝ} (hδ : 0 < δ) :
+    let u : S → ℝ := fun s => Real.log (x s) - Real.log (xstar s)
+    let w := N.relativeLogStoichProjection u
+    ⟨CRNT.toEuclid (N.massActionVectorField κ x), by
+      rw [Network.euclideanStoichSubspace, Submodule.mem_map]
+      exact ⟨N.massActionVectorField κ x,
+        N.massActionVectorField_stoichForFan κ x, rfl⟩⟩ ∈
+      CRNT.toricField N.relativeSourceOrderNegativeStoichFan δ
+        (-⟨CRNT.toEuclid w, by
+          rw [Network.euclideanStoichSubspace, Submodule.mem_map]
+          exact ⟨w, N.relativeLogStoichProjection_mem u, rfl⟩⟩) := by
+  simpa only [N.relativeSourceOrderNegativeConeStoichFan_eq_relativeSourceOrderNegativeStoichFan]
+    using N.massActionVectorField_mem_toricField_relativeSourceOrderNegativeConeStoichFan
+      κ hx hxs hcb hδ
 
 /-- **Strict attraction inside an intrinsic source-order chamber.** At a positive
 non-equilibrium, the mass-action field pairs strictly positively with every interior direction
