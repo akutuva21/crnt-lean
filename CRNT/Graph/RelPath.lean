@@ -430,4 +430,34 @@ theorem exists_shortest_relPath {E : V → V → Prop} {T : Finset V} (Good : V 
     omega
   exact ⟨k, P, hPzero, hPlast, hinj, hlate, hmin⟩
 
+/-- In a shortest path to `q`, a vertex with a direct edge into `q` can occur only immediately
+before the endpoint. -/
+theorem shortestRelPath_incoming_is_last_edge {E : V → V → Prop} {T : Finset V}
+    {Good : V → Prop} {m : ℕ} {q u : V} (P : RelPath E T m)
+    (hmin : ∀ (l : ℕ) (Q : RelPath E T l),
+      Good (Q.vertex ⟨0, by omega⟩) → Q.vertex ⟨l, by omega⟩ = q → m ≤ l)
+    (hqT : q ∈ T) (hGood : Good (P.vertex ⟨0, by omega⟩))
+    (hEnd : P.vertex ⟨m, by omega⟩ = q) (hstep : E u q)
+    (hbefore : ∀ j : Fin (m + 1), P.vertex j = u → j.1 < m)
+    (j : Fin (m + 1)) (hju : P.vertex j = u) : j.1 + 1 = m := by
+  have hjle : j.1 ≤ m := by omega
+  let initialSegment := P.take j.1 hjle
+  have hstep' : E (initialSegment.vertex ⟨j.1, by omega⟩) q := by
+    rw [RelPath.take_vertex_last, hju]
+    exact hstep
+  let R := initialSegment.concat q hqT hstep'
+  have hRzero : Good (R.vertex ⟨0, by omega⟩) := by
+    change Good ((initialSegment.concat q hqT hstep').vertex ⟨0, by omega⟩)
+    rw [RelPath.concat_vertex_le initialSegment q hqT hstep'
+      (⟨0, by omega⟩ : Fin (j.1 + 1 + 1)) (Nat.zero_le _)]
+    change Good ((P.take j.1 hjle).vertex ⟨0, by omega⟩)
+    rw [RelPath.take_vertex_zero]
+    exact hGood
+  have hRlast : R.vertex ⟨j.1 + 1, by omega⟩ = q := by
+    change (initialSegment.concat q hqT hstep').vertex ⟨j.1 + 1, by omega⟩ = q
+    exact RelPath.concat_vertex_last initialSegment q hqT hstep'
+  have hlen := hmin (j.1 + 1) R hRzero hRlast
+  have hlt := hbefore j hju
+  omega
+
 end CRNT
