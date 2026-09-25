@@ -6314,6 +6314,7 @@ private theorem exists_directed_chord (N : Network S)
         (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T m),
       2 ≤ m ∧ Function.Injective P.vertex ∧ Good (P.vertex ⟨0, by omega⟩) ∧
         P.vertex ⟨m, by omega⟩ = Sum.inl s ∧
+        (∃ i : Fin (m + 1), i.1 + 1 = m ∧ P.vertex i = Sum.inr q) ∧
         ∀ i : Fin (m + 1), i.1 ≠ 0 → i.1 ≠ m → ¬ Good (P.vertex i))
     ∨ (∃ (m : ℕ) (Q : CRNT.RelPath
         (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T m),
@@ -6343,12 +6344,16 @@ private theorem exists_directed_chord (N : Network S)
         rw [hidx]
         exact hqm
       exact hqOff (by rw [← hqeq]; exact hg0)
-    refine Or.inl ⟨m + 1, Q.concat (Sum.inl s) hsT hstep, by omega, ?_, ?_, ?_, ?_⟩
+    refine Or.inl ⟨m + 1, Q.concat (Sum.inl s) hsT hstep, by omega,
+      ?_, ?_, ?_, ?_, ?_⟩
     · exact Q.concat_injective (Sum.inl s) hsT hstep hinj hnew
     · rw [Q.concat_vertex_le (Sum.inl s) hsT hstep ⟨0, by omega⟩
         (show ((⟨0, by omega⟩ : Fin (m + 1 + 1))).1 ≤ m by show (0 : ℕ) ≤ m; omega)]
       exact hg0
     · exact Q.concat_vertex_last (Sum.inl s) hsT hstep
+    · refine ⟨Fin.castSucc (Fin.last m), by simp, ?_⟩
+      exact (Q.concat_vertex_le (Sum.inl s) hsT hstep
+        (Fin.castSucc (Fin.last m)) (by simp)).trans hqm
     · intro i hi0 him
       have hilt := i.isLt
       rw [Q.concat_vertex_le (Sum.inl s) hsT hstep i (by omega)]
@@ -6835,6 +6840,8 @@ theorem stronglyConcordant_fullyOpen_of_trueSRCriterion
                 2 ≤ M' ∧ Function.Injective P'.vertex ∧
                 Good (P'.vertex ⟨0, by omega⟩) ∧
                 P'.vertex ⟨M', by omega⟩ = Sum.inl s ∧
+                (∃ j : Fin (M' + 1), j.1 + 1 = M' ∧
+                  P'.vertex j = Sum.inr q) ∧
                 (∀ j : Fin (M' + 1), j.1 ≠ 0 → j.1 ≠ M' → ¬ Good (P'.vertex j)) ∧
                 (∃ s0 : AggregateActiveSpecies σ,
                   P'.vertex ⟨0, by omega⟩ = Sum.inl s0)) ∨
@@ -6846,12 +6853,12 @@ theorem stronglyConcordant_fullyOpen_of_trueSRCriterion
           intro h
           sorry
         rcases hdir with
-          ⟨M', P', hM'2, hP'inj, hP'g0, hP'last, hP'int⟩ |
+          ⟨M', P', hM'2, hP'inj, hP'g0, hP'last, hP'pred, hP'int⟩ |
           ⟨M', Q', hQ'0, hQ'M, hQ'late⟩
         · cases hv0 : P'.vertex ⟨0, by omega⟩ with
           | inl s0 =>
               exact False.elim (hResidual (Or.inl ⟨M', P', hM'2, hP'inj, hP'g0,
-                hP'last, hP'int, ⟨s0, hv0⟩⟩))
+                hP'last, hP'pred, hP'int, ⟨s0, hv0⟩⟩))
           | inr ρ0 =>
               exfalso
               have hρ₀On : C.HasReaction ρ0.1 := by
