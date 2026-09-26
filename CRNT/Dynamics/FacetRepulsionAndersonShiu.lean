@@ -1,0 +1,585 @@
+import CRNT.Flux.PSemiflow
+import CRNT.Kinetics.Concentration
+import CRNT.Kinetics.MassAction
+import Mathlib.LinearAlgebra.FiniteDimensional.Basic
+
+/-!
+# Anderson–Shiu facet repulsion: a conditional estimate
+
+Formalization of the one-sign argument and conditional algebraic assembly from Theorem 3.2 of
+Anderson & Shiu, *The dynamics of weakly reversible population processes near facets* (SIAM J.
+Appl. Math. 70 (2010), 1840–1858; arXiv:0903.0901). Given a facet direction, a nonnegative reaction
+contribution, and the quantitative monomial-domination bounds, `facet_repelling_of_data` proves the
+near-facet repulsion inequality.
+
+Setting of that theorem.  `W` is a set of species whose face `F_W` is a *facet* of a positive
+compatibility class `P`.  Facet-ness makes `Z_W ∩ S` have dimension `dim S - 1`, so the projection
+of the stoichiometric subspace onto the `W`-coordinates is one-dimensional, spanned by `v|_W` for
+some `v ∈ S`.  The proof then argues in three stages:
+
+1. `v|_W` has all coordinates of one sign;
+2. hence the `W`-projections of all complexes are totally ordered, so a minimal complex exists, and
+   weak reversibility supplies a reaction out of it that strictly increases every species of `W`;
+3. hence that reaction's monomial dominates near the facet interior, forcing `∑_{i ∈ W} x_i f_i(x) ≥ 0`.
+
+The one-sign conclusion follows from a conservation-law obstruction: if `v|_W` had a negative
+coordinate `i` and a positive coordinate `j`, then `v j • e i - v i • e j` would be a nonnegative
+nonzero conservation law supported inside `W`, which cannot vanish on a face reachable from a
+positive point. The module also proves the facet-direction rank reduction and the monomial and sum
+estimates under explicit hypotheses. It does not derive all those quantitative hypotheses from
+weak reversibility and facet-interiority.
+
+`exists_mem_speciesSupport_ne_zero_of_pSemiflow` is that obstruction in general form; it is the
+quantitative content behind `Geometry/CompatibilityFaces.lean`'s face-emptiness results, but stated
+for a conservation law whose support is merely *contained* in the face rather than equal to it,
+which is what stage 1 needs.
+-/
+
+namespace CRNT
+namespace Network
+
+open scoped BigOperators
+
+variable {S : Type} [DecidableEq S] [Fintype S]
+
+/-- **A nonnegative conservation law cannot vanish on a face reachable from a positive point.**
+If `w` is a nonnegative, nonzero P-invariant and `z` is a nonnegative point stoichiometrically
+compatible with a strictly positive `x₀`, then `z` is nonzero somewhere on the support of `w`. -/
+theorem exists_mem_speciesSupport_ne_zero_of_pSemiflow
+    (N : Network S) {w : S → ℝ} (hw : N.IsPInvariant w) (hnn : ∀ s, 0 ≤ w s) (hne : w ≠ 0)
+    {x₀ z : Concentration S} (hx₀ : x₀.Positive)
+    (hcompat : N.StoichCompatible x₀ z) (hznn : z.Nonnegative) :
+    ∃ s, w s ≠ 0 ∧ z s ≠ 0 := by
+  classical
+  -- the weighted total is positive at `x₀`
+  obtain ⟨s₀, hs₀⟩ : ∃ s, w s ≠ 0 := by
+    by_contra h
+    push_neg at h
+    exact hne (funext h)
+  have hs₀pos : 0 < w s₀ := lt_of_le_of_ne (hnn s₀) (Ne.symm hs₀)
+  have hx₀pos : 0 < weightedTotal w x₀ := by
+    refine Finset.sum_pos' (fun s _ => mul_nonneg (hnn s) (hx₀ s).le) ?_
+    exact ⟨s₀, Finset.mem_univ s₀, mul_pos hs₀pos (hx₀ s₀)⟩
+  -- it is unchanged at `z`
+  have heq : weightedTotal w x₀ = weightedTotal w z :=
+    N.weightedTotal_eq_of_stoichCompatible hw hcompat
+  have hzpos : 0 < weightedTotal w z := heq ▸ hx₀pos
+  -- so some term is nonzero
+  by_contra hcon
+  push_neg at hcon
+  have hzero : weightedTotal w z = 0 := by
+    unfold weightedTotal
+    refine Finset.sum_eq_zero ?_
+    intro s _
+    by_cases hws : w s = 0
+    · rw [hws, zero_mul]
+    · rw [hcon s hws, mul_zero]
+  rw [hzero] at hzpos
+  exact lt_irrefl 0 hzpos
+
+/-- **Stage 1 of Anderson–Shiu Theorem 3.2: the facet direction has one sign on `W`.**
+
+Hypothesis `hspan` is the facet condition: every element of the stoichiometric subspace has its
+`W`-coordinates proportional to `v`'s, which is what `dim (Z_W ∩ S) = dim S - 1` gives.  Given a
+nonnegative point `z` of the face (vanishing on `W`) that is compatible with a strictly positive
+`x₀`, the coordinates `v i` for `i ∈ W` cannot include both a negative and a positive value.
+
+The witness is `u = v j • e i - v i • e j`: it is nonnegative, nonzero, supported in `W`, and a
+P-invariant, because `hspan` makes `∑ s, u s * p s = v j * (c * v i) - v i * (c * v j) = 0` for
+every `p` in the subspace. -/
+theorem not_oppositeSign_of_facetProjection
+    (N : Network S) {W : Finset S} {v : S → ℝ}
+    (hspan : ∀ p ∈ N.stoichSubspace, ∃ c : ℝ, ∀ s ∈ W, p s = c * v s)
+    {x₀ z : Concentration S} (hx₀ : x₀.Positive)
+    (hcompat : N.StoichCompatible x₀ z) (hznn : z.Nonnegative)
+    (hzW : ∀ s ∈ W, z s = 0)
+    {i j : S} (hi : i ∈ W) (hj : j ∈ W) (hvi : v i < 0) (hvj : 0 < v j) :
+    False := by
+  classical
+  have hij : i ≠ j := by
+    intro h
+    rw [h] at hvi
+    exact absurd hvj (not_lt.mpr hvi.le)
+  set u : S → ℝ := fun s => if s = i then v j else if s = j then -(v i) else 0 with hu
+  have hui : u i = v j := by simp [hu]
+  have huj : u j = -(v i) := by simp [hu, hij, Ne.symm hij]
+  have hunn : ∀ s, 0 ≤ u s := by
+    intro s
+    by_cases hsi : s = i
+    · subst hsi; rw [hui]; exact hvj.le
+    · by_cases hsj : s = j
+      · subst hsj; rw [huj]; linarith
+      · simp [hu, hsi, hsj]
+  have hune : u ≠ 0 := by
+    intro h
+    have : u i = 0 := by rw [h]; rfl
+    rw [hui] at this
+    exact absurd this (ne_of_gt hvj)
+  have husupp : ∀ s, u s ≠ 0 → s ∈ W := by
+    intro s hs
+    by_cases hsi : s = i
+    · exact hsi ▸ hi
+    · by_cases hsj : s = j
+      · exact hsj ▸ hj
+      · simp [hu, hsi, hsj] at hs
+  -- `u` is a conservation law
+  have hupinv : N.IsPInvariant u := by
+    rw [IsPInvariant, mem_orthSum]
+    intro p hp
+    obtain ⟨c, hc⟩ := hspan p hp
+    have hsplit : ∑ s, u s * p s = u i * p i + u j * p j := by
+      rw [← Finset.sum_subset (Finset.subset_univ ({i, j} : Finset S))]
+      · rw [Finset.sum_pair hij]
+      · intro s _ hs
+        have hsi : s ≠ i := by
+          intro h; exact hs (by simp [h])
+        have hsj : s ≠ j := by
+          intro h; exact hs (by simp [h])
+        simp [hu, hsi, hsj]
+    rw [hsplit, hui, huj, hc i hi, hc j hj]
+    ring
+  -- but then `z` must be nonzero somewhere on `supp u ⊆ W`, contradicting `hzW`
+  obtain ⟨s, hus, hzs⟩ :=
+    N.exists_mem_speciesSupport_ne_zero_of_pSemiflow hupinv hunn hune hx₀ hcompat hznn
+  exact hzs (hzW s (husupp s hus))
+
+
+/-- **Stage 2a of Anderson–Shiu Theorem 3.2: every reaction gains all of `W`, loses all of `W`, or
+changes none of it.**  Once `v` is positive on `W` (stage 1) and the reaction's `W`-projection is
+`γ • v|_W`, the sign of `γ` decides the direction uniformly across `W`.  This is the paper's
+trichotomy (i)/(ii)/(iii). -/
+theorem netGain_trichotomy_of_proj {W : Finset S} {v : S → ℝ} (hv : ∀ s ∈ W, 0 < v s)
+    {y y' : S → ℝ} {γ : ℝ} (hdiff : ∀ s ∈ W, y' s - y s = γ * v s) :
+    (∀ s ∈ W, y s ≤ y' s) ∨ (∀ s ∈ W, y' s ≤ y s) := by
+  rcases le_or_gt 0 γ with hγ | hγ
+  · left
+    intro s hs
+    have h := hdiff s hs
+    have : 0 ≤ γ * v s := mul_nonneg hγ (hv s hs).le
+    linarith
+  · right
+    intro s hs
+    have h := hdiff s hs
+    have : γ * v s ≤ 0 := mul_nonpos_of_nonpos_of_nonneg hγ.le (hv s hs).le
+    linarith
+
+/-- **Stage 2b: the `W`-projections of the complexes are totally ordered, so a minimal one
+exists.**  Indexing the complexes by a finite nonempty type and recording each one's coordinate `c`
+along `v|_W` relative to a common base, the minimum of `c` picks out a complex whose `W`-profile is
+below every other's.  This is the paper's "minimal complex" `ỹ` with `ỹ|_W ≼ y|_W` for all `y`. -/
+theorem exists_minimal_on_W {ι : Type*} [Fintype ι] [Nonempty ι]
+    {W : Finset S} {v : S → ℝ} (hv : ∀ s ∈ W, 0 < v s)
+    (y : ι → S → ℝ) (c : ι → ℝ) (base : S → ℝ)
+    (hproj : ∀ k, ∀ s ∈ W, y k s = base s + c k * v s) :
+    ∃ k₀ : ι, ∀ k : ι, ∀ s ∈ W, y k₀ s ≤ y k s := by
+  classical
+  obtain ⟨k₀, -, hk₀⟩ :=
+    Finset.exists_min_image (Finset.univ : Finset ι) c ⟨Classical.arbitrary ι, Finset.mem_univ _⟩
+  refine ⟨k₀, ?_⟩
+  intro k s hs
+  have hle : c k₀ ≤ c k := hk₀ k (Finset.mem_univ k)
+  have h0 := hproj k₀ s hs
+  have h1 := hproj k s hs
+  have : c k₀ * v s ≤ c k * v s :=
+    mul_le_mul_of_nonneg_right hle (hv s hs).le
+  linarith
+
+
+
+/-! ### Stage 0: the facet condition, from the dimension count -/
+
+/-- Coordinate projection onto a species subset, as a linear map. -/
+def projOn (W : Finset S) : (S → ℝ) →ₗ[ℝ] (S → ℝ) where
+  toFun := fun p s => if s ∈ W then p s else 0
+  map_add' := by
+    intro p q
+    funext s
+    by_cases h : s ∈ W <;> simp [h]
+  map_smul' := by
+    intro c p
+    funext s
+    by_cases h : s ∈ W <;> simp [h]
+
+@[simp] theorem projOn_apply (W : Finset S) (p : S → ℝ) (s : S) :
+    projOn W p s = if s ∈ W then p s else 0 := rfl
+
+/-- **Facet-ness gives a one-dimensional projection, hence a facet direction.**  If the image of a
+subspace `U` under the `W`-projection is one-dimensional — which is exactly what
+`dim (Z_W ∩ U) = dim U - 1` says, since `Z_W ∩ U` is the kernel of the projection restricted to
+`U` — then some `v ∈ U` has the property that every element of `U` agrees with a multiple of `v` on
+`W`.
+
+This supplies the `hspan` hypothesis of `not_oppositeSign_of_facetProjection` and the `hγ`
+hypothesis of `facet_repelling_of_data`, reducing Anderson–Shiu's stage-0 input to the rank
+statement. -/
+theorem exists_facetDirection {W : Finset S} (U : Submodule ℝ (S → ℝ))
+    (h : Module.finrank ℝ (U.map (projOn W)) = 1) :
+    ∃ v ∈ U, ∀ p ∈ U, ∃ c : ℝ, ∀ s ∈ W, p s = c * v s := by
+  classical
+  -- a one-dimensional image is spanned by any nonzero element of it
+  have hne : U.map (projOn W) ≠ ⊥ := by
+    intro hbot
+    rw [hbot] at h
+    simp at h
+  obtain ⟨w, hwmem, hw0⟩ := (Submodule.ne_bot_iff _).mp hne
+  have hspanw : U.map (projOn W) = ℝ ∙ w :=
+    eq_span_singleton_of_mem_of_finrank_eq_one h hwmem hw0
+  obtain ⟨v, hvU, hvw⟩ := Submodule.mem_map.mp hwmem
+  refine ⟨v, hvU, ?_⟩
+  intro p hp
+  have hpmem : projOn W p ∈ U.map (projOn W) := Submodule.mem_map_of_mem hp
+  rw [hspanw] at hpmem
+  obtain ⟨c, hc⟩ := Submodule.mem_span_singleton.mp hpmem
+  refine ⟨c, ?_⟩
+  intro s hs
+  have hcs := congrFun hc s
+  simp only [Pi.smul_apply, smul_eq_mul, projOn_apply, if_pos hs] at hcs
+  have hwv : w s = v s := by
+    rw [← hvw]
+    simp [projOn_apply, if_pos hs]
+  rw [hwv] at hcs
+  exact hcs.symm
+
+/-- The reaction-vector form of `exists_facetDirection`: a facet direction makes every reaction
+vector a multiple of `v` on `W`, which is the `hγ` input of `facet_repelling_of_data`. -/
+theorem exists_facetDirection_reactionVector (N : Network S) {W : Finset S}
+    (h : Module.finrank ℝ (N.stoichSubspace.map (projOn W)) = 1) :
+    ∃ v : S → ℝ, ∃ γ : N.R → ℝ, ∀ r, ∀ s ∈ W, N.reactionVector r s = γ r * v s := by
+  classical
+  obtain ⟨v, -, hspan⟩ := exists_facetDirection N.stoichSubspace h
+  refine ⟨v, fun r => (hspan (N.reactionVector r)
+    (N.reactionVector_mem_stoichSubspace r)).choose, ?_⟩
+  intro r
+  exact (hspan (N.reactionVector r) (N.reactionVector_mem_stoichSubspace r)).choose_spec
+
+
+/-- **Rank–nullity turns the facet dimension count into the hypothesis of
+`exists_facetDirection`.**  `LinearMap.ker ((projOn W).domRestrict U)` is `Z_W ∩ U` viewed inside
+`U`; when it has codimension one in `U`, the `W`-projection of `U` is a line.  This is Anderson–Shiu's
+"`Z_W ∩ S` is an `(s-1)`-dimensional subspace of `S`, therefore `π(S)` is one-dimensional". -/
+theorem finrank_map_projOn_eq_one_of_facet {W : Finset S} (U : Submodule ℝ (S → ℝ))
+    (hfacet : Module.finrank ℝ (LinearMap.ker ((projOn W).domRestrict U)) + 1
+        = Module.finrank ℝ U) :
+    Module.finrank ℝ (U.map (projOn W)) = 1 := by
+  have h := LinearMap.finrank_range_add_finrank_ker ((projOn W).domRestrict U)
+  rw [LinearMap.range_domRestrict] at h
+  omega
+
+/-- **Stage 0, end to end.**  From the facet dimension count alone, every reaction vector is a
+multiple of a single facet direction `v` on `W` — the `hγ` input of `facet_repelling_of_data`. -/
+theorem exists_facetDirection_of_facet (N : Network S) {W : Finset S}
+    (hfacet : Module.finrank ℝ (LinearMap.ker ((projOn W).domRestrict N.stoichSubspace)) + 1
+        = Module.finrank ℝ N.stoichSubspace) :
+    ∃ v : S → ℝ, ∃ γ : N.R → ℝ, ∀ r, ∀ s ∈ W, N.reactionVector r s = γ r * v s :=
+  N.exists_facetDirection_reactionVector (finrank_map_projOn_eq_one_of_facet _ hfacet)
+
+
+/-- **Stages 0 and 1 combined: a facet direction that is strictly positive on `W`.**  From the
+facet dimension count, a nonnegative point `z` of the face compatible with a positive `x₀`, and the
+paper's normalisation that the facet direction does not vanish on `W`, we obtain `v` and `γ` with
+`v` strictly positive on `W` and every reaction vector equal to `γ r • v` there.  Those are two of
+the four inputs of `facet_repelling_of_data`.
+
+The nonvanishing hypothesis is Anderson–Shiu's own reduction: a species of `W` on which the facet
+direction vanishes has constant concentration under every reaction, so it can be removed from the
+system.  Sign normalisation is by replacing `(v, γ)` with `(-v, -γ)`. -/
+theorem exists_facetDirection_pos_of_facet (N : Network S) {W : Finset S}
+    (hfacet : Module.finrank ℝ (LinearMap.ker ((projOn W).domRestrict N.stoichSubspace)) + 1
+        = Module.finrank ℝ N.stoichSubspace)
+    {x₀ z : Concentration S} (hx₀ : x₀.Positive)
+    (hcompat : N.StoichCompatible x₀ z) (hznn : z.Nonnegative) (hzW : ∀ s ∈ W, z s = 0)
+    (hnonvanish : ∀ v : S → ℝ,
+      (∀ p ∈ N.stoichSubspace, ∃ c : ℝ, ∀ s ∈ W, p s = c * v s) → ∀ s ∈ W, v s ≠ 0) :
+    ∃ v : S → ℝ, ∃ γ : N.R → ℝ,
+      (∀ s ∈ W, 0 < v s) ∧ ∀ r, ∀ s ∈ W, N.reactionVector r s = γ r * v s := by
+  classical
+  obtain ⟨v, hvU, hspan⟩ :=
+    exists_facetDirection N.stoichSubspace (finrank_map_projOn_eq_one_of_facet _ hfacet)
+  have hvne : ∀ s ∈ W, v s ≠ 0 := hnonvanish v hspan
+  -- no two coordinates of `v` on `W` have opposite signs
+  have hnoopp : ∀ i ∈ W, ∀ j ∈ W, ¬ (v i < 0 ∧ 0 < v j) := by
+    intro i hi j hj ⟨hvi, hvj⟩
+    exact N.not_oppositeSign_of_facetProjection hspan hx₀ hcompat hznn hzW hi hj hvi hvj
+  have hγex : ∀ r : N.R, ∃ c : ℝ, ∀ s ∈ W, N.reactionVector r s = c * v s :=
+    fun r => hspan (N.reactionVector r) (N.reactionVector_mem_stoichSubspace r)
+  rcases Finset.eq_empty_or_nonempty W with hW | ⟨s₀, hs₀⟩
+  · exact ⟨v, fun r => (hγex r).choose, by simp [hW], by simp [hW]⟩
+  · rcases lt_or_gt_of_ne (hvne s₀ hs₀) with hneg | hpos
+    · -- all coordinates negative: flip the sign of `v` and `γ`
+      refine ⟨fun s => -(v s), fun r => -((hγex r).choose), ?_, ?_⟩
+      · intro s hs
+        have hvs : v s < 0 := by
+          rcases lt_or_gt_of_ne (hvne s hs) with h | h
+          · exact h
+          · exact absurd ⟨hneg, h⟩ (hnoopp s₀ hs₀ s hs)
+        linarith
+      · intro r s hs
+        have := (hγex r).choose_spec s hs
+        rw [this]; ring
+    · refine ⟨v, fun r => (hγex r).choose, ?_, ?_⟩
+      · intro s hs
+        rcases lt_or_gt_of_ne (hvne s hs) with h | h
+        · exact absurd ⟨h, hpos⟩ (hnoopp s hs s₀ hs₀)
+        · exact h
+      · intro r
+        exact (hγex r).choose_spec
+
+/-! ### Stage 3: monomial domination near the facet -/
+
+/-- Splitting a mass-action monomial into its `W` and `Wᶜ` parts. -/
+theorem massActionMonomial_split (W : Finset S) (y : Complex S) (x : Concentration S) :
+    Complex.massActionMonomial y x
+      = (∏ s ∈ W, x s ^ (y s)) * ∏ s ∈ Wᶜ, x s ^ (y s) := by
+  rw [Complex.massActionMonomial, ← Finset.prod_mul_prod_compl W (fun s => x s ^ (y s))]
+
+/-- **The domination estimate on `W`.**  If the exponents of `y` dominate those of `yt` on `W`,
+strictly somewhere, and every `W`-coordinate of `x` is at most `ε ≤ 1`, then `y`'s `W`-monomial is
+at most `ε` times `yt`'s.  This is what makes the minimal complex's monomial dominate as the
+trajectory approaches the facet. -/
+theorem prod_le_of_exponent_le {W : Finset S} {yt y : Complex S} {x : Concentration S} {ε : ℝ}
+    (hxpos : ∀ s, 0 < x s) (hxW : ∀ s ∈ W, x s ≤ ε) (hε1 : ε ≤ 1)
+    (hle : ∀ s ∈ W, yt s ≤ y s) {s₀ : S} (hs₀ : s₀ ∈ W) (hstrict : yt s₀ < y s₀) :
+    ∏ s ∈ W, x s ^ (y s) ≤ ε * ∏ s ∈ W, x s ^ (yt s) := by
+  classical
+  have hx1 : ∀ s ∈ W, x s ≤ 1 := fun s hs => le_trans (hxW s hs) hε1
+  -- factor the dominating monomial out
+  have hsplit : ∏ s ∈ W, x s ^ (y s)
+      = (∏ s ∈ W, x s ^ (yt s)) * ∏ s ∈ W, x s ^ (y s - yt s) := by
+    rw [← Finset.prod_mul_distrib]
+    refine Finset.prod_congr rfl ?_
+    intro s hs
+    rw [← pow_add]
+    congr 1
+    have := hle s hs
+    omega
+  -- the leftover factor is at most `ε`
+  have hrest : ∏ s ∈ W, x s ^ (y s - yt s) ≤ ε := by
+    have hfac : x s₀ ^ (y s₀ - yt s₀) * ∏ s ∈ W.erase s₀, x s ^ (y s - yt s)
+        = ∏ s ∈ W, x s ^ (y s - yt s) :=
+      Finset.mul_prod_erase W (fun s => x s ^ (y s - yt s)) hs₀
+    have hs₀le : x s₀ ^ (y s₀ - yt s₀) ≤ ε := by
+      have hone : y s₀ - yt s₀ ≠ 0 := by omega
+      exact le_trans (pow_le_of_le_one (hxpos s₀).le (hx1 s₀ hs₀) hone) (hxW s₀ hs₀)
+    have herase : ∏ s ∈ W.erase s₀, x s ^ (y s - yt s) ≤ 1 := by
+      calc ∏ s ∈ W.erase s₀, x s ^ (y s - yt s)
+          ≤ ∏ _s ∈ W.erase s₀, (1 : ℝ) := by
+            refine Finset.prod_le_prod₀
+              (f := fun s => x s ^ (y s - yt s)) (g := fun _ => (1 : ℝ))
+              (fun s _ => (pow_pos (hxpos s) _).le) ?_
+            intro s hs
+            exact pow_le_one₀ (hxpos s).le (hx1 s (Finset.mem_of_mem_erase hs))
+        _ = 1 := by simp
+    have hnnerase : 0 ≤ ∏ s ∈ W.erase s₀, x s ^ (y s - yt s) :=
+      Finset.prod_nonneg fun s _ => (pow_pos (hxpos s) _).le
+    have hs₀nn : 0 ≤ x s₀ ^ (y s₀ - yt s₀) := (pow_pos (hxpos s₀) _).le
+    calc ∏ s ∈ W, x s ^ (y s - yt s)
+        = x s₀ ^ (y s₀ - yt s₀) * ∏ s ∈ W.erase s₀, x s ^ (y s - yt s) := hfac.symm
+      _ ≤ ε * 1 := by
+          refine mul_le_mul hs₀le herase hnnerase ?_
+          exact le_trans hs₀nn hs₀le
+      _ = ε := by ring
+  have hbase : 0 ≤ ∏ s ∈ W, x s ^ (yt s) :=
+    Finset.prod_nonneg fun s _ => (pow_pos (hxpos s) _).le
+  calc ∏ s ∈ W, x s ^ (y s)
+      = (∏ s ∈ W, x s ^ (yt s)) * ∏ s ∈ W, x s ^ (y s - yt s) := hsplit
+    _ ≤ (∏ s ∈ W, x s ^ (yt s)) * ε := by
+        exact mul_le_mul_of_nonneg_left hrest hbase
+    _ = ε * ∏ s ∈ W, x s ^ (yt s) := by ring
+
+/-- **Stage 3, full monomial comparison.**  Near a facet-interior point the `Wᶜ`-coordinates are
+bounded in `[Dmin, Dmax]` while the `W`-coordinates are at most `ε`.  Under those bounds the
+monomial of a complex `y` that strictly dominates the minimal complex `yt` on `W` is smaller than
+`yt`'s by the factor `ε · Dmax / Dmin`, stated multiplicatively to avoid division. -/
+theorem massActionMonomial_domination {W : Finset S} {yt y : Complex S} {x : Concentration S}
+    {ε Dmin Dmax : ℝ}
+    (hxpos : ∀ s, 0 < x s) (hxW : ∀ s ∈ W, x s ≤ ε) (hε0 : 0 < ε) (hε1 : ε ≤ 1)
+    (hle : ∀ s ∈ W, yt s ≤ y s) {s₀ : S} (hs₀ : s₀ ∈ W) (hstrict : yt s₀ < y s₀)
+    (hDmin : 0 < Dmin) (hlo : Dmin ≤ ∏ s ∈ Wᶜ, x s ^ (yt s))
+    (hhi : ∏ s ∈ Wᶜ, x s ^ (y s) ≤ Dmax) :
+    Dmin * Complex.massActionMonomial y x
+      ≤ ε * Dmax * Complex.massActionMonomial yt x := by
+  classical
+  have hWy : ∏ s ∈ W, x s ^ (y s) ≤ ε * ∏ s ∈ W, x s ^ (yt s) :=
+    prod_le_of_exponent_le hxpos hxW hε1 hle hs₀ hstrict
+  have hbase : 0 < ∏ s ∈ W, x s ^ (yt s) :=
+    Finset.prod_pos fun s _ => pow_pos (hxpos s) _
+  have hcompl : 0 < ∏ s ∈ Wᶜ, x s ^ (y s) :=
+    Finset.prod_pos fun s _ => pow_pos (hxpos s) _
+  rw [massActionMonomial_split W y x, massActionMonomial_split W yt x]
+  have hstep1 : Dmin * ((∏ s ∈ W, x s ^ (y s)) * ∏ s ∈ Wᶜ, x s ^ (y s))
+      ≤ Dmin * ((ε * ∏ s ∈ W, x s ^ (yt s)) * Dmax) := by
+    refine mul_le_mul_of_nonneg_left ?_ hDmin.le
+    exact mul_le_mul hWy hhi hcompl.le (by positivity)
+  have hstep2 : Dmin * ((ε * ∏ s ∈ W, x s ^ (yt s)) * Dmax)
+      ≤ ε * Dmax * ((∏ s ∈ W, x s ^ (yt s)) * ∏ s ∈ Wᶜ, x s ^ (yt s)) := by
+    have hfac : 0 ≤ ε * Dmax * ∏ s ∈ W, x s ^ (yt s) := by
+      have : 0 ≤ Dmax := le_trans hcompl.le hhi
+      positivity
+    have := mul_le_mul_of_nonneg_left hlo hfac
+    nlinarith [this, hbase, hDmin]
+  exact le_trans hstep1 hstep2
+
+
+
+/-! ### Stage 3, choosing the radius: the bounds near a facet-interior point -/
+
+/-- **The `W`-coordinates are small near the facet.**  If `z` vanishes on `W` and `x` is within `δ`
+of `z` coordinatewise and nonnegative, then every `W`-coordinate of `x` is at most `δ`.  This is the
+`ε = δ` of `prod_le_of_exponent_le`. -/
+theorem le_delta_on_W {W : Finset S} {x z : Concentration S} {δ : ℝ}
+    (hznn : ∀ s ∈ W, z s = 0) (hclose : ∀ s, |x s - z s| ≤ δ) :
+    ∀ s ∈ W, x s ≤ δ := by
+  intro s hs
+  have h := hclose s
+  rw [hznn s hs, sub_zero] at h
+  exact le_trans (le_abs_self (x s)) h
+
+/-- **The `Wᶜ`-monomial is bounded below, away from zero, near a facet-interior point.**  If `z` is
+strictly positive off `W` and `δ` is smaller than every such coordinate, then for `x` within `δ` of
+`z` the `Wᶜ`-part of any monomial is at least the corresponding product of `z s - δ`, which is
+positive.  This supplies `Dmin`. -/
+theorem prod_compl_lower_bound {W : Finset S} {x z : Concentration S} {δ : ℝ} (hδ : 0 < δ)
+    (hzpos : ∀ s ∈ Wᶜ, 0 < z s) (hδlt : ∀ s ∈ Wᶜ, δ < z s)
+    (hclose : ∀ s, |x s - z s| ≤ δ) (y : Complex S) :
+    0 < ∏ s ∈ Wᶜ, (z s - δ) ^ (y s) ∧
+      ∏ s ∈ Wᶜ, (z s - δ) ^ (y s) ≤ ∏ s ∈ Wᶜ, x s ^ (y s) := by
+  classical
+  refine ⟨Finset.prod_pos fun s hs => pow_pos (by linarith [hδlt s hs]) _, ?_⟩
+  refine Finset.prod_le_prod₀ (fun s hs => (pow_pos (by linarith [hδlt s hs]) _).le) ?_
+  intro s hs
+  refine pow_le_pow_left₀ (by linarith [hδlt s hs]) ?_ _
+  have h := hclose s
+  have := abs_le.mp h
+  linarith [this.1]
+
+/-- **The `Wᶜ`-monomial is bounded above near a facet-interior point.**  Supplies `Dmax`. -/
+theorem prod_compl_upper_bound {W : Finset S} {x z : Concentration S} {δ : ℝ}
+    (hxnn : ∀ s, 0 ≤ x s)
+    (hclose : ∀ s, |x s - z s| ≤ δ) (y : Complex S) :
+    ∏ s ∈ Wᶜ, x s ^ (y s) ≤ ∏ s ∈ Wᶜ, (z s + δ) ^ (y s) := by
+  classical
+  refine Finset.prod_le_prod₀ (fun s _ => pow_nonneg (hxnn s) _) ?_
+  intro s _
+  refine pow_le_pow_left₀ (hxnn s) ?_ _
+  have h := abs_le.mp (hclose s)
+  linarith [h.2]
+
+/-! ### Stage 3, assembly: the dominating term controls the sign -/
+
+/-- **The scalar reduction.**  On `W`, where every reaction vector is `γ r • v`, the mass-action
+field is `v s` times a single scalar sum.  This is the paper's `f_i(x) = v_i ∑_k γ_k κ_k x^{y_k}`,
+and it reduces facet repulsion to a sign question about one real number. -/
+theorem massActionVectorField_eq_of_proj (N : Network S) (κ : N.RateConstants)
+    {W : Finset S} {v : S → ℝ} {γ : N.R → ℝ}
+    (hγ : ∀ r, ∀ s ∈ W, N.reactionVector r s = γ r * v s)
+    (x : Concentration S) {s : S} (hs : s ∈ W) :
+    N.massActionVectorField κ x s = v s * ∑ r : N.R, γ r * N.massActionRate κ r x := by
+  rw [Network.massActionVectorField_apply, Finset.mul_sum]
+  refine Finset.sum_congr rfl ?_
+  intro r _
+  rw [hγ r s hs]
+  ring
+
+/-- A finite sum is nonnegative once the total negative part is dominated by the total
+nonnegative part. -/
+theorem sum_nonneg_of_negSum_le_posSum {ι : Type*} [Fintype ι] [DecidableEq ι] (a : ι → ℝ)
+    (h : ∑ i ∈ Finset.univ.filter (fun i => a i < 0), (-(a i))
+          ≤ ∑ i ∈ Finset.univ.filter (fun i => ¬ (a i < 0)), a i) :
+    0 ≤ ∑ i, a i := by
+  classical
+  have hsplit : ∑ i, a i
+      = (∑ i ∈ Finset.univ.filter (fun i => a i < 0), a i)
+        + ∑ i ∈ Finset.univ.filter (fun i => ¬ (a i < 0)), a i :=
+    (Finset.sum_filter_add_sum_filter_not Finset.univ (fun i => a i < 0) a).symm
+  have hneg : ∑ i ∈ Finset.univ.filter (fun i => a i < 0), a i
+      = -(∑ i ∈ Finset.univ.filter (fun i => a i < 0), (-(a i))) := by
+    rw [← Finset.sum_neg_distrib]
+    exact Finset.sum_congr rfl fun i _ => by ring
+  rw [hsplit, hneg]
+  linarith
+
+/-- **The dominating term wins.**  If one index `ℓ` carries a nonnegative value and every negative
+value is at most `θ · a ℓ` in magnitude, with `θ` small enough that `θ` times the number of indices
+is at most one, then the whole sum is nonnegative.
+
+Applied with `a r = γ r · κ r · x^{y_r}`, `ℓ` the reaction out of the minimal complex, and `θ` the
+factor `ε · Dmax / Dmin` supplied by `massActionMonomial_domination`, this is exactly the final step
+of Anderson–Shiu Theorem 3.2: for `ε` small enough, `f_i(x) ≥ 0` for every `i ∈ W`. -/
+theorem sum_nonneg_of_dominating_negatives {ι : Type*} [Fintype ι] [DecidableEq ι]
+    (a : ι → ℝ) (ℓ : ι) (hℓ : 0 ≤ a ℓ) {θ : ℝ} (hθ : 0 ≤ θ)
+    (hdom : ∀ i, a i < 0 → -(a i) ≤ θ * a ℓ)
+    (hsmall : θ * (Fintype.card ι : ℝ) ≤ 1) :
+    0 ≤ ∑ i, a i := by
+  classical
+  refine sum_nonneg_of_negSum_le_posSum a ?_
+  set Neg := Finset.univ.filter (fun i => a i < 0) with hNeg
+  set Pos := Finset.univ.filter (fun i => ¬ (a i < 0)) with hPos
+  -- the negative part is at most `card · θ · a ℓ ≤ a ℓ`
+  have hnegle : ∑ i ∈ Neg, (-(a i)) ≤ (Neg.card : ℝ) * (θ * a ℓ) := by
+    have := Finset.sum_le_card_nsmul Neg (fun i => -(a i)) (θ * a ℓ) ?_
+    · simpa [nsmul_eq_mul] using this
+    · intro i hi
+      exact hdom i (Finset.mem_filter.mp hi).2
+  have hcardle : (Neg.card : ℝ) ≤ (Fintype.card ι : ℝ) := by
+    have := Finset.card_le_card (Finset.filter_subset (fun i => a i < 0) Finset.univ)
+    simpa [hNeg, Finset.card_univ] using (Nat.cast_le (α := ℝ)).mpr this
+  have hθaℓ : 0 ≤ θ * a ℓ := mul_nonneg hθ hℓ
+  have hstep : (Neg.card : ℝ) * (θ * a ℓ) ≤ a ℓ := by
+    have h1 : (Neg.card : ℝ) * (θ * a ℓ) ≤ (Fintype.card ι : ℝ) * (θ * a ℓ) :=
+      mul_le_mul_of_nonneg_right hcardle hθaℓ
+    have h2 : (Fintype.card ι : ℝ) * (θ * a ℓ) = (θ * (Fintype.card ι : ℝ)) * a ℓ := by ring
+    have h3 : (θ * (Fintype.card ι : ℝ)) * a ℓ ≤ 1 * a ℓ :=
+      mul_le_mul_of_nonneg_right hsmall hℓ
+    calc (Neg.card : ℝ) * (θ * a ℓ) ≤ (Fintype.card ι : ℝ) * (θ * a ℓ) := h1
+      _ = (θ * (Fintype.card ι : ℝ)) * a ℓ := h2
+      _ ≤ 1 * a ℓ := h3
+      _ = a ℓ := one_mul _
+  -- and `a ℓ` is one of the nonnegative terms
+  have hℓPos : ℓ ∈ Pos := by
+    rw [hPos, Finset.mem_filter]
+    exact ⟨Finset.mem_univ ℓ, not_lt.mpr hℓ⟩
+  have hposge : a ℓ ≤ ∑ i ∈ Pos, a i := by
+    refine Finset.single_le_sum (f := a) ?_ hℓPos
+    intro i hi
+    exact not_lt.mp (Finset.mem_filter.mp hi).2
+  linarith [hnegle, hstep, hposge]
+
+
+/-- **Anderson–Shiu facet repulsion, assembled from the verified pieces.**  This is Definition 3.1's
+repulsion inequality `∑_{i ∈ W} x_i f_i(x) ≥ 0`, derived from:
+
+* `hv` — stage 1's conclusion that the facet direction is positive on `W`;
+* `hγ` — the facet condition that every reaction vector is `γ r • v` on `W`;
+* `hℓ` — one reaction `ℓ` with a nonnegative contribution (the reaction out of the minimal complex,
+  supplied by stage 2 plus weak reversibility);
+* `hdom` — every negative contribution is at most `θ` times `ℓ`'s (supplied by
+  `massActionMonomial_domination`);
+* `hsmall` — `θ` small enough, which is where the radius `δ` of the ball around the facet-interior
+  point `z` gets chosen.
+
+Everything downstream of Theorem 3.2 in the paper — Corollary 3.3's finite cover, Theorem 3.4,
+Lemma 4.5, Theorem 4.6 and Corollary 4.7 (GAC for `dim P = 2`) — sits on top of this inequality.
+What is *not* yet formalized is the production of `hv`, `hγ`, `hℓ` and `hsmall` from facet-ness,
+weak reversibility and facet-interiority; see `docs/persistence-gac.md`. -/
+theorem facet_repelling_of_data (N : Network S) (κ : N.RateConstants)
+    {W : Finset S} {v : S → ℝ} {γ : N.R → ℝ} {x : Concentration S} {ℓ : N.R} {θ : ℝ}
+    (hv : ∀ s ∈ W, 0 < v s)
+    (hγ : ∀ r, ∀ s ∈ W, N.reactionVector r s = γ r * v s)
+    (hxpos : ∀ s, 0 < x s)
+    (hℓ : 0 ≤ γ ℓ * N.massActionRate κ ℓ x)
+    (hθ : 0 ≤ θ)
+    (hdom : ∀ r : N.R, γ r * N.massActionRate κ r x < 0 →
+      -(γ r * N.massActionRate κ r x) ≤ θ * (γ ℓ * N.massActionRate κ ℓ x))
+    (hsmall : θ * (Fintype.card N.R : ℝ) ≤ 1) :
+    0 ≤ ∑ s ∈ W, x s * N.massActionVectorField κ x s := by
+  classical
+  have hscalar : 0 ≤ ∑ r : N.R, γ r * N.massActionRate κ r x :=
+    sum_nonneg_of_dominating_negatives
+      (fun r => γ r * N.massActionRate κ r x) ℓ hℓ hθ hdom hsmall
+  refine Finset.sum_nonneg ?_
+  intro s hs
+  rw [N.massActionVectorField_eq_of_proj κ hγ x hs]
+  exact mul_nonneg (hxpos s).le (mul_nonneg (hv s hs).le hscalar)
+
+end Network
+end CRNT
