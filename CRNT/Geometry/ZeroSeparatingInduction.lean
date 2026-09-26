@@ -118,6 +118,10 @@ structure CompactFinitePatchCover {n : ℕ} (base : Set (Fin n → ℝ)) (radius
   Index : Type
   fintypeIndex : Fintype Index
   patch : Index → Set (Fin n → ℝ)
+  patchCenter : Index → Fin n → ℝ
+  patchCenter_mem_base : ∀ i, patchCenter i ∈ base
+  patch_subset_closedBall : ∀ i,
+    patch i ⊆ Metric.closedBall (patchCenter i) radius
   cover : base = ⋃ i, patch i
   patch_subset : ∀ i, patch i ⊆ base
   patch_compact : ∀ i, IsCompact (patch i)
@@ -255,8 +259,147 @@ noncomputable def compactFinitePatchCover_of_compact {n : ℕ}
       intro i x hx
       change x ∈ base ∩ (Metric.closedBall (center (rank.symm i)) radius ∩ (prior i)ᶜ) at hx
       exact hx.1
-  exact ⟨Fin (Fintype.card ι), inferInstance, patch, hpatchCover,
-    hpatchBase, hpatchCompact, hpatchDiameter, hpatchInteriorsDisjoint⟩
+  exact {
+    Index := Fin (Fintype.card ι)
+    fintypeIndex := inferInstance
+    patch := patch
+    patchCenter := fun i => center (rank.symm i)
+    patchCenter_mem_base := fun i => (rank.symm i).1.2
+    patch_subset_closedBall := by
+      intro i x hx
+      change x ∈ base ∩ (Metric.closedBall (center (rank.symm i)) radius ∩ (prior i)ᶜ)
+        at hx
+      exact hx.2.1
+    cover := hpatchCover
+    patch_subset := hpatchBase
+    patch_compact := hpatchCompact
+    patch_diameter := hpatchDiameter
+    patch_interiors_disjoint := hpatchInteriorsDisjoint }
+
+/-- A finite open cover of a compact projected face has a uniform positive radius such that the
+ball of that radius around every face point lies in one member of the cover. This is the
+Lebesgue-number step used to make each refined tile belong to one fan chamber. -/
+theorem exists_uniform_openCover_ball_radius {n : ℕ}
+    (base : Set (Fin n → ℝ)) (hbase : IsCompact base)
+    {κ : Type*} [Fintype κ] (region : κ → Set (Fin n → ℝ))
+    (hregionOpen : ∀ i, IsOpen (region i))
+    (hregionCover : base ⊆ ⋃ i, region i) :
+    ∃ radius : ℝ, 0 < radius ∧
+      ∀ x ∈ base, ∃ i, Metric.ball x radius ⊆ region i := by
+  classical
+  by_cases hnonempty : base.Nonempty
+  · let Base := {x : Fin n → ℝ // x ∈ base}
+    have hregionAt (x : Base) : ∃ i, x.1 ∈ region i :=
+      Set.mem_iUnion.mp (hregionCover x.2)
+    let labelAt (x : Base) : κ := Classical.choose (hregionAt x)
+    have hlabelAt (x : Base) : x.1 ∈ region (labelAt x) :=
+      Classical.choose_spec (hregionAt x)
+    let rawRadius (x : Base) : ℝ := Classical.choose
+      ((Metric.isOpen_iff.mp (hregionOpen (labelAt x))) x.1 (hlabelAt x))
+    have hrawRadius (x : Base) : 0 < rawRadius x :=
+      (Classical.choose_spec
+        ((Metric.isOpen_iff.mp (hregionOpen (labelAt x))) x.1 (hlabelAt x))).1
+    have hrawBall (x : Base) :
+        Metric.ball x.1 (rawRadius x) ⊆ region (labelAt x) :=
+      (Classical.choose_spec
+        ((Metric.isOpen_iff.mp (hregionOpen (labelAt x))) x.1 (hlabelAt x))).2
+    let localRadius (x : Base) : ℝ := rawRadius x / 2
+    have hlocalPositive (x : Base) : 0 < localRadius x :=
+      half_pos (hrawRadius x)
+    let U (x : Base) : Set (Fin n → ℝ) := Metric.ball x.1 (localRadius x)
+    have hUopen : ∀ x, IsOpen (U x) := fun _ => Metric.isOpen_ball
+    have hUcover : base ⊆ ⋃ x : Base, U x := by
+      intro x hx
+      rw [Set.mem_iUnion]
+      refine ⟨⟨x, hx⟩, ?_⟩
+      simp [U, hlocalPositive]
+    let hfiniteCover := hbase.elim_finite_subcover U hUopen hUcover
+    let centers : Finset Base := Classical.choose hfiniteCover
+    have hcenters : base ⊆ ⋃ x ∈ centers, U x := Classical.choose_spec hfiniteCover
+    have hcentersNonempty : centers.Nonempty := by
+      by_contra h
+      have hempty : centers = ∅ := Finset.not_nonempty_iff_eq_empty.mp h
+      obtain ⟨x, hx⟩ := hnonempty
+      have hxcover := hcenters hx
+      simp [hempty] at hxcover
+    obtain ⟨x₀, hx₀, hmin⟩ :=
+      Finset.exists_mem_eq_inf' hcentersNonempty (fun x : Base => localRadius x / 2)
+    let radius := centers.inf' hcentersNonempty (fun x : Base => localRadius x / 2)
+    have hradius : 0 < radius := by
+      dsimp [radius]
+      rw [hmin]
+      exact half_pos (hlocalPositive x₀)
+    have hradius_le (x : Base) (hx : x ∈ centers) :
+        radius ≤ localRadius x / 2 := by
+      dsimp [radius]
+      exact Finset.inf'_le _ hx
+    refine ⟨radius, hradius, ?_⟩
+    intro x hx
+    have hxcover := hcenters hx
+    simp only [Set.mem_iUnion] at hxcover
+    obtain ⟨c, hc, hxc⟩ := hxcover
+    have hxcball : dist x c.1 < localRadius c := by
+      simpa [U, Metric.mem_ball] using hxc
+    have hsum : radius + localRadius c < rawRadius c := by
+      have hradius' : radius ≤ rawRadius c / 4 := by
+        calc
+          radius ≤ localRadius c / 2 := hradius_le c hc
+          _ = rawRadius c / 4 := by dsimp [localRadius]; ring
+      change radius + rawRadius c / 2 < rawRadius c
+      linarith [hrawRadius c]
+    refine ⟨labelAt c, ?_⟩
+    intro y hy
+    have hyball : dist y x < radius := Metric.mem_ball.mp hy
+    have hyc : dist y c.1 < rawRadius c := by
+      calc
+        dist y c.1 ≤ dist y x + dist x c.1 := dist_triangle _ _ _
+        _ < radius + localRadius c := add_lt_add hyball hxcball
+        _ < rawRadius c := hsum
+    exact hrawBall c (Metric.mem_ball.mpr hyc)
+  · refine ⟨1, by norm_num, ?_⟩
+    intro x hx
+    exact (hnonempty ⟨x, hx⟩).elim
+
+/-- A compact face has an arbitrarily fine finite compact patch cover, with disjoint interiors and
+each patch assigned to one member of a prescribed finite open cover. -/
+structure CompactLabeledPatchCover {n : ℕ} (base : Set (Fin n → ℝ)) (mesh : ℝ)
+    {κ : Type*} [Fintype κ] (region : κ → Set (Fin n → ℝ)) where
+  cover : CompactFinitePatchCover base mesh
+  label : cover.Index → κ
+  patch_subset_region : ∀ i, cover.patch i ⊆ region (label i)
+
+/-- Refine a finite open cover of a compact projected face into arbitrarily fine compact patches
+with disjoint interiors, assigning each patch to one open chamber. -/
+theorem compactLabeledPatchCover_of_finiteOpenCover {n : ℕ}
+    (base : Set (Fin n → ℝ)) (hbase : IsCompact base)
+    {κ : Type*} [Fintype κ] (region : κ → Set (Fin n → ℝ))
+    (hregionOpen : ∀ i, IsOpen (region i))
+    (hregionCover : base ⊆ ⋃ i, region i)
+    (maxMesh : ℝ) (hmaxMesh : 0 < maxMesh) :
+    ∃ mesh : ℝ, 0 < mesh ∧ mesh ≤ maxMesh ∧
+      Nonempty (CompactLabeledPatchCover base mesh region) := by
+  obtain ⟨radius, hradius, hball⟩ :=
+    exists_uniform_openCover_ball_radius base hbase region hregionOpen hregionCover
+  let mesh := min maxMesh (radius / 2)
+  have hmesh : 0 < mesh := lt_min hmaxMesh (half_pos hradius)
+  have hmeshBound : mesh ≤ maxMesh := min_le_left _ _
+  have hmeshSmall : mesh < radius := by
+    calc
+      mesh ≤ radius / 2 := min_le_right _ _
+      _ < radius := by linarith
+  let cover := compactFinitePatchCover_of_compact base hbase hmesh
+  let label (i : cover.Index) : κ := Classical.choose
+    (hball (cover.patchCenter i) (cover.patchCenter_mem_base i))
+  have hlabel (i : cover.Index) :
+      Metric.ball (cover.patchCenter i) radius ⊆ region (label i) :=
+    Classical.choose_spec (hball (cover.patchCenter i) (cover.patchCenter_mem_base i))
+  have hpatch (i : cover.Index) : cover.patch i ⊆ region (label i) := by
+    intro x hx
+    have hclosed := cover.patch_subset_closedBall i hx
+    have hdist : dist x (cover.patchCenter i) ≤ mesh := Metric.mem_closedBall.mp hclosed
+    exact hlabel i (Metric.mem_ball.mpr (lt_of_le_of_lt hdist hmeshSmall))
+  refine ⟨mesh, hmesh, hmeshBound, ?_⟩
+  exact ⟨⟨cover, label, hpatch⟩⟩
 
 /-- An open map sends interiors into the interior of the image. -/
 theorem image_interior_subset_interior_image_of_isOpenMap
@@ -2770,6 +2913,40 @@ theorem compactZeroBitFiberPatchCover_of_compactProjectedFace {n : ℕ}
     cover.patch cover.patch_compact cover.patch_interiors_disjoint cover.cover margin radius
     hfaceSeparated hradius hsmall⟩
 
+theorem compactZeroBitLabeledFiberPatchCover_of_openChambers {n : ℕ}
+    (chain : CoordinateProjectedFaceChain (n + 1))
+    (hbit : faceProjectionDimensionLetter
+      (fun k => Module.finrank ℝ ((affineSpan ℝ (chain.face k)).direction))
+      (Fin.last n) = false)
+    (hface : IsCompact (chain.face (Fin.last n).succ))
+    {κ : Type*} [Fintype κ] (region : κ → Set (Fin n → ℝ))
+    (hregionOpen : ∀ i, IsOpen (region i))
+    (hregionCover : chain.face (Fin.last n).castSucc ⊆ ⋃ i, region i)
+    (maxMesh margin radius : ℝ) (hmaxMesh : 0 < maxMesh)
+    (hfaceSeparated : chain.face (Fin.last n).succ ⊆
+      (Metric.ball (0 : Fin (n + 1) → ℝ) margin)ᶜ)
+    (hradius : 0 ≤ radius) (hsmall : radius < margin) :
+    ∃ mesh : ℝ, 0 < mesh ∧ mesh ≤ maxMesh ∧
+      ∃ labeled : CompactLabeledPatchCover
+          (chain.face (Fin.last n).castSucc) mesh region,
+        Nonempty
+          (letI : Fintype labeled.cover.Index := labeled.cover.fintypeIndex
+           CompactZeroBitFiberPatchCover (chain.face (Fin.last n).succ)
+             (chain.face (Fin.last n).castSucc) labeled.cover.patch margin radius) := by
+  have hbaseCompact : IsCompact (chain.face (Fin.last n).castSucc) := by
+    rw [← chain.projectedFace (Fin.last n)]
+    exact hface.image (forgetLastAffine n).continuous_of_finiteDimensional
+  obtain ⟨mesh, hmesh, hmeshBound, hlabeled⟩ :=
+    compactLabeledPatchCover_of_finiteOpenCover
+      (chain.face (Fin.last n).castSucc) hbaseCompact region hregionOpen
+      hregionCover maxMesh hmaxMesh
+  obtain ⟨labeled⟩ := hlabeled
+  letI : Fintype labeled.cover.Index := labeled.cover.fintypeIndex
+  refine ⟨mesh, hmesh, hmeshBound, labeled, ?_⟩
+  exact ⟨compactZeroBitFiberPatchCover_of_compactBaseCover chain hbit hface
+    labeled.cover.patch labeled.cover.patch_compact labeled.cover.patch_interiors_disjoint
+    labeled.cover.cover margin radius hfaceSeparated hradius hsmall⟩
+
 
 /-- Every equal-width subtile of a compact bounded fiber band is compact when the base is compact
 and the endpoint graphs are continuous. Closedness of the subtile is inherited from the
@@ -3386,6 +3563,60 @@ theorem compactOneBitFiberPatchCover_of_compactBase {n : ℕ}
     cover.patch lower upper (fun _ => epsilon) cover.cover cover.patch_compact
     cover.patch_interiors_disjoint hlower hupper
     horder (fun _ => hepsilon) hfaceBand⟩
+
+/-- The Case 1.2 strip refinement with each resulting strip retaining the chamber label of its
+projected base tile. The projection of a whole strip tile is exactly its base tile, so chamber
+ownership survives the subdivision in the added coordinate. -/
+structure CompactOneBitLabeledFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
+    (facePatch : Set (Fin (n + 1) → ℝ)) (base : Set (Fin n → ℝ))
+    (baseTile : ι → Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (epsilon : ι → ℝ) {κ : Type*} [Fintype κ] (region : κ → Set (Fin n → ℝ)) where
+  cover : CompactOneBitFiberPatchCover facePatch base baseTile lower upper epsilon
+  label : (p : Σ i : ι, Fin ((cover.tiling i).subdivisionCount + 1)) → κ
+  projected_piece_subset_region : ∀ p,
+    forgetLastCoordinate n ''
+      (facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2) ⊆
+        region (label p)
+
+/-- Craciun v3, §7.4.3, one-bit Case 1.2 with fan-chamber ownership preserved through the
+vertical strip subdivision. First make the projected base tiles small enough to lie in one open
+chamber, then subdivide each fiber independently; every refined strip projects into the original
+labeled base tile. -/
+theorem compactOneBitLabeledFiberPatchCover_of_openChambers {n : ℕ}
+    (facePatch : Set (Fin (n + 1) → ℝ)) (hfaceCompact : IsCompact facePatch)
+    (base : Set (Fin n → ℝ)) (hbaseCompact : IsCompact base)
+    (lower upper : (Fin n → ℝ) → ℝ) (epsilon maxMesh : ℝ)
+    (hlower : Continuous lower) (hupper : Continuous upper)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) (hepsilon : 0 < epsilon)
+    (hmaxMesh : 0 < maxMesh)
+    (hfaceBand : facePatch ⊆
+      projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y)))
+    {κ : Type*} [Fintype κ] (region : κ → Set (Fin n → ℝ))
+    (hregionOpen : ∀ i, IsOpen (region i))
+    (hregionCover : base ⊆ ⋃ i, region i) :
+    ∃ mesh : ℝ, 0 < mesh ∧ mesh ≤ maxMesh ∧
+      ∃ labeled : CompactLabeledPatchCover base mesh region,
+        letI : Fintype labeled.cover.Index := labeled.cover.fintypeIndex
+        Nonempty (CompactOneBitLabeledFiberPatchCover facePatch base labeled.cover.patch
+          lower upper (fun _ => epsilon) region) := by
+  classical
+  obtain ⟨mesh, hmesh, hmeshBound, hlabeled⟩ :=
+    compactLabeledPatchCover_of_finiteOpenCover
+      base hbaseCompact region hregionOpen hregionCover maxMesh hmaxMesh
+  obtain ⟨labeled⟩ := hlabeled
+  letI : Fintype labeled.cover.Index := labeled.cover.fintypeIndex
+  let cover := compactOneBitFiberPatchCover_of_compactBand facePatch hfaceCompact base
+    labeled.cover.patch lower upper (fun _ => epsilon)
+    labeled.cover.cover labeled.cover.patch_compact labeled.cover.patch_interiors_disjoint
+    hlower hupper horder (fun _ => hepsilon) hfaceBand
+  refine ⟨mesh, hmesh, hmeshBound, labeled, ?_⟩
+  refine ⟨⟨cover, fun p => labeled.label p.1, ?_⟩⟩
+  intro p y hy
+  rcases hy with ⟨x, hx, hxy⟩
+  have htile := hx.2
+  change forgetLastCoordinate n x ∈ labeled.cover.patch p.1 ∧ _ at htile
+  apply labeled.patch_subset_region p.1
+  simpa [hxy] using htile.1
 
 /-! ## The ruled-surface step -/
 
