@@ -8,6 +8,7 @@ import CRNT.Equilibria.ComplexBalanceStructure
 import CRNT.Equilibria.ComplexBalanceGeometry
 import CRNT.Theorems.DeficiencyZero.Dissipation
 import CRNT.Geometry.ToricUniformWallMargin
+import CRNT.Geometry.CompatibilityFaces
 
 /-!
 # The Global Attractor Theorem for complex-balanced mass-action systems
@@ -1012,6 +1013,427 @@ theorem positiveOmegaPointForRates_of_complexBalanced_of_stoichRank_one
     exact (hsub.trans hcl) hp
   exact lt_of_lt_of_le (lt_min (hx₀ s) (hxeqpos s)) hpcoord
 
+/-- **LaSalle for a supplied mass-action semiflow.**  Relative entropy to a positive
+complex-balanced reference is constant on the ω-limit set of a bounded positive genuine orbit.
+
+Unlike `omegaLimit_relEntropy_const_of_absorbed`, this does not build the flow: it works with
+whatever semiflow `ϕ` is handed to `PositiveOmegaPointForRates`, and its hypotheses are exactly
+the ones that predicate supplies.  Every theorem in `CRNT.Dynamics.GACOmegaPositive` consumes the
+constant `hωc` as an assumption, while `PositiveOmegaPointForRates` does not provide it; this
+lemma closes that mismatch and makes the boundary-face analysis usable at this interface. -/
+theorem exists_relEntropy_const_on_omegaLimit
+    (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    {K : Set (Concentration S)} (hK : IsCompact K) (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hx₀ : x₀.Positive) :
+    ∃ c : ℝ, ∀ z ∈ omegaLimit atTop ϕ {x₀}, relEntropy xstar z = c := by
+  have hγ0 : γ x₀ 0 = x₀ := by simpa using (hϕγ x₀ 0).symm
+  have hpos : ∀ t, 0 ≤ t → (γ x₀ t).Positive :=
+    N.genuineOrbit_pos κ (by rw [hγ0]; exact hx₀) hsol
+  have hd := fun (t : ℝ) (ht : 0 ≤ t) =>
+    relEntropy_hasDerivAt hxs (hpos t ht) (fun s => (hasDerivAt_pi.mp (hsol t ht)) s)
+  have hAnti : AntitoneOn (fun t => relEntropy xstar (γ x₀ t)) (Set.Ici 0) := by
+    refine antitoneOn_of_deriv_nonpos (convex_Ici 0)
+      (fun t ht => (hd t ht).continuousAt.continuousWithinAt) ?_ ?_
+    · intro t ht
+      rw [interior_Ici, Set.mem_Ioi] at ht
+      exact (hd t ht.le).differentiableAt.differentiableWithinAt
+    · intro t ht
+      rw [interior_Ici, Set.mem_Ioi] at ht
+      rw [(hd t ht.le).deriv]
+      exact dissipation_nonpos N κ (hpos t ht.le) hxs hcb
+  have hsubK : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆ K := by
+    rintro z ⟨t, -, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst x
+    exact hmaps t
+  have habs : ∃ v ∈ (atTop : Filter ℝ≥0), closure (Set.image2 ϕ v {x₀}) ⊆ K :=
+    ⟨Set.univ, univ_mem, (IsClosed.closure_subset_iff hK.isClosed).mpr hsubK⟩
+  have hmono : ∀ a b : ℝ≥0, a ≤ b →
+      relEntropy xstar (ϕ b x₀) ≤ relEntropy xstar (ϕ a x₀) := by
+    intro a b hab
+    rw [hϕγ, hϕγ]
+    exact hAnti (Set.mem_Ici.mpr a.coe_nonneg) (Set.mem_Ici.mpr b.coe_nonneg)
+      (by exact_mod_cast hab)
+  obtain ⟨c, -, -, hωc⟩ := Flow.laSalle ϕ (relEntropy_continuous hxs) x₀ hK habs hmono
+  exact ⟨c, hωc⟩
+
+/-- **Sharp boundary dichotomy at the `PositiveOmegaPointForRates` interface.**  For a positive
+complex-balanced reference and exactly the data `PositiveOmegaPointForRates` supplies, either the
+ω-limit set already contains a strictly positive point, or it contains a point `w` which is
+
+* an equilibrium of the full mass-action field,
+* nonnegative and stoichiometrically compatible with `x₀`, vanishing exactly on a nonempty `P`,
+  so that `P`'s coordinate face *meets the compatibility class of* `x₀`,
+* with `P` a critical siphon whose avoiding-face subnetwork is complex-balanced at the filled
+  state and has strictly smaller stoichiometric rank.
+
+This is `positiveOmega_or_lowerRankCriticalBoundaryFace` with the LaSalle constant derived rather
+than assumed, plus the face-membership data made explicit. -/
+theorem positiveOmega_or_criticalSiphonFaceEquilibrium
+    (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    {K : Set (Concentration S)} (hK : IsCompact K) (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    (hgenω : ∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      HasDerivAt (γ y) (N.massActionVectorField κ (γ y t)) t)
+    (hωaff : ∀ z ∈ omegaLimit atTop ϕ {x₀}, (z - x₀ : Concentration S) ∈ N.stoichSubspace)
+    (hx₀ : x₀.Positive) :
+    (∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive) ∨
+      ∃ w ∈ omegaLimit atTop ϕ {x₀}, ∃ P : Finset S,
+        P.Nonempty ∧ (∀ s, s ∈ P ↔ w s = 0) ∧ N.IsCriticalSiphon P ∧
+        N.StoichCompatible x₀ w ∧ Concentration.Nonnegative w ∧
+        N.massActionVectorField κ w = 0 ∧
+        (N.restrictReactions (N.avoidingSiphonReactions P)).IsComplexBalanced
+          (κ.restrict (N.avoidingSiphonReactions P)) (fillSiphonFace P xstar w) ∧
+        (N.restrictReactions (N.avoidingSiphonReactions P)).stoichRank < N.stoichRank := by
+  have hwr : N.WeaklyReversible := N.weaklyReversible_of_positive_complexBalanced κ hxs hcb
+  have hγ0 : ∀ x, γ x 0 = x := fun x => by simpa using (hϕγ x 0).symm
+  obtain ⟨c, hωc⟩ :=
+    N.exists_relEntropy_const_on_omegaLimit κ hxs hcb hϕγ hsol hK hmaps hx₀
+  rcases N.positiveOmega_or_lowerRankCriticalBoundaryFace hwr κ hxs hcb hγ0 hϕγ hK hmaps
+      hgenω hωnn hωaff hx₀ hωc with hgood | hbad
+  · exact Or.inl hgood
+  · obtain ⟨w, hw, P, hPne, hzeroSet, hPcrit, hfacecb, hranklt, hsteady⟩ := hbad
+    exact Or.inr ⟨w, hw, P, hPne, hzeroSet, hPcrit, hωaff w hw, hωnn w hw, hsteady,
+      hfacecb, hranklt⟩
+
+/-- **Class-relative Angeli–De Leenheer–Sontag criterion.**  A sufficient condition for the
+omega-interior certificate that is strictly weaker than `HasNoCriticalSiphon`: critical siphons
+are permitted, provided no critical siphon's coordinate face meets a positive compatibility
+class.  `positiveOmegaPointForRates_of_boundaryOmegaExcluded` needs the *global* structural
+condition; this needs only that the faces miss the classes. -/
+theorem positiveOmegaPointForRates_of_criticalSiphonFaces_miss_classes
+    (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    (hmiss : ∀ y₀ : Concentration S, y₀.Positive → ∀ P : Finset S, N.IsCriticalSiphon P →
+      ∀ z : Concentration S, N.StoichCompatible y₀ z → Concentration.Nonnegative z →
+        (∀ s ∈ P, z s = 0) → False) :
+    N.PositiveOmegaPointForRates κ := by
+  intro ϕ γ x₀ hϕγ hsol hbounded hωnn hgenω hωaff hx₀
+  obtain ⟨K, hK, hmaps⟩ := hbounded
+  rcases N.positiveOmega_or_criticalSiphonFaceEquilibrium κ hxs hcb hϕγ hsol hK hmaps
+      hωnn hgenω hωaff hx₀ with hgood | hbad
+  · exact hgood
+  · obtain ⟨w, -, P, -, hzeroSet, hPcrit, hcompat, hwnn, -, -, -⟩ := hbad
+    exact (hmiss x₀ hx₀ P hPcrit w hcompat hwnn (fun s hs => (hzeroSet s).1 hs)).elim
+
+/-- **Every ω-point of a complex-balanced orbit is a fixed point of the semiflow.**  Relative
+entropy is constant on the ω-limit set, so every ω-point is an equilibrium of the mass-action
+field (`massActionVectorField_eq_zero_on_omegaLimit`); the constant curve is then a solution
+through it, and box-confined ODE uniqueness (`genuineOrbit_unique_of_box`, which needs no
+positivity) identifies the two.  The box bound comes from the compact absorbing set.
+
+Consequence: the Butler–McGehee escape machinery of `Dynamics/EscapeSiphonFace.lean` is
+**vacuous** on the ω-limit set of a complex-balanced orbit — see
+`omegaLimit_singleton_of_mem_omegaLimit`. -/
+theorem omegaLimit_fixed_of_complexBalanced
+    (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    {K : Set (Concentration S)} (hK : IsCompact K) (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    (hgenω : ∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      HasDerivAt (γ y) (N.massActionVectorField κ (γ y t)) t)
+    (hx₀ : x₀.Positive) :
+    ∀ w ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t → γ w t = w := by
+  have hwr : N.WeaklyReversible := N.weaklyReversible_of_positive_complexBalanced κ hxs hcb
+  have hγ0 : ∀ x, γ x 0 = x := fun x => by simpa using (hϕγ x 0).symm
+  obtain ⟨c, hωc⟩ :=
+    N.exists_relEntropy_const_on_omegaLimit κ hxs hcb hϕγ hsol hK hmaps hx₀
+  have hsteady : ∀ w ∈ omegaLimit atTop ϕ {x₀}, N.massActionVectorField κ w = 0 :=
+    N.massActionVectorField_eq_zero_on_omegaLimit hwr κ hxs hcb hγ0 hϕγ hK hmaps hgenω hωnn hωc
+  have hsubK : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆ K := by
+    rintro z ⟨t, -, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst x
+    exact hmaps t
+  have hωK : omegaLimit atTop ϕ {x₀} ⊆ K := by
+    refine (omegaLimit_subset_closure_image2 (f := atTop) (ϕ := ϕ)
+      (s := {x₀}) (u := Set.univ) univ_mem).trans ?_
+    exact (IsClosed.closure_subset_iff hK.isClosed).mpr hsubK
+  obtain ⟨r, hr⟩ := hK.isBounded.subset_closedBall (0 : Concentration S)
+  have hB : (0 : ℝ) ≤ max r 0 := le_max_right _ _
+  have hbound : ∀ y ∈ K, ∀ s, |y s| ≤ max r 0 := by
+    intro y hy s
+    have h1 : ‖y‖ ≤ r := by simpa [Metric.mem_closedBall] using hr hy
+    have h2 : ‖y s‖ ≤ ‖y‖ := norm_le_pi_norm y s
+    calc |y s| = ‖y s‖ := rfl
+      _ ≤ ‖y‖ := h2
+      _ ≤ r := h1
+      _ ≤ max r 0 := le_max_left _ _
+  have hinv : ∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      γ y t ∈ omegaLimit atTop ϕ {x₀} := by
+    intro y hy t ht
+    have h := (Flow.isInvariant_omegaLimit atTop ϕ {x₀}
+      (fun s => tendsto_atTop_mono (fun _ => le_add_self) tendsto_id) ⟨t, ht⟩) hy
+    exact (hϕγ y ⟨t, ht⟩) ▸ h
+  intro w hw t ht
+  have hconstd : ∀ τ : ℝ, 0 ≤ τ →
+      HasDerivAt (fun _ : ℝ => w) (N.massActionVectorField κ ((fun _ : ℝ => w) τ)) τ := by
+    intro τ _
+    simpa [hsteady w hw] using (hasDerivAt_const τ w)
+  have hbox₁ : ∀ τ : ℝ, 0 ≤ τ → ∀ s, |γ w τ s| ≤ max r 0 :=
+    fun τ hτ s => hbound _ (hωK (hinv w hw τ hτ)) s
+  have hbox₂ : ∀ τ : ℝ, 0 ≤ τ → ∀ s, |(fun _ : ℝ => w) τ s| ≤ max r 0 :=
+    fun _ _ s => hbound _ (hωK hw) s
+  exact N.genuineOrbit_unique_of_box κ hB (hgenω w hw) hconstd hbox₁ hbox₂
+    (by simpa using hγ0 w) t ht
+
+/-- **The ω-limit set of a complex-balanced orbit consists of semiflow fixed points, each its own
+forward limit.**  Hence `Dynamics/ButlerMcGehee.lean` and
+`exists_escape_forwardLimit_criticalSiphonFace` cannot produce a siphon-dimension descent here:
+the forward limit `ω{q}` of an escaping ω-point `q` is just `{q}`, so no new boundary structure is
+exposed.  This records a closed-off route, not a step toward the residual obligation. -/
+theorem omegaLimit_singleton_of_mem_omegaLimit
+    (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    {K : Set (Concentration S)} (hK : IsCompact K) (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    (hgenω : ∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      HasDerivAt (γ y) (N.massActionVectorField κ (γ y t)) t)
+    (hx₀ : x₀.Positive)
+    {w : Concentration S} (hw : w ∈ omegaLimit atTop ϕ {x₀}) :
+    (∀ t : ℝ≥0, ϕ t w = w) ∧ omegaLimit atTop ϕ {w} = {w} := by
+  have hfix : ∀ t : ℝ≥0, ϕ t w = w := by
+    intro t
+    exact (hϕγ w t).trans
+      (N.omegaLimit_fixed_of_complexBalanced κ hxs hcb hϕγ hsol hK hmaps hωnn hgenω hx₀
+        w hw (t : ℝ) t.coe_nonneg)
+  refine ⟨hfix, ?_⟩
+  have horb : Set.image2 ϕ (Set.univ : Set ℝ≥0) {w} = {w} := by
+    apply Set.Subset.antisymm
+    · rintro z ⟨t, -, x, hx, rfl⟩
+      rw [Set.mem_singleton_iff] at hx
+      subst x
+      rw [hfix t]
+      exact Set.mem_singleton w
+    · intro z hz
+      rw [Set.mem_singleton_iff] at hz
+      subst z
+      exact ⟨0, Set.mem_univ _, w, Set.mem_singleton w, hfix 0⟩
+  have hsub : omegaLimit atTop ϕ {w} ⊆ {w} := by
+    refine (omegaLimit_subset_closure_image2 (f := atTop) (ϕ := ϕ)
+      (s := {w}) (u := Set.univ) univ_mem).trans ?_
+    rw [horb, closure_singleton]
+  have habs : ∃ v ∈ (atTop : Filter ℝ≥0),
+      closure (Set.image2 ϕ v {w}) ⊆ ({w} : Set (Concentration S)) := by
+    refine ⟨Set.univ, univ_mem, ?_⟩
+    rw [horb, closure_singleton]
+  obtain ⟨p, hp⟩ :=
+    nonempty_omegaLimit_of_isCompact_absorbing atTop ϕ {w} isCompact_singleton habs
+      (Set.singleton_nonempty w)
+  apply Set.Subset.antisymm hsub
+  intro z hz
+  rw [Set.mem_singleton_iff] at hz
+  subst z
+  have hpw : p = w := Set.mem_singleton_iff.mp (hsub hp)
+  exact hpw ▸ hp
+
+/-- **An orbit that ever reaches an equilibrium has a positive ω-point.**  If the genuine orbit
+through a positive `x₀` is stationary at some `t₀ ≥ 0`, box-confined ODE uniqueness makes it
+constant from `t₀` on, so the ω-limit set is the singleton `{γ x₀ t₀}`, and that point is positive
+because genuine orbits from positive starts stay positive.  This discharges the stationary
+subcase of the residual Global Attractor obligation. -/
+theorem positiveOmegaPoint_of_orbit_stationary
+    (N : Network S) (κ : N.RateConstants)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    {K : Set (Concentration S)} (hK : IsCompact K) (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hx₀ : x₀.Positive)
+    {t₀ : ℝ} (ht₀ : 0 ≤ t₀)
+    (hstat : N.massActionVectorField κ (γ x₀ t₀) = 0) :
+    ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive := by
+  have hγ0 : γ x₀ 0 = x₀ := by simpa using (hϕγ x₀ 0).symm
+  have hpos : ∀ t, 0 ≤ t → (γ x₀ t).Positive :=
+    N.genuineOrbit_pos κ (by rw [hγ0]; exact hx₀) hsol
+  set q : Concentration S := γ x₀ t₀ with hqdef
+  -- a uniform coordinate bound on the compact absorbing set
+  obtain ⟨r, hr⟩ := hK.isBounded.subset_closedBall (0 : Concentration S)
+  have hB : (0 : ℝ) ≤ max r 0 := le_max_right _ _
+  have hbound : ∀ y ∈ K, ∀ s, |y s| ≤ max r 0 := by
+    intro y hy s
+    have h1 : ‖y‖ ≤ r := by simpa [Metric.mem_closedBall] using hr hy
+    calc |y s| = ‖y s‖ := rfl
+      _ ≤ ‖y‖ := norm_le_pi_norm y s
+      _ ≤ r := h1
+      _ ≤ max r 0 := le_max_left _ _
+  have horbK : ∀ t : ℝ, 0 ≤ t → γ x₀ t ∈ K := by
+    intro t ht
+    have := hmaps ⟨t, ht⟩
+    rwa [hϕγ x₀ ⟨t, ht⟩] at this
+  -- the shifted orbit and the constant curve are both solutions from `q`
+  have hshiftd : ∀ τ : ℝ, 0 ≤ τ →
+      HasDerivAt (fun u : ℝ => γ x₀ (u + t₀))
+        (N.massActionVectorField κ ((fun u : ℝ => γ x₀ (u + t₀)) τ)) τ := by
+    intro τ hτ
+    exact HasDerivAt.comp_add_const τ t₀ (hsol (τ + t₀) (by linarith))
+  have hconstd : ∀ τ : ℝ, 0 ≤ τ →
+      HasDerivAt (fun _ : ℝ => q) (N.massActionVectorField κ ((fun _ : ℝ => q) τ)) τ := by
+    intro τ _
+    have hz : N.massActionVectorField κ ((fun _ : ℝ => q) τ) = 0 := hstat
+    rw [hz]
+    exact hasDerivAt_const τ q
+  have hbox₁ : ∀ τ : ℝ, 0 ≤ τ → ∀ s, |(fun u : ℝ => γ x₀ (u + t₀)) τ s| ≤ max r 0 :=
+    fun τ hτ s => hbound _ (horbK (τ + t₀) (by linarith)) s
+  have hbox₂ : ∀ τ : ℝ, 0 ≤ τ → ∀ s, |(fun _ : ℝ => q) τ s| ≤ max r 0 :=
+    fun _ _ s => hbound _ (horbK t₀ ht₀) s
+  have htail : ∀ τ : ℝ, 0 ≤ τ → γ x₀ (τ + t₀) = q :=
+    N.genuineOrbit_unique_of_box κ hB hshiftd hconstd hbox₁ hbox₂ (by simp [hqdef])
+  -- hence the flow is eventually constant at `q`
+  let a : ℝ≥0 := ⟨t₀, ht₀⟩
+  have hflowtail : ∀ t : ℝ≥0, a ≤ t → ϕ t x₀ = q := by
+    intro t hat
+    have hle : t₀ ≤ (t : ℝ) := by exact_mod_cast hat
+    have := htail ((t : ℝ) - t₀) (by linarith)
+    rw [hϕγ x₀ t]
+    simpa using this
+  have horb : Set.image2 ϕ (Set.Ici a) {x₀} = {q} := by
+    apply Set.Subset.antisymm
+    · rintro z ⟨t, ht, x, hx, rfl⟩
+      rw [Set.mem_singleton_iff] at hx
+      subst x
+      rw [hflowtail t (Set.mem_Ici.mp ht)]
+      exact Set.mem_singleton q
+    · intro z hz
+      rw [Set.mem_singleton_iff] at hz
+      subst z
+      exact ⟨a, Set.mem_Ici.mpr le_rfl, x₀, Set.mem_singleton x₀, hflowtail a le_rfl⟩
+  have hsub : omegaLimit atTop ϕ {x₀} ⊆ {q} := by
+    refine (omegaLimit_subset_closure_image2 (f := atTop) (ϕ := ϕ)
+      (s := {x₀}) (u := Set.Ici a) (Filter.Ici_mem_atTop a)).trans ?_
+    rw [horb, closure_singleton]
+  have habs : ∃ v ∈ (atTop : Filter ℝ≥0),
+      closure (Set.image2 ϕ v {x₀}) ⊆ ({q} : Set (Concentration S)) := by
+    refine ⟨Set.Ici a, Filter.Ici_mem_atTop a, ?_⟩
+    rw [horb, closure_singleton]
+  obtain ⟨p, hp⟩ :=
+    nonempty_omegaLimit_of_isCompact_absorbing atTop ϕ {x₀} isCompact_singleton habs
+      (Set.singleton_nonempty x₀)
+  have hpq : p = q := Set.mem_singleton_iff.mp (hsub hp)
+  exact ⟨p, hp, by rw [hpq, hqdef]; exact hpos t₀ ht₀⟩
+
+/-- **Residual dichotomy, with the stationary subcase removed.**  Either the ω-limit set already
+contains a strictly positive point, or the orbit is *never* stationary — equivalently, relative
+entropy is strictly decreasing along it — *and* the ω-limit set contains a critical-siphon
+boundary equilibrium with the structural data of
+`positiveOmega_or_criticalSiphonFaceEquilibrium`.  The nonstationarity conjunct is what the
+Anderson--Shiu near-facet estimate expects as its starting point. -/
+theorem positiveOmega_or_nonstationary_criticalSiphonFaceEquilibrium
+    (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    {K : Set (Concentration S)} (hK : IsCompact K) (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    (hgenω : ∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      HasDerivAt (γ y) (N.massActionVectorField κ (γ y t)) t)
+    (hωaff : ∀ z ∈ omegaLimit atTop ϕ {x₀}, (z - x₀ : Concentration S) ∈ N.stoichSubspace)
+    (hx₀ : x₀.Positive) :
+    (∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive) ∨
+      ((∀ t : ℝ, 0 ≤ t → N.massActionVectorField κ (γ x₀ t) ≠ 0) ∧
+        ∃ w ∈ omegaLimit atTop ϕ {x₀}, ∃ P : Finset S,
+          P.Nonempty ∧ (∀ s, s ∈ P ↔ w s = 0) ∧ N.IsCriticalSiphon P ∧
+          N.StoichCompatible x₀ w ∧ Concentration.Nonnegative w ∧
+          N.massActionVectorField κ w = 0 ∧
+          (N.restrictReactions (N.avoidingSiphonReactions P)).IsComplexBalanced
+            (κ.restrict (N.avoidingSiphonReactions P)) (fillSiphonFace P xstar w) ∧
+          (N.restrictReactions (N.avoidingSiphonReactions P)).stoichRank < N.stoichRank) := by
+  by_cases hstat : ∃ t₀ : ℝ, 0 ≤ t₀ ∧ N.massActionVectorField κ (γ x₀ t₀) = 0
+  · obtain ⟨t₀, ht₀, hz⟩ := hstat
+    exact Or.inl
+      (N.positiveOmegaPoint_of_orbit_stationary κ hϕγ hsol hK hmaps hx₀ ht₀ hz)
+  · have hns : ∀ t : ℝ, 0 ≤ t → N.massActionVectorField κ (γ x₀ t) ≠ 0 := by
+      intro t ht hz
+      exact hstat ⟨t, ht, hz⟩
+    rcases N.positiveOmega_or_criticalSiphonFaceEquilibrium κ hxs hcb hϕγ hsol hK hmaps
+        hωnn hgenω hωaff hx₀ with hgood | hbad
+    · exact Or.inl hgood
+    · exact Or.inr ⟨hns, hbad⟩
+
+/-- **No boundary equilibrium in any positive class ⇒ the omega-interior certificate.**  This is
+the sharpest *structural* sufficient condition the residual dichotomy yields, and it is strictly
+weaker than both `HasNoCriticalSiphon` and
+`positiveOmegaPointForRates_of_criticalSiphonFaces_miss_classes`: critical siphons are permitted,
+their coordinate faces may meet positive compatibility classes, and all that is required is that
+no *equilibrium* sits on such a face.  Every ω-point of a complex-balanced orbit is an equilibrium
+in the class, so the hypothesis applies to it directly.
+
+Beyond this the structural line is exhausted: for a weakly reversible complex-balanced network
+with a critical siphon, the face subnetwork is itself complex-balanced
+(`positiveOmega_or_criticalSiphonFaceEquilibrium`) and so normally *does* carry a boundary
+equilibrium.  Excluding it is no longer a structural question but the analytic content of the
+Global Attractor Conjecture. -/
+theorem positiveOmegaPointForRates_of_no_boundary_equilibrium_in_classes
+    (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    (hno : ∀ y₀ : Concentration S, y₀.Positive → ∀ z : Concentration S,
+      N.StoichCompatible y₀ z → Concentration.Nonnegative z →
+        N.massActionVectorField κ z = 0 → z.Positive) :
+    N.PositiveOmegaPointForRates κ := by
+  intro ϕ γ x₀ hϕγ hsol hbounded hωnn hgenω hωaff hx₀
+  obtain ⟨K, hK, hmaps⟩ := hbounded
+  rcases N.positiveOmega_or_criticalSiphonFaceEquilibrium κ hxs hcb hϕγ hsol hK hmaps
+      hωnn hgenω hωaff hx₀ with hgood | hbad
+  · exact hgood
+  · obtain ⟨w, hw, P, -, -, -, hcompat, hwnn, hsteady, -, -⟩ := hbad
+    exact ⟨w, hw, hno x₀ hx₀ w hcompat hwnn hsteady⟩
+
+/-- **The two structural criteria are ordered.**  If no critical siphon's coordinate face meets a
+positive compatibility class, then a fortiori no *equilibrium* sits on such a face.  The zero set
+of a nonnegative equilibrium is forced to be a siphon by strict inflow
+(`massActionVectorField_pos_of_not_isSiphon`), and a siphon face meeting a positive class is
+critical (`criticalSiphon_of_compatibilityFace_nonempty`).  So
+`positiveOmegaPointForRates_of_no_boundary_equilibrium_in_classes` subsumes
+`positiveOmegaPointForRates_of_criticalSiphonFaces_miss_classes`, which in turn subsumes the
+`HasNoCriticalSiphon` branch. -/
+theorem no_boundary_equilibrium_of_criticalSiphonFaces_miss_classes
+    (N : Network S) (κ : N.RateConstants)
+    (hmiss : ∀ y₀ : Concentration S, y₀.Positive → ∀ P : Finset S, N.IsCriticalSiphon P →
+      ∀ z : Concentration S, N.StoichCompatible y₀ z → Concentration.Nonnegative z →
+        (∀ s ∈ P, z s = 0) → False) :
+    ∀ y₀ : Concentration S, y₀.Positive → ∀ z : Concentration S,
+      N.StoichCompatible y₀ z → Concentration.Nonnegative z →
+        N.massActionVectorField κ z = 0 → z.Positive := by
+  classical
+  intro y₀ hy₀ z hcompat hznn hsteady s₁
+  by_contra hns₁
+  have hs₁0 : z s₁ = 0 := le_antisymm (not_lt.mp hns₁) (hznn s₁)
+  set P : Finset S := Finset.univ.filter (fun s => z s = 0) with hPdef
+  have hP : ∀ s, s ∈ P ↔ z s = 0 := by
+    intro s
+    simp [hPdef]
+  have hPne : P.Nonempty := ⟨s₁, (hP s₁).2 hs₁0⟩
+  have hzeros : ∀ s ∈ P, z s = 0 := fun s hs => (hP s).1 hs
+  have hsiph : N.IsSiphon P := by
+    by_contra hns
+    obtain ⟨s, -, hpos⟩ := N.massActionVectorField_pos_of_not_isSiphon κ hznn hP hns
+    rw [hsteady] at hpos
+    simpa using hpos
+  have hcrit : N.IsCriticalSiphon P :=
+    N.criticalSiphon_of_compatibilityFace_nonempty hy₀ hPne hsiph
+      ⟨z, hcompat, hznn, hzeros⟩
+  exact (hmiss y₀ hy₀ P hcrit z hcompat hznn hzeros).elim
+
 /-- **Deep permanence kernel for the Global Attractor Theorem.**  Every positive
 complex-balanced mass-action system is class-uniformly permanent for genuine forward
 trajectories.  This is the toric-differential-inclusion / zero-separating-surface content of
@@ -1030,11 +1452,38 @@ theorem complexBalanced_genuinePermanent
     · by_cases hrank : N.stoichRank = 1
       · exact N.positiveOmegaPointForRates_of_complexBalanced_of_stoichRank_one
           κ hxs hcb hrank
-      · -- Remaining deep kernel: every positive bounded genuine mass-action orbit with a
-        -- nonempty critical siphon and stoichiometric rank at least two has a positive omega-point.
-        -- Complex-balanced LaSalle theory above then upgrades that point to permanence; the
-        -- general boundary-exclusion argument is still required here.
-        sorry
+      · -- Remaining deep kernel, narrowed to its sharp form by
+        -- `positiveOmega_or_criticalSiphonFaceEquilibrium`.  The dichotomy discharges every
+        -- orbit that already has a positive omega-point, so what is left is exactly the
+        -- critical-siphon boundary case.
+        intro hϕγ hsol hbounded hωnn hgenω hωaff hx₀
+        obtain ⟨K, hK, hmaps⟩ := hbounded
+        rcases N.positiveOmega_or_nonstationary_criticalSiphonFaceEquilibrium κ hxs hcb
+            hϕγ hsol hK hmaps hωnn hgenω hωaff hx₀ with hgood | ⟨hns, hbad⟩
+        · exact hgood
+        · obtain ⟨w, hw, P, hPne, hzeroSet, hPcrit, hcompat, hwnn, hsteady, hfacecb,
+            hranklt⟩ := hbad
+          -- RESIDUAL OBLIGATION (open; this is the Global Attractor Conjecture proper).
+          --
+          -- In context: the orbit is never stationary (`hns`), so relative entropy is strictly
+          -- decreasing along it; `w` is an omega-limit point of the positive bounded genuine orbit
+          -- through `x₀`; `w` is a mass-action equilibrium (`hsteady`); `w` is nonnegative
+          -- (`hwnn`) and lies in the compatibility class of `x₀` (`hcompat`); its zero set `P`
+          -- is a nonempty critical siphon (`hPcrit`), so `P`'s coordinate face *meets* that
+          -- class; the avoiding-face subnetwork is complex-balanced at `fillSiphonFace P xstar w`
+          -- (`hfacecb`) with strictly smaller stoichiometric rank (`hranklt`).
+          --
+          -- What must be shown is that this configuration cannot occur: an interior orbit of a
+          -- complex-balanced system does not accumulate on a critical-siphon boundary
+          -- equilibrium.  The rank descent `hranklt` is the correct induction measure, but the
+          -- inductive hypothesis governs orbits *inside* the face and does not by itself
+          -- prevent the parent orbit from approaching it (see the docstring of
+          -- `positiveOmega_or_lowerRankCriticalBoundaryFace`).  Closing it needs a near-facet
+          -- differential inequality at a *tangent* face — Anderson & Shiu (2010) — which is not
+          -- formalized in this layer.  Note two routes are already refuted in
+          -- `CRNT.Examples.OmegaPointFakeFlow`: `BoundaryOmegaExcluded` and
+          -- `ComparableGrowthDescentForRates` both fail for `2A ⇌ A + B` at `κ ≡ 1`.
+          sorry
 
 /-- The trajectory-level permanence theorem implies the older flow-quantified standard
 permanence API whenever a genuine global mass-action flow is supplied. -/
