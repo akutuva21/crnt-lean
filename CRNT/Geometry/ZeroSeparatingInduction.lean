@@ -126,6 +126,95 @@ theorem forgetLastCoordinate_isOpenMap (n : ℕ) :
   LinearMap.isOpenMap_of_finiteDimensional (forgetLastCoordinate n)
     (forgetLastCoordinate_surjective n)
 
+/-- The coordinatewise box with symmetric fiber widths. This is the Cartesian product factor
+`fiber(α)` in Craciun v3, §7.3, once the widths are assigned from the prefixes of a binary word. -/
+def coordinateFiberBox {n : ℕ} (radius : Fin n → ℝ) : Set (Fin n → ℝ) :=
+  Set.pi Set.univ (fun i => Set.Icc (-radius i) (radius i))
+
+/-- Membership in a coordinate fiber box is the coordinatewise absolute-value bound. -/
+theorem mem_coordinateFiberBox_iff {n : ℕ} (radius : Fin n → ℝ) (x : Fin n → ℝ) :
+    x ∈ coordinateFiberBox radius ↔ ∀ i, |x i| ≤ radius i := by
+  simp [coordinateFiberBox, abs_le, Pi.le_def, forall_and]
+
+/-- Coordinate fiber boxes are compact, including the degenerate zero-width factors used for
+binary prefixes ending in `1`. -/
+theorem isCompact_coordinateFiberBox {n : ℕ} (radius : Fin n → ℝ) :
+    IsCompact (coordinateFiberBox radius) := by
+  unfold coordinateFiberBox
+  exact isCompact_univ_pi (fun i => isCompact_Icc)
+
+/-- The origin belongs to every coordinate fiber box with nonnegative widths. -/
+theorem zero_mem_coordinateFiberBox {n : ℕ} (radius : Fin n → ℝ)
+    (hradius : ∀ i, 0 ≤ radius i) :
+    (0 : Fin n → ℝ) ∈ coordinateFiberBox radius := by
+  rw [mem_coordinateFiberBox_iff]
+  intro i
+  simpa using hradius i
+
+/-- Deleting the final coordinate projects a coordinate fiber box exactly onto the box of its
+remaining widths. A nonnegative final width supplies the zero coordinate needed for surjectivity. -/
+theorem forgetLastCoordinate_image_coordinateFiberBox {n : ℕ}
+    (radius : Fin (n + 1) → ℝ) (hradius : ∀ i, 0 ≤ radius i) :
+    forgetLastCoordinate n '' coordinateFiberBox radius =
+      coordinateFiberBox (fun i => radius i.castSucc) := by
+  ext y
+  constructor
+  · rintro ⟨x, hx, rfl⟩
+    rw [mem_coordinateFiberBox_iff] at hx ⊢
+    intro i
+    exact hx i.castSucc
+  · intro hy
+    rw [mem_coordinateFiberBox_iff] at hy
+    refine ⟨Fin.snoc y 0, ?_, ?_⟩
+    · rw [mem_coordinateFiberBox_iff]
+      intro i
+      refine Fin.lastCases ?_ (fun j => ?_) i
+      · simpa using hradius (Fin.last n)
+      · simpa using hy j
+    · funext i
+      simp [forgetLastCoordinate]
+
+/-- The product fiber assigned to a binary word: coordinate `i` uses the width of its prefix of
+length `i + 1`, as in Craciun v3, §7.3. -/
+def binaryWordFiberBox {n : ℕ} (epsilon : List Bool → ℝ) (word : List Bool) :
+    Set (Fin n → ℝ) :=
+  coordinateFiberBox (fun i => epsilon (word.take (i.val + 1)))
+
+/-- Deleting the final coordinate of a binary-word fiber box gives exactly the fiber box for the
+first `n` bits. -/
+theorem forgetLastCoordinate_image_binaryWordFiberBox {n : ℕ}
+    (epsilon : List Bool → ℝ) (word : List Bool) (hepsilon : ∀ p, 0 ≤ epsilon p) :
+    forgetLastCoordinate n '' binaryWordFiberBox epsilon word =
+      binaryWordFiberBox epsilon (word.take n) := by
+  change forgetLastCoordinate n '' coordinateFiberBox
+      (fun i => epsilon (word.take (i.val + 1))) =
+    coordinateFiberBox (fun i => epsilon ((word.take n).take (i.val + 1)))
+  rw [forgetLastCoordinate_image_coordinateFiberBox
+    (hradius := by intro i; exact hepsilon _)]
+  congr 1
+  funext i
+  have hi : i.val + 1 ≤ n := by omega
+  simp [List.take_take]
+
+/-- If a length-`n + 1` word ends in `1`, its final coordinate has zero width in the associated
+fiber box. This is the dimension-dropping case of the prefix rule in §7.3. -/
+theorem binaryWordFiberBox_lastCoordinate_eq_zero {n : ℕ}
+    (epsilon : List Bool → ℝ) (word : List Bool) (p : List Bool)
+    (hword : word = p ++ [true]) (hlen : word.length = n + 1)
+    (hepsilon : epsilon (p ++ [true]) = 0) {x : Fin (n + 1) → ℝ}
+    (hx : x ∈ binaryWordFiberBox epsilon word) :
+    x (Fin.last n) = 0 := by
+  have hcoordinates : ∀ i, |x i| ≤ epsilon (word.take (i.val + 1)) := by
+    change x ∈ coordinateFiberBox (fun i => epsilon (word.take (i.val + 1))) at hx
+    rw [mem_coordinateFiberBox_iff] at hx
+    exact hx
+  have htake : word.take (n + 1) = word :=
+    List.take_of_length_le (by omega)
+  have hbound : |x (Fin.last n)| ≤ epsilon (word.take (n + 1)) := by
+    simpa [Fin.val_last] using hcoordinates (Fin.last n)
+  rw [htake, hword, hepsilon] at hbound
+  exact abs_eq_zero.mp (le_antisymm hbound (abs_nonneg _))
+
 /-! ## Finite interpolation of tile scales
 
 Section 7.4.3 of Craciun's general-dimensional construction inserts tile scales along finite chains
