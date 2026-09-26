@@ -198,16 +198,18 @@ Built and proven:
     dimension-four over-determination is a feature of the naive construction, not an obstruction.
     Supporting hyperplanes and exposed faces also preserve finite half-space representations.
     The same module now proves that images of a covering fan under a surjective linear map cover
-    the target, and that finitely generated cone images are exact. For a projection with a kernel
-    spanned by one supplied direction and a linear section, Fourier--Motzkin elimination proves that
-    the closed image of each cone with a finite half-space representation again has a finite half-space
-    representation; final-coordinate deletion in Euclidean coordinates is a proved instance. The
-    module also constructs a complete central hyperplane arrangement fan for any supplied finite
+    the target, and that finitely generated cone images are exact. For any split surjection whose
+    kernel is spanned by one supplied direction, Fourier--Motzkin elimination proves that the closed
+    image of each cone with a finite half-space representation again has a finite half-space
+    representation and admits a complete polyhedral fan refinement; final-coordinate deletion in
+    Euclidean coordinates is a proved instance. The module also constructs a complete central
+    hyperplane arrangement fan for any supplied finite
     normal set. The arrangement of the finite dual normals refines any covering cone family with
-    finite dual representations, so it refines the one-coordinate image family of a complete
-    polyhedral fan. This does not show that the projected image family itself is a fan, nor does it
-    cover projections with higher-dimensional kernels. The higher-dimensional surface construction
-    and its analytic interfaces remain open.
+    finite dual representations, and every arrangement cell has a finite dual representation.
+    Therefore it supplies a complete polyhedral fan refinement of these projected image families.
+    This does not show that the raw projected image family itself is a fan, nor does it cover
+    projections with higher-dimensional kernels. The higher-dimensional surface construction and its
+    analytic interfaces remain open.
 - **Viability** (`Dynamics/{Viability,FirstExit,SublevelInvariant,SublevelNagumo,ClosedSetNagumo,
   ThmBGenuine}.lean`): for the genuine (Lipschitz) dynamics, solution existence is free
   (Picard–Lindelöf), so only invariance must be shown. The single-valued Nagumo step is proven: given

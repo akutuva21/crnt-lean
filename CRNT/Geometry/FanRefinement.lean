@@ -66,13 +66,14 @@ This module provides the transfer and finite-refinement engines:
 This module proves the refinement relation, the faithful-transfer of admissibility (and of field
 inwardness) from fine to coarse cells, finite common-refinement closure for supplied polyhedral fans
 with dual-finitely-generated cells, and coverage of the closed-cone image family under a surjective
-linear map. It also proves that images of finitely generated cells are exact, that one-coordinate
-projections preserve finite dual representations, that a finite central hyperplane arrangement gives
-a polyhedral fan covering the ambient space, and that its arrangement refines any supplied covering
-cone family with dual-finitely-generated cells. In particular, the arrangement refines the
-one-coordinate image family of a complete polyhedral fan; this does not establish that the image
-family itself is a fan. The faithful blueprint, its patch decomposition, and the analysis matching
-per-patch attracting directions remain separate constructions.
+linear map. It also proves that split projections with a one-dimensional kernel preserve finite
+dual representations, that a finite central hyperplane arrangement gives a polyhedral fan covering
+the ambient space, and that its arrangement refines any supplied covering cone family with
+dual-finitely-generated cells. In particular, the arrangement refines the projected image family of
+a complete polyhedral fan under such a projection, yielding a complete polyhedral fan refinement
+with dual-finitely-generated cells; this does not establish that the image family itself is a fan. The
+faithful blueprint, its patch decomposition, and the analysis matching per-patch attracting
+directions remain separate constructions.
 
 Depends on: `CRNT.Geometry.ZeroSeparatingInduction`,
 `CRNT.Geometry.FaithfulCurve`.
@@ -1302,6 +1303,16 @@ theorem hyperplaneArrangementFamily_isPolyhedralFan [CompleteSpace E] [Decidable
   inter_common := fun _ hC _ hD => hyperplaneArrangementFamily_inter_common hC hD
   covers := hyperplaneArrangementFamily_covers T
 
+/-- Every sign cell in a finite central hyperplane arrangement has a finite half-space
+representation, using the signed arrangement normals themselves. -/
+theorem hyperplaneArrangementFamily_hasDualFGCells [CompleteSpace E] [DecidableEq E]
+    (T : Finset E) : HasDualFGCells (hyperplaneArrangementFamily T) := by
+  classical
+  intro C hC
+  obtain ⟨P, N, _, _, _, rfl⟩ := mem_hyperplaneArrangementFamily_iff.mp hC
+  change (PointedCone.dual (innerₗ E) (signCellNormals T P N : Set E)).DualFG (innerₗ E)
+  exact PointedCone.DualFG.dual_of_finset (innerₗ E) (signCellNormals T P N)
+
 /-- Choose a point in a finite-dual cone that is strict on every inequality that can be strict.
 The witness is the sum of one point witnessing each such inequality. -/
 theorem exists_strict_point_for_finite_dual [CompleteSpace E] [DecidableEq E]
@@ -1457,6 +1468,41 @@ theorem hyperplaneArrangementFamily_refines_forgetLastImage {n : ℕ}
   hyperplaneArrangementFamily_refines_of_covering_dualFG
     (linearImageFamily_forgetLastEuclidean_covers G hG)
     (linearImageFamily_forgetLast_hasDualFGCells G hGdual)
+
+/-- Any surjective projection with fibers along one supplied kernel vector admits a complete
+polyhedral fan refinement of its closed-cone image family. -/
+theorem exists_polyhedral_fan_refinement_of_oneDimensional_projection
+    {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [CompleteSpace E]
+    [CompleteSpace F] [DecidableEq E] [DecidableEq F]
+    (G : Fan E) (hG : IsPolyhedralFan G) (hGdual : HasDualFGCells G)
+    (f : E →L[ℝ] F) (g : F →L[ℝ] E) (v : E)
+    (hfg : ∀ y, f (g y) = y) (hv0 : f v = 0)
+    (hdecomp : ∀ x, ∃ t : ℝ, x = g (f x) + t • v) :
+    ∃ H : Fan F, IsPolyhedralFan H ∧ HasDualFGCells H ∧
+      Refines H (linearImageFamily f G) := by
+  have hf : Function.Surjective f := fun y => ⟨g y, hfg y⟩
+  have hImageCover := linearImageFamily_covers_of_surjective hG f hf
+  have hImageDual := linearImageFamily_hasDualFGCells_of_oneDimensionalFibers
+    f g v hfg hv0 hdecomp G hGdual
+  refine ⟨hyperplaneArrangementFamily (fanNormalSet (linearImageFamily f G) hImageDual),
+    hyperplaneArrangementFamily_isPolyhedralFan _,
+    hyperplaneArrangementFamily_hasDualFGCells _, ?_⟩
+  exact hyperplaneArrangementFamily_refines_of_covering_dualFG hImageCover hImageDual
+
+/-- A one-coordinate projected image family admits a complete polyhedral fan refinement whose
+cells have finite dual representations. This supplies fan data for the projection step without
+asserting that the raw image family is itself face-to-face. -/
+theorem exists_polyhedral_fan_refinement_forgetLastImage {n : ℕ}
+    (G : Fan (EuclideanSpace ℝ (Fin (n + 1)))) (hG : IsPolyhedralFan G)
+    (hGdual : HasDualFGCells G) :
+    ∃ H : Fan (EuclideanSpace ℝ (Fin n)), IsPolyhedralFan H ∧ HasDualFGCells H ∧
+      Refines H (linearImageFamily (forgetLastEuclidean n) G) := by
+  refine ⟨hyperplaneArrangementFamily
+    (fanNormalSet (linearImageFamily (forgetLastEuclidean n) G)
+      (linearImageFamily_forgetLast_hasDualFGCells G hGdual)), ?_, ?_, ?_⟩
+  · exact hyperplaneArrangementFamily_isPolyhedralFan _
+  · exact hyperplaneArrangementFamily_hasDualFGCells _
+  · exact hyperplaneArrangementFamily_refines_forgetLastImage G hG hGdual
 
 
 /-- Negating a cone preserves dual finite generation: negate the finite set of half-space normals. -/
