@@ -244,11 +244,15 @@ an explicit hypothesis, never a `sorry`:
    fiber and may meet at endpoint seams. These results do not provide the piecewise-smooth
    separating surface, descent estimates, or full seam gluing. The smooth gluing layer now also
    proves, via exists_fderiv_smoothMaxList_le and
-   exists_fderiv_smoothMaxF_nonpos_of_value_gap, that finite smooth maxima preserve a uniform
-   derivative upper bound and that a strictly descending chart remains nonincreasing after gluing a
-   competitor whose outward derivative is bounded and whose barrier value is sufficiently lower.
-   This is an analytic local seam lemma; choosing offsets and proving its value-gap hypotheses
-   across all blueprint tiles remain open. Separately, the log-projective chart compatibility result currently
+   exists_fderiv_smoothMaxF_nonpos_of_value_gap, that finite smooth maxima preserve a shared
+   directional-derivative upper bound and that a strictly descending chart remains nonincreasing
+   after gluing a competitor whose outward derivative is bounded and whose barrier value is
+   sufficiently lower. The new `zeroSeparatingSurfaceExists_smoothWallList_of_dominantHead_band`
+   wires this estimate into the ZSH interface when one fixed head chart is inward throughout the
+   barrier band and the aggregated tail stays below it by the required gap. This remains a
+   chart-local conditional result: selecting such dominant charts across all blueprint tiles and
+   proving the full piecewise-smooth surface and seam conditions remain open. Separately, the
+   log-projective chart compatibility result currently
    proves pointwise overlap when neighboring face weights
    balance on each tied-coordinate fiber. A separate first-moment condition aligns directional
    derivatives of the scalar level equations; the two-species example in

@@ -561,6 +561,123 @@ theorem exists_fderiv_smoothWallList
         simpa [smoothWallList, D] using
           hasFDerivAt_smoothMaxF (hasFDerivAt_wallBarrier La.1 La.2 x) hDr⟩
 
+/-- A uniform upper bound on every oriented wall's outward derivative is preserved by the nested
+smooth maximum of the corresponding affine barriers. -/
+theorem exists_fderiv_smoothWallList_le
+    {X : E → E} {x : E} {M : ℝ}
+    (La : (E →L[ℝ] ℝ) × ℝ) (walls : List ((E →L[ℝ] ℝ) × ℝ))
+    (hhead : -La.1 (X x) ≤ M)
+    (hwalls : ∀ Mb ∈ walls, -Mb.1 (X x) ≤ M) :
+    ∃ D : E →L[ℝ] ℝ,
+      HasFDerivAt (smoothWallList La walls) D x ∧ D (X x) ≤ M := by
+  induction walls generalizing La with
+  | nil =>
+      refine ⟨wallBarrierDeriv La.1, ?_, ?_⟩
+      · simpa [smoothWallList] using hasFDerivAt_wallBarrier La.1 La.2 x
+      · simpa [wallBarrierDeriv] using hhead
+  | cons Mb rest ih =>
+      obtain ⟨Dr, hDr, hDrM⟩ := ih Mb (hwalls Mb (by simp)) (by
+        intro Q hQ
+        exact hwalls Q (by simp [hQ]))
+      let D : E →L[ℝ] ℝ :=
+        (Real.exp (wallBarrier La.1 La.2 x) + Real.exp (smoothWallList Mb rest x))⁻¹ •
+          (Real.exp (wallBarrier La.1 La.2 x) • wallBarrierDeriv La.1 +
+            Real.exp (smoothWallList Mb rest x) • Dr)
+      refine ⟨D, ?_, ?_⟩
+      · simpa [smoothWallList, D] using
+          hasFDerivAt_smoothMaxF (hasFDerivAt_wallBarrier La.1 La.2 x) hDr
+      · exact smoothMaxF_fderiv_le_of_bound (by
+          simpa [wallBarrierDeriv] using hhead) hDrM
+
+/-- The tail of a nested smooth wall list lies at least `K` below its distinguished head.
+For an empty tail the condition is vacuous. -/
+def dominantHeadGap
+    (La : (E →L[ℝ] ℝ) × ℝ) (walls : List ((E →L[ℝ] ℝ) × ℝ))
+    (K : ℝ) (x : E) : Prop :=
+  match walls with
+  | [] => True
+  | Mb :: rest => smoothWallList Mb rest x + K ≤ wallBarrier La.1 La.2 x
+
+/-- A head wall with inward derivative margin `ε` controls an arbitrarily outward-pointing tail
+when the tail's value is sufficiently lower. The tail derivative is bounded by `M`; the gap
+makes its log-sum-exp weight small enough that the head's inward margin dominates it. -/
+theorem exists_fderiv_smoothWallList_nonpos_of_dominantHead
+    {X : E → E} {x : E} {ε M K : ℝ}
+    (La : (E →L[ℝ] ℝ) × ℝ) (walls : List ((E →L[ℝ] ℝ) × ℝ))
+    (hε : 0 ≤ ε)
+    (hhead : ε ≤ La.1 (X x))
+    (hwalls : ∀ Mb ∈ walls, -Mb.1 (X x) ≤ M)
+    (hM : M ≤ Real.exp K * ε)
+    (hgap : dominantHeadGap La walls K x) :
+    ∃ D : E →L[ℝ] ℝ,
+      HasFDerivAt (smoothWallList La walls) D x ∧ D (X x) ≤ 0 := by
+  induction walls generalizing La with
+  | nil =>
+      refine ⟨wallBarrierDeriv La.1, ?_, ?_⟩
+      · simpa [smoothWallList] using hasFDerivAt_wallBarrier La.1 La.2 x
+      · have hD : wallBarrierDeriv La.1 (X x) ≤ -ε := by
+          simpa [wallBarrierDeriv] using neg_le_neg hhead
+        linarith
+  | cons Mb rest ih =>
+      change smoothWallList Mb rest x + K ≤ wallBarrier La.1 La.2 x at hgap
+      have hMb : Mb ∈ Mb :: rest := by simp
+      have hrest : ∀ Q ∈ rest, -Q.1 (X x) ≤ M := by
+        intro Q hQ
+        exact hwalls Q (List.mem_cons_of_mem Mb hQ)
+      obtain ⟨Drest, hDrest, hDrestM⟩ :=
+        exists_fderiv_smoothWallList_le Mb rest (hwalls Mb hMb) hrest
+      have hDhead : wallBarrierDeriv La.1 (X x) ≤ -ε := by
+        simpa [wallBarrierDeriv] using neg_le_neg hhead
+      obtain ⟨D, hD, hDnonpos⟩ :=
+        exists_fderiv_smoothMaxF_nonpos_of_value_gap
+          (wallBarrier La.1 La.2) (smoothWallList Mb rest)
+          ⟨wallBarrierDeriv La.1,
+            hasFDerivAt_wallBarrier La.1 La.2 x, hDhead⟩
+          ⟨Drest, hDrest, hDrestM⟩ hε hM hgap
+      refine ⟨D, ?_, hDnonpos⟩
+      simpa [smoothWallList] using hD
+
+/-- **Band-local zero-separating theorem with a dominant head chart.** On the barrier band, one
+fixed head wall has a uniform inward margin, every tail wall has a common upper derivative bound, and the
+smoothly aggregated tail stays below the head by a sufficient value gap. The resulting smooth
+barrier satisfies the derivative condition required by `ZeroSeparatingSurfaceExists`, while the
+head still supplies the origin-separation margin. This is a chart-local gluing result; it does not
+select a dominant chart over a general fan cover. -/
+theorem zeroSeparatingSurfaceExists_smoothWallList_of_dominantHead_band
+    {X : E → E} {x₀ : E} {c δ r ε M K : ℝ}
+    (La : (E →L[ℝ] ℝ) × ℝ) (walls : List ((E →L[ℝ] ℝ) × ℝ))
+    (hδ : 0 < δ) (hε : 0 ≤ ε)
+    (hhead : ∀ y, c - δ ≤ smoothWallList La walls y →
+      smoothWallList La walls y ≤ c + δ → ε ≤ La.1 (X y))
+    (hwalls : ∀ Mb ∈ walls, ∀ y, c - δ ≤ smoothWallList La walls y →
+      smoothWallList La walls y ≤ c + δ → -Mb.1 (X y) ≤ M)
+    (hM : M ≤ Real.exp K * ε)
+    (hgap : ∀ y, c - δ ≤ smoothWallList La walls y →
+      smoothWallList La walls y ≤ c + δ → dominantHeadGap La walls K y)
+    (hstart : smoothWallList La walls x₀ ≤ c)
+    (hL : ‖La.1‖ ≤ 1) (hr : 0 < r) (hac : c + r ≤ La.2) :
+    ZeroSeparatingSurfaceExists X x₀ := by
+  let g : E → ℝ := smoothWallList La walls
+  have hD : ∀ y : E, ∃ D : E →L[ℝ] ℝ, HasFDerivAt g D y := by
+    intro y
+    exact exists_fderiv_smoothWallList La walls y
+  let gp : E → (E →L[ℝ] ℝ) := fun y => Classical.choose (hD y)
+  have hgp : ∀ y, HasFDerivAt g (gp y) y := fun y => Classical.choose_spec (hD y)
+  have hcont : Continuous g := by
+    rw [continuous_iff_continuousAt]
+    intro y
+    exact (hgp y).continuousAt
+  refine ⟨⟨g, gp, c, δ, r, hcont, hgp, hδ, ?_, hstart, hr, ?_⟩⟩
+  · intro y hlo hhi
+    obtain ⟨D, hDy, hDnonpos⟩ :=
+      exists_fderiv_smoothWallList_nonpos_of_dominantHead La walls hε
+        (hhead y hlo hhi)
+        (fun Mb hMb => hwalls Mb hMb y hlo hhi) hM (hgap y hlo hhi)
+    have heq : gp y = D := (hgp y).unique hDy
+    rw [heq]
+    exact hDnonpos
+  · exact smoothWallList_sublevel_separated hL hr hac walls
+
 /-- **Band-local finite-wall zero-separating theorem.** Global fan inequalities are unnecessary:
 it is enough that all constituent walls are inward on the narrow level-set band where Nagumo needs
 the derivative sign.  This is the direct finite smooth-wall implementation of the repository's
