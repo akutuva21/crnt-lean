@@ -5,10 +5,16 @@ import Mathlib.Analysis.Calculus.Deriv.Inv
 # Compatibility of neighboring logarithmic projective sections
 
 Two affine face sections reconstruct the same point on a common projective ray when their weights
-have the same total on each fiber of the projective-coordinate map. This gives an exact overlap
-criterion: coordinates tied on a blueprint face form the fibers, and matching the total face weight
-on each such fiber makes the two scalar section equations identical. The criterion is proved here;
-showing that the weights of a particular faithful blueprint satisfy it remains a geometric task.
+have the same total on each fiber of the projective-coordinate map. This gives an exact pointwise
+overlap criterion: coordinates tied on a blueprint face form the fibers, and matching the total
+face weight on each such fiber makes the two scalar section equations identical. C¹ gluing
+across a seam also needs transverse first-order compatibility. Matching the weighted first moments
+on each fiber makes the scalar level equations' directional derivatives agree; the two-species
+example below shows that fiber balance alone does not imply this stronger $C^1$ condition. The
+cited ZSH construction requires a piecewise smooth surface and checks its non-crossing condition at
+smooth points (arXiv:1501.02860v3, Definition 4.6), so a first-derivative mismatch alone does not
+obstruct that construction. Verifying pointwise balance and the required seam geometry for a
+particular faithful blueprint remains a geometric task.
 -/
 
 namespace CRNT
@@ -207,6 +213,79 @@ theorem weightedExpLevel_eq_of_projectiveFiberWeight_eq (b c y : ι → ℝ) (t 
           intro v hv
           exact (hfiberExpC v).symm
 
+/-- Derivative of a weighted exponential level when the projective coordinates vary linearly in a
+direction `q`, with the scale `t` held fixed. -/
+theorem hasDerivAt_weightedExpLevel_along_linear_ray (b y q : ι → ℝ) (t : ℝ) :
+    HasDerivAt
+      (fun r : ℝ => LogProjectiveSection.weightedExpLevel b (fun i => y i + r * q i) t)
+      (∑ i, b i * Real.exp (-(t * y i)) * (-(t * q i))) 0 := by
+  classical
+  unfold LogProjectiveSection.weightedExpLevel
+  apply HasDerivAt.fun_sum
+  intro i hi
+  have hlinear : HasDerivAt (fun r : ℝ => y i + r * q i) (q i) 0 := by
+    have hid := (hasDerivAt_id (0 : ℝ)).mul_const (q i)
+    have hadd := hid.add_const (y i)
+    simpa [id_eq, add_comm, mul_comm] using hadd
+  have hinner : HasDerivAt (fun r : ℝ => -(t * (y i + r * q i)))
+      (-(t * q i)) 0 := by
+    have hmul := hlinear.const_mul (-t)
+    simpa [neg_mul] using hmul
+  have hexp : HasDerivAt
+      (fun r : ℝ => Real.exp (-(t * (y i + r * q i))))
+      (Real.exp (-(t * y i)) * (-(t * q i))) 0 := by
+    simpa using hinner.exp
+  convert HasDerivAt.const_mul (b i) hexp using 1
+  ring
+
+/-- If neighboring weights match on each projective-coordinate fiber and also match their
+directional first moments there, their weighted exponential level equations have the same first
+derivative along that ray direction at every fixed scale. Fiber mass alone gives the value
+compatibility; this additional moment condition is the first-order datum needed before applying
+implicit differentiation to the selected section scales. -/
+theorem exists_common_weightedExpLevel_derivative_of_fiber_first_moment
+    (b c y q : ι → ℝ) (t : ℝ)
+    (hfiber : ∀ v, projectiveFiberWeight y b v = projectiveFiberWeight y c v)
+    (hmoment : ∀ v,
+      projectiveFiberWeight y (fun i => b i * q i) v =
+        projectiveFiberWeight y (fun i => c i * q i) v) :
+    ∃ d : ℝ,
+      LogProjectiveSection.weightedExpLevel b y t =
+        LogProjectiveSection.weightedExpLevel c y t ∧
+      HasDerivAt
+        (fun r : ℝ => LogProjectiveSection.weightedExpLevel b (fun i => y i + r * q i) t)
+        d 0 ∧
+      HasDerivAt
+        (fun r : ℝ => LogProjectiveSection.weightedExpLevel c (fun i => y i + r * q i) t)
+        d 0 := by
+  classical
+  let d := ∑ i, b i * Real.exp (-(t * y i)) * (-(t * q i))
+  have hlevels := weightedExpLevel_eq_of_projectiveFiberWeight_eq
+    (fun i => b i * q i) (fun i => c i * q i) y t hmoment
+  have hderivs :
+      (∑ i, b i * Real.exp (-(t * y i)) * (-(t * q i))) =
+        ∑ i, c i * Real.exp (-(t * y i)) * (-(t * q i)) := by
+    calc
+      (∑ i, b i * Real.exp (-(t * y i)) * (-(t * q i))) =
+          (-t) * LogProjectiveSection.weightedExpLevel
+            (fun i => b i * q i) y t := by
+              unfold LogProjectiveSection.weightedExpLevel
+              rw [Finset.mul_sum]
+              apply Finset.sum_congr rfl
+              intro i hi
+              ring
+      _ = (-t) * LogProjectiveSection.weightedExpLevel
+            (fun i => c i * q i) y t := by rw [hlevels]
+      _ = ∑ i, c i * Real.exp (-(t * y i)) * (-(t * q i)) := by
+              unfold LogProjectiveSection.weightedExpLevel
+              rw [Finset.mul_sum]
+              apply Finset.sum_congr rfl
+              intro i hi
+              ring
+  refine ⟨d, weightedExpLevel_eq_of_projectiveFiberWeight_eq b c y t hfiber, ?_, ?_⟩
+  · simpa [d] using hasDerivAt_weightedExpLevel_along_linear_ray b y q t
+  · simpa [d, hderivs] using hasDerivAt_weightedExpLevel_along_linear_ray c y q t
+
 /-- Fiberwise-compatible affine sections have exactly the same level equation. -/
 theorem affineLevel_eq_iff_of_projectiveFiberWeight_eq (b c y : ι → ℝ)
     (a t : ℝ)
@@ -264,12 +343,14 @@ theorem positiveSectionPoint_eq_of_projectiveFiberWeight_eq
   change LogProjectiveSection.sectionPoint y tb = LogProjectiveSection.sectionPoint y tc
   rw [htb, htc]
 
-/-! ## A first-jet obstruction
+/-! ## A C¹-gluing diagnostic
 
 Pointwise fiber balance makes neighboring section points agree on a shared ray, but does not
 control how their scales vary transverse to that ray. The two-species example below gives matching
-values at a tied-coordinate ray and different first derivatives there. Thus a smooth gluing argument
-needs a separate first-jet compatibility condition. -/
+values at a tied-coordinate ray and different first derivatives there. Thus a C¹ gluing argument
+needs a separate first-jet compatibility condition. The piecewise-smooth ZSH criterion cited above
+imposes its tangent condition only at smooth points, so this example does not by itself block a
+piecewise-smooth construction. -/
 
 namespace TwoSpeciesJetExample
 
@@ -281,6 +362,7 @@ abbrev Species := Fin 2
 
 def leftWeight : Species → ℝ := fun i => if i = 0 then 1 else 0
 def rightWeight : Species → ℝ := fun i => if i = 1 then 1 else 0
+def transverseDirection : Species → ℝ := rightWeight
 def ray (r : ℝ) : ({i : Species // i ≠ 0} → ℝ) := fun _ => r
 
 private theorem leftWeight_nonneg : ∀ i, 0 ≤ leftWeight i := by
@@ -377,14 +459,28 @@ private theorem fiber_weights_agree_at_tied_ray :
     simp [projectiveFiberWeight, leftWeight, rightWeight, normalizedCoordinates, ray]
   · simp [projectiveFiberWeight, leftWeight, rightWeight, normalizedCoordinates, ray, eq_comm, hv]
 
+private theorem transverse_fiber_first_moments_differ :
+    projectiveFiberWeight (normalizedCoordinates (0 : Species) (ray 1))
+        (fun i => leftWeight i * transverseDirection i) 1 = 0 ∧
+      projectiveFiberWeight (normalizedCoordinates (0 : Species) (ray 1))
+        (fun i => rightWeight i * transverseDirection i) 1 = 1 := by
+  constructor <;>
+    simp [projectiveFiberWeight, leftWeight, rightWeight, transverseDirection,
+      normalizedCoordinates, ray]
+
 /-- At the tied ray `(1,1)`, the two face weights have equal mass on every projective-coordinate
 fiber and hence their canonical section scales agree. Their transverse derivatives are `0` and
 `-log 2`, respectively. This is a concrete witness that pointwise overlap compatibility alone
-does not establish smooth gluing across a face seam. -/
+does not establish C¹ gluing across a face seam. It diagnoses the stronger C¹ requirement and does
+not refute a piecewise-smooth ZSH construction. -/
 theorem pointwise_compatibility_does_not_imply_first_jet_compatibility :
     (∀ v : ℝ,
       projectiveFiberWeight (normalizedCoordinates (0 : Species) (ray 1)) leftWeight v =
         projectiveFiberWeight (normalizedCoordinates (0 : Species) (ray 1)) rightWeight v) ∧
+    projectiveFiberWeight (normalizedCoordinates (0 : Species) (ray 1))
+        (fun i => leftWeight i * transverseDirection i) 1 = 0 ∧
+      projectiveFiberWeight (normalizedCoordinates (0 : Species) (ray 1))
+        (fun i => rightWeight i * transverseDirection i) 1 = 1 ∧
     leftScale 1 = rightScale 1 ∧
     leftPoint 1 = rightPoint 1 ∧
     HasDerivAt leftScale 0 1 ∧
@@ -402,7 +498,8 @@ theorem pointwise_compatibility_does_not_imply_first_jet_compatibility :
     simpa using
       (hasDerivAt_const (1 : ℝ) (Real.log 2)).fun_div
         (hasDerivAt_id (1 : ℝ)) (by norm_num)
-  refine ⟨fiber_weights_agree_at_tied_ray, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨fiber_weights_agree_at_tied_ray, transverse_fiber_first_moments_differ.1,
+    transverse_fiber_first_moments_differ.2, ?_, ?_, ?_, ?_, ?_⟩
   · rw [leftScale_eq_log_two (by norm_num), rightScale_eq_log_two_div (by norm_num)]
     simp
   · exact positiveSectionPoint_eq_of_projectiveFiberWeight_eq leftWeight rightWeight

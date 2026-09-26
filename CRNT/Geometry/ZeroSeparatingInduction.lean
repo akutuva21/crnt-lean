@@ -120,8 +120,13 @@ chains is formalized below. Pre-blueprints and geometric tiling remain open.
 `LogProjectiveSection.exists_contDiff_local_sectionScale` supply the pointwise and smooth local
 inverse for one affine face plane of the logarithmic projective chart.
 `LogProjectiveFaceCompatibility.existsUnique_common_sectionScale` gives an exact sufficient
-condition for two such sections to share a ray point; proving the blueprint's fiber-balance
-condition and gluing all faces remain separate obligations.
+condition for two such sections to share a ray point. The module also proves a first-moment
+criterion for matching directional derivatives of the scalar level equations, and exhibits a
+two-species failure of C¹ gluing under fiber balance alone. Craciun's v3 ZSH construction requires
+piecewise smoothness and checks the non-crossing condition at smooth points; the first-jet mismatch
+is therefore a diagnostic for stronger C¹ gluing, not by itself an obstruction to that construction.
+Pointwise balance, seam topology, and the required normal condition on smooth pieces remain
+separate obligations.
 https://arxiv.org/html/1501.02860v3
 -/
 

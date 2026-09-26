@@ -216,7 +216,16 @@ an explicit hypothesis, never a `sorry`:
    and the simplicial gluing is the predicate `InductionStepHypothesis`
    (`Geometry/ZeroSeparatingSurface.lean`); `inductionStep_of_ruledBuild`
    (`Geometry/ZeroSeparatingInduction.lean`) returns its assumed witness unchanged. The descent band
-   and ball-separation feeding `genuine_away_from_origin` are likewise supplied.
+   and ball-separation feeding `genuine_away_from_origin` are likewise supplied. The log-projective
+   chart compatibility result currently proves pointwise overlap when neighboring face weights
+   balance on each tied-coordinate fiber. A separate first-moment condition aligns directional
+   derivatives of the scalar level equations; the two-species example in
+   `Geometry/LogProjectiveFaceCompatibility.lean` shows that fiber balance alone need not align
+   transverse section derivatives, so it rules out inferring C¹ gluing from pointwise overlap. The
+   [Craciun v3 ZSH definition](https://arxiv.org/html/1501.02860v3) requires a piecewise-smooth
+   surface and tests non-crossing at smooth points (Definition 4.6), so this derivative mismatch is
+   not itself an obstruction to the stated construction. The blueprint's pointwise seam
+   compatibility, seam topology, and normal condition on smooth pieces remain to be proved.
 3. **The weak-reversibility cycle cover and its ordering data.** The reachability-level cover is
    proven (`WeaklyReversible.onDirectedCycle`), but `NetworkCycleDecomposition` still assumes the
    concrete cycle lists and ordering data needed to assemble the network velocity. Its original
