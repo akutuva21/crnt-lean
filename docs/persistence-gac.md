@@ -251,6 +251,24 @@ the toric-inclusion approach. Its persistence-style results are the one-dimensio
 is formalized and the dimension-four over-determination is understood, but the conjecture is not
 closed here.
 
+## Additional candidate reductions from the supplied handoff
+
+Pantea's paper proves that all bounded trajectories of weakly reversible mass-action systems with
+two-dimensional stoichiometric subspace are persistent, and proves the Global Attractor Conjecture
+for complex-balanced systems with three-dimensional stoichiometric subspace ([Pantea,
+*On the persistence and global stability of mass-action systems* (2012)](https://arxiv.org/abs/1103.0603)).
+Neither result is formalized here. They are candidate dimension-specific proof branches, subject to
+an important interface check: the current `GenuinePermanentForRates` target asks for a class-uniform
+eventual compact set, so a formalization must prove that the paper's persistence or convergence result
+supplies this stronger API before counting either branch as closed.
+
+The handoff's rate-realization observation is also present in
+`Dynamics/ToricCycleOrderLimits.lean`: `not_exists_realizing_of_relation` shows that a translation
+realizing `log κ` must satisfy every linear relation among the cycle complexes, while
+`massAction_cycle_inner_le_kappaSpread` bounds the residual when no such translation exists. This
+limits the translated-cycle route for arbitrary rate constants; it does not refute the Global
+Attractor Conjecture or close the critical-siphon case.
+
 ## The permanence route (Gopalkrishnan–Miller–Shiu)
 
 A third route to the conjecture runs through **permanence**: `StronglyEndotactic ⇒ permanent ⇒ GAC`,
