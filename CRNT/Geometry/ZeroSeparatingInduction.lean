@@ -977,6 +977,80 @@ theorem exists_uniform_coherentBinaryWordTileScale_separation {n : ℕ} {q : ℝ
     exists_uniform_coherentBinaryWordTileScale_full_chain_separation hq0 hq1
   exact ⟨ρ, hρpos, hρlt, hordinary, hallones⟩
 
+/-! ## Filling a projected tile between its boundary graphs
+
+This is the set-theoretic part of Craciun v3, §7.4.3, Case 1.2. A face whose last projection
+lowers dimension has vertical fibers bounded by its already-constructed boundary neighborhoods.
+The fill below records the exact region between those graphs over one projected tile. Optional
+endpoints also cover the paper's unbounded-face case, where only one boundary graph is present.
+-/
+
+/-- The allowed interval in one projection fiber. Missing endpoints represent an unbounded side. -/
+def projectionFiberInterval (lower upper : Option ℝ) : Set ℝ :=
+  match lower, upper with
+  | none, none => Set.univ
+  | some a, none => Set.Ici a
+  | none, some b => Set.Iic b
+  | some a, some b => Set.Icc a b
+
+/-- The region over `base` filled between lower and upper boundary graphs in the last coordinate.
+For each projected point, the fiber is the full interval between its boundary values, with either
+endpoint allowed to be absent for an unbounded face. -/
+def projectionFiberBand {n : ℕ} (base : Set (Fin n → ℝ))
+    (lower upper : (Fin n → ℝ) → Option ℝ) : Set (Fin (n + 1) → ℝ) :=
+  {x | let y := forgetLastCoordinate n x
+    y ∈ base ∧ x (Fin.last n) ∈ projectionFiberInterval (lower y) (upper y)}
+
+/-- Membership in a fiber band is exactly base membership plus membership of the last coordinate
+in the corresponding endpoint interval. -/
+theorem mem_projectionFiberBand_snoc_iff {n : ℕ} (base : Set (Fin n → ℝ))
+    (lower upper : (Fin n → ℝ) → Option ℝ) (y : Fin n → ℝ) (t : ℝ) :
+    Fin.snoc y t ∈ projectionFiberBand base lower upper ↔
+      y ∈ base ∧ t ∈ projectionFiberInterval (lower y) (upper y) := by
+  simp [projectionFiberBand, forgetLastCoordinate]
+
+/-- The fiber of a filled tile over `y` is the whole interval between its boundary graphs, with no
+gaps. This is the exact fiber property used when Case 1.2 declares the preimage of a lower tile to
+be one tile in the new dimension. -/
+theorem projectionFiberBand_snoc_fiber {n : ℕ} (base : Set (Fin n → ℝ))
+    (lower upper : (Fin n → ℝ) → Option ℝ) (y : Fin n → ℝ) (hy : y ∈ base) :
+    {t | Fin.snoc y t ∈ projectionFiberBand base lower upper} =
+      projectionFiberInterval (lower y) (upper y) := by
+  classical
+  ext t
+  simp [mem_projectionFiberBand_snoc_iff, hy]
+
+/-- If every projected point has a nonempty vertical interval, filling the fibers projects onto
+exactly the original tile. Thus the last-bit-one construction preserves the prescribed projection
+of every tile. -/
+theorem projectionFiberBand_projects_onto_base {n : ℕ} (base : Set (Fin n → ℝ))
+    (lower upper : (Fin n → ℝ) → Option ℝ)
+    (hnonempty : ∀ y ∈ base, (projectionFiberInterval (lower y) (upper y)).Nonempty) :
+    forgetLastCoordinate n '' projectionFiberBand base lower upper = base := by
+  apply Set.Subset.antisymm
+  · rintro y ⟨x, hx, hxy⟩
+    simpa [hxy] using hx.1
+  · intro y hy
+    obtain ⟨t, ht⟩ := hnonempty y hy
+    refine ⟨Fin.snoc y t, ?_, ?_⟩
+    · exact (mem_projectionFiberBand_snoc_iff base lower upper y t).2 ⟨hy, ht⟩
+    · simp [forgetLastCoordinate]
+
+/-- Intersecting a filled region with the preimage of one projected tile gives exactly the
+corresponding full-fiber tile. This formalizes the tile definition in Case 1.2 of the induction. -/
+theorem projectionFiberBand_restrict_to_tile {n : ℕ} (base tile : Set (Fin n → ℝ))
+    (lower upper : (Fin n → ℝ) → Option ℝ) (htile : tile ⊆ base) :
+    projectionFiberBand base lower upper ∩
+        {x | forgetLastCoordinate n x ∈ tile} =
+      projectionFiberBand tile lower upper := by
+  ext x
+  simp only [Set.mem_inter_iff, Set.mem_setOf_eq, projectionFiberBand]
+  constructor
+  · rintro ⟨⟨hbase, hfiber⟩, htile'⟩
+    exact ⟨htile', hfiber⟩
+  · rintro ⟨htile', hfiber⟩
+    exact ⟨⟨htile htile', hfiber⟩, htile'⟩
+
 /-! ## The ruled-surface step -/
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
