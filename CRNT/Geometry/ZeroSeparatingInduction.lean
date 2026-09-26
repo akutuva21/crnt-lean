@@ -112,6 +112,152 @@ open scoped Pointwise
 open scoped InnerProductSpace
 open ZeroSeparatingCurve2D
 
+/-- A finite compact patch cover whose pieces have controlled diameter and pairwise disjoint
+interiors. -/
+structure CompactFinitePatchCover {n : ℕ} (base : Set (Fin n → ℝ)) (radius : ℝ) where
+  Index : Type
+  fintypeIndex : Fintype Index
+  patch : Index → Set (Fin n → ℝ)
+  cover : base = ⋃ i, patch i
+  patch_subset : ∀ i, patch i ⊆ base
+  patch_compact : ∀ i, IsCompact (patch i)
+  patch_diameter : ∀ i x, x ∈ patch i → ∀ y, y ∈ patch i →
+    dist x y ≤ radius + radius
+  patch_interiors_disjoint : ∀ i j, i ≠ j →
+    interior (patch i) ∩ interior (patch j) = ∅
+
+/-- Every compact projected face has a finite compact cover by patches of controlled diameter
+whose interiors are pairwise disjoint. The patches come from a finite open-ball cover: assign each
+point to the first ball containing it and remove earlier open balls from each closed ball. This is
+the finite patch extraction used when refining projected faces in Craciun v3, §7.4.3. -/
+noncomputable def compactFinitePatchCover_of_compact {n : ℕ}
+    (base : Set (Fin n → ℝ)) (hbase : IsCompact base) {radius : ℝ}
+    (hradius : 0 < radius) : CompactFinitePatchCover base radius := by
+  classical
+  let U : {x : Fin n → ℝ // x ∈ base} → Set (Fin n → ℝ) :=
+    fun x => Metric.ball x.1 radius
+  have hUopen : ∀ x, IsOpen (U x) := fun _ => Metric.isOpen_ball
+  have hUcover : base ⊆ ⋃ x : {x : Fin n → ℝ // x ∈ base}, U x := by
+    intro x hx
+    rw [Set.mem_iUnion]
+    refine ⟨⟨x, hx⟩, ?_⟩
+    change dist x x < radius
+    simpa using hradius
+  let hfiniteCover := hbase.elim_finite_subcover U hUopen hUcover
+  let centers : Finset {x : Fin n → ℝ // x ∈ base} := Classical.choose hfiniteCover
+  have hcenters : base ⊆ ⋃ x ∈ centers, U x := Classical.choose_spec hfiniteCover
+  let ι := {x : {y : Fin n → ℝ // y ∈ base} // x ∈ centers}
+  letI : Fintype ι := FinsetCoe.fintype centers
+  let rank : ι ≃ Fin (Fintype.card ι) := Fintype.equivFin ι
+  let center : ι → (Fin n → ℝ) := fun i => i.1.1
+  let prior (i : Fin (Fintype.card ι)) : Set (Fin n → ℝ) :=
+    ⋃ j : Fin (Fintype.card ι),
+      if j < i then Metric.ball (center (rank.symm j)) radius else ∅
+  let patch (i : Fin (Fintype.card ι)) : Set (Fin n → ℝ) :=
+    base ∩ (Metric.closedBall (center (rank.symm i)) radius ∩ (prior i)ᶜ)
+  have hpriorOpen (i : Fin (Fintype.card ι)) : IsOpen (prior i) := by
+    apply isOpen_iUnion
+    intro j
+    by_cases hji : j < i
+    · simpa [prior, hji] using (Metric.isOpen_ball : IsOpen (Metric.ball
+        (center (rank.symm j)) radius))
+    · simp [prior, hji]
+  have hpatchClosed (i : Fin (Fintype.card ι)) : IsClosed (patch i) := by
+    apply hbase.isClosed.inter
+    exact Metric.isClosed_closedBall.inter (hpriorOpen i).isClosed_compl
+  have hpatchBase (i : Fin (Fintype.card ι)) : patch i ⊆ base :=
+    Set.inter_subset_left
+  have hpatchCompact (i : Fin (Fintype.card ι)) : IsCompact (patch i) :=
+    hbase.of_isClosed_subset (hpatchClosed i) (hpatchBase i)
+  have hpatchDiameter (i : Fin (Fintype.card ι)) (x : Fin n → ℝ)
+      (hx : x ∈ patch i) (y : Fin n → ℝ) (hy : y ∈ patch i) :
+      dist x y ≤ radius + radius := by
+    change x ∈ base ∩ (Metric.closedBall (center (rank.symm i)) radius ∩ (prior i)ᶜ) at hx
+    change y ∈ base ∩ (Metric.closedBall (center (rank.symm i)) radius ∩ (prior i)ᶜ) at hy
+    have hxi := hx.2.1
+    have hyi := hy.2.1
+    have hxc : dist x (center (rank.symm i)) ≤ radius :=
+      Metric.mem_closedBall.mp hxi
+    have hyc : dist y (center (rank.symm i)) ≤ radius :=
+      Metric.mem_closedBall.mp hyi
+    calc
+      dist x y ≤ dist x (center (rank.symm i)) +
+          dist (center (rank.symm i)) y := dist_triangle _ _ _
+      _ ≤ radius + radius := add_le_add hxc (by simpa [dist_comm] using hyc)
+  have hordered (i j : Fin (Fintype.card ι)) (hij : i < j) :
+      interior (patch i) ∩ interior (patch j) = ∅ := by
+    ext x
+    constructor
+    · intro hx
+      rcases hx with ⟨hxi, hxj⟩
+      have hxball : x ∈ Metric.ball (center (rank.symm i)) radius := by
+        have hpatchBall : patch i ⊆ Metric.closedBall (center (rank.symm i)) radius := by
+          intro y hy
+          change y ∈ base ∩ (Metric.closedBall (center (rank.symm i)) radius ∩ (prior i)ᶜ) at hy
+          exact hy.2.1
+        have hsub : interior (patch i) ⊆
+            interior (Metric.closedBall (center (rank.symm i)) radius) := interior_mono hpatchBall
+        rw [interior_closedBall _ (ne_of_gt hradius)] at hsub
+        exact hsub hxi
+      have hxprior : x ∈ prior j := by
+        rw [Set.mem_iUnion]
+        refine ⟨i, ?_⟩
+        simp [prior, hij, hxball]
+      have hxjPatch : x ∈ patch j := interior_subset hxj
+      change x ∈ base ∩ (Metric.closedBall (center (rank.symm j)) radius ∩ (prior j)ᶜ)
+        at hxjPatch
+      exact hxjPatch.2.2 hxprior
+    · simp
+  have hpatchInteriorsDisjoint : ∀ i j, i ≠ j →
+      interior (patch i) ∩ interior (patch j) = ∅ := by
+    intro i j hij
+    rcases lt_or_gt_of_ne hij with hij' | hji'
+    · exact hordered i j hij'
+    · rw [Set.inter_comm]
+      exact hordered j i hji'
+  have hpatchCover : base = ⋃ i, patch i := by
+    apply Set.Subset.antisymm
+    · intro x hx
+      have hxcenters := hcenters hx
+      simp only [Set.mem_iUnion] at hxcenters
+      obtain ⟨c, hc, hxc⟩ := hxcenters
+      let i₀ : ι := ⟨c, hc⟩
+      have hbaseball : x ∈ Metric.ball (center i₀) radius := by
+        simpa [U, center] using hxc
+      let active : Finset (Fin (Fintype.card ι)) :=
+        Finset.univ.filter fun j =>
+          x ∈ Metric.ball (center (rank.symm j)) radius
+      have hactive : rank i₀ ∈ active := by
+        apply Finset.mem_filter.mpr
+        refine ⟨Finset.mem_univ _, ?_⟩
+        simpa [center] using hbaseball
+      have hactiveNonempty : active.Nonempty := ⟨rank i₀, hactive⟩
+      let i := active.min' hactiveNonempty
+      have hiActive : i ∈ active := Finset.min'_mem active hactiveNonempty
+      have hxball : x ∈ Metric.ball (center (rank.symm i)) radius :=
+        (Finset.mem_filter.mp hiActive).2
+      have hxnotprior : x ∉ prior i := by
+        intro hxprior
+        simp only [prior, Set.mem_iUnion] at hxprior
+        obtain ⟨j, hj⟩ := hxprior
+        by_cases hji : j < i
+        · have hjball : x ∈ Metric.ball (center (rank.symm j)) radius := by
+            simpa [hji] using hj
+          have hjActive : j ∈ active := Finset.mem_filter.mpr
+            ⟨Finset.mem_univ j, hjball⟩
+          have hmin : i ≤ j := Finset.min'_le active j hjActive
+          exact (not_le_of_gt hji) hmin
+        · simp [hji] at hj
+      have hxin : x ∈ patch i := by
+        refine ⟨hx, Metric.ball_subset_closedBall hxball, hxnotprior⟩
+      exact Set.mem_iUnion.mpr ⟨i, hxin⟩
+    · apply Set.iUnion_subset
+      intro i x hx
+      change x ∈ base ∩ (Metric.closedBall (center (rank.symm i)) radius ∩ (prior i)ᶜ) at hx
+      exact hx.1
+  exact ⟨Fin (Fintype.card ι), inferInstance, patch, hpatchCover,
+    hpatchBase, hpatchCompact, hpatchDiameter, hpatchInteriorsDisjoint⟩
+
 /-- An open map sends interiors into the interior of the image. -/
 theorem image_interior_subset_interior_image_of_isOpenMap
     {α β : Type*} [TopologicalSpace α] [TopologicalSpace β]
@@ -2593,6 +2739,37 @@ noncomputable def compactZeroBitFiberPatchCover_of_compactBaseCover {n : ℕ} {�
     rw [← hrestrict] at hx
     exact hseparated hx.1
 
+/-- The zero-bit Case 1.1 cover in Craciun v3, §7.4.3 needs no user-supplied projected tiling:
+compactness of the projected face gives a finite compact cover with disjoint interiors, and the
+graph-tube construction lifts it to the face patch. `patchRadius` controls the projected patch
+diameters independently of the tube radius used for boundary separation. -/
+theorem compactZeroBitFiberPatchCover_of_compactProjectedFace {n : ℕ}
+    (chain : CoordinateProjectedFaceChain (n + 1))
+    (hbit : faceProjectionDimensionLetter
+      (fun k => Module.finrank ℝ ((affineSpan ℝ (chain.face k)).direction))
+      (Fin.last n) = false)
+    (hface : IsCompact (chain.face (Fin.last n).succ))
+    (margin radius patchRadius : ℝ)
+    (hfaceSeparated : chain.face (Fin.last n).succ ⊆
+      (Metric.ball (0 : Fin (n + 1) → ℝ) margin)ᶜ)
+    (hradius : 0 ≤ radius) (hsmall : radius < margin)
+    (hpatchRadius : 0 < patchRadius) :
+    ∃ (cover : CompactFinitePatchCover (chain.face (Fin.last n).castSucc) patchRadius),
+      letI : Fintype cover.Index := cover.fintypeIndex
+      Nonempty (CompactZeroBitFiberPatchCover (chain.face (Fin.last n).succ)
+        (chain.face (Fin.last n).castSucc) cover.patch margin radius) := by
+  classical
+  have hbaseCompact : IsCompact (chain.face (Fin.last n).castSucc) := by
+    rw [← chain.projectedFace (Fin.last n)]
+    exact hface.image (forgetLastAffine n).continuous_of_finiteDimensional
+  let cover := compactFinitePatchCover_of_compact
+    (chain.face (Fin.last n).castSucc) hbaseCompact hpatchRadius
+  refine ⟨cover, ?_⟩
+  letI : Fintype cover.Index := cover.fintypeIndex
+  exact ⟨compactZeroBitFiberPatchCover_of_compactBaseCover chain hbit hface
+    cover.patch cover.patch_compact cover.patch_interiors_disjoint cover.cover margin radius
+    hfaceSeparated hradius hsmall⟩
+
 
 /-- Every equal-width subtile of a compact bounded fiber band is compact when the base is compact
 and the endpoint graphs are continuous. Closedness of the subtile is inherited from the
@@ -3183,6 +3360,32 @@ noncomputable def compactOneBitFiberPatchCover_of_compactBand {n : ℕ} {ι : Ty
       rw [htiles] at htilemem
       simpa using htilemem
     · simp
+
+/-- The one-bit Case 1.2 cover in Craciun v3, §7.4.3, with its projected base tiling constructed
+from compactness. The new-coordinate strips are then subdivided by
+`compactOneBitFiberPatchCover_of_compactBand`; each resulting face piece is compact and the pieces
+have pairwise disjoint interiors. -/
+theorem compactOneBitFiberPatchCover_of_compactBase {n : ℕ}
+    (facePatch : Set (Fin (n + 1) → ℝ)) (hfaceCompact : IsCompact facePatch)
+    (base : Set (Fin n → ℝ)) (hbaseCompact : IsCompact base)
+    (lower upper : (Fin n → ℝ) → ℝ) (epsilon patchRadius : ℝ)
+    (hlower : Continuous lower) (hupper : Continuous upper)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) (hepsilon : 0 < epsilon)
+    (hpatchRadius : 0 < patchRadius)
+    (hfaceBand : facePatch ⊆
+      projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y))) :
+    ∃ (cover : CompactFinitePatchCover base patchRadius),
+      letI : Fintype cover.Index := cover.fintypeIndex
+      Nonempty (CompactOneBitFiberPatchCover facePatch base cover.patch lower upper
+        (fun _ => epsilon)) := by
+  classical
+  let cover := compactFinitePatchCover_of_compact base hbaseCompact hpatchRadius
+  refine ⟨cover, ?_⟩
+  letI : Fintype cover.Index := cover.fintypeIndex
+  exact ⟨compactOneBitFiberPatchCover_of_compactBand facePatch hfaceCompact base
+    cover.patch lower upper (fun _ => epsilon) cover.cover cover.patch_compact
+    cover.patch_interiors_disjoint hlower hupper
+    horder (fun _ => hepsilon) hfaceBand⟩
 
 /-! ## The ruled-surface step -/
 
