@@ -1051,6 +1051,63 @@ theorem projectionFiberBand_restrict_to_tile {n : ℕ} (base tile : Set (Fin n �
   · rintro ⟨htile', hfiber⟩
     exact ⟨⟨htile htile', hfiber⟩, htile'⟩
 
+/-! ## Equal-width subdivision of a bounded fiber
+
+The paper next subdivides each bounded vertical fiber into intervals whose last-coordinate width
+is at most the prescribed `tilde epsilon`. The finite interpolation already used for tile scales
+provides the subdivision points; the lemmas below calculate the width of every resulting strip.
+-/
+
+/-- The `i`th subdivision point on the vertical fiber over `y`, using the existing equally-spaced
+finite interpolation. There are `m + 1` closed strips between the `m + 2` points. -/
+noncomputable def projectionFiberSubdivisionEndpoint {n m : ℕ}
+    (lower upper : (Fin n → ℝ) → ℝ) (i : Fin (m + 2)) (y : Fin n → ℝ) : ℝ :=
+  tileScaleInterpolation (lower y) (upper y) i
+
+/-- One closed strip in the equal subdivision of each bounded vertical fiber. -/
+def projectionFiberSubdivisionTile {n m : ℕ} (base : Set (Fin n → ℝ))
+    (lower upper : (Fin n → ℝ) → ℝ) (i : Fin (m + 1)) : Set (Fin (n + 1) → ℝ) :=
+  {x | let y := forgetLastCoordinate n x
+    y ∈ base ∧
+      projectionFiberSubdivisionEndpoint lower upper i.castSucc y ≤ x (Fin.last n) ∧
+      x (Fin.last n) ≤ projectionFiberSubdivisionEndpoint lower upper i.succ y}
+
+/-- Membership in one subdivision tile is membership in the projected base and the closed
+interval between its two adjacent interpolation points. -/
+theorem mem_projectionFiberSubdivisionTile_snoc_iff {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (i : Fin (m + 1)) (y : Fin n → ℝ) (t : ℝ) :
+    Fin.snoc y t ∈ projectionFiberSubdivisionTile base lower upper i ↔
+      y ∈ base ∧
+        projectionFiberSubdivisionEndpoint lower upper i.castSucc y ≤ t ∧
+        t ≤ projectionFiberSubdivisionEndpoint lower upper i.succ y := by
+  simp [projectionFiberSubdivisionTile, projectionFiberSubdivisionEndpoint, forgetLastCoordinate]
+
+/-- Every adjacent pair of subdivision points has the same vertical width. -/
+theorem projectionFiberSubdivisionEndpoint_gap {n m : ℕ}
+    (lower upper : (Fin n → ℝ) → ℝ) (i : Fin (m + 1)) (y : Fin n → ℝ) :
+    projectionFiberSubdivisionEndpoint lower upper i.succ y -
+        projectionFiberSubdivisionEndpoint lower upper i.castSucc y =
+      (upper y - lower y) / ((m + 1 : ℕ) : ℝ) := by
+  dsimp [projectionFiberSubdivisionEndpoint, tileScaleInterpolation]
+  push_cast
+  have hden : ((m + 1 : ℕ) : ℝ) ≠ 0 := by positivity
+  field_simp
+  <;> ring
+
+/-- If every fiber has total height at most `m + 1` times `epsilon`, then each closed subdivision
+tile has last-coordinate width at most `epsilon`. -/
+theorem projectionFiberSubdivisionEndpoint_gap_le {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ) (epsilon : ℝ)
+    (hheight : ∀ y ∈ base,
+      upper y - lower y ≤ ((m + 1 : ℕ) : ℝ) * epsilon)
+    (i : Fin (m + 1)) (y : Fin n → ℝ) (hy : y ∈ base) :
+    projectionFiberSubdivisionEndpoint lower upper i.succ y -
+        projectionFiberSubdivisionEndpoint lower upper i.castSucc y ≤ epsilon := by
+  rw [projectionFiberSubdivisionEndpoint_gap]
+  rw [div_le_iff₀ (by positivity : 0 < ((m + 1 : ℕ) : ℝ))]
+  nlinarith [hheight y hy]
+
 /-! ## The ruled-surface step -/
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
