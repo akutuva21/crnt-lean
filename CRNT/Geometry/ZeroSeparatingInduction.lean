@@ -1514,6 +1514,71 @@ theorem isCompact_projectionFiberSubdivisionTile {n m : ℕ}
     (isClosed_projectionFiberSubdivisionTile base lower upper hbase.isClosed hlower hupper i)
     (projectionFiberSubdivisionTile_subset_band base lower upper horder i)
 
+/-- A certificate for the bounded Case 1.2 refinement: finitely many compact strips cover the
+filled fiber band, each strip projects onto the whole lower-dimensional base, and each vertical
+fiber width is at most `epsilon`. -/
+structure CompactProjectionFiberTiling {n : ℕ} (base : Set (Fin n → ℝ))
+    (lower upper : (Fin n → ℝ) → ℝ) (epsilon : ℝ) where
+  /-- The number of equal strips in each fiber is `subdivisionCount + 1`. -/
+  subdivisionCount : ℕ
+  /-- The subtiles exactly cover the filled band. -/
+  tiles_cover :
+    projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y)) =
+      ⋃ i : Fin (subdivisionCount + 1),
+        projectionFiberSubdivisionTile base lower upper i
+  /-- Compactness of every subtile, for later extraction of finite local chart covers. -/
+  tile_compact : ∀ i : Fin (subdivisionCount + 1),
+    IsCompact (projectionFiberSubdivisionTile base lower upper i)
+  /-- Every subtile retains the full projection of its parent tile. -/
+  tile_projects : ∀ i : Fin (subdivisionCount + 1),
+    forgetLastCoordinate n '' projectionFiberSubdivisionTile base lower upper i = base
+  /-- Uniform upper bound on the last-coordinate width of every subtile. -/
+  fiber_width_le : ∀ (i : Fin (subdivisionCount + 1)) (y : Fin n → ℝ), y ∈ base →
+    projectionFiberSubdivisionEndpoint lower upper i.succ y -
+      projectionFiberSubdivisionEndpoint lower upper i.castSucc y ≤ epsilon
+
+/-- Compactness of the projected base supplies a uniform bound on the continuous fiber heights.
+Consequently, every positive target width admits a compact finite tiling with exact coverage and
+surjective tile projections. -/
+noncomputable def compactProjectionFiberTiling_of_compactBase {n : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ) (epsilon : ℝ)
+    (hbase : IsCompact base) (hlower : Continuous lower) (hupper : Continuous upper)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) (hepsilon : 0 < epsilon) :
+    CompactProjectionFiberTiling base lower upper epsilon := by
+  classical
+  have hwidthCompact : IsCompact ((fun y => upper y - lower y) '' base) :=
+    hbase.image (hupper.sub hlower)
+  have hwidthBdd : BddAbove ((fun y => upper y - lower y) '' base) :=
+    hwidthCompact.bddAbove
+  let b : ℝ := Classical.choose hwidthBdd
+  have hb := Classical.choose_spec hwidthBdd
+  let height := max b 0
+  have hheight : 0 ≤ height := le_max_right _ _
+  have hwidth : ∀ y ∈ base, upper y - lower y ≤ height := by
+    intro y hy
+    have hbound : upper y - lower y ≤ b :=
+      hb (Set.mem_image_of_mem (fun y => upper y - lower y) hy)
+    exact hbound.trans (le_max_left _ _)
+  have hmExists := exists_uniform_projectionFiberSubdivision
+    base lower upper hheight hwidth hepsilon
+  let m : ℕ := Classical.choose hmExists
+  have hm : ∀ y ∈ base, ∀ i : Fin (m + 1),
+      projectionFiberSubdivisionEndpoint lower upper i.succ y -
+        projectionFiberSubdivisionEndpoint lower upper i.castSucc y ≤ epsilon := by
+    simpa [m] using (Classical.choose_spec hmExists)
+  refine {
+    subdivisionCount := m
+    tiles_cover := projectionFiberBand_bounded_eq_iUnion_subdivisionTiles
+      base lower upper horder
+    tile_compact := fun i =>
+      isCompact_projectionFiberSubdivisionTile base lower upper hbase hlower hupper horder i
+    tile_projects := fun i =>
+      projectionFiberSubdivisionTile_projects_onto_base base lower upper horder i
+    fiber_width_le := by
+      intro i y hy
+      exact hm y hy i
+  }
+
 /-! ## The ruled-surface step -/
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
