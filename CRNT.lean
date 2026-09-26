@@ -67,6 +67,7 @@ import CRNT.LinearAlgebra.PowerProductMonoFinset
 import CRNT.Geometry.PolyhedralFan
 import CRNT.Geometry.Endotactic
 import CRNT.Geometry.ToricFan
+import CRNT.Geometry.CraciunZSH
 import CRNT.Geometry.ZeroSeparatingSurface
 import CRNT.Geometry.ConeFace
 import CRNT.Geometry.ZeroSeparatingCurve2D
