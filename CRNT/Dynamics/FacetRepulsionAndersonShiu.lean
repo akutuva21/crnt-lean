@@ -652,6 +652,42 @@ theorem sum_nonneg_of_dominating_negatives {ι : Type*} [Fintype ι] [DecidableE
     exact not_lt.mp (Finset.mem_filter.mp hi).2
   linarith [hnegle, hstep, hposge]
 
+/-- A reaction-by-reaction variant of `sum_nonneg_of_dominating_negatives`: each negative term
+may be controlled by the entire nonnegative part of the sum, with a common factor `θ`. The factor
+`θ * card ι ≤ 1` then makes the total negative part no larger than that nonnegative part. -/
+theorem sum_nonneg_of_dominating_negatives_by_posSum
+    {ι : Type*} [Fintype ι] [DecidableEq ι] (a : ι → ℝ) {θ : ℝ} (hθ : 0 ≤ θ)
+    (hdom : ∀ i, a i < 0 →
+      -(a i) ≤ θ * ∑ j ∈ Finset.univ.filter (fun j => ¬ (a j < 0)), a j)
+    (hsmall : θ * (Fintype.card ι : ℝ) ≤ 1) : 0 ≤ ∑ i, a i := by
+  classical
+  let Neg := Finset.univ.filter (fun i => a i < 0)
+  let Pos := Finset.univ.filter (fun i => ¬ (a i < 0))
+  have hposNN : 0 ≤ ∑ i ∈ Pos, a i :=
+    Finset.sum_nonneg fun i hi => not_lt.mp (Finset.mem_filter.mp hi).2
+  have hnegle : ∑ i ∈ Neg, (-(a i)) ≤ (Neg.card : ℝ) *
+      (θ * ∑ i ∈ Pos, a i) := by
+    have hsum := Finset.sum_le_card_nsmul Neg (fun i => -(a i))
+      (θ * ∑ i ∈ Pos, a i) ?_
+    · simpa [nsmul_eq_mul] using hsum
+    · intro i hi
+      apply hdom i
+      exact (Finset.mem_filter.mp hi).2
+  have hcardle : (Neg.card : ℝ) ≤ (Fintype.card ι : ℝ) := by
+    have hcard := Finset.card_le_card (Finset.filter_subset (fun i => a i < 0) Finset.univ)
+    simpa [Neg, Finset.card_univ] using (Nat.cast_le (α := ℝ)).mpr hcard
+  have hstep : (Neg.card : ℝ) * (θ * ∑ i ∈ Pos, a i) ≤ ∑ i ∈ Pos, a i := by
+    calc
+      (Neg.card : ℝ) * (θ * ∑ i ∈ Pos, a i)
+          ≤ (Fintype.card ι : ℝ) * (θ * ∑ i ∈ Pos, a i) :=
+            mul_le_mul_of_nonneg_right hcardle (mul_nonneg hθ hposNN)
+      _ = (θ * (Fintype.card ι : ℝ)) * ∑ i ∈ Pos, a i := by ring
+      _ ≤ 1 * ∑ i ∈ Pos, a i := mul_le_mul_of_nonneg_right hsmall hposNN
+      _ = ∑ i ∈ Pos, a i := by ring
+  apply sum_nonneg_of_negSum_le_posSum a
+  change ∑ i ∈ Neg, (-(a i)) ≤ ∑ i ∈ Pos, a i
+  exact hnegle.trans hstep
+
 
 /-- **Anderson–Shiu facet repulsion, assembled from the verified pieces.**  This is Definition 3.1's
 repulsion inequality `∑_{i ∈ W} x_i f_i(x) ≥ 0`, derived from:
@@ -684,6 +720,31 @@ theorem facet_repelling_of_data (N : Network S) (κ : N.RateConstants)
   have hscalar : 0 ≤ ∑ r : N.R, γ r * N.massActionRate κ r x :=
     sum_nonneg_of_dominating_negatives
       (fun r => γ r * N.massActionRate κ r x) ℓ hℓ hθ hdom hsmall
+  refine Finset.sum_nonneg ?_
+  intro s hs
+  rw [N.massActionVectorField_eq_of_proj κ hγ x hs]
+  exact mul_nonneg (hxpos s).le (mul_nonneg (hv s hs).le hscalar)
+
+/-- Facet repulsion with reaction-specific dominating contributions. This is the algebraic
+interface for weakly reversible components where different negative reactions may use different
+increasing reactions: each negative coefficient is bounded by `θ` times the full nonnegative
+contribution, and `θ * |R| ≤ 1` controls their sum. -/
+theorem facet_repelling_of_reactionwise_data (N : Network S) (κ : N.RateConstants)
+    {W : Finset S} {v : S → ℝ} {γ : N.R → ℝ} {x : Concentration S} {θ : ℝ}
+    (hv : ∀ s ∈ W, 0 < v s)
+    (hγ : ∀ r, ∀ s ∈ W, N.reactionVector r s = γ r * v s)
+    (hxpos : ∀ s, 0 < x s) (hθ : 0 ≤ θ)
+    (hdom : ∀ r : N.R, γ r * N.massActionRate κ r x < 0 →
+      -(γ r * N.massActionRate κ r x) ≤
+        θ * ∑ q ∈ Finset.univ.filter
+          (fun q : N.R => ¬ (γ q * N.massActionRate κ q x < 0)),
+          γ q * N.massActionRate κ q x)
+    (hsmall : θ * (Fintype.card N.R : ℝ) ≤ 1) :
+    0 ≤ ∑ s ∈ W, x s * N.massActionVectorField κ x s := by
+  classical
+  have hscalar : 0 ≤ ∑ r : N.R, γ r * N.massActionRate κ r x :=
+    sum_nonneg_of_dominating_negatives_by_posSum
+      (fun r => γ r * N.massActionRate κ r x) hθ hdom hsmall
   refine Finset.sum_nonneg ?_
   intro s hs
   rw [N.massActionVectorField_eq_of_proj κ hγ x hs]
