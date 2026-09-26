@@ -6,6 +6,7 @@ import Mathlib.Algebra.Order.Floor.Semiring
 import Mathlib.LinearAlgebra.Dimension.Constructions
 import Mathlib.Analysis.InnerProductSpace.Projection.Submodule
 import Mathlib.Data.Set.Finite.List
+import Mathlib.Topology.Algebra.Module.FiniteDimension
 
 /-!
 # The dimension induction of the zero-separating surface
@@ -107,6 +108,23 @@ namespace ZeroSeparatingInduction
 
 open scoped InnerProductSpace
 open ZeroSeparatingCurve2D
+
+/-- An open map sends interiors into the interior of the image. -/
+theorem image_interior_subset_interior_image_of_isOpenMap
+    {α β : Type*} [TopologicalSpace α] [TopologicalSpace β]
+    (f : α → β) (hf : IsOpenMap f) (s : Set α) :
+    f '' interior s ⊆ interior (f '' s) := by
+  rintro y ⟨x, hx, rfl⟩
+  rw [mem_interior]
+  exact ⟨f '' interior s, Set.image_mono interior_subset,
+    hf (interior s) isOpen_interior, ⟨x, hx, rfl⟩⟩
+
+/-- Deleting the final coordinate is an open surjection, since it is a surjective linear map
+between finite-dimensional real vector spaces. -/
+theorem forgetLastCoordinate_isOpenMap (n : ℕ) :
+    IsOpenMap (forgetLastCoordinate n) :=
+  LinearMap.isOpenMap_of_finiteDimensional (forgetLastCoordinate n)
+    (forgetLastCoordinate_surjective n)
 
 /-! ## Finite interpolation of tile scales
 
@@ -1368,6 +1386,44 @@ theorem projectionFiberSubdivisionTile_projects_onto_base {n m : ℕ}
       exact hmono (Fin.castSucc_le_succ i)
     · simp [forgetLastCoordinate]
 
+/-- An ambient interior point of a fiber tile projects to the interior of its base. This follows
+from openness of the coordinate projection and the exact projection identity for each tile. -/
+theorem projectionFiberSubdivisionTile_interior_projects_into_interior_base {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) (i : Fin (m + 1))
+    {x : Fin (n + 1) → ℝ}
+    (hx : x ∈ interior (projectionFiberSubdivisionTile base lower upper i)) :
+    forgetLastCoordinate n x ∈ interior base := by
+  have himage := image_interior_subset_interior_image_of_isOpenMap
+    (forgetLastCoordinate n) (forgetLastCoordinate_isOpenMap n)
+    (projectionFiberSubdivisionTile base lower upper i)
+  have hximage : forgetLastCoordinate n x ∈
+      interior (forgetLastCoordinate n '' projectionFiberSubdivisionTile base lower upper i) :=
+    himage ⟨x, hx, rfl⟩
+  rwa [projectionFiberSubdivisionTile_projects_onto_base base lower upper horder i] at hximage
+
+/-- Fiber tiles over projected bases with disjoint interiors have disjoint ambient interiors. -/
+theorem disjoint_projectionFiberSubdivisionTile_ambientInteriors_of_disjoint_baseInteriors
+    {n m₁ m₂ : ℕ} (base₁ base₂ : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horder₁ : ∀ y ∈ base₁, lower y ≤ upper y)
+    (horder₂ : ∀ y ∈ base₂, lower y ≤ upper y)
+    (i : Fin (m₁ + 1)) (j : Fin (m₂ + 1))
+    (hbase : interior base₁ ∩ interior base₂ = ∅) :
+    interior (projectionFiberSubdivisionTile base₁ lower upper i) ∩
+      interior (projectionFiberSubdivisionTile base₂ lower upper j) = ∅ := by
+  ext x
+  constructor
+  · intro hx
+    rcases hx with ⟨hx₁, hx₂⟩
+    have hy₁ := projectionFiberSubdivisionTile_interior_projects_into_interior_base
+      base₁ lower upper horder₁ i hx₁
+    have hy₂ := projectionFiberSubdivisionTile_interior_projects_into_interior_base
+      base₂ lower upper horder₂ j hx₂
+    have hy : forgetLastCoordinate n x ∈ interior base₁ ∩ interior base₂ := ⟨hy₁, hy₂⟩
+    rw [hbase] at hy
+    simpa using hy
+  · simp
+
 /-- Interpolated fiber endpoints vary continuously with the projected point whenever the two
 boundary graphs do. -/
 theorem continuous_projectionFiberSubdivisionEndpoint {n m : ℕ}
@@ -1547,6 +1603,40 @@ theorem projectionFiberTube_projects_onto_base {n : ℕ} (base : Set (Fin n → 
   change center y ∈ Set.Icc (center y - radius) (center y + radius)
   simp only [Set.mem_Icc]
   exact ⟨by linarith, by linarith⟩
+
+/-- An ambient interior point of a graph tube projects to the interior of its base. -/
+theorem projectionFiberTube_interior_projects_into_interior_base {n : ℕ}
+    (base : Set (Fin n → ℝ)) (center : (Fin n → ℝ) → ℝ) (radius : ℝ)
+    (hradius : 0 ≤ radius) {x : Fin (n + 1) → ℝ}
+    (hx : x ∈ interior (projectionFiberTube base center radius)) :
+    forgetLastCoordinate n x ∈ interior base := by
+  have himage := image_interior_subset_interior_image_of_isOpenMap
+    (forgetLastCoordinate n) (forgetLastCoordinate_isOpenMap n)
+    (projectionFiberTube base center radius)
+  have hximage : forgetLastCoordinate n x ∈
+      interior (forgetLastCoordinate n '' projectionFiberTube base center radius) :=
+    himage ⟨x, hx, rfl⟩
+  rwa [projectionFiberTube_projects_onto_base base center hradius] at hximage
+
+/-- Graph tubes over projected bases with disjoint interiors have disjoint ambient interiors. -/
+theorem disjoint_projectionFiberTube_ambientInteriors_of_disjoint_baseInteriors
+    {n : ℕ} (base₁ base₂ : Set (Fin n → ℝ)) (center : (Fin n → ℝ) → ℝ)
+    (radius : ℝ) (hradius : 0 ≤ radius)
+    (hbase : interior base₁ ∩ interior base₂ = ∅) :
+    interior (projectionFiberTube base₁ center radius) ∩
+      interior (projectionFiberTube base₂ center radius) = ∅ := by
+  ext x
+  constructor
+  · intro hx
+    rcases hx with ⟨hx₁, hx₂⟩
+    have hy₁ := projectionFiberTube_interior_projects_into_interior_base
+      base₁ center radius hradius hx₁
+    have hy₂ := projectionFiberTube_interior_projects_into_interior_base
+      base₂ center radius hradius hx₂
+    have hy : forgetLastCoordinate n x ∈ interior base₁ ∩ interior base₂ := ⟨hy₁, hy₂⟩
+    rw [hbase] at hy
+    simpa using hy
+  · simp
 
 /-- The deleted-coordinate thickness of a graph tube is at most its prescribed radius. -/
 theorem projectionFiberTube_thickness_le {n : ℕ} (base : Set (Fin n → ℝ))
@@ -1977,6 +2067,11 @@ structure CompactZeroBitFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
   tile_tube_compact : ∀ i, IsCompact (projectionFiberTube (baseTile i) center radius)
   tile_tube_projects : ∀ i,
     forgetLastCoordinate n '' projectionFiberTube (baseTile i) center radius = baseTile i
+  /-- Distinct projected tiles with disjoint interiors lift to tube patches with disjoint ambient
+  interiors. -/
+  tile_tube_interiors_disjoint : ∀ i j, i ≠ j →
+    interior (projectionFiberTube (baseTile i) center radius) ∩
+      interior (projectionFiberTube (baseTile j) center radius) = ∅
   /-- Patches meet exactly in the tube over the common part of their projected bases. -/
   tile_tube_intersection : ∀ i j,
     projectionFiberTube (baseTile i) center radius ∩
@@ -1993,8 +2088,9 @@ structure CompactZeroBitFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
     projectionFiberTube (baseTile i) center radius ⊆
       (Metric.ball (0 : Fin (n + 1) → ℝ) (margin - radius))ᶜ
 
-/-- Construct zero-bit graph tubes over a finite cover of the projected face. The same continuous
-section is used on every tile, and the resulting compact tubes cover the whole separated face. -/
+/-- Construct zero-bit graph tubes over a finite compact cover of the projected face whose tile
+interiors are pairwise disjoint. The same continuous section is used on every tile; openness of
+the projection lifts the lower-dimensional disjointness to ambient tube interiors. -/
 noncomputable def compactZeroBitFiberPatchCover_of_compactBaseCover {n : ℕ} {ι : Type*}
     [Fintype ι] (chain : CoordinateProjectedFaceChain (n + 1))
     (hbit : faceProjectionDimensionLetter
@@ -2002,6 +2098,8 @@ noncomputable def compactZeroBitFiberPatchCover_of_compactBaseCover {n : ℕ} {�
       (Fin.last n) = false)
     (hface : IsCompact (chain.face (Fin.last n).succ))
     (baseTile : ι → Set (Fin n → ℝ)) (htileCompact : ∀ i, IsCompact (baseTile i))
+    (htileInteriorsDisjoint : ∀ i j, i ≠ j →
+      interior (baseTile i) ∩ interior (baseTile j) = ∅)
     (hbaseCover : chain.face (Fin.last n).castSucc = ⋃ i, baseTile i)
     (margin radius : ℝ)
     (hfaceSeparated : chain.face (Fin.last n).succ ⊆
@@ -2018,7 +2116,7 @@ noncomputable def compactZeroBitFiberPatchCover_of_compactBaseCover {n : ℕ} {�
     intro i y hy
     rw [hbaseCover]
     exact Set.mem_iUnion.mpr ⟨i, hy⟩
-  refine ⟨center, hcenter, hface, hfaceTube, ?_, ?_, ?_, ?_, ?_, hpositive, hradius, ?_⟩
+  refine ⟨center, hcenter, hface, hfaceTube, ?_, ?_, ?_, ?_, ?_, ?_, hpositive, hradius, ?_⟩
   · rw [← projectionFiberTube_eq_iUnion_of_base_cover
       (chain.face (Fin.last n).castSucc) baseTile center radius hbaseCover]
     exact hfaceTube
@@ -2027,6 +2125,9 @@ noncomputable def compactZeroBitFiberPatchCover_of_compactBaseCover {n : ℕ} {�
       (htileCompact i) (hcenter.mono (htileBase i)) hradius
   · intro i
     exact projectionFiberTube_projects_onto_base (baseTile i) center hradius
+  · intro i j hij
+    exact disjoint_projectionFiberTube_ambientInteriors_of_disjoint_baseInteriors
+      (baseTile i) (baseTile j) center radius hradius (htileInteriorsDisjoint i j hij)
   · intro i j
     exact projectionFiberTube_inter_of_same_center
       (baseTile i) (baseTile j) center radius
@@ -2519,14 +2620,18 @@ noncomputable def compactOneBitFiberBlueprintRefinement_of_compactBand {n : ℕ}
     exact hfacePatchCompact.inter (tiling.tile_compact i)
 
 /-- A finite family of lower-dimensional base tiles, each refined into its own finite family of
-compact one-bit strips. The dependent sigma index permits different subdivision counts on different
-base tiles. -/
+compact one-bit strips. The projected tile interiors are pairwise disjoint, and the dependent sigma
+index permits different subdivision counts on different base tiles. The resulting face patches
+have pairwise disjoint ambient interiors. -/
 structure CompactOneBitFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
     (facePatch : Set (Fin (n + 1) → ℝ)) (base : Set (Fin n → ℝ))
     (baseTile : ι → Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
     (epsilon : ι → ℝ) where
   /-- The compact strip tiling constructed over each lower-dimensional base tile. -/
   tiling : ∀ i, CompactProjectionFiberTiling (baseTile i) lower upper (epsilon i)
+  /-- The projected base tiles have disjoint ordinary interiors. -/
+  baseTile_interiors_disjoint : ∀ i j, i ≠ j →
+    interior (baseTile i) ∩ interior (baseTile j) = ∅
   /-- The face patch is exactly covered by its intersections with all generated strips. -/
   facePatch_eq_iUnion_tiles :
     facePatch = ⋃ p : Σ i : ι, Fin ((tiling i).subdivisionCount + 1),
@@ -2534,16 +2639,24 @@ structure CompactOneBitFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
   /-- Every restricted face piece is compact. -/
   facePatch_tile_compact : ∀ p : Σ i : ι, Fin ((tiling i).subdivisionCount + 1),
     IsCompact (facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2)
+  /-- All refined face patches have pairwise disjoint ordinary ambient interiors. -/
+  facePatch_tile_interiors_disjoint : ∀ p q : Σ i : ι,
+      Fin ((tiling i).subdivisionCount + 1), p ≠ q →
+    interior (facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2) ∩
+      interior (facePatch ∩ projectionFiberSubdivisionTile (baseTile q.1) lower upper q.2) = ∅
 
-/-- Lift a finite compact cover of a projected base to a finite cover of a compact face patch in a
-bounded fiber band. Each lower tile receives its own positive width target and compact strip tiling;
-the exact finite cover and compactness of all restricted face pieces are derived. -/
+/-- Lift a finite compact cover of a projected base with pairwise disjoint interiors to a finite
+cover of a compact face patch in a bounded fiber band. Each lower tile receives its own positive
+width target and compact strip tiling; exact coverage, compactness, and pairwise ambient-interior
+disjointness of all restricted face pieces are derived. -/
 noncomputable def compactOneBitFiberPatchCover_of_compactBand {n : ℕ} {ι : Type*}
     [Fintype ι] (facePatch : Set (Fin (n + 1) → ℝ)) (hfaceCompact : IsCompact facePatch)
     (base : Set (Fin n → ℝ)) (baseTile : ι → Set (Fin n → ℝ))
     (lower upper : (Fin n → ℝ) → ℝ) (epsilon : ι → ℝ)
     (hbaseCover : base = ⋃ i, baseTile i)
     (hbaseTileCompact : ∀ i, IsCompact (baseTile i))
+    (hbaseTileInteriorsDisjoint : ∀ i j, i ≠ j →
+      interior (baseTile i) ∩ interior (baseTile j) = ∅)
     (hlower : Continuous lower) (hupper : Continuous upper)
     (horder : ∀ y ∈ base, lower y ≤ upper y)
     (hepsilon : ∀ i, 0 < epsilon i)
@@ -2560,7 +2673,7 @@ noncomputable def compactOneBitFiberPatchCover_of_compactBand {n : ℕ} {ι : Ty
     exact compactProjectionFiberTiling_of_compactBase
       (baseTile i) lower upper (epsilon i) (hbaseTileCompact i) hlower hupper
       (fun y hy => horder y (htileBase i hy)) (hepsilon i)
-  refine ⟨tiling, ?_, ?_⟩
+  refine ⟨tiling, hbaseTileInteriorsDisjoint, ?_, ?_, ?_⟩
   · ext x
     constructor
     · intro hx
@@ -2581,6 +2694,44 @@ noncomputable def compactOneBitFiberPatchCover_of_compactBand {n : ℕ} {ι : Ty
       exact hpatch
   · intro p
     exact hfaceCompact.inter ((tiling p.1).tile_compact p.2)
+  · intro p q hpq
+    rcases p with ⟨i, k⟩
+    rcases q with ⟨j, ℓ⟩
+    have hpatch_i :
+        interior (facePatch ∩ projectionFiberSubdivisionTile (baseTile i) lower upper k) ⊆
+          interior (projectionFiberSubdivisionTile (baseTile i) lower upper k) :=
+      interior_mono Set.inter_subset_right
+    have hpatch_j :
+        interior (facePatch ∩ projectionFiberSubdivisionTile (baseTile j) lower upper ℓ) ⊆
+          interior (projectionFiberSubdivisionTile (baseTile j) lower upper ℓ) :=
+      interior_mono Set.inter_subset_right
+    have htiles :
+        interior (projectionFiberSubdivisionTile (baseTile i) lower upper k) ∩
+          interior (projectionFiberSubdivisionTile (baseTile j) lower upper ℓ) = ∅ := by
+      by_cases hij : i = j
+      · subst j
+        have hkl : k ≠ ℓ := by
+          intro hkl
+          apply hpq
+          cases hkl
+          rfl
+        exact disjoint_projectionFiberSubdivisionTile_ambientInteriors
+          (baseTile i) lower upper (fun y hy => horder y (htileBase i hy)) k ℓ hkl
+      · exact disjoint_projectionFiberSubdivisionTile_ambientInteriors_of_disjoint_baseInteriors
+          (baseTile i) (baseTile j) lower upper
+          (fun y hy => horder y (htileBase i hy))
+          (fun y hy => horder y (htileBase j hy)) k ℓ
+          (hbaseTileInteriorsDisjoint i j hij)
+    ext x
+    constructor
+    · intro hx
+      have htilemem : x ∈
+          interior (projectionFiberSubdivisionTile (baseTile i) lower upper k) ∩
+            interior (projectionFiberSubdivisionTile (baseTile j) lower upper ℓ) :=
+        ⟨hpatch_i hx.1, hpatch_j hx.2⟩
+      rw [htiles] at htilemem
+      simpa using htilemem
+    · simp
 
 /-! ## The ruled-surface step -/
 

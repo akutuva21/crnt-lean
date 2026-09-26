@@ -238,10 +238,11 @@ an explicit hypothesis, never a `sorry`:
    restricts this construction to each compact projected tile while preserving exact projection,
    face containment, and separation; `projectionFiberTube_eq_iUnion_of_base_cover` proves that a
    finite cover of the base lifts to an exact cover by those tile tubes. This is still set-level
-   tube geometry. `compactZeroBitFiberPatchCover_of_compactBaseCover` packages that lift for an
-   arbitrary finite compact cover of the projected face, with a shared continuous center, compact
-   tile tubes, exact tile projections, the inherited separation margin, and exact overlaps along
-   common projected bases. These are set-level seams only. On the one-bit side,
+   tube geometry. `compactZeroBitFiberPatchCover_of_compactBaseCover` packages that lift for a
+   finite compact cover of the projected face whose tile interiors are pairwise disjoint, with a
+   shared continuous center, compact tile tubes, exact tile projections, the inherited separation
+   margin, exact overlaps along common projected bases, and disjoint ambient interiors. These are
+   set-level seams only. On the one-bit side,
    compactProjectionFiberTiling_of_compactBase now supplies
    finitely many compact strips with exact coverage, full base projection, width bounds, and
    continuous center graphs. Distinct strips have disjoint ordinary ambient interiors in the full
@@ -253,9 +254,11 @@ an explicit hypothesis, never a `sorry`:
    face patch already contained in the band and derives an exact finite cover by compact
    face-tile intersections. The continuous boundary graphs and face-in-band containment remain
    explicit inputs. `compactOneBitFiberPatchCover_of_compactBand` lifts a finite compact cover of
-   the projected base, allowing different subdivision counts on each base tile, and packages the
-   resulting compact face pieces. It does not establish interior disjointness across distinct
-   lower-dimensional base tiles. The smooth gluing layer now also
+   the projected base whose tile interiors are pairwise disjoint, allowing different subdivision
+   counts on each base tile, and packages compact face pieces with pairwise-disjoint ambient
+   interiors. The cross-base case follows from openness of coordinate projection and exact tile
+   projections; the same-base case uses the equal-strip interior-separation theorem. The smooth
+   gluing layer now also
    proves, via exists_fderiv_smoothMaxList_le and
    exists_fderiv_smoothMaxF_nonpos_of_value_gap, that finite smooth maxima preserve a shared
    directional-derivative upper bound and that a strictly descending chart remains nonincreasing
