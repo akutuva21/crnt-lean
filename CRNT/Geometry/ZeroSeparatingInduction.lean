@@ -1315,6 +1315,40 @@ theorem projectionFiberBand_bounded_eq_iUnion_subdivisionTiles {n m : ℕ}
     rcases Set.mem_iUnion.mp hx with ⟨i, hi⟩
     exact projectionFiberSubdivisionTile_subset_band base lower upper horder i hi
 
+/-- For ordered fiber endpoints, every equal subdivision tile projects onto the whole base. -/
+theorem tileScaleInterpolation_monotone_of_le {m : ℕ} {lo hi : ℝ}
+    (hlohi : lo ≤ hi) : Monotone (tileScaleInterpolation lo hi : Fin (m + 2) → ℝ) := by
+  by_cases hsame : lo = hi
+  · subst hi
+    intro i j hij
+    simp [tileScaleInterpolation]
+  · have hlt : lo < hi := lt_of_le_of_ne hlohi hsame
+    exact (strictMono_tileScaleInterpolation (n := m) hlt).monotone
+
+/-- Projection onto the lower-dimensional coordinate slice is surjective for each subdivided
+tile: over every base point, the fiber interval between consecutive interpolation points is
+nonempty. -/
+theorem projectionFiberSubdivisionTile_projects_onto_base {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) (i : Fin (m + 1)) :
+    forgetLastCoordinate n '' projectionFiberSubdivisionTile base lower upper i = base := by
+  apply Set.Subset.antisymm
+  · rintro y ⟨x, hx, hxy⟩
+    change (let z := forgetLastCoordinate n x
+      z ∈ base ∧
+        projectionFiberSubdivisionEndpoint lower upper i.castSucc z ≤ x (Fin.last n) ∧
+        x (Fin.last n) ≤ projectionFiberSubdivisionEndpoint lower upper i.succ z) at hx
+    have hy : forgetLastCoordinate n x ∈ base := by simpa using hx.1
+    simpa [hxy] using hy
+  · intro y hy
+    let t := projectionFiberSubdivisionEndpoint lower upper i.castSucc y
+    refine ⟨Fin.snoc y t, ?_, ?_⟩
+    · apply (mem_projectionFiberSubdivisionTile_snoc_iff base lower upper i y t).2
+      refine ⟨hy, le_rfl, ?_⟩
+      have hmono := tileScaleInterpolation_monotone_of_le (m := m) (horder y hy)
+      exact hmono (Fin.castSucc_le_succ i)
+    · simp [forgetLastCoordinate]
+
 /-! ## The ruled-surface step -/
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
