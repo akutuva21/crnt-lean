@@ -245,7 +245,10 @@ an explicit hypothesis, never a `sorry`:
    fiber endpoints. Adjacent closed strips intersect exactly in the graph of their shared
    endpoint, which is continuous and compact over a compact base. This records set-level seam
    topology; the piecewise-smooth separating surface, descent estimates, and differential seam
-   conditions remain open. The smooth gluing layer now also
+   conditions remain open. `compactOneBitFiberBlueprintRefinement_of_compactBand` takes a compact
+   face patch already contained in the band and derives an exact finite cover by compact
+   face-tile intersections. The continuous boundary graphs and face-in-band containment remain
+   explicit inputs. The smooth gluing layer now also
    proves, via exists_fderiv_smoothMaxList_le and
    exists_fderiv_smoothMaxF_nonpos_of_value_gap, that finite smooth maxima preserve a shared
    directional-derivative upper bound and that a strictly descending chart remains nonincreasing

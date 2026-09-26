@@ -2378,6 +2378,50 @@ noncomputable def compactProjectionFiberTiling_of_compactBase {n : ℕ}
       exact hm y hy i
   }
 
+/-- A compact face patch contained in a bounded one-bit fiber band, together with the finite
+compact pieces obtained by restricting the strip tiling to that patch. This is the local Case 1.2
+blueprint output: the patch and all its intersections with the new tiles are retained explicitly. -/
+structure CompactOneBitFiberBlueprintRefinement {n : ℕ}
+    (facePatch : Set (Fin (n + 1) → ℝ)) (base : Set (Fin n → ℝ))
+    (lower upper : (Fin n → ℝ) → ℝ) (epsilon : ℝ) where
+  /-- The generated compact tiling of the filled parent band. -/
+  tiling : CompactProjectionFiberTiling base lower upper epsilon
+  /-- The original face patch is exactly covered by its intersections with the strip tiles. -/
+  facePatch_eq_iUnion_tiles :
+    facePatch = ⋃ i : Fin (tiling.subdivisionCount + 1),
+      facePatch ∩ projectionFiberSubdivisionTile base lower upper i
+  /-- Every restricted face piece is compact, ready for finite local-chart extraction. -/
+  facePatch_tile_compact : ∀ i : Fin (tiling.subdivisionCount + 1),
+    IsCompact (facePatch ∩ projectionFiberSubdivisionTile base lower upper i)
+
+/-- Construct the compact one-bit blueprint refinement from a compact projected base, continuous
+bounded boundary graphs, and a compact face patch already known to lie in their filled band. The
+finite covering and compactness of every restricted patch are derived from the equal strip tiling. -/
+noncomputable def compactOneBitFiberBlueprintRefinement_of_compactBand {n : ℕ}
+    (facePatch : Set (Fin (n + 1) → ℝ)) (hfacePatchCompact : IsCompact facePatch)
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (epsilon : ℝ) (hbase : IsCompact base) (hlower : Continuous lower)
+    (hupper : Continuous upper) (horder : ∀ y ∈ base, lower y ≤ upper y)
+    (hepsilon : 0 < epsilon)
+    (hfaceBand : facePatch ⊆
+      projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y))) :
+    CompactOneBitFiberBlueprintRefinement facePatch base lower upper epsilon := by
+  let tiling := compactProjectionFiberTiling_of_compactBase
+    base lower upper epsilon hbase hlower hupper horder hepsilon
+  refine ⟨tiling, ?_, ?_⟩
+  · ext x
+    constructor
+    · intro hx
+      have hxBand := hfaceBand hx
+      rw [tiling.tiles_cover] at hxBand
+      obtain ⟨i, hi⟩ := Set.mem_iUnion.mp hxBand
+      exact Set.mem_iUnion.mpr ⟨i, ⟨hx, hi⟩⟩
+    · intro hx
+      obtain ⟨i, hi⟩ := Set.mem_iUnion.mp hx
+      exact hi.1
+  · intro i
+    exact hfacePatchCompact.inter (tiling.tile_compact i)
+
 /-! ## The ruled-surface step -/
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
