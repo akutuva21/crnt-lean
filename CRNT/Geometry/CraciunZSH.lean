@@ -3,6 +3,7 @@ import Mathlib.Topology.MetricSpace.HausdorffDistance
 import Mathlib.Topology.MetricSpace.ProperSpace
 import Mathlib.Topology.MetricSpace.Pseudo.Lemmas
 import CRNT.Geometry.ToricFan
+import CRNT.Geometry.ToricFieldPolarMulti
 
 /-!
 # Scale separation for Craciun's zero-separating construction
@@ -20,6 +21,8 @@ the common radius is large enough.
 
 namespace CRNT
 namespace CraciunZSH
+
+open scoped InnerProductSpace
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
@@ -360,6 +363,57 @@ theorem exists_uniform_logCube_state_mem_assigned_cones
   obtain ⟨j, hj⟩ :=
     exists_coordinate_lt_epsilon_of_mem_positiveUnitCube_not_translatedUnitCube hε hx hout
   apply hpoint x (fun j => (hx j).1) ⟨j, hj⟩ i hnear
+
+/-- **The Craciun scale-to-support step.** Fix a finite fan and assign to every fan cone `C` a
+larger chamber cone `K_C` with `C ⊆ interior K_C`. Suppose a candidate surface in the positive
+unit cube has an outer normal `n(x)` that belongs to `C` whenever `log(x) ∈ K_C`. Then, for one
+uniformly small translated cube, the entire toric field at every point of the candidate surface
+lies on the inward side of `n(x)`. The proof is exactly the scale trade in Craciun v3, Lemma 9.7:
+outside the translated cube a coordinate is small, so every fan cone within the inclusion radius
+has its assigned chamber containing `log(x)`; the normal condition from a faithful blueprint then
+puts `n(x)` in every active cone, and the multi-cone polar lemma gives support.
+
+This is the support half of the ZSH construction. It does not assert existence of the candidate
+surface or its faithful normal assignment; those are the blueprint obligations of §§7.3–8. -/
+theorem exists_uniform_logCube_toricField_support_of_faithful_normals
+    {n : ℕ} [NeZero n]
+    (F : Fan (EuclideanSpace ℝ (Fin n))) (hF : F.Nonempty)
+    (chamber : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) // C ∈ F} →
+      ProperCone ℝ (EuclideanSpace ℝ (Fin n)))
+    (hinterior : ∀ C, (C.1 : Set (EuclideanSpace ℝ (Fin n))) ⊆
+      interior (chamber C : Set (EuclideanSpace ℝ (Fin n))))
+    {δ : ℝ} (hδ : 0 < δ)
+    (normal : EuclideanSpace ℝ (Fin n) → EuclideanSpace ℝ (Fin n))
+    (hfaithful : ∀ x C, logCoords x ∈ (chamber C : Set (EuclideanSpace ℝ (Fin n))) →
+      normal x ∈ (C.1 : Set (EuclideanSpace ℝ (Fin n)))) :
+    ∃ ε : ℝ, 0 < ε ∧ ε < 1 ∧
+      ∀ x : EuclideanSpace ℝ (Fin n),
+        x ∈ positiveUnitCube n → x ∉ translatedUnitCube n ε →
+        (toricField F δ (logCoords x) : Set (EuclideanSpace ℝ (Fin n))) ⊆
+          {v | 0 ≤ ⟪normal x, v⟫_ℝ} := by
+  classical
+  let ι := {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) // C ∈ F}
+  letI : Fintype ι := FinsetCoe.fintype F
+  letI : Nonempty ι := by
+    obtain ⟨C, hC⟩ := hF
+    exact ⟨⟨C, hC⟩⟩
+  obtain ⟨ε, hε, hεone, hsmall⟩ :=
+    exists_uniform_logSmall_state_mem_assigned_cones
+      (C := fun C : ι => C.1) (K := chamber)
+      (fun C => hinterior C) hδ
+  refine ⟨ε, hε, hεone, ?_⟩
+  intro x hx hout
+  have hxpositive : ∀ j, 0 < x.ofLp j := fun j => (hx j).1
+  have hactive : ∀ C ∈ F, Metric.infDist (logCoords x) (C : Set _) < δ →
+      normal x ∈ (C : Set (EuclideanSpace ℝ (Fin n))) := by
+    intro C hCF hnear
+    let i : ι := ⟨C, hCF⟩
+    have hchamber : logCoords x ∈ (chamber i : Set (EuclideanSpace ℝ (Fin n))) :=
+      hsmall x hxpositive
+        (exists_coordinate_lt_epsilon_of_mem_positiveUnitCube_not_translatedUnitCube
+          hε hx hout) i hnear
+    exact hfaithful x i hchamber
+  exact toricField_subset_dualHalfPlane_of_mem_forall hactive
 
 end CraciunZSH
 end CRNT
