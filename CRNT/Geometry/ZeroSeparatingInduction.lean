@@ -2,6 +2,7 @@ import CRNT.Geometry.ZeroSeparatingSurface
 import CRNT.Geometry.FaithfulCurve2D
 import CRNT.Geometry.LogProjectiveFaceCompatibility
 import CRNT.Geometry.ProjectedFaceDimensionCode
+import Mathlib.Algebra.Order.Floor.Semiring
 import Mathlib.LinearAlgebra.Dimension.Constructions
 import Mathlib.Analysis.InnerProductSpace.Projection.Submodule
 import Mathlib.Data.Set.Finite.List
@@ -1107,6 +1108,167 @@ theorem projectionFiberSubdivisionEndpoint_gap_le {n m : ℕ}
   rw [projectionFiberSubdivisionEndpoint_gap]
   rw [div_le_iff₀ (by positivity : 0 < ((m + 1 : ℕ) : ℝ))]
   nlinarith [hheight y hy]
+
+/-- Every interpolation point stays between its prescribed endpoints. -/
+theorem tileScaleInterpolation_bounds {m : ℕ} {lo hi : ℝ} (hlohi : lo ≤ hi)
+    (i : Fin (m + 2)) :
+    lo ≤ tileScaleInterpolation lo hi i ∧ tileScaleInterpolation lo hi i ≤ hi := by
+  by_cases hsame : lo = hi
+  · subst hi
+    simp [tileScaleInterpolation]
+  · have hlt : lo < hi := lt_of_le_of_ne hlohi hsame
+    have hmono := strictMono_tileScaleInterpolation (n := m) hlt
+    constructor
+    · have h := hmono.monotone (Fin.zero_le i)
+      simpa [tileScaleInterpolation_endpoints] using h
+    · have h := hmono.monotone (Fin.le_last i)
+      simpa [tileScaleInterpolation_endpoints] using h
+
+/-- Every point in a bounded interval belongs to one adjacent strip of its finite equal
+interpolation. The index is the floored normalized position, capped at the final strip. -/
+theorem exists_tileScaleInterpolation_segment {m : ℕ} {lo hi t : ℝ}
+    (hlohi : lo ≤ hi) (htlo : lo ≤ t) (hthi : t ≤ hi) :
+    ∃ i : Fin (m + 1),
+      tileScaleInterpolation lo hi i.castSucc ≤ t ∧
+      t ≤ tileScaleInterpolation lo hi i.succ := by
+  classical
+  by_cases hsame : lo = hi
+  · subst hi
+    have ht : t = lo := le_antisymm hthi htlo
+    subst t
+    refine ⟨0, ?_, ?_⟩ <;> simp [tileScaleInterpolation]
+  · have hlt : lo < hi := lt_of_le_of_ne hlohi hsame
+    let N : ℝ := ((m + 1 : ℕ) : ℝ)
+    let gap : ℝ := (hi - lo) / N
+    have hNpos : 0 < N := by positivity
+    have hNne : N ≠ 0 := ne_of_gt hNpos
+    have hgap : 0 < gap := div_pos (sub_pos.mpr hlt) hNpos
+    let u : ℝ := (t - lo) / gap
+    have hu0 : 0 ≤ u := by
+      dsimp [u]
+      exact div_nonneg (sub_nonneg.mpr htlo) hgap.le
+    have huN : u ≤ N := by
+      dsimp [u]
+      calc
+        (t - lo) / gap ≤ (hi - lo) / gap :=
+          div_le_div_of_nonneg_right (sub_le_sub_right hthi lo) hgap.le
+        _ = N := by
+          dsimp [gap]
+          field_simp [hNne, ne_of_gt (sub_pos.mpr hlt)]
+    have hgap_mul : gap * u = t - lo := by
+      dsimp [u]
+      field_simp [ne_of_gt hgap]
+    let k : ℕ := min m (Nat.floor u)
+    have hfloor_le : Nat.floor u ≤ m + 1 := Nat.floor_le_of_le (by simpa [N] using huN)
+    have hk_le_m : k ≤ m := by dsimp [k]; exact Nat.min_le_left _ _
+    have hku : (k : ℝ) ≤ u := by
+      by_cases hfloor : Nat.floor u ≤ m
+      · have hk : k = Nat.floor u := by dsimp [k]; exact min_eq_right hfloor
+        rw [hk]
+        exact Nat.floor_le hu0
+      · have hmLt : m < Nat.floor u := Nat.lt_of_not_ge hfloor
+        have hmSucc : m + 1 ≤ Nat.floor u := Nat.succ_le_of_lt hmLt
+        have hfeq : Nat.floor u = m + 1 := Nat.le_antisymm hfloor_le hmSucc
+        have hk : k = m := by dsimp [k]; rw [hfeq]; simp
+        rw [hk]
+        have hcast : (m : ℝ) ≤ (Nat.floor u : ℝ) := by
+          exact_mod_cast (Nat.le_of_lt hmLt)
+        exact hcast.trans (Nat.floor_le hu0)
+    have hu_k_succ : u ≤ (k + 1 : ℕ) := by
+      by_cases hfloor : Nat.floor u ≤ m
+      · have hk : k = Nat.floor u := by dsimp [k]; exact min_eq_right hfloor
+        rw [hk]
+        simpa [Nat.cast_add] using (Nat.lt_floor_add_one u).le
+      · have hmLt : m < Nat.floor u := Nat.lt_of_not_ge hfloor
+        have hmSucc : m + 1 ≤ Nat.floor u := Nat.succ_le_of_lt hmLt
+        have hfeq : Nat.floor u = m + 1 := Nat.le_antisymm hfloor_le hmSucc
+        have hk : k = m := by dsimp [k]; rw [hfeq]; simp
+        rw [hk]
+        simpa [N] using huN
+    let i : Fin (m + 1) := ⟨k, Nat.lt_succ_of_le hk_le_m⟩
+    have hpoint (j : Fin (m + 2)) :
+        tileScaleInterpolation lo hi j = lo + gap * (j.val : ℝ) := by
+      dsimp [tileScaleInterpolation, gap, N]
+      have hden : ((m + 1 : ℕ) : ℝ) ≠ 0 := by positivity
+      field_simp [hden]
+    have hleft : tileScaleInterpolation lo hi i.castSucc = lo + gap * (k : ℝ) := by
+      rw [hpoint]
+      simp [i]
+    have hright : tileScaleInterpolation lo hi i.succ =
+        lo + gap * ((k + 1 : ℕ) : ℝ) := by
+      rw [hpoint]
+      simp [i]
+    have hleft_le : lo + gap * (k : ℝ) ≤ t := by
+      have hmul := mul_le_mul_of_nonneg_left hku hgap.le
+      rw [hgap_mul] at hmul
+      linarith
+    have hright_ge : t ≤ lo + gap * ((k + 1 : ℕ) : ℝ) := by
+      have hmul := mul_le_mul_of_nonneg_left hu_k_succ hgap.le
+      rw [hgap_mul] at hmul
+      linarith
+    exact ⟨i, by rw [hleft]; exact hleft_le, by rw [hright]; exact hright_ge⟩
+
+/-- Membership in the bounded-endpoint specialization of `projectionFiberBand`. -/
+theorem mem_projectionFiberBand_bounded_iff {n : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ) (x : Fin (n + 1) → ℝ) :
+    x ∈ projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y)) ↔
+      forgetLastCoordinate n x ∈ base ∧
+        lower (forgetLastCoordinate n x) ≤ x (Fin.last n) ∧
+        x (Fin.last n) ≤ upper (forgetLastCoordinate n x) := by
+  change (let y := forgetLastCoordinate n x
+    y ∈ base ∧ x (Fin.last n) ∈ projectionFiberInterval (some (lower y)) (some (upper y))) ↔ _
+  simp [projectionFiberInterval]
+
+/-- Each bounded-endpoint subdivision tile stays inside its filled fiber band. -/
+theorem projectionFiberSubdivisionTile_subset_band {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) (i : Fin (m + 1)) :
+    projectionFiberSubdivisionTile base lower upper i ⊆
+      projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y)) := by
+  intro x hx
+  change (let y := forgetLastCoordinate n x
+    y ∈ base ∧
+      projectionFiberSubdivisionEndpoint lower upper i.castSucc y ≤ x (Fin.last n) ∧
+      x (Fin.last n) ≤ projectionFiberSubdivisionEndpoint lower upper i.succ y) at hx
+  let y := forgetLastCoordinate n x
+  have hy : y ∈ base := by simpa [y] using hx.1
+  have hboundsLeft := tileScaleInterpolation_bounds (m := m) (horder y hy) i.castSucc
+  have hboundsRight := tileScaleInterpolation_bounds (m := m) (horder y hy) i.succ
+  have hleft := hboundsLeft.1
+  have hright := hboundsRight.2
+  have hleft' : lower y ≤ projectionFiberSubdivisionEndpoint lower upper i.castSucc y := by
+    simpa [projectionFiberSubdivisionEndpoint] using hleft
+  have hright' : projectionFiberSubdivisionEndpoint lower upper i.succ y ≤ upper y := by
+    simpa [projectionFiberSubdivisionEndpoint] using hright
+  apply (mem_projectionFiberBand_bounded_iff base lower upper x).2
+  refine ⟨?_, ?_, ?_⟩
+  · simpa [y] using hx.1
+  · exact hleft'.trans hx.2.1
+  · exact hx.2.2.trans hright'
+
+/-- The filled bounded fiber band is exactly the union of its equal-width subdivision tiles. -/
+theorem projectionFiberBand_bounded_eq_iUnion_subdivisionTiles {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) :
+    projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y)) =
+      ⋃ i : Fin (m + 1), projectionFiberSubdivisionTile base lower upper i := by
+  ext x
+  constructor
+  · intro hx
+    obtain ⟨ybase, hlow, hhigh⟩ :=
+      (mem_projectionFiberBand_bounded_iff base lower upper x).1 hx
+    obtain ⟨i, htileLow, htileHigh⟩ :=
+      exists_tileScaleInterpolation_segment (horder _ ybase) hlow hhigh
+    refine Set.mem_iUnion.mpr ⟨i, ?_⟩
+    change (let y := forgetLastCoordinate n x
+      y ∈ base ∧
+        projectionFiberSubdivisionEndpoint lower upper i.castSucc y ≤ x (Fin.last n) ∧
+        x (Fin.last n) ≤ projectionFiberSubdivisionEndpoint lower upper i.succ y)
+    exact ⟨ybase, by simpa [projectionFiberSubdivisionEndpoint] using htileLow,
+      by simpa [projectionFiberSubdivisionEndpoint] using htileHigh⟩
+  · intro hx
+    rcases Set.mem_iUnion.mp hx with ⟨i, hi⟩
+    exact projectionFiberSubdivisionTile_subset_band base lower upper horder i hi
 
 /-! ## The ruled-surface step -/
 
