@@ -233,8 +233,13 @@ an explicit hypothesis, never a `sorry`:
    complex, and nothing supplies its `C`-minimality. So either `mono` must be weakened to monotone
    *runs* with explicit descent corrections, or `cmin` must be proven for the sorted partial-sum
    walk.
-4. **The polyhedral-fan axioms.** `IsPolyhedralFan` (closure under exposed faces, pairwise
-   intersection a common face, covering) is a hypothesis; `Fan` is bare cone data.
+4. **The polyhedral-fan axioms and common refinements.** `IsPolyhedralFan` (closure under exposed
+   faces, pairwise intersection a common face, covering) remains a requirement on input fans.
+   `Geometry/FanRefinement.lean` now constructs finite iterated intersections of supplied
+   polyhedral fans with dual-finitely-generated cells and proves the fan and refinement properties
+   persist. `Dynamics/ComplexBalanceStoichFanInclusion.lean` also proves the toric field inclusion
+   survives successive intersections with covering fans. The subdivision fans and tiles required by
+   the zero-separating construction are still not constructed.
 5. **Arbitrary-fan faithful-curve existence.** The global slope-interval chaining is the
    `ChainingData` interface (`Geometry/FaithfulCurveGeneral.lean`); the two-dimensional results assume
    a sector bound and strict subtangency (`IsStrictSupportField`), discharged only for worked

@@ -17,10 +17,13 @@ for the coarse inclusion**. Refinement breaks each over-constrained patch into a
 each crossing a single uncertainty region, keeping the per-patch constraint count below `finrank`
 (the planar angular chaining, lifted to `n` dimensions).
 
-This module provides the two engines of that transfer:
+This module provides the transfer and finite-refinement engines:
 
 * the **faithful-transfer engine** — admissibility for a finer cell transfers to the containing coarse
   cell, so the finer surface's normals are admissible for the coarse fan; and
+
+* the **finite common-refinement engine** — a finite list of supplied fans can be intersected
+  successively, preserving the fan axioms and dual finite generation of every cell; and
 
 * the **feasibility restoration** — a refined patch carrying fewer than `finrank ℝ E` active
   attracting directions always admits a valid surface normal.
@@ -47,10 +50,11 @@ This module provides the two engines of that transfer:
 ## Scope
 
 This module proves the refinement relation, the faithful-transfer of admissibility (and of field
-inwardness) from fine to coarse cells, and the feasibility restoration. Not constructed here: the
-explicit decomposition that produces the refined fan with each patch crossing a single uncertainty
-region, and the analysis matching the per-patch attracting directions — the constructions these
-engines consume.
+inwardness) from fine to coarse cells, finite common-refinement closure for supplied polyhedral fans
+with dual-finitely-generated cells, and the feasibility restoration. Not constructed here: the
+input subdivision fans, the explicit decomposition that produces patches each crossing a single
+uncertainty region, and the analysis matching the per-patch attracting directions — the geometric
+constructions these engines consume.
 
 Depends on: `CRNT.Geometry.ZeroSeparatingInduction`,
 `CRNT.Geometry.FaithfulCurve`.
@@ -375,6 +379,30 @@ theorem coneDual_intersection_decomp_of_dualFG [CompleteSpace E] {C D : ProperCo
 def HasDualFGCells [CompleteSpace E] (F : Fan E) : Prop :=
   ∀ C ∈ F, (C : PointedCone ℝ E).DualFG (innerₗ E)
 
+/-- Negating a cone preserves dual finite generation: negate the finite set of half-space normals. -/
+theorem negatedProperCone_hasDualFG [CompleteSpace E] (C : ProperCone ℝ E)
+    (hC : (C : PointedCone ℝ E).DualFG (innerₗ E)) :
+    (CRNT.negatedProperCone C : PointedCone ℝ E).DualFG (innerₗ E) := by
+  classical
+  obtain ⟨s, hs⟩ := hC
+  refine ⟨s.image (fun v : E => -v), ?_⟩
+  have himage : (s.image (fun v : E => -v) : Set E) = -(s : Set E) := by
+    ext x
+    simp
+  rw [himage, PointedCone.dual_neg, hs]
+  apply PointedCone.ext
+  intro x
+  simp [CRNT.negatedProperCone]
+
+/-- Negating every cell of a fan preserves dual finite generation cellwise. -/
+theorem negatedFan_hasDualFGCells [CompleteSpace E] (F : Fan E)
+    (hF : HasDualFGCells F) : HasDualFGCells (CRNT.negatedFan F) := by
+  classical
+  intro C hC
+  rw [CRNT.negatedFan, Finset.mem_image] at hC
+  rcases hC with ⟨D, hD, rfl⟩
+  exact negatedProperCone_hasDualFG D (hF D hD)
+
 /-- Dual-finitely-generated cells provide the decomposition used for exposed-face closure. -/
 theorem intersectionFamily_dualDecomposition [CompleteSpace E] {F G : Fan E}
     (hF : HasDualFGCells F) (hG : HasDualFGCells G) :
@@ -389,6 +417,88 @@ theorem intersectionFamily_isPolyhedralFan_of_dualFG [CompleteSpace E] {F G : Fa
     (hFdual : HasDualFGCells F) (hGdual : HasDualFGCells G) :
     IsPolyhedralFan (intersectionFamily F G) :=
   intersectionFamily_isPolyhedralFan hF hG (intersectionFamily_dualDecomposition hFdual hGdual)
+
+/-- Pairwise intersections preserve dual finite generation of fan cells. This lets an iterated
+common refinement keep the finite-inequality representation needed for the next exposed-face step. -/
+theorem intersectionFamily_hasDualFGCells [CompleteSpace E] {F G : Fan E}
+    (hFdual : HasDualFGCells F) (hGdual : HasDualFGCells G) :
+    HasDualFGCells (intersectionFamily F G) := by
+  classical
+  intro K hK
+  rcases Finset.mem_image.mp hK with ⟨⟨C, D⟩, hpair, rfl⟩
+  rcases Finset.mem_product.mp hpair with ⟨hC, hD⟩
+  exact PointedCone.DualFG.inf (hFdual C hC) (hGdual D hD)
+
+/-- Iteratively intersect a finite list of fans with a starting fan. -/
+noncomputable def iteratedIntersectionFamily [CompleteSpace E] (F : Fan E) : List (Fan E) → Fan E
+  | [] => F
+  | G :: rest => iteratedIntersectionFamily (intersectionFamily F G) rest
+
+theorem refines_refl [CompleteSpace E] (F : Fan E) : Refines F F := by
+  intro C hC
+  exact ⟨C, hC, Set.Subset.rfl⟩
+
+/-- Refinement is transitive: a cell contained in a fine cell is contained in its coarse cell. -/
+theorem refines_trans [CompleteSpace E] {F G H : Fan E}
+    (hFG : Refines F G) (hGH : Refines G H) : Refines F H := by
+  intro C hC
+  obtain ⟨D, hD, hsub₁⟩ := hFG C hC
+  obtain ⟨K, hK, hsub₂⟩ := hGH D hD
+  exact ⟨K, hK, hsub₁.trans hsub₂⟩
+
+/-- The iterated intersection family refines its starting fan. -/
+theorem iteratedIntersectionFamily_refines_base [CompleteSpace E]
+    (F : Fan E) (Gs : List (Fan E)) :
+    Refines (iteratedIntersectionFamily F Gs) F := by
+  induction Gs generalizing F with
+  | nil => exact refines_refl F
+  | cons G Gs ih =>
+      exact refines_trans (ih (intersectionFamily F G)) intersectionFamily_refines_left
+
+/-- Every fan added to an iterated intersection family is also refined by the result. -/
+theorem iteratedIntersectionFamily_refines_member [CompleteSpace E]
+    (F : Fan E) (Gs : List (Fan E)) {G : Fan E} (hG : G ∈ Gs) :
+    Refines (iteratedIntersectionFamily F Gs) G := by
+  induction Gs generalizing F with
+  | nil => simp at hG
+  | cons H Gs ih =>
+      rcases List.mem_cons.mp hG with hEq | hTail
+      · subst G
+        exact refines_trans
+          (iteratedIntersectionFamily_refines_base (intersectionFamily F H) Gs)
+          intersectionFamily_refines_right
+      · exact ih (intersectionFamily F H) hTail
+
+/-- If every input fan is a polyhedral fan with dual-finitely-generated cells, iterated pairwise
+intersections form a polyhedral common refinement and retain dual finite generation cellwise. -/
+theorem iteratedIntersectionFamily_isPolyhedralFan [CompleteSpace E]
+    (F : Fan E) (Gs : List (Fan E))
+    (hF : IsPolyhedralFan F) (hFdual : HasDualFGCells F)
+    (hG : ∀ G ∈ Gs, IsPolyhedralFan G)
+    (hGdual : ∀ G ∈ Gs, HasDualFGCells G) :
+    IsPolyhedralFan (iteratedIntersectionFamily F Gs) ∧
+      HasDualFGCells (iteratedIntersectionFamily F Gs) := by
+  have hAux : ∀ (xs : List (Fan E)) (F : Fan E),
+      IsPolyhedralFan F → HasDualFGCells F →
+      (∀ G ∈ xs, IsPolyhedralFan G) → (∀ G ∈ xs, HasDualFGCells G) →
+      IsPolyhedralFan (iteratedIntersectionFamily F xs) ∧
+        HasDualFGCells (iteratedIntersectionFamily F xs) := by
+    intro xs
+    induction xs with
+    | nil =>
+        intro F hF hFdual _ _
+        exact ⟨hF, hFdual⟩
+    | cons G Gs ih =>
+        intro F hF hFdual hGs hGsdual
+        have hHead : IsPolyhedralFan (intersectionFamily F G) :=
+          intersectionFamily_isPolyhedralFan_of_dualFG hF (hGs G (by simp)) hFdual
+            (hGsdual G (by simp))
+        have hHeadDual : HasDualFGCells (intersectionFamily F G) :=
+          intersectionFamily_hasDualFGCells hFdual (hGsdual G (by simp))
+        exact ih (intersectionFamily F G) hHead hHeadDual
+          (fun H hH => hGs H (by simp [hH]))
+          (fun H hH => hGsdual H (by simp [hH]))
+  exact hAux Gs F hF hFdual hG hGdual
 
 /-- **Admissibility transfers from fine to coarse.** If a finer cell `C'` is contained in a coarse
 cell `C` and the normal `n` attracts toward `C'` (`n ∈ C'`), then `n` attracts toward `C`: the

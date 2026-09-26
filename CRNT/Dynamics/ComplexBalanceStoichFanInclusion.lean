@@ -28,6 +28,13 @@ theorem relativeSourceOrderStoichFan_hasDualFGCells (N : Network S) :
   rcases hC with ⟨w, rfl⟩
   exact N.relativeSourceOrderConeInStoich_dualFG w
 
+/-- The sign-reversed source-order fan retains finite half-space representations because its
+cells are negations of cells of the original source-order fan. -/
+theorem relativeSourceOrderNegativeStoichFan_hasDualFGCells (N : Network S) :
+    CRNT.FanRefinement.HasDualFGCells N.relativeSourceOrderNegativeStoichFan :=
+  CRNT.FanRefinement.negatedFan_hasDualFGCells N.relativeSourceOrderStoichFan
+    (N.relativeSourceOrderStoichFan_hasDualFGCells)
+
 /-- The common refinement of the toric source-order fan with any dual-finitely-generated
 polyhedral fan is again a polyhedral fan. This is the entry point for combining toric chambers
 with a simplicial subdivision in the zero-separating construction. -/
@@ -39,6 +46,35 @@ theorem relativeSourceOrderStoichFan_intersection_isPolyhedralFan
   CRNT.FanRefinement.intersectionFamily_isPolyhedralFan_of_dualFG
     N.relativeSourceOrderStoichFan_isPolyhedralFan hG
     N.relativeSourceOrderStoichFan_hasDualFGCells hGdual
+
+/-- Iteratively intersecting the intrinsic source-order fan with a finite list of supplied
+polyhedral fans preserves the fan axioms and finite half-space representation of every cell. -/
+theorem relativeSourceOrderStoichFan_iteratedIntersection_isPolyhedralFan
+    (N : Network S) (Gs : List (CRNT.Fan N.euclideanStoichSubspace))
+    (hG : ∀ G ∈ Gs, CRNT.IsPolyhedralFan G)
+    (hGdual : ∀ G ∈ Gs, CRNT.FanRefinement.HasDualFGCells G) :
+    CRNT.IsPolyhedralFan
+        (CRNT.FanRefinement.iteratedIntersectionFamily N.relativeSourceOrderStoichFan Gs) ∧
+      CRNT.FanRefinement.HasDualFGCells
+        (CRNT.FanRefinement.iteratedIntersectionFamily N.relativeSourceOrderStoichFan Gs) :=
+  CRNT.FanRefinement.iteratedIntersectionFamily_isPolyhedralFan
+    N.relativeSourceOrderStoichFan Gs N.relativeSourceOrderStoichFan_isPolyhedralFan
+    N.relativeSourceOrderStoichFan_hasDualFGCells hG hGdual
+
+/-- The same finite common-refinement construction applies to the sign-reversed fan consumed by
+the toric field. -/
+theorem relativeSourceOrderNegativeStoichFan_iteratedIntersection_isPolyhedralFan
+    (N : Network S) (Gs : List (CRNT.Fan N.euclideanStoichSubspace))
+    (hG : ∀ G ∈ Gs, CRNT.IsPolyhedralFan G)
+    (hGdual : ∀ G ∈ Gs, CRNT.FanRefinement.HasDualFGCells G) :
+    CRNT.IsPolyhedralFan
+        (CRNT.FanRefinement.iteratedIntersectionFamily N.relativeSourceOrderNegativeStoichFan Gs) ∧
+      CRNT.FanRefinement.HasDualFGCells
+        (CRNT.FanRefinement.iteratedIntersectionFamily N.relativeSourceOrderNegativeStoichFan Gs) :=
+  CRNT.FanRefinement.iteratedIntersectionFamily_isPolyhedralFan
+    N.relativeSourceOrderNegativeStoichFan Gs
+    N.relativeSourceOrderNegativeStoichFan_isPolyhedralFan
+    N.relativeSourceOrderNegativeStoichFan_hasDualFGCells hG hGdual
 
 /-- A common refinement preserves the coarse fan's toric field by adding admissible polar cones.
 If `x` is within `δ` of a coarse cell `C`, choose a nearby point in `C` and a fine cell `D`
@@ -74,6 +110,51 @@ theorem toricField_subset_intersectionFamily_of_right_covers
       exact hv.1
     exact (CRNT.mem_coneDual.mp hzC) hvC
   exact CRNT.mem_toricGenerators.mpr ⟨H, hHmem, hdistH, hzH⟩
+
+/-- Repeated common refinements preserve the original toric field whenever each added fan covers
+the ambient space. This is the field-transfer invariant needed when a geometric construction uses
+several successive fan subdivisions. -/
+theorem toricField_subset_iteratedIntersectionFamily_of_covering
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    (F : CRNT.Fan E) (Gs : List (CRNT.Fan E)) (δ : ℝ) (x : E)
+    (hcover : ∀ G ∈ Gs, ∀ y : E, ∃ D ∈ G, y ∈ (D : Set E)) :
+    (CRNT.toricField F δ x : Set E) ⊆
+      (CRNT.toricField (CRNT.FanRefinement.iteratedIntersectionFamily F Gs) δ x : Set E) := by
+  have hAux : ∀ (xs : List (CRNT.Fan E)) (F : CRNT.Fan E) (δ : ℝ) (x : E),
+      (∀ G ∈ xs, ∀ y : E, ∃ D ∈ G, y ∈ (D : Set E)) →
+      (CRNT.toricField F δ x : Set E) ⊆
+        (CRNT.toricField (CRNT.FanRefinement.iteratedIntersectionFamily F xs) δ x : Set E) := by
+    intro xs
+    induction xs with
+    | nil =>
+        intro F δ x _
+        exact Set.Subset.rfl
+    | cons G Gs ih =>
+        intro F δ x hcover
+        have hhead : ∀ y : E, ∃ D ∈ G, y ∈ (D : Set E) := hcover G (by simp)
+        have htail : ∀ H ∈ Gs, ∀ y : E, ∃ D ∈ H, y ∈ (D : Set E) := by
+          intro H hH y
+          exact hcover H (by simp [hH]) y
+        have hstep := toricField_subset_intersectionFamily_of_right_covers F G δ x hhead
+        have hrest := ih (CRNT.FanRefinement.intersectionFamily F G) δ x htail
+        exact hstep.trans hrest
+  exact hAux Gs F δ x hcover
+
+/-- The intrinsic source-order field remains included after successive intersections with any
+finite list of covering fans on stoichiometric space. -/
+theorem toricField_relativeSourceOrderStoichFan_subset_iteratedCommonRefinement
+    (N : Network S) (Gs : List (CRNT.Fan N.euclideanStoichSubspace)) (δ : ℝ)
+    (x : N.euclideanStoichSubspace)
+    (hcover : ∀ G ∈ Gs, ∀ y : N.euclideanStoichSubspace,
+      ∃ D ∈ G, y ∈ (D : Set N.euclideanStoichSubspace)) :
+    (CRNT.toricField N.relativeSourceOrderNegativeStoichFan δ x :
+        Set N.euclideanStoichSubspace) ⊆
+      (CRNT.toricField
+        (CRNT.FanRefinement.iteratedIntersectionFamily
+          N.relativeSourceOrderNegativeStoichFan Gs) δ x :
+        Set N.euclideanStoichSubspace) :=
+  toricField_subset_iteratedIntersectionFamily_of_covering
+    N.relativeSourceOrderNegativeStoichFan Gs δ x hcover
 
 /-- The intrinsic complex-balanced source-order field embeds into the field of its common
 refinement with any covering fan. This is the field-level transfer needed before a refined
