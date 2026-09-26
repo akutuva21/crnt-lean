@@ -8,6 +8,7 @@ import Mathlib.LinearAlgebra.Dimension.Constructions
 import Mathlib.Analysis.InnerProductSpace.Projection.Submodule
 import Mathlib.Data.Set.Finite.List
 import Mathlib.Topology.Algebra.Module.FiniteDimension
+import Mathlib.Topology.UniformSpace.HeineCantor
 
 /-!
 # The dimension induction of the zero-separating surface
@@ -2648,37 +2649,193 @@ theorem projectionFiberSubdivisionCenter_mem_tile {n m : ℕ}
 
 /-- The graph of the selected center representatives over a projected tile. -/
 def projectionFiberSubdivisionCenterGraph {n m : ℕ}
-    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
-    (i : Fin (m + 1)) : Set (Fin (n + 1) → ℝ) :=
-  {x | ∃ y ∈ base,
-    x = Fin.snoc y (projectionFiberSubdivisionCenter lower upper i y)}
+    (base : Set (Fin n → ℝ))
+    (center : Fin (m + 1) → (Fin n → ℝ) → ℝ) (i : Fin (m + 1)) :
+    Set (Fin (n + 1) → ℝ) :=
+  {x | ∃ y ∈ base, x = Fin.snoc y (center i y)}
 
-/-- Craciun v3, §7.4.3, Case 1.1 and Step 2: the selected center graph lies in its strip and
-projects onto the entire intended base tile. This is the tile-to-face incidence invariant: every
-lower-dimensional basepoint has its chosen lift in the corresponding higher-dimensional tile, and
-projection of that lift recovers the same point. -/
+/-- Craciun v3, §7.4.3, Case 1.1 and Step 2: the graph of the selected representatives lies in
+its strip and projects onto the entire intended base tile. Thus every lower-dimensional basepoint
+has its chosen lift in the corresponding higher-dimensional tile, and projection of that lift
+recovers the same point. -/
 theorem projectionFiberSubdivisionCenterGraph_incidence {n m : ℕ}
     (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
-    (horder : ∀ y ∈ base, lower y ≤ upper y) (i : Fin (m + 1)) :
-    projectionFiberSubdivisionCenterGraph base lower upper i ⊆
+    (center : Fin (m + 1) → (Fin n → ℝ) → ℝ)
+    (hcenterMem : ∀ i y, y ∈ base →
+      Fin.snoc y (center i y) ∈ projectionFiberSubdivisionTile base lower upper i)
+    (i : Fin (m + 1)) :
+    projectionFiberSubdivisionCenterGraph base center i ⊆
         projectionFiberSubdivisionTile base lower upper i ∧
-      forgetLastCoordinate n '' projectionFiberSubdivisionCenterGraph base lower upper i = base := by
+      forgetLastCoordinate n '' projectionFiberSubdivisionCenterGraph base center i = base := by
   constructor
   · intro x hx
     rcases hx with ⟨y, hy, rfl⟩
-    exact projectionFiberSubdivisionCenter_mem_tile base lower upper horder i y hy
+    exact hcenterMem i y hy
   · ext y
     constructor
     · rintro ⟨x, ⟨z, hz, rfl⟩, hproj⟩
-      have hproj' : forgetLastCoordinate n (Fin.snoc z
-          (projectionFiberSubdivisionCenter lower upper i z)) = z := by
+      have hproj' : forgetLastCoordinate n (Fin.snoc z (center i z)) = z := by
         simp [forgetLastCoordinate]
       rw [hproj'] at hproj
       simpa [hproj] using hz
     · intro hy
-      refine ⟨Fin.snoc y (projectionFiberSubdivisionCenter lower upper i y), ?_, ?_⟩
+      refine ⟨Fin.snoc y (center i y), ?_, ?_⟩
       · exact ⟨y, hy, rfl⟩
       · simp [forgetLastCoordinate]
+
+/-- On a compact projected base, each continuous subdivision endpoint has a uniform
+continuity modulus. This lets the projected tiling scale control endpoint variation uniformly. -/
+theorem exists_uniform_projectionFiberSubdivisionEndpoint_variation {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (hbase : IsCompact base) (hlower : Continuous lower) (hupper : Continuous upper)
+    (i : Fin (m + 2)) {tolerance : ℝ} (htolerance : 0 < tolerance) :
+    ∃ η : ℝ, 0 < η ∧ ∀ y ∈ base, ∀ z ∈ base,
+      dist y z < η →
+        dist (projectionFiberSubdivisionEndpoint lower upper i y)
+          (projectionFiberSubdivisionEndpoint lower upper i z) < tolerance := by
+  have hendpoint : Continuous (projectionFiberSubdivisionEndpoint lower upper i) :=
+    continuous_projectionFiberSubdivisionEndpoint lower upper i hlower hupper
+  exact (Metric.uniformContinuousOn_iff.mp
+    (hbase.uniformContinuousOn_of_continuous hendpoint.continuousOn)) tolerance htolerance
+
+/-- A strip with narrow fibers over a sufficiently small projected patch has small ambient
+ diameter. The only variation term is the upper endpoint graph: comparing two points by way of
+that common upper graph and each point's own lower endpoint costs at most `epsilon + tolerance`.
+This is the quantitative bridge from the one-bit subdivision to the small-patch wall-chart lemma. -/
+theorem projectionFiberSubdivisionTile_pair_dist_lt {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (epsilon tolerance δ η : ℝ)
+    (i : Fin (m + 1)) (x y : Fin (n + 1) → ℝ)
+    (hx : x ∈ projectionFiberSubdivisionTile base lower upper i)
+    (hy : y ∈ projectionFiberSubdivisionTile base lower upper i)
+    (hbaseSmall : dist (forgetLastCoordinate n x) (forgetLastCoordinate n y) < η)
+    (hendpointVariation : ∀ a ∈ base, ∀ b ∈ base, dist a b < η →
+      dist (projectionFiberSubdivisionEndpoint lower upper i.succ a)
+        (projectionFiberSubdivisionEndpoint lower upper i.succ b) < tolerance)
+    (hwidth : ∀ z ∈ base,
+      projectionFiberSubdivisionEndpoint lower upper i.succ z -
+        projectionFiberSubdivisionEndpoint lower upper i.castSucc z ≤ epsilon)
+    (hηsmall : η < δ) (hsmall : epsilon + tolerance < δ) (hδ : 0 < δ) :
+    dist x y < δ := by
+  let xbase := forgetLastCoordinate n x
+  let ybase := forgetLastCoordinate n y
+  let xlast := x (Fin.last n)
+  let ylast := y (Fin.last n)
+  have hxform : Fin.snoc xbase xlast = x := by
+    ext j
+    cases j using Fin.lastCases with
+    | cast k => simp [xbase, forgetLastCoordinate, Fin.snoc_castSucc]
+    | last => simp [xlast, Fin.snoc_last]
+  have hyform : Fin.snoc ybase ylast = y := by
+    ext j
+    cases j using Fin.lastCases with
+    | cast k => simp [ybase, forgetLastCoordinate, Fin.snoc_castSucc]
+    | last => simp [ylast, Fin.snoc_last]
+  have hxmem : Fin.snoc xbase xlast ∈
+      projectionFiberSubdivisionTile base lower upper i := by simpa [hxform] using hx
+  have hymem : Fin.snoc ybase ylast ∈
+      projectionFiberSubdivisionTile base lower upper i := by simpa [hyform] using hy
+  have hxm := (mem_projectionFiberSubdivisionTile_snoc_iff
+    base lower upper i xbase xlast).mp hxmem
+  have hym := (mem_projectionFiberSubdivisionTile_snoc_iff
+    base lower upper i ybase ylast).mp hymem
+  have hvarXY := hendpointVariation xbase hxm.1 ybase hym.1 hbaseSmall
+  have hvarYX := hendpointVariation ybase hym.1 xbase hxm.1 (by simpa [dist_comm] using hbaseSmall)
+  have hvarXY' : |projectionFiberSubdivisionEndpoint lower upper i.succ xbase -
+      projectionFiberSubdivisionEndpoint lower upper i.succ ybase| < tolerance := by
+    simpa [Real.dist_eq] using hvarXY
+  have hvarYX' : |projectionFiberSubdivisionEndpoint lower upper i.succ ybase -
+      projectionFiberSubdivisionEndpoint lower upper i.succ xbase| < tolerance := by
+    simpa [Real.dist_eq] using hvarYX
+  have hxwidth := hwidth xbase hxm.1
+  have hywidth := hwidth ybase hym.1
+  have hvarXYle : projectionFiberSubdivisionEndpoint lower upper i.succ xbase -
+      projectionFiberSubdivisionEndpoint lower upper i.succ ybase ≤ tolerance :=
+    (le_abs_self _).trans hvarXY'.le
+  have hvarYXle : projectionFiberSubdivisionEndpoint lower upper i.succ ybase -
+      projectionFiberSubdivisionEndpoint lower upper i.succ xbase ≤ tolerance :=
+    (le_abs_self _).trans hvarYX'.le
+  have hlastUpper : xlast - ylast ≤ epsilon + tolerance := by
+    calc
+      xlast - ylast ≤
+          projectionFiberSubdivisionEndpoint lower upper i.succ xbase -
+            projectionFiberSubdivisionEndpoint lower upper i.castSucc ybase := by
+              linarith [hxm.2.2, hym.2.1]
+      _ = (projectionFiberSubdivisionEndpoint lower upper i.succ xbase -
+            projectionFiberSubdivisionEndpoint lower upper i.succ ybase) +
+          (projectionFiberSubdivisionEndpoint lower upper i.succ ybase -
+            projectionFiberSubdivisionEndpoint lower upper i.castSucc ybase) := by ring
+      _ ≤ tolerance + epsilon := by linarith [hvarXYle, hywidth]
+      _ = epsilon + tolerance := by ring
+  have hlastLower : ylast - xlast ≤ epsilon + tolerance := by
+    calc
+      ylast - xlast ≤
+          projectionFiberSubdivisionEndpoint lower upper i.succ ybase -
+            projectionFiberSubdivisionEndpoint lower upper i.castSucc xbase := by
+              linarith [hym.2.2, hxm.2.1]
+      _ = (projectionFiberSubdivisionEndpoint lower upper i.succ ybase -
+            projectionFiberSubdivisionEndpoint lower upper i.succ xbase) +
+          (projectionFiberSubdivisionEndpoint lower upper i.succ xbase -
+            projectionFiberSubdivisionEndpoint lower upper i.castSucc xbase) := by ring
+      _ ≤ tolerance + epsilon := by linarith [hvarYXle, hxwidth]
+      _ = epsilon + tolerance := by ring
+  have hlastAbs : |xlast - ylast| ≤ epsilon + tolerance := by
+    apply abs_le.mpr
+    constructor
+    · linarith [hlastLower]
+    · exact hlastUpper
+  have hlastNorm : ‖xlast - ylast‖ < δ := by
+    rw [Real.norm_eq_abs]
+    exact lt_of_le_of_lt hlastAbs hsmall
+  rw [dist_eq_norm]
+  apply (pi_norm_lt_iff hδ).2
+  intro j
+  cases j using Fin.lastCases with
+  | cast k =>
+      have hcoord : ‖(xbase - ybase) k‖ ≤ ‖xbase - ybase‖ := norm_le_pi_norm _ k
+      have hcoord' : ‖(x - y) k.castSucc‖ = ‖(xbase - ybase) k‖ := by
+        simp [xbase, ybase, forgetLastCoordinate]
+      rw [hcoord']
+      have hbaseNorm : ‖xbase - ybase‖ < δ := by
+        calc
+          ‖xbase - ybase‖ = dist xbase ybase := by rw [dist_eq_norm]
+          _ < η := by simpa [xbase, ybase] using hbaseSmall
+          _ < δ := hηsmall
+      exact lt_of_le_of_lt hcoord hbaseNorm
+  | last =>
+      simpa [xlast, ylast] using hlastNorm
+
+/-- A compact base gives each refined strip a projected-diameter threshold that guarantees
+ambient diameter below `δ`. The threshold is chosen from uniform continuity of the strip's upper
+endpoint; the strip-width and endpoint-variation budgets add to less than `δ`. -/
+theorem exists_projectionFiberSubdivisionTile_modulus_of_compactBase {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (hbase : IsCompact base) (hlower : Continuous lower) (hupper : Continuous upper)
+    (epsilon tolerance δ : ℝ) (hepsilon : 0 < tolerance)
+    (i : Fin (m + 1))
+    (hwidth : ∀ z ∈ base,
+      projectionFiberSubdivisionEndpoint lower upper i.succ z -
+        projectionFiberSubdivisionEndpoint lower upper i.castSucc z ≤ epsilon)
+    (hbudget : epsilon + tolerance < δ) (hδ : 0 < δ) :
+    ∃ η : ℝ, 0 < η ∧ η < δ ∧ ∀ x y,
+      x ∈ projectionFiberSubdivisionTile base lower upper i →
+      y ∈ projectionFiberSubdivisionTile base lower upper i →
+      dist (forgetLastCoordinate n x) (forgetLastCoordinate n y) < η → dist x y < δ := by
+  obtain ⟨η₀, hη₀, hvariation⟩ :=
+    exists_uniform_projectionFiberSubdivisionEndpoint_variation
+      base lower upper hbase hlower hupper i.succ hepsilon
+  let η := min η₀ (δ / 2)
+  have hη : 0 < η := lt_min hη₀ (half_pos hδ)
+  have hηδ : η < δ := lt_of_le_of_lt (min_le_right _ _) (by linarith)
+  refine ⟨η, hη, hηδ, ?_⟩
+  intro x y hx hy hprojected
+  have hvariation' : ∀ a ∈ base, ∀ b ∈ base, dist a b < η →
+      dist (projectionFiberSubdivisionEndpoint lower upper i.succ a)
+        (projectionFiberSubdivisionEndpoint lower upper i.succ b) < tolerance := by
+    intro a ha b hb hab
+    exact hvariation a ha b hb (lt_of_lt_of_le hab (min_le_left _ _))
+  exact projectionFiberSubdivisionTile_pair_dist_lt base lower upper epsilon tolerance δ η i x y
+    hx hy hprojected hvariation' hwidth hηδ hbudget hδ
 
 /-- Points strictly between the two endpoints of a subdivision strip, fiber by fiber. This
 captures non-overlap of the strip interiors in the newly subdivided coordinate. -/
@@ -2984,9 +3141,9 @@ structure CompactProjectionFiberTiling {n : ℕ} (base : Set (Fin n → ℝ))
   /-- The graph of the selected center representatives projects onto the entire base of each
   strip. This retains the projected-basepoint invariant in the tiling certificate. -/
   tile_center_graph_incidence : ∀ i : Fin (subdivisionCount + 1),
-    projectionFiberSubdivisionCenterGraph base lower upper i ⊆
+    projectionFiberSubdivisionCenterGraph base tile_center i ⊆
         projectionFiberSubdivisionTile base lower upper i ∧
-      forgetLastCoordinate n '' projectionFiberSubdivisionCenterGraph base lower upper i = base
+      forgetLastCoordinate n '' projectionFiberSubdivisionCenterGraph base tile_center i = base
   /-- Interiors along the subdivided coordinate do not overlap; closed tiles may meet at seams. -/
   fiber_interiors_disjoint : ∀ i j, i ≠ j →
     projectionFiberSubdivisionFiberInteriorTile (m := subdivisionCount) base lower upper i ∩
@@ -3068,7 +3225,11 @@ noncomputable def compactProjectionFiberTiling_of_compactBase {n : ℕ}
       exact projectionFiberSubdivisionCenter_mem_tile base lower upper horder i y hy
     tile_center_graph_incidence := by
       intro i
-      exact projectionFiberSubdivisionCenterGraph_incidence base lower upper horder i
+      exact projectionFiberSubdivisionCenterGraph_incidence base lower upper
+        (fun i y => projectionFiberSubdivisionCenter lower upper i y)
+        (by
+          intro i y hy
+          exact projectionFiberSubdivisionCenter_mem_tile base lower upper horder i y hy) i
     fiber_interiors_disjoint := by
       intro i j hij
       exact disjoint_projectionFiberSubdivisionFiberInteriorTiles
