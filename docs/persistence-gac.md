@@ -320,6 +320,13 @@ an important interface check: the current `GenuinePermanentForRates` target asks
 eventual compact set, so a formalization must prove that the paper's persistence or convergence result
 supplies this stronger API before counting either branch as closed.
 
+Anderson and Shiu give another candidate rank-2 branch: Theorem 4.6 proves GAC when every
+semilocking face is a facet, vertex, or empty, and Corollary 4.7 applies this to two-dimensional
+compatibility classes ([paper, Theorem 4.6 and Corollary 4.7](https://people.math.wisc.edu/~dfanderson/papers/AndShiuFacetsSIAM.pdf)).
+The local critical-siphon facet inequality is now formalized conditionally, but the finite-cover and
+vertex arguments are not assembled into Lean, and the result still needs to feed the
+class-uniform `GenuinePermanentForRates` interface.
+
 The handoff's rate-realization observation is also present in
 `Dynamics/ToricCycleOrderLimits.lean`: `not_exists_realizing_of_relation` shows that a translation
 realizing `log κ` must satisfy every linear relation among the cycle complexes, while
