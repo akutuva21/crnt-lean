@@ -2646,6 +2646,39 @@ theorem projectionFiberSubdivisionCenter_mem_tile {n m : ℕ}
   · dsimp [projectionFiberSubdivisionCenter]
     linarith
 
+/-- The graph of the selected center representatives over a projected tile. -/
+def projectionFiberSubdivisionCenterGraph {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (i : Fin (m + 1)) : Set (Fin (n + 1) → ℝ) :=
+  {x | ∃ y ∈ base,
+    x = Fin.snoc y (projectionFiberSubdivisionCenter lower upper i y)}
+
+/-- The selected center graph lies in its strip and projects onto the entire intended base tile.
+This is the tile-to-face incidence invariant: every lower-dimensional basepoint has its chosen lift
+in the corresponding higher-dimensional tile, and projection of that lift recovers the same point. -/
+theorem projectionFiberSubdivisionCenterGraph_incidence {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) (i : Fin (m + 1)) :
+    projectionFiberSubdivisionCenterGraph base lower upper i ⊆
+        projectionFiberSubdivisionTile base lower upper i ∧
+      forgetLastCoordinate n '' projectionFiberSubdivisionCenterGraph base lower upper i = base := by
+  constructor
+  · intro x hx
+    rcases hx with ⟨y, hy, rfl⟩
+    exact projectionFiberSubdivisionCenter_mem_tile base lower upper horder i y hy
+  · ext y
+    constructor
+    · rintro ⟨x, ⟨z, hz, rfl⟩, hproj⟩
+      have hproj' : forgetLastCoordinate n (Fin.snoc z
+          (projectionFiberSubdivisionCenter lower upper i z)) = z := by
+        simp [forgetLastCoordinate]
+      rw [hproj'] at hproj
+      simpa [hproj] using hz
+    · intro hy
+      refine ⟨Fin.snoc y (projectionFiberSubdivisionCenter lower upper i y), ?_, ?_⟩
+      · exact ⟨y, hy, rfl⟩
+      · simp [forgetLastCoordinate]
+
 /-- Points strictly between the two endpoints of a subdivision strip, fiber by fiber. This
 captures non-overlap of the strip interiors in the newly subdivided coordinate. -/
 def projectionFiberSubdivisionFiberInteriorTile {n m : ℕ}
