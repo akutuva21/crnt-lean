@@ -323,9 +323,11 @@ form. The sign content of strong endotacticity along the relative-entropy dissip
   whose source is strictly smaller on every facet species. The witness may vary by reaction, so
   the proof does not assume a global ordering across disconnected linkage classes.
   `facet_repelling_of_reactionwise_data` now assembles this shape of estimate when each negative
-  term is controlled by the full nonnegative contribution. Uniform monomial-domination bounds from
-  facet-interiority and the finite-cover step needed to turn local repulsion into persistence remain
-  open. Anderson's single-linkage tier argument is also not
+  term is controlled by the full nonnegative contribution. `facet_repelling_of_local_monomial_bounds`
+  combines the cycle witnesses, exponent comparison, complementary-factor bounds, coefficient
+  ratios, and sum estimate into a local repulsion conclusion. Producing its uniform bounds from
+  facet-interiority and proving the finite-cover step needed to turn local repulsion into persistence
+  remain open. Anderson's single-linkage tier argument is also not
   formalized. Also open: in the toric-inclusion approach, the six explicit hypotheses
   enumerated above, none assembled into a persistence or GAC conclusion; and, in the permanence route,
   `StronglyEndotactic ⇒ permanent`.

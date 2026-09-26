@@ -750,5 +750,107 @@ theorem facet_repelling_of_reactionwise_data (N : Network S) (κ : N.RateConstan
   rw [N.massActionVectorField_eq_of_proj κ hγ x hs]
   exact mul_nonneg (hxpos s).le (mul_nonneg (hv s hs).le hscalar)
 
+/-- Derive the reactionwise repulsion bounds from weak reversibility and uniform monomial and
+coefficient comparisons. `Dmin` and `Dmax` control the complementary monomial factors; `hcoeff`
+controls the finite rate-coefficient ratios; and `hθscale` calibrates the common factor used by the
+reactionwise sum estimate. The remaining geometric work is to produce these uniform constants on
+a neighborhood of a facet-interior point. -/
+theorem facet_repelling_of_local_monomial_bounds (N : Network S) (κ : N.RateConstants)
+    (hwr : N.WeaklyReversible) {W : Finset S} {v : S → ℝ} {γ : N.R → ℝ}
+    {x : Concentration S} {ε Dmin Dmax C θ : ℝ}
+    (hW : W.Nonempty)
+    (hv : ∀ s ∈ W, 0 < v s)
+    (hγ : ∀ r, ∀ s ∈ W, N.reactionVector r s = γ r * v s)
+    (hxpos : ∀ s, 0 < x s)
+    (hxW : ∀ s ∈ W, x s ≤ ε) (hε0 : 0 < ε) (hε1 : ε ≤ 1)
+    (hDmin : 0 < Dmin) (hDmax : 0 < Dmax)
+    (hcomplLo : ∀ r : N.R, Dmin ≤
+      ∏ s ∈ Wᶜ, x s ^ (N.reaction r).source s)
+    (hcomplHi : ∀ r : N.R,
+      ∏ s ∈ Wᶜ, x s ^ (N.reaction r).source s ≤ Dmax)
+    (hcoeff : ∀ r ℓ : N.R, γ r < 0 → 0 < γ ℓ →
+      (∀ s ∈ W, (N.reaction ℓ).source s < (N.reaction r).source s) →
+      -γ r * κ.k r ≤ C * (γ ℓ * κ.k ℓ))
+    (hθ : 0 ≤ θ) (hθscale : θ * Dmin = ε * Dmax * C)
+    (hsmall : θ * (Fintype.card N.R : ℝ) ≤ 1) :
+    0 ≤ ∑ s ∈ W, x s * N.massActionVectorField κ x s := by
+  classical
+  let a (r : N.R) := γ r * N.massActionRate κ r x
+  rcases hW with ⟨s₀, hs₀⟩
+  have hdom : ∀ r : N.R, a r < 0 →
+      -(a r) ≤ θ * ∑ q ∈ Finset.univ.filter (fun q => ¬ (a q < 0)), a q := by
+    intro r hra
+    have hrateR : 0 < N.massActionRate κ r x := N.massActionRate_pos κ r hxpos
+    have hγR : γ r < 0 := by
+      by_contra hnot
+      have hγRnn : 0 ≤ γ r := le_of_not_gt hnot
+      have hprod : 0 ≤ γ r * N.massActionRate κ r x := mul_nonneg hγRnn hrateR.le
+      exact (not_lt_of_ge hprod) (by simpa [a] using hra)
+    obtain ⟨ℓ, hγℓ, hℓbelow⟩ :=
+      N.exists_positiveReaction_below_of_negativeReaction hwr hv hγ r hγR hs₀
+    have hmono : Dmin * Complex.massActionMonomial (N.reaction r).source x ≤
+        ε * Dmax * Complex.massActionMonomial (N.reaction ℓ).source x :=
+      massActionMonomial_domination hxpos hxW hε0 hε1
+        (fun s hs => (hℓbelow s hs).le) hs₀ (hℓbelow s₀ hs₀) hDmin
+        (hcomplLo ℓ) (hcomplHi r)
+    have hmℓ : 0 < Complex.massActionMonomial (N.reaction ℓ).source x :=
+      Complex.massActionMonomial_pos hxpos _
+    have hcoeffR : 0 ≤ -γ r * κ.k r :=
+      mul_nonneg (neg_nonneg.mpr hγR.le) (κ.positive r).le
+    have hmult : 0 ≤ ε * Dmax * Complex.massActionMonomial (N.reaction ℓ).source x :=
+      mul_nonneg (mul_nonneg hε0.le hDmax.le) hmℓ.le
+    have hscaled : Dmin * ((-γ r * κ.k r) *
+        Complex.massActionMonomial (N.reaction r).source x) ≤
+        (ε * Dmax * C) * ((γ ℓ * κ.k ℓ) *
+          Complex.massActionMonomial (N.reaction ℓ).source x) := by
+      calc
+        Dmin * ((-γ r * κ.k r) * Complex.massActionMonomial (N.reaction r).source x)
+            = (-γ r * κ.k r) *
+                (Dmin * Complex.massActionMonomial (N.reaction r).source x) := by ring
+        _ ≤ (-γ r * κ.k r) *
+              (ε * Dmax * Complex.massActionMonomial (N.reaction ℓ).source x) :=
+                mul_le_mul_of_nonneg_left hmono hcoeffR
+        _ ≤ (C * (γ ℓ * κ.k ℓ)) *
+              (ε * Dmax * Complex.massActionMonomial (N.reaction ℓ).source x) :=
+                mul_le_mul_of_nonneg_right (hcoeff r ℓ hγR hγℓ hℓbelow) hmult
+        _ = (ε * Dmax * C) *
+              ((γ ℓ * κ.k ℓ) * Complex.massActionMonomial (N.reaction ℓ).source x) := by ring
+    have hnegRate : -(a r) = (-γ r * κ.k r) *
+        Complex.massActionMonomial (N.reaction r).source x := by
+      simp [a, Network.massActionRate]
+      ring
+    have hposRate : a ℓ = (γ ℓ * κ.k ℓ) *
+        Complex.massActionMonomial (N.reaction ℓ).source x := by
+      simp [a, Network.massActionRate]
+      ring
+    have hscaled' : Dmin * (-(a r)) ≤ Dmin * (θ * a ℓ) := by
+      calc
+        Dmin * (-(a r)) = Dmin * ((-γ r * κ.k r) *
+            Complex.massActionMonomial (N.reaction r).source x) := by rw [hnegRate]
+        _ ≤ (ε * Dmax * C) * ((γ ℓ * κ.k ℓ) *
+            Complex.massActionMonomial (N.reaction ℓ).source x) := hscaled
+        _ = Dmin * (θ * a ℓ) := by rw [← hθscale, hposRate]; ring
+    have hanchor : -(a r) ≤ θ * a ℓ := le_of_mul_le_mul_left hscaled' hDmin
+    have hℓpos : 0 < a ℓ := mul_pos hγℓ (N.massActionRate_pos κ ℓ hxpos)
+    have hℓmem : ℓ ∈ Finset.univ.filter (fun q : N.R => ¬ (a q < 0)) := by
+      refine Finset.mem_filter.mpr ⟨Finset.mem_univ ℓ, ?_⟩
+      exact not_lt.mpr hℓpos.le
+    have hposge : a ℓ ≤ ∑ q ∈ Finset.univ.filter (fun q : N.R => ¬ (a q < 0)), a q := by
+      refine Finset.single_le_sum ?_ hℓmem
+      intro q hq
+      exact not_lt.mp (Finset.mem_filter.mp hq).2
+    calc
+      -(a r) ≤ θ * a ℓ := hanchor
+      _ ≤ θ * ∑ q ∈ Finset.univ.filter (fun q : N.R => ¬ (a q < 0)), a q :=
+        mul_le_mul_of_nonneg_left hposge hθ
+  have hdom' : ∀ r : N.R, γ r * N.massActionRate κ r x < 0 →
+      -(γ r * N.massActionRate κ r x) ≤
+        θ * ∑ q ∈ Finset.univ.filter
+          (fun q : N.R => ¬ (γ q * N.massActionRate κ q x < 0)),
+          γ q * N.massActionRate κ q x := by
+    intro r hr
+    simpa [a] using hdom r (by simpa [a] using hr)
+  exact N.facet_repelling_of_reactionwise_data κ hv hγ hxpos hθ hdom' hsmall
+
 end Network
 end CRNT
