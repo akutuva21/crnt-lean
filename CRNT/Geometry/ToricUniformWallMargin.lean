@@ -3,6 +3,7 @@ import CRNT.Geometry.FanWallsCrossed
 import CRNT.Geometry.ToricStrictSupport
 import CRNT.Dynamics.DissipationBound
 import CRNT.Dynamics.ComplexBalanceStoichFanInclusion
+import CRNT.Geometry.ZeroSeparatingInduction
 import Mathlib.Topology.MetricSpace.Pseudo.Lemmas
 
 namespace CRNT
@@ -411,6 +412,79 @@ theorem Network.exists_negativeLogWall_margin_on_small_patch
     rw [Metric.mem_ball, dist_comm]
     exact hdiam x hx q hq
   exact hchart q hqball
+
+/-- A sufficiently fine restricted one-bit fiber patch inherits one fixed inward wall from the
+compact wall-chart cover. The geometric strip estimate controls distance in fiber coordinates;
+`hmapDiam` transfers that bound through the chosen state-space chart, after which the existing
+small-patch lemma selects a single wall valid on the entire patch. -/
+theorem Network.exists_negativeLogWall_on_oneBitFiberPatch
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base baseTile lower upper epsilon)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (t : Finset K) {ε δwall δcoord η tolerance : ℝ}
+    (hchart : ∀ y ∈ K, ∃ p ∈ t, ∀ q ∈ Metric.ball y δwall,
+      ε < ⟪(z p).1, toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ)
+    (p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1))
+    (hne : (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+      (baseTile p.1) lower upper p.2).Nonempty)
+    (himage : ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+      (baseTile p.1) lower upper p.2) ⊆ K)
+    (hmapDiam : ∀ x ∈ facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2,
+      ∀ y ∈ facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2,
+      dist x y < δcoord → dist (ψ x) (ψ y) < δwall)
+    (hprojectedSmall : ∀ a ∈ baseTile p.1, ∀ b ∈ baseTile p.1,
+      dist a b < η)
+    (hendpointVariation : ∀ a ∈ baseTile p.1, ∀ b ∈ baseTile p.1,
+      dist a b < η →
+        dist (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper p.2.succ a)
+          (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper p.2.succ b) < tolerance)
+    (hηsmall : η < δcoord)
+    (hbudget : epsilon + tolerance < δcoord) (hδcoord : 0 < δcoord) :
+    ∃ wall ∈ t, ∀ q ∈
+      ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2),
+      ε < ⟪(z wall).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ := by
+  let patch := facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+    (baseTile p.1) lower upper p.2
+  have hdiam : ∀ x ∈ ψ '' patch, ∀ y ∈ ψ '' patch, dist x y < δwall := by
+    intro x hx y hy
+    rcases hx with ⟨x₀, hx₀, rfl⟩
+    rcases hy with ⟨y₀, hy₀, rfl⟩
+    apply hmapDiam x₀ hx₀ y₀ hy₀
+    have hxTile : x₀ ∈ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2 := hx₀.2
+    have hyTile : y₀ ∈ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2 := hy₀.2
+    have hxbase : CRNT.ZeroSeparatingInduction.forgetLastCoordinate n x₀ ∈ baseTile p.1 := by
+      change (let y := CRNT.ZeroSeparatingInduction.forgetLastCoordinate n x₀
+        y ∈ baseTile p.1 ∧ _) at hxTile
+      exact hxTile.1
+    have hybase : CRNT.ZeroSeparatingInduction.forgetLastCoordinate n y₀ ∈ baseTile p.1 := by
+      change (let y := CRNT.ZeroSeparatingInduction.forgetLastCoordinate n y₀
+        y ∈ baseTile p.1 ∧ _) at hyTile
+      exact hyTile.1
+    exact CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile_pair_dist_lt
+      (baseTile p.1) lower upper epsilon tolerance δcoord η p.2 x₀ y₀ hxTile hyTile
+      (hprojectedSmall _ hxbase _ hybase)
+      hendpointVariation
+      (by
+        intro y hy
+        exact cover.tiling.fiber_width_le p.2 y (cover.baseTile_subset p.1 hy))
+      hηsmall hbudget hδcoord
+  have hpatchNonempty : (ψ '' patch).Nonempty := by
+    obtain ⟨x, hx⟩ := hne
+    exact ⟨ψ x, ⟨x, hx, rfl⟩⟩
+  exact N.exists_negativeLogWall_margin_on_small_patch κ z t hchart
+    hpatchNonempty himage hdiam
 
 /-- A compact patch can be covered by finitely many small balls, each carrying one fixed
 inward wall on the entire ball. The radius is chosen so each patch has diameter below the local
