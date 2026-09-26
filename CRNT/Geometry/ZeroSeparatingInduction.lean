@@ -827,6 +827,29 @@ theorem craciunBinaryWordEpsilon_pos_of_getLast_false {n : ℕ} {q : ℝ} (hq : 
     (pow_pos hq (binaryWordValue
       (word.dropLast ++ [false] ++ List.replicate (n - word.dropLast.length) true)))
 
+/-- A Craciun prefix has positive width exactly when it is in range and its final bit is `0`. -/
+theorem craciunBinaryWordEpsilon_pos_iff {n : ℕ} {q : ℝ} (hq : 0 < q)
+    (word : List Bool) :
+    0 < craciunBinaryWordEpsilon n q word ↔
+      word.length ≤ n ∧ word.getLast? = some false := by
+  constructor
+  · intro hpos
+    have hlen : word.length ≤ n := by
+      by_contra hlen
+      have hzero : craciunBinaryWordEpsilon n q word = 0 := by
+        simp [craciunBinaryWordEpsilon, hlen]
+      rw [hzero] at hpos
+      exact (lt_irrefl 0) hpos
+    have hlast : word.getLast? = some false := by
+      by_contra hlast
+      have hzero : craciunBinaryWordEpsilon n q word = 0 := by
+        simp [craciunBinaryWordEpsilon, hlen, hlast]
+      rw [hzero] at hpos
+      exact (lt_irrefl 0) hpos
+    exact ⟨hlen, hlast⟩
+  · rintro ⟨hlen, hlast⟩
+    exact craciunBinaryWordEpsilon_pos_of_getLast_false hq word hlen hlast
+
 /-- At a zero-ending word, the concrete prefix-width function is exactly the corresponding
 last-zero-chain lower endpoint scale. -/
 theorem craciunBinaryWordEpsilon_eq_lowerEndpoint {n : ℕ} (q : ℝ) (p : List Bool)

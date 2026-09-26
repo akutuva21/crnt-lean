@@ -266,7 +266,8 @@ an explicit hypothesis, never a `sorry`:
    containment are supplied. A prefix ending in `1` has a zero-width coordinate via
    `binaryWordFiberBox_lastCoordinate_eq_zero`. The depth-indexed function
    `craciunBinaryWordEpsilon` assigns the padded lower-endpoint scale to a zero-ending prefix and
-   zero to a one-ending prefix; `coherentBinaryWordTileScale_eq_craciunBinaryWordEpsilon_of_zero`
+   zero to a one-ending prefix, with `craciunBinaryWordEpsilon_pos_iff` characterizing positive
+   widths exactly as valid zero-ending prefixes. `coherentBinaryWordTileScale_eq_craciunBinaryWordEpsilon_of_zero`
    identifies that width with the first scale on its last-zero refinement chain. The construction
    keeps its ambient depth fixed while projecting to lower coordinate dimensions. The code proves
    every prefix width is at most `q`, and `zeroBitPreBlueprintNeighborhood_craciunSeparated`
