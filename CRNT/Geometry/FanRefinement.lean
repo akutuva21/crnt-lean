@@ -225,6 +225,28 @@ noncomputable def properSupportingHyperplane (a : E) : ProperCone ℝ E where
   change x ∈ (LinearMap.ker (innerₗ E a) : Submodule ℝ E) ↔ _
   simp [LinearMap.mem_ker, innerₗ_apply_apply]
 
+/-- A supporting hyperplane is the intersection of the two half-spaces with opposite normals,
+so it has a finite half-space representation. -/
+theorem properSupportingHyperplane_hasDualFG [CompleteSpace E] (a : E) :
+    (properSupportingHyperplane a : PointedCone ℝ E).DualFG (innerₗ E) := by
+  classical
+  let S : Finset E := {a, -a}
+  have hS : (coneDual (S : Set E) : PointedCone ℝ E).DualFG (innerₗ E) := by
+    change (PointedCone.dual (innerₗ E) (S : Set E)).DualFG (innerₗ E)
+    exact PointedCone.DualFG.dual_of_finset (innerₗ E) S
+  have hEq : properSupportingHyperplane a = coneDual (S : Set E) := by
+    apply ProperCone.ext
+    intro x
+    simp [S, mem_properSupportingHyperplane]
+    constructor
+    · intro hx
+      rw [hx]
+      exact ⟨le_rfl, le_rfl⟩
+    · rintro ⟨hpos, hneg⟩
+      exact le_antisymm hneg hpos
+  rw [hEq]
+  exact hS
+
 /-- Exposed face represented as a closed cone, for use in the closed-cone fan family. -/
 noncomputable def properExposedFace (C : ProperCone ℝ E) (a : E) : ProperCone ℝ E :=
   C ⊓ properSupportingHyperplane a
@@ -232,6 +254,15 @@ noncomputable def properExposedFace (C : ProperCone ℝ E) (a : E) : ProperCone 
 @[simp] theorem mem_properExposedFace {C : ProperCone ℝ E} {a x : E} :
     x ∈ properExposedFace C a ↔ x ∈ C ∧ ⟪a, x⟫_ℝ = 0 := by
   simp [properExposedFace]
+
+/-- Taking an exposed face preserves finite half-space representability: it adds the two
+inequalities for the exposing hyperplane to the existing finite description. -/
+theorem properExposedFace_hasDualFG [CompleteSpace E] {C : ProperCone ℝ E} {a : E}
+    (hC : (C : PointedCone ℝ E).DualFG (innerₗ E)) :
+    (properExposedFace C a : PointedCone ℝ E).DualFG (innerₗ E) := by
+  change ((C : PointedCone ℝ E) ⊓
+    (properSupportingHyperplane a : PointedCone ℝ E)).DualFG (innerₗ E)
+  exact hC.inf (properSupportingHyperplane_hasDualFG a)
 
 /-- A closed exposed face belongs to its input fan. -/
 theorem properExposedFace_isExposedFaceOf [CompleteSpace E] {C : ProperCone ℝ E} {a : E}

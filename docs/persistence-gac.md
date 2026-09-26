@@ -196,6 +196,7 @@ Built and proven:
     fact behind the difficulty in dimension four. Refining the fan keeps each patch below that
     threshold and transfers admissibility to the coarser fan (`Geometry/FanRefinement.lean`), so the
     dimension-four over-determination is a feature of the naive construction, not an obstruction.
+    Supporting hyperplanes and exposed faces also preserve finite half-space representations.
     The same module now proves that images of a covering fan under a surjective linear map cover
     the target, and that finitely generated cone images are exact. It does not yet prove that the
     projected image family is a fan or construct its fan-compatible refinement.
