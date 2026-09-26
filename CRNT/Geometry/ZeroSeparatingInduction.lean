@@ -2,6 +2,7 @@ import CRNT.Geometry.ZeroSeparatingSurface
 import CRNT.Geometry.FaithfulCurve2D
 import CRNT.Geometry.LogProjectiveFaceCompatibility
 import CRNT.Geometry.ProjectedFaceDimensionCode
+import Mathlib.Algebra.Group.Pointwise.Set.Basic
 import Mathlib.Algebra.Order.Floor.Semiring
 import Mathlib.LinearAlgebra.Dimension.Constructions
 import Mathlib.Analysis.InnerProductSpace.Projection.Submodule
@@ -106,6 +107,8 @@ namespace CRNT
 
 namespace ZeroSeparatingInduction
 
+open scoped Pointwise
+
 open scoped InnerProductSpace
 open ZeroSeparatingCurve2D
 
@@ -195,6 +198,105 @@ theorem forgetLastCoordinate_image_binaryWordFiberBox {n : ℕ}
   funext i
   have hi : i.val + 1 ≤ n := by omega
   simp [List.take_take]
+
+/-- Coordinate projection commutes with Minkowski addition of sets. -/
+theorem forgetLastCoordinate_image_add {n : ℕ}
+    (A B : Set (Fin (n + 1) → ℝ)) :
+    forgetLastCoordinate n '' (A + B) =
+      (forgetLastCoordinate n '' A) + (forgetLastCoordinate n '' B) := by
+  ext y
+  constructor
+  · rintro ⟨x, hx, rfl⟩
+    rcases Set.mem_add.mp hx with ⟨a, ha, b, hb, rfl⟩
+    exact Set.mem_add.mpr ⟨forgetLastCoordinate n a, ⟨a, ha, rfl⟩,
+      forgetLastCoordinate n b, ⟨b, hb, rfl⟩,
+      (forgetLastCoordinate n).map_add a b⟩
+  · intro hy
+    rcases Set.mem_add.mp hy with ⟨a, ha, b, hb, hab⟩
+    rcases ha with ⟨x, hx, rfl⟩
+    rcases hb with ⟨z, hz, rfl⟩
+    refine ⟨x + z, Set.mem_add.mpr ⟨x, hx, z, hz, rfl⟩, ?_⟩
+    rw [(forgetLastCoordinate n).map_add, hab]
+
+/-- The zero-bit neighborhood from Craciun v3, §7.3: thicken a face by its binary-prefix fiber,
+then restrict to the previously constructed neighborhood of its projection. -/
+def zeroBitPreBlueprintNeighborhood {n : ℕ}
+    (face : Set (Fin (n + 1) → ℝ)) (baseNeighborhood : Set (Fin n → ℝ))
+    (epsilon : List Bool → ℝ) (word : List Bool) : Set (Fin (n + 1) → ℝ) :=
+  (face + binaryWordFiberBox (n := n + 1) epsilon word) ∩
+    {x | forgetLastCoordinate n x ∈ baseNeighborhood}
+
+/-- The projected zero-bit neighborhood is exactly the sum of the projected face and the
+lower-dimensional prefix fiber, restricted to the supplied projected neighborhood. -/
+theorem forgetLastCoordinate_image_zeroBitPreBlueprintNeighborhood {n : ℕ}
+    (face : Set (Fin (n + 1) → ℝ)) (baseNeighborhood : Set (Fin n → ℝ))
+    (epsilon : List Bool → ℝ) (word : List Bool) (hepsilon : ∀ p, 0 ≤ epsilon p) :
+    forgetLastCoordinate n ''
+        zeroBitPreBlueprintNeighborhood face baseNeighborhood epsilon word =
+      ((forgetLastCoordinate n '' face) +
+          binaryWordFiberBox (n := n) epsilon (word.take n)) ∩ baseNeighborhood := by
+  have himage : forgetLastCoordinate n '' (face + binaryWordFiberBox epsilon word) =
+      (forgetLastCoordinate n '' face) + binaryWordFiberBox (n := n) epsilon (word.take n) := by
+    rw [forgetLastCoordinate_image_add,
+      forgetLastCoordinate_image_binaryWordFiberBox epsilon word hepsilon]
+  ext y
+  constructor
+  · rintro ⟨x, ⟨hthick, hbase⟩, rfl⟩
+    have hprojected : forgetLastCoordinate n x ∈
+        (forgetLastCoordinate n '' face) + binaryWordFiberBox epsilon (word.take n) := by
+      rw [← himage]
+      exact ⟨x, hthick, rfl⟩
+    exact ⟨hprojected, hbase⟩
+  · rintro ⟨hthick, hbase⟩
+    rw [← himage] at hthick
+    rcases hthick with ⟨x, hx, hxy⟩
+    refine ⟨x, ⟨hx, ?_⟩, hxy⟩
+    simpa [hxy] using hbase
+
+/-- Minkowski addition preserves compactness for compact subsets of the finite-dimensional
+coordinate spaces used by the pre-blueprint. -/
+theorem isCompact_set_add_of_isCompact {n : ℕ}
+    (A B : Set (Fin n → ℝ)) (hA : IsCompact A) (hB : IsCompact B) :
+    IsCompact (A + B) := by
+  have hadd : A + B =
+      (fun p : (Fin n → ℝ) × (Fin n → ℝ) => p.1 + p.2) '' (A ×ˢ B) := by
+    ext x
+    simp [Set.mem_add]
+  rw [hadd]
+  exact (hA.prod hB).image (continuous_fst.add continuous_snd)
+
+/-- The zero-bit neighborhood contains the whole face when its projection lies in the supplied
+lower-dimensional neighborhood. The zero vector in the fiber box witnesses the Minkowski sum. -/
+theorem subset_zeroBitPreBlueprintNeighborhood_of_projection {n : ℕ}
+    (face : Set (Fin (n + 1) → ℝ)) (baseNeighborhood : Set (Fin n → ℝ))
+    (epsilon : List Bool → ℝ) (word : List Bool) (hepsilon : ∀ p, 0 ≤ epsilon p)
+    (hproject : ∀ x ∈ face, forgetLastCoordinate n x ∈ baseNeighborhood) :
+    face ⊆ zeroBitPreBlueprintNeighborhood face baseNeighborhood epsilon word := by
+  intro x hx
+  have hzero :
+      (0 : Fin (n + 1) → ℝ) ∈ binaryWordFiberBox (n := n + 1) epsilon word := by
+    apply zero_mem_coordinateFiberBox
+    intro i
+    exact hepsilon _
+  refine ⟨Set.mem_add.mpr ⟨x, hx, 0, hzero, by simp⟩, hproject x hx⟩
+
+/-- If the face and lower-dimensional neighborhood are compact, so is the zero-bit neighborhood:
+the fiber-thickened face is compact, and the projection restriction is closed. -/
+theorem isCompact_zeroBitPreBlueprintNeighborhood {n : ℕ}
+    (face : Set (Fin (n + 1) → ℝ)) (baseNeighborhood : Set (Fin n → ℝ))
+    (epsilon : List Bool → ℝ) (word : List Bool)
+    (hface : IsCompact face) (hbase : IsCompact baseNeighborhood) :
+    IsCompact (zeroBitPreBlueprintNeighborhood face baseNeighborhood epsilon word) := by
+  have hbox : IsCompact (binaryWordFiberBox (n := n + 1) epsilon word) :=
+    isCompact_coordinateFiberBox _
+  have hthick : IsCompact (face + binaryWordFiberBox epsilon word) :=
+    isCompact_set_add_of_isCompact face _ hface hbox
+  have hprojection : Continuous (forgetLastCoordinate n :
+      (Fin (n + 1) → ℝ) → (Fin n → ℝ)) :=
+    (forgetLastCoordinate n).continuous_of_finiteDimensional
+  have hclosed : IsClosed {x | forgetLastCoordinate n x ∈ baseNeighborhood} :=
+    hbase.isClosed.preimage hprojection
+  exact hthick.inter_right hclosed
 
 /-- If a length-`n + 1` word ends in `1`, its final coordinate has zero width in the associated
 fiber box. This is the dimension-dropping case of the prefix rule in §7.3. -/
