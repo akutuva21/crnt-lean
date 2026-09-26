@@ -2935,6 +2935,28 @@ theorem projectionFiberSubdivisionAdjacentTiles_intersection_eq_graph {n m : ℕ
       refine ⟨hy, le_rfl, ?_⟩
       exact hmono (Fin.castSucc_le_succ i.succ)
 
+/-- The shared seam of two adjacent strips projects onto the whole lower-dimensional base.
+This is the projection compatibility for neighboring tiles in Craciun v3, §7.4.3, Step 2. -/
+theorem projectionFiberSubdivisionAdjacentSeam_projects_onto_base {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) (i : Fin m) :
+    forgetLastCoordinate n ''
+      (projectionFiberSubdivisionTile base lower upper i.castSucc ∩
+        projectionFiberSubdivisionTile base lower upper i.succ) = base := by
+  rw [projectionFiberSubdivisionAdjacentTiles_intersection_eq_graph base lower upper horder i]
+  ext y
+  constructor
+  · rintro ⟨x, ⟨z, hz, rfl⟩, hproj⟩
+    have hproj' : forgetLastCoordinate n
+        (projectionFiberSubdivisionEndpointGraphPoint lower upper i.succ.castSucc z) = z := by
+      simp [projectionFiberSubdivisionEndpointGraphPoint, forgetLastCoordinate]
+    rw [hproj'] at hproj
+    simpa [hproj] using hz
+  · intro hy
+    refine ⟨projectionFiberSubdivisionEndpointGraphPoint lower upper i.succ.castSucc y,
+      ⟨y, hy, rfl⟩, ?_⟩
+    simp [projectionFiberSubdivisionEndpointGraphPoint, forgetLastCoordinate]
+
 /-- A shared endpoint seam is compact over a compact projected base when its boundary graphs are
 continuous. -/
 theorem isCompact_projectionFiberSubdivisionAdjacentSeam {n m : ℕ}
@@ -2981,6 +3003,11 @@ structure CompactProjectionFiberTiling {n : ℕ} (base : Set (Fin n → ℝ))
     (fun y : Fin n → ℝ =>
       projectionFiberSubdivisionEndpointGraphPoint (m := subdivisionCount) lower upper
         i.succ.castSucc y) '' base
+  /-- The shared seam projects onto the full lower-dimensional base. -/
+  adjacent_seam_projects : ∀ i : Fin subdivisionCount,
+    forgetLastCoordinate n ''
+      (projectionFiberSubdivisionTile base lower upper i.castSucc ∩
+        projectionFiberSubdivisionTile base lower upper i.succ) = base
   /-- Each shared endpoint graph is compact when the base is compact. -/
   adjacent_seams_compact : ∀ i : Fin subdivisionCount,
     IsCompact ((fun y : Fin n → ℝ =>
@@ -3053,6 +3080,10 @@ noncomputable def compactProjectionFiberTiling_of_compactBase {n : ℕ}
     adjacent_tiles_intersect_in_endpointGraph := by
       intro i
       exact projectionFiberSubdivisionAdjacentTiles_intersection_eq_graph
+        base lower upper horder i
+    adjacent_seam_projects := by
+      intro i
+      exact projectionFiberSubdivisionAdjacentSeam_projects_onto_base
         base lower upper horder i
     adjacent_seams_compact := by
       intro i
