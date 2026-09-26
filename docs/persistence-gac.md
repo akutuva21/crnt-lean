@@ -268,8 +268,10 @@ an explicit hypothesis, never a `sorry`:
    `craciunBinaryWordEpsilon` assigns the padded lower-endpoint scale to a zero-ending prefix and
    zero to a one-ending prefix; `coherentBinaryWordTileScale_eq_craciunBinaryWordEpsilon_of_zero`
    identifies that width with the first scale on its last-zero refinement chain. The construction
-   keeps its ambient depth fixed while projecting to lower coordinate dimensions. If every box
-   width is at most `r`,
+   keeps its ambient depth fixed while projecting to lower coordinate dimensions. The code proves
+   every prefix width is at most `q`, and `zeroBitPreBlueprintNeighborhood_craciunSeparated`
+   specializes the earlier avoidance estimate: a face with margin greater than `q` retains the
+   reduced margin `margin - q`. If every box width is at most `r`,
    `zeroBitPreBlueprintNeighborhood_separated` shows that a face outside the margin-`m` ball yields
    a neighborhood outside the ball of radius `m - r`, with that reduced margin positive when
    `r < m`. These are pre-blueprint set facts, not the smooth hypersurface or normal-condition

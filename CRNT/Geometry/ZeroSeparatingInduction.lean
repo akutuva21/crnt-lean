@@ -764,6 +764,19 @@ theorem binaryWordValue_append_bit (w : List Bool) (b : Bool) :
       · simp [binaryWordValue, ih, List.length_cons, Nat.pow_succ]
         ring
 
+/-- A binary word containing a `true` bit has positive positional value. -/
+theorem binaryWordValue_pos_of_true_mem {w : List Bool} (htrue : true ∈ w) :
+    0 < binaryWordValue w := by
+  induction w with
+  | nil => simp at htrue
+  | cons b w ih =>
+      rcases List.mem_cons.mp htrue with hb | htail
+      · have hb' : b = true := hb.symm
+        subst b
+        simp [binaryWordValue]
+      · have htailpos := ih htail
+        cases b <;> simp [binaryWordValue] <;> omega
+
 /-- The longest child prefix on the ordinary chain rooted at `p ++ [false]`. -/
 def binaryWordMaxChildPrefix (n : ℕ) (p : List Bool) : List Bool :=
   p ++ [false] ++ List.replicate (n - (p.length + 1)) true
@@ -823,6 +836,62 @@ theorem craciunBinaryWordEpsilon_eq_lowerEndpoint {n : ℕ} (q : ℝ) (p : List 
   have hlast : (p ++ [false]).getLast? = some false := by simp
   have hdrop : (p ++ [false]).dropLast = p := by simp
   simp [craciunBinaryWordEpsilon, hlen', hlast, hdrop]
+
+/-- Every valid zero-ending prefix width is at most the geometric ratio `q`. The padded code
+always contains a trailing `true` because the prefix leaves at least one ambient coordinate. -/
+theorem binaryWordLowerEndpointScale_le_q {n : ℕ} {q : ℝ} (hq0 : 0 < q) (hq1 : q < 1)
+    (p : List Bool) (hp : p.length + 1 ≤ n) :
+    binaryWordLowerEndpointScale n q p ≤ q := by
+  have htail : 0 < n - p.length := by omega
+  have htrueTail : true ∈ List.replicate (n - p.length) true := by
+    cases hlen : n - p.length with
+    | zero => omega
+    | succ k => simp [List.replicate_succ]
+  have htrue : true ∈ p ++ [false] ++ List.replicate (n - p.length) true :=
+    List.mem_append_right (p ++ [false]) htrueTail
+  have hcode : 1 ≤ binaryWordValue
+      (p ++ [false] ++ List.replicate (n - p.length) true) := by
+    have hpos := binaryWordValue_pos_of_true_mem htrue
+    omega
+  unfold binaryWordLowerEndpointScale
+  exact pow_le_of_le_one hq0.le hq1.le (by omega)
+
+/-- All Craciun prefix widths in a fixed-depth construction are bounded by its ratio parameter. -/
+theorem craciunBinaryWordEpsilon_le_q {n : ℕ} {q : ℝ} (hq0 : 0 < q) (hq1 : q < 1)
+    (word : List Bool) : craciunBinaryWordEpsilon n q word ≤ q := by
+  unfold craciunBinaryWordEpsilon
+  split_ifs with hlen hlast
+  ·
+      have hlastmem : false ∈ word.getLast? := by rw [hlast]; simp
+      have hword : word.dropLast ++ [false] = word :=
+        List.dropLast_append_getLast? false hlastmem
+      have hdropLen : (word.dropLast ++ [false]).length ≤ n := by
+        rw [hword]
+        exact hlen
+      have hprefix : word.dropLast.length + 1 ≤ n := by
+        simpa [List.length_append] using hdropLen
+      exact binaryWordLowerEndpointScale_le_q hq0 hq1 word.dropLast hprefix
+  · exact hq0.le
+  · exact hq0.le
+
+/-- The concrete Craciun epsilon widths preserve any face-avoidance margin larger than `q`.
+This is the pre-blueprint separation estimate with the ratio parameter itself as the uniform box
+radius. -/
+theorem zeroBitPreBlueprintNeighborhood_craciunSeparated {n : ℕ}
+    (face : Set (Fin (n + 1) → ℝ)) (baseNeighborhood : Set (Fin n → ℝ))
+    (word : List Bool) {q margin : ℝ} (hq0 : 0 < q) (hq1 : q < 1)
+    (hfaceSeparated : face ⊆ (Metric.ball (0 : Fin (n + 1) → ℝ) margin)ᶜ)
+    (hsmall : q < margin) :
+    0 < margin - q ∧
+      zeroBitPreBlueprintNeighborhood face baseNeighborhood
+        (craciunBinaryWordEpsilon (n + 1) q) word ⊆
+          (Metric.ball (0 : Fin (n + 1) → ℝ) (margin - q))ᶜ := by
+  exact zeroBitPreBlueprintNeighborhood_separated face baseNeighborhood
+    (craciunBinaryWordEpsilon (n + 1) q) word margin q hfaceSeparated hq0.le
+    (by
+      intro i
+      exact craciunBinaryWordEpsilon_le_q hq0 hq1 _)
+    hsmall
 
 /-- The paper's fiber box in coordinate dimension `d`, using the width function of the fixed
 ambient construction dimension `depth`. Keeping `depth` fixed makes projection recursion exact. -/
