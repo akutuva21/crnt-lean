@@ -2,7 +2,17 @@ import CRNT.Flux.PSemiflow
 import CRNT.Graph.CycleCover
 import CRNT.Kinetics.Concentration
 import CRNT.Kinetics.MassAction
+import Mathlib.Analysis.Calculus.Deriv.MeanValue
+import Mathlib.Analysis.Calculus.Deriv.Pow
+import Mathlib.Analysis.Calculus.Deriv.Prod
 import Mathlib.LinearAlgebra.FiniteDimensional.Basic
+import Mathlib.Order.Filter.AtTopBot.Basic
+import Mathlib.Topology.Basic
+import Mathlib.Topology.MetricSpace.Basic
+import Mathlib.Topology.Sequences
+
+open Filter
+open scoped Topology
 
 /-!
 # Anderson–Shiu facet repulsion: a conditional estimate
@@ -1084,6 +1094,115 @@ theorem facet_repelling_near_facet_point_of_facet (N : Network S) (κ : N.RateCo
   obtain ⟨v, γ, hv, hγ⟩ :=
     N.exists_facetDirection_pos_of_facet hfacet hx₀ hcompat hznn hzW hnonvanish
   exact N.facet_repelling_near_facet_point κ hwr hW hv hγ hzW hzpos
+
+/-- A positive orbit cannot converge to a face point when the facet estimate makes the squared
+mass of the vanishing coordinates nondecreasing nearby. The squared mass stays positive at every
+finite time, while convergence to the face would force it to zero. -/
+theorem no_convergent_positive_orbit_to_repelling_face (N : Network S) (κ : N.RateConstants)
+    {W : Finset S} {z : Concentration S} {γ : ℝ → Concentration S}
+    (hW : W.Nonempty) (hzW : ∀ s ∈ W, z s = 0)
+    (hpos : ∀ t, 0 ≤ t → (γ t).Positive)
+    (hsol : ∀ t, 0 ≤ t → HasDerivAt γ (N.massActionVectorField κ (γ t)) t)
+    {ε : ℝ} (hε : 0 < ε)
+    (hrepel : ∀ x : Concentration S, x.Positive →
+      (∀ s, |x s - z s| ≤ ε) →
+        0 ≤ ∑ s ∈ W, x s * N.massActionVectorField κ x s)
+    (hlim : Tendsto γ atTop (𝓝 z)) :
+    False := by
+  let q : ℝ → ℝ := fun t => ∑ s ∈ W, (γ t s) ^ 2
+  have hclose : ∀ᶠ t in atTop, ∀ s, |γ t s - z s| ≤ ε := by
+    filter_upwards [hlim.eventually (Metric.ball_mem_nhds z hε)] with t ht s
+    have hnorm : dist (γ t) z < ε := Metric.mem_ball.mp ht
+    exact le_of_lt (calc
+      |γ t s - z s| = ‖(γ t - z) s‖ := by rw [Real.norm_eq_abs]; rfl
+      _ ≤ ‖γ t - z‖ := norm_le_pi_norm _ _
+      _ = dist (γ t) z := by rw [dist_eq_norm]
+      _ < ε := hnorm)
+  obtain ⟨T₀, hT₀⟩ := Filter.eventually_atTop.mp hclose
+  let T : ℝ := max T₀ 0
+  have hTnonneg : 0 ≤ T := le_max_right _ _
+  have hTclose : ∀ t, T ≤ t → ∀ s, |γ t s - z s| ≤ ε := by
+    intro t ht s
+    exact hT₀ t (le_trans (le_max_left _ _) ht) s
+  have hqderiv : ∀ t, T ≤ t → HasDerivAt q
+      (∑ s ∈ W, (2 * γ t s) * N.massActionVectorField κ (γ t) s) t := by
+    intro t ht
+    have ht0 : 0 ≤ t := le_trans hTnonneg ht
+    have hcoord : ∀ s, HasDerivAt (fun u => γ u s)
+        (N.massActionVectorField κ (γ t) s) t := by
+      intro s
+      exact (hasDerivAt_pi.mp (hsol t ht0)) s
+    have hterm : ∀ s, HasDerivAt (fun u => (γ u s) ^ 2)
+        ((2 * γ t s) * N.massActionVectorField κ (γ t) s) t := by
+      intro s
+      convert (hcoord s).pow 2 using 1
+      ring
+    have hsum : HasDerivAt (fun u => ∑ s ∈ W, (γ u s) ^ 2)
+        (∑ s ∈ W, (2 * γ t s) * N.massActionVectorField κ (γ t) s) t :=
+      HasDerivAt.fun_sum (fun s _ => hterm s)
+    simpa [q] using hsum
+  have hqcont : ContinuousOn q (Set.Ici T) := by
+    intro t ht
+    exact (hqderiv t (by simpa using ht)).continuousAt.continuousWithinAt
+  have hqdiff : DifferentiableOn ℝ q (interior (Set.Ici T)) := by
+    intro t ht
+    exact (hqderiv t (le_of_lt (by simpa using ht))).differentiableAt.differentiableWithinAt
+  have hqmono : MonotoneOn q (Set.Ici T) := by
+    apply monotoneOn_of_deriv_nonneg (convex_Ici T) hqcont hqdiff
+    intro t ht
+    have htT : T < t := by simpa using ht
+    have hderiv := (hqderiv t htT.le).deriv
+    rw [hderiv]
+    have hnonneg := hrepel (γ t) (hpos t (le_trans hTnonneg htT.le))
+      (hTclose t htT.le)
+    have hfactor :
+        (∑ s ∈ W, (2 * γ t s) * N.massActionVectorField κ (γ t) s) =
+          2 * ∑ s ∈ W, γ t s * N.massActionVectorField κ (γ t) s := by
+      rw [Finset.mul_sum]
+      apply Finset.sum_congr rfl
+      intro s hs
+      ring
+    rw [hfactor]
+    exact mul_nonneg (by norm_num) hnonneg
+  have hqpos : 0 < q T := by
+    dsimp [q]
+    obtain ⟨s, hs⟩ := hW
+    exact Finset.sum_pos' (fun u hu => sq_nonneg (γ T u))
+      ⟨s, hs, sq_pos_of_pos (hpos T hTnonneg s)⟩
+  have hqzero : Tendsto q atTop (𝓝 0) := by
+    have hterm : ∀ s ∈ W, Tendsto (fun t => (γ t s) ^ 2) atTop (𝓝 0) := by
+      intro s hs
+      have hscoord := (tendsto_pi_nhds.mp hlim) s
+      rw [hzW s hs] at hscoord
+      simpa using hscoord.pow 2
+    simpa [q] using tendsto_finsetSum W hterm
+  have hsmall : ∀ᶠ t in atTop, q t < q T :=
+    hqzero.eventually (Iio_mem_nhds hqpos)
+  obtain ⟨t, ht⟩ := Filter.eventually_atTop.mp hsmall
+  let u := max T t
+  have hTu : T ≤ u := le_max_left _ _
+  have htu : t ≤ u := le_max_right _ _
+  have hqu : q u < q T := ht u htu
+  have hmon : q T ≤ q u := hqmono (Set.mem_Ici.mpr le_rfl) (Set.mem_Ici.mpr hTu) hTu
+  exact (not_lt_of_ge hmon) hqu
+
+/-- A convergent positive mass-action orbit cannot approach a codimension-one compatibility
+face when the Anderson--Shiu facet hypotheses hold. This connects the local repulsion estimate to
+the omega-limit exclusion needed at a relative-interior facet point. -/
+theorem no_convergent_positive_orbit_to_facet (N : Network S) (κ : N.RateConstants)
+    (hwr : N.WeaklyReversible) {W : Finset S} (hW : W.Nonempty)
+    (hfacet : Module.finrank ℝ (LinearMap.ker ((projOn W).domRestrict N.stoichSubspace)) + 1
+        = Module.finrank ℝ N.stoichSubspace)
+    {x₀ z : Concentration S} (hx₀ : x₀.Positive)
+    (hcompat : N.StoichCompatible x₀ z) (hznn : z.Nonnegative)
+    (hzW : ∀ s ∈ W, z s = 0) (hzpos : ∀ s ∈ Wᶜ, 0 < z s)
+    {γ : ℝ → Concentration S} (hpos : ∀ t, 0 ≤ t → (γ t).Positive)
+    (hsol : ∀ t, 0 ≤ t → HasDerivAt γ (N.massActionVectorField κ (γ t)) t)
+    (hlim : Tendsto γ atTop (𝓝 z)) :
+    False := by
+  obtain ⟨ε, hε, hrepel⟩ := N.facet_repelling_near_facet_point_of_facet κ hwr hW hfacet
+    hx₀ hcompat hznn hzW hzpos
+  exact N.no_convergent_positive_orbit_to_repelling_face κ hW hzW hpos hsol hε hrepel hlim
 
 end Network
 end CRNT
