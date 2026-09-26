@@ -1349,6 +1349,51 @@ theorem projectionFiberSubdivisionTile_projects_onto_base {n m : ℕ}
       exact hmono (Fin.castSucc_le_succ i)
     · simp [forgetLastCoordinate]
 
+/-- Interpolated fiber endpoints vary continuously with the projected point whenever the two
+boundary graphs do. -/
+theorem continuous_projectionFiberSubdivisionEndpoint {n m : ℕ}
+    (lower upper : (Fin n → ℝ) → ℝ) (i : Fin (m + 2))
+    (hlower : Continuous lower) (hupper : Continuous upper) :
+    Continuous (projectionFiberSubdivisionEndpoint lower upper i) := by
+  change Continuous (fun y => lower y + (upper y - lower y) *
+    ((i.val : ℝ) / ((m + 1 : ℕ) : ℝ)))
+  exact hlower.add ((hupper.sub hlower).mul continuous_const)
+
+/-- A subdivided fiber tile is closed when its base is closed and its two boundary graphs are
+continuous. -/
+theorem isClosed_projectionFiberSubdivisionTile {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (hbase : IsClosed base) (hlower : Continuous lower) (hupper : Continuous upper)
+    (i : Fin (m + 1)) : IsClosed (projectionFiberSubdivisionTile base lower upper i) := by
+  have hforget : Continuous (forgetLastCoordinate n :
+      (Fin (n + 1) → ℝ) → (Fin n → ℝ)) := by
+    apply continuous_pi
+    intro j
+    exact continuous_apply j.castSucc
+  have hlast : Continuous (fun x : Fin (n + 1) → ℝ => x (Fin.last n)) :=
+    continuous_apply _
+  have hlow : Continuous (fun x : Fin (n + 1) → ℝ =>
+      projectionFiberSubdivisionEndpoint lower upper i.castSucc (forgetLastCoordinate n x)) :=
+    (continuous_projectionFiberSubdivisionEndpoint lower upper i.castSucc hlower hupper).comp
+      hforget
+  have hhigh : Continuous (fun x : Fin (n + 1) → ℝ =>
+      projectionFiberSubdivisionEndpoint lower upper i.succ (forgetLastCoordinate n x)) :=
+    (continuous_projectionFiberSubdivisionEndpoint lower upper i.succ hlower hupper).comp
+      hforget
+  have hlowClosed := isClosed_le hlow hlast
+  have hhighClosed := isClosed_le hlast hhigh
+  have hbaseClosed : IsClosed ((forgetLastCoordinate n) ⁻¹' base) := hbase.preimage hforget
+  have hset : projectionFiberSubdivisionTile base lower upper i =
+      (forgetLastCoordinate n) ⁻¹' base ∩
+        ({x | projectionFiberSubdivisionEndpoint lower upper i.castSucc
+            (forgetLastCoordinate n x) ≤ x (Fin.last n)} ∩
+          {x | x (Fin.last n) ≤ projectionFiberSubdivisionEndpoint lower upper i.succ
+            (forgetLastCoordinate n x)}) := by
+    ext x
+    simp [projectionFiberSubdivisionTile]
+  rw [hset]
+  exact hbaseClosed.inter (hlowClosed.inter hhighClosed)
+
 /-! ## The ruled-surface step -/
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
