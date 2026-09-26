@@ -401,6 +401,9 @@ import CRNT.Dynamics.ToricInclusion
 import CRNT.Dynamics.ToricEmbedding
 import CRNT.Dynamics.ToricEmbeddingOrder
 import CRNT.Dynamics.ToricEmbeddingWR
+import CRNT.Dynamics.ToricCycleSortedBase
+import CRNT.Dynamics.ToricCycleOrderLimits
+import CRNT.Examples.CycleRateNonMonotone
 import CRNT.Dynamics.ZeroSeparating
 import CRNT.Dynamics.Viability
 import CRNT.Dynamics.FirstExit
@@ -413,6 +416,7 @@ import CRNT.Dynamics.PolyRegionStrictInvariant
 import CRNT.Dynamics.ThmBGenuine
 import CRNT.Dynamics.EndotacticPermanence
 import CRNT.Dynamics.FacetRepulsion
+import CRNT.Dynamics.FacetRepulsionAndersonShiu
 import CRNT.Dynamics.CriticalSiphonNearFacetInflux
 import CRNT.Dynamics.SingletonFacetEscape
 import CRNT.Dynamics.SiphonFacetEscape
