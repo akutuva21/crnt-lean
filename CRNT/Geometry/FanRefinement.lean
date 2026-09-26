@@ -369,6 +369,27 @@ theorem coneDual_hull_eq [CompleteSpace E] (T : Finset E) :
         rw [← Nonneg.coe_smul, real_inner_smul_left]
         exact mul_nonneg c.2 hy
 
+/-- The dual of the finite half-space cone with normals `S` is exactly the conical hull of those
+normals. This finite Farkas representation is the face-closure input for hyperplane arrangements. -/
+theorem coneDual_finset_dual_eq [CompleteSpace E] (S : Finset E) :
+    coneDual (coneDual (S : Set E) : Set E) = properConeOfFinset S := by
+  have hHull : (properConeOfFinset S : Set E) =
+      (PointedCone.hull ℝ (S : Set E) : Set E) := by
+    simp [coe_properConeOfFinset]
+  have hDualSet : (coneDual (properConeOfFinset S : Set E) : Set E) =
+      (PointedCone.dual (innerₗ E) (S : Set E) : Set E) := by
+    rw [hHull]
+    exact coneDual_hull_eq S
+  have hDual : coneDual (properConeOfFinset S : Set E) = coneDual (S : Set E) := by
+    apply ProperCone.ext
+    intro x
+    change x ∈ (coneDual (properConeOfFinset S : Set E) : Set E) ↔
+      x ∈ (coneDual (S : Set E) : Set E)
+    rw [hDualSet]
+    rfl
+  rw [← hDual]
+  exact cone_dual_dual (properConeOfFinset S)
+
 /-- For dual-finitely-generated cones, every dual vector of an intersection splits as a sum
 of dual vectors of the two cones. -/
 theorem coneDual_intersection_decomp_of_dualFG [CompleteSpace E] {C D : ProperCone ℝ E}
@@ -474,6 +495,125 @@ theorem coneDual_intersection_decomp_of_dualFG [CompleteSpace E] {C D : ProperCo
 /-- Every cell of a fan is dual-finitely-generated. -/
 def HasDualFGCells [CompleteSpace E] (F : Fan E) : Prop :=
   ∀ C ∈ F, (C : PointedCone ℝ E).DualFG (innerₗ E)
+
+/-- The signed half-space normals describing one cell of a central hyperplane arrangement.
+Normals in `P` impose nonnegative inner products, normals in `N` impose nonpositive inner
+products, and normals in neither set occur with both signs and impose equality. -/
+noncomputable def signCellNormals [DecidableEq E] (T P N : Finset E) : Finset E := by
+  classical
+  exact (P ∪ N.image (fun a => -a)) ∪
+    ((T \ (P ∪ N)) ∪ (T \ (P ∪ N)).image (fun a => -a))
+
+/-- A closed cone cut out by the sign constraints for a finite family of central hyperplanes. -/
+noncomputable def signCell [CompleteSpace E] [DecidableEq E]
+    (T P N : Finset E) : ProperCone ℝ E := by
+  classical
+  exact coneDual (signCellNormals T P N : Set E)
+
+/-- Membership in a signed arrangement cell is exactly its intended weak sign/equality pattern. -/
+theorem mem_signCell [CompleteSpace E] [DecidableEq E] {T P N : Finset E} {x : E} :
+    x ∈ signCell T P N ↔
+      (∀ a ∈ P, 0 ≤ ⟪a, x⟫_ℝ) ∧
+      (∀ a ∈ N, 0 ≤ ⟪-a, x⟫_ℝ) ∧
+      (∀ a ∈ T \ (P ∪ N), ⟪a, x⟫_ℝ = 0) := by
+  classical
+  simp [signCell, signCellNormals, mem_coneDual]
+  constructor
+  · intro h
+    have hfull : ∀ y : E,
+        (y ∈ P ∨ -y ∈ N ∨
+          (y ∈ T ∧ y ∉ P ∧ y ∉ N) ∨ (-y ∈ T ∧ -y ∉ P ∧ -y ∉ N)) →
+        0 ≤ ⟪y, x⟫_ℝ := by
+      intro y hy
+      exact h hy
+    refine ⟨?_, ?_, ?_⟩
+    · intro a ha
+      exact hfull a (Or.inl ha)
+    · intro a ha
+      simpa [inner_neg_left] using hfull (-a) (Or.inr (Or.inl (by simpa using ha)))
+    · intro a ha hPa hNa
+      have hp := hfull a (Or.inr (Or.inr (Or.inl ⟨ha, hPa, hNa⟩)))
+      have hn := hfull (-a) (Or.inr (Or.inr (Or.inr (by simpa using ⟨ha, hPa, hNa⟩))))
+      have hn' : ⟪a, x⟫_ℝ ≤ 0 := by simpa [inner_neg_left] using hn
+      nlinarith
+  · rintro ⟨hP, hN, hZ⟩
+    intro y hy
+    rcases hy with hyP | hyN | hyZ | hyZneg
+    · exact hP y hyP
+    · simpa [inner_neg_left] using hN (-y) (by simpa using hyN)
+    · rcases hyZ with ⟨hyT, hyP, hyN⟩
+      have hzero := hZ y hyT hyP hyN
+      rw [hzero]
+    · rcases hyZneg with ⟨hyT, hyP, hyN⟩
+      have hzero := hZ (-y) hyT hyP hyN
+      have : ⟪y, x⟫_ℝ = 0 := by simpa using hzero
+      rw [this]
+
+/-- The finite central hyperplane arrangement family consists of every disjoint choice of
+nonnegative and nonpositive normals, with all remaining normals imposing equality. -/
+noncomputable def hyperplaneArrangementFamily [CompleteSpace E] [DecidableEq E]
+    (T : Finset E) : Fan E := by
+  classical
+  exact ((T.powerset.product T.powerset).filter (fun p => Disjoint p.1 p.2)).image
+    (fun p => signCell T p.1 p.2)
+
+/-- The sign cells of a finite central hyperplane arrangement cover the ambient space. -/
+theorem hyperplaneArrangementFamily_covers [CompleteSpace E] [DecidableEq E]
+    (T : Finset E) :
+    (⋃ C ∈ hyperplaneArrangementFamily T, (C : Set E)) = Set.univ := by
+  classical
+  ext x
+  constructor
+  · intro _
+    simp
+  · intro _
+    let P := T.filter (fun a => 0 ≤ ⟪a, x⟫_ℝ)
+    let N := T.filter (fun a => ⟪a, x⟫_ℝ < 0)
+    have hPsub : P ⊆ T := Finset.filter_subset _ _
+    have hNsub : N ⊆ T := Finset.filter_subset _ _
+    have hdis : Disjoint P N := by
+      rw [Finset.disjoint_left]
+      intro a haP haN
+      simp only [P, N, Finset.mem_filter] at haP haN
+      linarith
+    have hpair : (P, N) ∈
+        ((T.powerset.product T.powerset).filter (fun p => Disjoint p.1 p.2)) := by
+      apply Finset.mem_filter.mpr
+      constructor
+      · exact Finset.mk_mem_product
+          (Finset.mem_powerset.mpr hPsub) (Finset.mem_powerset.mpr hNsub)
+      · exact hdis
+    have hP : ∀ a ∈ P, 0 ≤ ⟪a, x⟫_ℝ := by
+      intro a ha
+      exact (Finset.mem_filter.mp ha).2
+    have hN : ∀ a ∈ N, 0 ≤ ⟪-a, x⟫_ℝ := by
+      intro a ha
+      have hneg : ⟪a, x⟫_ℝ < 0 := (Finset.mem_filter.mp ha).2
+      rw [inner_neg_left]
+      linarith
+    have hZ : ∀ a ∈ T \ (P ∪ N), ⟪a, x⟫_ℝ = 0 := by
+      intro a ha
+      have haT : a ∈ T := (Finset.mem_sdiff.mp ha).1
+      have hNotUnion : a ∉ P ∪ N := (Finset.mem_sdiff.mp ha).2
+      have haP : a ∉ P := by
+        intro h
+        exact hNotUnion (Finset.mem_union.mpr (Or.inl h))
+      have haN : a ∉ N := by
+        intro h
+        exact hNotUnion (Finset.mem_union.mpr (Or.inr h))
+      have hnotPos : ¬ 0 ≤ ⟪a, x⟫_ℝ := by
+        intro h
+        exact haP (Finset.mem_filter.mpr ⟨haT, h⟩)
+      have hnotNeg : ¬ ⟪a, x⟫_ℝ < 0 := by
+        intro h
+        exact haN (Finset.mem_filter.mpr ⟨haT, h⟩)
+      linarith
+    have hcell : x ∈ signCell T P N := mem_signCell.mpr ⟨hP, hN, hZ⟩
+    have hfamily : signCell T P N ∈ hyperplaneArrangementFamily T := by
+      apply Finset.mem_image.mpr
+      exact ⟨(P, N), hpair, rfl⟩
+    refine Set.mem_iUnion.mpr ⟨signCell T P N, ?_⟩
+    exact Set.mem_iUnion.mpr ⟨hfamily, hcell⟩
 
 /-- Negating a cone preserves dual finite generation: negate the finite set of half-space normals. -/
 theorem negatedProperCone_hasDualFG [CompleteSpace E] (C : ProperCone ℝ E)
