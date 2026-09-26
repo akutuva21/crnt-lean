@@ -3393,6 +3393,17 @@ structure CompactOneBitFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
   /-- The projected base tiles have disjoint ordinary interiors. -/
   baseTile_interiors_disjoint : ∀ i j, i ≠ j →
     interior (baseTile i) ∩ interior (baseTile j) = ∅
+  /-- Adjacent strips above any two projected base tiles meet on their shared endpoint graph over
+  the overlap of those bases. This is the seam-compatibility invariant passed to the next
+  induction stage. -/
+  baseTile_adjacent_seam : ∀ i j,
+    (∀ y ∈ baseTile i ∩ baseTile j, lower y ≤ upper y) →
+    ∀ k : Fin tiling.subdivisionCount,
+      (facePatch ∩ projectionFiberSubdivisionTile (baseTile i) lower upper k.castSucc) ∩
+          (facePatch ∩ projectionFiberSubdivisionTile (baseTile j) lower upper k.succ) =
+        facePatch ∩ (fun y : Fin n → ℝ =>
+          projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y) ''
+            (baseTile i ∩ baseTile j)
   /-- The face patch is exactly covered by its intersections with all generated strips. -/
   facePatch_eq_iUnion_tiles :
     facePatch = ⋃ p : Σ i : ι, Fin (tiling.subdivisionCount + 1),
@@ -3451,12 +3462,7 @@ theorem CompactOneBitFiberPatchCover.adjacent_base_tiles_share_seam
       facePatch ∩ (fun y : Fin n → ℝ =>
         projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y) ''
           (baseTile i ∩ baseTile j) := by
-  ext x
-  have htiles := projectionFiberSubdivisionAdjacentTiles_intersection_eq_graph_over_base_intersection
-    (baseTile i) (baseTile j) lower upper horder k
-  have htilesAt := congrArg (fun s : Set (Fin (n + 1) → ℝ) => x ∈ s) htiles
-  simp only [Set.mem_inter_iff] at htilesAt ⊢
-  tauto
+  exact cover.baseTile_adjacent_seam i j horder k
 
 /-- Lift a finite compact cover of a projected base with pairwise disjoint interiors to a finite
 cover of a compact face patch in a bounded fiber band. A single subdivision over the full base
@@ -3485,7 +3491,14 @@ noncomputable def compactOneBitFiberPatchCover_of_compactBand {n : ℕ} {ι : Ty
     exact Set.mem_iUnion.mpr ⟨i, hy⟩
   let tiling := compactProjectionFiberTiling_of_compactBase
     base lower upper epsilon hbaseCompact hlower hupper horder hepsilon
-  refine ⟨tiling, htileBase, hbaseTileInteriorsDisjoint, ?_, ?_, ?_⟩
+  refine ⟨tiling, htileBase, hbaseTileInteriorsDisjoint, ?_, ?_, ?_, ?_⟩
+  · intro i j horderIJ k
+    ext x
+    have htiles := projectionFiberSubdivisionAdjacentTiles_intersection_eq_graph_over_base_intersection
+      (baseTile i) (baseTile j) lower upper horderIJ k
+    have htilesAt := congrArg (fun s : Set (Fin (n + 1) → ℝ) => x ∈ s) htiles
+    simp only [Set.mem_inter_iff] at htilesAt ⊢
+    tauto
   · ext x
     constructor
     · intro hx
