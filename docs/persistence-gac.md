@@ -248,7 +248,10 @@ an explicit hypothesis, never a `sorry`:
    conditions remain open. `compactOneBitFiberBlueprintRefinement_of_compactBand` takes a compact
    face patch already contained in the band and derives an exact finite cover by compact
    face-tile intersections. The continuous boundary graphs and face-in-band containment remain
-   explicit inputs. The smooth gluing layer now also
+   explicit inputs. `compactOneBitFiberPatchCover_of_compactBand` lifts a finite compact cover of
+   the projected base, allowing different subdivision counts on each base tile, and packages the
+   resulting compact face pieces. It does not establish interior disjointness across distinct
+   lower-dimensional base tiles. The smooth gluing layer now also
    proves, via exists_fderiv_smoothMaxList_le and
    exists_fderiv_smoothMaxF_nonpos_of_value_gap, that finite smooth maxima preserve a shared
    directional-derivative upper bound and that a strictly descending chart remains nonincreasing
