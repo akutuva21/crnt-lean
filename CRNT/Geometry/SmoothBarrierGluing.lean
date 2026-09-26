@@ -637,6 +637,116 @@ theorem exists_fderiv_smoothWallList_nonpos_of_dominantHead
       refine ⟨D, ?_, hDnonpos⟩
       simpa [smoothWallList] using hD
 
+/-- A permutation does not change the sum of a list in an additive commutative monoid. -/
+theorem list_perm_sum_eq {α : Type*} [AddCommMonoid α] {xs ys : List α}
+    (h : xs.Perm ys) : xs.sum = ys.sum := by
+  induction h with
+  | nil => rfl
+  | cons _ _ ih => simp [ih]
+  | swap a b tail => simp [add_left_comm]
+  | trans _ _ ih₁ ih₂ => exact ih₁.trans ih₂
+
+/-- The exponential of a finite smooth wall maximum is the sum of the exponentials of its affine
+wall barriers. This symmetric form lets a locally selected wall be moved to the head of the fold. -/
+theorem exp_smoothWallList_eq_sum (La : (E →L[ℝ] ℝ) × ℝ) :
+    ∀ (walls : List ((E →L[ℝ] ℝ) × ℝ)) (x : E),
+      Real.exp (smoothWallList La walls x) =
+        ((La :: walls).map (fun Mb => Real.exp (wallBarrier Mb.1 Mb.2 x))).sum := by
+  intro walls
+  induction walls generalizing La with
+  | nil =>
+      intro x
+      simp [smoothWallList]
+  | cons Mb rest ih =>
+      intro x
+      have hpos : 0 < Real.exp (wallBarrier La.1 La.2 x) +
+          Real.exp (smoothWallList Mb rest x) :=
+        add_pos (Real.exp_pos _) (Real.exp_pos _)
+      calc
+        Real.exp (smoothWallList La (Mb :: rest) x) =
+            Real.exp (wallBarrier La.1 La.2 x) +
+              Real.exp (smoothWallList Mb rest x) := by
+                simp [smoothWallList, smoothMaxF, Real.exp_log hpos]
+        _ = Real.exp (wallBarrier La.1 La.2 x) +
+              ((Mb :: rest).map
+                (fun Qb => Real.exp (wallBarrier Qb.1 Qb.2 x))).sum := by
+                rw [ih Mb x]
+        _ = ((La :: Mb :: rest).map
+              (fun Qb => Real.exp (wallBarrier Qb.1 Qb.2 x))).sum := by
+                simp [List.map_cons, List.sum_cons]
+
+/-- Reordering a finite wall list leaves its smooth maximum unchanged. -/
+theorem smoothWallList_eq_of_perm
+    (La : (E →L[ℝ] ℝ) × ℝ) (walls : List ((E →L[ℝ] ℝ) × ℝ))
+    (Lb : (E →L[ℝ] ℝ) × ℝ) (tail : List ((E →L[ℝ] ℝ) × ℝ))
+    (hperm : (La :: walls).Perm (Lb :: tail)) :
+    smoothWallList La walls = smoothWallList Lb tail := by
+  funext x
+  apply Real.exp_injective
+  rw [exp_smoothWallList_eq_sum La walls x, exp_smoothWallList_eq_sum Lb tail x]
+  exact list_perm_sum_eq (hperm.map fun Mb => Real.exp (wallBarrier Mb.1 Mb.2 x))
+
+/-- A chart-local dominant wall may occur anywhere in a finite smooth wall barrier. If a
+permutation moves it to the head and the remaining wall aggregate lies below it by a sufficient
+value gap, the full barrier still descends along the field. This is the pointwise tile-label form
+of dominant-chart gluing. -/
+theorem exists_fderiv_smoothWallList_nonpos_of_permuted_dominantHead
+    {X : E → E} {x : E} {ε M K : ℝ}
+    (La : (E →L[ℝ] ℝ) × ℝ) (walls : List ((E →L[ℝ] ℝ) × ℝ))
+    (Lb : (E →L[ℝ] ℝ) × ℝ) (tail : List ((E →L[ℝ] ℝ) × ℝ))
+    (hperm : (La :: walls).Perm (Lb :: tail))
+    (hε : 0 ≤ ε) (hhead : ε ≤ Lb.1 (X x))
+    (hwalls : ∀ Mb ∈ tail, -Mb.1 (X x) ≤ M)
+    (hM : M ≤ Real.exp K * ε)
+    (hgap : dominantHeadGap Lb tail K x) :
+    ∃ D : E →L[ℝ] ℝ,
+      HasFDerivAt (smoothWallList La walls) D x ∧ D (X x) ≤ 0 := by
+  obtain ⟨D, hD, hDnonpos⟩ :=
+    exists_fderiv_smoothWallList_nonpos_of_dominantHead Lb tail hε hhead hwalls hM hgap
+  refine ⟨D, ?_, hDnonpos⟩
+  rw [smoothWallList_eq_of_perm La walls Lb tail hperm]
+  exact hD
+
+/-- A finite smooth wall barrier gives a zero-separating surface when a dominant wall
+can be selected locally at every point of the descent band. The wall may vary with the point:
+permutation invariance moves that chart to the head for the derivative estimate, while a fixed
+distinguished wall still supplies separation from the origin. -/
+theorem zeroSeparatingSurfaceExists_smoothWallList_of_localDominantHead_band
+    {X : E → E} {x₀ : E} {c δ r ε M K : ℝ}
+    (La : (E →L[ℝ] ℝ) × ℝ) (walls : List ((E →L[ℝ] ℝ) × ℝ))
+    (hδ : 0 < δ) (hε : 0 ≤ ε)
+    (hband : ∀ y, c - δ ≤ smoothWallList La walls y →
+      smoothWallList La walls y ≤ c + δ →
+      ∃ Lb : (E →L[ℝ] ℝ) × ℝ, ∃ tail : List ((E →L[ℝ] ℝ) × ℝ),
+        (La :: walls).Perm (Lb :: tail) ∧
+        ε ≤ Lb.1 (X y) ∧
+        (∀ Mb ∈ tail, -Mb.1 (X y) ≤ M) ∧
+        dominantHeadGap Lb tail K y)
+    (hM : M ≤ Real.exp K * ε)
+    (hstart : smoothWallList La walls x₀ ≤ c)
+    (hL : ‖La.1‖ ≤ 1) (hr : 0 < r) (hac : c + r ≤ La.2) :
+    ZeroSeparatingSurfaceExists X x₀ := by
+  let g : E → ℝ := smoothWallList La walls
+  have hD : ∀ y : E, ∃ D : E →L[ℝ] ℝ, HasFDerivAt g D y := by
+    intro y
+    exact exists_fderiv_smoothWallList La walls y
+  let gp : E → (E →L[ℝ] ℝ) := fun y => Classical.choose (hD y)
+  have hgp : ∀ y, HasFDerivAt g (gp y) y := fun y => Classical.choose_spec (hD y)
+  have hcont : Continuous g := by
+    rw [continuous_iff_continuousAt]
+    intro y
+    exact (hgp y).continuousAt
+  refine ⟨⟨g, gp, c, δ, r, hcont, hgp, hδ, ?_, hstart, hr, ?_⟩⟩
+  · intro y hlo hhi
+    obtain ⟨Lb, tail, hperm, hhead, hwalls, hgap⟩ := hband y hlo hhi
+    obtain ⟨D, hD, hDnonpos⟩ :=
+      exists_fderiv_smoothWallList_nonpos_of_permuted_dominantHead
+        La walls Lb tail hperm hε hhead hwalls hM hgap
+    have heq : gp y = D := (hgp y).unique hD
+    rw [heq]
+    exact hDnonpos
+  · exact smoothWallList_sublevel_separated hL hr hac walls
+
 /-- **Band-local zero-separating theorem with a dominant head chart.** On the barrier band, one
 fixed head wall has a uniform inward margin, every tail wall has a common upper derivative bound, and the
 smoothly aggregated tail stays below the head by a sufficient value gap. The resulting smooth
