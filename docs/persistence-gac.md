@@ -238,7 +238,10 @@ an explicit hypothesis, never a `sorry`:
    restricts this construction to each compact projected tile while preserving exact projection,
    face containment, and separation; `projectionFiberTube_eq_iUnion_of_base_cover` proves that a
    finite cover of the base lifts to an exact cover by those tile tubes. This is still set-level
-   tube geometry. On the one-bit side, compactProjectionFiberTiling_of_compactBase now supplies
+   tube geometry. `compactZeroBitFiberPatchCover_of_compactBaseCover` packages that lift for an
+   arbitrary finite compact cover of the projected face, with a shared continuous center, compact
+   tile tubes, exact tile projections, and the inherited separation margin. On the one-bit side,
+   compactProjectionFiberTiling_of_compactBase now supplies
    finitely many compact strips with exact coverage, full base projection, width bounds, and
    continuous center graphs. Distinct strips have disjoint ordinary ambient interiors in the full
    product space, proved by showing that any ambient interior point lies strictly between its

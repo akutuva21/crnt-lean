@@ -1945,6 +1945,80 @@ theorem exists_compact_separated_zeroBitGraphTube_over_tile {n : ℕ}
     rw [← hrestrict] at hx
     exact hseparated hx.1
 
+/-- The zero-bit counterpart of a finite fiber-patch cover: one continuous graph section is shared
+across all lower tiles, while each tile receives its own compact separated tube. -/
+structure CompactZeroBitFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
+    (facePatch : Set (Fin (n + 1) → ℝ)) (base : Set (Fin n → ℝ))
+    (baseTile : ι → Set (Fin n → ℝ)) (margin radius : ℝ) where
+  /-- The graph section selected by the dimension-preserving face projection. -/
+  center : (Fin n → ℝ) → ℝ
+  center_continuous : ContinuousOn center base
+  facePatch_compact : IsCompact facePatch
+  /-- The whole face patch lies in the separated tube over its projected face. -/
+  facePatch_subset_tube : facePatch ⊆ projectionFiberTube base center radius
+  /-- The parent tube is exactly covered by tubes over the lower-dimensional tiles. -/
+  facePatch_subset_iUnion_tileTubes :
+    facePatch ⊆ ⋃ i, projectionFiberTube (baseTile i) center radius
+  /-- Each tile tube is compact and projects exactly onto its base tile. -/
+  tile_tube_compact : ∀ i, IsCompact (projectionFiberTube (baseTile i) center radius)
+  tile_tube_projects : ∀ i,
+    forgetLastCoordinate n '' projectionFiberTube (baseTile i) center radius = baseTile i
+  /-- The part of the face patch above each lower tile lies in that tile's tube. -/
+  tile_facePatch_subset : ∀ i,
+    (facePatch ∩ {x | forgetLastCoordinate n x ∈ baseTile i}) ⊆
+      projectionFiberTube (baseTile i) center radius
+  /-- Every tile tube retains the parent origin-avoidance margin. -/
+  positive_margin : 0 < margin - radius
+  radius_nonneg : 0 ≤ radius
+  tile_tube_separated : ∀ i,
+    projectionFiberTube (baseTile i) center radius ⊆
+      (Metric.ball (0 : Fin (n + 1) → ℝ) (margin - radius))ᶜ
+
+/-- Construct zero-bit graph tubes over a finite cover of the projected face. The same continuous
+section is used on every tile, and the resulting compact tubes cover the whole separated face. -/
+noncomputable def compactZeroBitFiberPatchCover_of_compactBaseCover {n : ℕ} {ι : Type*}
+    [Fintype ι] (chain : CoordinateProjectedFaceChain (n + 1))
+    (hbit : faceProjectionDimensionLetter
+      (fun k => Module.finrank ℝ ((affineSpan ℝ (chain.face k)).direction))
+      (Fin.last n) = false)
+    (hface : IsCompact (chain.face (Fin.last n).succ))
+    (baseTile : ι → Set (Fin n → ℝ)) (htileCompact : ∀ i, IsCompact (baseTile i))
+    (hbaseCover : chain.face (Fin.last n).castSucc = ⋃ i, baseTile i)
+    (margin radius : ℝ)
+    (hfaceSeparated : chain.face (Fin.last n).succ ⊆
+      (Metric.ball (0 : Fin (n + 1) → ℝ) margin)ᶜ)
+    (hradius : 0 ≤ radius) (hsmall : radius < margin) :
+    CompactZeroBitFiberPatchCover (chain.face (Fin.last n).succ)
+      (chain.face (Fin.last n).castSucc) baseTile margin radius := by
+  let hcenterExists := exists_compact_separated_zeroBitGraphTube chain hbit hface margin radius
+    hfaceSeparated hradius hsmall
+  let center := Classical.choose hcenterExists
+  have hcenterData := Classical.choose_spec hcenterExists
+  rcases hcenterData with ⟨hcenter, _, _, hfaceTube, hpositive, hseparated⟩
+  have htileBase : ∀ i, baseTile i ⊆ chain.face (Fin.last n).castSucc := by
+    intro i y hy
+    rw [hbaseCover]
+    exact Set.mem_iUnion.mpr ⟨i, hy⟩
+  refine ⟨center, hcenter, hface, hfaceTube, ?_, ?_, ?_, ?_, sub_pos.mpr hsmall, hradius, ?_⟩
+  · rw [← projectionFiberTube_eq_iUnion_of_base_cover
+      (chain.face (Fin.last n).castSucc) baseTile center radius hbaseCover]
+    exact hfaceTube
+  · intro i
+    exact isCompact_projectionFiberTube_of_continuousOn (baseTile i) center
+      (htileCompact i) (hcenter.mono (htileBase i)) hradius
+  · intro i
+    exact projectionFiberTube_projects_onto_base (baseTile i) center hradius
+  · intro i x hx
+    have hrestrict := projectionFiberTube_restrict_to_tile
+      (chain.face (Fin.last n).castSucc) (baseTile i) center radius (htileBase i)
+    rw [← hrestrict]
+    exact ⟨hfaceTube hx.1, hx.2⟩
+  · intro i x hx
+    have hrestrict := projectionFiberTube_restrict_to_tile
+      (chain.face (Fin.last n).castSucc) (baseTile i) center radius (htileBase i)
+    rw [← hrestrict] at hx
+    exact hseparated hx.1
+
 
 /-- Every equal-width subtile of a compact bounded fiber band is compact when the base is compact
 and the endpoint graphs are continuous. Closedness of the subtile is inherited from the
