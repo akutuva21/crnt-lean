@@ -1998,6 +1998,72 @@ theorem projectionFiberSubdivisionCenter_mem_tile {n m : ℕ}
   · dsimp [projectionFiberSubdivisionCenter]
     linarith
 
+/-- Points strictly between the two endpoints of a subdivision strip, fiber by fiber. This
+captures non-overlap of the strip interiors in the newly subdivided coordinate. -/
+def projectionFiberSubdivisionFiberInteriorTile {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (i : Fin (m + 1)) : Set (Fin (n + 1) → ℝ) :=
+  {x | let y := forgetLastCoordinate n x
+    y ∈ base ∧
+      projectionFiberSubdivisionEndpoint lower upper i.castSucc y < x (Fin.last n) ∧
+      x (Fin.last n) <
+        projectionFiberSubdivisionEndpoint lower upper i.succ y}
+
+/-- Membership in a fiberwise interior strip is strict membership between adjacent endpoints. -/
+theorem mem_projectionFiberSubdivisionFiberInteriorTile_iff {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (i : Fin (m + 1)) (x : Fin (n + 1) → ℝ) :
+    x ∈ projectionFiberSubdivisionFiberInteriorTile base lower upper i ↔
+      forgetLastCoordinate n x ∈ base ∧
+        projectionFiberSubdivisionEndpoint lower upper i.castSucc
+          (forgetLastCoordinate n x) < x (Fin.last n) ∧
+        x (Fin.last n) <
+          projectionFiberSubdivisionEndpoint lower upper i.succ
+            (forgetLastCoordinate n x) := by
+  simp [projectionFiberSubdivisionFiberInteriorTile]
+
+/-- Distinct equal-width subtiles have disjoint interiors along each projected fiber. Their closed
+sets may share endpoint seams, which are intentionally excluded here. -/
+theorem disjoint_projectionFiberSubdivisionFiberInteriorTiles {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horder : ∀ y ∈ base, lower y ≤ upper y)
+    (i j : Fin (m + 1)) (hij : i ≠ j) :
+    projectionFiberSubdivisionFiberInteriorTile base lower upper i ∩
+      projectionFiberSubdivisionFiberInteriorTile base lower upper j = ∅ := by
+  ext x
+  constructor
+  · rintro ⟨hxi, hxj⟩
+    obtain ⟨hy, hlefti, hrighti⟩ :=
+      (mem_projectionFiberSubdivisionFiberInteriorTile_iff
+        base lower upper i x).mp hxi
+    obtain ⟨_, hleftj, hrightj⟩ :=
+      (mem_projectionFiberSubdivisionFiberInteriorTile_iff
+        base lower upper j x).mp hxj
+    rcases lt_or_gt_of_ne hij with hij' | hji'
+    · have hidx : i.succ ≤ j.castSucc := by
+        apply Fin.le_iff_val_le_val.mpr
+        simp
+        omega
+      have hendpoints :
+          projectionFiberSubdivisionEndpoint lower upper i.succ
+              (forgetLastCoordinate n x) ≤
+            projectionFiberSubdivisionEndpoint lower upper j.castSucc
+              (forgetLastCoordinate n x) := by
+        exact (tileScaleInterpolation_monotone_of_le (horder _ hy)) hidx
+      exact (not_lt_of_ge hendpoints) (lt_trans hleftj hrighti)
+    · have hidx : j.succ ≤ i.castSucc := by
+        apply Fin.le_iff_val_le_val.mpr
+        simp
+        omega
+      have hendpoints :
+          projectionFiberSubdivisionEndpoint lower upper j.succ
+              (forgetLastCoordinate n x) ≤
+            projectionFiberSubdivisionEndpoint lower upper i.castSucc
+              (forgetLastCoordinate n x) := by
+        exact (tileScaleInterpolation_monotone_of_le (horder _ hy)) hidx
+      exact (not_lt_of_ge hendpoints) (lt_trans hlefti hrightj)
+  · simp
+
 /-- A certificate for the bounded Case 1.2 refinement: finitely many compact strips cover the
 filled fiber band, each strip projects onto the whole lower-dimensional base, and each vertical
 fiber width is at most `epsilon`. -/
@@ -2011,6 +2077,11 @@ structure CompactProjectionFiberTiling {n : ℕ} (base : Set (Fin n → ℝ))
   tile_center_mem : ∀ i y, y ∈ base →
     Fin.snoc y (tile_center i y) ∈
       projectionFiberSubdivisionTile base lower upper i
+  /-- Interiors along the subdivided coordinate do not overlap; closed tiles may meet at seams. -/
+  fiber_interiors_disjoint : ∀ i j, i ≠ j →
+    projectionFiberSubdivisionFiberInteriorTile (m := subdivisionCount) base lower upper i ∩
+      projectionFiberSubdivisionFiberInteriorTile (m := subdivisionCount) base lower upper j =
+        ∅
   /-- The subtiles exactly cover the filled band. -/
   tiles_cover :
     projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y)) =
@@ -2064,6 +2135,10 @@ noncomputable def compactProjectionFiberTiling_of_compactBase {n : ℕ}
     tile_center_mem := by
       intro i y hy
       exact projectionFiberSubdivisionCenter_mem_tile base lower upper horder i y hy
+    fiber_interiors_disjoint := by
+      intro i j hij
+      exact disjoint_projectionFiberSubdivisionFiberInteriorTiles
+        base lower upper horder i j hij
     tiles_cover := projectionFiberBand_bounded_eq_iUnion_subdivisionTiles
       base lower upper horder
     tile_compact := fun i =>
