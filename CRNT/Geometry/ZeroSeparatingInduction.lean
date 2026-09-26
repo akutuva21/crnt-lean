@@ -2549,8 +2549,6 @@ structure CompactZeroBitFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
   Craciun v3, §7.4.3, Case 1.1. -/
   tile_basepoint_lift : ∀ i y, y ∈ baseTile i →
     Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (center y) ∈ facePatch
-  tile_basepoint_projects : ∀ i y, y ∈ baseTile i →
-    forgetLastCoordinate n (Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (center y)) = y
   /-- Every tile tube retains the parent origin-avoidance margin. -/
   positive_margin : 0 < margin - radius
   radius_nonneg : 0 ≤ radius
@@ -2577,7 +2575,7 @@ theorem CompactZeroBitFiberPatchCover.tile_basepoint_lift_mem_restrictedTube
     constructor
     · simpa [forgetLastCoordinate] using hy
     · simp [forgetLastCoordinate, cover.radius_nonneg]
-  · exact cover.tile_basepoint_projects i y hy
+  · simp [forgetLastCoordinate]
 
 /-- Every point of the projected face belongs to some lower tile and therefore has its selected
 center lift on the face patch, inside that tile's restricted graph tube, with projection exactly
@@ -2646,7 +2644,7 @@ noncomputable def compactZeroBitFiberPatchCover_of_compactBaseCover {n : ℕ} {�
     intro i y hy
     rw [hbaseCover]
     exact Set.mem_iUnion.mpr ⟨i, hy⟩
-  refine ⟨center, hcenter, hface, hbaseCover, hfaceTube, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_,
+  refine ⟨center, hcenter, hface, hbaseCover, hfaceTube, ?_, ?_, ?_, ?_, ?_, ?_, ?_,
     hpositive, hradius, ?_⟩
   · rw [← projectionFiberTube_eq_iUnion_of_base_cover
       (chain.face (Fin.last n).castSucc) baseTile center radius hbaseCover]
@@ -2669,8 +2667,6 @@ noncomputable def compactZeroBitFiberPatchCover_of_compactBaseCover {n : ℕ} {�
     exact ⟨hfaceTube hx.1, hx.2⟩
   · intro i y hy
     exact hbasepoint y (htileBase i hy)
-  · intro i y hy
-    simp [forgetLastCoordinate]
   · intro i x hx
     have hrestrict := projectionFiberTube_restrict_to_tile
       (chain.face (Fin.last n).castSucc) (baseTile i) center radius (htileBase i)
