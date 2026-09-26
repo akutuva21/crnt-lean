@@ -325,9 +325,14 @@ form. The sign content of strong endotacticity along the relative-entropy dissip
   `facet_repelling_of_reactionwise_data` now assembles this shape of estimate when each negative
   term is controlled by the full nonnegative contribution. `facet_repelling_of_local_monomial_bounds`
   combines the cycle witnesses, exponent comparison, complementary-factor bounds, coefficient
-  ratios, and sum estimate into a local repulsion conclusion. Producing its uniform bounds from
-  facet-interiority and proving the finite-cover step needed to turn local repulsion into persistence
-  remain open. Anderson's single-linkage tier argument is also not
+  ratios, and sum estimate into local repulsion. `exists_uniform_complement_monomial_bounds`,
+  `exists_uniform_reaction_coefficient_bound`, and `exists_small_facet_parameters` now derive the
+  required constants uniformly on a neighborhood. `facet_repelling_near_facet_point` packages
+  these choices, while `facet_repelling_near_facet_point_of_facet` also derives the signed facet
+  direction from the codimension-one projection-rank condition and a compatible positive point.
+  The remaining GAC bridge is to identify an applicable coordinate facet through the critical-siphon
+  boundary configuration and turn local repulsion into an omega-limit contradiction; Anderson's
+  single-linkage tier argument is also not
   formalized. Also open: in the toric-inclusion approach, the six explicit hypotheses
   enumerated above, none assembled into a persistence or GAC conclusion; and, in the permanence route,
   `StronglyEndotactic ⇒ permanent`.

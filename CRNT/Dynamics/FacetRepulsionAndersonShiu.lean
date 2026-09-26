@@ -29,8 +29,12 @@ The one-sign conclusion follows from a conservation-law obstruction: if `v|_W` h
 coordinate `i` and a positive coordinate `j`, then `v j • e i - v i • e j` would be a nonnegative
 nonzero conservation law supported inside `W`, which cannot vanish on a face reachable from a
 positive point. The module also proves the facet-direction rank reduction and the monomial and sum
-estimates under explicit hypotheses. It does not derive all those quantitative hypotheses from
-weak reversibility and facet-interiority.
+estimates under explicit hypotheses. The local near-facet theorem now derives the complementary
+monomial bounds, finite coefficient constant, and small radius from finiteness; its end-to-end
+facet wrapper derives the signed direction from a codimension-one projection-rank condition and a
+compatible positive point. Identifying such a coordinate facet in the general critical-siphon
+boundary branch, and converting local repulsion into the required omega-limit contradiction, remain
+separate steps.
 
 `exists_mem_speciesSupport_ne_zero_of_pSemiflow` is that obstruction in general form; it is the
 quantitative content behind `Geometry/CompatibilityFaces.lean`'s face-emptiness results, but stated
@@ -572,6 +576,115 @@ theorem prod_compl_upper_bound {W : Finset S} {x z : Concentration S} {δ : ℝ}
   have h := abs_le.mp (hclose s)
   linarith [h.2]
 
+/-- On a fixed coordinate neighborhood with `δ < z_s` off the facet, finitely many reaction
+monomials admit common positive lower and upper bounds on their complementary factors. The lower
+constant is the minimum of the finitely many products at `z - δ`, and the upper constant is the
+maximum of the products at `z + δ`. -/
+theorem exists_uniform_complement_monomial_bounds
+    {ι : Type*} [Fintype ι] [Nonempty ι] {W : Finset S}
+    {z : Concentration S} {δ : ℝ} (hδ : 0 < δ)
+    (hδlt : ∀ s ∈ Wᶜ, δ < z s)
+    (y : ι → Complex S) :
+    ∃ Dmin Dmax : ℝ, 0 < Dmin ∧ 0 < Dmax ∧
+      (∀ x : Concentration S, (∀ s, |x s - z s| ≤ δ) → (∀ s, 0 ≤ x s) →
+        ∀ i, Dmin ≤ ∏ s ∈ Wᶜ, x s ^ (y i s)) ∧
+      (∀ x : Concentration S, (∀ s, |x s - z s| ≤ δ) → (∀ s, 0 ≤ x s) →
+        ∀ i, ∏ s ∈ Wᶜ, x s ^ (y i s) ≤ Dmax) := by
+  classical
+  let lower (i : ι) : ℝ := ∏ s ∈ Wᶜ, (z s - δ) ^ (y i s)
+  let upper (i : ι) : ℝ := ∏ s ∈ Wᶜ, (z s + δ) ^ (y i s)
+  have hlowerPos (i : ι) : 0 < lower i := by
+    simp only [lower]
+    exact Finset.prod_pos fun s hs => pow_pos (by linarith [hδlt s hs]) _
+  have hupperPos (i : ι) : 0 < upper i := by
+    simp only [upper]
+    exact Finset.prod_pos fun s hs => pow_pos (by linarith [hδlt s hs]) _
+  obtain ⟨iMin, hiMin, hMin⟩ :=
+    Finset.exists_min_image (Finset.univ : Finset ι) lower
+      ⟨Classical.choice (inferInstance : Nonempty ι), Finset.mem_univ _⟩
+  obtain ⟨iMax, hiMax, hMax⟩ :=
+    Finset.exists_max_image (Finset.univ : Finset ι) upper
+      ⟨Classical.choice (inferInstance : Nonempty ι), Finset.mem_univ _⟩
+  refine ⟨lower iMin, upper iMax, hlowerPos iMin, hupperPos iMax, ?_, ?_⟩
+  · intro x hclose hxnn i
+    have hmin : lower iMin ≤ lower i := hMin i (Finset.mem_univ i)
+    have hproduct : lower i ≤ ∏ s ∈ Wᶜ, x s ^ (y i s) := by
+      simpa [lower] using
+        (prod_compl_lower_bound hδ (fun s hs => lt_trans hδ (hδlt s hs))
+          hδlt hclose (y i)).2
+    exact hmin.trans hproduct
+  · intro x hclose hxnn i
+    have hmax := hMax i (Finset.mem_univ i)
+    have hproduct : ∏ s ∈ Wᶜ, x s ^ (y i s) ≤ upper i := by
+      simpa [upper] using prod_compl_upper_bound hxnn hclose (y i)
+    have hmax' : upper i ≤ upper iMax := by simpa [upper] using hmax
+    exact hproduct.trans hmax'
+
+/-- A positive point on the relative interior of a coordinate face has a uniform positive margin
+on the finitely many coordinates outside that face. -/
+theorem exists_positive_complement_margin {W : Finset S} {z : Concentration S}
+    (hz : ∀ s ∈ Wᶜ, 0 < z s) :
+    ∃ δ : ℝ, 0 < δ ∧ ∀ s ∈ Wᶜ, δ < z s := by
+  classical
+  by_cases hne : (Wᶜ).Nonempty
+  · rcases hne with ⟨s₀, hs₀⟩
+    obtain ⟨smin, hsmin, hmin⟩ := Finset.exists_min_image Wᶜ z ⟨s₀, hs₀⟩
+    refine ⟨z smin / 2, by linarith [hz smin hsmin], ?_⟩
+    intro s hs
+    have hzs : z smin ≤ z s := hmin s hs
+    linarith [hz smin hsmin]
+  · refine ⟨1, by norm_num, ?_⟩
+    intro s hs
+    exact (hne ⟨s, hs⟩).elim
+
+/-- Choose the face-coordinate radius and the common reactionwise comparison factor together.
+The explicit slack term `+ 1` makes the radius small enough that the comparison factor times the
+number of reactions is at most one. -/
+theorem exists_small_facet_parameters {δ₀ Dmin Dmax C : ℝ} (n : ℕ)
+    (hδ₀ : 0 < δ₀) (hDmin : 0 < Dmin) (hDmax : 0 < Dmax) (hC : 0 ≤ C) :
+    ∃ ε θ : ℝ, 0 < ε ∧ ε ≤ δ₀ ∧ ε ≤ 1 ∧ 0 ≤ θ ∧
+      θ * Dmin = ε * Dmax * C ∧ θ * (n : ℝ) ≤ 1 := by
+  let M : ℝ := Dmax * C * (n : ℝ) + 1
+  let ε : ℝ := min δ₀ (min 1 (Dmin / M))
+  let θ : ℝ := ε * Dmax * C / Dmin
+  have hMpos : 0 < M := by
+    dsimp [M]
+    positivity
+  have hεpos : 0 < ε := by
+    dsimp [ε]
+    exact lt_min hδ₀ (lt_min zero_lt_one (div_pos hDmin hMpos))
+  have hεδ₀ : ε ≤ δ₀ := by
+    dsimp [ε]
+    exact min_le_left _ _
+  have hεinner : ε ≤ min 1 (Dmin / M) := by
+    dsimp [ε]
+    exact min_le_right _ _
+  have hε1 : ε ≤ 1 := hεinner.trans (min_le_left _ _)
+  have hεdiv : ε ≤ Dmin / M := hεinner.trans (min_le_right _ _)
+  have hεM : ε * M ≤ Dmin := (le_div_iff₀ hMpos).mp hεdiv
+  have hθ : 0 ≤ θ := by
+    dsimp [θ]
+    exact div_nonneg
+      (mul_nonneg (mul_nonneg hεpos.le hDmax.le) hC) hDmin.le
+  have hθscale : θ * Dmin = ε * Dmax * C := by
+    dsimp [θ]
+    field_simp [ne_of_gt hDmin]
+  have hprod : ε * Dmax * C * (n : ℝ) ≤ Dmin := by
+    calc
+      ε * Dmax * C * (n : ℝ) = ε * (Dmax * C * (n : ℝ)) := by ring
+      _ ≤ ε * M := by
+        apply mul_le_mul_of_nonneg_left _ hεpos.le
+        dsimp [M]
+        exact le_add_of_nonneg_right (by norm_num)
+      _ ≤ Dmin := hεM
+  have hsmall : θ * (n : ℝ) ≤ 1 := by
+    calc
+      θ * (n : ℝ) = (ε * Dmax * C * (n : ℝ)) / Dmin := by
+        dsimp [θ]
+        ring
+      _ ≤ 1 := (div_le_iff₀ hDmin).2 (by simpa using hprod)
+  exact ⟨ε, θ, hεpos, hεδ₀, hε1, hθ, hθscale, hsmall⟩
+
 /-! ### Stage 3, assembly: the dominating term controls the sign -/
 
 /-- **The scalar reduction.**  On `W`, where every reaction vector is `γ r • v`, the mass-action
@@ -851,6 +964,126 @@ theorem facet_repelling_of_local_monomial_bounds (N : Network S) (κ : N.RateCon
     intro r hr
     simpa [a] using hdom r (by simpa [a] using hr)
   exact N.facet_repelling_of_reactionwise_data κ hv hγ hxpos hθ hdom' hsmall
+
+/-- Finite rate constants provide one coefficient comparison factor for every eligible ordered
+pair. Only pairs with a negative first coefficient, a positive second coefficient, and the
+required source ordering enter the finite sum defining `C`. -/
+theorem exists_uniform_reaction_coefficient_bound (N : Network S) (κ : N.RateConstants)
+    {W : Finset S} (γ : N.R → ℝ) :
+    ∃ C : ℝ, 0 ≤ C ∧
+      ∀ r ℓ : N.R, γ r < 0 → 0 < γ ℓ →
+        (∀ s ∈ W, (N.reaction ℓ).source s < (N.reaction r).source s) →
+        -γ r * κ.k r ≤ C * (γ ℓ * κ.k ℓ) := by
+  classical
+  let eligible : Finset (N.R × N.R) := Finset.univ.filter fun p =>
+    γ p.1 < 0 ∧ 0 < γ p.2 ∧
+      ∀ s ∈ W, (N.reaction p.2).source s < (N.reaction p.1).source s
+  let ratio (p : N.R × N.R) : ℝ :=
+    (-γ p.1 * κ.k p.1) / (γ p.2 * κ.k p.2)
+  let C : ℝ := ∑ p ∈ eligible, ratio p
+  have hratioPos (p : N.R × N.R) (hp : p ∈ eligible) : 0 < ratio p := by
+    rcases Finset.mem_filter.mp hp with ⟨_, ⟨hneg, hpos, _⟩⟩
+    dsimp [ratio]
+    exact div_pos (mul_pos (neg_pos.mpr hneg) (κ.positive p.1))
+      (mul_pos hpos (κ.positive p.2))
+  refine ⟨C, ?_, ?_⟩
+  · dsimp [C]
+    exact Finset.sum_nonneg fun p hp => (hratioPos p hp).le
+  · intro r ℓ hneg hpos hbelow
+    have hp : (r, ℓ) ∈ eligible := by
+      apply Finset.mem_filter.mpr
+      exact ⟨Finset.mem_univ _, hneg, hpos, hbelow⟩
+    have hratioSum : ratio (r, ℓ) ≤ C := by
+      dsimp [C]
+      exact Finset.single_le_sum (fun p hp => (hratioPos p hp).le) hp
+    have hden : 0 < γ ℓ * κ.k ℓ := mul_pos hpos (κ.positive ℓ)
+    have hratio : (-γ r * κ.k r) / (γ ℓ * κ.k ℓ) ≤ C := by
+      simpa [ratio] using hratioSum
+    exact (div_le_iff₀ hden).mp hratio
+
+/-- Uniform near-facet repulsion with every quantitative constant chosen from finiteness.
+
+Given a weakly reversible network, a facet direction `v` on `W`, and a point `z` that vanishes on
+`W` and is positive off `W`, there is one radius `ε > 0` such that every strictly positive `x`
+within `ε` of `z` satisfies the Anderson–Shiu facet repulsion inequality. The proof obtains a
+positive complementary-coordinate margin, bounds all finitely many reaction monomials there,
+chooses a finite coefficient bound, and then selects `ε` and `θ` together so that
+`θ · card R ≤ 1`. The geometric hypotheses producing `v` and the subsequent global finite-cover
+and trajectory argument remain separate obligations. -/
+theorem facet_repelling_near_facet_point (N : Network S) (κ : N.RateConstants)
+    (hwr : N.WeaklyReversible) {W : Finset S} {v : S → ℝ} {γ : N.R → ℝ}
+    {z : Concentration S} (hW : W.Nonempty)
+    (hv : ∀ s ∈ W, 0 < v s)
+    (hγ : ∀ r, ∀ s ∈ W, N.reactionVector r s = γ r * v s)
+    (hzW : ∀ s ∈ W, z s = 0)
+    (hzpos : ∀ s ∈ Wᶜ, 0 < z s) :
+    ∃ ε : ℝ, 0 < ε ∧
+      ∀ x : Concentration S, x.Positive →
+        (∀ s, |x s - z s| ≤ ε) →
+        0 ≤ ∑ s ∈ W, x s * N.massActionVectorField κ x s := by
+  classical
+  obtain ⟨δ₀, hδ₀, hδ₀lt⟩ := exists_positive_complement_margin hzpos
+  obtain ⟨Dmin, Dmax, hDmin, hDmax, hlo, hhi⟩ :=
+    exists_uniform_complement_monomial_bounds hδ₀ hδ₀lt
+      (fun q : Option N.R => match q with
+        | none => 0
+        | some r => (N.reaction r).source)
+  obtain ⟨C, hC, hcoeff⟩ := N.exists_uniform_reaction_coefficient_bound κ γ
+  obtain ⟨ε, θ, hεpos, hεδ₀, hε1, hθ, hθscale, hsmall⟩ :=
+    exists_small_facet_parameters (Fintype.card N.R) hδ₀ hDmin hDmax hC
+  refine ⟨ε, hεpos, ?_⟩
+  intro x hxpos hclose
+  have hclose₀ : ∀ s, |x s - z s| ≤ δ₀ := by
+    intro s
+    exact (hclose s).trans hεδ₀
+  have hxnn : ∀ s, 0 ≤ x s := fun s => (hxpos s).le
+  have hcomplLo : ∀ r : N.R,
+      Dmin ≤ ∏ s ∈ Wᶜ, x s ^ (N.reaction r).source s := by
+    intro r
+    simpa using hlo x hclose₀ hxnn (some r)
+  have hcomplHi : ∀ r : N.R,
+      ∏ s ∈ Wᶜ, x s ^ (N.reaction r).source s ≤ Dmax := by
+    intro r
+    simpa using hhi x hclose₀ hxnn (some r)
+  have hxW : ∀ s ∈ W, x s ≤ ε := by
+    intro s hs
+    have hupper := (abs_le.mp (hclose s)).2
+    rw [hzW s hs] at hupper
+    simpa using hupper
+  exact N.facet_repelling_of_local_monomial_bounds κ hwr hW hv hγ hxpos hxW
+    hεpos hε1 hDmin hDmax hcomplLo hcomplHi hcoeff hθ hθscale hsmall
+
+/-- The facet-rank condition and a compatible positive point supply the facet direction needed by
+`facet_repelling_near_facet_point`. The compatibility argument also shows that no facet-direction
+coordinate can vanish on `W`: otherwise every stoichiometric displacement vanishes there, which
+contradicts the positive reference point and `z s = 0`. -/
+theorem facet_repelling_near_facet_point_of_facet (N : Network S) (κ : N.RateConstants)
+    (hwr : N.WeaklyReversible) {W : Finset S}
+    (hW : W.Nonempty)
+    (hfacet : Module.finrank ℝ
+        (LinearMap.ker ((projOn W).domRestrict N.stoichSubspace)) + 1
+          = Module.finrank ℝ N.stoichSubspace)
+    {x₀ z : Concentration S} (hx₀ : x₀.Positive)
+    (hcompat : N.StoichCompatible x₀ z) (hznn : z.Nonnegative)
+    (hzW : ∀ s ∈ W, z s = 0)
+    (hzpos : ∀ s ∈ Wᶜ, 0 < z s) :
+    ∃ ε : ℝ, 0 < ε ∧
+      ∀ x : Concentration S, x.Positive →
+        (∀ s, |x s - z s| ≤ ε) →
+        0 ≤ ∑ s ∈ W, x s * N.massActionVectorField κ x s := by
+  have hnonvanish : ∀ v : S → ℝ,
+      (∀ p ∈ N.stoichSubspace, ∃ c : ℝ, ∀ s ∈ W, p s = c * v s) →
+      ∀ s ∈ W, v s ≠ 0 := by
+    intro v hspan s hs hvs
+    obtain ⟨c, hc⟩ := hspan (z - x₀) hcompat
+    have hcoord : z s - x₀ s = c * v s := by
+      simpa using hc s hs
+    rw [hzW s hs, hvs, mul_zero] at hcoord
+    have hxzero : x₀ s = 0 := by linarith
+    exact (ne_of_gt (hx₀ s)) hxzero
+  obtain ⟨v, γ, hv, hγ⟩ :=
+    N.exists_facetDirection_pos_of_facet hfacet hx₀ hcompat hznn hzW hnonvanish
+  exact N.facet_repelling_near_facet_point κ hwr hW hv hγ hzW hzpos
 
 end Network
 end CRNT

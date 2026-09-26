@@ -1,5 +1,6 @@
 import CRNT.Dynamics.ComplexBalanceCycleDecomposition
 import CRNT.Dynamics.ComplexBalanceStoichFan
+import CRNT.Dynamics.FacetRepulsionAndersonShiu
 import CRNT.Dynamics.GlobalPersistence
 import CRNT.Dynamics.SiphonDimensionDescent
 import CRNT.Dynamics.ToricInclusion
@@ -1478,9 +1479,11 @@ theorem complexBalanced_genuinePermanent
           -- equilibrium.  The rank descent `hranklt` is the correct induction measure, but the
           -- inductive hypothesis governs orbits *inside* the face and does not by itself
           -- prevent the parent orbit from approaching it (see the docstring of
-          -- `positiveOmega_or_lowerRankCriticalBoundaryFace`).  Closing it needs a near-facet
-          -- differential inequality at a *tangent* face — Anderson & Shiu (2010) — which is not
-          -- formalized in this layer.  Note two routes are already refuted in
+          -- `positiveOmega_or_lowerRankCriticalBoundaryFace`). A local Anderson–Shiu repulsion
+          -- estimate is formalized in `FacetRepulsionAndersonShiu` when a coordinate set `W`
+          -- satisfies the codimension-one projection-rank condition. This branch does not yet
+          -- identify such a facet through `w` or connect its local estimate to an omega-limit
+          -- contradiction. Note two routes are already refuted in
           -- `CRNT.Examples.OmegaPointFakeFlow`: `BoundaryOmegaExcluded` and
           -- `ComparableGrowthDescentForRates` both fail for `2A ⇌ A + B` at `κ ≡ 1`.
           sorry
