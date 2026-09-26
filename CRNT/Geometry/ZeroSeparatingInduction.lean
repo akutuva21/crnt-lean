@@ -1,6 +1,7 @@
 import CRNT.Geometry.ZeroSeparatingSurface
 import CRNT.Geometry.FaithfulCurve2D
 import CRNT.Geometry.LogProjectiveFaceCompatibility
+import CRNT.Geometry.ProjectedFaceDimensionCode
 import Mathlib.LinearAlgebra.Dimension.Constructions
 import Mathlib.Analysis.InnerProductSpace.Projection.Submodule
 import Mathlib.Data.Set.Finite.List
@@ -111,7 +112,9 @@ open ZeroSeparatingCurve2D
 Section 7.4.3 of Craciun's general-dimensional construction inserts tile scales along finite chains
 between prescribed endpoint scales. The lemmas here formalize that scalar interpolation, including
 a common order-of-magnitude factor for any finite family once each chain's endpoint order is known.
-The binary-word indexing is also formalized below; pre-blueprints and geometric tiling remain open.
+The projection-dimension encoding of face words is formalized in
+`CRNT.Geometry.ProjectedFaceDimensionCode`, and the last-zero decomposition used to index scale
+chains is formalized below. Pre-blueprints and geometric tiling remain open.
 `LogProjectiveSection.existsUnique_sectionPoint_with_coordinates` and
 `LogProjectiveSection.exists_contDiff_local_sectionScale` supply the pointwise and smooth local
 inverse for one affine face plane of the logarithmic projective chart.
@@ -302,7 +305,9 @@ theorem exists_simultaneous_tileScaleInterpolations {ι : Type*} [Fintype ι]
 
 Every finite binary word either consists entirely of ones, or has a unique last zero. In the latter
 case it is a prefix followed by that zero and a string of trailing ones. These are exactly the
-disjoint scale chains used in the general-dimensional blueprint construction.
+disjoint scale chains used in the scale inequalities of the general-dimensional blueprint
+construction. This is the scale-chain decomposition of a word; the face word itself is defined by
+the successive projection-dimension changes in `ProjectedFaceDimensionCode`.
 -/
 
 /-- Scan a word written from right to left. The option stores the prefix before its last zero;
