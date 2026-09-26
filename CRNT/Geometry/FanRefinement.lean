@@ -31,7 +31,11 @@ This module provides the transfer and finite-refinement engines:
 
 * the **central-arrangement fan engine** — the family of all weak sign/equality cells for a finite
   set of hyperplane normals is a complete polyhedral fan, with exposed-face closure from finite
-  Farkas decomposition;
+  Farkas decomposition; and
+
+* the **conditional arrangement-refinement engine** — for any supplied covering polyhedral fan
+  whose cells have finite dual representations, the arrangement of the union of those normals
+  refines the fan;
 
 ## Contents
 
@@ -57,12 +61,13 @@ This module provides the transfer and finite-refinement engines:
 This module proves the refinement relation, the faithful-transfer of admissibility (and of field
 inwardness) from fine to coarse cells, finite common-refinement closure for supplied polyhedral fans
 with dual-finitely-generated cells, and coverage of the closed-cone image family under a surjective
-linear map. It also proves that images of finitely generated cells are exact and that a finite
-central hyperplane arrangement gives a polyhedral fan covering the ambient space. It does not prove
-that an arbitrary projected image family is itself a fan, derive a finite normal list from projected
-images, or prove that a central arrangement refines that image family. The faithful blueprint, its
-patch decomposition, and the analysis matching per-patch attracting directions remain separate
-constructions.
+linear map. It also proves that images of finitely generated cells are exact, that a finite central
+hyperplane arrangement gives a polyhedral fan covering the ambient space, and that the arrangement
+of the finite dual normals of any supplied covering polyhedral fan with dual-finitely-generated
+cells refines that fan. The remaining projection bridge is to establish such a fan with finite dual
+representations for the projected image family; an arbitrary projected image family is not shown to
+be a fan. The faithful blueprint, its patch decomposition, and the analysis matching per-patch
+attracting directions remain separate constructions.
 
 Depends on: `CRNT.Geometry.ZeroSeparatingInduction`,
 `CRNT.Geometry.FaithfulCurve`.
@@ -1001,6 +1006,141 @@ theorem hyperplaneArrangementFamily_isPolyhedralFan [CompleteSpace E] [Decidable
   faces_mem := fun _ hC _ hD => hyperplaneArrangementFamily_faces_mem hC hD
   inter_common := fun _ hC _ hD => hyperplaneArrangementFamily_inter_common hC hD
   covers := hyperplaneArrangementFamily_covers T
+
+/-- Choose a point in a finite-dual cone that is strict on every inequality that can be strict.
+The witness is the sum of one point witnessing each such inequality. -/
+theorem exists_strict_point_for_finite_dual [CompleteSpace E] [DecidableEq E]
+    (S : Finset E) :
+    ∃ x ∈ coneDual (S : Set E), ∀ v ∈ S,
+      (∃ y, y ∈ coneDual (S : Set E) ∧ 0 < ⟪v, y⟫_ℝ) →
+        0 < ⟪v, x⟫_ℝ := by
+  classical
+  let D := coneDual (S : Set E)
+  let P := S.filter (fun v => ∃ y, y ∈ D ∧ 0 < ⟪v, y⟫_ℝ)
+  have hWitness (v : E) (hv : v ∈ P) : ∃ y, y ∈ D ∧ 0 < ⟪v, y⟫_ℝ :=
+    (Finset.mem_filter.mp hv).2
+  let w : E → E := fun v =>
+    if hv : v ∈ P then Classical.choose (hWitness v hv) else 0
+  have hw (v : E) (hv : v ∈ P) : w v ∈ D ∧ 0 < ⟪v, w v⟫_ℝ := by
+    dsimp [w]
+    rw [dite_eq_left hv]
+    exact Classical.choose_spec (hWitness v hv)
+  let x := ∑ v ∈ P, w v
+  have hx : x ∈ D := by
+    change x ∈ coneDual (S : Set E)
+    apply Submodule.sum_mem
+    intro v hv
+    exact (hw v hv).1
+  refine ⟨x, hx, ?_⟩
+  intro v hv hpositive
+  have hvP : v ∈ P := Finset.mem_filter.mpr ⟨hv, hpositive⟩
+  have hsum : ⟪v, x⟫_ℝ = ∑ u ∈ P, ⟪v, w u⟫_ℝ := by
+    simp [x, inner_sum]
+  have hterms : ∀ u ∈ P, 0 ≤ ⟪v, w u⟫_ℝ := by
+    intro u hu
+    exact (mem_coneDual.mp (hw u hu).1) hv
+  have hle := Finset.single_le_sum hterms hvP
+  rw [hsum]
+  exact lt_of_lt_of_le (hw v hvP).2 hle
+
+/-- Collect one finite half-space representation for every cell in a finite fan. -/
+noncomputable def fanNormalSet [CompleteSpace E] [DecidableEq E]
+    (F : Fan E) (hF : HasDualFGCells F) : Finset E := by
+  classical
+  exact F.attach.biUnion (fun C => Classical.choose (hF C.1 C.2))
+
+theorem mem_fanNormalSet [CompleteSpace E] [DecidableEq E]
+    {F : Fan E} {hF : HasDualFGCells F} {C : ProperCone ℝ E}
+    (hC : C ∈ F) {s : E} (hs : s ∈ Classical.choose (hF C hC)) :
+    s ∈ fanNormalSet F hF := by
+  classical
+  change s ∈ F.attach.biUnion (fun C => Classical.choose (hF C.1 C.2))
+  apply Finset.mem_biUnion.mpr
+  exact ⟨⟨C, hC⟩, Finset.mem_attach _ _, hs⟩
+
+/-- The central arrangement of all finite half-space normals of a covering polyhedral fan refines
+that fan. A cell chooses a point strict on every inequality that can be strict; a fan cone containing
+that point then contains the whole cell. -/
+theorem hyperplaneArrangementFamily_refines_of_dualFG [CompleteSpace E] [DecidableEq E]
+    {F : Fan E} (hF : IsPolyhedralFan F) (hFdual : HasDualFGCells F) :
+    Refines (hyperplaneArrangementFamily (fanNormalSet F hFdual)) F := by
+  classical
+  let T := fanNormalSet F hFdual
+  intro D hD
+  obtain ⟨P, N, hPT, hNT, hPN, rfl⟩ := mem_hyperplaneArrangementFamily_iff.mp hD
+  let S := signCellNormals T P N
+  obtain ⟨x₀, hx₀, hstrict⟩ := exists_strict_point_for_finite_dual S
+  have hx₀cell : x₀ ∈ signCell T P N := by
+    change x₀ ∈ coneDual (S : Set E)
+    exact hx₀
+  have hsign₀ := mem_signCell.mp hx₀cell
+  have hx₀cover : x₀ ∈ ⋃ C ∈ F, (C : Set E) := by
+    rw [hF.covers]
+    simp
+  rcases Set.mem_iUnion.mp hx₀cover with ⟨C, hCmem⟩
+  rcases Set.mem_iUnion.mp hCmem with ⟨hCF, hx₀C⟩
+  let R := Classical.choose (hFdual C hCF)
+  have hRrep : (coneDual (R : Set E) : Set E) = (C : Set E) := by
+    have hpoint :
+        (coneDual (R : Set E) : PointedCone ℝ E) = (C : PointedCone ℝ E) := by
+      change PointedCone.dual (innerₗ E) (R : Set E) = (C : PointedCone ℝ E)
+      exact Classical.choose_spec (hFdual C hCF)
+    exact congrArg (fun K : PointedCone ℝ E => (K : Set E)) hpoint
+  have hRsubT : ∀ s ∈ R, s ∈ T := by
+    intro s hs
+    exact mem_fanNormalSet hCF hs
+  have hx₀R : ∀ s ∈ R, 0 ≤ ⟪s, x₀⟫_ℝ := by
+    intro s hs
+    have hx₀' : x₀ ∈ (coneDual (R : Set E) : Set E) := by
+      rw [hRrep]
+      exact hx₀C
+    exact (mem_coneDual.mp hx₀') hs
+  have hcell_subset : (signCell T P N : Set E) ⊆ (C : Set E) := by
+    intro y hy
+    have hyS : y ∈ coneDual (S : Set E) := by
+      change y ∈ signCell T P N
+      exact hy
+    rcases mem_signCell.mp hy with ⟨hP, hN, hZ⟩
+    have hyR : y ∈ coneDual (R : Set E) := by
+      apply mem_coneDual.mpr
+      intro s hs
+      have hsT : s ∈ T := hRsubT s hs
+      by_cases hsP : s ∈ P
+      · exact hP s hsP
+      · by_cases hsN : s ∈ N
+        · have hnegS : -s ∈ S := by
+            simp [S, signCellNormals, hsT, hsN]
+          have hx₀Neg : ⟪-s, x₀⟫_ℝ = 0 := by
+            have hnonneg := hx₀R s hs
+            have hnonpos : ⟪s, x₀⟫_ℝ ≤ 0 := by
+              have h := hsign₀.2.1 s hsN
+              simpa [inner_neg_left] using h
+            have hzero : ⟪s, x₀⟫_ℝ = 0 := le_antisymm hnonpos hnonneg
+            simpa [inner_neg_left] using hzero
+          have hnoPos : ¬ ∃ z, z ∈ signCell T P N ∧ 0 < ⟪-s, z⟫_ℝ := by
+            intro hex
+            have hpos := hstrict (-s) hnegS hex
+            exact (ne_of_gt hpos) hx₀Neg
+          have hyNeg : ⟪-s, y⟫_ℝ = 0 := by
+            have hnonneg : 0 ≤ ⟪-s, y⟫_ℝ := (mem_coneDual.mp hyS) hnegS
+            have hnotpos : ¬ 0 < ⟪-s, y⟫_ℝ := by
+              intro hpos
+              exact hnoPos ⟨y, hy, hpos⟩
+            linarith
+          have hyzero : ⟪s, y⟫_ℝ = 0 := by
+            simpa [inner_neg_left] using hyNeg
+          rw [hyzero]
+        · have hz := hZ s (Finset.mem_sdiff.mpr
+            ⟨hsT, by
+              intro h
+              rcases Finset.mem_union.mp h with hp | hn
+              · exact hsP hp
+              · exact hsN hn⟩)
+          rw [hz]
+    rw [← hRrep]
+    exact hyR
+  exact ⟨C, hCF, hcell_subset⟩
+
 
 /-- Negating a cone preserves dual finite generation: negate the finite set of half-space normals. -/
 theorem negatedProperCone_hasDualFG [CompleteSpace E] (C : ProperCone ℝ E)
