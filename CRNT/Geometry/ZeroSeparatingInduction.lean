@@ -3404,6 +3404,14 @@ structure CompactOneBitFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
         facePatch ∩ (fun y : Fin n → ℝ =>
           projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y) ''
             (baseTile i ∩ baseTile j)
+  /-- For arbitrary strip indices, the overlap of two lifted lower-dimensional patches is exactly
+  the common face patch over the intersection of their projected bases. This includes degenerate
+  fibers, where even nonadjacent closed strips may meet. -/
+  baseTile_strip_overlap : ∀ i j (k l : Fin (tiling.subdivisionCount + 1)),
+    (facePatch ∩ projectionFiberSubdivisionTile (baseTile i) lower upper k) ∩
+        (facePatch ∩ projectionFiberSubdivisionTile (baseTile j) lower upper l) =
+      facePatch ∩ (projectionFiberSubdivisionTile (baseTile i ∩ baseTile j) lower upper k ∩
+        projectionFiberSubdivisionTile (baseTile i ∩ baseTile j) lower upper l)
   /-- The face patch is exactly covered by its intersections with all generated strips. -/
   facePatch_eq_iUnion_tiles :
     facePatch = ⋃ p : Σ i : ι, Fin (tiling.subdivisionCount + 1),
@@ -3491,11 +3499,18 @@ noncomputable def compactOneBitFiberPatchCover_of_compactBand {n : ℕ} {ι : Ty
     exact Set.mem_iUnion.mpr ⟨i, hy⟩
   let tiling := compactProjectionFiberTiling_of_compactBase
     base lower upper epsilon hbaseCompact hlower hupper horder hepsilon
-  refine ⟨tiling, htileBase, hbaseTileInteriorsDisjoint, ?_, ?_, ?_, ?_⟩
+  refine ⟨tiling, htileBase, hbaseTileInteriorsDisjoint, ?_, ?_, ?_, ?_, ?_⟩
   · intro i j horderIJ k
     ext x
     have htiles := projectionFiberSubdivisionAdjacentTiles_intersection_eq_graph_over_base_intersection
       (baseTile i) (baseTile j) lower upper horderIJ k
+    have htilesAt := congrArg (fun s : Set (Fin (n + 1) → ℝ) => x ∈ s) htiles
+    simp only [Set.mem_inter_iff] at htilesAt ⊢
+    tauto
+  · intro i j k l
+    ext x
+    have htiles := projectionFiberSubdivisionTiles_intersection_eq_over_base_intersection
+      (baseTile i) (baseTile j) lower upper k l
     have htilesAt := congrArg (fun s : Set (Fin (n + 1) → ℝ) => x ∈ s) htiles
     simp only [Set.mem_inter_iff] at htilesAt ⊢
     tauto
