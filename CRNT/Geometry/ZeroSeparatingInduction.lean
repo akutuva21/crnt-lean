@@ -3114,6 +3114,35 @@ theorem projectionFiberSubdivisionAdjacentSeam_projects_onto_base {n m : ℕ}
       ⟨y, hy, rfl⟩, ?_⟩
     simp [projectionFiberSubdivisionEndpointGraphPoint, forgetLastCoordinate]
 
+/-- Two fiber strips with the same index over different projected base tiles agree exactly over
+the intersection of those bases. The vertical interpolation is global, so restriction to an old
+face commutes with the one-bit strip construction. -/
+theorem projectionFiberSubdivisionTiles_intersection_eq_over_base_intersection {n m : ℕ}
+    (base₁ base₂ : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (i j : Fin (m + 1)) :
+    projectionFiberSubdivisionTile base₁ lower upper i ∩
+        projectionFiberSubdivisionTile base₂ lower upper j =
+      projectionFiberSubdivisionTile (base₁ ∩ base₂) lower upper i ∩
+        projectionFiberSubdivisionTile (base₁ ∩ base₂) lower upper j := by
+  ext x
+  simp [projectionFiberSubdivisionTile, Set.mem_inter_iff, and_assoc, and_left_comm, and_comm]
+
+/-- Across two old projected faces, neighboring one-bit strips meet on the same endpoint graph
+over their common projected face. This is the overlap compatibility for applying Case 1.2 on
+multiple adjacent lower-dimensional patches. -/
+theorem projectionFiberSubdivisionAdjacentTiles_intersection_eq_graph_over_base_intersection
+    {n m : ℕ} (base₁ base₂ : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horder : ∀ y ∈ base₁ ∩ base₂, lower y ≤ upper y) (i : Fin m) :
+    projectionFiberSubdivisionTile base₁ lower upper i.castSucc ∩
+        projectionFiberSubdivisionTile base₂ lower upper i.succ =
+      (fun y : Fin n → ℝ =>
+        projectionFiberSubdivisionEndpointGraphPoint lower upper i.succ.castSucc y) ''
+          (base₁ ∩ base₂) := by
+  rw [projectionFiberSubdivisionTiles_intersection_eq_over_base_intersection
+    base₁ base₂ lower upper i.castSucc i.succ]
+  exact projectionFiberSubdivisionAdjacentTiles_intersection_eq_graph
+    (base₁ ∩ base₂) lower upper horder i
+
 /-- A shared endpoint seam is compact over a compact projected base when its boundary graphs are
 continuous. -/
 theorem isCompact_projectionFiberSubdivisionAdjacentSeam {n m : ℕ}
@@ -3185,6 +3214,50 @@ structure CompactProjectionFiberTiling {n : ℕ} (base : Set (Fin n → ℝ))
   fiber_width_le : ∀ (i : Fin (subdivisionCount + 1)) (y : Fin n → ℝ), y ∈ base →
     projectionFiberSubdivisionEndpoint lower upper i.succ y -
       projectionFiberSubdivisionEndpoint lower upper i.castSucc y ≤ epsilon
+
+/-- Restricting adjacent strips to an existing face patch preserves the exact endpoint-graph
+overlap. This is the seam compatibility needed when the lower-dimensional face is cut by the
+one-bit refinement. -/
+theorem CompactProjectionFiberTiling.restricted_adjacent_intersection_eq_seam
+    {n : ℕ} {base : Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ} {epsilon : ℝ}
+    (tiling : CompactProjectionFiberTiling base lower upper epsilon)
+    (facePatch : Set (Fin (n + 1) → ℝ)) (i : Fin tiling.subdivisionCount) :
+    (facePatch ∩ projectionFiberSubdivisionTile base lower upper i.castSucc) ∩
+        (facePatch ∩ projectionFiberSubdivisionTile base lower upper i.succ) =
+      facePatch ∩ (fun y : Fin n → ℝ =>
+        projectionFiberSubdivisionEndpointGraphPoint lower upper i.succ.castSucc y) '' base := by
+  ext x
+  have htiles := tiling.adjacent_tiles_intersect_in_endpointGraph i
+  have htilesAt := congrArg (fun s : Set (Fin (n + 1) → ℝ) => x ∈ s) htiles
+  simp only [Set.mem_inter_iff] at htilesAt ⊢
+  tauto
+
+/-- The projection of a restricted shared seam consists exactly of the old face's projected
+basepoints whose endpoint lift belongs to that face. This records the lower-dimensional incidence
+without incorrectly claiming that a face-restricted seam projects onto the whole parent base. -/
+theorem CompactProjectionFiberTiling.forget_restricted_seam_eq_endpoint_preimage
+    {n : ℕ} {base : Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ} {epsilon : ℝ}
+    (tiling : CompactProjectionFiberTiling base lower upper epsilon)
+    (facePatch : Set (Fin (n + 1) → ℝ)) (i : Fin tiling.subdivisionCount) :
+    forgetLastCoordinate n ''
+        (facePatch ∩ (fun y : Fin n → ℝ =>
+          projectionFiberSubdivisionEndpointGraphPoint lower upper i.succ.castSucc y) '' base) =
+      {y | y ∈ base ∧ projectionFiberSubdivisionEndpointGraphPoint
+        lower upper i.succ.castSucc y ∈ facePatch} := by
+  ext y
+  constructor
+  · rintro ⟨x, ⟨hxface, hxgraph⟩, rfl⟩
+    rcases hxgraph with ⟨z, hz, rfl⟩
+    have hproj : forgetLastCoordinate n
+        (projectionFiberSubdivisionEndpointGraphPoint lower upper i.succ.castSucc z) = z := by
+      simp [projectionFiberSubdivisionEndpointGraphPoint, forgetLastCoordinate]
+    rw [hproj]
+    exact ⟨hz, hxface⟩
+  · intro hy
+    refine ⟨projectionFiberSubdivisionEndpointGraphPoint lower upper i.succ.castSucc y,
+      ⟨hy.2, ?_⟩, ?_⟩
+    · exact ⟨y, hy.1, rfl⟩
+    · simp [projectionFiberSubdivisionEndpointGraphPoint, forgetLastCoordinate]
 
 /-- Compactness of the projected base supplies a uniform bound on the continuous fiber heights.
 Consequently, every positive target width admits a compact finite tiling with exact coverage and
@@ -3305,29 +3378,31 @@ noncomputable def compactOneBitFiberBlueprintRefinement_of_compactBand {n : ℕ}
   · intro i
     exact hfacePatchCompact.inter (tiling.tile_compact i)
 
-/-- A finite family of lower-dimensional base tiles, each refined into its own finite family of
-compact one-bit strips. The projected tile interiors are pairwise disjoint, and the dependent sigma
-index permits different subdivision counts on different base tiles. The resulting face patches
-have pairwise disjoint ambient interiors. -/
+/-- A finite family of lower-dimensional base tiles refined by one shared fiber subdivision. Using
+one global tiling is essential: adjacent lower-dimensional patches then use identical endpoint
+graphs on their overlaps, so the higher-dimensional pieces glue along the same seams. -/
 structure CompactOneBitFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
     (facePatch : Set (Fin (n + 1) → ℝ)) (base : Set (Fin n → ℝ))
     (baseTile : ι → Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
-    (epsilon : ι → ℝ) where
-  /-- The compact strip tiling constructed over each lower-dimensional base tile. -/
-  tiling : ∀ i, CompactProjectionFiberTiling (baseTile i) lower upper (epsilon i)
+    (epsilon : ℝ) where
+  /-- One compact strip tiling over the union base supplies a common subdivision count and common
+  endpoint graphs to every lower-dimensional patch. -/
+  tiling : CompactProjectionFiberTiling base lower upper epsilon
+  /-- Every lower-dimensional base tile is contained in the parent base. -/
+  baseTile_subset : ∀ i, baseTile i ⊆ base
   /-- The projected base tiles have disjoint ordinary interiors. -/
   baseTile_interiors_disjoint : ∀ i j, i ≠ j →
     interior (baseTile i) ∩ interior (baseTile j) = ∅
   /-- The face patch is exactly covered by its intersections with all generated strips. -/
   facePatch_eq_iUnion_tiles :
-    facePatch = ⋃ p : Σ i : ι, Fin ((tiling i).subdivisionCount + 1),
+    facePatch = ⋃ p : Σ i : ι, Fin (tiling.subdivisionCount + 1),
       facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2
   /-- Every restricted face piece is compact. -/
-  facePatch_tile_compact : ∀ p : Σ i : ι, Fin ((tiling i).subdivisionCount + 1),
+  facePatch_tile_compact : ∀ p : Σ i : ι, Fin (tiling.subdivisionCount + 1),
     IsCompact (facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2)
   /-- All refined face patches have pairwise disjoint ordinary ambient interiors. -/
   facePatch_tile_interiors_disjoint : ∀ p q : Σ i : ι,
-      Fin ((tiling i).subdivisionCount + 1), p ≠ q →
+      Fin (tiling.subdivisionCount + 1), p ≠ q →
     interior (facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2) ∩
       interior (facePatch ∩ projectionFiberSubdivisionTile (baseTile q.1) lower upper q.2) = ∅
 
@@ -3338,13 +3413,13 @@ theorem CompactOneBitFiberPatchCover.restrictedTile_diameter_control
     {n : ℕ} {ι : Type*} [Fintype ι]
     {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
     {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
-    {epsilon : ι → ℝ}
+    {epsilon : ℝ}
     (cover : CompactOneBitFiberPatchCover facePatch base baseTile lower upper epsilon)
     (hbaseTileCompact : ∀ i, IsCompact (baseTile i))
     (hlower : Continuous lower) (hupper : Continuous upper)
-    (δ : ℝ) (tolerance : ι → ℝ) (htolerance : ∀ i, 0 < tolerance i)
-    (hbudget : ∀ i, epsilon i + tolerance i < δ) (hδ : 0 < δ) :
-    ∀ p : Σ i : ι, Fin ((cover.tiling i).subdivisionCount + 1),
+    (δ tolerance : ℝ) (htolerance : 0 < tolerance)
+    (hbudget : epsilon + tolerance < δ) (hδ : 0 < δ) :
+    ∀ p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1),
       ∃ η : ℝ, 0 < η ∧ η < δ ∧
         ∀ x y,
           x ∈ facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2 →
@@ -3353,43 +3428,64 @@ theorem CompactOneBitFiberPatchCover.restrictedTile_diameter_control
   intro p
   obtain ⟨η, hη, hηδ, hdiam⟩ := exists_projectionFiberSubdivisionTile_modulus_of_compactBase
     (baseTile p.1) lower upper (hbaseTileCompact p.1) hlower hupper
-    (epsilon p.1) (tolerance p.1) δ (htolerance p.1) p.2
+    epsilon tolerance δ htolerance p.2
     (by
       intro z hz
-      exact (cover.tiling p.1).fiber_width_le p.2 z hz) (hbudget p.1) hδ
+      exact cover.tiling.fiber_width_le p.2 z (cover.baseTile_subset p.1 hz)) hbudget hδ
   refine ⟨η, hη, hηδ, ?_⟩
   intro x y hx hy hprojected
   exact hdiam x y hx.2 hy.2 hprojected
 
+/-- Neighboring one-bit strips above two lower-dimensional tiles meet on the endpoint graph over
+their common projected face. The shared count makes this seam canonical even when the lower tiles
+were assembled independently. -/
+theorem CompactOneBitFiberPatchCover.adjacent_base_tiles_share_seam
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ} {epsilon : ℝ}
+    (cover : CompactOneBitFiberPatchCover facePatch base baseTile lower upper epsilon)
+    (i j : ι) (horder : ∀ y ∈ baseTile i ∩ baseTile j, lower y ≤ upper y)
+    (k : Fin cover.tiling.subdivisionCount) :
+    (facePatch ∩ projectionFiberSubdivisionTile (baseTile i) lower upper k.castSucc) ∩
+        (facePatch ∩ projectionFiberSubdivisionTile (baseTile j) lower upper k.succ) =
+      facePatch ∩ (fun y : Fin n → ℝ =>
+        projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y) ''
+          (baseTile i ∩ baseTile j) := by
+  ext x
+  have htiles := projectionFiberSubdivisionAdjacentTiles_intersection_eq_graph_over_base_intersection
+    (baseTile i) (baseTile j) lower upper horder k
+  have htilesAt := congrArg (fun s : Set (Fin (n + 1) → ℝ) => x ∈ s) htiles
+  simp only [Set.mem_inter_iff] at htilesAt ⊢
+  tauto
+
 /-- Lift a finite compact cover of a projected base with pairwise disjoint interiors to a finite
-cover of a compact face patch in a bounded fiber band. Each lower tile receives its own positive
-width target and compact strip tiling; exact coverage, compactness, and pairwise ambient-interior
-disjointness of all restricted face pieces are derived. -/
+cover of a compact face patch in a bounded fiber band. A single subdivision over the full base
+guarantees exact coverage, compactness, pairwise ambient-interior disjointness, and aligned seams. -/
 noncomputable def compactOneBitFiberPatchCover_of_compactBand {n : ℕ} {ι : Type*}
     [Fintype ι] (facePatch : Set (Fin (n + 1) → ℝ)) (hfaceCompact : IsCompact facePatch)
     (base : Set (Fin n → ℝ)) (baseTile : ι → Set (Fin n → ℝ))
-    (lower upper : (Fin n → ℝ) → ℝ) (epsilon : ι → ℝ)
+    (lower upper : (Fin n → ℝ) → ℝ) (epsilon : ℝ)
     (hbaseCover : base = ⋃ i, baseTile i)
     (hbaseTileCompact : ∀ i, IsCompact (baseTile i))
     (hbaseTileInteriorsDisjoint : ∀ i j, i ≠ j →
       interior (baseTile i) ∩ interior (baseTile j) = ∅)
     (hlower : Continuous lower) (hupper : Continuous upper)
     (horder : ∀ y ∈ base, lower y ≤ upper y)
-    (hepsilon : ∀ i, 0 < epsilon i)
+    (hepsilon : 0 < epsilon)
     (hfaceBand : facePatch ⊆
       projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y))) :
     CompactOneBitFiberPatchCover facePatch base baseTile lower upper epsilon := by
   classical
+  have hbaseCompact : IsCompact base := by
+    rw [hbaseCover]
+    exact isCompact_iUnion hbaseTileCompact
   let htileBase : ∀ i, baseTile i ⊆ base := by
     intro i y hy
     rw [hbaseCover]
     exact Set.mem_iUnion.mpr ⟨i, hy⟩
-  let tiling : ∀ i, CompactProjectionFiberTiling (baseTile i) lower upper (epsilon i) := by
-    intro i
-    exact compactProjectionFiberTiling_of_compactBase
-      (baseTile i) lower upper (epsilon i) (hbaseTileCompact i) hlower hupper
-      (fun y hy => horder y (htileBase i hy)) (hepsilon i)
-  refine ⟨tiling, hbaseTileInteriorsDisjoint, ?_, ?_, ?_⟩
+  let tiling := compactProjectionFiberTiling_of_compactBase
+    base lower upper epsilon hbaseCompact hlower hupper horder hepsilon
+  refine ⟨tiling, htileBase, hbaseTileInteriorsDisjoint, ?_, ?_, ?_⟩
   · ext x
     constructor
     · intro hx
@@ -3402,14 +3498,18 @@ noncomputable def compactOneBitFiberPatchCover_of_compactBand {n : ℕ} {ι : Ty
           (fun y => some (lower y)) (fun y => some (upper y)) := by
         apply (mem_projectionFiberBand_bounded_iff (baseTile i) lower upper x).2
         exact ⟨hy, hlow, hhigh⟩
-      rw [(tiling i).tiles_cover] at hxLocal
+      rw [projectionFiberBand_bounded_eq_iUnion_subdivisionTiles
+        (m := tiling.subdivisionCount) (baseTile i) lower upper
+        (fun y hy => horder y (htileBase i hy))] at hxLocal
       obtain ⟨j, htile⟩ := Set.mem_iUnion.mp hxLocal
       exact Set.mem_iUnion.mpr ⟨⟨i, j⟩, ⟨hx, htile⟩⟩
     · intro hx
       obtain ⟨p, hpatch, _⟩ := Set.mem_iUnion.mp hx
       exact hpatch
   · intro p
-    exact hfaceCompact.inter ((tiling p.1).tile_compact p.2)
+    exact hfaceCompact.inter (isCompact_projectionFiberSubdivisionTile
+      (baseTile p.1) lower upper (hbaseTileCompact p.1) hlower hupper
+      (fun y hy => horder y (htileBase p.1 hy)) p.2)
   · intro p q hpq
     rcases p with ⟨i, k⟩
     rcases q with ⟨j, ℓ⟩
