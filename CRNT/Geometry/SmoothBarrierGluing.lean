@@ -175,6 +175,28 @@ theorem smoothMaxF_fderiv_le_neg {f g : E → ℝ} {f' g' : E →L[ℝ] ℝ} {x 
   rw [inv_mul_le_iff₀ hden]
   simpa [mul_comm] using hnum
 
+/-- A common upper bound on the two directional derivatives is preserved by binary smooth
+gluing. -/
+theorem smoothMaxF_fderiv_le_of_bound
+    {f g : E → ℝ} {f' g' : E →L[ℝ] ℝ} {x v : E} {M : ℝ}
+    (hf' : f' v ≤ M) (hg' : g' v ≤ M) :
+    (((Real.exp (f x) + Real.exp (g x))⁻¹ •
+        (Real.exp (f x) • f' + Real.exp (g x) • g')) v) ≤ M := by
+  simp only [ContinuousLinearMap.smul_apply, ContinuousLinearMap.add_apply]
+  have hden : 0 < Real.exp (f x) + Real.exp (g x) := by positivity
+  have hnum : Real.exp (f x) * f' v + Real.exp (g x) * g' v ≤
+      (Real.exp (f x) + Real.exp (g x)) * M := by
+    calc
+      Real.exp (f x) * f' v + Real.exp (g x) * g' v
+          ≤ Real.exp (f x) * M + Real.exp (g x) * M :=
+            add_le_add (mul_le_mul_of_nonneg_left hf' (Real.exp_pos _).le)
+              (mul_le_mul_of_nonneg_left hg' (Real.exp_pos _).le)
+      _ = (Real.exp (f x) + Real.exp (g x)) * M := by ring
+  change (Real.exp (f x) + Real.exp (g x))⁻¹ *
+      (Real.exp (f x) * f' v + Real.exp (g x) * g' v) ≤ M
+  rw [inv_mul_le_iff₀ hden]
+  exact hnum
+
 /-- Nonempty finite smooth maximum, represented by a head and a tail list. -/
 noncomputable def smoothMaxList (f : E → ℝ) : List (E → ℝ) → E → ℝ
   | [] => f
@@ -203,6 +225,30 @@ theorem exists_fderiv_smoothMaxList_le_neg
       refine ⟨D, ?_, ?_⟩
       · simpa [smoothMaxList, D] using hasFDerivAt_smoothMaxF hDf hDg
       · exact smoothMaxF_fderiv_le_neg hDf hDg hDfε hDgε
+
+/-- A finite smooth maximum preserves any common upper bound on its constituent directional
+derivatives. -/
+theorem exists_fderiv_smoothMaxList_le
+    {X : E → E} {x : E} {M : ℝ}
+    (f : E → ℝ) (fs : List (E → ℝ))
+    (hf : ∃ D : E →L[ℝ] ℝ, HasFDerivAt f D x ∧ D (X x) ≤ M)
+    (hfs : ∀ g ∈ fs, ∃ D : E →L[ℝ] ℝ, HasFDerivAt g D x ∧ D (X x) ≤ M) :
+    ∃ D : E →L[ℝ] ℝ, HasFDerivAt (smoothMaxList f fs) D x ∧ D (X x) ≤ M := by
+  induction fs generalizing f with
+  | nil =>
+      simpa [smoothMaxList] using hf
+  | cons g gs ih =>
+      obtain ⟨Df, hDf, hDfM⟩ := hf
+      have hg := hfs g (by simp)
+      have hgs : ∀ h ∈ gs, ∃ D : E →L[ℝ] ℝ, HasFDerivAt h D x ∧ D (X x) ≤ M := by
+        intro h hh
+        exact hfs h (by simp [hh])
+      obtain ⟨Dg, hDg, hDgM⟩ := ih g hg hgs
+      let D : E →L[ℝ] ℝ := (Real.exp (f x) + Real.exp (smoothMaxList g gs x))⁻¹ •
+        (Real.exp (f x) • Df + Real.exp (smoothMaxList g gs x) • Dg)
+      refine ⟨D, ?_, ?_⟩
+      · simpa [smoothMaxList, D] using hasFDerivAt_smoothMaxF hDf hDg
+      · exact smoothMaxF_fderiv_le_of_bound hDfM hDgM
 
 end SmoothBarrierGluing
 end CRNT
@@ -348,6 +394,32 @@ theorem exp_weighted_dominance_of_gap {a b K M ε : ℝ}
     _ = Real.exp (b + K) * ε := by rw [Real.exp_add]; ring
     _ ≤ Real.exp a * ε :=
       mul_le_mul_of_nonneg_right (Real.exp_le_exp.mpr hgap) hε
+
+end SmoothBarrierGluing
+end CRNT
+
+namespace CRNT
+namespace SmoothBarrierGluing
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+
+/-- A value gap lets one strictly descending chart control the smooth maximum even when the
+competing chart may point outward. The gap suppresses that chart's bounded positive derivative
+contribution by its smaller exponential weight. -/
+theorem exists_fderiv_smoothMaxF_nonpos_of_value_gap
+    {X : E → E} {x : E} {ε M K : ℝ}
+    (f g : E → ℝ) (hf : ∃ D : E →L[ℝ] ℝ, HasFDerivAt f D x ∧ D (X x) ≤ -ε)
+    (hg : ∃ D : E →L[ℝ] ℝ, HasFDerivAt g D x ∧ D (X x) ≤ M)
+    (hε : 0 ≤ ε) (hM : M ≤ Real.exp K * ε) (hgap : g x + K ≤ f x) :
+    ∃ D : E →L[ℝ] ℝ, HasFDerivAt (smoothMaxF f g) D x ∧ D (X x) ≤ 0 := by
+  obtain ⟨Df, hDf, hDfε⟩ := hf
+  obtain ⟨Dg, hDg, hDgM⟩ := hg
+  let D : E →L[ℝ] ℝ := (Real.exp (f x) + Real.exp (g x))⁻¹ •
+    (Real.exp (f x) • Df + Real.exp (g x) • Dg)
+  refine ⟨D, ?_, ?_⟩
+  · simpa [D] using hasFDerivAt_smoothMaxF hDf hDg
+  · exact smoothMaxF_fderiv_nonpos_of_weighted_dominance hDf hDg hε hDfε hDgM
+      (exp_weighted_dominance_of_gap hε hM hgap)
 
 end SmoothBarrierGluing
 end CRNT
