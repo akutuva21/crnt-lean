@@ -486,6 +486,81 @@ theorem Network.exists_negativeLogWall_on_oneBitFiberPatch
   exact N.exists_negativeLogWall_margin_on_small_patch κ z t hchart
     hpatchNonempty himage hdiam
 
+/-- A compact one-bit refinement admits a wall label on every nonempty restricted tile whenever
+the projected tiles are small enough for the endpoint graphs to vary within the local wall-chart
+budget. This packages the local selections as one assignment on the refined tile indices, ready
+for the later face-incidence and inward-orientation construction. -/
+theorem Network.exists_oneBitFiberPatchWallSelection
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base baseTile lower upper epsilon)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (t : Finset K) {ε δwall δcoord η tolerance : ℝ}
+    (hchart : ∀ y ∈ K, ∃ p ∈ t, ∀ q ∈ Metric.ball y δwall,
+      ε < ⟪(z p).1, toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ)
+    (himage : ∀ p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1),
+      ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2) ⊆ K)
+    (hmapDiam : ∀ p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1),
+      ∀ x ∈ facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2,
+      ∀ y ∈ facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2,
+      dist x y < δcoord → dist (ψ x) (ψ y) < δwall)
+    (hprojectedSmall : ∀ p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1),
+      ∀ a ∈ baseTile p.1, ∀ b ∈ baseTile p.1, dist a b < η)
+    (hendpointVariation : ∀ p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1),
+      ∀ a ∈ baseTile p.1, ∀ b ∈ baseTile p.1, dist a b < η →
+        dist (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint
+          lower upper p.2.succ a)
+          (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint
+            lower upper p.2.succ b) < tolerance)
+    (hηsmall : η < δcoord) (hbudget : epsilon + tolerance < δcoord)
+    (hδcoord : 0 < δcoord) :
+    ∃ selected : (Σ i : ι, Fin (cover.tiling.subdivisionCount + 1)) → Option K,
+      (∀ p, ¬ (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2).Nonempty → selected p = none) ∧
+      (∀ p wall, selected p = some wall → wall ∈ t ∧ ∀ q ∈
+        ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2),
+        ε < ⟪(z wall).1,
+          toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ) := by
+  classical
+  have hlocal : ∀ (p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1)),
+      (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2).Nonempty →
+      ∃ wall ∈ t, ∀ q ∈
+        ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2),
+        ε < ⟪(z wall).1,
+          toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ := by
+    intro p hne
+    exact N.exists_negativeLogWall_on_oneBitFiberPatch κ cover ψ z t hchart p
+      hne (himage p) (hmapDiam p) (hprojectedSmall p) (hendpointVariation p)
+      hηsmall hbudget hδcoord
+  let selected : (Σ i : ι, Fin (cover.tiling.subdivisionCount + 1)) → Option K :=
+    fun p => if hne : (facePatch ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2).Nonempty then
+      some (Classical.choose (hlocal p hne)) else none
+  refine ⟨selected, ?_, ?_⟩
+  · intro p hne
+    simp [selected, hne]
+  · intro p wall hselected
+    dsimp [selected] at hselected
+    split at hselected
+    · rename_i hne
+      have hwall : Classical.choose (hlocal p hne) = wall := by
+        simpa using hselected
+      rw [← hwall]
+      exact Classical.choose_spec (hlocal p hne)
+    · simp at hselected
+
 /-- A compact patch can be covered by finitely many small balls, each carrying one fixed
 inward wall on the entire ball. The radius is chosen so each patch has diameter below the local
 chart radius. -/
