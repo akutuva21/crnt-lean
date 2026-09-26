@@ -1,10 +1,12 @@
 import CRNT.Flux.PSemiflow
+import CRNT.Dynamics.LaSalle
 import CRNT.Graph.CycleCover
 import CRNT.Kinetics.Concentration
 import CRNT.Kinetics.MassAction
 import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Analysis.Calculus.Deriv.Pow
 import Mathlib.Analysis.Calculus.Deriv.Prod
+import Mathlib.Dynamics.OmegaLimit
 import Mathlib.LinearAlgebra.FiniteDimensional.Basic
 import Mathlib.Order.Filter.AtTopBot.Basic
 import Mathlib.Topology.Basic
@@ -12,7 +14,7 @@ import Mathlib.Topology.MetricSpace.Basic
 import Mathlib.Topology.Sequences
 
 open Filter
-open scoped Topology
+open scoped NNReal Topology
 
 /-!
 # Anderson–Shiu facet repulsion: a conditional estimate
@@ -1185,6 +1187,181 @@ theorem no_convergent_positive_orbit_to_repelling_face (N : Network S) (κ : N.R
   have hqu : q u < q T := ht u htu
   have hmon : q T ≤ q u := hqmono (Set.mem_Ici.mpr le_rfl) (Set.mem_Ici.mpr hTu) hTu
   exact (not_lt_of_ge hmon) hqu
+
+/-- **Local facet repulsion excludes a recurrent omega-limit face.** Let `W` be a fixed nonempty
+coordinate set, and suppose every omega-limit point lies on its zero face. If each omega-limit
+point has some neighborhood on which the squared `W`-mass has nonnegative derivative, then the
+positive orbit cannot accumulate on that face. Compactness is the recurrence bridge: the union of
+the local neighborhoods covers the omega-limit set, so the orbit eventually stays in that union;
+the squared `W`-mass is then nondecreasing, while omega accumulation on the zero face forces it
+arbitrarily close to zero.
+
+This handles repeated returns when one common face contains the full omega-limit set. It does not
+assume that a single local estimate at one point covers the whole omega-limit set. -/
+theorem no_omegaLimit_on_face_of_locally_repelling (N : Network S) (κ : N.RateConstants)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    {K : Set (Concentration S)} (hK : IsCompact K)
+    (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    {W : Finset S} (hW : W.Nonempty)
+    (hface : ∀ z ∈ omegaLimit atTop ϕ {x₀}, ∀ s ∈ W, z s = 0)
+    (hpos : ∀ t, 0 ≤ t → (γ x₀ t).Positive)
+    (hsol : ∀ t, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    (hlocal : ∀ z ∈ omegaLimit atTop ϕ {x₀}, ∃ ε : ℝ, 0 < ε ∧
+      ∀ x : Concentration S, x.Positive → (∀ s, |x s - z s| ≤ ε) →
+        0 ≤ ∑ s ∈ W, x s * N.massActionVectorField κ x s) :
+    False := by
+  classical
+  let Ω : Set (Concentration S) := omegaLimit atTop ϕ {x₀}
+  let U : Set (Concentration S) :=
+    ⋃ z : {z : Concentration S // z ∈ Ω},
+      Metric.ball z.1 (Classical.choose (hlocal z.1 z.2) / 2)
+  have hUopen : IsOpen U := isOpen_iUnion fun z => Metric.isOpen_ball
+  have hΩU : Ω ⊆ U := by
+    intro z hz
+    apply Set.mem_iUnion.2
+    refine ⟨⟨z, hz⟩, ?_⟩
+    rw [Metric.mem_ball, dist_self]
+    have hε := (Classical.choose_spec (hlocal z hz)).1
+    linarith
+  let ψ : ℝ≥0 → Concentration S := fun t => ϕ t x₀
+  have hUevent : ∀ᶠ t : ℝ≥0 in atTop, ψ t ∈ U := by
+    by_contra hnot
+    have hfrequent : ∃ᶠ t : ℝ≥0 in atTop, ψ t ∉ U := by
+      rw [Filter.not_eventually] at hnot
+      exact hnot
+    let Kbad : Set (Concentration S) := K ∩ Uᶜ
+    have hKbad : IsCompact Kbad := hK.inter_right (isClosed_compl_iff.mpr hUopen)
+    have hfrequentBad : ∃ᶠ t : ℝ≥0 in atTop, ψ t ∈ Kbad := by
+      have hboth := hfrequent.and_eventually (Filter.Eventually.of_forall hmaps)
+      exact hboth.mono fun t ht => ⟨ht.2, ht.1⟩
+    obtain ⟨y, hyKbad, hycluster⟩ := hKbad.exists_mapClusterPt_of_frequently hfrequentBad
+    have hyΩ : y ∈ Ω := by
+      apply (mem_omegaLimit_singleton_iff_mapClusterPt atTop ϕ x₀ y).2
+      exact hycluster
+    exact hyKbad.2 (hΩU hyΩ)
+  obtain ⟨T₀, hT₀⟩ := Filter.eventually_atTop.mp hUevent
+  let T : ℝ := max (T₀ : ℝ) 0
+  have hTnonneg : 0 ≤ T := le_max_right _ _
+  have hT₀le : (T₀ : ℝ) ≤ T := le_max_left _ _
+  have hUtail : ∀ t : ℝ, T ≤ t → γ x₀ t ∈ U := by
+    intro t ht
+    have ht0 : 0 ≤ t := le_trans hTnonneg ht
+    let tNN : ℝ≥0 := ⟨t, ht0⟩
+    have hge : T₀ ≤ tNN := by
+      exact_mod_cast le_trans hT₀le ht
+    have hmem := hT₀ tNN hge
+    simpa [ψ] using (hϕγ x₀ tNN).symm ▸ hmem
+  let q : ℝ → ℝ := fun t => ∑ s ∈ W, (γ x₀ t s) ^ 2
+  have hqderiv : ∀ t, T ≤ t → HasDerivAt q
+      (∑ s ∈ W, (2 * γ x₀ t s) * N.massActionVectorField κ (γ x₀ t) s) t := by
+    intro t ht
+    have ht0 : 0 ≤ t := le_trans hTnonneg ht
+    have hcoord : ∀ s, HasDerivAt (fun u => γ x₀ u s)
+        (N.massActionVectorField κ (γ x₀ t) s) t := by
+      intro s
+      exact (hasDerivAt_pi.mp (hsol t ht0)) s
+    have hterm : ∀ s, HasDerivAt (fun u => (γ x₀ u s) ^ 2)
+        ((2 * γ x₀ t s) * N.massActionVectorField κ (γ x₀ t) s) t := by
+      intro s
+      convert (hcoord s).pow 2 using 1
+      ring
+    have hsum : HasDerivAt (fun u => ∑ s ∈ W, (γ x₀ u s) ^ 2)
+        (∑ s ∈ W, (2 * γ x₀ t s) * N.massActionVectorField κ (γ x₀ t) s) t :=
+      HasDerivAt.fun_sum (fun s hs => hterm s)
+    simpa [q] using hsum
+  have hqcont : ContinuousOn q (Set.Ici T) := by
+    intro t ht
+    exact (hqderiv t (by simpa using ht)).continuousAt.continuousWithinAt
+  have hqdiff : DifferentiableOn ℝ q (interior (Set.Ici T)) := by
+    intro t ht
+    rw [interior_Ici, Set.mem_Ioi] at ht
+    exact (hqderiv t ht.le).differentiableAt.differentiableWithinAt
+  have hqmono : MonotoneOn q (Set.Ici T) := by
+    apply monotoneOn_of_deriv_nonneg (convex_Ici T) hqcont hqdiff
+    intro t ht
+    have htT : T < t := by simpa using ht
+    have ht0 : 0 ≤ t := le_trans hTnonneg htT.le
+    rw [(hqderiv t htT.le).deriv]
+    obtain ⟨z, hzball⟩ := Set.mem_iUnion.mp (hUtail t htT.le)
+    obtain ⟨hε, hrepel⟩ := Classical.choose_spec (hlocal z.1 z.2)
+    have hdist : dist (γ x₀ t) z.1 < Classical.choose (hlocal z.1 z.2) / 2 :=
+      Metric.mem_ball.mp hzball
+    have hclose : ∀ s, |γ x₀ t s - z.1 s| ≤ Classical.choose (hlocal z.1 z.2) := by
+      intro s
+      have hcoord : |γ x₀ t s - z.1 s| ≤ dist (γ x₀ t) z.1 := by
+        calc
+          |γ x₀ t s - z.1 s| = ‖(γ x₀ t - z.1) s‖ := by rw [Real.norm_eq_abs]; rfl
+          _ ≤ ‖γ x₀ t - z.1‖ := norm_le_pi_norm _ _
+          _ = dist (γ x₀ t) z.1 := by rw [dist_eq_norm]
+      have hhalf : Classical.choose (hlocal z.1 z.2) / 2 ≤
+          Classical.choose (hlocal z.1 z.2) := by linarith [hε]
+      exact le_trans hcoord (le_trans hdist.le hhalf)
+    have hnonneg := hrepel (γ x₀ t) (hpos t ht0) hclose
+    have hfactor :
+        (∑ s ∈ W, (2 * γ x₀ t s) * N.massActionVectorField κ (γ x₀ t) s) =
+          2 * ∑ s ∈ W, γ x₀ t s * N.massActionVectorField κ (γ x₀ t) s := by
+      rw [Finset.mul_sum]
+      apply Finset.sum_congr rfl
+      intro s hs
+      ring
+    rw [hfactor]
+    exact mul_nonneg (by norm_num) hnonneg
+  have hqpos : 0 < q T := by
+    dsimp [q]
+    obtain ⟨s, hs⟩ := hW
+    exact Finset.sum_pos' (fun u hu => sq_nonneg (γ x₀ T u))
+      ⟨s, hs, sq_pos_of_pos (hpos T hTnonneg s)⟩
+  let qState : Concentration S → ℝ := fun x => ∑ s ∈ W, (x s) ^ 2
+  have hqStateCont : Continuous qState :=
+    continuous_finsetSum _ fun s _ => (continuous_apply s).pow 2
+  have hsubK : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆ K := by
+    rintro y ⟨t, -, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst x
+    exact hmaps t
+  have habs : ∃ v ∈ (atTop : Filter ℝ≥0),
+      closure (Set.image2 ϕ v {x₀}) ⊆ K :=
+    ⟨Set.univ, Filter.univ_mem,
+      (IsClosed.closure_subset_iff hK.isClosed).mpr hsubK⟩
+  obtain ⟨w, hw⟩ :=
+    nonempty_omegaLimit_of_isCompact_absorbing atTop ϕ {x₀} hK habs
+      (Set.singleton_nonempty x₀)
+  have hqw : qState w = 0 := by
+    dsimp [qState]
+    apply Finset.sum_eq_zero
+    intro s hs
+    rw [hface w hw s hs]
+    norm_num
+  have hcluster : ClusterPt (qState w)
+      (Filter.map (fun t : ℝ≥0 => qState (ϕ t x₀)) atTop) := by
+    rw [mem_omegaLimit_singleton_iff_mapClusterPt] at hw
+    exact hw.continuousAt_comp hqStateCont.continuousAt
+  have hopen : Set.Iio (q T) ∈ 𝓝 (qState w) := by
+    rw [hqw]
+    exact Iio_mem_nhds hqpos
+  have hev : Set.Ici (q T) ∈
+      Filter.map (fun t : ℝ≥0 => qState (ϕ t x₀)) atTop := by
+    rw [Filter.mem_map]
+    refine Filter.eventually_atTop.mpr ⟨⟨T, hTnonneg⟩, ?_⟩
+    intro t ht
+    have htT : T ≤ (t : ℝ) := by exact_mod_cast ht
+    have hmono := hqmono (Set.mem_Ici.mpr le_rfl) (Set.mem_Ici.mpr htT) htT
+    change qState (ϕ t x₀) ∈ Set.Ici (q T)
+    rw [hϕγ x₀ t]
+    simpa [q, qState] using hmono
+  haveI hne : (𝓝 (qState w) ⊓
+      Filter.map (fun t : ℝ≥0 => qState (ϕ t x₀)) atTop).NeBot := hcluster
+  have hmem := Filter.inter_mem (Filter.mem_inf_of_left hopen) (Filter.mem_inf_of_right hev)
+  have hdisj : Set.Iio (q T) ∩ Set.Ici (q T) = (∅ : Set ℝ) := by
+    ext y
+    simp only [Set.mem_inter_iff, Set.mem_Iio, Set.mem_Ici, Set.mem_empty_iff_false,
+      iff_false, not_and]
+    intro hy
+    exact not_le.mpr hy
+  rw [hdisj] at hmem
+  exact Filter.empty_notMem _ hmem
 
 /-- A convergent positive mass-action orbit cannot approach a codimension-one compatibility
 face when the Anderson--Shiu facet hypotheses hold. This gives convergence exclusion at a
