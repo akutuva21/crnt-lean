@@ -1945,6 +1945,20 @@ theorem exists_compact_separated_zeroBitGraphTube_over_tile {n : ℕ}
     rw [← hrestrict] at hx
     exact hseparated hx.1
 
+/-- Two graph tubes with the same center and radius intersect exactly over the intersection of
+their projected bases. This gives the set-level seam identity for a zero-bit finite cover. -/
+theorem projectionFiberTube_inter_of_same_center {n : ℕ}
+    (base₁ base₂ : Set (Fin n → ℝ)) (center : (Fin n → ℝ) → ℝ) (radius : ℝ) :
+    projectionFiberTube base₁ center radius ∩ projectionFiberTube base₂ center radius =
+      projectionFiberTube (base₁ ∩ base₂) center radius := by
+  ext x
+  simp only [Set.mem_inter_iff, mem_projectionFiberTube_iff]
+  constructor
+  · rintro ⟨⟨h₁, hw₁⟩, h₂, hw₂⟩
+    exact ⟨⟨h₁, h₂⟩, hw₁⟩
+  · rintro ⟨⟨h₁, h₂⟩, hw⟩
+    exact ⟨⟨h₁, hw⟩, h₂, hw⟩
+
 /-- The zero-bit counterpart of a finite fiber-patch cover: one continuous graph section is shared
 across all lower tiles, while each tile receives its own compact separated tube. -/
 structure CompactZeroBitFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
@@ -1963,6 +1977,11 @@ structure CompactZeroBitFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
   tile_tube_compact : ∀ i, IsCompact (projectionFiberTube (baseTile i) center radius)
   tile_tube_projects : ∀ i,
     forgetLastCoordinate n '' projectionFiberTube (baseTile i) center radius = baseTile i
+  /-- Patches meet exactly in the tube over the common part of their projected bases. -/
+  tile_tube_intersection : ∀ i j,
+    projectionFiberTube (baseTile i) center radius ∩
+      projectionFiberTube (baseTile j) center radius =
+        projectionFiberTube (baseTile i ∩ baseTile j) center radius
   /-- The part of the face patch above each lower tile lies in that tile's tube. -/
   tile_facePatch_subset : ∀ i,
     (facePatch ∩ {x | forgetLastCoordinate n x ∈ baseTile i}) ⊆
@@ -1999,7 +2018,7 @@ noncomputable def compactZeroBitFiberPatchCover_of_compactBaseCover {n : ℕ} {�
     intro i y hy
     rw [hbaseCover]
     exact Set.mem_iUnion.mpr ⟨i, hy⟩
-  refine ⟨center, hcenter, hface, hfaceTube, ?_, ?_, ?_, ?_, sub_pos.mpr hsmall, hradius, ?_⟩
+  refine ⟨center, hcenter, hface, hfaceTube, ?_, ?_, ?_, ?_, ?_, hpositive, hradius, ?_⟩
   · rw [← projectionFiberTube_eq_iUnion_of_base_cover
       (chain.face (Fin.last n).castSucc) baseTile center radius hbaseCover]
     exact hfaceTube
@@ -2008,6 +2027,9 @@ noncomputable def compactZeroBitFiberPatchCover_of_compactBaseCover {n : ℕ} {�
       (htileCompact i) (hcenter.mono (htileBase i)) hradius
   · intro i
     exact projectionFiberTube_projects_onto_base (baseTile i) center hradius
+  · intro i j
+    exact projectionFiberTube_inter_of_same_center
+      (baseTile i) (baseTile j) center radius
   · intro i x hx
     have hrestrict := projectionFiberTube_restrict_to_tile
       (chain.face (Fin.last n).castSucc) (baseTile i) center radius (htileBase i)

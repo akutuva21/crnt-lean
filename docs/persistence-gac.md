@@ -240,7 +240,8 @@ an explicit hypothesis, never a `sorry`:
    finite cover of the base lifts to an exact cover by those tile tubes. This is still set-level
    tube geometry. `compactZeroBitFiberPatchCover_of_compactBaseCover` packages that lift for an
    arbitrary finite compact cover of the projected face, with a shared continuous center, compact
-   tile tubes, exact tile projections, and the inherited separation margin. On the one-bit side,
+   tile tubes, exact tile projections, the inherited separation margin, and exact overlaps along
+   common projected bases. These are set-level seams only. On the one-bit side,
    compactProjectionFiberTiling_of_compactBase now supplies
    finitely many compact strips with exact coverage, full base projection, width bounds, and
    continuous center graphs. Distinct strips have disjoint ordinary ambient interiors in the full
