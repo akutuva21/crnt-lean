@@ -401,6 +401,42 @@ theorem compactLabeledPatchCover_of_finiteOpenCover {n : ℕ}
   refine ⟨mesh, hmesh, hmeshBound, ?_⟩
   exact ⟨⟨cover, label, hpatch⟩⟩
 
+/-- A compact face can be tiled so each tile receives a simultaneous label from every one of a
+finite family of open chamber covers. This packages the cross-dimension chamber choices required
+for an n-faithful blueprint: a single refined patch lies in one selected chamber at each level. -/
+theorem compactLabeledPatchCover_of_finiteOpenCoverFamily {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (hbase : IsCompact base)
+    (κ : Fin m → Type*) [∀ j, Fintype (κ j)]
+    (region : ∀ j, κ j → Set (Fin n → ℝ))
+    (hregionOpen : ∀ j i, IsOpen (region j i))
+    (hregionCover : ∀ j, base ⊆ ⋃ i, region j i)
+    (maxMesh : ℝ) (hmaxMesh : 0 < maxMesh) :
+    ∃ mesh : ℝ, 0 < mesh ∧ mesh ≤ maxMesh ∧
+      Nonempty (@CompactLabeledPatchCover n base mesh (∀ j, κ j)
+        (inferInstance) (fun choice => ⋂ j, region j (choice j))) := by
+  classical
+  let jointRegion : (∀ j, κ j) → Set (Fin n → ℝ) :=
+    fun choice => ⋂ j, region j (choice j)
+  have hjointOpen (choice : ∀ j, κ j) : IsOpen (jointRegion choice) := by
+    apply isOpen_iInter_of_finite
+    intro j
+    exact hregionOpen j (choice j)
+  have hjointCover : base ⊆ ⋃ choice, jointRegion choice := by
+    intro x hx
+    have hhas : ∀ j, ∃ i, x ∈ region j i := by
+      intro j
+      exact Set.mem_iUnion.mp (hregionCover j hx)
+    let choice : ∀ j, κ j := fun j => Classical.choose (hhas j)
+    have hchoice : ∀ j, x ∈ region j (choice j) := by
+      intro j
+      exact Classical.choose_spec (hhas j)
+    apply Set.mem_iUnion.mpr ⟨choice, ?_⟩
+    exact Set.mem_iInter.mpr hchoice
+  obtain ⟨mesh, hmesh, hmeshBound, labeled⟩ :=
+    compactLabeledPatchCover_of_finiteOpenCover base hbase jointRegion hjointOpen
+      hjointCover maxMesh hmaxMesh
+  exact ⟨mesh, hmesh, hmeshBound, labeled⟩
+
 /-- An open map sends interiors into the interior of the image. -/
 theorem image_interior_subset_interior_image_of_isOpenMap
     {α β : Type*} [TopologicalSpace α] [TopologicalSpace β]
@@ -2913,6 +2949,25 @@ theorem compactZeroBitFiberPatchCover_of_compactProjectedFace {n : ℕ}
     cover.patch cover.patch_compact cover.patch_interiors_disjoint cover.cover margin radius
     hfaceSeparated hradius hsmall⟩
 
+/- A zero-bit local blueprint keeps the projected chamber label and chooses a representative on
+the shared graph section for every nonempty face patch above a base tile. -/
+structure CompactZeroBitLabeledFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
+    (facePatch : Set (Fin (n + 1) → ℝ)) (base : Set (Fin n → ℝ))
+    (baseTile : ι → Set (Fin n → ℝ)) (margin radius : ℝ)
+    {κ : Type*} [Fintype κ] (region : κ → Set (Fin n → ℝ)) where
+  cover : CompactZeroBitFiberPatchCover facePatch base baseTile margin radius
+  label : ι → κ
+  baseTile_subset_region : ∀ i, baseTile i ⊆ region (label i)
+  basepoint : ∀ i,
+    (facePatch ∩ {x | forgetLastCoordinate n x ∈ baseTile i}).Nonempty →
+      Fin (n + 1) → ℝ
+  basepoint_mem_tube : ∀ i hp,
+    basepoint i hp ∈ projectionFiberTube (baseTile i) cover.center radius
+  basepoint_projects_into_baseTile : ∀ i hp,
+    forgetLastCoordinate n (basepoint i hp) ∈ baseTile i
+  basepoint_projects_into_region : ∀ i hp,
+    forgetLastCoordinate n (basepoint i hp) ∈ region (label i)
+
 theorem compactZeroBitLabeledFiberPatchCover_of_openChambers {n : ℕ}
     (chain : CoordinateProjectedFaceChain (n + 1))
     (hbit : faceProjectionDimensionLetter
@@ -2929,10 +2984,10 @@ theorem compactZeroBitLabeledFiberPatchCover_of_openChambers {n : ℕ}
     ∃ mesh : ℝ, 0 < mesh ∧ mesh ≤ maxMesh ∧
       ∃ labeled : CompactLabeledPatchCover
           (chain.face (Fin.last n).castSucc) mesh region,
-        Nonempty
-          (letI : Fintype labeled.cover.Index := labeled.cover.fintypeIndex
-           CompactZeroBitFiberPatchCover (chain.face (Fin.last n).succ)
-             (chain.face (Fin.last n).castSucc) labeled.cover.patch margin radius) := by
+        letI : Fintype labeled.cover.Index := labeled.cover.fintypeIndex
+        Nonempty (CompactZeroBitLabeledFiberPatchCover
+          (chain.face (Fin.last n).succ) (chain.face (Fin.last n).castSucc)
+          labeled.cover.patch margin radius region) := by
   have hbaseCompact : IsCompact (chain.face (Fin.last n).castSucc) := by
     rw [← chain.projectedFace (Fin.last n)]
     exact hface.image (forgetLastAffine n).continuous_of_finiteDimensional
@@ -2942,10 +2997,35 @@ theorem compactZeroBitLabeledFiberPatchCover_of_openChambers {n : ℕ}
       hregionCover maxMesh hmaxMesh
   obtain ⟨labeled⟩ := hlabeled
   letI : Fintype labeled.cover.Index := labeled.cover.fintypeIndex
-  refine ⟨mesh, hmesh, hmeshBound, labeled, ?_⟩
-  exact ⟨compactZeroBitFiberPatchCover_of_compactBaseCover chain hbit hface
+  let cover := compactZeroBitFiberPatchCover_of_compactBaseCover chain hbit hface
     labeled.cover.patch labeled.cover.patch_compact labeled.cover.patch_interiors_disjoint
-    labeled.cover.cover margin radius hfaceSeparated hradius hsmall⟩
+    labeled.cover.cover margin radius hfaceSeparated hradius hsmall
+  let basepoint : (i : labeled.cover.Index) →
+      (chain.face (Fin.last n).succ ∩
+        {x | forgetLastCoordinate n x ∈ labeled.cover.patch i}).Nonempty →
+      Fin (n + 1) → ℝ := fun i hi =>
+    let x := Classical.choose hi
+    let y := forgetLastCoordinate n x
+    Fin.snoc y (cover.center y)
+  let basepointProjection : ∀ (i : labeled.cover.Index)
+      (hi : (chain.face (Fin.last n).succ ∩
+        {x | forgetLastCoordinate n x ∈ labeled.cover.patch i}).Nonempty),
+      forgetLastCoordinate n (basepoint i hi) ∈ labeled.cover.patch i := by
+    intro i hi
+    let x := Classical.choose hi
+    have hx := Classical.choose_spec hi
+    have hy : forgetLastCoordinate n x ∈ labeled.cover.patch i := hx.2
+    simpa [basepoint, x, forgetLastCoordinate] using hy
+  refine ⟨mesh, hmesh, hmeshBound, labeled, ?_⟩
+  refine ⟨⟨cover, labeled.label, labeled.patch_subset_region, basepoint, ?_,
+    basepointProjection, ?_⟩⟩
+  · intro i hi
+    have hy := basepointProjection i hi
+    rw [mem_projectionFiberTube_iff]
+    refine ⟨hy, ?_⟩
+    simpa [basepoint, forgetLastCoordinate] using cover.radius_nonneg
+  · intro i hi
+    exact labeled.patch_subset_region i (basepointProjection i hi)
 
 
 /-- Every equal-width subtile of a compact bounded fiber band is compact when the base is compact
@@ -3577,6 +3657,26 @@ structure CompactOneBitLabeledFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι
     forgetLastCoordinate n ''
       (facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2) ⊆
         region (label p)
+  /-- A centered representative for every nonempty restricted strip patch. -/
+  basepoint : (p : Σ i : ι, Fin ((cover.tiling i).subdivisionCount + 1)) →
+    (facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2).Nonempty →
+      Fin (n + 1) → ℝ
+  /-- The representative lies in the corresponding subdivided strip. -/
+  basepoint_mem_tile : ∀ (p : Σ i : ι, Fin ((cover.tiling i).subdivisionCount + 1))
+      (hp : (facePatch ∩
+        projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2).Nonempty),
+    basepoint p hp ∈ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2
+  /-- The basepoint projects into the lower-dimensional tile that generated this strip. -/
+  basepoint_projects_into_baseTile : ∀
+      (p : Σ i : ι, Fin ((cover.tiling i).subdivisionCount + 1))
+      (hp : (facePatch ∩
+        projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2).Nonempty),
+    forgetLastCoordinate n (basepoint p hp) ∈ baseTile p.1
+  /-- The representative projects into the chamber assigned to its base tile. -/
+  basepoint_projects_into_region : ∀ (p : Σ i : ι, Fin ((cover.tiling i).subdivisionCount + 1))
+      (hp : (facePatch ∩
+        projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2).Nonempty),
+    forgetLastCoordinate n (basepoint p hp) ∈ region (label p)
 
 /-- Craciun v3, §7.4.3, one-bit Case 1.2 with fan-chamber ownership preserved through the
 vertical strip subdivision. First make the projected base tiles small enough to lie in one open
@@ -3609,14 +3709,48 @@ theorem compactOneBitLabeledFiberPatchCover_of_openChambers {n : ℕ}
     labeled.cover.patch lower upper (fun _ => epsilon)
     labeled.cover.cover labeled.cover.patch_compact labeled.cover.patch_interiors_disjoint
     hlower hupper horder (fun _ => hepsilon) hfaceBand
+  let basepoint : (p : Σ i : labeled.cover.Index,
+      Fin ((cover.tiling i).subdivisionCount + 1)) →
+      (facePatch ∩ projectionFiberSubdivisionTile
+        (labeled.cover.patch p.1) lower upper p.2).Nonempty → Fin (n + 1) → ℝ :=
+    fun p hp =>
+      let x := Classical.choose hp
+      Fin.snoc (forgetLastCoordinate n x)
+        ((cover.tiling p.1).tile_center p.2 (forgetLastCoordinate n x))
+  let basepointProjection : ∀ (p : Σ i : labeled.cover.Index,
+      Fin ((cover.tiling i).subdivisionCount + 1))
+      (hp : (facePatch ∩ projectionFiberSubdivisionTile
+        (labeled.cover.patch p.1) lower upper p.2).Nonempty),
+      forgetLastCoordinate n (basepoint p hp) ∈ labeled.cover.patch p.1 := by
+    intro p hp
+    let x := Classical.choose hp
+    have hx := Classical.choose_spec hp
+    have hy : forgetLastCoordinate n x ∈ labeled.cover.patch p.1 := by
+      have hpiece := hx.2
+      change (let y := forgetLastCoordinate n x
+        y ∈ labeled.cover.patch p.1 ∧ _) at hpiece
+      exact hpiece.1
+    simpa [basepoint, x, forgetLastCoordinate] using hy
   refine ⟨mesh, hmesh, hmeshBound, labeled, ?_⟩
-  refine ⟨⟨cover, fun p => labeled.label p.1, ?_⟩⟩
-  intro p y hy
-  rcases hy with ⟨x, hx, hxy⟩
-  have htile := hx.2
-  change forgetLastCoordinate n x ∈ labeled.cover.patch p.1 ∧ _ at htile
-  apply labeled.patch_subset_region p.1
-  simpa [hxy] using htile.1
+  refine ⟨⟨cover, fun p => labeled.label p.1, ?_, basepoint, ?_, basepointProjection, ?_⟩⟩
+  · intro p y hy
+    rcases hy with ⟨x, hx, hxy⟩
+    have htile := hx.2
+    change forgetLastCoordinate n x ∈ labeled.cover.patch p.1 ∧ _ at htile
+    apply labeled.patch_subset_region p.1
+    simpa [hxy] using htile.1
+  · intro p hp
+    let x := Classical.choose hp
+    have hx := Classical.choose_spec hp
+    have hy : forgetLastCoordinate n x ∈ labeled.cover.patch p.1 := by
+      have hpiece := hx.2
+      change (let y := forgetLastCoordinate n x
+        y ∈ labeled.cover.patch p.1 ∧ _) at hpiece
+      exact hpiece.1
+    simpa [basepoint, x] using
+      (cover.tiling p.1).tile_center_mem p.2 (forgetLastCoordinate n x) hy
+  · intro p hp
+    exact labeled.patch_subset_region p.1 (basepointProjection p hp)
 
 /-! ## The ruled-surface step -/
 
