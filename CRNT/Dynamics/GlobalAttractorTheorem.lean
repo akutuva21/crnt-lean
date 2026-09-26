@@ -279,6 +279,52 @@ def PositiveOmegaPointForRates (N : Network S) (κ : N.RateConstants) : Prop :=
     x₀.Positive →
     ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive
 
+omit [DecidableEq S] [Fintype S] in
+/-- Craciun's invariant upper region keeps every concentration coordinate uniformly positive.
+Together with a compact orbit, these coordinate lower bounds pass to the omega-limit set and
+provide the positive omega-point needed by `PositiveOmegaPointForRates`. -/
+theorem exists_positive_omegaPoint_of_uniform_coordinate_lower_bounds
+    {ϕ : Flow ℝ≥0 (Concentration S)}
+    {γ : Concentration S → ℝ → Concentration S} {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hbounded : ∃ K : Set (Concentration S), IsCompact K ∧
+      ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hlower : ∀ s, ∃ ε : ℝ, 0 < ε ∧ ∀ t : ℝ, 0 ≤ t → ε ≤ γ x₀ t s) :
+    ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive := by
+  obtain ⟨K, hKcpt, hmaps⟩ := hbounded
+  have hsubK : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆ K := by
+    rintro z ⟨t, -, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst x
+    exact hmaps t
+  have habs : ∃ v ∈ (atTop : Filter ℝ≥0),
+      closure (Set.image2 ϕ v {x₀}) ⊆ K :=
+    ⟨Set.univ, univ_mem,
+      (IsClosed.closure_subset_iff hKcpt.isClosed).mpr hsubK⟩
+  obtain ⟨p, hp⟩ :=
+    nonempty_omegaLimit_of_isCompact_absorbing atTop ϕ {x₀} hKcpt habs
+      (Set.singleton_nonempty x₀)
+  refine ⟨p, hp, ?_⟩
+  intro s
+  obtain ⟨ε, hε, hcoordinate⟩ := hlower s
+  have hclosed : IsClosed {y : Concentration S | ε ≤ y s} :=
+    isClosed_Ici.preimage (continuous_apply s)
+  have horbit : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆
+      {y : Concentration S | ε ≤ y s} := by
+    rintro y ⟨t, -, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst x
+    rw [hϕγ]
+    exact hcoordinate t t.coe_nonneg
+  have hpclosed : p ∈ {y : Concentration S | ε ≤ y s} := by
+    have hωsub : omegaLimit atTop ϕ {x₀} ⊆
+        closure (Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀}) :=
+      omegaLimit_subset_closure_image2 (f := atTop) (ϕ := ϕ) (s := {x₀})
+        (u := Set.univ) univ_mem
+    have hclosure := (IsClosed.closure_subset_iff hclosed).mpr horbit
+    exact (hωsub.trans hclosure) hp
+  exact lt_of_lt_of_le hε hpclosed
+
 /-- The positive-omega kernel closes when the stoichiometric subspace is trivial: compactness
 makes the omega-limit set nonempty, and affine invariance pins every omega-point to the positive
 initial state. This is the zero-dimensional base case for a dimension-inductive proof of the full
