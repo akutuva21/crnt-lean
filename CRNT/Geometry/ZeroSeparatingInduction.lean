@@ -772,6 +772,85 @@ def binaryWordMaxChildPrefix (n : ℕ) (p : List Bool) : List Bool :=
 noncomputable def binaryWordLowerEndpointScale (n : ℕ) (q : ℝ) (p : List Bool) : ℝ :=
   q ^ binaryWordValue (p ++ [false] ++ List.replicate (n - p.length) true)
 
+/-- The paper's width function on a binary prefix: zero-ending prefixes use the lower scale of
+their last-zero chain, while prefixes ending in `1` have width zero. Words longer than the ambient
+dimension and the empty prefix are assigned zero, since they are not used as coordinates. -/
+noncomputable def craciunBinaryWordEpsilon (n : ℕ) (q : ℝ) (word : List Bool) : ℝ :=
+  if word.length ≤ n then
+    if word.getLast? = some false then
+      binaryWordLowerEndpointScale n q word.dropLast
+    else 0
+  else 0
+
+/-- Every Craciun prefix width is nonnegative when the geometric ratio parameter is positive. -/
+theorem craciunBinaryWordEpsilon_nonneg {n : ℕ} {q : ℝ} (hq : 0 < q)
+    (word : List Bool) : 0 ≤ craciunBinaryWordEpsilon n q word := by
+  unfold craciunBinaryWordEpsilon
+  by_cases hlen : word.length ≤ n
+  · simp [hlen]
+    split_ifs
+    · unfold binaryWordLowerEndpointScale
+      exact (pow_pos hq _).le
+    · exact le_rfl
+  · simp [hlen]
+
+/-- A prefix ending in `1` contributes no width to the Craciun fiber box. -/
+theorem craciunBinaryWordEpsilon_eq_zero_of_getLast_true {n : ℕ} (q : ℝ)
+    (word : List Bool) (hlast : word.getLast? = some true) :
+    craciunBinaryWordEpsilon n q word = 0 := by
+  unfold craciunBinaryWordEpsilon
+  split_ifs with hlen hfalse
+  · rw [hlast] at hfalse
+    cases hfalse
+  · rfl
+  · rfl
+
+/-- A nonempty prefix ending in `0` has a strictly positive Craciun width whenever `q > 0`. -/
+theorem craciunBinaryWordEpsilon_pos_of_getLast_false {n : ℕ} {q : ℝ} (hq : 0 < q)
+    (word : List Bool) (hlen : word.length ≤ n)
+    (hlast : word.getLast? = some false) :
+    0 < craciunBinaryWordEpsilon n q word := by
+  simpa [craciunBinaryWordEpsilon, hlen, hlast, binaryWordLowerEndpointScale] using
+    (pow_pos hq (binaryWordValue
+      (word.dropLast ++ [false] ++ List.replicate (n - word.dropLast.length) true)))
+
+/-- At a zero-ending word, the concrete prefix-width function is exactly the corresponding
+last-zero-chain lower endpoint scale. -/
+theorem craciunBinaryWordEpsilon_eq_lowerEndpoint {n : ℕ} (q : ℝ) (p : List Bool)
+    (hlen : (p ++ [false]).length ≤ n) :
+    craciunBinaryWordEpsilon n q (p ++ [false]) = binaryWordLowerEndpointScale n q p := by
+  have hlen' : p.length + 1 ≤ n := by simpa [List.length_append] using hlen
+  have hlast : (p ++ [false]).getLast? = some false := by simp
+  have hdrop : (p ++ [false]).dropLast = p := by simp
+  simp [craciunBinaryWordEpsilon, hlen', hlast, hdrop]
+
+/-- The paper's fiber box in coordinate dimension `d`, using the width function of the fixed
+ambient construction dimension `depth`. Keeping `depth` fixed makes projection recursion exact. -/
+noncomputable def craciunBinaryWordFiberBox {d : ℕ} (depth : ℕ) (q : ℝ)
+    (word : List Bool) : Set (Fin d → ℝ) :=
+  binaryWordFiberBox (craciunBinaryWordEpsilon depth q) word
+
+/-- Craciun fiber boxes project recursively under deletion of the final coordinate. -/
+theorem forgetLastCoordinate_image_craciunBinaryWordFiberBox {d depth : ℕ} {q : ℝ}
+    (hq : 0 < q) (word : List Bool) :
+    forgetLastCoordinate d '' craciunBinaryWordFiberBox (d := d + 1) depth q word =
+      craciunBinaryWordFiberBox (d := d) depth q (word.take d) :=
+  forgetLastCoordinate_image_binaryWordFiberBox
+    (craciunBinaryWordEpsilon depth q) word
+    (craciunBinaryWordEpsilon_nonneg hq)
+
+/-- For a word ending in `1`, the final coordinate of its Craciun fiber box is exactly zero. -/
+theorem craciunBinaryWordFiberBox_lastCoordinate_eq_zero {d depth : ℕ} {q : ℝ}
+    (word : List Bool) (p : List Bool) (hword : word = p ++ [true])
+    (hlen : word.length = d + 1) {x : Fin (d + 1) → ℝ}
+    (hx : x ∈ craciunBinaryWordFiberBox (d := d + 1) depth q word) :
+    x (Fin.last d) = 0 := by
+  apply binaryWordFiberBox_lastCoordinate_eq_zero
+    (craciunBinaryWordEpsilon depth q) word p hword hlen
+  · exact craciunBinaryWordEpsilon_eq_zero_of_getLast_true (n := depth) q
+      (p ++ [true]) (by simp)
+  · exact hx
+
 /-- Base epsilon value at the maximal zero-ending descendant of the ordinary chain rooted at `p`. -/
 noncomputable def binaryWordUpperEndpointScale (n : ℕ) (q : ℝ) (p : List Bool) : ℝ :=
   q ^ binaryWordValue (binaryWordMaxChildPrefix n p ++ [false])
@@ -893,6 +972,31 @@ theorem binaryWordTileScale_on_chainWord {n : ℕ} (lo hi : List Bool → ℝ) (
   unfold binaryWordTileScale
   simp_rw [binaryWordChainIndex_of_chainWord p k]
   rfl
+
+/-- Every zero-ending prefix width is the scale at position zero in its last-zero refinement
+chain. This connects the Cartesian fiber boxes to the existing multiplicative scale hierarchy. -/
+theorem coherentBinaryWordTileScale_eq_craciunBinaryWordEpsilon_of_zero
+    {n : ℕ} (q : ℝ) (p : List Bool)
+    (hlen : (p ++ [false]).length ≤ n) :
+    coherentBinaryWordTileScale n q (p ++ [false]) hlen =
+      craciunBinaryWordEpsilon n q (p ++ [false]) := by
+  rw [craciunBinaryWordEpsilon_eq_lowerEndpoint q p hlen]
+  change binaryWordTileScale n (binaryWordLowerEndpointScale n q)
+      (binaryWordUpperEndpointScale n q) (binaryWordAllOnesEndpointScale n q)
+      (p ++ [false]) hlen = binaryWordLowerEndpointScale n q p
+  have hchain := binaryWordTileScale_on_chainWord
+    (binaryWordLowerEndpointScale n q) (binaryWordUpperEndpointScale n q)
+    (binaryWordAllOnesEndpointScale n q) p 0 (by simpa using hlen)
+  rw [show binaryWordTileScale n (binaryWordLowerEndpointScale n q)
+      (binaryWordUpperEndpointScale n q) (binaryWordAllOnesEndpointScale n q)
+      (p ++ [false]) hlen =
+      binaryWordTileScale n (binaryWordLowerEndpointScale n q)
+        (binaryWordUpperEndpointScale n q) (binaryWordAllOnesEndpointScale n q)
+        (p ++ [false] ++ List.replicate 0 true) (by simpa using hlen) by simp]
+  rw [hchain]
+  exact (tileScaleInterpolation_endpoints (n := n - (p.length + 1))
+    (lo := binaryWordLowerEndpointScale n q p)
+    (hi := binaryWordUpperEndpointScale n q p)).1
 
 /-- Ordered endpoint scales make the assigned word scales strictly increase with the number of
 trailing ones on a fixed ordinary last-zero chain. -/
