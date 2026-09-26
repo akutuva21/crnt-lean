@@ -318,9 +318,12 @@ form. The sign content of strong endotacticity along the relative-entropy dissip
   `Dynamics/FacetRepulsionAndersonShiu.lean` formalizes the one-sign facet direction and a
   conditional version of Anderson–Shiu Theorem 3.2: `facet_repelling_of_data` derives the repulsion
   inequality when the facet direction, a nonnegative reaction contribution, and quantitative
-  monomial-domination bounds are supplied. Deriving the dominant reaction and those bounds from
-  weak reversibility and facet-interiority remains open, as does the finite-cover step needed to
-  turn local repulsion into persistence. Anderson's single-linkage tier argument is also not
+  monomial-domination bounds are supplied. `exists_positiveReaction_below_of_negativeReaction`
+  now derives, for each negative reaction, a positive reaction in its weakly reversible component
+  whose source is strictly smaller on every facet species. The witness may vary by reaction, so
+  the proof does not assume a global ordering across disconnected linkage classes. Uniform
+  monomial-domination bounds from facet-interiority and the finite-cover step needed to turn local
+  repulsion into persistence remain open. Anderson's single-linkage tier argument is also not
   formalized. Also open: in the toric-inclusion approach, the six explicit hypotheses
   enumerated above, none assembled into a persistence or GAC conclusion; and, in the permanence route,
   `StronglyEndotactic ⇒ permanent`.

@@ -1,4 +1,5 @@
 import CRNT.Flux.PSemiflow
+import CRNT.Graph.CycleCover
 import CRNT.Kinetics.Concentration
 import CRNT.Kinetics.MassAction
 import Mathlib.LinearAlgebra.FiniteDimensional.Basic
@@ -18,9 +19,11 @@ of the stoichiometric subspace onto the `W`-coordinates is one-dimensional, span
 some `v ∈ S`.  The proof then argues in three stages:
 
 1. `v|_W` has all coordinates of one sign;
-2. hence the `W`-projections of all complexes are totally ordered, so a minimal complex exists, and
-   weak reversibility supplies a reaction out of it that strictly increases every species of `W`;
-3. hence that reaction's monomial dominates near the facet interior, forcing `∑_{i ∈ W} x_i f_i(x) ≥ 0`.
+2. within a weakly reversible reaction component containing a negative reaction, a return path
+   supplies an increasing reaction whose source is strictly smaller on `W` than that negative
+   reaction's source;
+3. near a facet-interior point, quantitative bounds on complementary coordinates make the
+   increasing reaction's monomial dominate, forcing `∑_{i ∈ W} x_i f_i(x) ≥ 0`.
 
 The one-sign conclusion follows from a conservation-law obstruction: if `v|_W` had a negative
 coordinate `i` and a positive coordinate `j`, then `v j • e i - v i • e j` would be a nonnegative
@@ -163,10 +166,115 @@ theorem netGain_trichotomy_of_proj {W : Finset S} {v : S → ℝ} (hv : ∀ s �
     have : γ * v s ≤ 0 := mul_nonpos_of_nonpos_of_nonneg hγ.le (hv s hs).le
     linarith
 
-/-- **Stage 2b: the `W`-projections of the complexes are totally ordered, so a minimal one
-exists.**  Indexing the complexes by a finite nonempty type and recording each one's coordinate `c`
-along `v|_W` relative to a common base, the minimum of `c` picks out a complex whose `W`-profile is
-below every other's.  This is the paper's "minimal complex" `ỹ` with `ỹ|_W ≼ y|_W` for all `y`. -/
+/-- Along a directed path, a strict increase in one positive facet coordinate forces an
+increasing reaction before the endpoint is reached. The returned source remains connected to the
+endpoint by the suffix of the path. -/
+theorem exists_positiveReaction_before_of_reaches (N : Network S)
+    {W : Finset S} {v : S → ℝ} {γ : N.R → ℝ} {s₀ : S} (hs₀ : s₀ ∈ W)
+    (hv₀ : 0 < v s₀)
+    (hγ : ∀ r, ∀ s ∈ W, N.reactionVector r s = γ r * v s)
+    {a b : Complex S} (hab : N.Reaches a b)
+    (hpot : (a s₀ : ℝ) < (b s₀ : ℝ)) :
+    ∃ r : N.R, 0 < γ r ∧
+      ((N.reaction r).source s₀ : ℝ) < (b s₀ : ℝ) ∧
+      N.Reaches (N.reaction r).source b := by
+  revert hpot
+  induction hab using Relation.ReflTransGen.head_induction_on with
+  | refl =>
+      intro hpot
+      simp at hpot
+  | @head a c hac hcd ih =>
+      intro hpot
+      rcases hac with ⟨r, hrs, hrt⟩
+      by_cases hct : (c s₀ : ℝ) < (b s₀ : ℝ)
+      · exact ih hct
+      · have hba : (a s₀ : ℝ) < (c s₀ : ℝ) := by
+          have hcb : (b s₀ : ℝ) ≤ (c s₀ : ℝ) := le_of_not_gt hct
+          linarith
+        have hdiff : (c s₀ : ℝ) - (a s₀ : ℝ) = γ r * v s₀ := by
+          have h := hγ r s₀ hs₀
+          rw [Network.reactionVector_apply, hrs, hrt] at h
+          exact h
+        have hγpos : 0 < γ r := by
+          by_contra hnot
+          have hγnonpos : γ r ≤ 0 := le_of_not_gt hnot
+          have hmul : γ r * v s₀ ≤ 0 := mul_nonpos_of_nonpos_of_nonneg hγnonpos hv₀.le
+          linarith
+        refine ⟨r, hγpos, ?_, ?_⟩
+        · rw [hrs]
+          exact hpot
+        · rw [hrs]
+          exact (Reaches.single ⟨r, hrs, hrt⟩).trans hcd
+
+/-- The difference of the endpoints of any reaction path is a scalar multiple of the common
+facet direction on `W`. This is the path-level form of the one-dimensional projection condition. -/
+theorem reaches_Wdifference_is_smul (N : Network S)
+    {W : Finset S} {v : S → ℝ} {γ : N.R → ℝ}
+    (hγ : ∀ r, ∀ s ∈ W, N.reactionVector r s = γ r * v s)
+    {src dst : Complex S} (hab : N.Reaches src dst) :
+    ∃ α : ℝ, ∀ s ∈ W, (dst s : ℝ) - (src s : ℝ) = α * v s := by
+  induction hab using Relation.ReflTransGen.head_induction_on with
+  | refl =>
+      exact ⟨0, fun _ _ => by simp⟩
+  | @head a b habEdge _ ih =>
+      rcases habEdge with ⟨r, hrs, hrt⟩
+      obtain ⟨α, hα⟩ := ih
+      refine ⟨γ r + α, ?_⟩
+      intro s hs
+      have hedge : (b s : ℝ) - (a s : ℝ) = γ r * v s := by
+        have h := hγ r s hs
+        rw [Network.reactionVector_apply, hrs, hrt] at h
+        exact h
+      calc
+        (dst s : ℝ) - (a s : ℝ) =
+            ((dst s : ℝ) - (b s : ℝ)) + ((b s : ℝ) - (a s : ℝ)) := by ring
+        _ = α * v s + γ r * v s := by rw [hα s hs, hedge]
+        _ = (γ r + α) * v s := by ring
+
+/-- **Weak reversibility supplies a strictly smaller positive reaction for each negative one.**
+If reaction `r` loses mass on every species of the facet set `W`, follow the weak-reversibility
+return path from its target to its source. The path must cross the source's level in a positive
+reaction. Since every path displacement is parallel to the positive facet direction, that
+reaction's source is strictly below `r` on all of `W`. This supplies the exponent comparison for
+the near-facet estimate once the complementary monomial factors are bounded. The witness may depend
+on `r`; this handles multiple linkage classes without assuming their complex profiles are globally
+ordered. -/
+theorem exists_positiveReaction_below_of_negativeReaction (N : Network S)
+    (hwr : N.WeaklyReversible) {W : Finset S} {v : S → ℝ} {γ : N.R → ℝ}
+    (hv : ∀ s ∈ W, 0 < v s)
+    (hγ : ∀ r, ∀ s ∈ W, N.reactionVector r s = γ r * v s)
+    (r : N.R) (hrγ : γ r < 0) {s₀ : S} (hs₀ : s₀ ∈ W) :
+    ∃ ℓ : N.R, 0 < γ ℓ ∧
+      ∀ s ∈ W, (N.reaction ℓ).source s < (N.reaction r).source s := by
+  have htarget : ((N.reaction r).target s₀ : ℝ) < (N.reaction r).source s₀ := by
+    have hdiff := hγ r s₀ hs₀
+    rw [Network.reactionVector_apply] at hdiff
+    have hprod : γ r * v s₀ < 0 := mul_neg_of_neg_of_pos hrγ (hv s₀ hs₀)
+    linarith
+  obtain ⟨ℓ, hℓγ, hℓsource, hℓreach⟩ :=
+    N.exists_positiveReaction_before_of_reaches hs₀ (hv s₀ hs₀) hγ (hwr r) htarget
+  obtain ⟨α, hα⟩ := N.reaches_Wdifference_is_smul hγ hℓreach
+  have hαpos : 0 < α := by
+    have hdiff : 0 <
+        ((N.reaction r).source s₀ : ℝ) - ((N.reaction ℓ).source s₀ : ℝ) := by
+      linarith
+    by_contra hnot
+    have hαnonpos : α ≤ 0 := le_of_not_gt hnot
+    have hmul : α * v s₀ ≤ 0 := mul_nonpos_of_nonpos_of_nonneg hαnonpos (hv s₀ hs₀).le
+    linarith [hα s₀ hs₀]
+  refine ⟨ℓ, hℓγ, ?_⟩
+  intro s hs
+  have hdiff := hα s hs
+  have hprod : 0 < α * v s := mul_pos hαpos (hv s hs)
+  have hlt : ((N.reaction ℓ).source s : ℝ) < (N.reaction r).source s := by
+    linarith
+  exact_mod_cast hlt
+
+/-- **A conditional finite minimum on `W`.** For a finite nonempty family whose `W`-profiles share
+an affine coordinate along `v|_W`, the minimum of that coordinate picks out a profile below every
+other one. Weakly reversible components can instead be handled locally by
+`exists_positiveReaction_below_of_negativeReaction`; profiles in different components need not
+share a common affine base. -/
 theorem exists_minimal_on_W {ι : Type*} [Fintype ι] [Nonempty ι]
     {W : Finset S} {v : S → ℝ} (hv : ∀ s ∈ W, 0 < v s)
     (y : ι → S → ℝ) (c : ι → ℝ) (base : S → ℝ)
