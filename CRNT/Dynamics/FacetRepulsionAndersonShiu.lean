@@ -1187,8 +1187,9 @@ theorem no_convergent_positive_orbit_to_repelling_face (N : Network S) (κ : N.R
   exact (not_lt_of_ge hmon) hqu
 
 /-- A convergent positive mass-action orbit cannot approach a codimension-one compatibility
-face when the Anderson--Shiu facet hypotheses hold. This connects the local repulsion estimate to
-the omega-limit exclusion needed at a relative-interior facet point. -/
+face when the Anderson--Shiu facet hypotheses hold. This gives convergence exclusion at a
+relative-interior facet point; excluding a point from a general omega-limit set also requires
+controlling repeated returns to its neighborhood. -/
 theorem no_convergent_positive_orbit_to_facet (N : Network S) (κ : N.RateConstants)
     (hwr : N.WeaklyReversible) {W : Finset S} (hW : W.Nonempty)
     (hfacet : Module.finrank ℝ (LinearMap.ker ((projOn W).domRestrict N.stoichSubspace)) + 1
