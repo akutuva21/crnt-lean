@@ -260,5 +260,106 @@ theorem exists_uniform_eventual_tube_subset_of_finite_properCone_pairs
     exact Finset.single_le_sum (fun j hj => (hMiSpec j).1.le) (Finset.mem_univ i)
   exact (hMiSpec i).2 x hnear (lt_of_le_of_lt hMiLe hlarge)
 
+/-- A positive state with one sufficiently small coordinate has a large logarithmic norm. This
+is the radial estimate used in Craciun v3, Lemma 9.7: if a point of the candidate hypersurface
+lies outside the translated positive cube, one coordinate is small, hence its logarithm is far
+from the origin. -/
+theorem logCoords_norm_gt_of_small_coordinate {n : ℕ} {x : EuclideanSpace ℝ (Fin n)}
+    (i : Fin n) (hx : 0 < x.ofLp i) {M : ℝ} (hM : 0 < M)
+    (hsmall : x.ofLp i < Real.exp (-M)) :
+    M < ‖logCoords x‖ := by
+  have hlog : Real.log (x.ofLp i) < -M := by
+    simpa using Real.log_lt_log (hx) hsmall
+  have hlogneg : Real.log (x.ofLp i) < 0 := lt_trans hlog (neg_lt_zero.mpr hM)
+  have hcoord : M < ‖Real.log (x.ofLp i)‖ := by
+    rw [Real.norm_eq_abs, abs_of_neg hlogneg]
+    linarith
+  calc
+    M < ‖Real.log (x.ofLp i)‖ := hcoord
+    _ = ‖(logCoords x).ofLp i‖ := by rw [logCoords_ofLp]
+    _ ≤ ‖logCoords x‖ := PiLp.norm_apply_le _ _
+
+/-- The open unit cube in the positive orthant, written coordinatewise on Euclidean states. -/
+def positiveUnitCube (n : ℕ) : Set (EuclideanSpace ℝ (Fin n)) :=
+  {x | ∀ i, 0 < x.ofLp i ∧ x.ofLp i < 1}
+
+/-- The translate `(ε, …, ε) + [0,1]^n`, which is the excluded box in Craciun v3's ZSH
+condition. -/
+def translatedUnitCube (n : ℕ) (ε : ℝ) : Set (EuclideanSpace ℝ (Fin n)) :=
+  {x | ∀ i, ε ≤ x.ofLp i ∧ x.ofLp i ≤ 1 + ε}
+
+/-- A point of the positive unit cube outside its `ε`-translate has some coordinate below `ε`.
+This makes the geometric ZSH exclusion condition usable in the logarithmic norm estimate. -/
+theorem exists_coordinate_lt_epsilon_of_mem_positiveUnitCube_not_translatedUnitCube
+    {n : ℕ} {ε : ℝ} (hε : 0 < ε) {x : EuclideanSpace ℝ (Fin n)}
+    (hx : x ∈ positiveUnitCube n) (hout : x ∉ translatedUnitCube n ε) :
+    ∃ i, x.ofLp i < ε := by
+  by_contra h
+  push_neg at h
+  apply hout
+  intro i
+  have hxi := hx i
+  exact ⟨h i, by linarith [hxi.2]⟩
+
+/-- Craciun's common Lemma 9.7 radius, expressed on positive states. One coordinate below a
+uniform `ε` forces every fan cone that is `δ`-near the logarithmic state into its assigned larger
+cone, simultaneously for the whole finite family. This is the geometric scale-to-boundary step
+used before the normal-support argument. -/
+theorem exists_uniform_logSmall_state_mem_assigned_cones
+    {n : ℕ} [NeZero n] {ι : Type*} [Fintype ι] [Nonempty ι]
+    (C K : ι → ProperCone ℝ (EuclideanSpace ℝ (Fin n)))
+    (hinterior : ∀ i,
+      (C i : Set (EuclideanSpace ℝ (Fin n))) ⊆
+        interior (K i : Set (EuclideanSpace ℝ (Fin n))))
+    {δ : ℝ} (hδ : 0 < δ) :
+    ∃ ε : ℝ, 0 < ε ∧ ε < 1 ∧
+      ∀ x : EuclideanSpace ℝ (Fin n),
+        (∀ j, 0 < x.ofLp j) →
+        (∃ j, x.ofLp j < ε) →
+        ∀ i, Metric.infDist (logCoords x)
+            (C i : Set (EuclideanSpace ℝ (Fin n))) < δ →
+          logCoords x ∈ (K i : Set (EuclideanSpace ℝ (Fin n))) := by
+  obtain ⟨M, hM, hcontain⟩ :=
+    exists_uniform_eventual_tube_subset_of_finite_properCone_pairs C K hinterior hδ
+  let ε : ℝ := Real.exp (-(M + 1))
+  have hεpos : 0 < ε := Real.exp_pos _
+  have hεlt : ε < 1 := by
+    dsimp [ε]
+    rw [Real.exp_lt_one_iff]
+    linarith
+  refine ⟨ε, hεpos, hεlt, ?_⟩
+  intro x hxpositive hsmall i hnear
+  obtain ⟨j, hj⟩ := hsmall
+  have hexp : ε < Real.exp (-M) := by
+    dsimp [ε]
+    exact Real.exp_lt_exp.mpr (by linarith)
+  have hlarge : M < ‖logCoords x‖ :=
+    logCoords_norm_gt_of_small_coordinate j (hxpositive j) hM (lt_trans hj hexp)
+  exact hcontain i (logCoords x) hnear hlarge
+
+/-- The scale-to-boundary argument of Craciun v3, Lemma 9.7, in the form used for ZSHs. A
+positive point of the unit cube outside the translated `ε`-box has large logarithmic norm, so
+every fan cone within distance `δ` lies in its assigned larger cone. -/
+theorem exists_uniform_logCube_state_mem_assigned_cones
+    {n : ℕ} [NeZero n] {ι : Type*} [Fintype ι] [Nonempty ι]
+    (C K : ι → ProperCone ℝ (EuclideanSpace ℝ (Fin n)))
+    (hinterior : ∀ i,
+      (C i : Set (EuclideanSpace ℝ (Fin n))) ⊆
+        interior (K i : Set (EuclideanSpace ℝ (Fin n))))
+    {δ : ℝ} (hδ : 0 < δ) :
+    ∃ ε : ℝ, 0 < ε ∧ ε < 1 ∧
+      ∀ x : EuclideanSpace ℝ (Fin n),
+        x ∈ positiveUnitCube n → x ∉ translatedUnitCube n ε →
+        ∀ i, Metric.infDist (logCoords x)
+            (C i : Set (EuclideanSpace ℝ (Fin n))) < δ →
+          logCoords x ∈ (K i : Set (EuclideanSpace ℝ (Fin n))) := by
+  obtain ⟨ε, hε, hεone, hpoint⟩ :=
+    exists_uniform_logSmall_state_mem_assigned_cones C K hinterior hδ
+  refine ⟨ε, hε, hεone, ?_⟩
+  intro x hx hout i hnear
+  obtain ⟨j, hj⟩ :=
+    exists_coordinate_lt_epsilon_of_mem_positiveUnitCube_not_translatedUnitCube hε hx hout
+  apply hpoint x (fun j => (hx j).1) ⟨j, hj⟩ i hnear
+
 end CraciunZSH
 end CRNT
