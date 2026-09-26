@@ -1109,6 +1109,51 @@ theorem projectionFiberSubdivisionEndpoint_gap_le {n m : ℕ}
   rw [div_le_iff₀ (by positivity : 0 < ((m + 1 : ℕ) : ℝ))]
   nlinarith [hheight y hy]
 
+/-- Any bounded fiber height can be split into finitely many equal strips of width at most a
+prescribed positive `epsilon`. -/
+theorem exists_fiberSubdivision_count {height epsilon : ℝ}
+    (hheight : 0 ≤ height) (hepsilon : 0 < epsilon) :
+    ∃ m : ℕ, height ≤ ((m + 1 : ℕ) : ℝ) * epsilon := by
+  obtain ⟨N, hN⟩ := exists_nat_gt (height / epsilon)
+  have hNpos : 0 < N := by
+    by_contra h
+    have hNzero : N = 0 := Nat.eq_zero_of_not_pos h
+    subst N
+    have hquot : 0 ≤ height / epsilon := div_nonneg hheight hepsilon.le
+    exact (not_lt_of_ge hquot) (by simpa using hN)
+  have hNcast : height / epsilon < (N : ℝ) := by exact_mod_cast hN
+  have hmul : height < (N : ℝ) * epsilon := (div_lt_iff₀ hepsilon).mp hNcast
+  have hsucc : N - 1 + 1 = N := by omega
+  refine ⟨N - 1, ?_⟩
+  have hcast : ((N - 1 + 1 : ℕ) : ℝ) = (N : ℝ) := by exact_mod_cast hsucc
+  rw [hcast]
+  exact hmul.le
+
+/-- A common subdivision count works for every fiber over `base` whenever their heights share a
+finite upper bound. -/
+theorem exists_uniform_fiberSubdivision_count {n : ℕ} (base : Set (Fin n → ℝ))
+    (lower upper : (Fin n → ℝ) → ℝ) {height epsilon : ℝ}
+    (hheight : 0 ≤ height) (hwidth : ∀ y ∈ base, upper y - lower y ≤ height)
+    (hepsilon : 0 < epsilon) :
+    ∃ m : ℕ, ∀ y ∈ base, upper y - lower y ≤ ((m + 1 : ℕ) : ℝ) * epsilon := by
+  obtain ⟨m, hm⟩ := exists_fiberSubdivision_count hheight hepsilon
+  exact ⟨m, fun y hy => (hwidth y hy).trans hm⟩
+
+/-- One finite equal subdivision controls every bounded fiber over `base` to last-coordinate width
+at most `epsilon`. -/
+theorem exists_uniform_projectionFiberSubdivision {n : ℕ} (base : Set (Fin n → ℝ))
+    (lower upper : (Fin n → ℝ) → ℝ) {height epsilon : ℝ}
+    (hheight : 0 ≤ height) (hwidth : ∀ y ∈ base, upper y - lower y ≤ height)
+    (hepsilon : 0 < epsilon) :
+    ∃ m : ℕ, ∀ y ∈ base, ∀ i : Fin (m + 1),
+      projectionFiberSubdivisionEndpoint lower upper i.succ y -
+        projectionFiberSubdivisionEndpoint lower upper i.castSucc y ≤ epsilon := by
+  obtain ⟨m, hm⟩ := exists_uniform_fiberSubdivision_count base lower upper
+    hheight hwidth hepsilon
+  refine ⟨m, ?_⟩
+  intro y hy i
+  exact projectionFiberSubdivisionEndpoint_gap_le base lower upper epsilon hm i y hy
+
 /-- Every interpolation point stays between its prescribed endpoints. -/
 theorem tileScaleInterpolation_bounds {m : ℕ} {lo hi : ℝ} (hlohi : lo ≤ hi)
     (i : Fin (m + 2)) :
