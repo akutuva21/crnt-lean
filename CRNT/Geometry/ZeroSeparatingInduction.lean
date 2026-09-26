@@ -2176,6 +2176,94 @@ theorem disjoint_projectionFiberSubdivisionTile_ambientInteriors {n m : ℕ}
     simpa using hmem
   · simp
 
+/-- The point on a subdivision seam above `y`, obtained by lifting the shared endpoint into the
+next-dimensional coordinate space. -/
+noncomputable def projectionFiberSubdivisionEndpointGraphPoint {n m : ℕ}
+    (lower upper : (Fin n → ℝ) → ℝ) (i : Fin (m + 2)) (y : Fin n → ℝ) :
+    Fin (n + 1) → ℝ := Fin.snoc y (projectionFiberSubdivisionEndpoint lower upper i y)
+
+/-- The endpoint graph varies continuously with its projected point. -/
+theorem continuous_projectionFiberSubdivisionEndpointGraphPoint {n m : ℕ}
+    (lower upper : (Fin n → ℝ) → ℝ) (i : Fin (m + 2))
+    (hlower : Continuous lower) (hupper : Continuous upper) :
+    Continuous (projectionFiberSubdivisionEndpointGraphPoint lower upper i) := by
+  apply continuous_pi
+  intro j
+  cases j using Fin.lastCases with
+  | cast k =>
+      simp only [projectionFiberSubdivisionEndpointGraphPoint, Fin.snoc_castSucc]
+      exact continuous_apply k
+  | last =>
+      simp only [projectionFiberSubdivisionEndpointGraphPoint, Fin.snoc_last]
+      exact continuous_projectionFiberSubdivisionEndpoint lower upper i hlower hupper
+
+/-- Adjacent closed strips meet exactly on the graph of their common subdivision endpoint. -/
+theorem projectionFiberSubdivisionAdjacentTiles_intersection_eq_graph {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) (i : Fin m) :
+    projectionFiberSubdivisionTile base lower upper i.castSucc ∩
+      projectionFiberSubdivisionTile base lower upper i.succ =
+    (fun y : Fin n → ℝ =>
+      projectionFiberSubdivisionEndpointGraphPoint lower upper i.succ.castSucc y) '' base := by
+  ext x
+  constructor
+  · rintro ⟨hxleft, hxright⟩
+    let y := forgetLastCoordinate n x
+    let z := x (Fin.last n)
+    have hxy : Fin.snoc y z = x := by
+      ext j
+      cases j using Fin.lastCases with
+      | cast k => simp [y, z, forgetLastCoordinate, Fin.snoc_castSucc]
+      | last => simp [y, z, Fin.snoc_last]
+    have hleft := (mem_projectionFiberSubdivisionTile_snoc_iff
+      base lower upper i.castSucc y z).mp (by simpa [hxy] using hxleft)
+    have hright := (mem_projectionFiberSubdivisionTile_snoc_iff
+      base lower upper i.succ y z).mp (by simpa [hxy] using hxright)
+    have hindex : i.castSucc.succ = i.succ.castSucc := by
+      ext
+      simp
+    have hz : z = projectionFiberSubdivisionEndpoint lower upper i.succ.castSucc y := by
+      apply le_antisymm
+      · calc
+          z ≤ projectionFiberSubdivisionEndpoint lower upper i.castSucc.succ y := hleft.2.2
+          _ = projectionFiberSubdivisionEndpoint lower upper i.succ.castSucc y := by rw [hindex]
+      · exact hright.2.1
+    refine ⟨y, hleft.1, ?_⟩
+    calc
+      Fin.snoc y (projectionFiberSubdivisionEndpoint lower upper i.succ.castSucc y) =
+          Fin.snoc y z := by rw [hz]
+      _ = x := hxy
+  · rintro ⟨y, hy, hxy⟩
+    subst x
+    have hmono := tileScaleInterpolation_monotone_of_le (m := m) (horder y hy)
+    have hindex : i.castSucc.succ = i.succ.castSucc := by
+      ext
+      simp
+    constructor
+    · apply (mem_projectionFiberSubdivisionTile_snoc_iff
+        base lower upper i.castSucc y _).2
+      refine ⟨hy, ?_, ?_⟩
+      · exact hmono (Fin.castSucc_le_succ (i.castSucc))
+      · calc
+          projectionFiberSubdivisionEndpoint lower upper i.succ.castSucc y =
+              projectionFiberSubdivisionEndpoint lower upper i.castSucc.succ y := by rw [← hindex]
+          _ ≤ projectionFiberSubdivisionEndpoint lower upper i.castSucc.succ y := le_rfl
+    · apply (mem_projectionFiberSubdivisionTile_snoc_iff
+        base lower upper i.succ y _).2
+      refine ⟨hy, le_rfl, ?_⟩
+      exact hmono (Fin.castSucc_le_succ i.succ)
+
+/-- A shared endpoint seam is compact over a compact projected base when its boundary graphs are
+continuous. -/
+theorem isCompact_projectionFiberSubdivisionAdjacentSeam {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (hbase : IsCompact base) (hlower : Continuous lower) (hupper : Continuous upper)
+    (i : Fin m) :
+    IsCompact ((fun y : Fin n → ℝ =>
+      projectionFiberSubdivisionEndpointGraphPoint lower upper i.succ.castSucc y) '' base) := by
+  exact hbase.image (continuous_projectionFiberSubdivisionEndpointGraphPoint
+    lower upper i.succ.castSucc hlower hupper)
+
 /-- A certificate for the bounded Case 1.2 refinement: finitely many compact strips cover the
 filled fiber band, each strip projects onto the whole lower-dimensional base, and each vertical
 fiber width is at most `epsilon`. -/
@@ -2198,6 +2286,18 @@ structure CompactProjectionFiberTiling {n : ℕ} (base : Set (Fin n → ℝ))
   ambient_interiors_disjoint : ∀ i j, i ≠ j →
     interior (projectionFiberSubdivisionTile (m := subdivisionCount) base lower upper i) ∩
       interior (projectionFiberSubdivisionTile (m := subdivisionCount) base lower upper j) = ∅
+  /-- Adjacent closed strips meet exactly on the continuous graph of their shared endpoint. -/
+  adjacent_tiles_intersect_in_endpointGraph : ∀ i : Fin subdivisionCount,
+    projectionFiberSubdivisionTile base lower upper i.castSucc ∩
+      projectionFiberSubdivisionTile base lower upper i.succ =
+    (fun y : Fin n → ℝ =>
+      projectionFiberSubdivisionEndpointGraphPoint (m := subdivisionCount) lower upper
+        i.succ.castSucc y) '' base
+  /-- Each shared endpoint graph is compact when the base is compact. -/
+  adjacent_seams_compact : ∀ i : Fin subdivisionCount,
+    IsCompact ((fun y : Fin n → ℝ =>
+      projectionFiberSubdivisionEndpointGraphPoint (m := subdivisionCount) lower upper
+        i.succ.castSucc y) '' base)
   /-- The subtiles exactly cover the filled band. -/
   tiles_cover :
     projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y)) =
@@ -2259,6 +2359,14 @@ noncomputable def compactProjectionFiberTiling_of_compactBase {n : ℕ}
       intro i j hij
       exact disjoint_projectionFiberSubdivisionTile_ambientInteriors
         base lower upper horder i j hij
+    adjacent_tiles_intersect_in_endpointGraph := by
+      intro i
+      exact projectionFiberSubdivisionAdjacentTiles_intersection_eq_graph
+        base lower upper horder i
+    adjacent_seams_compact := by
+      intro i
+      exact isCompact_projectionFiberSubdivisionAdjacentSeam
+        base lower upper hbase hlower hupper i
     tiles_cover := projectionFiberBand_bounded_eq_iUnion_subdivisionTiles
       base lower upper horder
     tile_compact := fun i =>
