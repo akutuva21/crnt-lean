@@ -12,11 +12,12 @@ import Mathlib.LinearAlgebra.FiniteDimensional.Lemmas
 
 Section 7.2 of Craciun's construction assigns a bit to each one-coordinate projection: the bit is
 `1` exactly when that projection lowers the face dimension by one. This file isolates the finite
-combinatorics of that encoding. A `FaceProjectionDimensionProfile` records the dimensions along the
-projection chain and the required zero-or-one step bound; its code has one bit per projection, and
-the number of `1` bits recovers the final face dimension.
-
-The geometric proof that a given chain of faces supplies such a profile is a separate obligation.
+combinatorics of that encoding and the fiber geometry it records. A `FaceProjectionDimensionProfile`
+records the dimensions along the projection chain and the required zero-or-one step bound; its code
+has one bit per projection, and the number of `1` bits recovers the final face dimension. For an
+exactly projected affine-face chain, a `1` means the face contains the deleted-coordinate direction,
+while a `0` makes projection bijective on the face. The construction of the underlying subdivision
+and its chain of faces remains a separate obligation.
 -/
 
 namespace CRNT
@@ -459,6 +460,78 @@ theorem CoordinateProjectedFaceChain.dimensionLetter_true_iff_lastDirection_mem
       lastProjectionDirection j.val ∈
         (affineSpan ℝ (chain.face j.succ)).direction :=
   chain.toDirectionSubspaceChain.dimensionLetter_true_iff_lastDirection_mem j
+
+/-- If a face's projection bit is `0`, then projection is a bijection from that face to its
+projected face. The `1` case records a vertical ruling; this complementary `0` case says the face is
+the graph of a single-valued lift over its projection. This is the branch used to define the
+transversely thickened neighborhoods in the inductive pre-blueprint construction. -/
+noncomputable def CoordinateProjectedFaceChain.projectionEquiv_of_dimensionLetter_false
+    {n : ℕ} (chain : CoordinateProjectedFaceChain n) (j : Fin n)
+    (hbit : faceProjectionDimensionLetter
+      (fun k => Module.finrank ℝ ((affineSpan ℝ (chain.face k)).direction)) j = false) :
+    {x // x ∈ chain.face j.succ} ≃ {y // y ∈ chain.face j.castSucc} := by
+  let U := (affineSpan ℝ (chain.face j.succ)).direction
+  let proj : {x // x ∈ chain.face j.succ} → {y // y ∈ chain.face j.castSucc} := fun x =>
+    ⟨forgetLastAffine j.val x.1, by
+      have hx := Set.mem_image_of_mem (forgetLastAffine j.val) x.2
+      rw [chain.projectedFace j] at hx
+      exact hx⟩
+  apply Equiv.ofBijective proj
+  constructor
+  · intro x y hxy
+    apply Subtype.ext
+    have hproj : forgetLastAffine j.val x.1 = forgetLastAffine j.val y.1 :=
+      congrArg Subtype.val hxy
+    have hcoord : ∀ i : Fin j.val, x.1 i.castSucc = y.1 i.castSucc := by
+      intro i
+      have hi := congrFun hproj i
+      simpa [forgetLastAffine, forgetLastCoordinate] using hi
+    have hvdir : x.1 - y.1 ∈ U := by
+      have hmem :=
+        (AffineSubspace.vsub_right_mem_direction_iff_mem
+          (mem_affineSpan ℝ y.2) x.1).2 (mem_affineSpan ℝ x.2)
+      simpa [U, vsub_eq_sub] using hmem
+    have hrepr : x.1 - y.1 =
+        (x.1 - y.1) (Fin.last j.val) • lastProjectionDirection j.val := by
+      funext i
+      refine Fin.lastCases ?_ (fun k => ?_) i
+      · simp [lastProjectionDirection]
+      · simp [lastProjectionDirection, hcoord k]
+    by_cases hlast : (x.1 - y.1) (Fin.last j.val) = 0
+    · have hzero : x.1 - y.1 = 0 := by rw [hrepr, hlast]; simp
+      exact sub_eq_zero.mp hzero
+    · have hvert : lastProjectionDirection j.val =
+          ((x.1 - y.1) (Fin.last j.val))⁻¹ • (x.1 - y.1) := by
+        rw [hrepr]
+        have hlast' : x.1 (Fin.last j.val) - y.1 (Fin.last j.val) ≠ 0 := by
+          simpa using hlast
+        simp [hlast']
+      have hvertical : lastProjectionDirection j.val ∈ U := by
+        rw [hvert]
+        exact U.smul_mem _ hvdir
+      have htrue :=
+        (chain.dimensionLetter_true_iff_lastDirection_mem j).2 hvertical
+      rw [hbit] at htrue
+      cases htrue
+  · intro y
+    have hy : y.1 ∈ forgetLastAffine j.val '' chain.face j.succ := by
+      rw [chain.projectedFace j]
+      exact y.2
+    rcases (Set.mem_image (forgetLastAffine j.val) (chain.face j.succ) y.1).mp hy with
+      ⟨x, hx, hxy⟩
+    refine ⟨⟨x, hx⟩, ?_⟩
+    apply Subtype.ext
+    exact hxy
+
+/-- The equivalence from the zero-bit case is the actual coordinate projection, with the subtype
+proof only certifying that the result belongs to the projected face. -/
+@[simp] theorem CoordinateProjectedFaceChain.projectionEquiv_of_dimensionLetter_false_apply
+    {n : ℕ} (chain : CoordinateProjectedFaceChain n) (j : Fin n)
+    (hbit : faceProjectionDimensionLetter
+      (fun k => Module.finrank ℝ ((affineSpan ℝ (chain.face k)).direction)) j = false)
+    (x : {x // x ∈ chain.face j.succ}) :
+    (chain.projectionEquiv_of_dimensionLetter_false j hbit x).1 =
+      forgetLastAffine j.val x.1 := rfl
 
 /-- The dimension word of an exactly projected affine-face chain records its affine-hull
 dimensions, with one `1` for every dimension gained above the point projection. -/

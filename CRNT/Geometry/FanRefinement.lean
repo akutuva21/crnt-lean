@@ -9,13 +9,11 @@ import Mathlib.Geometry.Convex.Cone.DualFinite
 
 A ruled patch aligned simultaneously to several attracting directions has no surface normal once
 those directions span the ambient space, which first occurs in dimension four
-(`ZeroSeparatingInduction.over_determined_in_dim_four`). This over-determination is avoided by
-*refining the fan*: subdivide each cell into finer cells, build the zero-separating surface for the
-finer inclusion, and observe that for each coarse cell the surface's normals (away from the coarse
-uncertainty regions) land in the coarse cell's attracting cone — so the finer surface is **faithful
-for the coarse inclusion**. Refinement breaks each over-constrained patch into a sequence of patches
-each crossing a single uncertainty region, keeping the per-patch constraint count below `finrank`
-(the planar angular chaining, lifted to `n` dimensions).
+(`ZeroSeparatingInduction.over_determined_in_dim_four`). Craciun's faithful blueprint controls which
+fan cones constrain a normal at each smooth point. This module proves that admissibility transfers
+from a supplied fine cell to a containing coarse cell, and that an explicitly supplied constraint
+family of cardinality below `finrank` admits a nonzero orthogonal normal. It does not construct the
+blueprint subdivision or prove that its local patches satisfy that cardinality bound.
 
 This module provides the transfer and finite-refinement engines:
 
@@ -25,8 +23,8 @@ This module provides the transfer and finite-refinement engines:
 * the **finite common-refinement engine** — a finite list of supplied fans can be intersected
   successively, preserving the fan axioms and dual finite generation of every cell; and
 
-* the **feasibility restoration** — a refined patch carrying fewer than `finrank ℝ E` active
-  attracting directions always admits a valid surface normal.
+* the **conditional feasibility lemma** — a supplied patch with fewer than `finrank ℝ E` active
+  attracting directions admits a valid surface normal.
 
 ## Contents
 
@@ -43,18 +41,17 @@ This module provides the transfer and finite-refinement engines:
 * `exists_coarse_cell_of_refines` — packaged over `Refines`: a normal admissible for a cell of the
   refinement is admissible for some cell of the coarse fan.
 
-* `refined_patch_normal_exists` — a refined patch with fewer than `finrank ℝ E` attracting-direction
-  constraints admits a nonzero orthogonal surface normal: refinement keeps each patch below the
-  over-determination threshold.
+* `exists_patch_normal_of_card_lt_finrank` — an explicitly indexed patch with fewer than
+  `finrank ℝ E` attracting-direction constraints admits a nonzero orthogonal surface normal.
 
 ## Scope
 
 This module proves the refinement relation, the faithful-transfer of admissibility (and of field
 inwardness) from fine to coarse cells, finite common-refinement closure for supplied polyhedral fans
-with dual-finitely-generated cells, and the feasibility restoration. Not constructed here: the
-input subdivision fans, the explicit decomposition that produces patches each crossing a single
-uncertainty region, and the analysis matching the per-patch attracting directions — the geometric
-constructions these engines consume.
+with dual-finitely-generated cells, and the conditional normal-feasibility lemma. Not constructed
+here: the input subdivision fans, the faithful blueprint, the explicit decomposition into patches
+with locally admissible normals, and the analysis matching the per-patch attracting directions —
+the geometric constructions these engines consume.
 
 Depends on: `CRNT.Geometry.ZeroSeparatingInduction`,
 `CRNT.Geometry.FaithfulCurve`.
@@ -527,12 +524,12 @@ theorem exists_coarse_cell_of_refines [CompleteSpace E] {F' F : Fan E} (href : R
   obtain ⟨C, hCF, hsub⟩ := href C' hC'
   exact ⟨C, hCF, attractsToward_coarse_of_fine hsub h⟩
 
-/-- **Feasibility restoration by refinement.** A refined patch crossing fewer than `finrank ℝ E`
-uncertainty regions carries fewer than `finrank ℝ E` attracting-direction constraints, so a nonzero
-surface normal orthogonal to all of them exists. Refinement keeps every patch below this threshold —
-each patch crossing a single uncertainty region — which is how it avoids the over-determination of
-`over_determined_in_dim_four`. -/
-theorem refined_patch_normal_exists [FiniteDimensional ℝ E] {ι : Type*} [Fintype ι] (v : ι → E)
+/-- **Conditional normal feasibility.** Given an explicitly indexed family of fewer than
+`finrank ℝ E` attracting-direction constraints for a patch, a nonzero surface normal orthogonal to
+all of them exists. The general-dimensional construction must still prove that its local patches
+have such a constraint family. -/
+theorem exists_patch_normal_of_card_lt_finrank [FiniteDimensional ℝ E] {ι : Type*} [Fintype ι]
+    (v : ι → E)
     (hcard : Fintype.card ι < Module.finrank ℝ E) :
     ∃ n : E, n ≠ 0 ∧ ∀ i, ⟪v i, n⟫_ℝ = 0 :=
   exists_orthogonal_normal_of_card_lt_finrank v hcard

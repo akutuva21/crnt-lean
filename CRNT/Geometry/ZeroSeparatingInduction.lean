@@ -26,12 +26,12 @@ exists is a homogeneous linear feasibility question with a sharp threshold at `f
 than `finrank` active directions always leave a normal; once they span the ambient space, only the
 zero vector is orthogonal to all of them. Consequently the **naive** construction — a single patch
 aligned simultaneously to several attracting directions — becomes over-determined once the active
-directions span, which first occurs in dimension four. This over-determination is not an obstruction
-to the surface's existence: a codimension-1 hypersurface always admits a normal (its tangent is
-`(n−1)`-dimensional), and the over-determination is avoided by *refining the fan* so each patch
-crosses a single uncertainty region, keeping its constraint count below `finrank` (the planar angular
-chaining, lifted to `n` dimensions). The refinement's faithful-transfer engine — admissibility for a
-finer cell carries to the containing coarse cell — is in `CRNT.Geometry.FanRefinement`.
+directions span, which first occurs in dimension four. A codimension-1 hypersurface still has a
+normal at each smooth point. Craciun's construction controls which fan cones constrain that normal
+through its faithful blueprint. The refinement module proves admissibility transfer once a fine
+cell contained in a coarse cell is supplied; it does not yet construct the subdivision or show that
+the resulting surface patches satisfy the normal constraints. That distinction matters in
+dimensions where the active directions may span the ambient space.
 
 ## The ruled-surface step
 
