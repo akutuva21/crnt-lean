@@ -1394,6 +1394,126 @@ theorem isClosed_projectionFiberSubdivisionTile {n m : ℕ}
   rw [hset]
   exact hbaseClosed.inter (hlowClosed.inter hhighClosed)
 
+/-- A compact projected base remains compact after filling each vertical fiber between continuous
+bounded endpoint graphs. This turns the paper's Case 1.2 fill into a compact geometric patch,
+which can be used as the domain for finite local-chart covers. -/
+theorem isCompact_projectionFiberBand_bounded {n : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (hbase : IsCompact base) (hlower : Continuous lower) (hupper : Continuous upper)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) :
+    IsCompact (projectionFiberBand base (fun y => some (lower y))
+      (fun y => some (upper y))) := by
+  classical
+  let A := {y : Fin n → ℝ // y ∈ base} × Set.Icc (0 : ℝ) 1
+  let fill : A → Fin (n + 1) → ℝ := fun q =>
+    Fin.snoc q.1.1 (lower q.1.1 + q.2.1 * (upper q.1.1 - lower q.1.1))
+  have hy : Continuous (fun q : A => q.1.1) :=
+    continuous_subtype_val.comp continuous_fst
+  have ht : Continuous (fun q : A => q.2.1) :=
+    continuous_subtype_val.comp continuous_snd
+  have hfill : Continuous fill := by
+    apply continuous_pi
+    intro i
+    cases i using Fin.lastCases with
+    | cast j =>
+        simp only [fill, Fin.snoc_castSucc]
+        convert (continuous_apply j).comp hy using 1
+        ext q
+        rfl
+    | last =>
+        simp only [fill, Fin.snoc_last]
+        convert (hlower.comp hy).add (ht.mul ((hupper.comp hy).sub (hlower.comp hy)))
+          using 1
+        ext q
+        rfl
+  letI : CompactSpace {y : Fin n → ℝ // y ∈ base} := isCompact_iff_compactSpace.mp hbase
+  letI : CompactSpace A := inferInstance
+  have hdomain : IsCompact (Set.univ : Set A) := isCompact_univ
+  have himage : fill '' (Set.univ : Set A) =
+      projectionFiberBand base (fun y => some (lower y))
+        (fun y => some (upper y)) := by
+    ext x
+    constructor
+    · rintro ⟨q, -, rfl⟩
+      apply (mem_projectionFiberBand_bounded_iff base lower upper (fill q)).2
+      have ht0 := q.2.property.1
+      have ht1 := q.2.property.2
+      have hgap : 0 ≤ upper q.1.1 - lower q.1.1 :=
+        sub_nonneg.mpr (horder q.1.1 q.1.property)
+      have hlow : lower q.1.1 ≤
+            lower q.1.1 + q.2.1 * (upper q.1.1 - lower q.1.1) := by
+        nlinarith [mul_nonneg ht0 hgap]
+      have hupp : lower q.1.1 + q.2.1 * (upper q.1.1 - lower q.1.1) ≤
+            upper q.1.1 := by
+        nlinarith [mul_nonneg (sub_nonneg.mpr ht1) hgap]
+      have hcoords : q.1.1 ∈ base ∧
+          lower q.1.1 ≤ lower q.1.1 + q.2.1 * (upper q.1.1 - lower q.1.1) ∧
+          lower q.1.1 + q.2.1 * (upper q.1.1 - lower q.1.1) ≤ upper q.1.1 :=
+        ⟨q.1.property, hlow, hupp⟩
+      simpa [fill, forgetLastCoordinate] using hcoords
+    · intro hx
+      have hx' :=
+        (mem_projectionFiberBand_bounded_iff base lower upper x).1 hx
+      let y := forgetLastCoordinate n x
+      let z := x (Fin.last n)
+      have hybase : y ∈ base := by simpa [y] using hx'.1
+      have hzlow : lower y ≤ z := by simpa [y, z] using hx'.2.1
+      have hzhigh : z ≤ upper y := by simpa [y, z] using hx'.2.2
+      by_cases heq : lower y = upper y
+      · have hz : z = lower y := by
+          apply le_antisymm
+          · simpa [heq] using hzhigh
+          · exact hzlow
+        let t : ℝ := 0
+        have ht0 : 0 ≤ t := by simp [t]
+        have ht1 : t ≤ 1 := by simp [t]
+        have hcoord : lower y + t * (upper y - lower y) = z := by
+          simp [t, heq, hz]
+        let q : A := (⟨y, hybase⟩, ⟨t, ⟨ht0, ht1⟩⟩)
+        refine ⟨q, Set.mem_univ q, ?_⟩
+        dsimp [fill, q]
+        rw [← Fin.snoc_init_self x]
+        rw [Fin.snoc_inj]
+        exact ⟨by ext i; rfl, hcoord⟩
+      · have hlt : lower y < upper y := lt_of_le_of_ne (horder y hybase) heq
+        have hgap : 0 < upper y - lower y := sub_pos.mpr hlt
+        let t : ℝ := (z - lower y) / (upper y - lower y)
+        have ht0 : 0 ≤ t := by
+          dsimp [t]
+          exact div_nonneg (sub_nonneg.mpr hzlow) hgap.le
+        have ht1 : t ≤ 1 := by
+          dsimp [t]
+          calc
+            (z - lower y) / (upper y - lower y) ≤
+                (upper y - lower y) / (upper y - lower y) :=
+              div_le_div_of_nonneg_right (sub_le_sub_right hzhigh (lower y)) hgap.le
+            _ = 1 := div_self (ne_of_gt hgap)
+        have hcoord : lower y + t * (upper y - lower y) = z := by
+          dsimp [t]
+          field_simp [ne_of_gt hgap]
+          ring
+        let q : A := (⟨y, hybase⟩, ⟨t, ⟨ht0, ht1⟩⟩)
+        refine ⟨q, Set.mem_univ q, ?_⟩
+        dsimp [fill, q]
+        rw [← Fin.snoc_init_self x]
+        rw [Fin.snoc_inj]
+        exact ⟨by ext i; rfl, hcoord⟩
+  rw [← himage]
+  exact hdomain.image hfill
+
+/-- Every equal-width subtile of a compact bounded fiber band is compact when the base is compact
+and the endpoint graphs are continuous. Closedness of the subtile is inherited from the
+closed-base theorem above. -/
+theorem isCompact_projectionFiberSubdivisionTile {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (hbase : IsCompact base) (hlower : Continuous lower) (hupper : Continuous upper)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) (i : Fin (m + 1)) :
+    IsCompact (projectionFiberSubdivisionTile base lower upper i) := by
+  exact IsCompact.of_isClosed_subset
+    (isCompact_projectionFiberBand_bounded base lower upper hbase hlower hupper horder)
+    (isClosed_projectionFiberSubdivisionTile base lower upper hbase.isClosed hlower hupper i)
+    (projectionFiberSubdivisionTile_subset_band base lower upper horder i)
+
 /-! ## The ruled-surface step -/
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
