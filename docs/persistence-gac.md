@@ -240,8 +240,9 @@ an explicit hypothesis, never a `sorry`:
    finite cover of the base lifts to an exact cover by those tile tubes. This is still set-level
    tube geometry. On the one-bit side, compactProjectionFiberTiling_of_compactBase now supplies
    finitely many compact strips with exact coverage, full base projection, width bounds, and
-   continuous center graphs; distinct strips have disjoint strict interiors along each projected
-   fiber and may meet at endpoint seams. These results do not provide the piecewise-smooth
+   continuous center graphs. Distinct strips have disjoint ordinary ambient interiors in the full
+   product space, proved by showing that any ambient interior point lies strictly between its
+   fiber endpoints; closed strips may still share endpoint seams. These results do not provide the piecewise-smooth
    separating surface, descent estimates, or full seam gluing. The smooth gluing layer now also
    proves, via exists_fderiv_smoothMaxList_le and
    exists_fderiv_smoothMaxF_nonpos_of_value_gap, that finite smooth maxima preserve a shared

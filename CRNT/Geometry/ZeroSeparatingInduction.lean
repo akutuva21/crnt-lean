@@ -2064,6 +2064,118 @@ theorem disjoint_projectionFiberSubdivisionFiberInteriorTiles {n m : ℕ}
       exact (not_lt_of_ge hendpoints) (lt_trans hlefti hrightj)
   · simp
 
+private def projectionFiberSubdivisionVerticalPath {n : ℕ}
+    (y : Fin n → ℝ) (z : ℝ) (t : ℝ) : Fin (n + 1) → ℝ :=
+  Fin.snoc y (z + t)
+
+private theorem continuous_projectionFiberSubdivisionVerticalPath {n : ℕ}
+    (y : Fin n → ℝ) (z : ℝ) :
+    Continuous (projectionFiberSubdivisionVerticalPath y z) := by
+  apply continuous_pi
+  intro i
+  cases i using Fin.lastCases with
+  | cast j =>
+      simp only [projectionFiberSubdivisionVerticalPath, Fin.snoc_castSucc]
+      exact continuous_const
+  | last =>
+      simp only [projectionFiberSubdivisionVerticalPath, Fin.snoc_last]
+      exact continuous_const.add continuous_id
+
+/-- Every point in the ambient interior of a closed fiber strip lies strictly between its
+vertical endpoints. Perturbing only the last coordinate in either direction would otherwise leave
+the strip while remaining in every neighborhood of the point. -/
+theorem interior_projectionFiberSubdivisionTile_subset_fiberInteriorTile {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (i : Fin (m + 1)) (x : Fin (n + 1) → ℝ)
+    (hx : x ∈ interior (projectionFiberSubdivisionTile base lower upper i)) :
+    x ∈ projectionFiberSubdivisionFiberInteriorTile base lower upper i := by
+  let y := forgetLastCoordinate n x
+  let z := x (Fin.last n)
+  have hxy : Fin.snoc y z = x := by
+    ext j
+    cases j using Fin.lastCases with
+    | cast k => simp [y, z, forgetLastCoordinate, Fin.snoc_castSucc]
+    | last => simp [y, z, Fin.snoc_last]
+  have hz : Fin.snoc y z ∈ interior
+      (projectionFiberSubdivisionTile base lower upper i) := by
+    simpa [hxy] using hx
+  have hpreopen : IsOpen {t : ℝ | projectionFiberSubdivisionVerticalPath y z t ∈
+      interior (projectionFiberSubdivisionTile base lower upper i)} :=
+    isOpen_interior.preimage (continuous_projectionFiberSubdivisionVerticalPath y z)
+  have hzero : (0 : ℝ) ∈ {t : ℝ | projectionFiberSubdivisionVerticalPath y z t ∈
+      interior (projectionFiberSubdivisionTile base lower upper i)} := by
+    simpa [projectionFiberSubdivisionVerticalPath] using hz
+  obtain ⟨r, hr, hball⟩ := (Metric.isOpen_iff.mp hpreopen) 0 hzero
+  have hcoords := (mem_projectionFiberSubdivisionTile_snoc_iff base lower upper i y z).mp
+    (by simpa [hxy] using (interior_subset hx))
+  have hlowstrict : projectionFiberSubdivisionEndpoint lower upper i.castSucc y < z := by
+    by_contra hnot
+    have heq : projectionFiberSubdivisionEndpoint lower upper i.castSucc y = z := by linarith
+    let t : ℝ := -r / 2
+    have hdist : dist t 0 < r := by
+      rw [dist_eq_norm, Real.norm_eq_abs]
+      dsimp [t]
+      simp only [sub_zero]
+      rw [abs_of_neg (by linarith : -r / 2 < 0)]
+      linarith
+    have htm : t ∈ Metric.ball (0 : ℝ) r := by simpa [Metric.mem_ball] using hdist
+    have hpathmem := hball htm
+    have htile : projectionFiberSubdivisionVerticalPath y z t ∈
+        projectionFiberSubdivisionTile base lower upper i := interior_subset hpathmem
+    have hperturbed :=
+      (mem_projectionFiberSubdivisionTile_snoc_iff base lower upper i y (z + t)).mp
+        (by simpa [projectionFiberSubdivisionVerticalPath] using htile)
+    have hbound := hperturbed.2.1
+    dsimp [t] at hbound
+    linarith
+  have hupstrict : z < projectionFiberSubdivisionEndpoint lower upper i.succ y := by
+    by_contra hnot
+    have heq : z = projectionFiberSubdivisionEndpoint lower upper i.succ y := by linarith
+    let t : ℝ := r / 2
+    have hdist : dist t 0 < r := by
+      rw [dist_eq_norm, Real.norm_eq_abs]
+      dsimp [t]
+      simp only [sub_zero]
+      rw [abs_of_pos (by linarith : 0 < r / 2)]
+      linarith
+    have htm : t ∈ Metric.ball (0 : ℝ) r := by simpa [Metric.mem_ball] using hdist
+    have hpathmem := hball htm
+    have htile : projectionFiberSubdivisionVerticalPath y z t ∈
+        projectionFiberSubdivisionTile base lower upper i := interior_subset hpathmem
+    have hperturbed :=
+      (mem_projectionFiberSubdivisionTile_snoc_iff base lower upper i y (z + t)).mp
+        (by simpa [projectionFiberSubdivisionVerticalPath] using htile)
+    have hbound := hperturbed.2.2
+    dsimp [t] at hbound
+    linarith
+  exact (mem_projectionFiberSubdivisionFiberInteriorTile_iff base lower upper i x).2
+    ⟨by simpa [y] using hcoords.1,
+      by simpa [y, z] using hlowstrict,
+      by simpa [y, z] using hupstrict⟩
+
+/-- Distinct fiber subdivision tiles have disjoint ordinary ambient interiors. This upgrades the
+fiberwise interval separation to the full-dimensional interior condition used by the blueprint. -/
+theorem disjoint_projectionFiberSubdivisionTile_ambientInteriors {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horder : ∀ y ∈ base, lower y ≤ upper y)
+    (i j : Fin (m + 1)) (hij : i ≠ j) :
+    interior (projectionFiberSubdivisionTile base lower upper i) ∩
+      interior (projectionFiberSubdivisionTile base lower upper j) = ∅ := by
+  have hfiber := disjoint_projectionFiberSubdivisionFiberInteriorTiles
+    base lower upper horder i j hij
+  ext x
+  constructor
+  · rintro ⟨hxi, hxj⟩
+    have hmem : x ∈ projectionFiberSubdivisionFiberInteriorTile base lower upper i ∩
+        projectionFiberSubdivisionFiberInteriorTile base lower upper j :=
+      ⟨interior_projectionFiberSubdivisionTile_subset_fiberInteriorTile
+          base lower upper i x hxi,
+        interior_projectionFiberSubdivisionTile_subset_fiberInteriorTile
+          base lower upper j x hxj⟩
+    rw [hfiber] at hmem
+    simpa using hmem
+  · simp
+
 /-- A certificate for the bounded Case 1.2 refinement: finitely many compact strips cover the
 filled fiber band, each strip projects onto the whole lower-dimensional base, and each vertical
 fiber width is at most `epsilon`. -/
@@ -2082,6 +2194,10 @@ structure CompactProjectionFiberTiling {n : ℕ} (base : Set (Fin n → ℝ))
     projectionFiberSubdivisionFiberInteriorTile (m := subdivisionCount) base lower upper i ∩
       projectionFiberSubdivisionFiberInteriorTile (m := subdivisionCount) base lower upper j =
         ∅
+  /-- The ordinary ambient interiors of distinct closed strip tiles are disjoint. -/
+  ambient_interiors_disjoint : ∀ i j, i ≠ j →
+    interior (projectionFiberSubdivisionTile (m := subdivisionCount) base lower upper i) ∩
+      interior (projectionFiberSubdivisionTile (m := subdivisionCount) base lower upper j) = ∅
   /-- The subtiles exactly cover the filled band. -/
   tiles_cover :
     projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y)) =
@@ -2138,6 +2254,10 @@ noncomputable def compactProjectionFiberTiling_of_compactBase {n : ℕ}
     fiber_interiors_disjoint := by
       intro i j hij
       exact disjoint_projectionFiberSubdivisionFiberInteriorTiles
+        base lower upper horder i j hij
+    ambient_interiors_disjoint := by
+      intro i j hij
+      exact disjoint_projectionFiberSubdivisionTile_ambientInteriors
         base lower upper horder i j hij
     tiles_cover := projectionFiberBand_bounded_eq_iUnion_subdivisionTiles
       base lower upper horder
