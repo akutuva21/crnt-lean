@@ -2653,9 +2653,10 @@ def projectionFiberSubdivisionCenterGraph {n m : ℕ}
   {x | ∃ y ∈ base,
     x = Fin.snoc y (projectionFiberSubdivisionCenter lower upper i y)}
 
-/-- The selected center graph lies in its strip and projects onto the entire intended base tile.
-This is the tile-to-face incidence invariant: every lower-dimensional basepoint has its chosen lift
-in the corresponding higher-dimensional tile, and projection of that lift recovers the same point. -/
+/-- Craciun v3, §7.4.3, Case 1.1 and Step 2: the selected center graph lies in its strip and
+projects onto the entire intended base tile. This is the tile-to-face incidence invariant: every
+lower-dimensional basepoint has its chosen lift in the corresponding higher-dimensional tile, and
+projection of that lift recovers the same point. -/
 theorem projectionFiberSubdivisionCenterGraph_incidence {n m : ℕ}
     (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
     (horder : ∀ y ∈ base, lower y ≤ upper y) (i : Fin (m + 1)) :
@@ -2958,6 +2959,12 @@ structure CompactProjectionFiberTiling {n : ℕ} (base : Set (Fin n → ℝ))
   tile_center_mem : ∀ i y, y ∈ base →
     Fin.snoc y (tile_center i y) ∈
       projectionFiberSubdivisionTile base lower upper i
+  /-- The graph of the selected center representatives projects onto the entire base of each
+  strip. This retains the projected-basepoint invariant in the tiling certificate. -/
+  tile_center_graph_incidence : ∀ i : Fin (subdivisionCount + 1),
+    projectionFiberSubdivisionCenterGraph base lower upper i ⊆
+        projectionFiberSubdivisionTile base lower upper i ∧
+      forgetLastCoordinate n '' projectionFiberSubdivisionCenterGraph base lower upper i = base
   /-- Interiors along the subdivided coordinate do not overlap; closed tiles may meet at seams. -/
   fiber_interiors_disjoint : ∀ i j, i ≠ j →
     projectionFiberSubdivisionFiberInteriorTile (m := subdivisionCount) base lower upper i ∩
@@ -3032,6 +3039,9 @@ noncomputable def compactProjectionFiberTiling_of_compactBase {n : ℕ}
     tile_center_mem := by
       intro i y hy
       exact projectionFiberSubdivisionCenter_mem_tile base lower upper horder i y hy
+    tile_center_graph_incidence := by
+      intro i
+      exact projectionFiberSubdivisionCenterGraph_incidence base lower upper horder i
     fiber_interiors_disjoint := by
       intro i j hij
       exact disjoint_projectionFiberSubdivisionFiberInteriorTiles
