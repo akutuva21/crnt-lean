@@ -220,7 +220,19 @@ an explicit hypothesis, never a `sorry`:
 3. **The weak-reversibility cycle cover.** `NetworkCycleDecomposition` packages the concrete
    cycle-cover data (path lists with their ordering fields) and is assumed; the reachability-level
    cover is proven (`WeaklyReversible.onDirectedCycle`), but no lemma turns it into the concrete
-   decomposition the embedding consumes.
+   decomposition the embedding consumes. **This interface needs restating before it can be fed.**
+   `mono` and `cmin` pull against each other. For a graph cycle — consecutive reactions, so `vec`
+   makes `u j i` the `i`-th source complex — `mono` demands that the mass-action rates be
+   nondecreasing the whole way round, which is not arrangeable by choosing a starting point:
+   `Examples/CycleRateNonMonotone.lean` exhibits the strongly connected triangle
+   `A → B → A + B → A` at `x = (1/2, 4)`, where the cyclic rates are `1/2, 4, 2` and
+   `tri_no_monotone_rotation` verifies that none of the three rotations is monotone. Reordering the
+   reactions arbitrarily is permitted (`vec` constrains only consecutive differences, and the three
+   reaction vectors sum to zero, `tri_reactionVector_sum_zero`), and sorting by rate does satisfy
+   `mono` — but then `u j i` is a partial sum of reaction vectors in rate order rather than a source
+   complex, and nothing supplies its `C`-minimality. So either `mono` must be weakened to monotone
+   *runs* with explicit descent corrections, or `cmin` must be proven for the sorted partial-sum
+   walk.
 4. **The polyhedral-fan axioms.** `IsPolyhedralFan` (closure under exposed faces, pairwise
    intersection a common face, covering) is a hypothesis; `Fan` is bare cone data.
 5. **Arbitrary-fan faithful-curve existence.** The global slope-interval chaining is the
@@ -261,16 +273,32 @@ form. The sign content of strong endotacticity along the relative-entropy dissip
   Butler–McGehee escape geometry, isolated and minimal invariant sets; the reachability-level cycle
   cover of a weakly-reversible network; the differential-inclusion, polar-cone, embedding, one- and
   two-dimensional zero-separating, and single-valued-Nagumo machinery above; the permanence ⇒
-  convergence bridge.
+  convergence bridge. Also complete, in `Dynamics/GlobalAttractorTheorem.lean`:
+  `exists_relEntropy_const_on_omegaLimit`, which *derives* the LaSalle constant
+  `∀ z ∈ ω, relEntropy x* z = c` for an arbitrary supplied semiflow rather than assuming it (every
+  theorem in `Dynamics/GACOmegaPositive.lean` takes that constant as a hypothesis, while
+  `PositiveOmegaPointForRates` does not supply it);
+  `positiveOmega_or_criticalSiphonFaceEquilibrium`, the resulting dichotomy — either a positive
+  ω-point, or a boundary equilibrium whose zero set is a critical siphon *meeting the compatibility
+  class*, with strictly smaller face rank; and
+  `positiveOmegaPointForRates_of_criticalSiphonFaces_miss_classes`, a sufficient condition for the
+  omega-interior certificate strictly weaker than `HasNoCriticalSiphon` (critical siphons are
+  allowed, provided none of their coordinate faces meets a positive compatibility class). Finally
+  `omegaLimit_fixed_of_complexBalanced` and `omegaLimit_singleton_of_mem_omegaLimit`: every ω-point
+  of a bounded positive genuine orbit is a *fixed point* of the semiflow and is its own forward
+  limit, which shows the Butler–McGehee stack of `Dynamics/EscapeSiphonFace.lean` is vacuous on
+  such ω-limit sets and cannot supply a siphon-dimension descent.
 - **Open:** persistence in general — the remaining gap is that interior orbits must be repelled from
   *critical*-siphon faces. The codimension-1 non-siphon facet case is proven
   (`Dynamics/FacetRepulsion.lean`, via `massActionVectorField_pos_of_not_isSiphon` and Butler–McGehee:
-  a non-siphon facet is strictly repelling and traps no ω-point). The critical-siphon facet is taken
-  as a hypothesis: there the field is tangent, so first-order repulsion gives nothing, and the
-  near-facet quantitative estimate of Anderson & Shiu (*The dynamics of weakly reversible population
-  processes near facets*, 2010) — together with Anderson's single-linkage tier argument — is not
-  formalized; it needs a near-facet differential inequality absent from this layer. Also open: in the
-  toric-inclusion approach, the six explicit hypotheses
+  a non-siphon facet is strictly repelling and traps no ω-point). For critical-siphon facets,
+  `Dynamics/FacetRepulsionAndersonShiu.lean` formalizes the one-sign facet direction and a
+  conditional version of Anderson–Shiu Theorem 3.2: `facet_repelling_of_data` derives the repulsion
+  inequality when the facet direction, a nonnegative reaction contribution, and quantitative
+  monomial-domination bounds are supplied. Deriving the dominant reaction and those bounds from
+  weak reversibility and facet-interiority remains open, as does the finite-cover step needed to
+  turn local repulsion into persistence. Anderson's single-linkage tier argument is also not
+  formalized. Also open: in the toric-inclusion approach, the six explicit hypotheses
   enumerated above, none assembled into a persistence or GAC conclusion; and, in the permanence route,
   `StronglyEndotactic ⇒ permanent`.
 
@@ -283,8 +311,9 @@ form. The sign content of strong endotacticity along the relative-entropy dissip
 `GACConfinement`, `GACSeparatingRegion`, `GACSeparatingRegionNagumo`, `GACSeparatingCapstone`,
 `GenuineConfinement`, `GACSeparatingWitness`,
 `IsolatedInvariant`, `MinimalInvariant`, `ButlerMcGehee`, `EscapeSiphonFace`, `FacetRepulsion`,
-`EndotacticPermanence`, `DifferentialInclusion`, `ToricInclusion`, `ToricEmbedding`,
-`ToricEmbeddingOrder`, `ToricEmbeddingWR`, `ZeroSeparating`, `Viability`, `FirstExit`,
+`FacetRepulsionAndersonShiu`, `EndotacticPermanence`, `DifferentialInclusion`, `ToricInclusion`,
+`ToricEmbedding`, `ToricEmbeddingOrder`, `ToricEmbeddingWR`, `ToricCycleSortedBase`,
+`ToricCycleOrderLimits`, `ZeroSeparating`, `Viability`, `FirstExit`,
 `SublevelInvariant`, `SublevelNagumo`, `ClosedSetNagumo`, `SupportDiniBridge`, `PolyRegionInvariant`,
 `PolyRegionStrictInvariant`, `ThmBGenuine`, `DissipationBound`.
 `Geometry/`: `PolyhedralFan`, `Endotactic`, `ToricFan`, `ConeFace`, `ZeroSeparatingSurface`,
@@ -292,6 +321,7 @@ form. The sign content of strong endotacticity along the relative-entropy dissip
 `ToricFieldPolarMulti`, `FaithfulCurve`, `FaithfulCurveExistence`, `FaithfulCurveGeneral`,
 `FaithfulCurve2D`, `FaithfulCurve2DFan`.
 `Graph/`: `Reachability`, `WeakReversibility`, `CycleCover`.
+`Examples/`: `CycleRateNonMonotone`.
 
 Related: [`architecture.md`](architecture.md), [`dynamics.md`](dynamics.md),
 [`deficiency.md`](deficiency.md).
