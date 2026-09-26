@@ -370,6 +370,96 @@ theorem CoordinateProjectionSubspaceChain.dimension_eq_wordWeight {n : ℕ}
         (faceProjectionDimensionWord n (fun j => Module.finrank ℝ (chain.subspace j))) := by
   exact chain.dimensionProfile.dimension_eq_wordWeight
 
+/-- The direction of the deleted coordinate in the ambient projection space. -/
+def lastProjectionDirection (n : ℕ) : Fin (n + 1) → ℝ :=
+  Fin.lastCases 1 (fun _ : Fin n => 0)
+
+@[simp] theorem lastProjectionDirection_last (n : ℕ) :
+    lastProjectionDirection n (Fin.last n) = 1 := by
+  simp [lastProjectionDirection]
+
+@[simp] theorem lastProjectionDirection_castSucc (n : ℕ) (i : Fin n) :
+    lastProjectionDirection n i.castSucc = 0 := by
+  simp [lastProjectionDirection]
+
+/-- A face direction space contains the vertical projection direction exactly when its restricted
+projection has a nontrivial kernel. Since the ambient projection forgets one coordinate, every
+kernel vector is a scalar multiple of `lastProjectionDirection`. -/
+theorem lastProjectionDirection_mem_iff_restrictedKernel_ne_bot (n : ℕ)
+    (U : Submodule ℝ (Fin (n + 1) → ℝ)) :
+    lastProjectionDirection n ∈ U ↔
+      LinearMap.ker ((forgetLastCoordinate n).domRestrict U) ≠ ⊥ := by
+  classical
+  let f := forgetLastCoordinate n
+  let g := f.domRestrict U
+  constructor
+  · intro hU hbot
+    have hv : (⟨lastProjectionDirection n, hU⟩ : U) ∈ LinearMap.ker g := by
+      apply LinearMap.mem_ker.mpr
+      change f (lastProjectionDirection n) = 0
+      funext i
+      simp [f, forgetLastCoordinate, lastProjectionDirection]
+    have hvzero : (⟨lastProjectionDirection n, hU⟩ : U) = 0 := by
+      rw [hbot, Submodule.mem_bot] at hv
+      exact hv
+    have hval := congrArg Subtype.val hvzero
+    have hne : lastProjectionDirection n ≠ 0 := by
+      intro h
+      have hlast := congrFun h (Fin.last n)
+      simp [lastProjectionDirection] at hlast
+    exact hne hval
+  · intro hker
+    obtain ⟨v, hv, hvne⟩ := Submodule.exists_mem_ne_zero_of_ne_bot hker
+    have hzero : (forgetLastCoordinate n) (v : Fin (n + 1) → ℝ) = 0 := by
+      exact LinearMap.mem_ker.mp hv
+    have hcoord : ∀ i : Fin n, (v : Fin (n + 1) → ℝ) i.castSucc = 0 := by
+      intro i
+      have hi := congrFun hzero i
+      simpa [forgetLastCoordinate] using hi
+    have hrepr : (v : Fin (n + 1) → ℝ) =
+        (v : Fin (n + 1) → ℝ) (Fin.last n) • lastProjectionDirection n := by
+      funext i
+      refine Fin.lastCases ?_ (fun j => ?_) i
+      · simp [lastProjectionDirection]
+      · simp [lastProjectionDirection, hcoord j]
+    have hlast : (v : Fin (n + 1) → ℝ) (Fin.last n) ≠ 0 := by
+      intro hz
+      apply hvne
+      apply Subtype.ext
+      rw [hrepr, hz]
+      simp
+    have hdir : lastProjectionDirection n =
+        ((v : Fin (n + 1) → ℝ) (Fin.last n))⁻¹ • (v : Fin (n + 1) → ℝ) := by
+      rw [hrepr]
+      simp [hlast]
+    rw [hdir]
+    exact U.smul_mem _ v.property
+
+/-- A `1` in the projection-dimension code records that the face's direction space contains the
+deleted-coordinate direction. This connects the binary blueprint label to the ruling direction of
+the corresponding projection fiber. -/
+theorem CoordinateProjectionSubspaceChain.dimensionLetter_true_iff_lastDirection_mem
+    {n : ℕ} (chain : CoordinateProjectionSubspaceChain n) (j : Fin n) :
+    faceProjectionDimensionLetter
+        (fun k => Module.finrank ℝ (chain.subspace k)) j = true ↔
+      lastProjectionDirection j.val ∈ chain.subspace j.succ := by
+  simp only [faceProjectionDimensionLetter, decide_eq_true_eq]
+  rw [← chain.projectedSubspace j]
+  exact (finrank_drop_forgetLastCoordinate_iff_kernel_ne_bot j.val
+      (chain.subspace j.succ)).trans
+    (lastProjectionDirection_mem_iff_restrictedKernel_ne_bot j.val
+      (chain.subspace j.succ)).symm
+
+/-- For an actual chain of projected affine faces, the dimension-code letter is `1` exactly when
+the face contains the full direction of that coordinate-projection fiber. -/
+theorem CoordinateProjectedFaceChain.dimensionLetter_true_iff_lastDirection_mem
+    {n : ℕ} (chain : CoordinateProjectedFaceChain n) (j : Fin n) :
+    faceProjectionDimensionLetter
+        (fun k => Module.finrank ℝ ((affineSpan ℝ (chain.face k)).direction)) j = true ↔
+      lastProjectionDirection j.val ∈
+        (affineSpan ℝ (chain.face j.succ)).direction :=
+  chain.toDirectionSubspaceChain.dimensionLetter_true_iff_lastDirection_mem j
+
 /-- The dimension word of an exactly projected affine-face chain records its affine-hull
 dimensions, with one `1` for every dimension gained above the point projection. -/
 theorem CoordinateProjectedFaceChain.dimension_eq_wordWeight {n : ℕ}
