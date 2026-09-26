@@ -198,8 +198,10 @@ Built and proven:
     dimension-four over-determination is a feature of the naive construction, not an obstruction.
     Supporting hyperplanes and exposed faces also preserve finite half-space representations.
     The same module now proves that images of a covering fan under a surjective linear map cover
-    the target, and that finitely generated cone images are exact. It does not yet prove that the
-    projected image family is a fan or construct its fan-compatible refinement.
+    the target, and that finitely generated cone images are exact. It now also constructs a complete
+    central hyperplane arrangement fan for any supplied finite normal set. The remaining bridge is
+    to derive such a finite normal set from the projected image cones and prove that the arrangement
+    refines that family.
 - **Viability** (`Dynamics/{Viability,FirstExit,SublevelInvariant,SublevelNagumo,ClosedSetNagumo,
   ThmBGenuine}.lean`): for the genuine (Lipschitz) dynamics, solution existence is free
   (Picard–Lindelöf), so only invariance must be shown. The single-valued Nagumo step is proven: given
