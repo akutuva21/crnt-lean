@@ -1,4 +1,5 @@
 import CRNT.Geometry.LogProjectiveSmoothSection
+import Mathlib.Analysis.Calculus.Deriv.Inv
 
 /-!
 # Compatibility of neighboring logarithmic projective sections
@@ -262,6 +263,158 @@ theorem positiveSectionPoint_eq_of_projectiveFiberWeight_eq
   have htc : tc = t := hunique tc ⟨hC.1, hrootB, hC.2⟩
   change LogProjectiveSection.sectionPoint y tb = LogProjectiveSection.sectionPoint y tc
   rw [htb, htc]
+
+/-! ## A first-jet obstruction
+
+Pointwise fiber balance makes neighboring section points agree on a shared ray, but does not
+control how their scales vary transverse to that ray. The two-species example below gives matching
+values at a tied-coordinate ray and different first derivatives there. Thus a smooth gluing argument
+needs a separate first-jet compatibility condition. -/
+
+namespace TwoSpeciesJetExample
+
+open LogProjectiveSection
+open Filter Set
+open scoped Topology
+
+abbrev Species := Fin 2
+
+def leftWeight : Species → ℝ := fun i => if i = 0 then 1 else 0
+def rightWeight : Species → ℝ := fun i => if i = 1 then 1 else 0
+def ray (r : ℝ) : ({i : Species // i ≠ 0} → ℝ) := fun _ => r
+
+private theorem leftWeight_nonneg : ∀ i, 0 ≤ leftWeight i := by
+  intro i
+  fin_cases i <;> norm_num [leftWeight]
+
+private theorem rightWeight_nonneg : ∀ i, 0 ≤ rightWeight i := by
+  intro i
+  fin_cases i <;> norm_num [rightWeight]
+
+private theorem leftWeight_sum : (∑ i, leftWeight i) = 1 := by
+  simp [leftWeight]
+
+private theorem rightWeight_sum : (∑ i, rightWeight i) = 1 := by
+  simp [rightWeight]
+
+noncomputable def leftScale (r : ℝ) : ℝ :=
+  positiveSectionScale leftWeight (1 / 2) (0 : Species)
+    leftWeight_nonneg (by rw [leftWeight_sum]; norm_num) (by norm_num) (by norm_num) (ray r)
+
+noncomputable def rightScale (r : ℝ) : ℝ :=
+  positiveSectionScale rightWeight (1 / 2) (0 : Species)
+    rightWeight_nonneg (by rw [rightWeight_sum]; norm_num) (by norm_num) (by norm_num) (ray r)
+
+noncomputable def leftPoint (r : ℝ) : Species → ℝ :=
+  positiveSectionPoint leftWeight (1 / 2) (0 : Species)
+    leftWeight_nonneg (by rw [leftWeight_sum]; norm_num) (by norm_num) (by norm_num) (ray r)
+
+noncomputable def rightPoint (r : ℝ) : Species → ℝ :=
+  positiveSectionPoint rightWeight (1 / 2) (0 : Species)
+    rightWeight_nonneg (by rw [rightWeight_sum]; norm_num) (by norm_num) (by norm_num) (ray r)
+
+private theorem ray_coordinates_positive {r : ℝ} (hr : 0 < r) :
+    ∀ i, 0 < normalizedCoordinates (0 : Species) (ray r) i := by
+  intro i
+  fin_cases i
+  all_goals simp [normalizedCoordinates, ray] <;> linarith
+
+private theorem leftScale_eq_log_two {r : ℝ} (hr : 0 < r) :
+    leftScale r = Real.log 2 := by
+  have hy := ray_coordinates_positive hr
+  have hspec := positiveSectionScale_spec leftWeight (1 / 2) (0 : Species)
+    leftWeight_nonneg (by rw [leftWeight_sum]; norm_num) (by norm_num) (by norm_num)
+    (ray r) hy
+  have hroot : 0 < Real.log 2 ∧
+      weightedExpLevel leftWeight (normalizedCoordinates (0 : Species) (ray r))
+        (Real.log 2) = (1 / 2 : ℝ) * (∑ i, leftWeight i) := by
+    constructor
+    · exact Real.log_pos (by norm_num)
+    · rw [leftWeight_sum]
+      simp [weightedExpLevel, leftWeight, normalizedCoordinates, ray]
+      rw [Real.exp_neg, Real.exp_log (by norm_num : (0 : ℝ) < 2)]
+  obtain ⟨t, ht, hu⟩ := existsUnique_sectionScale_of_positive leftWeight
+    (a := (1 / 2 : ℝ)) (normalizedCoordinates (0 : Species) (ray r))
+    leftWeight_nonneg (by rw [leftWeight_sum]; norm_num)
+    hy (by norm_num) (by norm_num)
+  calc
+    leftScale r = t := hu _ hspec
+    _ = Real.log 2 := (hu _ hroot).symm
+
+private theorem rightScale_eq_log_two_div {r : ℝ} (hr : 0 < r) :
+    rightScale r = Real.log 2 / r := by
+  have hy := ray_coordinates_positive hr
+  have hspec := positiveSectionScale_spec rightWeight (1 / 2) (0 : Species)
+    rightWeight_nonneg (by rw [rightWeight_sum]; norm_num) (by norm_num) (by norm_num)
+    (ray r) hy
+  have hroot : 0 < Real.log 2 / r ∧
+      weightedExpLevel rightWeight (normalizedCoordinates (0 : Species) (ray r))
+        (Real.log 2 / r) = (1 / 2 : ℝ) * (∑ i, rightWeight i) := by
+    constructor
+    · exact div_pos (Real.log_pos (by norm_num)) hr
+    · rw [rightWeight_sum]
+      simp [weightedExpLevel, rightWeight, normalizedCoordinates, ray]
+      have hrne : r ≠ 0 := ne_of_gt hr
+      have hcancel : (Real.log 2 / r) * r = Real.log 2 := by
+        field_simp
+      rw [hcancel, Real.exp_neg, Real.exp_log (by norm_num : (0 : ℝ) < 2)]
+  obtain ⟨t, ht, hu⟩ := existsUnique_sectionScale_of_positive rightWeight
+    (a := (1 / 2 : ℝ)) (normalizedCoordinates (0 : Species) (ray r))
+    rightWeight_nonneg (by rw [rightWeight_sum]; norm_num)
+    hy (by norm_num) (by norm_num)
+  calc
+    rightScale r = t := hu _ hspec
+    _ = Real.log 2 / r := (hu _ hroot).symm
+
+private theorem fiber_weights_agree_at_tied_ray :
+    ∀ v : ℝ,
+      projectiveFiberWeight (normalizedCoordinates (0 : Species) (ray 1)) leftWeight v =
+        projectiveFiberWeight (normalizedCoordinates (0 : Species) (ray 1)) rightWeight v := by
+  classical
+  intro v
+  by_cases hv : v = 1
+  · subst v
+    simp [projectiveFiberWeight, leftWeight, rightWeight, normalizedCoordinates, ray]
+  · simp [projectiveFiberWeight, leftWeight, rightWeight, normalizedCoordinates, ray, eq_comm, hv]
+
+/-- At the tied ray `(1,1)`, the two face weights have equal mass on every projective-coordinate
+fiber and hence their canonical section scales agree. Their transverse derivatives are `0` and
+`-log 2`, respectively. This is a concrete witness that pointwise overlap compatibility alone
+does not establish smooth gluing across a face seam. -/
+theorem pointwise_compatibility_does_not_imply_first_jet_compatibility :
+    (∀ v : ℝ,
+      projectiveFiberWeight (normalizedCoordinates (0 : Species) (ray 1)) leftWeight v =
+        projectiveFiberWeight (normalizedCoordinates (0 : Species) (ray 1)) rightWeight v) ∧
+    leftScale 1 = rightScale 1 ∧
+    leftPoint 1 = rightPoint 1 ∧
+    HasDerivAt leftScale 0 1 ∧
+    HasDerivAt rightScale (-Real.log 2) 1 ∧
+    0 ≠ -Real.log 2 := by
+  have h0eq : leftScale =ᶠ[𝓝 (1 : ℝ)] fun _ => Real.log 2 := by
+    filter_upwards [Ioi_mem_nhds (by norm_num : (0 : ℝ) < 1)] with r hr
+    exact leftScale_eq_log_two hr
+  have h1eq : rightScale =ᶠ[𝓝 (1 : ℝ)] fun r => Real.log 2 / r := by
+    filter_upwards [Ioi_mem_nhds (by norm_num : (0 : ℝ) < 1)] with r hr
+    exact rightScale_eq_log_two_div hr
+  have hd0 : HasDerivAt (fun _ : ℝ => Real.log 2) 0 1 := by
+    simpa using (hasDerivAt_const (1 : ℝ) (Real.log 2))
+  have hd1 : HasDerivAt (fun r : ℝ => Real.log 2 / r) (-Real.log 2) 1 := by
+    simpa using
+      (hasDerivAt_const (1 : ℝ) (Real.log 2)).fun_div
+        (hasDerivAt_id (1 : ℝ)) (by norm_num)
+  refine ⟨fiber_weights_agree_at_tied_ray, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [leftScale_eq_log_two (by norm_num), rightScale_eq_log_two_div (by norm_num)]
+    simp
+  · exact positiveSectionPoint_eq_of_projectiveFiberWeight_eq leftWeight rightWeight
+      leftWeight_nonneg (by rw [leftWeight_sum]; norm_num)
+      rightWeight_nonneg (by rw [rightWeight_sum]; norm_num)
+      (by norm_num) (by norm_num) (ray 1)
+      (ray_coordinates_positive (by norm_num)) fiber_weights_agree_at_tied_ray
+  · exact hd0.congr_of_eventuallyEq h0eq
+  · exact hd1.congr_of_eventuallyEq h1eq
+  · exact ne_of_gt (neg_lt_zero.mpr (Real.log_pos (by norm_num)))
+
+end TwoSpeciesJetExample
 
 end LogProjectiveFaceCompatibility
 end CRNT
