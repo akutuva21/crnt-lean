@@ -1959,6 +1959,45 @@ theorem isCompact_projectionFiberSubdivisionTile {n m : ℕ}
     (isClosed_projectionFiberSubdivisionTile base lower upper hbase.isClosed hlower hupper i)
     (projectionFiberSubdivisionTile_subset_band base lower upper horder i)
 
+/-- The center of one equal-width strip in each projected vertical fiber. -/
+noncomputable def projectionFiberSubdivisionCenter {n m : ℕ}
+    (lower upper : (Fin n → ℝ) → ℝ) (i : Fin (m + 1)) (y : Fin n → ℝ) : ℝ :=
+  (projectionFiberSubdivisionEndpoint lower upper i.castSucc y +
+    projectionFiberSubdivisionEndpoint lower upper i.succ y) / 2
+
+/-- The center graph of a subdivided fiber tile is continuous when both boundary graphs are. -/
+theorem continuous_projectionFiberSubdivisionCenter {n m : ℕ}
+    (lower upper : (Fin n → ℝ) → ℝ) (i : Fin (m + 1))
+    (hlower : Continuous lower) (hupper : Continuous upper) :
+    Continuous (projectionFiberSubdivisionCenter lower upper i) := by
+  have hleft := continuous_projectionFiberSubdivisionEndpoint lower upper i.castSucc
+    hlower hupper
+  have hright := continuous_projectionFiberSubdivisionEndpoint lower upper i.succ
+    hlower hupper
+  change Continuous (fun y =>
+    (projectionFiberSubdivisionEndpoint lower upper i.castSucc y +
+      projectionFiberSubdivisionEndpoint lower upper i.succ y) / 2)
+  exact (hleft.add hright).div_const 2
+
+/-- The center graph meets every fiber of its subdivision tile. -/
+theorem projectionFiberSubdivisionCenter_mem_tile {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horder : ∀ y ∈ base, lower y ≤ upper y)
+    (i : Fin (m + 1)) (y : Fin n → ℝ) (hy : y ∈ base) :
+    Fin.snoc y (projectionFiberSubdivisionCenter lower upper i y) ∈
+      projectionFiberSubdivisionTile base lower upper i := by
+  have hendpoints :
+      projectionFiberSubdivisionEndpoint lower upper i.castSucc y ≤
+        projectionFiberSubdivisionEndpoint lower upper i.succ y := by
+    exact (tileScaleInterpolation_monotone_of_le (horder y hy))
+      (Fin.castSucc_le_succ i)
+  rw [mem_projectionFiberSubdivisionTile_snoc_iff]
+  refine ⟨hy, ?_, ?_⟩
+  · dsimp [projectionFiberSubdivisionCenter]
+    linarith
+  · dsimp [projectionFiberSubdivisionCenter]
+    linarith
+
 /-- A certificate for the bounded Case 1.2 refinement: finitely many compact strips cover the
 filled fiber band, each strip projects onto the whole lower-dimensional base, and each vertical
 fiber width is at most `epsilon`. -/
@@ -1966,6 +2005,12 @@ structure CompactProjectionFiberTiling {n : ℕ} (base : Set (Fin n → ℝ))
     (lower upper : (Fin n → ℝ) → ℝ) (epsilon : ℝ) where
   /-- The number of equal strips in each fiber is `subdivisionCount + 1`. -/
   subdivisionCount : ℕ
+  /-- A continuous center graph selects one point in every vertical fiber of each strip. -/
+  tile_center : ∀ i : Fin (subdivisionCount + 1), (Fin n → ℝ) → ℝ
+  tile_center_continuous : ∀ i, Continuous (tile_center i)
+  tile_center_mem : ∀ i y, y ∈ base →
+    Fin.snoc y (tile_center i y) ∈
+      projectionFiberSubdivisionTile base lower upper i
   /-- The subtiles exactly cover the filled band. -/
   tiles_cover :
     projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y)) =
@@ -2013,6 +2058,12 @@ noncomputable def compactProjectionFiberTiling_of_compactBase {n : ℕ}
     simpa [m] using (Classical.choose_spec hmExists)
   refine {
     subdivisionCount := m
+    tile_center := fun i y => projectionFiberSubdivisionCenter lower upper i y
+    tile_center_continuous := fun i =>
+      continuous_projectionFiberSubdivisionCenter lower upper i hlower hupper
+    tile_center_mem := by
+      intro i y hy
+      exact projectionFiberSubdivisionCenter_mem_tile base lower upper horder i y hy
     tiles_cover := projectionFiberBand_bounded_eq_iUnion_subdivisionTiles
       base lower upper horder
     tile_compact := fun i =>

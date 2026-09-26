@@ -238,8 +238,10 @@ an explicit hypothesis, never a `sorry`:
    restricts this construction to each compact projected tile while preserving exact projection,
    face containment, and separation; `projectionFiberTube_eq_iUnion_of_base_cover` proves that a
    finite cover of the base lifts to an exact cover by those tile tubes. This is still set-level
-   tube geometry; it does not provide the piecewise-smooth separating surface, descent estimates,
-   or seam gluing. The log-projective
+   tube geometry. On the one-bit side, compactProjectionFiberTiling_of_compactBase now supplies
+   finitely many compact strips with exact coverage, full base projection, width bounds, and
+   continuous center graphs. These results do not provide the piecewise-smooth separating surface,
+   descent estimates, or seam gluing. The log-projective
    chart compatibility result currently proves pointwise overlap when neighboring face weights
    balance on each tied-coordinate fiber. A separate first-moment condition aligns directional
    derivatives of the scalar level equations; the two-species example in
