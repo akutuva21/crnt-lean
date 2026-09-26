@@ -6,6 +6,7 @@ import Mathlib.LinearAlgebra.AffineSpace.AffineSubspace.Basic
 import Mathlib.LinearAlgebra.Dimension.Constructions
 import Mathlib.LinearAlgebra.Dimension.RankNullity
 import Mathlib.LinearAlgebra.FiniteDimensional.Lemmas
+import Mathlib.Analysis.InnerProductSpace.PiL2
 import CRNT.Geometry.FiniteConeClosed
 
 /-!
@@ -39,6 +40,27 @@ theorem forgetLastCoordinate_surjective (n : ℕ) :
   refine ⟨Fin.snoc x 0, ?_⟩
   funext i
   simp [forgetLastCoordinate]
+
+/-- The final-coordinate projection on Euclidean spaces, transported through the canonical
+`PiLp`/function linear equivalences. -/
+noncomputable def forgetLastEuclidean (n : ℕ) :
+    EuclideanSpace ℝ (Fin (n + 1)) →L[ℝ] EuclideanSpace ℝ (Fin n) := by
+  let sourceEquiv := WithLp.linearEquiv 2 ℝ (Fin (n + 1) → ℝ)
+  let targetEquiv := WithLp.linearEquiv 2 ℝ (Fin n → ℝ)
+  let f := targetEquiv.symm.toLinearMap.comp
+    ((forgetLastCoordinate n).comp sourceEquiv.toLinearMap)
+  exact ⟨f, f.continuous_of_finiteDimensional⟩
+
+/-- The Euclidean final-coordinate projection is surjective. -/
+theorem forgetLastEuclidean_surjective (n : ℕ) :
+    Function.Surjective (forgetLastEuclidean n) := by
+  let sourceEquiv := WithLp.linearEquiv 2 ℝ (Fin (n + 1) → ℝ)
+  let targetEquiv := WithLp.linearEquiv 2 ℝ (Fin n → ℝ)
+  intro y
+  obtain ⟨x, hx⟩ := forgetLastCoordinate_surjective n (targetEquiv y)
+  refine ⟨sourceEquiv.symm x, ?_⟩
+  change targetEquiv.symm (forgetLastCoordinate n (sourceEquiv (sourceEquiv.symm x))) = y
+  rw [sourceEquiv.apply_symm_apply, hx, targetEquiv.symm_apply_apply]
 
 /-- The affine map underlying `forgetLastCoordinate`. -/
 def forgetLastAffine (n : ℕ) :
