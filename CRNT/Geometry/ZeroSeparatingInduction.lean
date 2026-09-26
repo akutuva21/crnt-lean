@@ -3331,6 +3331,36 @@ structure CompactOneBitFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
     interior (facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2) ∩
       interior (facePatch ∩ projectionFiberSubdivisionTile (baseTile q.1) lower upper q.2) = ∅
 
+/-- Each restricted patch in a compact one-bit cover inherits a projected scale which controls its
+ambient diameter. This packages the fiber-width certificate with uniform continuity of the strip
+endpoint; it is the estimate needed before assigning one fixed local wall to a refined patch. -/
+theorem CompactOneBitFiberPatchCover.restrictedTile_diameter_control
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ι → ℝ}
+    (cover : CompactOneBitFiberPatchCover facePatch base baseTile lower upper epsilon)
+    (hbaseTileCompact : ∀ i, IsCompact (baseTile i))
+    (hlower : Continuous lower) (hupper : Continuous upper)
+    (δ : ℝ) (tolerance : ι → ℝ) (htolerance : ∀ i, 0 < tolerance i)
+    (hbudget : ∀ i, epsilon i + tolerance i < δ) (hδ : 0 < δ) :
+    ∀ p : Σ i : ι, Fin ((cover.tiling i).subdivisionCount + 1),
+      ∃ η : ℝ, 0 < η ∧ η < δ ∧
+        ∀ x y,
+          x ∈ facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2 →
+          y ∈ facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2 →
+          dist (forgetLastCoordinate n x) (forgetLastCoordinate n y) < η → dist x y < δ := by
+  intro p
+  obtain ⟨η, hη, hηδ, hdiam⟩ := exists_projectionFiberSubdivisionTile_modulus_of_compactBase
+    (baseTile p.1) lower upper (hbaseTileCompact p.1) hlower hupper
+    (epsilon p.1) (tolerance p.1) δ (htolerance p.1) p.2
+    (by
+      intro z hz
+      exact (cover.tiling p.1).fiber_width_le p.2 z hz) (hbudget p.1) hδ
+  refine ⟨η, hη, hηδ, ?_⟩
+  intro x y hx hy hprojected
+  exact hdiam x y hx.2 hy.2 hprojected
+
 /-- Lift a finite compact cover of a projected base with pairwise disjoint interiors to a finite
 cover of a compact face patch in a bounded fiber band. Each lower tile receives its own positive
 width target and compact strip tiling; exact coverage, compactness, and pairwise ambient-interior
