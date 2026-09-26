@@ -1,6 +1,8 @@
 import Mathlib.Data.Fin.Basic
 import Mathlib.Data.Fin.Tuple.Basic
 import Mathlib.Basic.Real.Basic
+import Mathlib.LinearAlgebra.AffineSpace.AffineMap
+import Mathlib.LinearAlgebra.AffineSpace.AffineSubspace.Basic
 import Mathlib.LinearAlgebra.Dimension.Constructions
 import Mathlib.LinearAlgebra.Dimension.RankNullity
 import Mathlib.LinearAlgebra.FiniteDimensional.Lemmas
@@ -34,6 +36,14 @@ theorem forgetLastCoordinate_surjective (n : ℕ) :
   refine ⟨Fin.snoc x 0, ?_⟩
   funext i
   simp [forgetLastCoordinate]
+
+/-- The affine map underlying `forgetLastCoordinate`. -/
+def forgetLastAffine (n : ℕ) :
+    (Fin (n + 1) → ℝ) →ᵃ[ℝ] (Fin n → ℝ) :=
+  AffineMap.mk' (forgetLastCoordinate n) (forgetLastCoordinate n) 0 (by
+    intro x
+    funext i
+    simp [forgetLastCoordinate])
 
 /-- Dropping one coordinate lowers the dimension of any finite-dimensional subspace by at most
 one. The kernel of the restricted projection embeds into the one-dimensional kernel of the ambient
@@ -137,6 +147,13 @@ structure CoordinateProjectionSubspaceChain (n : ℕ) where
   projectedSubspace : ∀ j : Fin n,
     (subspace j.succ).map (forgetLastCoordinate j.val) = subspace j.castSucc
 
+/-- A chain of nonempty affine faces, each the coordinate projection of the next face. -/
+structure CoordinateProjectedFaceChain (n : ℕ) where
+  face : (j : Fin (n + 1)) → Set (Fin j.val → ℝ)
+  face_nonempty : ∀ j, (face j).Nonempty
+  projectedFace : ∀ j : Fin n,
+    forgetLastAffine j.val '' face j.succ = face j.castSucc
+
 /-- The finranks along a coordinate-projection subspace chain form a valid face-dimension profile.
 The coordinate projection rank bound proves each dimension step is zero or one. -/
 noncomputable def CoordinateProjectionSubspaceChain.dimensionProfile {n : ℕ}
@@ -153,6 +170,19 @@ noncomputable def CoordinateProjectionSubspaceChain.dimensionProfile {n : ℕ}
       finrank_map_forgetLastCoordinate_bounds j.val (chain.subspace j.succ)
     rw [chain.projectedSubspace j] at hstep
     exact hstep
+
+/-- Taking affine-hull directions sends an exactly projected face chain to a
+`CoordinateProjectionSubspaceChain`. -/
+noncomputable def CoordinateProjectedFaceChain.toDirectionSubspaceChain {n : ℕ}
+    (chain : CoordinateProjectedFaceChain n) : CoordinateProjectionSubspaceChain n := by
+  refine ⟨fun j => (affineSpan ℝ (chain.face j)).direction, ?_⟩
+  intro j
+  have hface :
+      (affineSpan ℝ (chain.face j.succ)).map (forgetLastAffine j.val) =
+        affineSpan ℝ (chain.face j.castSucc) := by
+    rw [AffineSubspace.map_span, chain.projectedFace j]
+  have hdirection := congrArg AffineSubspace.direction hface
+  simpa [AffineSubspace.map_direction, forgetLastAffine] using hdirection
 
 /-- The face word has one letter for each projection. -/
 theorem faceProjectionDimensionWord_length {n : ℕ}
@@ -215,6 +245,16 @@ theorem CoordinateProjectionSubspaceChain.dimension_eq_wordWeight {n : ℕ}
       faceProjectionDimensionWordWeight
         (faceProjectionDimensionWord n (fun j => Module.finrank ℝ (chain.subspace j))) := by
   exact chain.dimensionProfile.dimension_eq_wordWeight
+
+/-- The dimension word of an exactly projected affine-face chain records its affine-hull
+dimensions, with one `1` for every dimension gained above the point projection. -/
+theorem CoordinateProjectedFaceChain.dimension_eq_wordWeight {n : ℕ}
+    (chain : CoordinateProjectedFaceChain n) :
+    Module.finrank ℝ ((affineSpan ℝ (chain.face (Fin.last n))).direction) =
+      faceProjectionDimensionWordWeight
+        (faceProjectionDimensionWord n
+          (fun j => Module.finrank ℝ ((affineSpan ℝ (chain.face j)).direction))) := by
+  exact chain.toDirectionSubspaceChain.dimension_eq_wordWeight
 
 end ZeroSeparatingInduction
 end CRNT
