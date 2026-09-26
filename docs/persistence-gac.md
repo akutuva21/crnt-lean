@@ -234,8 +234,12 @@ an explicit hypothesis, never a `sorry`:
    subcase is now kernel-checked: `exists_compact_separated_zeroBitGraphTube` turns a compact face
    with a zero-bit projection into a continuous graph section and a compact tube that contains the
    face, projects exactly onto the base, and retains a positive origin-avoidance margin when the
-   tube radius is smaller than the face margin. This is set-level tube geometry; it does not provide
-   the piecewise-smooth separating surface, descent estimates, or seam gluing. The log-projective
+   tube radius is smaller than the face margin. `exists_compact_separated_zeroBitGraphTube_over_tile`
+   restricts this construction to each compact projected tile while preserving exact projection,
+   face containment, and separation; `projectionFiberTube_eq_iUnion_of_base_cover` proves that a
+   finite cover of the base lifts to an exact cover by those tile tubes. This is still set-level
+   tube geometry; it does not provide the piecewise-smooth separating surface, descent estimates,
+   or seam gluing. The log-projective
    chart compatibility result currently proves pointwise overlap when neighboring face weights
    balance on each tied-coordinate fiber. A separate first-moment condition aligns directional
    derivatives of the scalar level equations; the two-species example in

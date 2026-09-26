@@ -1867,6 +1867,84 @@ theorem exists_compact_separated_zeroBitGraphTube {n : ℕ}
       hfaceSeparated (hgraphPoint y hy)
   exact le_of_not_gt hnotball
 
+/-- Restricting a graph tube to a projected tile gives precisely the graph tube over that tile.
+This is the set-level restriction needed to lift each member of a finite lower-dimensional
+blueprint separately. -/
+theorem projectionFiberTube_restrict_to_tile {n : ℕ}
+    (base tile : Set (Fin n → ℝ)) (center : (Fin n → ℝ) → ℝ) (radius : ℝ)
+    (htile : tile ⊆ base) :
+    projectionFiberTube base center radius ∩
+        {x : Fin (n + 1) → ℝ | forgetLastCoordinate n x ∈ tile} =
+      projectionFiberTube tile center radius := by
+  unfold projectionFiberTube
+  exact projectionFiberBand_restrict_to_tile base tile
+    (fun y => some (center y - radius))
+    (fun y => some (center y + radius)) htile
+
+/-- A finite cover of the projected base induces an exact cover of its graph tube by the
+corresponding tile tubes. This records the cover-preserving part of the zero-bit blueprint lift. -/
+theorem projectionFiberTube_eq_iUnion_of_base_cover {n : ℕ} {ι : Type*} [Fintype ι]
+    (base : Set (Fin n → ℝ)) (tile : ι → Set (Fin n → ℝ))
+    (center : (Fin n → ℝ) → ℝ) (radius : ℝ)
+    (hcover : base = ⋃ i, tile i) :
+    projectionFiberTube base center radius =
+      ⋃ i, projectionFiberTube (tile i) center radius := by
+  ext x
+  simp only [mem_projectionFiberTube_iff, Set.mem_iUnion]
+  constructor
+  · rintro ⟨hbase, hwidth⟩
+    rw [hcover] at hbase
+    obtain ⟨i, hi⟩ := Set.mem_iUnion.mp hbase
+    exact ⟨i, hi, hwidth⟩
+  · rintro ⟨i, hi, hwidth⟩
+    refine ⟨?_, hwidth⟩
+    rw [hcover]
+    exact Set.mem_iUnion.mpr ⟨i, hi⟩
+
+/-- A zero-bit graph tube can be restricted to any compact tile in its projected face. The
+restricted patch remains compact, projects exactly onto that tile, contains the face points above
+it, and inherits the same origin-avoidance margin. This is the local tile constructor for the
+dimension-increasing step; the piecewise-smooth surface and seam data are separate obligations. -/
+theorem exists_compact_separated_zeroBitGraphTube_over_tile {n : ℕ}
+    (chain : CoordinateProjectedFaceChain (n + 1))
+    (hbit : faceProjectionDimensionLetter
+      (fun k => Module.finrank ℝ ((affineSpan ℝ (chain.face k)).direction))
+      (Fin.last n) = false)
+    (hface : IsCompact (chain.face (Fin.last n).succ))
+    (tile : Set (Fin n → ℝ))
+    (htileCompact : IsCompact tile)
+    (htile : tile ⊆ chain.face (Fin.last n).castSucc)
+    (margin radius : ℝ)
+    (hfaceSeparated : chain.face (Fin.last n).succ ⊆
+      (Metric.ball (0 : Fin (n + 1) → ℝ) margin)ᶜ)
+    (hradius : 0 ≤ radius) (hsmall : radius < margin) :
+    ∃ center : (Fin n → ℝ) → ℝ,
+      ContinuousOn center (chain.face (Fin.last n).castSucc) ∧
+      IsCompact (projectionFiberTube tile center radius) ∧
+      forgetLastCoordinate n '' projectionFiberTube tile center radius = tile ∧
+      (chain.face (Fin.last n).succ ∩
+        {x : Fin (n + 1) → ℝ | forgetLastCoordinate n x ∈ tile}) ⊆
+        projectionFiberTube tile center radius ∧
+      0 < margin - radius ∧
+      projectionFiberTube tile center radius ⊆
+        (Metric.ball (0 : Fin (n + 1) → ℝ) (margin - radius))ᶜ := by
+  obtain ⟨center, hcenter, hcompact, hprojects, hfaceTube, hpositive, hseparated⟩ :=
+    exists_compact_separated_zeroBitGraphTube chain hbit hface margin radius
+      hfaceSeparated hradius hsmall
+  have hcenterTile : ContinuousOn center tile := hcenter.mono htile
+  have hrestrict := projectionFiberTube_restrict_to_tile
+    (chain.face (Fin.last n).castSucc) tile center radius htile
+  refine ⟨center, hcenter, ?_, ?_, ?_, hpositive, ?_⟩
+  · exact isCompact_projectionFiberTube_of_continuousOn tile center
+      htileCompact hcenterTile hradius
+  · exact projectionFiberTube_projects_onto_base tile center hradius
+  · intro x hx
+    rw [← hrestrict]
+    exact ⟨hfaceTube hx.1, hx.2⟩
+  · intro x hx
+    rw [← hrestrict] at hx
+    exact hseparated hx.1
+
 
 /-- Every equal-width subtile of a compact bounded fiber band is compact when the base is compact
 and the endpoint graphs are continuous. Closedness of the subtile is inherited from the
