@@ -220,19 +220,48 @@ section scales agree exactly. Consequently the two faces reconstruct the same po
 shared projective ray satisfying the fiber-balance condition. -/
 theorem existsUnique_common_sectionScale (b c y : ι → ℝ) {a : ℝ}
     (hb : ∀ i, 0 ≤ b i) (hbsum : 0 < ∑ i, b i)
-    (hy : ∀ i, 1 ≤ y i) (ha0 : 0 < a) (ha1 : a < 1)
+    (hy : ∀ i, 0 < y i) (ha0 : 0 < a) (ha1 : a < 1)
     (hfiber : ∀ v, projectiveFiberWeight y b v = projectiveFiberWeight y c v) :
     ∃! t : ℝ,
       0 < t ∧
       LogProjectiveSection.weightedExpLevel b y t = a * (∑ i, b i) ∧
       LogProjectiveSection.weightedExpLevel c y t = a * (∑ i, c i) := by
   obtain ⟨t, ht, hunique⟩ :=
-    LogProjectiveSection.existsUnique_sectionScale b y hb hbsum hy ha0 ha1
+    LogProjectiveSection.existsUnique_sectionScale_of_positive b y hb hbsum hy ha0 ha1
   have hrootC :=
     (affineLevel_eq_iff_of_projectiveFiberWeight_eq b c y a t hfiber).mp ht.2
   refine ⟨t, ⟨ht.1, ht.2, hrootC⟩, ?_⟩
   intro u hu
   exact hunique u ⟨hu.1, hu.2.1⟩
+
+/-- When neighboring face weights balance on every projective-coordinate fiber, their canonical
+smooth section points agree on the shared ray. This is the pointwise overlap condition needed to
+glue the individual affine-face charts. -/
+theorem positiveSectionPoint_eq_of_projectiveFiberWeight_eq
+    [DecidableEq ι] (b c : ι → ℝ) {a : ℝ} {i₀ : ι}
+    (hb : ∀ i, 0 ≤ b i) (hbsum : 0 < ∑ i, b i)
+    (hc : ∀ i, 0 ≤ c i) (hcsum : 0 < ∑ i, c i)
+    (ha0 : 0 < a) (ha1 : a < 1)
+    (z : ({i : ι // i ≠ i₀} → ℝ))
+    (hy : ∀ i, 0 < LogProjectiveSection.normalizedCoordinates i₀ z i)
+    (hfiber : ∀ v,
+      projectiveFiberWeight (LogProjectiveSection.normalizedCoordinates i₀ z) b v =
+        projectiveFiberWeight (LogProjectiveSection.normalizedCoordinates i₀ z) c v) :
+    LogProjectiveSection.positiveSectionPoint b a i₀ hb hbsum ha0 ha1 z =
+      LogProjectiveSection.positiveSectionPoint c a i₀ hc hcsum ha0 ha1 z := by
+  let y := LogProjectiveSection.normalizedCoordinates i₀ z
+  let tb := LogProjectiveSection.positiveSectionScale b a i₀ hb hbsum ha0 ha1 z
+  let tc := LogProjectiveSection.positiveSectionScale c a i₀ hc hcsum ha0 ha1 z
+  have hB := LogProjectiveSection.positiveSectionScale_spec b a i₀ hb hbsum ha0 ha1 z hy
+  have hC := LogProjectiveSection.positiveSectionScale_spec c a i₀ hc hcsum ha0 ha1 z hy
+  have hcommon := existsUnique_common_sectionScale b c y hb hbsum hy ha0 ha1 hfiber
+  obtain ⟨t, ht, hunique⟩ := hcommon
+  have hrootC := (affineLevel_eq_iff_of_projectiveFiberWeight_eq b c y a tb hfiber).mp hB.2
+  have hrootB := (affineLevel_eq_iff_of_projectiveFiberWeight_eq b c y a tc hfiber).mpr hC.2
+  have htb : tb = t := hunique tb ⟨hB.1, hB.2, hrootC⟩
+  have htc : tc = t := hunique tc ⟨hC.1, hrootB, hC.2⟩
+  change LogProjectiveSection.sectionPoint y tb = LogProjectiveSection.sectionPoint y tc
+  rw [htb, htc]
 
 end LogProjectiveFaceCompatibility
 end CRNT

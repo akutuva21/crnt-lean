@@ -300,5 +300,93 @@ theorem contDiffOn_positiveSectionScale (b : ι → ℝ) (a : ℝ) (i₀ : ι)
   intro z hz
   exact (contDiffAt_positiveSectionScale b a i₀ hb hbsum ha0 ha1 z hz).contDiffWithinAt
 
+/-- The canonical positive representative on the affine section for a normalized positive
+projective ray. -/
+noncomputable def positiveSectionPoint (b : ι → ℝ) (a : ℝ) (i₀ : ι)
+    (hb : ∀ i, 0 ≤ b i) (hbsum : 0 < ∑ i, b i) (ha0 : 0 < a) (ha1 : a < 1)
+    (z : ({i : ι // i ≠ i₀} → ℝ)) : ι → ℝ :=
+  sectionPoint (normalizedCoordinates i₀ z)
+    (positiveSectionScale b a i₀ hb hbsum ha0 ha1 z)
+
+/-- The canonical point is smooth on the domain of positive normalized coordinates. -/
+theorem contDiffAt_positiveSectionPoint (b : ι → ℝ) (a : ℝ) (i₀ : ι)
+    (hb : ∀ i, 0 ≤ b i) (hbsum : 0 < ∑ i, b i) (ha0 : 0 < a) (ha1 : a < 1)
+    (z : ({i : ι // i ≠ i₀} → ℝ))
+    (hz : ∀ i, 0 < normalizedCoordinates i₀ z i) :
+    ContDiffAt ℝ ∞ (positiveSectionPoint b a i₀ hb hbsum ha0 ha1) z := by
+  classical
+  have hcoords : ContDiff ℝ ∞
+      (fun w : ({i : ι // i ≠ i₀} → ℝ) => normalizedCoordinates i₀ w) := by
+    apply contDiff_pi.2
+    intro i
+    by_cases hi : i = i₀
+    · simp [normalizedCoordinates, hi]
+      exact contDiff_const
+    · simp [normalizedCoordinates, hi]
+      fun_prop
+  have hscale := contDiffAt_positiveSectionScale b a i₀ hb hbsum ha0 ha1 z hz
+  have hpair : ContDiffAt ℝ ∞
+      (fun w => (normalizedCoordinates i₀ w,
+        positiveSectionScale b a i₀ hb hbsum ha0 ha1 w)) z :=
+    hcoords.contDiffAt.prodMk hscale
+  have hsection : ContDiff ℝ ∞
+      (fun p : ((ι → ℝ) × ℝ) => sectionPoint p.1 p.2) := by
+    apply contDiff_pi.2
+    intro i
+    unfold sectionPoint
+    fun_prop
+  change ContDiffAt ℝ ∞
+    (fun w => sectionPoint (normalizedCoordinates i₀ w)
+      (positiveSectionScale b a i₀ hb hbsum ha0 ha1 w)) z
+  exact hsection.contDiffAt.comp z hpair
+
+/-- The canonical smooth point lies on the requested positive affine section and recovers the
+normalized logarithmic projective coordinates. -/
+theorem positiveSectionPoint_spec (b : ι → ℝ) (a : ℝ) (i₀ : ι)
+    (hb : ∀ i, 0 ≤ b i) (hbsum : 0 < ∑ i, b i) (ha0 : 0 < a) (ha1 : a < 1)
+    (z : ({i : ι // i ≠ i₀} → ℝ))
+    (hz : ∀ i, 0 < normalizedCoordinates i₀ z i) :
+    (∀ i, 0 < positiveSectionPoint b a i₀ hb hbsum ha0 ha1 z i ∧
+      positiveSectionPoint b a i₀ hb hbsum ha0 ha1 z i < 1) ∧
+    (∑ i, b i * positiveSectionPoint b a i₀ hb hbsum ha0 ha1 z i) =
+      a * (∑ i, b i) ∧
+    (∀ i, Real.log (positiveSectionPoint b a i₀ hb hbsum ha0 ha1 z i) /
+      Real.log (positiveSectionPoint b a i₀ hb hbsum ha0 ha1 z i₀) =
+        normalizedCoordinates i₀ z i) := by
+  have hscale := positiveSectionScale_spec b a i₀ hb hbsum ha0 ha1 z hz
+  refine ⟨?_, ?_, ?_⟩
+  · intro i
+    constructor
+    · exact Real.exp_pos _
+    · apply (Real.exp_lt_one_iff).2
+      have hty : 0 < positiveSectionScale b a i₀ hb hbsum ha0 ha1 z *
+          normalizedCoordinates i₀ z i := mul_pos hscale.1 (hz i)
+      linarith
+  · simpa [positiveSectionPoint] using
+      (sectionPoint_mem_level b (normalizedCoordinates i₀ z) hscale.2)
+  · intro i
+    simpa [positiveSectionPoint] using
+      (sectionPoint_logProjective (normalizedCoordinates i₀ z) hscale.1
+        (by simp [normalizedCoordinates]) i)
+
+/-- The smooth positive representative is the unique point of its affine section having the
+specified normalized logarithmic projective coordinates. -/
+theorem positiveSectionPoint_unique (b : ι → ℝ) (a : ℝ) (i₀ : ι)
+    (hb : ∀ i, 0 ≤ b i) (hbsum : 0 < ∑ i, b i) (ha0 : 0 < a) (ha1 : a < 1)
+    (z : ({i : ι // i ≠ i₀} → ℝ))
+    (hz : ∀ i, 0 < normalizedCoordinates i₀ z i)
+    (x : ι → ℝ)
+    (hx : (∀ i, 0 < x i ∧ x i < 1) ∧
+      (∑ i, b i * x i) = a * (∑ i, b i) ∧
+      (∀ i, Real.log (x i) / Real.log (x i₀) = normalizedCoordinates i₀ z i)) :
+    x = positiveSectionPoint b a i₀ hb hbsum ha0 ha1 z := by
+  have hcoords : normalizedCoordinates i₀ z i₀ = 1 := by
+    simp [normalizedCoordinates]
+  obtain ⟨xstar, _, hunique⟩ := existsUnique_sectionPoint_with_coordinates b
+    (normalizedCoordinates i₀ z) (a := a) (i₀ := i₀)
+    hb hbsum hz hcoords ha0 ha1
+  have hpoint := positiveSectionPoint_spec b a i₀ hb hbsum ha0 ha1 z hz
+  exact (hunique x hx).trans (hunique _ hpoint).symm
+
 end LogProjectiveSection
 end CRNT
