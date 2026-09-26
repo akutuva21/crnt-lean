@@ -45,6 +45,75 @@ def forgetLastAffine (n : ℕ) :
     funext i
     simp [forgetLastCoordinate])
 
+/-- The section of the homogenizing hyperplane `x₀ = 1`, identified with the affine space of the
+remaining coordinates. -/
+def homogeneousLift (n : ℕ) (x : Fin n → ℝ) : Fin (n + 1) → ℝ := Fin.cons 1 x
+
+/-- The affine chart embedding is injective. -/
+theorem homogeneousLift_injective (n : ℕ) : Function.Injective (homogeneousLift n) := by
+  intro x y h
+  funext i
+  have hi := congrFun h i.succ
+  simpa [homogeneousLift] using hi
+
+/-- Coordinate projection commutes with taking the normalized section of a projected cone. -/
+theorem forgetLastCoordinate_homogeneousLift (n : ℕ) (x : Fin (n + 1) → ℝ) :
+    forgetLastCoordinate (n + 1) (homogeneousLift (n + 1) x) =
+      homogeneousLift n (forgetLastCoordinate n x) := by
+  funext i
+  refine Fin.cases ?_ (fun j => ?_) i
+  · simp [forgetLastCoordinate, homogeneousLift]
+  ·
+    have hi : (j.succ).castSucc = (j.castSucc).succ := by
+      apply Fin.ext
+      simp
+    simp [forgetLastCoordinate, homogeneousLift, hi]
+
+/-- The affine face cut out of a cone by the homogenizing hyperplane `x₀ = 1`. -/
+def normalizedConeSection {n : ℕ} (C : Set (Fin (n + 1) → ℝ)) : Set (Fin n → ℝ) :=
+  {x | homogeneousLift n x ∈ C}
+
+/-- Slicing a cone by `x₀ = 1` commutes with deleting the last coordinate. -/
+theorem forgetLastAffine_image_normalizedConeSection (n : ℕ)
+    (C : Set (Fin (n + 2) → ℝ)) :
+    forgetLastAffine n '' normalizedConeSection (n := n + 1) C =
+      normalizedConeSection (n := n) (forgetLastCoordinate (n + 1) '' C) := by
+  ext x
+  constructor
+  · rintro ⟨y, hy, rfl⟩
+    have hyC : homogeneousLift (n + 1) y ∈ C := hy
+    change homogeneousLift n (forgetLastCoordinate n y) ∈
+      forgetLastCoordinate (n + 1) '' C
+    rw [← forgetLastCoordinate_homogeneousLift]
+    exact Set.mem_image_of_mem (forgetLastCoordinate (n + 1)) hyC
+  · intro hx
+    change homogeneousLift n x ∈ forgetLastCoordinate (n + 1) '' C at hx
+    rcases (Set.mem_image (forgetLastCoordinate (n + 1)) C
+      (homogeneousLift n x)).mp hx with ⟨z, hz, hzx⟩
+    let y : Fin (n + 1) → ℝ := fun i => z i.succ
+    have hz0 : z 0 = 1 := by
+      have hzero := congrFun hzx 0
+      simpa [forgetLastCoordinate, homogeneousLift] using hzero
+    have hyz : homogeneousLift (n + 1) y = z := by
+      funext i
+      refine Fin.cases ?_ (fun j => ?_) i
+      · simp [homogeneousLift, y, hz0]
+      ·
+        rfl
+    have hyC : homogeneousLift (n + 1) y ∈ C := by
+      rw [hyz]
+      exact hz
+    have hcoords : forgetLastCoordinate n y = x := by
+      apply homogeneousLift_injective n
+      calc
+        homogeneousLift n (forgetLastCoordinate n y) =
+            forgetLastCoordinate (n + 1) (homogeneousLift (n + 1) y) :=
+              (forgetLastCoordinate_homogeneousLift n y).symm
+        _ = forgetLastCoordinate (n + 1) z := by rw [hyz]
+        _ = homogeneousLift n x := hzx
+    refine ⟨y, hyC, ?_⟩
+    simpa [forgetLastAffine] using hcoords
+
 /-- Dropping one coordinate lowers the dimension of any finite-dimensional subspace by at most
 one. The kernel of the restricted projection embeds into the one-dimensional kernel of the ambient
 coordinate projection. -/
@@ -154,6 +223,23 @@ structure CoordinateProjectedFaceChain (n : ℕ) where
   projectedFace : ∀ j : Fin n,
     forgetLastAffine j.val '' face j.succ = face j.castSucc
 
+/-- A chain of cones in homogeneous coordinate spaces, where each cone projects onto the
+preceding cone and each normalized section is nonempty. -/
+structure CoordinateProjectedConeChain (n : ℕ) where
+  cone : (j : Fin (n + 1)) → Set (Fin (j.val + 1) → ℝ)
+  projectedCone : ∀ j : Fin n,
+    forgetLastCoordinate (j.val + 1) '' cone j.succ = cone j.castSucc
+  section_nonempty : ∀ j, (normalizedConeSection (cone j)).Nonempty
+
+/-- Normalized sections of an exactly projected cone chain form a projected affine-face chain. -/
+def CoordinateProjectedConeChain.toFaceChain {n : ℕ}
+    (chain : CoordinateProjectedConeChain n) : CoordinateProjectedFaceChain n := by
+  refine ⟨fun j => normalizedConeSection (chain.cone j), chain.section_nonempty, ?_⟩
+  intro j
+  have h := forgetLastAffine_image_normalizedConeSection j.val (chain.cone j.succ)
+  rw [chain.projectedCone j] at h
+  exact h
+
 /-- The finranks along a coordinate-projection subspace chain form a valid face-dimension profile.
 The coordinate projection rank bound proves each dimension step is zero or one. -/
 noncomputable def CoordinateProjectionSubspaceChain.dimensionProfile {n : ℕ}
@@ -255,6 +341,18 @@ theorem CoordinateProjectedFaceChain.dimension_eq_wordWeight {n : ℕ}
         (faceProjectionDimensionWord n
           (fun j => Module.finrank ℝ ((affineSpan ℝ (chain.face j)).direction))) := by
   exact chain.toDirectionSubspaceChain.dimension_eq_wordWeight
+
+/-- The dimension code of a normalized cone chain counts the affine-hull dimension of its final
+section. -/
+theorem CoordinateProjectedConeChain.dimension_eq_wordWeight {n : ℕ}
+    (chain : CoordinateProjectedConeChain n) :
+    Module.finrank ℝ
+        ((affineSpan ℝ (normalizedConeSection (chain.cone (Fin.last n)))).direction) =
+      faceProjectionDimensionWordWeight
+        (faceProjectionDimensionWord n
+          (fun j => Module.finrank ℝ
+            ((affineSpan ℝ (normalizedConeSection (chain.cone j))).direction))) := by
+  exact chain.toFaceChain.dimension_eq_wordWeight
 
 end ZeroSeparatingInduction
 end CRNT
