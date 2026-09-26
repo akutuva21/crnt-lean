@@ -139,6 +139,20 @@ theorem mem_coordinateFiberBox_iff {n : ℕ} (radius : Fin n → ℝ) (x : Fin n
     x ∈ coordinateFiberBox radius ↔ ∀ i, |x i| ≤ radius i := by
   simp [coordinateFiberBox, abs_le, Pi.le_def, forall_and]
 
+/-- A coordinate fiber box whose widths are bounded by `radius` lies in the closed norm ball of
+that radius. The function-space norm is the finite-product supremum norm. -/
+theorem coordinateFiberBox_norm_le_of_radius_le {n : ℕ} (width : Fin n → ℝ)
+    {radius : ℝ} (hradius : 0 ≤ radius) (hwidth : ∀ i, width i ≤ radius)
+    {x : Fin n → ℝ} (hx : x ∈ coordinateFiberBox width) :
+    ‖x‖ ≤ radius := by
+  rw [pi_norm_le_iff_of_nonneg hradius]
+  intro i
+  have hi := (mem_coordinateFiberBox_iff width x).mp hx i
+  calc
+    ‖x i‖ = |x i| := Real.norm_eq_abs _
+    _ ≤ width i := hi
+    _ ≤ radius := hwidth i
+
 /-- Coordinate fiber boxes are compact, including the degenerate zero-width factors used for
 binary prefixes ending in `1`. -/
 theorem isCompact_coordinateFiberBox {n : ℕ} (radius : Fin n → ℝ) :
@@ -217,6 +231,32 @@ theorem forgetLastCoordinate_image_add {n : ℕ}
     rcases hb with ⟨z, hz, rfl⟩
     refine ⟨x + z, Set.mem_add.mpr ⟨x, hx, z, hz, rfl⟩, ?_⟩
     rw [(forgetLastCoordinate n).map_add, hab]
+
+/-- Adding a set of norm-bounded perturbations to a set already outside a ball preserves a
+smaller ball-avoidance margin. -/
+theorem set_add_subset_compl_ball_of_norm_le {E : Type*} [NormedAddCommGroup E]
+    (A B : Set E) (margin radius : ℝ)
+    (hA : A ⊆ (Metric.ball (0 : E) margin)ᶜ)
+    (hB : ∀ b ∈ B, ‖b‖ ≤ radius) :
+    A + B ⊆ (Metric.ball (0 : E) (margin - radius))ᶜ := by
+  intro x hx
+  change x ∉ Metric.ball (0 : E) (margin - radius)
+  intro hxball
+  rcases Set.mem_add.mp hx with ⟨a, ha, b, hb, rfl⟩
+  have haMargin : margin ≤ ‖a‖ := by
+    by_contra hnot
+    have haLt : ‖a‖ < margin := lt_of_not_ge hnot
+    have haball : a ∈ Metric.ball (0 : E) margin := by
+      simpa [Metric.mem_ball, dist_eq_norm] using haLt
+    exact hA ha haball
+  have hsumNorm : ‖a‖ ≤ ‖a + b‖ + ‖b‖ := by
+    calc
+      ‖a‖ = ‖(a + b) - b‖ := by rw [add_sub_cancel_right]
+      _ ≤ ‖a + b‖ + ‖b‖ := norm_sub_le _ _
+  have hbRadius := hB b hb
+  have hballNorm : ‖a + b‖ < margin - radius := by
+    simpa [Metric.mem_ball, dist_eq_norm] using hxball
+  linarith
 
 /-- The zero-bit neighborhood from Craciun v3, §7.3: thicken a face by its binary-prefix fiber,
 then restrict to the previously constructed neighborhood of its projection. -/
@@ -297,6 +337,30 @@ theorem isCompact_zeroBitPreBlueprintNeighborhood {n : ℕ}
   have hclosed : IsClosed {x | forgetLastCoordinate n x ∈ baseNeighborhood} :=
     hbase.isClosed.preimage hprojection
   exact hthick.inter_right hclosed
+
+/-- The full zero-bit pre-blueprint neighborhood retains the reduced origin-avoidance margin
+whenever every coordinate width in its binary-prefix fiber is bounded by a smaller radius. -/
+theorem zeroBitPreBlueprintNeighborhood_separated {n : ℕ}
+    (face : Set (Fin (n + 1) → ℝ)) (baseNeighborhood : Set (Fin n → ℝ))
+    (epsilon : List Bool → ℝ) (word : List Bool) (margin radius : ℝ)
+    (hfaceSeparated : face ⊆ (Metric.ball (0 : Fin (n + 1) → ℝ) margin)ᶜ)
+    (hradius : 0 ≤ radius) (hwidth : ∀ i : Fin (n + 1),
+      epsilon (word.take (i.val + 1)) ≤ radius) (hsmall : radius < margin) :
+    0 < margin - radius ∧
+      zeroBitPreBlueprintNeighborhood face baseNeighborhood epsilon word ⊆
+        (Metric.ball (0 : Fin (n + 1) → ℝ) (margin - radius))ᶜ := by
+  refine ⟨sub_pos.mpr hsmall, ?_⟩
+  intro x hx
+  apply set_add_subset_compl_ball_of_norm_le face
+    (binaryWordFiberBox (n := n + 1) epsilon word) margin radius hfaceSeparated
+    (fun b hb => by
+      apply coordinateFiberBox_norm_le_of_radius_le
+      · exact hradius
+      · exact hwidth
+      · change b ∈ coordinateFiberBox
+          (fun i => epsilon (word.take (i.val + 1))) at hb
+        exact hb)
+  exact hx.1
 
 /-- If a length-`n + 1` word ends in `1`, its final coordinate has zero width in the associated
 fiber box. This is the dimension-dropping case of the prefix rule in §7.3. -/

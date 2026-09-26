@@ -264,8 +264,11 @@ an explicit hypothesis, never a `sorry`:
    neighborhood. `forgetLastCoordinate_image_zeroBitPreBlueprintNeighborhood` proves the exact
    projection recursion; compactness and face containment follow when compactness and projected
    containment are supplied. A prefix ending in `1` has a zero-width coordinate via
-   `binaryWordFiberBox_lastCoordinate_eq_zero`. These are pre-blueprint set facts, not the smooth
-   hypersurface or normal-condition construction. See [Craciun v3, §7.3](https://arxiv.org/html/1501.02860v3).
+   `binaryWordFiberBox_lastCoordinate_eq_zero`. If every box width is at most `r`,
+   `zeroBitPreBlueprintNeighborhood_separated` shows that a face outside the margin-`m` ball yields
+   a neighborhood outside the ball of radius `m - r`, with that reduced margin positive when
+   `r < m`. These are pre-blueprint set facts, not the smooth hypersurface or normal-condition
+   construction. See [Craciun v3, §7.3](https://arxiv.org/html/1501.02860v3).
    The smooth gluing layer now also
    proves, via exists_fderiv_smoothMaxList_le and
    exists_fderiv_smoothMaxF_nonpos_of_value_gap, that finite smooth maxima preserve a shared
