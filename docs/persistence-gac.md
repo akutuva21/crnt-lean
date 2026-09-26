@@ -217,22 +217,27 @@ an explicit hypothesis, never a `sorry`:
    (`Geometry/ZeroSeparatingSurface.lean`); `inductionStep_of_ruledBuild`
    (`Geometry/ZeroSeparatingInduction.lean`) returns its assumed witness unchanged. The descent band
    and ball-separation feeding `genuine_away_from_origin` are likewise supplied.
-3. **The weak-reversibility cycle cover.** `NetworkCycleDecomposition` packages the concrete
-   cycle-cover data (path lists with their ordering fields) and is assumed; the reachability-level
-   cover is proven (`WeaklyReversible.onDirectedCycle`), but no lemma turns it into the concrete
-   decomposition the embedding consumes. **This interface needs restating before it can be fed.**
-   `mono` and `cmin` pull against each other. For a graph cycle — consecutive reactions, so `vec`
-   makes `u j i` the `i`-th source complex — `mono` demands that the mass-action rates be
-   nondecreasing the whole way round, which is not arrangeable by choosing a starting point:
-   `Examples/CycleRateNonMonotone.lean` exhibits the strongly connected triangle
-   `A → B → A + B → A` at `x = (1/2, 4)`, where the cyclic rates are `1/2, 4, 2` and
-   `tri_no_monotone_rotation` verifies that none of the three rotations is monotone. Reordering the
-   reactions arbitrarily is permitted (`vec` constrains only consecutive differences, and the three
-   reaction vectors sum to zero, `tri_reactionVector_sum_zero`), and sorting by rate does satisfy
-   `mono` — but then `u j i` is a partial sum of reaction vectors in rate order rather than a source
-   complex, and nothing supplies its `C`-minimality. So either `mono` must be weakened to monotone
-   *runs* with explicit descent corrections, or `cmin` must be proven for the sorted partial-sum
-   walk.
+3. **The weak-reversibility cycle cover and its ordering data.** The reachability-level cover is
+   proven (`WeaklyReversible.onDirectedCycle`), but `NetworkCycleDecomposition` still assumes the
+   concrete cycle lists and ordering data needed to assemble the network velocity. Its original
+   `mono`/`cmin` interface is problematic in graph order: `Examples/CycleRateNonMonotone.lean`
+   exhibits the strongly connected triangle `A → B → A + B → A` at `x = (1/2, 4)`, where the rates
+   are `1/2, 4, 2` and no rotation is monotone. Reordering steps by rate fixes `mono`, but changes
+   the vertices to partial sums of reaction vectors.
+
+   The cycle-level partial-sum argument is now formalized. `ToricCycleSortedBase.lean` proves that
+   the prefixes obtained by sorting coefficients have nonnegative partial sums in one direction;
+   `ToricCycleOrderLimits.lean` lifts this to a cone condition `OrderRefines C y a` and proves
+   `cycle_velocity_mem_polarCone_of_orderRefines`. It also defines the coefficient-dependent
+   `OrderChamber y a`, giving an unconditional cycle-level polar-cone result relative to that
+   chamber. This repairs the sorted-walk `C`-minimality step under the stated order condition, but
+   does not construct the network-level cycle decomposition or show that the required chambers and
+   fan slack assemble for general rate constants. With a common positive rate constant, `log x`
+   belongs to each cycle's order chamber. With non-uniform constants, the ordering is shifted by
+   `log κ`; `massAction_cycle_inner_le_kappaCorrection` and `massAction_cycle_inner_le_kappaSpread`
+   quantify the resulting term when adjacent log-rate differences are bounded. The separate
+   `CycleSignCompatible` Abel condition does not bypass the ordering issue: under strict
+   `C`-minimality it forces coefficient monotonicity at the separating indices.
 4. **The polyhedral-fan axioms and common refinements.** `IsPolyhedralFan` (closure under exposed
    faces, pairwise intersection a common face, covering) remains a requirement on input fans.
    `Geometry/FanRefinement.lean` now constructs finite iterated intersections of supplied
