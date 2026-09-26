@@ -125,6 +125,53 @@ theorem criticalBoundaryOmegaFace_lowerRank
     hwr κ hxs hcb hγ0 hϕγ hgenω hωnn hωc hw hcrit.2.1 hzeroSet
   exact ⟨hcrit, hface.1, N.restrictReactions_avoiding_siphon_stoichRank_lt hcrit, hface.2⟩
 
+
+/-- A finite species set lets us choose a boundary omega point whose zero set is maximal by
+cardinality. Every omega point on that same zero face then has exactly the same zero set. -/
+theorem exists_maximal_zeroSet_omegaPoint
+    {Ω : Set (Concentration S)}
+    {w : Concentration S} (hw : w ∈ Ω)
+    {P : Finset S} (hPne : P.Nonempty)
+    (hzeroSet : ∀ s, s ∈ P ↔ w s = 0) :
+    ∃ w' ∈ Ω, ∃ P' : Finset S, P'.Nonempty ∧
+      (∀ s, s ∈ P' ↔ w' s = 0) ∧
+      ∀ z ∈ Ω, (∀ s ∈ P', z s = 0) → ∀ s, z s = 0 ↔ s ∈ P' := by
+  classical
+  let candidates : Finset (Finset S) :=
+    Finset.univ.powerset.filter fun Q => ∃ z ∈ Ω, ∀ s, s ∈ Q ↔ z s = 0
+  have hPmem : P ∈ candidates := by
+    apply Finset.mem_filter.mpr
+    constructor
+    · exact Finset.mem_powerset.mpr (Finset.subset_univ P)
+    · exact ⟨w, hw, hzeroSet⟩
+  have hcandidates : candidates.Nonempty := ⟨P, hPmem⟩
+  obtain ⟨Pmax, hPmaxmem, hPmax⟩ :=
+    Finset.exists_max_image candidates Finset.card hcandidates
+  obtain ⟨wmax, hwmax, hzeroMax⟩ := (Finset.mem_filter.mp hPmaxmem).2
+  have hPmaxNonempty : Pmax.Nonempty := by
+    apply Finset.card_pos.mp
+    exact lt_of_lt_of_le (Finset.card_pos.mpr hPne) (hPmax P hPmem)
+  have hmaxExact : ∀ z ∈ Ω, (∀ s ∈ Pmax, z s = 0) →
+      ∀ s, z s = 0 ↔ s ∈ Pmax := by
+    intro z hz hzero s
+    let Qz : Finset S := Finset.univ.filter fun i => z i = 0
+    have hQexact : ∀ i, i ∈ Qz ↔ z i = 0 := by
+      intro i
+      simp [Qz]
+    have hQmem : Qz ∈ candidates := by
+      apply Finset.mem_filter.mpr
+      constructor
+      · exact Finset.mem_powerset.mpr (Finset.subset_univ Qz)
+      · exact ⟨z, hz, hQexact⟩
+    have hsubset : Pmax ⊆ Qz := by
+      intro i hi
+      exact (hQexact i).2 (hzero i hi)
+    have hcard : Qz.card ≤ Pmax.card := hPmax Qz hQmem
+    have hEq : Pmax = Qz := Finset.eq_of_subset_of_card_le hsubset hcard
+    rw [hEq]
+    exact (hQexact s).symm
+  exact ⟨wmax, hwmax, Pmax, hPmaxNonempty, hzeroMax, hmaxExact⟩
+
 /-- **Exact output of a boundary-face rank reduction.** A compact forward orbit either already
 has a positive omega-point, or it has a boundary omega-point whose zero set is a nonempty critical
 siphon and whose avoiding-face network has strictly smaller stoichiometric rank and a positive
