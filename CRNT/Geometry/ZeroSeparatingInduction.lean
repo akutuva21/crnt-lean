@@ -1015,6 +1015,20 @@ theorem mem_projectionFiberBand_snoc_iff {n : ℕ} (base : Set (Fin n → ℝ))
       y ∈ base ∧ t ∈ projectionFiberInterval (lower y) (upper y) := by
   simp [projectionFiberBand, forgetLastCoordinate]
 
+/-! ### Thickening a zero-bit graph
+
+The zero-bit case of the v3 construction lifts each tile center through a face whose projection is
+bijective, then thickens that graph by a small amount in the deleted coordinate. The lemmas here
+record the exact projected base, compactness, and thickness of that neighborhood. The face-profile
+equivalence above supplies the graph section; its smooth or affine realization is a separate input.
+-/
+
+/-- A transverse tube of radius `radius` around a coordinate graph over `base`. -/
+def projectionFiberTube {n : ℕ} (base : Set (Fin n → ℝ))
+    (center : (Fin n → ℝ) → ℝ) (radius : ℝ) : Set (Fin (n + 1) → ℝ) :=
+  projectionFiberBand base (fun y => some (center y - radius))
+    (fun y => some (center y + radius))
+
 /-- The fiber of a filled tile over `y` is the whole interval between its boundary graphs, with no
 gaps. This is the exact fiber property used when Case 1.2 declares the preimage of a lower tile to
 be one tile in the new dimension. -/
@@ -1505,6 +1519,354 @@ theorem isCompact_projectionFiberBand_bounded {n : ℕ}
         exact ⟨by ext i; rfl, hcoord⟩
   rw [← himage]
   exact hdomain.image hfill
+
+/-- Membership in a graph tube is base membership and a uniform bound on the deleted coordinate's
+distance from the graph. -/
+theorem mem_projectionFiberTube_iff {n : ℕ} (base : Set (Fin n → ℝ))
+    (center : (Fin n → ℝ) → ℝ) (radius : ℝ) (x : Fin (n + 1) → ℝ) :
+    x ∈ projectionFiberTube base center radius ↔
+      forgetLastCoordinate n x ∈ base ∧
+        |x (Fin.last n) - center (forgetLastCoordinate n x)| ≤ radius := by
+  rw [projectionFiberTube, mem_projectionFiberBand_bounded_iff]
+  constructor
+  · rintro ⟨hy, hlo, hhi⟩
+    refine ⟨hy, ?_⟩
+    rw [abs_le]
+    constructor <;> linarith
+  · rintro ⟨hy, habs⟩
+    rw [abs_le] at habs
+    refine ⟨hy, ?_, ?_⟩ <;> linarith
+
+/-- A nonnegative-radius graph tube projects onto exactly its base. -/
+theorem projectionFiberTube_projects_onto_base {n : ℕ} (base : Set (Fin n → ℝ))
+    (center : (Fin n → ℝ) → ℝ) {radius : ℝ} (hradius : 0 ≤ radius) :
+    forgetLastCoordinate n '' projectionFiberTube base center radius = base := by
+  apply projectionFiberBand_projects_onto_base
+  intro y hy
+  refine ⟨center y, ?_⟩
+  change center y ∈ Set.Icc (center y - radius) (center y + radius)
+  simp only [Set.mem_Icc]
+  exact ⟨by linarith, by linarith⟩
+
+/-- The deleted-coordinate thickness of a graph tube is at most its prescribed radius. -/
+theorem projectionFiberTube_thickness_le {n : ℕ} (base : Set (Fin n → ℝ))
+    (center : (Fin n → ℝ) → ℝ) {radius : ℝ} {x : Fin (n + 1) → ℝ}
+    (hx : x ∈ projectionFiberTube base center radius) :
+    |x (Fin.last n) - center (forgetLastCoordinate n x)| ≤ radius :=
+  (mem_projectionFiberTube_iff base center radius x).mp hx |>.2
+
+/-- Changing only the final coordinate by `d` moves a tuple by at most `|d|` in the product
+sup norm. -/
+theorem dist_snoc_same_base_le {n : ℕ} (y : Fin n → ℝ) (a b : ℝ) :
+    dist (Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y a)
+      (Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y b) ≤ |a - b| := by
+  rw [dist_eq_norm, pi_norm_le_iff_of_nonneg (abs_nonneg (a - b))]
+  intro i
+  refine Fin.lastCases ?_ (fun j => ?_) i
+  · rw [Pi.sub_apply, Fin.snoc_last, Fin.snoc_last]
+    exact le_rfl
+  · rw [Pi.sub_apply, Fin.snoc_castSucc, Fin.snoc_castSucc]
+    simp
+
+/-- If every graph point is at least `margin` from the origin, its radius-`radius` tube stays
+outside the open ball of radius `margin - radius`. This is the separation transfer for a
+zero-bit transverse thickening. -/
+theorem projectionFiberTube_subset_compl_ball_of_graph_separated {n : ℕ}
+    (base : Set (Fin n → ℝ)) (center : (Fin n → ℝ) → ℝ) (radius margin : ℝ)
+    (hseparated : ∀ y ∈ base,
+      margin ≤ dist (Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (center y))
+        (0 : Fin (n + 1) → ℝ)) :
+    projectionFiberTube base center radius ⊆
+      (Metric.ball (0 : Fin (n + 1) → ℝ) (margin - radius))ᶜ := by
+  intro x hx
+  rw [Set.mem_compl_iff, Metric.mem_ball]
+  intro hxball
+  obtain ⟨hy, hthick⟩ := (mem_projectionFiberTube_iff base center radius x).mp hx
+  let y := forgetLastCoordinate n x
+  have hxform : x = Fin.snoc (α := fun _ : Fin (n + 1) => ℝ)
+      y (x (Fin.last n)) := by
+    apply funext
+    refine Fin.lastCases ?_ (fun i => ?_)
+    · simp [Fin.snoc_last]
+    · simp [y, forgetLastCoordinate, Fin.snoc_castSucc]
+  have hnear : dist x (Fin.snoc (α := fun _ : Fin (n + 1) => ℝ)
+      y (center y)) ≤ radius := by
+    calc
+      dist x (Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (center y)) =
+          dist (Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (x (Fin.last n)))
+            (Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (center y)) := by
+              exact congrArg (fun z => dist z
+                (Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (center y))) hxform
+      _ ≤ |x (Fin.last n) - center y| :=
+        dist_snoc_same_base_le y (x (Fin.last n)) (center y)
+      _ ≤ radius := by simpa [y] using hthick
+  have htriangle :
+      dist (Fin.snoc (α := fun _ : Fin (n + 1) => ℝ)
+          y (center y)) 0 ≤
+        radius + dist x 0 := by
+    calc
+      dist (Fin.snoc (α := fun _ : Fin (n + 1) => ℝ)
+          y (center y)) 0 ≤
+        dist (Fin.snoc (α := fun _ : Fin (n + 1) => ℝ)
+            y (center y)) x + dist x 0 :=
+          dist_triangle _ _ _
+      _ = dist x (Fin.snoc (α := fun _ : Fin (n + 1) => ℝ)
+            y (center y)) + dist x 0 := by
+          rw [dist_comm]
+      _ ≤ radius + dist x 0 := by linarith
+  have hgraph := hseparated y hy
+  linarith
+
+/-- A graph tube over a compact base is compact when its center varies continuously and its radius
+is nonnegative. This gives compact patches for the finite local-chart cover in the zero-bit case. -/
+theorem isCompact_projectionFiberTube {n : ℕ} (base : Set (Fin n → ℝ))
+    (center : (Fin n → ℝ) → ℝ) {radius : ℝ} (hbase : IsCompact base)
+    (hcenter : Continuous center) (hradius : 0 ≤ radius) :
+    IsCompact (projectionFiberTube base center radius) := by
+  unfold projectionFiberTube
+  apply isCompact_projectionFiberBand_bounded base (fun y => center y - radius)
+    (fun y => center y + radius) hbase (hcenter.sub continuous_const)
+    (hcenter.add continuous_const)
+  intro y hy
+  linarith
+
+/-- A graph tube is still compact when its center is only continuous on the compact base. This
+form is suited to graph sections obtained by inverting projection on one compact face: the
+section is naturally defined on the projected face, with no need to extend it away from that
+face. -/
+theorem isCompact_projectionFiberTube_of_continuousOn {n : ℕ} (base : Set (Fin n → ℝ))
+    (center : (Fin n → ℝ) → ℝ) {radius : ℝ} (hbase : IsCompact base)
+    (hcenter : ContinuousOn center base) (hradius : 0 ≤ radius) :
+    IsCompact (projectionFiberTube base center radius) := by
+  let B := {y // y ∈ base}
+  let I := Set.Icc (-radius) radius
+  letI : CompactSpace B := isCompact_iff_compactSpace.mp hbase
+  letI : CompactSpace I := isCompact_iff_compactSpace.mp isCompact_Icc
+  let param : B × I → Fin (n + 1) → ℝ := fun q =>
+    Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) q.1.1
+      (center q.1.1 + q.2.1)
+  have hbaseCoord : Continuous fun q : B × I => (q.1.1 : Fin n → ℝ) :=
+    continuous_subtype_val.comp continuous_fst
+  have hcenterBase : Continuous fun y : B => center y.1 :=
+    continuousOn_iff_continuous_domRestrict.mp hcenter
+  have hcenterParam : Continuous fun q : B × I => center q.1.1 :=
+    hcenterBase.comp continuous_fst
+  have hfiberParam : Continuous fun q : B × I => (q.2.1 : ℝ) :=
+    continuous_subtype_val.comp continuous_snd
+  have hlast : Continuous fun q : B × I => center q.1.1 + q.2.1 :=
+    hcenterParam.add hfiberParam
+  have hparam : Continuous param := by
+    change Continuous (fun q : B × I =>
+      Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) q.1.1
+        (center q.1.1 + q.2.1))
+    refine continuous_pi fun i => ?_
+    refine Fin.lastCases ?_ (fun j => ?_) i
+    · simpa using hlast
+    · have hcoord : Continuous fun q : B × I => q.1.1 j := by
+        exact (continuous_apply j).comp hbaseCoord
+      simpa only [Fin.snoc_castSucc] using hcoord
+  have hrange : Set.range param = projectionFiberTube base center radius := by
+    ext x
+    constructor
+    · rintro ⟨q, rfl⟩
+      rw [mem_projectionFiberTube_iff]
+      have hproj : forgetLastCoordinate n (param q) = q.1.1 := by
+        ext i
+        simp [param, forgetLastCoordinate]
+      have hlast' : param q (Fin.last n) = center q.1.1 + q.2.1 := by
+        simp [param]
+      refine ⟨?_, ?_⟩
+      · rw [hproj]
+        exact q.1.2
+      · rw [hproj, hlast']
+        rw [abs_le]
+        rcases q.2.2 with ⟨htlo, hthi⟩
+        constructor <;> linarith
+    · intro hx
+      rcases (mem_projectionFiberTube_iff base center radius x).mp hx with
+        ⟨hy, hdist⟩
+      rw [abs_le] at hdist
+      refine ⟨(⟨forgetLastCoordinate n x, hy⟩,
+        ⟨x (Fin.last n) - center (forgetLastCoordinate n x), hdist⟩), ?_⟩
+      apply funext
+      refine Fin.lastCases ?_ (fun i => ?_)
+      · simp [param, Fin.snoc_last]
+      · simp [param, forgetLastCoordinate]
+  have hcompactRange : IsCompact (Set.range param) := by
+    rw [← Set.image_univ]
+    exact isCompact_univ.image hparam
+  rw [← hrange]
+  exact hcompactRange
+
+/-- If the face projects into `base` and lies on the chosen graph, the graph tube contains the
+face. A dimension-code zero supplies the uniqueness of this graph lift. -/
+theorem subset_projectionFiberTube_of_graph {n : ℕ} (face : Set (Fin (n + 1) → ℝ))
+    (base : Set (Fin n → ℝ)) (center : (Fin n → ℝ) → ℝ) {radius : ℝ}
+    (hradius : 0 ≤ radius)
+    (hproject : ∀ x ∈ face, forgetLastCoordinate n x ∈ base)
+    (hgraph : ∀ x ∈ face,
+      center (forgetLastCoordinate n x) = x (Fin.last n)) :
+    face ⊆ projectionFiberTube base center radius := by
+  intro x hx
+  rw [mem_projectionFiberTube_iff]
+  refine ⟨hproject x hx, ?_⟩
+  rw [hgraph x hx]
+  simpa using hradius
+
+/-- A compact face whose last-coordinate projection preserves its affine dimension is the graph
+of a continuous function on its projected face. Its closed transverse tube is compact and contains
+the face. This is the zero-bit graph thickening, now connected to the projection equivalence from
+`ProjectedFaceDimensionCode`. -/
+theorem exists_compact_zeroBitGraphTube {n : ℕ}
+    (chain : CoordinateProjectedFaceChain (n + 1))
+    (hbit : faceProjectionDimensionLetter
+      (fun k => Module.finrank ℝ ((affineSpan ℝ (chain.face k)).direction))
+      (Fin.last n) = false)
+    (hface : IsCompact (chain.face (Fin.last n).succ))
+    {radius : ℝ} (hradius : 0 ≤ radius) :
+    ∃ center : (Fin n → ℝ) → ℝ,
+      ContinuousOn center (chain.face (Fin.last n).castSucc) ∧
+      IsCompact (projectionFiberTube (chain.face (Fin.last n).castSucc) center radius) ∧
+      forgetLastCoordinate n ''
+          projectionFiberTube (chain.face (Fin.last n).castSucc) center radius =
+        chain.face (Fin.last n).castSucc ∧
+      chain.face (Fin.last n).succ ⊆
+        projectionFiberTube (chain.face (Fin.last n).castSucc) center radius ∧
+      (∀ y ∈ chain.face (Fin.last n).castSucc,
+        Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (center y) ∈
+          chain.face (Fin.last n).succ) := by
+  classical
+  let j : Fin (n + 1) := Fin.last n
+  let face := chain.face j.succ
+  let base := chain.face j.castSucc
+  let A := {x // x ∈ face}
+  let B := {y // y ∈ base}
+  let e := chain.projectionEquiv_of_dimensionLetter_false j hbit
+  letI : CompactSpace A := isCompact_iff_compactSpace.mp hface
+  have hbaseCompact : IsCompact base := by
+    change IsCompact (chain.face j.castSucc)
+    rw [← chain.projectedFace j]
+    exact hface.image (forgetLastAffine j.val).continuous_of_finiteDimensional
+  letI : T2Space B := inferInstance
+  have hprojectMem : ∀ x : A, forgetLastCoordinate n x.1 ∈ base := by
+    intro x
+    have hx : forgetLastAffine j.val x.1 ∈ forgetLastAffine j.val '' face :=
+      Set.mem_image_of_mem _ x.2
+    rw [chain.projectedFace j] at hx
+    simpa [j, face, base, forgetLastAffine] using hx
+  have heq : (fun x : A => e x) =
+      (fun x => (⟨forgetLastCoordinate n x.1, hprojectMem x⟩ : B)) := by
+    funext x
+    apply Subtype.ext
+    simpa [e, j, forgetLastAffine] using
+      (chain.projectionEquiv_of_dimensionLetter_false_apply j hbit x)
+  have hmap : Continuous (fun x : A => forgetLastCoordinate n x.1) := by
+    change Continuous (fun x : {x // x ∈ face} => forgetLastCoordinate n x.1)
+    exact (forgetLastCoordinate n).continuous_of_finiteDimensional.comp continuous_subtype_val
+  have hforward : Continuous (fun x : A => e x) := by
+    rw [heq]
+    exact Continuous.subtype_mk hmap hprojectMem
+  have hsection : Continuous fun y : B => (e.symm y).1 (Fin.last n) := by
+    have hinv : Continuous e.symm :=
+      Continuous.continuous_symm_of_equiv_compact_to_t2 hforward
+    exact (continuous_apply (Fin.last n)).comp
+      (continuous_subtype_val.comp hinv)
+  let center : (Fin n → ℝ) → ℝ := fun y =>
+    if hy : y ∈ base then (e.symm ⟨y, hy⟩).1 (Fin.last n) else 0
+  have hcenter : ContinuousOn center base := by
+    rw [continuousOn_iff_continuous_domRestrict]
+    change Continuous (fun y : B => center y.1)
+    have hcenterEq : (fun y : B => center y.1) =
+        (fun y => (e.symm y).1 (Fin.last n)) := by
+      funext y
+      simp [center]
+    rw [hcenterEq]
+    exact hsection
+  have hproject : ∀ x ∈ face, forgetLastCoordinate n x ∈ base := by
+    intro x hx
+    have hx' : forgetLastAffine j.val x ∈ forgetLastAffine j.val '' face :=
+      Set.mem_image_of_mem _ hx
+    rw [chain.projectedFace j] at hx'
+    simpa [j, face, base, forgetLastAffine] using hx'
+  have hgraph : ∀ x ∈ face,
+      center (forgetLastCoordinate n x) = x (Fin.last n) := by
+    intro x hx
+    let xA : A := ⟨x, hx⟩
+    have hprojection : (e xA).1 = forgetLastCoordinate n x := by
+      simpa [e, j, forgetLastAffine] using
+        (chain.projectionEquiv_of_dimensionLetter_false_apply j hbit xA)
+    have heqPoint : e xA = ⟨forgetLastCoordinate n x, hproject x hx⟩ :=
+      Subtype.ext hprojection
+    have hinverse : e.symm ⟨forgetLastCoordinate n x, hproject x hx⟩ = xA := by
+      rw [← heqPoint]
+      exact e.symm_apply_apply xA
+    simp [center, hproject x hx, hinverse, xA]
+  have hgraphPoint : ∀ y ∈ base,
+      Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (center y) ∈ face := by
+    intro y hy
+    let yB : B := ⟨y, hy⟩
+    let xA : A := e.symm yB
+    have hprojection : forgetLastCoordinate n xA.1 = y := by
+      have heqVal : (e xA).1 = y := congrArg Subtype.val (e.apply_symm_apply yB)
+      have happly :=
+        chain.projectionEquiv_of_dimensionLetter_false_apply j hbit xA
+      have hproj := happly.symm.trans heqVal
+      simpa [e, j, forgetLastAffine] using hproj
+    have hlast : xA.1 (Fin.last n) = center y := by
+      simp [center, hy, yB, xA]
+    have hcoordinates :
+        Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (center y) = xA.1 := by
+      apply funext
+      refine Fin.lastCases ?_ (fun i => ?_)
+      · simpa [hlast]
+      · have hi := congrFun hprojection i
+        simpa [forgetLastCoordinate, Fin.snoc_castSucc] using hi.symm
+    rw [hcoordinates]
+    exact xA.2
+  refine ⟨center, hcenter, ?_, ?_, ?_, hgraphPoint⟩
+  · exact isCompact_projectionFiberTube_of_continuousOn base center
+      hbaseCompact hcenter hradius
+  · exact projectionFiberTube_projects_onto_base base center hradius
+  · exact subset_projectionFiberTube_of_graph face base center hradius hproject hgraph
+
+/-- A compact zero-bit graph patch inherits an explicit origin-avoidance margin: if every point
+of its face lies outside the radius-`margin` ball, a transverse tube of radius less than `margin`
+is compact, projects exactly onto the same base, contains the face, and stays outside the
+radius-`(margin - radius)` ball. -/
+theorem exists_compact_separated_zeroBitGraphTube {n : ℕ}
+    (chain : CoordinateProjectedFaceChain (n + 1))
+    (hbit : faceProjectionDimensionLetter
+      (fun k => Module.finrank ℝ ((affineSpan ℝ (chain.face k)).direction))
+      (Fin.last n) = false)
+    (hface : IsCompact (chain.face (Fin.last n).succ))
+    (margin radius : ℝ)
+    (hfaceSeparated : chain.face (Fin.last n).succ ⊆
+      (Metric.ball (0 : Fin (n + 1) → ℝ) margin)ᶜ)
+    (hradius : 0 ≤ radius) (hsmall : radius < margin) :
+    ∃ center : (Fin n → ℝ) → ℝ,
+      ContinuousOn center (chain.face (Fin.last n).castSucc) ∧
+      IsCompact (projectionFiberTube (chain.face (Fin.last n).castSucc) center radius) ∧
+      forgetLastCoordinate n ''
+          projectionFiberTube (chain.face (Fin.last n).castSucc) center radius =
+        chain.face (Fin.last n).castSucc ∧
+      chain.face (Fin.last n).succ ⊆
+        projectionFiberTube (chain.face (Fin.last n).castSucc) center radius ∧
+      0 < margin - radius ∧
+      projectionFiberTube (chain.face (Fin.last n).castSucc) center radius ⊆
+        (Metric.ball (0 : Fin (n + 1) → ℝ) (margin - radius))ᶜ := by
+  obtain ⟨center, hcenter, hcompact, hprojects, hfaceTube, hgraphPoint⟩ :=
+    exists_compact_zeroBitGraphTube chain hbit hface hradius
+  refine ⟨center, hcenter, hcompact, hprojects, hfaceTube, sub_pos.mpr hsmall, ?_⟩
+  apply projectionFiberTube_subset_compl_ball_of_graph_separated
+    (chain.face (Fin.last n).castSucc) center radius margin
+  intro y hy
+  have hnotball : ¬ dist
+      (Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (center y))
+      (0 : Fin (n + 1) → ℝ) < margin := by
+    simpa only [Set.mem_compl_iff, Metric.mem_ball] using
+      hfaceSeparated (hgraphPoint y hy)
+  exact le_of_not_gt hnotball
+
 
 /-- Every equal-width subtile of a compact bounded fiber band is compact when the base is compact
 and the endpoint graphs are continuous. Closedness of the subtile is inherited from the

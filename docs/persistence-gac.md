@@ -230,7 +230,12 @@ an explicit hypothesis, never a `sorry`:
    and the simplicial gluing is the predicate `InductionStepHypothesis`
    (`Geometry/ZeroSeparatingSurface.lean`); `inductionStep_of_ruledBuild`
    (`Geometry/ZeroSeparatingInduction.lean`) returns its assumed witness unchanged. The descent band
-   and ball-separation feeding `genuine_away_from_origin` are likewise supplied. The log-projective
+   and ball-separation feeding `genuine_away_from_origin` are likewise supplied. A zero-bit geometric
+   subcase is now kernel-checked: `exists_compact_separated_zeroBitGraphTube` turns a compact face
+   with a zero-bit projection into a continuous graph section and a compact tube that contains the
+   face, projects exactly onto the base, and retains a positive origin-avoidance margin when the
+   tube radius is smaller than the face margin. This is set-level tube geometry; it does not provide
+   the piecewise-smooth separating surface, descent estimates, or seam gluing. The log-projective
    chart compatibility result currently proves pointwise overlap when neighboring face weights
    balance on each tied-coordinate fiber. A separate first-moment condition aligns directional
    derivatives of the scalar level equations; the two-species example in
