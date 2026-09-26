@@ -165,6 +165,44 @@ theorem finrank_map_forgetLastCoordinate_bounds (n : ℕ)
       simpa [f, g] using hKer
     omega
 
+/-- A coordinate projection loses one dimension from a subspace exactly when its restricted
+kernel is nontrivial. In geometric terms, the subspace contains a nonzero direction supported
+entirely on the deleted coordinate. -/
+theorem finrank_drop_forgetLastCoordinate_iff_kernel_ne_bot (n : ℕ)
+    (U : Submodule ℝ (Fin (n + 1) → ℝ)) :
+    Module.finrank ℝ U =
+        Module.finrank ℝ (U.map (forgetLastCoordinate n)) + 1 ↔
+    LinearMap.ker ((forgetLastCoordinate n).domRestrict U) ≠ ⊥ := by
+  have hRank :
+      Module.finrank ℝ (U.map (forgetLastCoordinate n)) +
+          Module.finrank ℝ
+            (LinearMap.ker ((forgetLastCoordinate n).domRestrict U)) =
+        Module.finrank ℝ U := by
+    have hRank' :=
+      LinearMap.finrank_range_add_finrank_ker ((forgetLastCoordinate n).domRestrict U)
+    rw [LinearMap.range_domRestrict] at hRank'
+    simpa using hRank'
+  have hKerLe :
+      Module.finrank ℝ (LinearMap.ker ((forgetLastCoordinate n).domRestrict U)) ≤ 1 := by
+    rcases finrank_map_forgetLastCoordinate_bounds n U with ⟨_, hUpper⟩
+    omega
+  constructor
+  · intro hdrop
+    have hKerEq :
+        Module.finrank ℝ (LinearMap.ker ((forgetLastCoordinate n).domRestrict U)) = 1 := by
+      omega
+    intro hbot
+    rw [hbot, finrank_bot] at hKerEq
+    omega
+  · intro hker
+    have hKerPos :
+        1 ≤ Module.finrank ℝ (LinearMap.ker ((forgetLastCoordinate n).domRestrict U)) :=
+      Submodule.one_le_finrank_iff.mpr hker
+    have hKerEq :
+        Module.finrank ℝ (LinearMap.ker ((forgetLastCoordinate n).domRestrict U)) = 1 := by
+      omega
+    omega
+
 /-- The binary letter for the projection step from `Fin (n + 1)` coordinates to `Fin n`
 coordinates. It is `true` exactly when the dimension increases by one in the reverse direction,
 equivalently when the projection drops dimension by one. -/
