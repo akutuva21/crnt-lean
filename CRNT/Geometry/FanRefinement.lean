@@ -3,6 +3,7 @@ import CRNT.Geometry.FaithfulCurve
 import CRNT.Geometry.ConeFace
 import CRNT.Geometry.FiniteConeClosed
 import Mathlib.Geometry.Convex.Cone.DualFinite
+import Mathlib.Analysis.InnerProductSpace.Adjoint
 
 /-!
 # Fan refinement and faithful transfer to a coarser fan
@@ -25,6 +26,10 @@ This module provides the transfer and finite-refinement engines:
 
 * the **projection coverage step** — images of a complete fan cover the target of a surjective
   linear map, and images of finitely generated cells are exact finitely generated cones;
+
+* the **one-dimensional projection step** — a finite half-space description remains finite under
+  projection when each fiber is a translate of a single kernel direction and a linear section is
+  supplied;
 
 * the **conditional feasibility lemma** — a supplied patch with fewer than `finrank ℝ E` active
   attracting directions admits a valid surface normal.
@@ -61,13 +66,13 @@ This module provides the transfer and finite-refinement engines:
 This module proves the refinement relation, the faithful-transfer of admissibility (and of field
 inwardness) from fine to coarse cells, finite common-refinement closure for supplied polyhedral fans
 with dual-finitely-generated cells, and coverage of the closed-cone image family under a surjective
-linear map. It also proves that images of finitely generated cells are exact, that a finite central
-hyperplane arrangement gives a polyhedral fan covering the ambient space, and that the arrangement
-of the finite dual normals of any supplied covering polyhedral fan with dual-finitely-generated
-cells refines that fan. The remaining projection bridge is to establish such a fan with finite dual
-representations for the projected image family; an arbitrary projected image family is not shown to
-be a fan. The faithful blueprint, its patch decomposition, and the analysis matching per-patch
-attracting directions remain separate constructions.
+linear map. It also proves that images of finitely generated cells are exact, that one-coordinate
+projections preserve finite dual representations, that a finite central hyperplane arrangement gives
+a polyhedral fan covering the ambient space, and that its arrangement refines any supplied covering
+cone family with dual-finitely-generated cells. In particular, the arrangement refines the
+one-coordinate image family of a complete polyhedral fan; this does not establish that the image
+family itself is a fan. The faithful blueprint, its patch decomposition, and the analysis matching
+per-patch attracting directions remain separate constructions.
 
 Depends on: `CRNT.Geometry.ZeroSeparatingInduction`,
 `CRNT.Geometry.FaithfulCurve`.
@@ -507,6 +512,296 @@ theorem coneDual_intersection_decomp_of_dualFG [CompleteSpace E] {C D : ProperCo
 /-- Every cell of a fan is dual-finitely-generated. -/
 def HasDualFGCells [CompleteSpace E] (F : Fan E) : Prop :=
   ∀ C ∈ F, (C : PointedCone ℝ E).DualFG (innerₗ E)
+
+theorem exists_scalar_for_finite_linear_inequalities
+    {ι : Type*} [DecidableEq ι] (S : Finset ι) (a b : ι → ℝ)
+    (hzero : ∀ i ∈ S, b i = 0 → 0 ≤ a i)
+    (hpair : ∀ i ∈ S, ∀ j ∈ S, 0 < b i → b j < 0 →
+      0 ≤ b i * a j - b j * a i) :
+    ∃ t : ℝ, ∀ i ∈ S, 0 ≤ a i + b i * t := by
+  classical
+  let Pos := S.filter (fun i => 0 < b i)
+  let Neg := S.filter (fun i => b i < 0)
+  let lower (i : ι) := -a i / b i
+  let upper (i : ι) := a i / (-b i)
+  by_cases hPos : Pos.Nonempty
+  · let lowers := Pos.image lower
+    have hLowers : lowers.Nonempty := Finset.image_nonempty.mpr hPos
+    let t := lowers.max' hLowers
+    refine ⟨t, ?_⟩
+    intro i hi
+    by_cases hbi : 0 < b i
+    · have hiPos : i ∈ Pos := Finset.mem_filter.mpr ⟨hi, hbi⟩
+      have hlow : lower i ≤ t := by
+        exact Finset.le_max' lowers (lower i) (Finset.mem_image.mpr ⟨i, hiPos, rfl⟩)
+      have hmul := (div_le_iff₀ hbi).mp hlow
+      linarith
+    · by_cases hneg : b i < 0
+      · have hiNeg : i ∈ Neg := Finset.mem_filter.mpr ⟨hi, hneg⟩
+        have hupper : t ≤ upper i := by
+          apply (Finset.max'_le_iff lowers hLowers).2
+          intro j hj
+          rcases Finset.mem_image.mp hj with ⟨j, hjPos, rfl⟩
+          have hjmem : j ∈ S := (Finset.mem_filter.mp hjPos).1
+          have hjpos : 0 < b j := (Finset.mem_filter.mp hjPos).2
+          have hpair' := hpair j hjmem i hi hjpos hneg
+          have hbi' : 0 < -b i := neg_pos.mpr hneg
+          have hratio : lower j ≤ upper i := by
+            apply (div_le_div_iff₀ hjpos hbi').2
+            nlinarith
+          exact hratio
+        have hmul := (le_div_iff₀ (neg_pos.mpr hneg)).mp hupper
+        linarith
+      · have hbi0 : b i = 0 := le_antisymm (le_of_not_gt hbi) (le_of_not_gt hneg)
+        have ha := hzero i hi hbi0
+        simpa [hbi0] using ha
+  · by_cases hNeg : Neg.Nonempty
+    · let uppers := Neg.image upper
+      have hUppers : uppers.Nonempty := Finset.image_nonempty.mpr hNeg
+      let t := uppers.min' hUppers
+      refine ⟨t, ?_⟩
+      intro i hi
+      by_cases hbi : 0 < b i
+      · exact (False.elim (hPos <| ⟨i, Finset.mem_filter.mpr ⟨hi, hbi⟩⟩))
+      · by_cases hneg : b i < 0
+        · have hiNeg : i ∈ Neg := Finset.mem_filter.mpr ⟨hi, hneg⟩
+          have hupper : t ≤ upper i :=
+            Finset.min'_le uppers (upper i) (Finset.mem_image.mpr ⟨i, hiNeg, rfl⟩)
+          have hmul := (le_div_iff₀ (neg_pos.mpr hneg)).mp hupper
+          linarith
+        · have hbi0 : b i = 0 := le_antisymm (le_of_not_gt hbi) (le_of_not_gt hneg)
+          have ha := hzero i hi hbi0
+          simpa [hbi0] using ha
+    · refine ⟨0, ?_⟩
+      intro i hi
+      have hnotPos : ¬ 0 < b i := fun h => hPos ⟨i, Finset.mem_filter.mpr ⟨hi, h⟩⟩
+      have hnotNeg : ¬ b i < 0 := fun h => hNeg ⟨i, Finset.mem_filter.mpr ⟨hi, h⟩⟩
+      have hbi0 : b i = 0 := le_antisymm (le_of_not_gt hnotPos) (le_of_not_gt hnotNeg)
+      simpa [hbi0] using hzero i hi hbi0
+
+
+
+/-- A projection of a finitely described closed cone still has a finite half-space description when
+each fiber is a translate of the supplied kernel direction. The proof is Fourier--Motzkin
+elimination along that direction. -/
+theorem properCone_map_dualFG_of_dualFG_of_oneDimensionalFibers
+    {E F : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    [NormedAddCommGroup F] [InnerProductSpace ℝ F] [CompleteSpace F]
+    [DecidableEq E] [DecidableEq F]
+    (f : E →L[ℝ] F) (g : F →L[ℝ] E) (v : E)
+    (hfg : ∀ y, f (g y) = y)
+    (hv0 : f v = 0)
+    (hdecomp : ∀ x, ∃ t : ℝ, x = g (f x) + t • v)
+    (C : ProperCone ℝ E)
+    (hC : (C : PointedCone ℝ E).DualFG (innerₗ E)) :
+    (C.map f : PointedCone ℝ F).DualFG (innerₗ F) := by
+  classical
+  obtain ⟨S, hS⟩ := hC
+  change PointedCone.dual (innerₗ E) (S : Set E) = (C : PointedCone ℝ E) at hS
+  have hCset : (C : Set E) = (coneDual (S : Set E) : Set E) := by
+    apply congrArg (fun K : PointedCone ℝ E => (K : Set E)) hS.symm
+  let normal (s : E) : F := g.adjoint s
+  let beta (s : E) : ℝ := ⟪s, v⟫_ℝ
+  let alpha (s : E) (y : F) : ℝ := ⟪normal s, y⟫_ℝ
+  let Pos := S.filter (fun s => 0 < beta s)
+  let Neg := S.filter (fun s => beta s < 0)
+  let Zero := S.filter (fun s => beta s = 0)
+  let pairNormal (p : E × E) : F :=
+    (-beta p.2) • normal p.1 + beta p.1 • normal p.2
+  let T : Finset F := Zero.image normal ∪ (Pos.product Neg).image pairNormal
+  have hinner (x : E) (t : ℝ) (ht : x = g (f x) + t • v) (s : E) :
+      ⟪s, x⟫_ℝ = alpha s (f x) + beta s * t := by
+    calc
+      ⟪s, x⟫_ℝ = ⟪s, g (f x) + t • v⟫_ℝ := by nth_rw 1 [ht]
+      _ = ⟪s, g (f x)⟫_ℝ + t * ⟪s, v⟫_ℝ := by
+        rw [inner_add_right, real_inner_smul_right]
+      _ = ⟪normal s, f x⟫_ℝ + beta s * t := by
+        rw [← g.adjoint_inner_left (f x) s]
+        dsimp [normal, beta]
+        ring
+      _ = alpha s (f x) + beta s * t := rfl
+  have hImageSub : f '' (C : Set E) ⊆ (coneDual (T : Set F) : Set F) := by
+    rintro y ⟨x, hxC, rfl⟩
+    have hxS : x ∈ coneDual (S : Set E) := by
+      rw [hCset] at hxC
+      exact hxC
+    obtain ⟨t, ht⟩ := hdecomp x
+    have hAlpha (s : E) : alpha s (f x) = ⟪s, x⟫_ℝ - beta s * t := by
+      have hi := hinner x t ht s
+      linarith
+    apply mem_coneDual.mpr
+    intro u hu
+    rcases Finset.mem_union.mp hu with huZero | huPair
+    · rcases Finset.mem_image.mp huZero with ⟨s, hsZero, rfl⟩
+      have hsS : s ∈ S := (Finset.mem_filter.mp hsZero).1
+      have hbeta : beta s = 0 := (Finset.mem_filter.mp hsZero).2
+      have hxs := (mem_coneDual.mp hxS) hsS
+      change 0 ≤ alpha s (f x)
+      rw [hAlpha s]
+      simpa [hbeta] using hxs
+    · rcases Finset.mem_image.mp huPair with ⟨⟨s, j⟩, hp, rfl⟩
+      have hsS : s ∈ S := (Finset.mem_filter.mp (Finset.mem_product.mp hp).1).1
+      have hjS : j ∈ S := (Finset.mem_filter.mp (Finset.mem_product.mp hp).2).1
+      have hsPos : 0 < beta s := (Finset.mem_filter.mp (Finset.mem_product.mp hp).1).2
+      have hjNeg : beta j < 0 := (Finset.mem_filter.mp (Finset.mem_product.mp hp).2).2
+      have hxs := (mem_coneDual.mp hxS) hsS
+      have hxj := (mem_coneDual.mp hxS) hjS
+      have hcombo : ⟪pairNormal (s, j), f x⟫_ℝ =
+          (-beta j) * ⟪s, x⟫_ℝ + beta s * ⟪j, x⟫_ℝ := by
+        calc
+          ⟪pairNormal (s, j), f x⟫_ℝ =
+              (-beta j) * alpha s (f x) + beta s * alpha j (f x) := by
+                simp [pairNormal, normal, alpha, inner_add_left, real_inner_smul_left]
+          _ = (-beta j) * (⟪s, x⟫_ℝ - beta s * t) +
+              beta s * (⟪j, x⟫_ℝ - beta j * t) := by rw [hAlpha s, hAlpha j]
+          _ = _ := by ring
+      rw [hcombo]
+      exact add_nonneg (mul_nonneg (le_of_lt (neg_pos.mpr hjNeg)) hxs)
+        (mul_nonneg hsPos.le hxj)
+  have hMapEq : (C.map f : Set F) = (coneDual (T : Set F) : Set F) := by
+    ext y
+    change y ∈ C.map f ↔ y ∈ coneDual (T : Set F)
+    constructor
+    · intro hy
+      rw [ProperCone.mem_map] at hy
+      exact closure_minimal hImageSub (coneDual (T : Set F)).isClosed hy
+    · intro hy
+      have hzero (s : E) (hs : s ∈ S) (hb : beta s = 0) : 0 ≤ alpha s y := by
+        have hsZero : s ∈ Zero := Finset.mem_filter.mpr ⟨hs, hb⟩
+        have hn : normal s ∈ T := Finset.mem_union_left _ (Finset.mem_image.mpr ⟨s, hsZero, rfl⟩)
+        simpa [alpha, normal] using (mem_coneDual.mp hy) hn
+      have hpair (s : E) (hs : s ∈ S) (j : E) (hj : j ∈ S)
+          (hbs : 0 < beta s) (hbj : beta j < 0) :
+          0 ≤ beta s * alpha j y - beta j * alpha s y := by
+        have hsPos : s ∈ Pos := Finset.mem_filter.mpr ⟨hs, hbs⟩
+        have hjNeg : j ∈ Neg := Finset.mem_filter.mpr ⟨hj, hbj⟩
+        have hp : (s, j) ∈ Pos.product Neg := Finset.mem_product.mpr ⟨hsPos, hjNeg⟩
+        have hn : pairNormal (s, j) ∈ T :=
+          Finset.mem_union_right _ (Finset.mem_image.mpr ⟨(s, j), hp, rfl⟩)
+        have hy' := (mem_coneDual.mp hy) hn
+        have hEq : ⟪pairNormal (s, j), y⟫_ℝ =
+            beta s * alpha j y - beta j * alpha s y := by
+          simp [pairNormal, normal, alpha, inner_add_left, real_inner_smul_left]
+          ring
+        rw [hEq] at hy'
+        exact hy'
+      obtain ⟨t, ht⟩ := exists_scalar_for_finite_linear_inequalities S
+        (fun s => alpha s y) beta hzero hpair
+      let x : E := g y + t • v
+      have hxS : x ∈ coneDual (S : Set E) := by
+        apply mem_coneDual.mpr
+        intro s hs
+        have hsineq := ht s hs
+        have hcalc : ⟪s, x⟫_ℝ = alpha s y + beta s * t := by
+          dsimp [x, alpha, normal, beta]
+          rw [inner_add_right, real_inner_smul_right, ← g.adjoint_inner_left y s]
+          ring
+        rw [hcalc]
+        exact hsineq
+      have hxC : x ∈ C := by
+        change x ∈ (C : Set E)
+        rw [hCset]
+        exact hxS
+      have hfx : f x = y := by
+        dsimp [x]
+        simp [hfg, hv0]
+      have himage : y ∈ f '' (C : Set E) := ⟨x, hxC, hfx⟩
+      change y ∈ C.map f
+      rw [ProperCone.mem_map]
+      exact subset_closure himage
+  have hMapEqCone : C.map f = coneDual (T : Set F) :=
+    ProperCone.ext (fun y => Iff.of_eq (congrArg (fun U : Set F => y ∈ U) hMapEq))
+  rw [hMapEqCone]
+  change (PointedCone.dual (innerₗ F) (T : Set F)).DualFG (innerₗ F)
+  exact PointedCone.DualFG.dual_of_finset (innerₗ F) T
+
+
+/-- A finite family of cones with fibers directed by one supplied kernel vector inherits finite dual
+representations from its source cones. -/
+theorem linearImageFamily_hasDualFGCells_of_oneDimensionalFibers
+    {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [CompleteSpace F]
+    [DecidableEq E] [DecidableEq F] [CompleteSpace E]
+    (f : E →L[ℝ] F) (g : F →L[ℝ] E) (v : E)
+    (hfg : ∀ y, f (g y) = y) (hv0 : f v = 0)
+    (hdecomp : ∀ x, ∃ t : ℝ, x = g (f x) + t • v)
+    (G : Fan E) (hG : HasDualFGCells G) :
+    HasDualFGCells (linearImageFamily f G) := by
+  classical
+  intro C hC
+  change C ∈ G.image (fun D => ProperCone.map f D) at hC
+  rcases Finset.mem_image.mp hC with ⟨D, hD, rfl⟩
+  exact properCone_map_dualFG_of_dualFG_of_oneDimensionalFibers
+    f g v hfg hv0 hdecomp D (hG D hD)
+
+/-- The linear map appending a zero coordinate. -/
+def appendZeroCoordinate (n : ℕ) :
+    (Fin n → ℝ) →ₗ[ℝ] (Fin (n + 1) → ℝ) where
+  toFun x := Fin.snoc x 0
+  map_add' x y := by
+    funext i
+    refine Fin.lastCases ?_ (fun j => ?_) i
+    · simp [Fin.snoc_last]
+    · simp [Fin.snoc_castSucc]
+  map_smul' c x := by
+    funext i
+    refine Fin.lastCases ?_ (fun j => ?_) i
+    · simp [Fin.snoc_last]
+    · simp [Fin.snoc_castSucc]
+
+/-- Append a zero as a continuous linear map in the Euclidean coordinate model. -/
+noncomputable def appendZeroEuclidean (n : ℕ) :
+    EuclideanSpace ℝ (Fin n) →L[ℝ] EuclideanSpace ℝ (Fin (n + 1)) := by
+  let sourceEquiv := WithLp.linearEquiv 2 ℝ (Fin (n + 1) → ℝ)
+  let targetEquiv := WithLp.linearEquiv 2 ℝ (Fin n → ℝ)
+  let g := sourceEquiv.symm.toLinearMap.comp
+    ((appendZeroCoordinate n).comp targetEquiv.toLinearMap)
+  exact ⟨g, g.continuous_of_finiteDimensional⟩
+
+/-- The final coordinate unit vector in Euclidean coordinates. -/
+noncomputable def lastBasisEuclidean (n : ℕ) : EuclideanSpace ℝ (Fin (n + 1)) := by
+  let sourceEquiv := WithLp.linearEquiv 2 ℝ (Fin (n + 1) → ℝ)
+  exact sourceEquiv.symm (Fin.lastCases 1 (fun _ : Fin n => 0))
+
+theorem forgetLast_appendZeroEuclidean (n : ℕ) :
+    (forgetLastEuclidean n).comp (appendZeroEuclidean n) = ContinuousLinearMap.id ℝ _ := by
+  ext y i
+  simp [forgetLastEuclidean, appendZeroEuclidean, appendZeroCoordinate, forgetLastCoordinate,
+    LinearMap.comp_apply, Fin.snoc_castSucc]
+
+theorem forgetLast_decomposeEuclidean (n : ℕ) (x : EuclideanSpace ℝ (Fin (n + 1))) :
+    ∃ t : ℝ, x = appendZeroEuclidean n (forgetLastEuclidean n x) + t • lastBasisEuclidean n := by
+  let sourceEquiv := WithLp.linearEquiv 2 ℝ (Fin (n + 1) → ℝ)
+  refine ⟨sourceEquiv x (Fin.last n), ?_⟩
+  apply sourceEquiv.injective
+  rw [sourceEquiv.map_add, sourceEquiv.map_smul]
+  funext i
+  refine Fin.lastCases ?_ (fun j => ?_) i
+  · simp [appendZeroEuclidean, appendZeroCoordinate, forgetLastEuclidean,
+      forgetLastCoordinate, lastBasisEuclidean, sourceEquiv, Fin.snoc_last]
+  · simp [appendZeroEuclidean, appendZeroCoordinate, forgetLastEuclidean,
+      forgetLastCoordinate, lastBasisEuclidean, sourceEquiv, Fin.snoc_castSucc]
+
+
+
+theorem forgetLast_lastBasis_eq_zero (n : ℕ) :
+    forgetLastEuclidean n (lastBasisEuclidean n) = 0 := by
+  ext i
+  simp [forgetLastEuclidean, lastBasisEuclidean, forgetLastCoordinate,
+    WithLp.linearEquiv]
+
+
+theorem linearImageFamily_forgetLast_hasDualFGCells {n : ℕ}
+    (G : Fan (EuclideanSpace ℝ (Fin (n + 1)))) (hG : HasDualFGCells G) :
+    HasDualFGCells (linearImageFamily (forgetLastEuclidean n) G) := by
+  apply linearImageFamily_hasDualFGCells_of_oneDimensionalFibers
+    (forgetLastEuclidean n) (appendZeroEuclidean n) (lastBasisEuclidean n)
+  · intro y
+    have h := congrArg (fun L : EuclideanSpace ℝ (Fin n) →L[ℝ]
+        EuclideanSpace ℝ (Fin n) => L y) (forgetLast_appendZeroEuclidean n)
+    simpa using h
+  · exact forgetLast_lastBasis_eq_zero n
+  · exact forgetLast_decomposeEuclidean n
+  · exact hG
 
 /-- The signed half-space normals describing one cell of a central hyperplane arrangement.
 Normals in `P` impose nonnegative inner products, normals in `N` impose nonpositive inner
@@ -1058,11 +1353,13 @@ theorem mem_fanNormalSet [CompleteSpace E] [DecidableEq E]
   apply Finset.mem_biUnion.mpr
   exact ⟨⟨C, hC⟩, Finset.mem_attach _ _, hs⟩
 
-/-- The central arrangement of all finite half-space normals of a covering polyhedral fan refines
-that fan. A cell chooses a point strict on every inequality that can be strict; a fan cone containing
-that point then contains the whole cell. -/
-theorem hyperplaneArrangementFamily_refines_of_dualFG [CompleteSpace E] [DecidableEq E]
-    {F : Fan E} (hF : IsPolyhedralFan F) (hFdual : HasDualFGCells F) :
+/-- The central arrangement of all finite half-space normals of a covering cone family refines that
+family. The proof needs coverage, but not the fan intersection axioms: a cell chooses a point strict
+on every inequality that can be strict, and a member cone containing that point contains the whole
+cell. -/
+theorem hyperplaneArrangementFamily_refines_of_covering_dualFG [CompleteSpace E] [DecidableEq E]
+    {F : Fan E} (hCover : (⋃ C ∈ F, (C : Set E)) = Set.univ)
+    (hFdual : HasDualFGCells F) :
     Refines (hyperplaneArrangementFamily (fanNormalSet F hFdual)) F := by
   classical
   let T := fanNormalSet F hFdual
@@ -1075,7 +1372,7 @@ theorem hyperplaneArrangementFamily_refines_of_dualFG [CompleteSpace E] [Decidab
     exact hx₀
   have hsign₀ := mem_signCell.mp hx₀cell
   have hx₀cover : x₀ ∈ ⋃ C ∈ F, (C : Set E) := by
-    rw [hF.covers]
+    rw [hCover]
     simp
   rcases Set.mem_iUnion.mp hx₀cover with ⟨C, hCmem⟩
   rcases Set.mem_iUnion.mp hCmem with ⟨hCF, hx₀C⟩
@@ -1140,6 +1437,26 @@ theorem hyperplaneArrangementFamily_refines_of_dualFG [CompleteSpace E] [Decidab
     rw [← hRrep]
     exact hyR
   exact ⟨C, hCF, hcell_subset⟩
+
+/-- The central arrangement of a covering polyhedral fan's finite dual normals refines the fan. -/
+theorem hyperplaneArrangementFamily_refines_of_dualFG [CompleteSpace E] [DecidableEq E]
+    {F : Fan E} (hF : IsPolyhedralFan F) (hFdual : HasDualFGCells F) :
+    Refines (hyperplaneArrangementFamily (fanNormalSet F hFdual)) F :=
+  hyperplaneArrangementFamily_refines_of_covering_dualFG hF.covers hFdual
+
+/-- The arrangement from finite dual normals refines the family of one-coordinate projections of a
+complete polyhedral fan. The image family need not satisfy the fan intersection axioms itself. -/
+theorem hyperplaneArrangementFamily_refines_forgetLastImage {n : ℕ}
+    (G : Fan (EuclideanSpace ℝ (Fin (n + 1)))) (hG : IsPolyhedralFan G)
+    (hGdual : HasDualFGCells G) :
+    Refines
+      (hyperplaneArrangementFamily
+        (fanNormalSet (linearImageFamily (forgetLastEuclidean n) G)
+          (linearImageFamily_forgetLast_hasDualFGCells G hGdual)))
+      (linearImageFamily (forgetLastEuclidean n) G) :=
+  hyperplaneArrangementFamily_refines_of_covering_dualFG
+    (linearImageFamily_forgetLastEuclidean_covers G hG)
+    (linearImageFamily_forgetLast_hasDualFGCells G hGdual)
 
 
 /-- Negating a cone preserves dual finite generation: negate the finite set of half-space normals. -/
