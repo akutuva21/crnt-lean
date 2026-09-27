@@ -216,6 +216,27 @@ theorem radialBoxRaySegment_subset_box {n : ℕ} (x upper : Fin n → ℝ)
   have hsegment := (radialBoxExitData_spec x upper hx hxne hupper).2.2.2 s hs0 hst j
   simpa [Pi.smul_apply] using hsegment
 
+/-- The ray segment contains every nonnegative multiple of its source that lies inside the blue
+box. The selected active face of the first-exit point bounds the scale of any such box point. -/
+theorem radialBoxRaySegment_contains_of_ray_in_box {n : ℕ}
+    (x upper : Fin n → ℝ) (hx : ∀ i, 0 ≤ x i) (hxne : x ≠ 0)
+    (hupper : ∀ i, 0 < upper i) {p : Fin n → ℝ} {s : ℝ}
+    (hs : 0 ≤ s) (hp : p = s • x)
+    (hpupper : ∀ i, p i ≤ upper i) :
+    p ∈ radialBoxRaySegment x upper hx hxne hupper := by
+  obtain ⟨_, hi, hface, _⟩ := radialBoxExitData_spec x upper hx hxne hupper
+  have hbound : s * x (radialBoxExitData x upper hx hxne hupper).2 ≤
+      upper (radialBoxExitData x upper hx hxne hupper).2 := by
+    simpa [hp, Pi.smul_apply] using
+      hpupper (radialBoxExitData x upper hx hxne hupper).2
+  have hscale : s * x (radialBoxExitData x upper hx hxne hupper).2 ≤
+      (radialBoxExitData x upper hx hxne hupper).1 *
+        x (radialBoxExitData x upper hx hxne hupper).2 := by
+    simpa [hface] using hbound
+  have hsle : s ≤ (radialBoxExitData x upper hx hxne hupper).1 :=
+    le_of_mul_le_mul_right hscale hi
+  exact ⟨s, hs, hsle, hp⟩
+
 /-- The selected outer-boundary endpoint belongs to its radial boundary segment. -/
 theorem radialBoxEndpoint_mem_radialBoxRaySegment {n : ℕ} (x upper : Fin n → ℝ)
     (hx : ∀ i, 0 ≤ x i) (hxne : x ≠ 0) (hupper : ∀ i, 0 < upper i) :
@@ -235,6 +256,66 @@ def radialBoxDiagramTile {n : ℕ} (diagramTile : Set (Fin n → ℝ))
   {p | ∃ x, ∃ hx : x ∈ diagramTile,
     p ∈ radialBoxRaySegment x upper (hdiagramNonnegative x hx)
       (hdiagramNonzero x hx) hupper}
+
+/-- A projective source in a diagram tile lifts to the radial boundary tile at every point of its
+ray that remains inside the blue box. This is the reverse inclusion used to turn a covered
+direction diagram into an actual cover of its bounded radial region. -/
+theorem radialBoxDiagramTile_contains_of_ray_in_box {n : ℕ}
+    (diagramTile : Set (Fin n → ℝ)) (upper : Fin n → ℝ)
+    (hdiagramNonnegative : ∀ x ∈ diagramTile, ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ x ∈ diagramTile, x ≠ 0)
+    (hupper : ∀ i, 0 < upper i) {x p : Fin n → ℝ} {s : ℝ}
+    (hx : x ∈ diagramTile) (hs : 0 ≤ s) (hp : p = s • x)
+    (hpupper : ∀ i, p i ≤ upper i) :
+    p ∈ radialBoxDiagramTile diagramTile upper hdiagramNonnegative hdiagramNonzero hupper :=
+  ⟨x, hx, radialBoxRaySegment_contains_of_ray_in_box x upper
+    (hdiagramNonnegative x hx) (hdiagramNonzero x hx) hupper hs hp hpupper⟩
+
+/-- A positive-coordinate point whose normalized projective source lies in a diagram patch
+belongs to that patch's radial tile, provided the point lies in the blue box. This is the chartwise
+lifting form of the radial construction in Craciun v3, §8 Step 1. -/
+theorem radialBoxDiagramTile_contains_of_normalized_source {n : ℕ}
+    (diagramTile : Set (Fin n → ℝ)) (upper : Fin n → ℝ) (anchor : Fin n)
+    (hdiagramNonnegative : ∀ x ∈ diagramTile, ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ x ∈ diagramTile, x ≠ 0)
+    (hupper : ∀ i, 0 < upper i) {p : Fin n → ℝ}
+    (hpanchor : 0 < p anchor)
+    (hsource : (fun i => p i / p anchor) ∈ diagramTile)
+    (hpupper : ∀ i, p i ≤ upper i) :
+    p ∈ radialBoxDiagramTile diagramTile upper hdiagramNonnegative hdiagramNonzero hupper := by
+  let x : Fin n → ℝ := fun i => p i / p anchor
+  have hanchor : x anchor = 1 := by
+    simp [x, ne_of_gt hpanchor]
+  have hscale : p = p anchor • x := by
+    funext i
+    change p i = p anchor * (p i / p anchor)
+    field_simp [ne_of_gt hpanchor]
+  exact radialBoxDiagramTile_contains_of_ray_in_box diagramTile upper
+    hdiagramNonnegative hdiagramNonzero hupper hsource hpanchor.le hscale hpupper
+
+/-- Exact ray description of a radial boundary tile: its points are exactly the in-box points on
+rays through its projective source diagram. This is the membership form used to transfer a cover
+or an overlap statement from the projective diagram to the blue box. -/
+theorem mem_radialBoxDiagramTile_iff_exists_source_ray {n : ℕ}
+    (diagramTile : Set (Fin n → ℝ)) (upper : Fin n → ℝ)
+    (hdiagramNonnegative : ∀ x ∈ diagramTile, ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ x ∈ diagramTile, x ≠ 0)
+    (hupper : ∀ i, 0 < upper i) {p : Fin n → ℝ} :
+    p ∈ radialBoxDiagramTile diagramTile upper hdiagramNonnegative hdiagramNonzero hupper ↔
+      ∃ x ∈ diagramTile, ∃ s : ℝ, 0 ≤ s ∧ p = s • x ∧ ∀ i, p i ≤ upper i := by
+  constructor
+  · rintro ⟨x, hx, hsegment⟩
+    rcases hsegment with ⟨s, hs, hst, hp⟩
+    have hbox := radialBoxRaySegment_subset_box x upper
+      (hdiagramNonnegative x hx) (hdiagramNonzero x hx) hupper
+      ⟨s, hs, hst, hp⟩
+    refine ⟨x, hx, ?_⟩
+    refine ⟨s, ?_⟩
+    exact ⟨hs, hp, fun i => (hbox i).2⟩
+  · rintro ⟨x, hx, hsourceRay⟩
+    rcases hsourceRay with ⟨s, hs, hp, hbox⟩
+    exact radialBoxDiagramTile_contains_of_ray_in_box diagramTile upper
+      hdiagramNonnegative hdiagramNonzero hupper hx hs hp hbox
 
 /-- A radially extended diagram tile lies wholly inside the blue box. -/
 theorem radialBoxDiagramTile_subset_box {n : ℕ} (diagramTile : Set (Fin n → ℝ))
