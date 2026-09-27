@@ -6989,7 +6989,16 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_along
                   (fun y => some (extension i y)) (fun y => some (extension j y)) ∧
               face j ∩ {x | forgetLastCoordinate n x ∈ base i} ⊆
                 projectionFiberBand (base i ∩ base j)
-                  (fun y => some (extension i y)) (fun y => some (extension j y))) := by
+                  (fun y => some (extension i y)) (fun y => some (extension j y)) ∧
+              ∀ (k : Fin (refinement.tiling.subdivisionCount + 1))
+                (y : Fin n → ℝ),
+                y ∈ base i ∩ base j →
+                  projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
+                    projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y <
+                      ρ * faceRadius i ∧
+                  projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
+                    projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y <
+                      ρ * faceRadius j) := by
   classical
   have hq0 : (0 : ℝ) < 1 / 2 := by norm_num
   have hq1 : (1 / 2 : ℝ) < 1 := by norm_num
@@ -7019,11 +7028,34 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_along
     CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills
       face base tiles margin faceRadius cover neighborhood hOpen hFace oneBitBoundary
       hOneBitDifferent hcenterOrder (ρ * scale) hcap
-  refine ⟨ρ, hρpos, hρlt, extension, hextension, radius, hradius, ?_, hconstraints, hfills⟩
-  intro i
-  calc
-    radius < ρ * scale := hradiusCap
-    _ ≤ ρ * faceRadius i := mul_le_mul_of_nonneg_left (hscaleLe i) hρpos.le
+  refine ⟨ρ, hρpos, hρlt, extension, hextension, radius, hradius, ?_, hconstraints, ?_⟩
+  · intro i
+    calc
+      radius < ρ * scale := hradiusCap
+      _ ≤ ρ * faceRadius i := mul_le_mul_of_nonneg_left (hscaleLe i) hρpos.le
+  · intro i j hboundary
+    obtain ⟨refinement, hleft, hright⟩ := hfills i j hboundary
+    refine ⟨refinement, hleft, hright, ?_⟩
+    intro k y hy
+    constructor
+    · calc
+        projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
+            projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
+              radius := refinement.tiling.fiber_width_le k y hy
+        _ < ρ * faceRadius i := by
+          calc
+            radius < ρ * scale := hradiusCap
+            _ ≤ ρ * faceRadius i :=
+              mul_le_mul_of_nonneg_left (hscaleLe i) hρpos.le
+    · calc
+        projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
+            projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
+              radius := refinement.tiling.fiber_width_le k y hy
+        _ < ρ * faceRadius j := by
+          calc
+            radius < ρ * scale := hradiusCap
+            _ ≤ ρ * faceRadius j :=
+              mul_le_mul_of_nonneg_left (hscaleLe j) hρpos.le
 
 
 

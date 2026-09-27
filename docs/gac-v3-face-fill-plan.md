@@ -347,8 +347,9 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   It obtains the common strict factor from the full coherent binary-word chain theorem at depth
   `n + 1`, chooses a positive lower bound for the finite family of inherited graph radii, and
   invokes the existing Case 1.2 graph fill with cap `rho * scale`. The returned radius is below
-  `rho * faceRadius i` for every face; each produced equal strip has width at most that radius by
-  the tiling's `fiber_width_le` invariant.
+  `rho * faceRadius i` for every face. For each directed face pair, the returned refinement now
+  states directly that every equal strip width is strictly below `rho` times both incident face
+  radii, using the tiling's `fiber_width_le` invariant.
 - `ZeroSeparatingInduction.lean` compiled directly. A fresh module chain compiled
   `FanRefinement.lean`, `ToricUniformWallMargin.lean`,
   `ComplexBalanceStoichFanInclusion.lean`, and `GlobalAttractorTheorem.lean`. The new fill theorem
