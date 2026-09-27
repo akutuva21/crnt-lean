@@ -2525,6 +2525,14 @@ theorem euclideanProperConeBaseTile_mono {n : ℕ}
   intro x hx
   exact ⟨hx.1, hsubset hx.2⟩
 
+/-- Projected cone/small-tile patch for a pair label, used for the exact common seam of two
+incident small tiles. -/
+def euclideanProperConeSmallTilePairBaseTile {n : ℕ} {ι : Type*}
+    (base : Set (Fin n → ℝ)) (smallTile : ι → Set (Fin n → ℝ)) :
+    ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × (ι × ι) → Set (Fin n → ℝ) :=
+  fun p => euclideanProperConeBaseTile base p.1 ∩
+    (smallTile p.2.1 ∩ smallTile p.2.2)
+
 /-- The underlying set of an exposed face lies in its parent cone. -/
 theorem properCone_subset_of_isExposedFaceOf {E : Type*}
     [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
@@ -2587,6 +2595,59 @@ theorem projectionFiberSubdivisionEndpointGraphPoint_mem_adjacentTile {n m : ℕ
         simp
       simpa [projectionFiberSubdivisionEndpoint] using hmono hindex
     · rw [hright]
+
+/-- A pair-labelled common seam output is contained in the left incident strip output. The
+projected face inclusion and the first small-tile factor provide the required base inclusion. -/
+theorem fanSmallTilePairEndpointTaskPatch_subset_leftStrip {n m : ℕ} {ι : Type*}
+    (facePatch : Set (Fin (n + 1) → ℝ)) (base : Set (Fin n → ℝ))
+    (smallTile : ι → Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (G C : ProperCone ℝ (EuclideanSpace ℝ (Fin n))) (i j : ι)
+    (endpoint : Fin (m + 2)) (strip : Fin (m + 1))
+    (hface : IsExposedFaceOf G C)
+    (hadjacent : endpoint = strip.castSucc ∨ endpoint = strip.succ)
+    (horder : ∀ y ∈ euclideanProperConeBaseTile base C ∩ smallTile i,
+      lower y ≤ upper y) :
+    oneBitFanFaceTaskPatch facePatch
+        (euclideanProperConeSmallTilePairBaseTile base smallTile)
+        lower upper ((G, (i, j)), .endpoint endpoint) ⊆
+      oneBitFanFaceTaskPatch facePatch
+        (fun p : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × ι =>
+          euclideanProperConeBaseTile base p.1 ∩ smallTile p.2)
+        lower upper ((C, i), .strip strip) := by
+  intro x hx
+  refine ⟨hx.1, ?_⟩
+  rcases hx.2 with ⟨y, hy, rfl⟩
+  apply projectionFiberSubdivisionEndpointGraphPoint_mem_adjacentTile
+    (euclideanProperConeBaseTile base C ∩ smallTile i) lower upper horder strip endpoint
+    hadjacent y
+  exact ⟨euclideanProperConeBaseTile_mono base
+    (properCone_subset_of_isExposedFaceOf hface) hy.1, hy.2.1⟩
+
+/-- The same common seam output lies in the right incident strip output. -/
+theorem fanSmallTilePairEndpointTaskPatch_subset_rightStrip {n m : ℕ} {ι : Type*}
+    (facePatch : Set (Fin (n + 1) → ℝ)) (base : Set (Fin n → ℝ))
+    (smallTile : ι → Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (G C : ProperCone ℝ (EuclideanSpace ℝ (Fin n))) (i j : ι)
+    (endpoint : Fin (m + 2)) (strip : Fin (m + 1))
+    (hface : IsExposedFaceOf G C)
+    (hadjacent : endpoint = strip.castSucc ∨ endpoint = strip.succ)
+    (horder : ∀ y ∈ euclideanProperConeBaseTile base C ∩ smallTile j,
+      lower y ≤ upper y) :
+    oneBitFanFaceTaskPatch facePatch
+        (euclideanProperConeSmallTilePairBaseTile base smallTile)
+        lower upper ((G, (i, j)), .endpoint endpoint) ⊆
+      oneBitFanFaceTaskPatch facePatch
+        (fun p : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × ι =>
+          euclideanProperConeBaseTile base p.1 ∩ smallTile p.2)
+        lower upper ((C, j), .strip strip) := by
+  intro x hx
+  refine ⟨hx.1, ?_⟩
+  rcases hx.2 with ⟨y, hy, rfl⟩
+  apply projectionFiberSubdivisionEndpointGraphPoint_mem_adjacentTile
+    (euclideanProperConeBaseTile base C ∩ smallTile j) lower upper horder strip endpoint
+    hadjacent y
+  exact ⟨euclideanProperConeBaseTile_mono base
+    (properCone_subset_of_isExposedFaceOf hface) hy.1, hy.2.2⟩
 
 /-- A fiber-endpoint dependency gives inclusion of the actual endpoint task patch in its incident
 strip patch, provided projected face tiles are nested. -/
@@ -3179,10 +3240,22 @@ theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype �
           euclideanProperConeBaseTile base p.1 ∩ smallTile p.2)
         lower upper ((D.1, j), .strip k.succ)) =
       oneBitFanFaceTaskPatch facePatch
-        (fun p : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × (ι × ι) =>
-          euclideanProperConeBaseTile base p.1 ∩
-            (smallTile p.2.1 ∩ smallTile p.2.2))
-        lower upper ((G, (i, j)), .endpoint k.succ.castSucc) := by
+        (euclideanProperConeSmallTilePairBaseTile base smallTile)
+        lower upper ((G, (i, j)), .endpoint k.succ.castSucc) ∧
+      oneBitFanFaceTaskPatch facePatch
+        (euclideanProperConeSmallTilePairBaseTile base smallTile)
+        lower upper ((G, (i, j)), .endpoint k.succ.castSucc) ⊆
+       oneBitFanFaceTaskPatch facePatch
+        (fun p : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × ι =>
+          euclideanProperConeBaseTile base p.1 ∩ smallTile p.2)
+        lower upper ((C.1, i), .strip k.castSucc) ∧
+      oneBitFanFaceTaskPatch facePatch
+        (euclideanProperConeSmallTilePairBaseTile base smallTile)
+        lower upper ((G, (i, j)), .endpoint k.succ.castSucc) ⊆
+       oneBitFanFaceTaskPatch facePatch
+        (fun p : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × ι =>
+          euclideanProperConeBaseTile base p.1 ∩ smallTile p.2)
+        lower upper ((D.1, j), .strip k.succ) := by
   obtain ⟨G, hG, hfanMeet, hGC, hGD, _, _⟩ :=
     euclideanHyperplaneArrangementBaseTile_intersection base F hFdual C D
   have hdependency : C.1 ≠ D.1 →
@@ -3224,7 +3297,7 @@ theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype �
   have hindex : k.succ.castSucc = k.castSucc.succ := by
     apply Fin.ext
     simp
-  refine ⟨G, hG, hdependency, ?_, ?_, ?_, ?_, ?_, ?_, hbaseMeet, ?_, ?_⟩
+  refine ⟨G, hG, hdependency, ?_, ?_, ?_, ?_, ?_, ?_, hbaseMeet, ?_, ?_, ?_, ?_⟩
   · exact OneBitFanFaceDependency.fiberEndpoint C.1 G i k.castSucc
       k.succ.castSucc hGC (Or.inr hindex)
   · exact OneBitFanFaceDependency.fiberEndpoint D.1 G j k.succ
@@ -3242,7 +3315,7 @@ theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype �
   · rw [← hbaseMeet]
     exact hseam
   · simpa [oneBitFanFaceTaskPatch, euclideanProperConeBaseTile,
-      euclideanHyperplaneArrangementBaseTile] using (show
+      euclideanProperConeSmallTilePairBaseTile, euclideanHyperplaneArrangementBaseTile] using (show
         (facePatch ∩ projectionFiberSubdivisionTile
             (euclideanHyperplaneArrangementBaseTile base F hFdual C ∩ smallTile i)
             lower upper k.castSucc) ∩
@@ -3255,6 +3328,12 @@ theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype �
               (smallTile i ∩ smallTile j)) from by
           rw [← hbaseMeet]
           exact hseam)
+  · exact fanSmallTilePairEndpointTaskPatch_subset_leftStrip facePatch base smallTile
+      lower upper G C.1 i j k.succ.castSucc k.castSucc hGC (Or.inr hindex)
+      (fun y hy => horder y (cover.baseTile_subset p hy))
+  · exact fanSmallTilePairEndpointTaskPatch_subset_rightStrip facePatch base smallTile
+      lower upper G D.1 i j k.succ.castSucc k.succ hGD (Or.inl rfl)
+      (fun y hy => horder y (cover.baseTile_subset q hy))
 
 /-- The projected-fan version of the one-bit cover construction. Start with the fan one dimension
 higher, take the finite arrangement refinement of its last-coordinate image family, and use that

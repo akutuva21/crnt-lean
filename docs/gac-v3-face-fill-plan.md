@@ -126,14 +126,21 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   through the temporary Lean search tree. The seam, coverage, and edge
   inclusion audits contain only standard Lean axioms; the target still has
   `sorryAx`.
+- Proved that this pair-labelled endpoint seam output is contained in each of
+  its incident strip task outputs, using exposed-face tile nesting and the
+  adjacent closed-strip endpoint calculation. Updated the two wall-atlas
+  consumers to the current task indices. Recompiled all three affected
+  modules and audited the exact target; the new seam inclusion lemmas remain
+  `sorryAx`-free, but `Network.complexBalanced_genuinePermanent` still reports
+  `sorryAx`.
 - The current face-mono lemma still assumes tile containment, and it does not
   itself assemble the inherited outputs or barriers. The arrangement atlas
   gives exact common-face patch intersections, while the radial atlas's smooth
   maximum controls derivatives only at points incident to every listed patch.
   The generic face-task recursion still has no caller that returns those
-  covers/barriers. Next make the recursive parent fill consume these
-  pair-labelled endpoint outputs and preserve the scale/faithfulness invariant,
-  then derive a global
+  covers/barriers. Next refactor the recursive task domain so it consumes these
+  pair-labelled endpoint outputs and preserves the scale/faithfulness
+  invariant, then derive a global
   `ZeroSeparatingSurfaceExists` witness and apply it in the target branch.
   Keep the checklist open until its exact theorem and kernel axiom audit are
   clean.

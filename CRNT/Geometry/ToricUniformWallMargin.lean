@@ -2287,16 +2287,16 @@ theorem Network.fanSmallProductTile_restrictedSeam_dependency_and_glue
           FanRefinement.ProperExposedFaceDependency G D.1) ∧
       FanRefinement.OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
         (m := cover.tiling.subdivisionCount)
-        (G, .endpoint k.succ.castSucc) (C.1, .strip k.castSucc) ∧
+        ((G, i), .endpoint k.succ.castSucc) ((C.1, i), .strip k.castSucc) ∧
       FanRefinement.OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
         (m := cover.tiling.subdivisionCount)
-        (G, .endpoint k.succ.castSucc) (D.1, .strip k.succ) ∧
+        ((G, j), .endpoint k.succ.castSucc) ((D.1, j), .strip k.succ) ∧
       (C.1 ≠ G → FanRefinement.OneBitFanFaceDependency
         (E := EuclideanSpace ℝ (Fin n)) (m := cover.tiling.subdivisionCount)
-        (G, .strip k.castSucc) (C.1, .strip k.castSucc)) ∧
+        ((G, i), .strip k.castSucc) ((C.1, i), .strip k.castSucc)) ∧
       (D.1 ≠ G → FanRefinement.OneBitFanFaceDependency
         (E := EuclideanSpace ℝ (Fin n)) (m := cover.tiling.subdivisionCount)
-        (G, .strip k.succ) (D.1, .strip k.succ)) ∧
+        ((G, j), .strip k.succ) ((D.1, j), .strip k.succ)) ∧
       ((FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual C ∩ smallTile i) ∩
         (FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual D ∩ smallTile j) =
           FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩ ∩
@@ -2316,7 +2316,7 @@ theorem Network.fanSmallProductTile_restrictedSeam_dependency_and_glue
         D' (toEuclid (N.massActionVectorField κ (toEuclid.symm
           (ψ (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
             lower upper k.succ.castSucc y))))) ≤ 0 := by
-  obtain ⟨G, hG, hdependency, hdepC, hdepD, hfaceC, hfaceD, hbase, _, _⟩ :=
+  obtain ⟨G, hG, hdependency, hdepC, hdepD, _, _, hfaceC, hfaceD, hbase, _, _, _, _⟩ :=
     FanRefinement.fanSmallProductTile_adjacentStrip_seam F hFdual cover horder C D i j k
   have hbarrier := N.restrictedOneBitFiberPatch_finite_seam_glue
     κ cover domain hdomain ψ z selected offset tailHead tail hatlas (C, i) k y horder hy
@@ -2508,16 +2508,16 @@ theorem Network.exists_fanSmallProductTile_restrictedSeam_dependency_and_glue_of
         FanRefinement.ProperExposedFaceDependency G D.1) ∧
       FanRefinement.OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
         (m := cover.tiling.subdivisionCount)
-        (G, .endpoint k.succ.castSucc) (C.1, .strip k.castSucc) ∧
+        ((G, i), .endpoint k.succ.castSucc) ((C.1, i), .strip k.castSucc) ∧
       FanRefinement.OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
         (m := cover.tiling.subdivisionCount)
-        (G, .endpoint k.succ.castSucc) (D.1, .strip k.succ) ∧
+        ((G, j), .endpoint k.succ.castSucc) ((D.1, j), .strip k.succ) ∧
       (C.1 ≠ G → FanRefinement.OneBitFanFaceDependency
         (E := EuclideanSpace ℝ (Fin n)) (m := cover.tiling.subdivisionCount)
-        (G, .strip k.castSucc) (C.1, .strip k.castSucc)) ∧
+        ((G, i), .strip k.castSucc) ((C.1, i), .strip k.castSucc)) ∧
       (D.1 ≠ G → FanRefinement.OneBitFanFaceDependency
         (E := EuclideanSpace ℝ (Fin n)) (m := cover.tiling.subdivisionCount)
-        (G, .strip k.succ) (D.1, .strip k.succ)) ∧
+        ((G, j), .strip k.succ) ((D.1, j), .strip k.succ)) ∧
       ((FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual C ∩
           smallTile i) ∩
         (FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual D ∩
@@ -2534,7 +2534,7 @@ theorem Network.exists_fanSmallProductTile_restrictedSeam_dependency_and_glue_of
           (H ≠ r.1.1.1 → FanRefinement.OneBitFanFaceDependency
             (E := EuclideanSpace ℝ (Fin n))
             (m := (cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount)
-            (H, .strip r.2) (r.1.1.1, .strip r.2))) ∧
+            ((H, r.1.2), .strip r.2) ((r.1.1.1, r.1.2), .strip r.2))) ∧
       ∃ selected : (Σ q : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
         C ∈ FanRefinement.hyperplaneArrangementFamily
           (FanRefinement.fanNormalSet F hFdual)} × ι,
@@ -2575,7 +2575,7 @@ theorem Network.exists_fanSmallProductTile_restrictedSeam_dependency_and_glue_of
       κ cover ψ hψ z t hε hchart himage hmapDiam hprojectedSmall hendpointVariation
       hηsmall hbudget hδcoord domain hdomain tailHead tail (C, i) k y horder hy
       hgraph ps hincident
-  obtain ⟨G, hG, hdependency, hdepC, hdepD, hfaceC, hfaceD, hbase, _, _⟩ :=
+  obtain ⟨G, hG, hdependency, hdepC, hdepD, _, _, hfaceC, hfaceD, hbase, _, _, _, _⟩ :=
     FanRefinement.fanSmallProductTile_adjacentStrip_seam F hFdual cover horder C D i j k
   let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
   let cells : Finset (ProperCone ℝ (EuclideanSpace ℝ (Fin n))) :=
@@ -2607,7 +2607,7 @@ theorem Network.exists_fanSmallProductTile_restrictedSeam_dependency_and_glue_of
       (H ≠ r.1.1.1 → FanRefinement.OneBitFanFaceDependency
         (E := EuclideanSpace ℝ (Fin n))
         (m := (cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount)
-        (H, .strip r.2) (r.1.1.1, .strip r.2)) := by
+        ((H, r.1.2), .strip r.2) ((r.1.1.1, r.1.2), .strip r.2)) := by
     intro r hr
     have hrCells : r.1.1.1 ∈ cells := by
       simpa only [cells, List.mem_toFinset] using
@@ -2616,7 +2616,7 @@ theorem Network.exists_fanSmallProductTile_restrictedSeam_dependency_and_glue_of
     refine ⟨hsubset, hface, ?_⟩
     intro hne
     exact FanRefinement.OneBitFanFaceDependency.fanFace
-      r.1.1.1 H r.2 hface hne
+      r.1.1.1 H r.1.2 r.2 hface hne
   exact ⟨G, hG, hdependency, hdepC, hdepD, hfaceC, hfaceD, hbase,
     H, hH, ⟨(by simpa [e] using hHy), hHtasks⟩,
     selected, offset, _, hbarrier⟩
