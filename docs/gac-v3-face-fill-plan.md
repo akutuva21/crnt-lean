@@ -358,3 +358,28 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
 - This supplies one actual Case 1.2 fill with a cross-chain refinement bound. The face-word-specific
   thickened neighborhood containment, recursive assembly across the face lattice, global surface,
   and target consumer remain open.
+
+## Continuation checkpoint — arbitrary zero-ending profiles feed Case 1.1/1.2
+
+- Proved a compact-set thickening lemma and used it to extend equal-projection overlap separation
+  from the critical facet word to any pair of binary words. Every valid Craciun prefix box lies in
+  a `2q` ambient thickening, so one compactness scale confines the full pre-blueprint overlap to
+  the inherited open neighborhood.
+- Added `exists_common_craciunRatio_scale`, which takes the minimum of the finite pair scales and
+  preserves all arbitrary-word overlap constraints at one ratio. Added a ratio monotonicity lemma
+  whose profile depth is independent of the ambient face dimension, since this construction uses
+  a profile of depth `n + 1` on faces in dimension `n + 1`.
+- Added `exists_common_scale_and_oneBit_fills_for_craciun_words`. For a finite family of
+  zero-ending words, it selects a positive minimum profile width and caps the Case 1.2 graph-fill
+  radius by both that width and the shared binary-chain face scale. It proves each Case 1.1 graph
+  tube lies in its full Craciun pre-blueprint, carries pairwise overlap containment through to
+  those tubes, and returns the same-scale Case 1.2 strip subdivision with strict incident-face
+  width bounds.
+- Direct Lean 4.34 compilation succeeded for `ZeroSeparatingInduction.lean`. A fresh dependency
+  chain compiled `FanRefinement.lean`, `ToricUniformWallMargin.lean`,
+  `ComplexBalanceStoichFanInclusion.lean`, and `GlobalAttractorTheorem.lean`. The ratio selector
+  and integrated fill theorem audit to `[propext, Classical.choice, Quot.sound]`; the exact target
+  audit remains `[propext, sorryAx, Classical.choice, Quot.sound]`.
+- This gives the finite Case 1.1/1.2 consumer the full inherited profile and one compatible scale.
+  The actual face-indexed recursive order, filling from all proper-face boundary data, global
+  faithful blueprint/ZSH assembly, and target consumer remain open.

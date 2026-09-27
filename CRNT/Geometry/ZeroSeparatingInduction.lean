@@ -1584,6 +1584,58 @@ theorem set_add_subset_compl_ball_of_norm_le {E : Type*} [NormedAddCommGroup E]
     simpa [Metric.mem_ball, dist_eq_norm] using hxball
   linarith
 
+/-- If two compact sets meet inside an open set, sufficiently small neighborhoods of both sets
+can intersect only inside that open set. The proof isolates the part of the first compact set
+away from the actual intersection and separates that compact remainder from the second set. -/
+theorem isCompact_inter_thickenings_subset_open {α : Type*} [MetricSpace α]
+    {A B U : Set α} (hA : IsCompact A) (hB : IsCompact B) (hU : IsOpen U)
+    (hAB : A ∩ B ⊆ U) :
+    ∃ δ : ℝ, 0 < δ ∧ Metric.thickening δ A ∩ Metric.thickening δ B ⊆ U := by
+  obtain ⟨epsilon, hepsilon, hF⟩ := (hA.inter hB).exists_thickening_subset_open hU hAB
+  let F : Set α := A ∩ B
+  let far : Set α := A \ Metric.thickening (epsilon / 2) F
+  have hfarCompact : IsCompact far := by
+    apply hA.diff
+    exact Metric.isOpen_thickening
+  have hfarDisjoint : Disjoint far B := by
+    apply Set.disjoint_left.mpr
+    intro x hxFar hxB
+    have hxF : x ∈ F := ⟨hxFar.1, hxB⟩
+    have hxNear : x ∈ Metric.thickening (epsilon / 2) F := by
+      apply Metric.mem_thickening_iff.mpr
+      exact ⟨x, hxF, by simpa using half_pos hepsilon⟩
+    exact hxFar.2 hxNear
+  obtain ⟨delta₀, hdelta₀, hseparated⟩ :=
+    hfarDisjoint.exists_thickenings hfarCompact hB.isClosed
+  let delta := min delta₀ (epsilon / 2)
+  have hdelta : 0 < delta := lt_min hdelta₀ (by linarith)
+  have hdeltaFar : delta ≤ delta₀ := min_le_left _ _
+  have hdeltaFace : delta ≤ epsilon / 2 := min_le_right _ _
+  refine ⟨delta, hdelta, ?_⟩
+  intro x hx
+  rcases hx with ⟨hxA, hxB⟩
+  obtain ⟨a, haA, hxa⟩ := Metric.mem_thickening_iff.mp hxA
+  have haNotFar : a ∉ far := by
+    intro haFar
+    have hxFar : x ∈ Metric.thickening delta₀ far := by
+      apply Metric.thickening_mono hdeltaFar far
+      exact Metric.mem_thickening_iff.mpr ⟨a, haFar, hxa⟩
+    have hxB₀ : x ∈ Metric.thickening delta₀ B :=
+      (Metric.thickening_mono hdeltaFar B) hxB
+    exact (Set.disjoint_left.mp hseparated) hxFar hxB₀
+  have haNearF : a ∈ Metric.thickening (epsilon / 2) F := by
+    by_contra hnot
+    exact haNotFar ⟨haA, hnot⟩
+  obtain ⟨z, hzF, haz⟩ := Metric.mem_thickening_iff.mp haNearF
+  have hxNearF : x ∈ Metric.thickening epsilon F := by
+    apply Metric.mem_thickening_iff.mpr
+    refine ⟨z, hzF, ?_⟩
+    calc
+      dist x z ≤ dist x a + dist a z := dist_triangle x a z
+      _ < delta + epsilon / 2 := add_lt_add hxa haz
+      _ ≤ epsilon := by linarith [hdeltaFace]
+  exact hF hxNearF
+
 /-- The zero-bit neighborhood from Craciun v3, §7.3: thicken a face by its binary-prefix fiber,
 then restrict to the previously constructed neighborhood of its projection. -/
 def zeroBitPreBlueprintNeighborhood {n : ℕ}
@@ -1591,6 +1643,29 @@ def zeroBitPreBlueprintNeighborhood {n : ℕ}
     (epsilon : List Bool → ℝ) (word : List Bool) : Set (Fin (n + 1) → ℝ) :=
   (face + binaryWordFiberBox (n := n + 1) epsilon word) ∩
     {x | forgetLastCoordinate n x ∈ baseNeighborhood}
+
+/-- If every coordinate-prefix width in a binary fiber box is at most `q`, then adding that box
+to a face lies in the open `2q`-thickening of the face. This turns the paper's coordinatewise
+Craciun widths into one ambient metric estimate, uniformly over all binary words. -/
+theorem face_add_binaryWordFiberBox_subset_thickening_of_width_le {n : ℕ}
+    (face : Set (Fin n → ℝ)) (epsilon : List Bool → ℝ) (word : List Bool)
+    {q : ℝ} (hq : 0 < q)
+    (hwidth : ∀ i : Fin n, epsilon (word.take (i.val + 1)) ≤ q) :
+    face + binaryWordFiberBox (n := n) epsilon word ⊆ Metric.thickening (2 * q) face := by
+  intro x hx
+  rcases Set.mem_add.mp hx with ⟨a, ha, b, hb, rfl⟩
+  have hnorm : ‖b‖ ≤ q := by
+    apply coordinateFiberBox_norm_le_of_radius_le
+    · exact hq.le
+    · exact hwidth
+    · change b ∈ coordinateFiberBox (fun i => epsilon (word.take (i.val + 1))) at hb
+      exact hb
+  apply Metric.mem_thickening_iff.mpr
+  refine ⟨a, ha, ?_⟩
+  calc
+    dist (a + b) a = ‖b‖ := by simp [dist_eq_norm]
+    _ ≤ q := hnorm
+    _ < 2 * q := by linarith
 
 /-- The projected zero-bit neighborhood is exactly the sum of the projected face and the
 lower-dimensional prefix fiber, restricted to the supplied projected neighborhood. -/
@@ -2347,6 +2422,22 @@ theorem zeroBitPreBlueprintNeighborhood_mono_of_craciunRatio_le {n : ℕ}
     face hbase (craciunBinaryWordEpsilon n q₁) (craciunBinaryWordEpsilon n q₂) word
   intro i
   exact craciunBinaryWordEpsilon_mono (n := n) hq₁ hq₁₂ (word.take (i.val + 1))
+
+/-- The ratio-monotonicity fact when the Craciun profile depth is independent of the ambient
+face dimension. This is needed when a face in dimension `n + 1` is filled using the profile at
+the next recursive depth `n + 1`. -/
+theorem zeroBitPreBlueprintNeighborhood_mono_of_craciunRatio_le_at_depth
+    {ambient depth : ℕ} (face : Set (Fin (ambient + 1) → ℝ))
+    {base₁ base₂ : Set (Fin ambient → ℝ)} (hbase : base₁ ⊆ base₂)
+    {q₁ q₂ : ℝ} (hq₁ : 0 ≤ q₁) (hq₁₂ : q₁ ≤ q₂) (word : List Bool) :
+    zeroBitPreBlueprintNeighborhood face base₁
+        (craciunBinaryWordEpsilon depth q₁) word ⊆
+      zeroBitPreBlueprintNeighborhood face base₂
+        (craciunBinaryWordEpsilon depth q₂) word := by
+  apply zeroBitPreBlueprintNeighborhood_mono_of_prefix_width_le
+    face hbase (craciunBinaryWordEpsilon depth q₁) (craciunBinaryWordEpsilon depth q₂) word
+  intro i
+  exact craciunBinaryWordEpsilon_mono (n := depth) hq₁ hq₁₂ (word.take (i.val + 1))
 
 /-- A prefix ending in `1` contributes no width to the Craciun fiber box. -/
 theorem craciunBinaryWordEpsilon_eq_zero_of_getLast_true {n : ℕ} (q : ℝ)
@@ -4887,6 +4978,165 @@ theorem CompactZeroBitFiberPatchCover.exists_preBlueprint_intersection_subset_of
     Metric.mem_thickening_iff.mpr ⟨q, hq, hdist⟩
   exact hthick hxThick
 
+/-- For arbitrary binary words, the full Craciun prefix profile admits a ratio making two compact
+pre-blueprints intersect only in any prescribed open neighborhood of their actual common face.
+Every prefix box is contained in an ambient `2q`-thickening because all Craciun widths are at most
+`q`; compactness then transfers overlap to the common face. -/
+theorem CompactZeroBitFiberPatchCover.exists_craciunPreBlueprint_intersection_subset_of_open_face
+    {n : ℕ} {ιA ιB : Type*} [Fintype ιA] [Fintype ιB]
+    {faceA faceB : Set (Fin (n + 1) → ℝ)}
+    {baseA baseB : Set (Fin n → ℝ)}
+    {tilesA : ιA → Set (Fin n → ℝ)} {tilesB : ιB → Set (Fin n → ℝ)}
+    {marginA radiusA marginB radiusB : ℝ}
+    (coverA : CompactZeroBitFiberPatchCover faceA baseA tilesA marginA radiusA)
+    (coverB : CompactZeroBitFiberPatchCover faceB baseB tilesB marginB radiusB)
+    (wordA wordB : List Bool)
+    {neighborhood : Set (Fin (n + 1) → ℝ)} (hneighborhood : IsOpen neighborhood)
+    (hface : faceA ∩ faceB ⊆ neighborhood) :
+    ∃ q : ℝ, 0 < q ∧ q < 1 ∧
+      zeroBitPreBlueprintNeighborhood faceA baseA
+          (craciunBinaryWordEpsilon (n + 1) q) wordA ∩
+        zeroBitPreBlueprintNeighborhood faceB baseB
+          (craciunBinaryWordEpsilon (n + 1) q) wordB ⊆ neighborhood := by
+  obtain ⟨delta, hdelta, hcompact⟩ := isCompact_inter_thickenings_subset_open
+    coverA.facePatch_compact coverB.facePatch_compact hneighborhood hface
+  let q := min (delta / 4) (1 / 2)
+  have hq : 0 < q := lt_min (by positivity) (by norm_num)
+  have hq1 : q < 1 := lt_of_le_of_lt (min_le_right _ _) (by norm_num)
+  have h2q : 2 * q ≤ delta := by
+    dsimp [q]
+    calc
+      2 * min (delta / 4) (1 / 2) ≤ 2 * (delta / 4) :=
+        mul_le_mul_of_nonneg_left (min_le_left _ _) (by norm_num)
+      _ = delta / 2 := by ring
+      _ ≤ delta := by linarith
+  have hpreA : zeroBitPreBlueprintNeighborhood faceA baseA
+      (craciunBinaryWordEpsilon (n + 1) q) wordA ⊆
+        Metric.thickening (2 * q) faceA := by
+    intro x hx
+    exact face_add_binaryWordFiberBox_subset_thickening_of_width_le
+      faceA (craciunBinaryWordEpsilon (n + 1) q) wordA hq
+      (by intro i; exact craciunBinaryWordEpsilon_le_q hq hq1 _) hx.1
+  have hpreB : zeroBitPreBlueprintNeighborhood faceB baseB
+      (craciunBinaryWordEpsilon (n + 1) q) wordB ⊆
+        Metric.thickening (2 * q) faceB := by
+    intro x hx
+    exact face_add_binaryWordFiberBox_subset_thickening_of_width_le
+      faceB (craciunBinaryWordEpsilon (n + 1) q) wordB hq
+      (by intro i; exact craciunBinaryWordEpsilon_le_q hq hq1 _) hx.1
+  refine ⟨q, hq, hq1, ?_⟩
+  intro x hx
+  apply hcompact
+  exact ⟨Metric.thickening_mono h2q faceA (hpreA hx.1),
+    Metric.thickening_mono h2q faceB (hpreB hx.2)⟩
+
+/-- A finite family of compact zero-bit faces admits one Craciun ratio for arbitrary binary-word
+pre-blueprints, with every pairwise overlap confined to its inherited open face neighborhood.
+Each ordered face pair first receives a compactness scale; a finite minimum then works for the
+whole family because lowering the ratio only shrinks every prefix box. -/
+theorem CompactZeroBitFiberPatchCover.exists_common_craciunRatio_scale
+    {n : ℕ} {ι τ : Type*} [Fintype ι] [Fintype τ]
+    (face : ι → Set (Fin (n + 1) → ℝ))
+    (base : ι → Set (Fin n → ℝ))
+    (tiles : ι → τ → Set (Fin n → ℝ))
+    (margin faceRadius : ι → ℝ)
+    (cover : ∀ i, CompactZeroBitFiberPatchCover (face i) (base i) (tiles i)
+      (margin i) (faceRadius i))
+    (word : ι → List Bool)
+    (neighborhood : ι → ι → Set (Fin (n + 1) → ℝ))
+    (hOpen : ∀ i j, i ≠ j → IsOpen (neighborhood i j))
+    (hFace : ∀ i j, i ≠ j → face i ∩ face j ⊆ neighborhood i j)
+    (cap : ℝ) (hcap : 0 < cap) :
+    ∃ q : ℝ, 0 < q ∧ q < 1 ∧ q < cap ∧
+      ∀ i j, i ≠ j →
+        zeroBitPreBlueprintNeighborhood (face i) (base i)
+            (craciunBinaryWordEpsilon (n + 1) q) (word i) ∩
+          zeroBitPreBlueprintNeighborhood (face j) (base j)
+            (craciunBinaryWordEpsilon (n + 1) q) (word j) ⊆ neighborhood i j := by
+  classical
+  have pairScale : ∀ i j, i ≠ j →
+      ∃ q : ℝ, 0 < q ∧ q < 1 ∧ q < cap ∧
+        zeroBitPreBlueprintNeighborhood (face i) (base i)
+            (craciunBinaryWordEpsilon (n + 1) q) (word i) ∩
+          zeroBitPreBlueprintNeighborhood (face j) (base j)
+            (craciunBinaryWordEpsilon (n + 1) q) (word j) ⊆ neighborhood i j := by
+    intro i j hij
+    obtain ⟨q₀, hq₀, hq₀one, hoverlap⟩ :=
+      (cover i).exists_craciunPreBlueprint_intersection_subset_of_open_face
+        (cover j) (word i) (word j) (hOpen i j hij) (hFace i j hij)
+    let q := min q₀ (cap / 2)
+    have hq : 0 < q := lt_min hq₀ (by linarith)
+    have hqone : q < 1 := (min_le_left _ _).trans_lt hq₀one
+    have hqcap : q < cap := (min_le_right _ _).trans_lt (by linarith)
+    have hqle : q ≤ q₀ := min_le_left _ _
+    have hmonoA := zeroBitPreBlueprintNeighborhood_mono_of_craciunRatio_le_at_depth
+      (ambient := n) (depth := n + 1) (face i) (base₁ := base i) (base₂ := base i)
+      Set.Subset.rfl hq.le hqle (word i)
+    have hmonoB := zeroBitPreBlueprintNeighborhood_mono_of_craciunRatio_le_at_depth
+      (ambient := n) (depth := n + 1) (face j) (base₁ := base j) (base₂ := base j)
+      Set.Subset.rfl hq.le hqle (word j)
+    refine ⟨q, hq, hqone, hqcap, ?_⟩
+    exact (Set.inter_subset_inter hmonoA hmonoB).trans hoverlap
+  let diagonal : ℝ := min (1 / 2) (cap / 2)
+  have hdiagonal : 0 < diagonal ∧ diagonal < 1 ∧ diagonal < cap := by
+    dsimp [diagonal]
+    exact ⟨lt_min (by norm_num) (by linarith),
+      (min_le_left _ _).trans_lt (by norm_num),
+      (min_le_right _ _).trans_lt (by linarith)⟩
+  by_cases hι : Nonempty ι
+  · let pairScaleValue : ι × ι → ℝ := fun ij =>
+      if h : ij.1 ≠ ij.2 then Classical.choose (pairScale ij.1 ij.2 h) else diagonal
+    have pairScaleValue_spec (ij : ι × ι) :
+        0 < pairScaleValue ij ∧ pairScaleValue ij < 1 ∧ pairScaleValue ij < cap ∧
+          (ij.1 ≠ ij.2 →
+            zeroBitPreBlueprintNeighborhood (face ij.1) (base ij.1)
+                (craciunBinaryWordEpsilon (n + 1) (pairScaleValue ij)) (word ij.1) ∩
+              zeroBitPreBlueprintNeighborhood (face ij.2) (base ij.2)
+                (craciunBinaryWordEpsilon (n + 1) (pairScaleValue ij)) (word ij.2) ⊆
+                  neighborhood ij.1 ij.2) := by
+      by_cases h : ij.1 ≠ ij.2
+      · simpa [pairScaleValue, h] using Classical.choose_spec (pairScale ij.1 ij.2 h)
+      · have hvalue : pairScaleValue ij = diagonal := by simp [pairScaleValue, h]
+        rw [hvalue]
+        refine ⟨hdiagonal.1, hdiagonal.2.1, hdiagonal.2.2, ?_⟩
+        intro hneq
+        exact (h hneq).elim
+    obtain ⟨i₀⟩ := hι
+    let scales : Finset ℝ := Finset.univ.image pairScaleValue
+    have hscales : scales.Nonempty :=
+      Finset.image_nonempty.mpr ⟨(i₀, i₀), Finset.mem_univ _⟩
+    let q := scales.min' hscales
+    have hqmem : q ∈ scales := Finset.min'_mem scales hscales
+    obtain ⟨ij₀, _, hqeq⟩ := Finset.mem_image.mp hqmem
+    have hq : 0 < q := by rw [← hqeq]; exact (pairScaleValue_spec ij₀).1
+    have hqone : q < 1 := by rw [← hqeq]; exact (pairScaleValue_spec ij₀).2.1
+    have hqcap : q < cap := by rw [← hqeq]; exact (pairScaleValue_spec ij₀).2.2.1
+    refine ⟨q, hq, hqone, hqcap, ?_⟩
+    intro i j hij
+    have hqle : q ≤ pairScaleValue (i, j) :=
+      Finset.min'_le scales (pairScaleValue (i, j))
+        (Finset.mem_image.mpr ⟨(i, j), Finset.mem_univ _, rfl⟩)
+    have hmonoA := zeroBitPreBlueprintNeighborhood_mono_of_craciunRatio_le_at_depth
+      (ambient := n) (depth := n + 1) (face i) (base₁ := base i) (base₂ := base i)
+      Set.Subset.rfl hq.le hqle (word i)
+    have hmonoB := zeroBitPreBlueprintNeighborhood_mono_of_craciunRatio_le_at_depth
+      (ambient := n) (depth := n + 1) (face j) (base₁ := base j) (base₂ := base j)
+      Set.Subset.rfl hq.le hqle (word j)
+    have hpairAtMin :
+        zeroBitPreBlueprintNeighborhood (face i) (base i)
+            (craciunBinaryWordEpsilon (n + 1) q) (word i) ∩
+          zeroBitPreBlueprintNeighborhood (face j) (base j)
+            (craciunBinaryWordEpsilon (n + 1) q) (word j) ⊆
+        zeroBitPreBlueprintNeighborhood (face i) (base i)
+            (craciunBinaryWordEpsilon (n + 1) (pairScaleValue (i, j))) (word i) ∩
+          zeroBitPreBlueprintNeighborhood (face j) (base j)
+            (craciunBinaryWordEpsilon (n + 1) (pairScaleValue (i, j))) (word j) :=
+      Set.inter_subset_inter hmonoA hmonoB
+    exact hpairAtMin.trans ((pairScaleValue_spec (i, j)).2.2.2 hij)
+  · refine ⟨diagonal, hdiagonal.1, hdiagonal.2.1, hdiagonal.2.2, ?_⟩
+    intro i j hij
+    exact (hι ⟨i⟩).elim
+
 /-- A finite zero-bit face family admits one critical-facet width satisfying every inherited
 common-face neighborhood constraint. For a nonempty projected shared face, the selected graph
 tubes overlap only inside the already-built open neighborhood; away from that face, compact
@@ -7058,6 +7308,181 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_along
               mul_le_mul_of_nonneg_left (hscaleLe j) hρpos.le
 
 
+
+/-- Consume the arbitrary-word common ratio in the finite Case 1.1/1.2 construction. For every
+zero-ending word, the selected graph tube fits inside its full Craciun pre-blueprint; all tube
+overlaps remain inside inherited face neighborhoods, and the same radius drives the compatible
+Case 1.2 strip fills with the binary-chain width bound. -/
+theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_for_craciun_words
+    {n : ℕ} {ι τ : Type*} [Fintype ι] [Fintype τ]
+    (face : ι → Set (Fin (n + 1) → ℝ))
+    (base : ι → Set (Fin n → ℝ))
+    (tiles : ι → τ → Set (Fin n → ℝ))
+    (margin faceRadius : ι → ℝ)
+    (cover : ∀ i, CompactZeroBitFiberPatchCover (face i) (base i) (tiles i)
+      (margin i) (faceRadius i))
+    (hfaceRadius : ∀ i, 0 < faceRadius i)
+    (word : ι → List Bool)
+    (hwordLength : ∀ i, (word i).length ≤ n + 1)
+    (hwordLast : ∀ i, (word i).getLast? = some false)
+    (neighborhood : ι → ι → Set (Fin (n + 1) → ℝ))
+    (hOpen : ∀ i j, i ≠ j → IsOpen (neighborhood i j))
+    (hFace : ∀ i j, i ≠ j → face i ∩ face j ⊆ neighborhood i j)
+    (oneBitBoundary : ι → ι → Prop)
+    (hOneBitDifferent : ∀ i j, oneBitBoundary i j → i ≠ j)
+    (hcenterOrder : ∀ i j, oneBitBoundary i j → ∀ y ∈ base i ∩ base j,
+      (cover i).center y ≤ (cover j).center y) :
+    ∃ ρ : ℝ, 0 < ρ ∧ ρ < 1 ∧
+      ∃ q : ℝ, 0 < q ∧ q < 1 ∧
+        ∃ extension : ι → C(Fin n → ℝ, ℝ),
+          (∀ i y, y ∈ base i → extension i y = (cover i).center y) ∧
+          ∃ radius : ℝ, 0 < radius ∧
+            (∀ i, radius < ρ * faceRadius i) ∧
+            (∀ i, radius < craciunBinaryWordEpsilon (n + 1) q (word i)) ∧
+            (∀ i,
+              projectionFiberTube (base i) (extension i) radius ⊆
+                zeroBitPreBlueprintNeighborhood (face i) (base i)
+                  (craciunBinaryWordEpsilon (n + 1) q) (word i)) ∧
+            (∀ i j, i ≠ j →
+              zeroBitPreBlueprintNeighborhood (face i) (base i)
+                  (craciunBinaryWordEpsilon (n + 1) q) (word i) ∩
+                zeroBitPreBlueprintNeighborhood (face j) (base j)
+                  (craciunBinaryWordEpsilon (n + 1) q) (word j) ⊆ neighborhood i j) ∧
+            (∀ i j, i ≠ j →
+              projectionFiberTube (base i) (extension i) radius ∩
+                projectionFiberTube (base j) (extension j) radius ⊆ neighborhood i j) ∧
+            (∀ i j, oneBitBoundary i j →
+              ∃ refinement : CompactOneBitFiberPatchCover
+                  (projectionFiberBand (base i ∩ base j)
+                    (fun y => some (extension i y)) (fun y => some (extension j y)))
+                  (base i ∩ base j)
+                  (fun p : τ × τ => tiles i p.1 ∩ tiles j p.2)
+                  (extension i) (extension j) radius,
+                face i ∩ {x | forgetLastCoordinate n x ∈ base j} ⊆
+                  projectionFiberBand (base i ∩ base j)
+                    (fun y => some (extension i y)) (fun y => some (extension j y)) ∧
+                face j ∩ {x | forgetLastCoordinate n x ∈ base i} ⊆
+                  projectionFiberBand (base i ∩ base j)
+                    (fun y => some (extension i y)) (fun y => some (extension j y)) ∧
+                ∀ (k : Fin (refinement.tiling.subdivisionCount + 1))
+                  (y : Fin n → ℝ),
+                  y ∈ base i ∩ base j →
+                    projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
+                      projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y <
+                        ρ * faceRadius i ∧
+                    projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
+                      projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y <
+                        ρ * faceRadius j) := by
+  classical
+  have hqCap : (0 : ℝ) < 1 / 2 := by norm_num
+  obtain ⟨q, hq, hqone, _hqcap, hpreOverlap⟩ :=
+    CompactZeroBitFiberPatchCover.exists_common_craciunRatio_scale
+      face base tiles margin faceRadius cover word neighborhood hOpen hFace
+      (1 / 2) hqCap
+  have hwordWidth : ∀ i, 0 < craciunBinaryWordEpsilon (n + 1) q (word i) := by
+    intro i
+    exact craciunBinaryWordEpsilon_pos_of_getLast_false hq (word i)
+      (hwordLength i) (hwordLast i)
+  have hprofileFloor : ∃ floor : ℝ, 0 < floor ∧
+      ∀ i, floor ≤ craciunBinaryWordEpsilon (n + 1) q (word i) := by
+    by_cases hι : Nonempty ι
+    · let widths : Finset ℝ := Finset.univ.image
+        (fun i => craciunBinaryWordEpsilon (n + 1) q (word i))
+      have hwidths : widths.Nonempty := by
+        obtain ⟨i⟩ := hι
+        exact ⟨craciunBinaryWordEpsilon (n + 1) q (word i),
+          Finset.mem_image.mpr ⟨i, Finset.mem_univ _, rfl⟩⟩
+      let floor := widths.min' hwidths
+      have hfloorMem : floor ∈ widths := Finset.min'_mem widths hwidths
+      obtain ⟨i₀, _, hfloorEq⟩ := Finset.mem_image.mp hfloorMem
+      refine ⟨floor, ?_, ?_⟩
+      · rw [← hfloorEq]
+        exact hwordWidth i₀
+      · intro i
+        exact Finset.min'_le widths
+          (craciunBinaryWordEpsilon (n + 1) q (word i))
+          (Finset.mem_image.mpr ⟨i, Finset.mem_univ _, rfl⟩)
+    · exact ⟨1, by norm_num, fun i => (hι ⟨i⟩).elim⟩
+  obtain ⟨profileFloor, hprofileFloorPos, hprofileFloorLe⟩ := hprofileFloor
+  have hhalf : (0 : ℝ) < 1 / 2 := by norm_num
+  have hhalfOne : (1 / 2 : ℝ) < 1 := by norm_num
+  obtain ⟨ρ, hρ, hρone, _hordinary, _hallOnes⟩ :=
+    exists_uniform_coherentBinaryWordTileScale_separation (n := n + 1) hhalf hhalfOne
+  have hfaceFloor : ∃ scale : ℝ, 0 < scale ∧ ∀ i, scale ≤ faceRadius i := by
+    by_cases hι : Nonempty ι
+    · let values : Finset ℝ := Finset.univ.image faceRadius
+      have hvalues : values.Nonempty := by
+        obtain ⟨i⟩ := hι
+        exact ⟨faceRadius i, Finset.mem_image.mpr ⟨i, Finset.mem_univ _, rfl⟩⟩
+      let scale := values.min' hvalues
+      have hscaleMem : scale ∈ values := Finset.min'_mem values hvalues
+      obtain ⟨i₀, _, hscaleEq⟩ := Finset.mem_image.mp hscaleMem
+      refine ⟨scale, ?_, ?_⟩
+      · rw [← hscaleEq]
+        exact hfaceRadius i₀
+      · intro i
+        exact Finset.min'_le values (faceRadius i)
+          (Finset.mem_image.mpr ⟨i, Finset.mem_univ _, rfl⟩)
+    · exact ⟨1, by norm_num, fun i => (hι ⟨i⟩).elim⟩
+  obtain ⟨scale, hscalePos, hscaleLe⟩ := hfaceFloor
+  let fillCap := min (ρ * scale) profileFloor
+  have hfillCap : 0 < fillCap := lt_min (mul_pos hρ hscalePos) hprofileFloorPos
+  obtain ⟨extension, hextension, radius, hradius, hradiusCap, _hcritical, hfills⟩ :=
+    CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills
+      face base tiles margin faceRadius cover neighborhood hOpen hFace oneBitBoundary
+      hOneBitDifferent hcenterOrder fillCap hfillCap
+  have hradiusFace : ∀ i, radius < ρ * faceRadius i := by
+    intro i
+    calc
+      radius < fillCap := hradiusCap
+      _ ≤ ρ * scale := min_le_left _ _
+      _ ≤ ρ * faceRadius i := mul_le_mul_of_nonneg_left (hscaleLe i) hρ.le
+  have hradiusWord : ∀ i,
+      radius < craciunBinaryWordEpsilon (n + 1) q (word i) := by
+    intro i
+    calc
+      radius < fillCap := hradiusCap
+      _ ≤ profileFloor := min_le_right _ _
+      _ ≤ craciunBinaryWordEpsilon (n + 1) q (word i) := hprofileFloorLe i
+  have htube : ∀ i,
+      projectionFiberTube (base i) (extension i) radius ⊆
+        zeroBitPreBlueprintNeighborhood (face i) (base i)
+          (craciunBinaryWordEpsilon (n + 1) q) (word i) := by
+    intro i
+    have hlastWidth : radius ≤ craciunBinaryWordEpsilon (n + 1) q
+        ((word i).take (n + 1)) := by
+      rw [List.take_of_length_le (hwordLength i)]
+      exact (hradiusWord i).le
+    exact projectionFiberTube_subset_zeroBitPreBlueprintNeighborhood
+      (face i) (base i) (base i) (extension i) radius
+      (craciunBinaryWordEpsilon (n + 1) q) (word i)
+      (fun p => craciunBinaryWordEpsilon_nonneg (n := n + 1) hq p)
+      hlastWidth Set.Subset.rfl (by
+        intro y hy
+        rw [hextension i y hy]
+        exact (cover i).center_lift_mem_face hy)
+  have htubeOverlap : ∀ i j, i ≠ j →
+      projectionFiberTube (base i) (extension i) radius ∩
+        projectionFiberTube (base j) (extension j) radius ⊆ neighborhood i j := by
+    intro i j hij
+    exact (Set.inter_subset_inter (htube i) (htube j)).trans (hpreOverlap i j hij)
+  refine ⟨ρ, hρ, hρone, q, hq, hqone, extension, hextension, radius, hradius,
+    hradiusFace, hradiusWord, htube, hpreOverlap, htubeOverlap, ?_⟩
+  intro i j hboundary
+  obtain ⟨refinement, hleft, hright⟩ := hfills i j hboundary
+  refine ⟨refinement, hleft, hright, ?_⟩
+  intro k y hy
+  constructor
+  · calc
+      projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
+          projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
+            radius := refinement.tiling.fiber_width_le k y hy
+      _ < ρ * faceRadius i := hradiusFace i
+  · calc
+      projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
+          projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
+            radius := refinement.tiling.fiber_width_le k y hy
+      _ < ρ * faceRadius j := hradiusFace j
 
 /-- Craciun v3, §8 Step 1 followed by §7.4.3 Case 1.2: clip a finite family of compact
 projective radial tiles to the projective domain, project those pieces to the lower-dimensional
