@@ -140,6 +140,15 @@ theorem mem_coordinateFiberBox_iff {n : ℕ} (radius : Fin n → ℝ) (x : Fin n
     x ∈ coordinateFiberBox radius ↔ ∀ i, |x i| ≤ radius i := by
   simp [coordinateFiberBox, abs_le, Pi.le_def, forall_and]
 
+/-- Increasing every coordinate radius can only enlarge the binary-prefix fiber box. -/
+theorem coordinateFiberBox_subset_of_radius_le {n : ℕ}
+    {radius₁ radius₂ : Fin n → ℝ} (hwidth : ∀ i, radius₁ i ≤ radius₂ i) :
+    coordinateFiberBox radius₁ ⊆ coordinateFiberBox radius₂ := by
+  intro x hx
+  rw [mem_coordinateFiberBox_iff] at hx ⊢
+  intro i
+  exact (hx i).trans (hwidth i)
+
 /-- A coordinate fiber box whose widths are bounded by `radius` lies in the closed norm ball of
 that radius. The function-space norm is the finite-product supremum norm. -/
 theorem coordinateFiberBox_norm_le_of_radius_le {n : ℕ} (width : Fin n → ℝ)
@@ -197,6 +206,15 @@ length `i + 1`, as in Craciun v3, §7.3. -/
 def binaryWordFiberBox {n : ℕ} (epsilon : List Bool → ℝ) (word : List Bool) :
     Set (Fin n → ℝ) :=
   coordinateFiberBox (fun i => epsilon (word.take (i.val + 1)))
+
+/-- Prefixwise ordered word scales induce nested binary-word fiber boxes. -/
+theorem binaryWordFiberBox_subset_of_prefix_width_le {n : ℕ}
+    (epsilon₁ epsilon₂ : List Bool → ℝ) (word : List Bool)
+    (hwidth : ∀ i : Fin n,
+      epsilon₁ (word.take (i.val + 1)) ≤ epsilon₂ (word.take (i.val + 1))) :
+    binaryWordFiberBox (n := n) epsilon₁ word ⊆
+      binaryWordFiberBox (n := n) epsilon₂ word := by
+  exact coordinateFiberBox_subset_of_radius_le hwidth
 
 /-- Deleting the final coordinate of a binary-word fiber box gives exactly the fiber box for the
 first `n` bits. -/
@@ -320,6 +338,34 @@ theorem subset_zeroBitPreBlueprintNeighborhood_of_projection {n : ℕ}
     intro i
     exact hepsilon _
   refine ⟨Set.mem_add.mpr ⟨x, hx, 0, hzero, by simp⟩, hproject x hx⟩
+
+/-- A larger projected neighborhood and wider prefix fibers produce a larger zero-bit
+pre-blueprint. This is the nesting law needed when the binary-word scale hierarchy orders parent
+and child neighborhoods in Craciun v3, §7.3. -/
+theorem zeroBitPreBlueprintNeighborhood_mono {n : ℕ}
+    (face : Set (Fin (n + 1) → ℝ))
+    {base₁ base₂ : Set (Fin n → ℝ)} (hbase : base₁ ⊆ base₂)
+    (epsilon₁ epsilon₂ : List Bool → ℝ) (word : List Bool)
+    (hbox : binaryWordFiberBox (n := n + 1) epsilon₁ word ⊆
+      binaryWordFiberBox (n := n + 1) epsilon₂ word) :
+    zeroBitPreBlueprintNeighborhood face base₁ epsilon₁ word ⊆
+      zeroBitPreBlueprintNeighborhood face base₂ epsilon₂ word := by
+  rintro x ⟨hthick, hprojected⟩
+  rcases Set.mem_add.mp hthick with ⟨a, ha, b, hb, rfl⟩
+  exact ⟨Set.mem_add.mpr ⟨a, ha, b, hbox hb, rfl⟩, hbase hprojected⟩
+
+/-- The zero-bit nesting law specialized to scale functions ordered at every prefix of the chosen
+word. -/
+theorem zeroBitPreBlueprintNeighborhood_mono_of_prefix_width_le {n : ℕ}
+    (face : Set (Fin (n + 1) → ℝ))
+    {base₁ base₂ : Set (Fin n → ℝ)} (hbase : base₁ ⊆ base₂)
+    (epsilon₁ epsilon₂ : List Bool → ℝ) (word : List Bool)
+    (hwidth : ∀ i : Fin (n + 1),
+      epsilon₁ (word.take (i.val + 1)) ≤ epsilon₂ (word.take (i.val + 1))) :
+    zeroBitPreBlueprintNeighborhood face base₁ epsilon₁ word ⊆
+      zeroBitPreBlueprintNeighborhood face base₂ epsilon₂ word := by
+  apply zeroBitPreBlueprintNeighborhood_mono face hbase epsilon₁ epsilon₂ word
+  exact binaryWordFiberBox_subset_of_prefix_width_le epsilon₁ epsilon₂ word hwidth
 
 /-- If the face and lower-dimensional neighborhood are compact, so is the zero-bit neighborhood:
 the fiber-thickened face is compact, and the projection restriction is closed. -/
@@ -807,6 +853,33 @@ theorem craciunBinaryWordEpsilon_nonneg {n : ℕ} {q : ℝ} (hq : 0 < q)
       exact (pow_pos hq _).le
     · exact le_rfl
   · simp [hlen]
+
+/-- The manuscript's binary-prefix widths are monotone in their common ratio parameter on the
+nonnegative range. -/
+theorem craciunBinaryWordEpsilon_mono {n : ℕ} {q₁ q₂ : ℝ}
+    (hq₁ : 0 ≤ q₁) (hq₁₂ : q₁ ≤ q₂) (word : List Bool) :
+    craciunBinaryWordEpsilon n q₁ word ≤ craciunBinaryWordEpsilon n q₂ word := by
+  by_cases hlen : word.length ≤ n
+  · simp only [craciunBinaryWordEpsilon, if_pos hlen]
+    split_ifs
+    · unfold binaryWordLowerEndpointScale
+      exact pow_le_pow_left₀ hq₁ hq₁₂ _
+    · exact le_rfl
+  · simp [craciunBinaryWordEpsilon, hlen]
+
+/-- Enlarging Craciun's common scale ratio enlarges the zero-bit pre-blueprint neighborhood. -/
+theorem zeroBitPreBlueprintNeighborhood_mono_of_craciunRatio_le {n : ℕ}
+    (face : Set (Fin (n + 1) → ℝ))
+    {base₁ base₂ : Set (Fin n → ℝ)} (hbase : base₁ ⊆ base₂)
+    {q₁ q₂ : ℝ} (hq₁ : 0 ≤ q₁) (hq₁₂ : q₁ ≤ q₂) (word : List Bool) :
+    zeroBitPreBlueprintNeighborhood face base₁
+        (craciunBinaryWordEpsilon n q₁) word ⊆
+      zeroBitPreBlueprintNeighborhood face base₂
+        (craciunBinaryWordEpsilon n q₂) word := by
+  apply zeroBitPreBlueprintNeighborhood_mono_of_prefix_width_le
+    face hbase (craciunBinaryWordEpsilon n q₁) (craciunBinaryWordEpsilon n q₂) word
+  intro i
+  exact craciunBinaryWordEpsilon_mono (n := n) hq₁ hq₁₂ (word.take (i.val + 1))
 
 /-- A prefix ending in `1` contributes no width to the Craciun fiber box. -/
 theorem craciunBinaryWordEpsilon_eq_zero_of_getLast_true {n : ℕ} (q : ℝ)
