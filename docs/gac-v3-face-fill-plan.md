@@ -316,3 +316,26 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   pre-blueprints can be scaled so their full intersection lies inside the inherited neighborhood.
   This makes the residual-overlap-to-lower-face handoff an explicit theorem, conditional only on
   the lower-face neighborhood already having been constructed.
+
+## Continuation checkpoint — one critical-facet scale for a finite face family
+
+- Added `CompactZeroBitFiberPatchCover.exists_common_criticalFacet_scale`. For each distinct face
+  pair, it uses the open inherited-neighborhood theorem when the projected common face is
+  nonempty; otherwise it separates the two graph tubes over their compact common projected base.
+  It then takes the minimum of the finite pair scales and proves every pairwise constraint at
+  that single width.
+- Direct Lean 4.34 compilation succeeded for `ZeroSeparatingInduction.lean`. A fresh temporary
+  dependency chain also compiled `FanRefinement.lean`, `ToricUniformWallMargin.lean`,
+  `ComplexBalanceStoichFanInclusion.lean`, and `GlobalAttractorTheorem.lean`.
+- Added a Tietze extension theorem for each compact zero-bit center graph, then consumed the common
+  scale in `exists_common_scale_and_oneBit_fills`: for each supplied directed one-bit boundary pair,
+  it constructs the compact band between the extended center graphs, proves both restricted face
+  pieces lie in that band, and supplies its finite compact strip refinement at the selected scale.
+  This is a graph-level fill only; the full thickened inherited pre-blueprints are not yet shown to
+  bound the filled region.
+- The extension theorem, finite scale selector, and one-bit fill consumer each audit to
+  `[propext, Classical.choice, Quot.sound]`. The exact target audit remains
+  `[propext, sorryAx, Classical.choice, Quot.sound]`; the theorem still has its original hole.
+  The remaining construction must derive the directed boundary-pair/order data from the actual
+  projected face lattice, incorporate the thickened inherited neighborhoods in the Case 1.2 fill,
+  and recursively assemble these local fills into the faithful blueprint.

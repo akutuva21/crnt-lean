@@ -8,6 +8,7 @@ import Mathlib.LinearAlgebra.Dimension.Constructions
 import Mathlib.Analysis.InnerProductSpace.Projection.Submodule
 import Mathlib.Data.Set.Finite.List
 import Mathlib.Topology.Algebra.Module.FiniteDimension
+import Mathlib.Topology.TietzeExtension
 import Mathlib.Topology.UniformSpace.HeineCantor
 
 /-!
@@ -4465,6 +4466,27 @@ theorem CompactZeroBitFiberPatchCover.base_isCompact
   rw [← himage]
   exact cover.facePatch_compact.image (forgetLastCoordinate n).continuous_of_finiteDimensional
 
+/-- A graph section on a compact projected face extends to a continuous function on the full
+coordinate space. The extension preserves every selected Case 1.1 basepoint on the projected
+face, so independently chosen lower-face sections can serve as the boundary graphs of a Case 1.2
+fiber fill. -/
+theorem CompactZeroBitFiberPatchCover.exists_continuous_center_extension
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {face : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {tiles : ι → Set (Fin n → ℝ)} {margin faceRadius : ℝ}
+    (cover : CompactZeroBitFiberPatchCover face base tiles margin faceRadius) :
+    ∃ centerExtension : C(Fin n → ℝ, ℝ),
+      ∀ y ∈ base, centerExtension y = cover.center y := by
+  let centerOnBase : C(base, ℝ) :=
+    ⟨base.domRestrict cover.center,
+      continuousOn_iff_continuous_domRestrict.mp cover.center_continuous⟩
+  obtain ⟨centerExtension, hext⟩ := centerOnBase.exists_extension
+    (cover.base_isCompact.isClosed.isClosedEmbedding_subtypeVal)
+  refine ⟨centerExtension, ?_⟩
+  intro y hy
+  have h := congrArg (fun f : C(base, ℝ) => f ⟨y, hy⟩) hext
+  simpa [centerOnBase] using h
+
 /-- Equal-projection face tubes separate on any compact part of the shared projected base that
 avoids the projection of the common face. The graph lifts force the two center sections to differ
 there, and compactness makes the gap uniform. -/
@@ -4580,6 +4602,49 @@ theorem craciunCriticalFacetWord_prefix_width (n : ℕ) (radius : ℝ) :
       have hlen := congrArg List.length heq
       omega
     simp [hnotEq, hi]
+
+/-- Restricting two zero-bit pre-blueprints to their common projected base does not change their
+intersection. This is the set-level identity used to make pairwise face collars compatible with a
+single family of projected bases. -/
+theorem zeroBitPreBlueprintNeighborhood_inter_eq_commonBase {n : ℕ}
+    (faceA faceB : Set (Fin (n + 1) → ℝ))
+    (baseA baseB : Set (Fin n → ℝ)) (epsilon : List Bool → ℝ) (word : List Bool) :
+    zeroBitPreBlueprintNeighborhood faceA baseA epsilon word ∩
+        zeroBitPreBlueprintNeighborhood faceB baseB epsilon word =
+      zeroBitPreBlueprintNeighborhood faceA (baseA ∩ baseB) epsilon word ∩
+        zeroBitPreBlueprintNeighborhood faceB (baseA ∩ baseB) epsilon word := by
+  ext x
+  simp [zeroBitPreBlueprintNeighborhood, and_assoc, and_left_comm, and_comm]
+
+/-- The critical-facet pre-blueprint grows monotonically with its final width. This lets a single
+finite-family scale inherit every pairwise lower-face collar. -/
+theorem CompactZeroBitFiberPatchCover.criticalFacetPreBlueprint_subset_of_radius_le
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {face : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {tiles : ι → Set (Fin n → ℝ)} {margin faceRadius : ℝ}
+    (cover : CompactZeroBitFiberPatchCover face base tiles margin faceRadius)
+    (baseNeighborhood : Set (Fin n → ℝ))
+    (hbaseNeighborhood : baseNeighborhood ⊆ base) {radius₁ radius₂ : ℝ}
+    (hradius : radius₁ ≤ radius₂) :
+    zeroBitPreBlueprintNeighborhood face baseNeighborhood
+        (fun p => if p = criticalFacetBinaryWord n then radius₁ else 0)
+        (criticalFacetBinaryWord n) ⊆
+      zeroBitPreBlueprintNeighborhood face baseNeighborhood
+        (fun p => if p = criticalFacetBinaryWord n then radius₂ else 0)
+        (criticalFacetBinaryWord n) := by
+  rw [zeroBitPreBlueprintNeighborhood_eq_projectionFiberTube_of_last_width
+      face baseNeighborhood cover.center
+      (fun p => if p = criticalFacetBinaryWord n then radius₁ else 0)
+      (criticalFacetBinaryWord n) radius₁ cover.center_graph_on_face
+      (fun y hy => cover.center_lift_mem_face (hbaseNeighborhood hy))
+      (craciunCriticalFacetWord_prefix_width n radius₁),
+    zeroBitPreBlueprintNeighborhood_eq_projectionFiberTube_of_last_width
+      face baseNeighborhood cover.center
+      (fun p => if p = criticalFacetBinaryWord n then radius₂ else 0)
+      (criticalFacetBinaryWord n) radius₂ cover.center_graph_on_face
+      (fun y hy => cover.center_lift_mem_face (hbaseNeighborhood hy))
+      (craciunCriticalFacetWord_prefix_width n radius₂)]
+  exact projectionFiberTube_subset_of_radius_le baseNeighborhood cover.center hradius
 
 /-- Applying the critical `11…110` word to the graph-tube equality turns the compact gap into
 actual disjoint §7.3 pre-blueprint neighborhoods. The selected final width remains below the
@@ -4817,6 +4882,153 @@ theorem CompactZeroBitFiberPatchCover.exists_preBlueprint_intersection_subset_of
   have hxThick : x ∈ Metric.thickening epsilon (faceA ∩ faceB) :=
     Metric.mem_thickening_iff.mpr ⟨q, hq, hdist⟩
   exact hthick hxThick
+
+/-- A finite zero-bit face family admits one critical-facet width satisfying every inherited
+common-face neighborhood constraint. For a nonempty projected shared face, the selected graph
+tubes overlap only inside the already-built open neighborhood; away from that face, compact
+center separation makes the tubes disjoint. Taking the minimum over the finite face-pair family
+preserves all these constraints at one scale, as required before the next §7.4.3 fill stage. -/
+theorem CompactZeroBitFiberPatchCover.exists_common_criticalFacet_scale
+    {n : ℕ} {ι τ : Type*} [Fintype ι] [Fintype τ]
+    (face : ι → Set (Fin (n + 1) → ℝ))
+    (base : ι → Set (Fin n → ℝ))
+    (tiles : ι → τ → Set (Fin n → ℝ))
+    (margin faceRadius : ι → ℝ)
+    (cover : ∀ i, CompactZeroBitFiberPatchCover (face i) (base i) (tiles i)
+      (margin i) (faceRadius i))
+    (neighborhood : ι → ι → Set (Fin (n + 1) → ℝ))
+    (hOpen : ∀ i j, i ≠ j → IsOpen (neighborhood i j))
+    (hFace : ∀ i j, i ≠ j → face i ∩ face j ⊆ neighborhood i j)
+    (cap : ℝ) (hcap : 0 < cap) :
+    ∃ radius : ℝ, 0 < radius ∧ radius < cap ∧
+      ∀ i j, i ≠ j →
+        zeroBitPreBlueprintNeighborhood (face i) (base i)
+            (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+            (criticalFacetBinaryWord n) ∩
+          zeroBitPreBlueprintNeighborhood (face j) (base j)
+            (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+            (criticalFacetBinaryWord n) ⊆ neighborhood i j := by
+  classical
+  let word := criticalFacetBinaryWord n
+  let width := fun (r : ℝ) (p : List Bool) => if p = word then r else 0
+  have pairScale : ∀ i j, i ≠ j →
+      ∃ r : ℝ, 0 < r ∧ r < cap ∧
+        zeroBitPreBlueprintNeighborhood (face i) (base i) (width r) word ∩
+          zeroBitPreBlueprintNeighborhood (face j) (base j) (width r) word ⊆
+            neighborhood i j := by
+    intro i j hij
+    let shared := forgetLastCoordinate n '' (face i ∩ face j)
+    by_cases hshared : shared.Nonempty
+    · obtain ⟨r₀, hr₀, hinherited⟩ :=
+        (cover i).exists_preBlueprint_intersection_subset_of_open_shared_face
+          (cover j) hshared (hOpen i j hij) (hFace i j hij)
+      let r := min r₀ (cap / 2)
+      have hr : 0 < r := lt_min hr₀ (by linarith)
+      have hrcap : r < cap :=
+        (min_le_right r₀ (cap / 2)).trans_lt (by linarith)
+      have hrle : r ≤ r₀ := min_le_left _ _
+      have hmonoA : zeroBitPreBlueprintNeighborhood (face i) (base i ∩ base j)
+          (width r) word ⊆ zeroBitPreBlueprintNeighborhood (face i) (base i ∩ base j)
+            (width r₀) word :=
+        (cover i).criticalFacetPreBlueprint_subset_of_radius_le (base i ∩ base j)
+          Set.inter_subset_left hrle
+      have hmonoB : zeroBitPreBlueprintNeighborhood (face j) (base i ∩ base j)
+          (width r) word ⊆ zeroBitPreBlueprintNeighborhood (face j) (base i ∩ base j)
+            (width r₀) word :=
+        (cover j).criticalFacetPreBlueprint_subset_of_radius_le (base i ∩ base j)
+          Set.inter_subset_right hrle
+      have hrestrict := zeroBitPreBlueprintNeighborhood_inter_eq_commonBase
+        (face i) (face j) (base i) (base j) (width r) word
+      refine ⟨r, hr, hrcap, ?_⟩
+      rw [hrestrict]
+      exact (Set.inter_subset_inter hmonoA hmonoB).trans hinherited
+    · have hsharedEmpty : shared = ∅ := by
+        apply Set.eq_empty_iff_forall_notMem.mpr
+        intro y hy
+        exact hshared ⟨y, hy⟩
+      let tile := base i ∩ base j
+      have htileCompact : IsCompact tile :=
+        (cover i).base_isCompact.inter (cover j).base_isCompact
+      have havoid : tile ∩ shared = ∅ := by
+        rw [hsharedEmpty]
+        simp [tile]
+      obtain ⟨r, hr, hrcap, hdisjoint⟩ :=
+        (cover i).exists_disjoint_faceTubes_on_compact_base (cover j) tile htileCompact
+          Set.inter_subset_left Set.inter_subset_right havoid hcap
+      have hwidth := craciunCriticalFacetWord_prefix_width n r
+      have htubeA : zeroBitPreBlueprintNeighborhood (face i) tile (width r) word =
+          projectionFiberTube tile (cover i).center r := by
+        exact zeroBitPreBlueprintNeighborhood_eq_projectionFiberTube_of_last_width
+          (face i) tile (cover i).center (width r) word r
+          (cover i).center_graph_on_face
+          (fun y hy => (cover i).center_lift_mem_face hy.1) (by simpa [width, word] using hwidth)
+      have htubeB : zeroBitPreBlueprintNeighborhood (face j) tile (width r) word =
+          projectionFiberTube tile (cover j).center r := by
+        exact zeroBitPreBlueprintNeighborhood_eq_projectionFiberTube_of_last_width
+          (face j) tile (cover j).center (width r) word r
+          (cover j).center_graph_on_face
+          (fun y hy => (cover j).center_lift_mem_face hy.2) (by simpa [width, word] using hwidth)
+      have hrestrict := zeroBitPreBlueprintNeighborhood_inter_eq_commonBase
+        (face i) (face j) (base i) (base j) (width r) word
+      refine ⟨r, hr, hrcap, ?_⟩
+      rw [hrestrict, htubeA, htubeB, hdisjoint]
+      exact Set.empty_subset _
+  by_cases hι : Nonempty ι
+  · let pairScaleValue : ι × ι → ℝ := fun ij =>
+      if h : ij.1 ≠ ij.2 then Classical.choose (pairScale ij.1 ij.2 h) else cap / 2
+    have pairScaleValue_spec (ij : ι × ι) :
+        0 < pairScaleValue ij ∧ pairScaleValue ij < cap ∧
+          (ij.1 ≠ ij.2 →
+            zeroBitPreBlueprintNeighborhood (face ij.1) (base ij.1)
+                (width (pairScaleValue ij)) word ∩
+              zeroBitPreBlueprintNeighborhood (face ij.2) (base ij.2)
+                (width (pairScaleValue ij)) word ⊆ neighborhood ij.1 ij.2) := by
+      by_cases h : ij.1 ≠ ij.2
+      · simpa [pairScaleValue, h] using Classical.choose_spec (pairScale ij.1 ij.2 h)
+      · constructor
+        · have hvalue : pairScaleValue ij = cap / 2 := by simp [pairScaleValue, h]
+          rw [hvalue]
+          linarith
+        · constructor
+          · have hvalue : pairScaleValue ij = cap / 2 := by simp [pairScaleValue, h]
+            rw [hvalue]
+            linarith
+          · intro hneq
+            exact (h hneq).elim
+    obtain ⟨i₀⟩ := hι
+    let scales : Finset ℝ := Finset.univ.image pairScaleValue
+    have hscales : scales.Nonempty :=
+      Finset.image_nonempty.mpr ⟨(i₀, i₀), Finset.mem_univ _⟩
+    let radius := scales.min' hscales
+    have hradiusMem : radius ∈ scales := Finset.min'_mem scales hscales
+    obtain ⟨ij₀, _, hradiusEq⟩ := Finset.mem_image.mp hradiusMem
+    have hradius : 0 < radius := by
+      rw [← hradiusEq]
+      exact (pairScaleValue_spec ij₀).1
+    have hrcap : radius < cap := by
+      rw [← hradiusEq]
+      exact (pairScaleValue_spec ij₀).2.1
+    refine ⟨radius, hradius, hrcap, ?_⟩
+    intro i j hij
+    have hradiusLe : radius ≤ pairScaleValue (i, j) := by
+      exact Finset.min'_le scales (pairScaleValue (i, j))
+        (Finset.mem_image.mpr ⟨(i, j), Finset.mem_univ _, rfl⟩)
+    have hmonoA := (cover i).criticalFacetPreBlueprint_subset_of_radius_le
+      (base i) Set.Subset.rfl hradiusLe
+    have hmonoB := (cover j).criticalFacetPreBlueprint_subset_of_radius_le
+      (base j) Set.Subset.rfl hradiusLe
+    have hpairAtMin :
+        zeroBitPreBlueprintNeighborhood (face i) (base i) (width radius) word ∩
+            zeroBitPreBlueprintNeighborhood (face j) (base j) (width radius) word ⊆
+          zeroBitPreBlueprintNeighborhood (face i) (base i)
+              (width (pairScaleValue (i, j))) word ∩
+            zeroBitPreBlueprintNeighborhood (face j) (base j)
+              (width (pairScaleValue (i, j))) word :=
+      Set.inter_subset_inter hmonoA hmonoB
+    exact hpairAtMin.trans ((pairScaleValue_spec (i, j)).2.2 hij)
+  · refine ⟨cap / 2, by linarith, by linarith, ?_⟩
+    intro i j hij
+    exact (hι ⟨i⟩).elim
 
 /-- Construct zero-bit graph tubes over a finite compact cover of the projected face whose tile
 interiors are pairwise disjoint. The same continuous section is used on every tile; openness of
@@ -6190,6 +6402,117 @@ noncomputable def compactOneBitFiberBlueprintRefinement_of_compactBand {n : ℕ}
       exact hi.1
   · intro i
     exact hfacePatchCompact.inter (tiling.tile_compact i)
+
+/-- Consume the common §7.3 scale and the lifted Case 1.1 graph sections to construct compact
+graph bands for a finite directed family of one-bit boundary pairs. Each pair's two restricted
+zero-bit faces lies in its band, and the band is covered by compact, projectively aligned strip
+tiles at the same scale selected for all inherited face-neighborhood constraints. This is the
+graph-level fill; it does not yet show that the full thickened inherited neighborhoods bound the
+filled regions or assemble these local fills across the face lattice. -/
+theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills
+    {n : ℕ} {ι τ : Type*} [Fintype ι] [Fintype τ]
+    (face : ι → Set (Fin (n + 1) → ℝ))
+    (base : ι → Set (Fin n → ℝ))
+    (tiles : ι → τ → Set (Fin n → ℝ))
+    (margin faceRadius : ι → ℝ)
+    (cover : ∀ i, CompactZeroBitFiberPatchCover (face i) (base i) (tiles i)
+      (margin i) (faceRadius i))
+    (neighborhood : ι → ι → Set (Fin (n + 1) → ℝ))
+    (hOpen : ∀ i j, i ≠ j → IsOpen (neighborhood i j))
+    (hFace : ∀ i j, i ≠ j → face i ∩ face j ⊆ neighborhood i j)
+    (oneBitBoundary : ι → ι → Prop)
+    (hOneBitDifferent : ∀ i j, oneBitBoundary i j → i ≠ j)
+    (hcenterOrder : ∀ i j, oneBitBoundary i j → ∀ y ∈ base i ∩ base j,
+      (cover i).center y ≤ (cover j).center y)
+    (cap : ℝ) (hcap : 0 < cap) :
+    ∃ extension : ι → C(Fin n → ℝ, ℝ),
+      (∀ i y, y ∈ base i → extension i y = (cover i).center y) ∧
+      ∃ radius : ℝ, 0 < radius ∧ radius < cap ∧
+        (∀ i j, i ≠ j →
+          zeroBitPreBlueprintNeighborhood (face i) (base i)
+              (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+              (criticalFacetBinaryWord n) ∩
+            zeroBitPreBlueprintNeighborhood (face j) (base j)
+              (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+              (criticalFacetBinaryWord n) ⊆ neighborhood i j) ∧
+        (∀ i j, oneBitBoundary i j →
+          ∃ refinement : CompactOneBitFiberBlueprintRefinement
+              (projectionFiberBand (base i ∩ base j)
+                (fun y => some (extension i y)) (fun y => some (extension j y)))
+              (base i ∩ base j) (extension i) (extension j) radius,
+            face i ∩ {x | forgetLastCoordinate n x ∈ base j} ⊆
+              projectionFiberBand (base i ∩ base j)
+                (fun y => some (extension i y)) (fun y => some (extension j y)) ∧
+            face j ∩ {x | forgetLastCoordinate n x ∈ base i} ⊆
+              projectionFiberBand (base i ∩ base j)
+                (fun y => some (extension i y)) (fun y => some (extension j y))) := by
+  classical
+  let extension : ι → C(Fin n → ℝ, ℝ) := fun i =>
+    Classical.choose (cover i).exists_continuous_center_extension
+  have hextension : ∀ i y, y ∈ base i → extension i y = (cover i).center y := by
+    intro i y hy
+    exact Classical.choose_spec (cover i).exists_continuous_center_extension y hy
+  obtain ⟨radius, hradius, hcapRadius, hscale⟩ :=
+    CompactZeroBitFiberPatchCover.exists_common_criticalFacet_scale
+      face base tiles margin faceRadius cover neighborhood hOpen hFace cap hcap
+  refine ⟨extension, hextension, radius, hradius, hcapRadius, hscale, ?_⟩
+  intro i j hboundary
+  have hij := hOneBitDifferent i j hboundary
+  let basePair := base i ∩ base j
+  let lower : (Fin n → ℝ) → ℝ := extension i
+  let upper : (Fin n → ℝ) → ℝ := extension j
+  let band := projectionFiberBand basePair (fun y => some (lower y))
+    (fun y => some (upper y))
+  have hbasePair : IsCompact basePair :=
+    (cover i).base_isCompact.inter (cover j).base_isCompact
+  have horder : ∀ y ∈ basePair, lower y ≤ upper y := by
+    intro y hy
+    change extension i y ≤ extension j y
+    rw [hextension i y hy.1, hextension j y hy.2]
+    exact hcenterOrder i j hboundary y hy
+  have hbandCompact : IsCompact band :=
+    isCompact_projectionFiberBand_bounded basePair lower upper hbasePair
+      (extension i).continuous (extension j).continuous horder
+  let refinement := compactOneBitFiberBlueprintRefinement_of_compactBand
+    band hbandCompact basePair lower upper radius hbasePair
+    (extension i).continuous (extension j).continuous horder hradius Set.Subset.rfl
+  have hleft : face i ∩ {x | forgetLastCoordinate n x ∈ base j} ⊆ band := by
+    intro x hx
+    let y := forgetLastCoordinate n x
+    have hyi : y ∈ base i := by
+      exact (mem_projectionFiberTube_iff (base i) (cover i).center (faceRadius i) x).mp
+        ((cover i).facePatch_subset_tube hx.1) |>.1
+    have hyj : y ∈ base j := hx.2
+    have hlowerEq : lower y = x (Fin.last n) := by
+      calc
+        lower y = (cover i).center y := hextension i y hyi
+        _ = x (Fin.last n) := by
+          simpa [y] using (cover i).center_graph_on_face x hx.1
+    have horderAt : lower y ≤ upper y := horder y ⟨hyi, hyj⟩
+    apply (mem_projectionFiberBand_bounded_iff basePair lower upper x).2
+    refine ⟨⟨hyi, hyj⟩, ?_, ?_⟩
+    · rw [hlowerEq]
+    · rw [hlowerEq] at horderAt
+      exact horderAt
+  have hright : face j ∩ {x | forgetLastCoordinate n x ∈ base i} ⊆ band := by
+    intro x hx
+    let y := forgetLastCoordinate n x
+    have hyi : y ∈ base i := hx.2
+    have hyj : y ∈ base j := by
+      exact (mem_projectionFiberTube_iff (base j) (cover j).center (faceRadius j) x).mp
+        ((cover j).facePatch_subset_tube hx.1) |>.1
+    have hupperEq : upper y = x (Fin.last n) := by
+      calc
+        upper y = (cover j).center y := hextension j y hyj
+        _ = x (Fin.last n) := by
+          simpa [y] using (cover j).center_graph_on_face x hx.1
+    have horderAt : lower y ≤ upper y := horder y ⟨hyi, hyj⟩
+    apply (mem_projectionFiberBand_bounded_iff basePair lower upper x).2
+    refine ⟨⟨hyi, hyj⟩, ?_, ?_⟩
+    · rw [hupperEq] at horderAt
+      exact horderAt
+    · rw [hupperEq]
+  exact ⟨refinement, hleft, hright⟩
 
 /-- The compact restricted radial boundary family from Craciun v3, §8 Step 1 admits one shared
 one-bit fiber subdivision. We use its coordinate projection as the base and the last blue-box
