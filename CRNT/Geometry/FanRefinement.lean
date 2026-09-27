@@ -594,16 +594,26 @@ theorem oneBitFanFaceDependency_wellFounded [CompleteSpace E] [FiniteDimensional
       simp [oneBitFanFaceTaskRank]
       omega
 
-/-- Face-filling data can be constructed by recursion over the combined fan-cell/fiber-cell
-dependency. The induction hypothesis is available for every proper fan face used by a strip and
-for both endpoint graphs of that strip. -/
+/-- Construct data for every one-bit fan-face task by the same well-founded order. Unlike
+`oneBitFanFaceDependency_induction`, this recursion is `Sort`-valued and therefore returns the
+filled patch, barrier, or seam object itself from the already-constructed predecessor data. -/
+noncomputable def oneBitFanFaceDependency_recursion [CompleteSpace E]
+    [FiniteDimensional ℝ E] {m : ℕ} {P : OneBitFanFaceTask E m → Sort v}
+    (step : ∀ task, (∀ predecessor,
+      OneBitFanFaceDependency (E := E) (m := m) predecessor task → P predecessor) → P task) :
+    ∀ task, P task :=
+  (oneBitFanFaceDependency_wellFounded (E := E) (m := m)).fix step
+
+/-- Prop-valued induction for the combined fan-cell/fiber-cell dependency. For constructions that
+must return actual patch data rather than only a proposition, use
+`oneBitFanFaceDependency_recursion`. -/
 theorem oneBitFanFaceDependency_induction [CompleteSpace E] [FiniteDimensional ℝ E]
     {m : ℕ} {P : OneBitFanFaceTask E m → Prop}
     (step : ∀ task, (∀ predecessor,
       OneBitFanFaceDependency (E := E) (m := m) predecessor task → P predecessor) → P task) :
     ∀ task, P task := by
   intro task
-  exact (oneBitFanFaceDependency_wellFounded (E := E) (m := m)).induction task step
+  exact oneBitFanFaceDependency_recursion step task
 
 theorem properExposedFaceDependency_wellFounded [CompleteSpace E]
     [FiniteDimensional ℝ E] :
