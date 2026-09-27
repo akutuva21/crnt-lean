@@ -653,7 +653,6 @@ theorem Network.adjacent_oneBitFiberPatchWalls_inward_on_seam
     {epsilon : ℝ}
     (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
       facePatch base baseTile lower upper epsilon)
-    (horder : ∀ y ∈ base, lower y ≤ upper y)
     (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S)
     {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
     (t : Finset K) {ε : ℝ}
@@ -663,15 +662,17 @@ theorem Network.adjacent_oneBitFiberPatchWalls_inward_on_seam
         (baseTile p.1) lower upper p.2),
       ε < ⟪(z wall).1,
         toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ)
-    (i : ι) (k : Fin cover.tiling.subdivisionCount)
+    (i j : ι)
+    (horder : ∀ y ∈ baseTile i ∩ baseTile j, lower y ≤ upper y)
+    (k : Fin cover.tiling.subdivisionCount)
     (wall₀ wall₁ : K)
     (hwall₀ : selected ⟨i, k.castSucc⟩ = some wall₀)
-    (hwall₁ : selected ⟨i, k.succ⟩ = some wall₁)
+    (hwall₁ : selected ⟨j, k.succ⟩ = some wall₁)
     {q : EuclideanSpace ℝ S}
     (hq : q ∈ ψ '' (facePatch ∩
       (fun y : Fin n → ℝ =>
         CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
-          lower upper k.succ.castSucc y) '' baseTile i)) :
+          lower upper k.succ.castSucc y) '' (baseTile i ∩ baseTile j))) :
     wall₀ ∈ t ∧ wall₁ ∈ t ∧
       ε < ⟪(z wall₀).1,
         toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ ∧
@@ -682,14 +683,13 @@ theorem Network.adjacent_oneBitFiberPatchWalls_inward_on_seam
       (baseTile i) lower upper k.castSucc
   let patch₁ := facePatch ∩
     CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
-      (baseTile i) lower upper k.succ
-  have hseam := cover.baseTile_adjacent_seam i i
-    (fun y hy => horder y (cover.baseTile_subset i hy.1)) k
+      (baseTile j) lower upper k.succ
+  have hseam := cover.adjacent_base_tiles_share_seam i j horder k
   have hseam' : patch₀ ∩ patch₁ = facePatch ∩
       (fun y : Fin n → ℝ =>
         CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
-          lower upper k.succ.castSucc y) '' baseTile i := by
-    simpa only [Set.inter_self, patch₀, patch₁] using hseam
+          lower upper k.succ.castSucc y) '' (baseTile i ∩ baseTile j) := by
+    simpa only [patch₀, patch₁] using hseam
   have hq₀ : q ∈ ψ '' patch₀ := by
     rcases hq with ⟨x, hx, rfl⟩
     have hxOverlap : x ∈ patch₀ ∩ patch₁ := by
@@ -697,7 +697,7 @@ theorem Network.adjacent_oneBitFiberPatchWalls_inward_on_seam
         CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
           (baseTile i) lower upper k.castSucc) ∩
         (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
-          (baseTile i) lower upper k.succ)
+          (baseTile j) lower upper k.succ)
       rw [hseam']
       exact hx
     exact ⟨x, hxOverlap.1, rfl⟩
@@ -708,12 +708,12 @@ theorem Network.adjacent_oneBitFiberPatchWalls_inward_on_seam
         CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
           (baseTile i) lower upper k.castSucc) ∩
         (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
-          (baseTile i) lower upper k.succ)
+          (baseTile j) lower upper k.succ)
       rw [hseam']
       exact hx
     exact ⟨x, hxOverlap.2, rfl⟩
   have hspec₀ := hselected ⟨i, k.castSucc⟩ wall₀ hwall₀
-  have hspec₁ := hselected ⟨i, k.succ⟩ wall₁ hwall₁
+  have hspec₁ := hselected ⟨j, k.succ⟩ wall₁ hwall₁
   exact ⟨hspec₀.1, hspec₁.1, hspec₀.2 q hq₀, hspec₁.2 q hq₁⟩
 
 /-- A compact patch can be covered by finitely many small balls, each carrying one fixed
