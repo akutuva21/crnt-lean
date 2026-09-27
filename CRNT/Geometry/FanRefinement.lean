@@ -1497,6 +1497,37 @@ theorem hyperplaneArrangementFamily_refines_of_dualFG [CompleteSpace E] [Decidab
     Refines (hyperplaneArrangementFamily (fanNormalSet F hFdual)) F :=
   hyperplaneArrangementFamily_refines_of_covering_dualFG hF.covers hFdual
 
+/-- Construct compact, overlap-compatible local patches by cutting a compact seam with the central
+hyperplane arrangement of all finite dual normals of a complete polyhedral fan. Each fine patch is
+contained in a coarse fan cell, so its normal constraints inherit the coarse toric label. -/
+theorem compactSet_hyperplaneArrangement_patchCover [CompleteSpace E] [DecidableEq E]
+    (K : Set E) (hK : IsCompact K) {F : Fan E}
+    (hF : IsPolyhedralFan F) (hFdual : HasDualFGCells F) :
+    (∀ C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual),
+      IsCompact (K ∩ (C : Set E))) ∧
+      K = ⋃ C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual),
+        K ∩ (C : Set E) ∧
+      (∀ C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual),
+        ∃ D ∈ F, (K ∩ (C : Set E)) ⊆ (D : Set E)) ∧
+      (∀ C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual),
+        ∀ D ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual),
+          ∃ G ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual),
+            (K ∩ (C : Set E)) ∩ (K ∩ (D : Set E)) = K ∩ (G : Set E)) := by
+  let fine : Fan E := hyperplaneArrangementFamily (fanNormalSet F hFdual)
+  have hfine : IsPolyhedralFan fine :=
+    hyperplaneArrangementFamily_isPolyhedralFan (fanNormalSet F hFdual)
+  have href : Refines fine F :=
+    hyperplaneArrangementFamily_refines_of_dualFG hF hFdual
+  have hcover := compactSet_fanRefinement_patchCover K hK href hfine
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro C hC
+    exact hcover.1 C hC
+  · simpa [fine] using hcover.2.1
+  · intro C hC
+    exact hcover.2.2 C hC
+  · intro C hC D hD
+    exact compactSet_fanRefinement_patch_intersection K hfine C D hC hD
+
 /-- The arrangement from finite dual normals refines the family of one-coordinate projections of a
 complete polyhedral fan. The image family need not satisfy the fan intersection axioms itself. -/
 theorem hyperplaneArrangementFamily_refines_forgetLastImage {n : ℕ}
