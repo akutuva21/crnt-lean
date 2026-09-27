@@ -1293,6 +1293,64 @@ theorem forgetLastCoordinate_image_zeroBitPreBlueprintNeighborhood {n : ℕ}
     refine ⟨x, ⟨hx, ?_⟩, hxy⟩
     simpa [hxy] using hbase
 
+/-- Craciun v3, §7.3, Theorem 7.1: if two projected lower-dimensional neighborhoods have
+disjoint interiors, then the corresponding zero-bit pre-blueprint neighborhoods also have
+disjoint ambient interiors. This is the first induction case in the pre-blueprint separation
+argument: distinct projections are separated downstairs, and openness of coordinate projection
+transfers that separation upstairs. The equal-projection case requires the separate scale-order
+argument from §7.3. -/
+theorem zeroBitPreBlueprintNeighborhood_interiors_disjoint_of_projected_interiors_disjoint
+    {n : ℕ} (faceA faceB : Set (Fin (n + 1) → ℝ))
+    (baseA baseB : Set (Fin n → ℝ)) (epsilon : List Bool → ℝ) (word : List Bool)
+    (hepsilon : ∀ p, 0 ≤ epsilon p)
+    (hbaseDisjoint : interior baseA ∩ interior baseB = ∅) :
+    interior (zeroBitPreBlueprintNeighborhood faceA baseA epsilon word) ∩
+      interior (zeroBitPreBlueprintNeighborhood faceB baseB epsilon word) = ∅ := by
+  have himageA : forgetLastCoordinate n ''
+      zeroBitPreBlueprintNeighborhood faceA baseA epsilon word ⊆ baseA := by
+    rw [forgetLastCoordinate_image_zeroBitPreBlueprintNeighborhood
+      faceA baseA epsilon word hepsilon]
+    exact Set.inter_subset_right
+  have himageB : forgetLastCoordinate n ''
+      zeroBitPreBlueprintNeighborhood faceB baseB epsilon word ⊆ baseB := by
+    rw [forgetLastCoordinate_image_zeroBitPreBlueprintNeighborhood
+      faceB baseB epsilon word hepsilon]
+    exact Set.inter_subset_right
+  have hinteriorA : forgetLastCoordinate n ''
+      interior (zeroBitPreBlueprintNeighborhood faceA baseA epsilon word) ⊆ interior baseA :=
+    (image_interior_subset_interior_image_of_isOpenMap (forgetLastCoordinate n)
+      (forgetLastCoordinate_isOpenMap n)
+      (zeroBitPreBlueprintNeighborhood faceA baseA epsilon word)).trans
+        (interior_mono himageA)
+  have hinteriorB : forgetLastCoordinate n ''
+      interior (zeroBitPreBlueprintNeighborhood faceB baseB epsilon word) ⊆ interior baseB :=
+    (image_interior_subset_interior_image_of_isOpenMap (forgetLastCoordinate n)
+      (forgetLastCoordinate_isOpenMap n)
+      (zeroBitPreBlueprintNeighborhood faceB baseB epsilon word)).trans
+        (interior_mono himageB)
+  apply Set.eq_empty_iff_forall_notMem.mpr
+  intro x hx
+  have hprojected : forgetLastCoordinate n x ∈ interior baseA ∩ interior baseB := by
+    exact ⟨hinteriorA ⟨x, hx.1, rfl⟩, hinteriorB ⟨x, hx.2, rfl⟩⟩
+  rw [hbaseDisjoint] at hprojected
+  exact hprojected
+
+/-- The distinct-projection part of Craciun v3, §7.3, Theorem 7.1 for an entire finite
+subdivision: pairwise interior-disjoint projected cells induce pairwise interior-disjoint
+zero-bit neighborhoods. The only remaining pair type in the full theorem is when two faces have
+the same projection, handled by the manuscript's dimension and binary-scale argument. -/
+theorem pairwise_zeroBitPreBlueprintNeighborhood_interiors_disjoint_of_projected
+    {n : ℕ} {ι : Type*} (face : ι → Set (Fin (n + 1) → ℝ))
+    (base : ι → Set (Fin n → ℝ))
+    (epsilon : List Bool → ℝ) (word : List Bool) (hepsilon : ∀ p, 0 ≤ epsilon p)
+    (hbase : ∀ i j, i ≠ j → interior (base i) ∩ interior (base j) = ∅) :
+    ∀ i j, i ≠ j →
+      interior (zeroBitPreBlueprintNeighborhood (face i) (base i) epsilon word) ∩
+        interior (zeroBitPreBlueprintNeighborhood (face j) (base j) epsilon word) = ∅ := by
+  intro i j hij
+  exact zeroBitPreBlueprintNeighborhood_interiors_disjoint_of_projected_interiors_disjoint
+    (face i) (face j) (base i) (base j) epsilon word hepsilon (hbase i j hij)
+
 /-- Minkowski addition preserves compactness for compact subsets of the finite-dimensional
 coordinate spaces used by the pre-blueprint. -/
 theorem isCompact_set_add_of_isCompact {n : ℕ}
