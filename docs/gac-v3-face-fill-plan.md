@@ -119,14 +119,21 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   strip outputs. The geometry module and target compile against this change;
   the coverage and edge-inclusion audits have no `sorryAx`, while the exact
   target audit still does.
+- Extended `fanSmallProductTile_adjacentStrip_seam` to identify an adjacent
+  strip intersection with the endpoint task over the actual common fan face
+  and the pairwise small-tile intersection. Updated its two consumers, then
+  compiled `FanRefinement.lean`, `ToricUniformWallMargin.lean`, and the target
+  through the temporary Lean search tree. The seam, coverage, and edge
+  inclusion audits contain only standard Lean axioms; the target still has
+  `sorryAx`.
 - The current face-mono lemma still assumes tile containment, and it does not
   itself assemble the inherited outputs or barriers. The arrangement atlas
   gives exact common-face patch intersections, while the radial atlas's smooth
   maximum controls derivatives only at points incident to every listed patch.
   The generic face-task recursion still has no caller that returns those
-  covers/barriers. Next package shared-cover seam equalities as task outputs,
-  build the recursive parent fill and its scale/faithfulness invariant, and
-  derive a global
+  covers/barriers. Next make the recursive parent fill consume these
+  pair-labelled endpoint outputs and preserve the scale/faithfulness invariant,
+  then derive a global
   `ZeroSeparatingSurfaceExists` witness and apply it in the target branch.
   Keep the checklist open until its exact theorem and kernel axiom audit are
   clean.

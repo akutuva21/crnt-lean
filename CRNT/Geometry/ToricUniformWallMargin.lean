@@ -2316,7 +2316,7 @@ theorem Network.fanSmallProductTile_restrictedSeam_dependency_and_glue
         D' (toEuclid (N.massActionVectorField κ (toEuclid.symm
           (ψ (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
             lower upper k.succ.castSucc y))))) ≤ 0 := by
-  obtain ⟨G, hG, hdependency, hdepC, hdepD, hfaceC, hfaceD, hbase, _⟩ :=
+  obtain ⟨G, hG, hdependency, hdepC, hdepD, hfaceC, hfaceD, hbase, _, _⟩ :=
     FanRefinement.fanSmallProductTile_adjacentStrip_seam F hFdual cover horder C D i j k
   have hbarrier := N.restrictedOneBitFiberPatch_finite_seam_glue
     κ cover domain hdomain ψ z selected offset tailHead tail hatlas (C, i) k y horder hy
@@ -2575,7 +2575,7 @@ theorem Network.exists_fanSmallProductTile_restrictedSeam_dependency_and_glue_of
       κ cover ψ hψ z t hε hchart himage hmapDiam hprojectedSmall hendpointVariation
       hηsmall hbudget hδcoord domain hdomain tailHead tail (C, i) k y horder hy
       hgraph ps hincident
-  obtain ⟨G, hG, hdependency, hdepC, hdepD, hfaceC, hfaceD, hbase, _⟩ :=
+  obtain ⟨G, hG, hdependency, hdepC, hdepD, hfaceC, hfaceD, hbase, _, _⟩ :=
     FanRefinement.fanSmallProductTile_adjacentStrip_seam F hFdual cover horder C D i j k
   let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
   let cells : Finset (ProperCone ℝ (EuclideanSpace ℝ (Fin n))) :=

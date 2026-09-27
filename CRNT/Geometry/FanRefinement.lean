@@ -3169,7 +3169,20 @@ theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype �
       facePatch ∩ (fun y : Fin n → ℝ =>
         projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y) ''
           ((euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩) ∩
-            (smallTile i ∩ smallTile j)) := by
+            (smallTile i ∩ smallTile j)) ∧
+      (oneBitFanFaceTaskPatch facePatch
+        (fun p : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × ι =>
+          euclideanProperConeBaseTile base p.1 ∩ smallTile p.2)
+        lower upper ((C.1, i), .strip k.castSucc) ∩
+       oneBitFanFaceTaskPatch facePatch
+        (fun p : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × ι =>
+          euclideanProperConeBaseTile base p.1 ∩ smallTile p.2)
+        lower upper ((D.1, j), .strip k.succ)) =
+      oneBitFanFaceTaskPatch facePatch
+        (fun p : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × (ι × ι) =>
+          euclideanProperConeBaseTile base p.1 ∩
+            (smallTile p.2.1 ∩ smallTile p.2.2))
+        lower upper ((G, (i, j)), .endpoint k.succ.castSucc) := by
   obtain ⟨G, hG, hfanMeet, hGC, hGD, _, _⟩ :=
     euclideanHyperplaneArrangementBaseTile_intersection base F hFdual C D
   have hdependency : C.1 ≠ D.1 →
@@ -3211,7 +3224,7 @@ theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype �
   have hindex : k.succ.castSucc = k.castSucc.succ := by
     apply Fin.ext
     simp
-  refine ⟨G, hG, hdependency, ?_, ?_, ?_, ?_, ?_, ?_, hbaseMeet, ?_⟩
+  refine ⟨G, hG, hdependency, ?_, ?_, ?_, ?_, ?_, ?_, hbaseMeet, ?_, ?_⟩
   · exact OneBitFanFaceDependency.fiberEndpoint C.1 G i k.castSucc
       k.succ.castSucc hGC (Or.inr hindex)
   · exact OneBitFanFaceDependency.fiberEndpoint D.1 G j k.succ
@@ -3228,6 +3241,20 @@ theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype �
     exact OneBitFanFaceDependency.fanFace D.1 G j k.succ hGD hDG.symm
   · rw [← hbaseMeet]
     exact hseam
+  · simpa [oneBitFanFaceTaskPatch, euclideanProperConeBaseTile,
+      euclideanHyperplaneArrangementBaseTile] using (show
+        (facePatch ∩ projectionFiberSubdivisionTile
+            (euclideanHyperplaneArrangementBaseTile base F hFdual C ∩ smallTile i)
+            lower upper k.castSucc) ∩
+          (facePatch ∩ projectionFiberSubdivisionTile
+            (euclideanHyperplaneArrangementBaseTile base F hFdual D ∩ smallTile j)
+            lower upper k.succ) =
+        facePatch ∩ (fun y : Fin n → ℝ =>
+          projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y) ''
+            ((euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩) ∩
+              (smallTile i ∩ smallTile j)) from by
+          rw [← hbaseMeet]
+          exact hseam)
 
 /-- The projected-fan version of the one-bit cover construction. Start with the fan one dimension
 higher, take the finite arrangement refinement of its last-coordinate image family, and use that
