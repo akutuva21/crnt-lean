@@ -2920,6 +2920,40 @@ noncomputable def compactZeroBitFiberPatchCover_of_compactBaseCover {n : ℕ} {�
     rw [← hrestrict] at hx
     exact hseparated hx.1
 
+/-- A finite compact zero-bit cover over the projected face fits wholly inside the next
+recursively defined pre-blueprint, provided each tube radius fits the new binary-prefix scale.
+The previous stage contains the projected face, hence every lower tile; the graph-lift incidence
+then places every tile tube in the zero-bit Minkowski thickening. -/
+theorem CoordinateProjectedFaceChain.compactZeroBitFiberPatchCover_tubes_subset_preBlueprint
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (chain : CoordinateProjectedFaceChain (n + 1))
+    {baseTile : ι → Set (Fin n → ℝ)} {margin radius : ℝ}
+    (cover : CompactZeroBitFiberPatchCover
+      (chain.face (Fin.last n).succ) (chain.face (Fin.last n).castSucc)
+      baseTile margin radius)
+    (epsilon : List Bool → ℝ) (word : List Bool)
+    (hepsilon : ∀ p, 0 ≤ epsilon p)
+    (hwidth : radius ≤ epsilon (word.take (n + 1)))
+    (hbase : chain.face (Fin.last n).castSucc ⊆
+      chain.preBlueprintNeighborhood epsilon word n) :
+    (⋃ i : ι, projectionFiberTube (baseTile i) cover.center radius) ⊆
+      chain.preBlueprintNeighborhood epsilon word (n + 1) := by
+  have hrec : chain.preBlueprintNeighborhood epsilon word (n + 1) =
+      zeroBitPreBlueprintNeighborhood (chain.face (Fin.last n).succ)
+        (chain.preBlueprintNeighborhood epsilon word n) epsilon (word.take (n + 1)) := by
+    simp [CoordinateProjectedFaceChain.preBlueprintNeighborhood, Fin.last]
+  rw [hrec]
+  intro x hx
+  rcases Set.mem_iUnion.mp hx with ⟨i, hi⟩
+  apply cover.tile_tube_subset_zeroBitPreBlueprintNeighborhood
+    (chain.preBlueprintNeighborhood epsilon word n) epsilon (word.take (n + 1))
+    i hepsilon (by simpa [List.take_take] using hwidth)
+  · intro y hy
+    apply hbase
+    rw [cover.baseTile_cover]
+    exact Set.mem_iUnion.mpr ⟨i, hy⟩
+  · exact hi
+
 
 /-- Every equal-width subtile of a compact bounded fiber band is compact when the base is compact
 and the endpoint graphs are continuous. Closedness of the subtile is inherited from the
