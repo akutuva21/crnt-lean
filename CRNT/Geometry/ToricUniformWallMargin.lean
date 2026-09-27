@@ -1067,6 +1067,91 @@ theorem Network.exists_simultaneous_restrictedOneBitFiberPatch_barriers
   intro p q hq
   exact hoffset p q hq
 
+/-- Craciun v3, §8 Step 1: clip the projective radial blueprint to a closed domain and retain a
+simultaneous inward smooth-barrier atlas on every clipped tile. Parent diagram labels, the shared
+fiber subdivision, and the wall assignment all survive restriction. -/
+theorem Network.exists_compactProjectiveRadialRestrictedBarrierAtlas
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar)
+    (diagramTile : ι → Set (Fin (n + 1) → ℝ)) (upper : Fin (n + 1) → ℝ)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S) (hψ : Continuous ψ)
+    (hdiagramNonnegative : ∀ k x, x ∈ diagramTile k → ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ k x, x ∈ diagramTile k → x ≠ 0)
+    (hdiagramAnchor : ∀ k x, x ∈ diagramTile k → x 0 = 1)
+    (hdiagramCompact : ∀ k, IsCompact (diagramTile k))
+    (hupper : ∀ i, 0 < upper i)
+    (hdiagramCoversNormalizedDomain : ∀ x,
+      x ∈ ZeroSeparatingInduction.craciunProjectiveDomain → x 0 = 1 →
+        x ∈ ⋃ k, diagramTile k)
+    (hprojectedInteriorsDisjoint : ∀ i j, i ≠ j →
+      interior (ZeroSeparatingInduction.forgetLastCoordinate n ''
+        (ZeroSeparatingInduction.radialBoxDiagramTile (diagramTile i) upper
+          (hdiagramNonnegative i) (hdiagramNonzero i) hupper ∩
+            ZeroSeparatingInduction.craciunProjectiveDomain)) ∩
+      interior (ZeroSeparatingInduction.forgetLastCoordinate n ''
+        (ZeroSeparatingInduction.radialBoxDiagramTile (diagramTile j) upper
+          (hdiagramNonnegative j) (hdiagramNonzero j) hupper ∩
+            ZeroSeparatingInduction.craciunProjectiveDomain)) = ∅)
+    (hfaceNonempty : (⋃ k, ZeroSeparatingInduction.radialBoxDiagramTile
+      (diagramTile k) upper (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩
+        ZeroSeparatingInduction.craciunProjectiveDomain).Nonempty)
+    (hpositive : ∀ x, x ∈ ⋃ k, ZeroSeparatingInduction.radialBoxDiagramTile
+      (diagramTile k) upper (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩
+        ZeroSeparatingInduction.craciunProjectiveDomain →
+      Concentration.Positive (toEuclid.symm (ψ x)))
+    (hnotcb : ∀ x, x ∈ ⋃ k, ZeroSeparatingInduction.radialBoxDiagramTile
+      (diagramTile k) upper (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩
+        ZeroSeparatingInduction.craciunProjectiveDomain →
+      ¬ N.IsComplexBalanced κ (toEuclid.symm (ψ x)))
+    (domain : Set (Fin (n + 1) → ℝ)) (hdomain : IsClosed domain)
+    (tailHead : (EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)
+    (tail : List ((EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)) :
+    let facePatch : Set (Fin (n + 1) → ℝ) :=
+      ⋃ k, ZeroSeparatingInduction.radialBoxDiagramTile (diagramTile k) upper
+        (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩
+          ZeroSeparatingInduction.craciunProjectiveDomain
+    let K : Set (EuclideanSpace ℝ S) := ψ '' facePatch
+    ∃ δcoord : ℝ, 0 < δcoord ∧
+    ∃ m : ℕ, ∃ baseTile : ι × Fin m → Set (Fin n → ℝ),
+    ∃ cover : ZeroSeparatingInduction.CompactOneBitFiberPatchCover facePatch
+      (ZeroSeparatingInduction.forgetLastCoordinate n '' facePatch) baseTile (fun _ => 0)
+        (fun _ => upper (Fin.last n)) (δcoord / 4),
+    ∃ z : K → N.euclideanStoichSubspace, ∃ t : Finset K, ∃ ε : ℝ,
+    ∃ selected : (Σ i : ι × Fin m,
+        Fin (cover.tiling.subdivisionCount + 1)) → Option K,
+    ∃ offset : (Σ i : ι × Fin m,
+        Fin (cover.tiling.subdivisionCount + 1)) → ℝ,
+      0 < ε ∧
+      (∀ p wall, selected p = some wall → wall ∈ t ∧ ∀ q ∈
+        ψ '' (facePatch ∩ ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) (fun _ => 0) (fun _ => upper (Fin.last n)) p.2),
+        ε < ⟪(z wall).1,
+          toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ) ∧
+      (∀ p, (facePatch ∩ ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) (fun _ => 0) (fun _ => upper (Fin.last n)) p.2).Nonempty →
+          ∃ wall, selected p = some wall) ∧
+      (∀ p q, q ∈ ψ '' ((facePatch ∩ domain) ∩
+          ZeroSeparatingInduction.projectionFiberSubdivisionTile
+            (baseTile p.1) (fun _ => 0) (fun _ => upper (Fin.last n)) p.2) →
+        ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+          HasFDerivAt
+            (SmoothBarrierGluing.smoothWallList
+              ((selected p).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset p)
+              (tailHead :: tail)) D q ∧
+          D (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ 0) := by
+  dsimp only
+  obtain ⟨δcoord, hδcoord, m, baseTile, cover, z, t, ε, selected,
+      hε, _, hlabels, hselected⟩ :=
+    N.exists_compactProjectiveRadialWallSelection κ hxs hcb diagramTile upper ψ hψ
+      hdiagramNonnegative hdiagramNonzero hdiagramAnchor hdiagramCompact hupper
+      hdiagramCoversNormalizedDomain hprojectedInteriorsDisjoint hfaceNonempty hpositive hnotcb
+  obtain ⟨offset, hatlas⟩ := N.exists_simultaneous_restrictedOneBitFiberPatch_barriers
+    κ cover domain hdomain ψ hψ z t hε selected hselected hlabels tailHead tail
+  exact ⟨δcoord, hδcoord, m, baseTile, cover, z, t, ε, selected, offset,
+    hε, hselected, hlabels, hatlas⟩
+
 /-- The simultaneously chosen barriers from a one-bit tile atlas have a differentiable,
 nonincreasing smooth maximum on every pairwise patch overlap. The per-tile offsets are fixed
 globally by `exists_simultaneous_oneBitFiberPatch_barriers`, so this overlap result is compatible
