@@ -960,6 +960,76 @@ theorem Network.exists_restrictedOneBitFiberPatchAtlas_pairwise_glue
   exact N.oneBitFiberPatchAtlas_pairwise_glue κ restricted ψ z selected
     tailHead tail offset p r hq hatlas
 
+/-- On a finite common intersection of clipped tiles, the nested smooth maximum of every tile's
+barrier still has a nonincreasing derivative along the mass-action field. This is the finite-face
+compatibility form needed when a lexicographic fill encounters a face incident to more than two
+tiles. -/
+theorem Network.restrictedOneBitFiberPatch_finite_overlap_glue
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base baseTile lower upper epsilon)
+    (domain : Set (Fin (n + 1) → ℝ)) (hdomain : IsClosed domain)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (selected : (Σ i : ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)) → Option K)
+    (offset : (Σ i : ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)) → ℝ)
+    (tailHead : (EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)
+    (tail : List ((EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ))
+    (p : Σ i : ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1))
+    (ps : List (Σ i : ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)))
+    {q : EuclideanSpace ℝ S}
+    (hp : q ∈ ψ '' ((facePatch ∩ domain) ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2))
+    (hps : ∀ r ∈ ps, q ∈ ψ '' ((facePatch ∩ domain) ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile r.1) lower upper r.2))
+    (hatlas : ∀ r q, q ∈ ψ '' ((facePatch ∩ domain) ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile r.1) lower upper r.2) →
+      ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothWallList
+            ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+            (tailHead :: tail)) D q ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ 0) :
+    ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+      HasFDerivAt
+        (SmoothBarrierGluing.smoothMaxList
+          (SmoothBarrierGluing.smoothWallList
+            ((selected p).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset p)
+            (tailHead :: tail))
+          (ps.map (fun r => SmoothBarrierGluing.smoothWallList
+            ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+            (tailHead :: tail)))) D q ∧
+      D (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ 0 := by
+  let barrier (r : Σ i : ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)) :=
+    SmoothBarrierGluing.smoothWallList
+      ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+      (tailHead :: tail)
+  have hhead := hatlas p q hp
+  have htail : ∀ g ∈ ps.map barrier, ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+      HasFDerivAt g D q ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ 0 := by
+    intro g hg
+    obtain ⟨r, hr, hrg⟩ := List.mem_map.mp hg
+    subst g
+    exact hatlas r q (hps r hr)
+  simpa [barrier] using
+    (SmoothBarrierGluing.exists_fderiv_smoothMaxList_le
+      (X := fun q : EuclideanSpace ℝ S =>
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q)))
+      (barrier p) (ps.map barrier) hhead htail)
+
 /-- Craciun v3, §7.4.3: any two labels selected on restricted tiles are simultaneously inward on
 their overlap, including overlaps from degenerate fibers. Consequently their two-wall smooth
 maximum descends there. This is the pairwise compatibility statement used when assembling the
