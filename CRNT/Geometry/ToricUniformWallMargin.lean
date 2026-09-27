@@ -3494,3 +3494,210 @@ theorem Network.exists_boundarySmallTile_strip_smoothMax_descent
 
 
 end CRNT
+
+
+namespace CRNT
+
+theorem Network.exists_boundarySmallTile_allIncident_smoothMax_descent
+    {S : Type} [DecidableEq S] [Fintype S]
+    {n c : ℕ}
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {eta epsilon : ℝ}
+    (T : ZeroSeparatingInduction.CompactSmallBaseTiling base eta)
+    (cone : Fin c → ProperCone ℝ (EuclideanSpace ℝ (Fin n)))
+    {lower upper : (Fin n → ℝ) → ℝ}
+    (cover : ZeroSeparatingInduction.CompactOneBitFiberPatchCover facePatch base
+      (fun p : Fin c × Sum (Fin T.count) (Fin T.count × Fin T.count) =>
+        FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile (cone p.1, p.2))
+      lower upper epsilon)
+    (horder : ∀ C label y,
+      y ∈ FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile (C, label) →
+        lower y ≤ upper y)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S)
+    {K : Set (EuclideanSpace ℝ S)}
+    (z : K → N.euclideanStoichSubspace)
+    (selected : (Σ p : Fin c × Sum (Fin T.count) (Fin T.count × Fin T.count),
+      Fin (cover.tiling.subdivisionCount + 1)) → Option K)
+    (offset : (Σ p : Fin c × Sum (Fin T.count) (Fin T.count × Fin T.count),
+      Fin (cover.tiling.subdivisionCount + 1)) → ℝ)
+    (tailHead : (EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)
+    (tail : List ((EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ))
+    (hatlas : ∀ r q₀,
+      q₀ ∈ ψ '' ((facePatch ∩ Set.univ) ∩
+        ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile
+            (cone r.1.1, r.1.2))
+          lower upper r.2) →
+      ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothWallList
+            ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+            (tailHead :: tail)) D q₀ ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm q₀))) ≤ 0)
+    (p : Fin c) (i : Fin T.count) (k : Fin (cover.tiling.subdivisionCount + 1))
+    {x : Fin (n + 1) → ℝ}
+    (hx : x ∈ FanRefinement.oneBitFanFaceTaskPatch facePatch
+      (FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile)
+      lower upper ((cone p, Sum.inl i), .strip k))
+    (hyInterior : ZeroSeparatingInduction.forgetLastCoordinate n x ∈ interior base)
+    (hyNotInterior : ZeroSeparatingInduction.forgetLastCoordinate n x ∉ interior (T.tile i)) :
+    ∃ neighbors : Finset (Fin T.count),
+      neighbors.Nonempty ∧
+      (∀ j ∈ neighbors, j ≠ i ∧
+        ZeroSeparatingInduction.forgetLastCoordinate n x ∈ T.tile j ∧
+        ∃ pair : Fin T.count × Fin T.count,
+          FanRefinement.FiniteOverlapDependency
+            ((cone p, Sum.inr pair), .strip k) ((cone p, Sum.inl i), .strip k) ∧
+          FanRefinement.FiniteOverlapDependency
+            ((cone p, Sum.inr pair), .strip k) ((cone p, Sum.inl j), .strip k) ∧
+          x ∈ FanRefinement.oneBitFanFaceTaskPatch facePatch
+            (FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile)
+            lower upper ((cone p, Sum.inr pair), .strip k)) ∧
+      ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothMaxList
+            (SmoothBarrierGluing.smoothWallList
+              ((selected ⟨(p, Sum.inl i), k⟩).elim tailHead.1
+                (fun wall => innerSL ℝ (z wall).1), offset ⟨(p, Sum.inl i), k⟩)
+              (tailHead :: tail))
+            ((neighbors.toList.map fun j =>
+              SmoothBarrierGluing.smoothWallList
+                ((selected ⟨(p, Sum.inl j), k⟩).elim tailHead.1
+                  (fun wall => innerSL ℝ (z wall).1), offset ⟨(p, Sum.inl j), k⟩)
+                (tailHead :: tail))))
+          D (ψ x) ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm (ψ x)))) ≤ 0 := by
+  classical
+  let mixed := FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile
+  let restricted := cover.restrict_to_closedDomain Set.univ isClosed_univ
+  let y := ZeroSeparatingInduction.forgetLastCoordinate n x
+  have hxstrip : (let y := ZeroSeparatingInduction.forgetLastCoordinate n x;
+      y ∈ mixed (cone p, Sum.inl i) ∧
+        ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper k.castSucc y ≤
+          x (Fin.last n) ∧
+        x (Fin.last n) ≤
+          ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper k.succ y) := by
+    change x ∈ facePatch ∩
+      ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (mixed (cone p, Sum.inl i)) lower upper k at hx
+    exact hx.2
+  have hybase : y ∈ mixed (cone p, Sum.inl i) := by
+    simpa [y] using hxstrip.1
+  have hycone : y ∈ FanRefinement.euclideanProperConeBaseTile base (cone p) := by
+    change y ∈ FanRefinement.euclideanProperConeBaseTile base (cone p) ∩ T.tile i at hybase
+    exact hybase.1
+  obtain ⟨j₀, hji₀, htiles₀, _⟩ :=
+    FanRefinement.CompactSmallBaseTiling.boundary_overlap_patch_at T facePatch lower upper
+      horder (C := cone p) (.strip k) hx hyInterior hyNotInterior
+  let neighbors : Finset (Fin T.count) :=
+    Finset.univ.filter fun j => j ≠ i ∧ y ∈ T.tile j
+  have hneighbors : ∀ j ∈ neighbors, j ≠ i ∧ y ∈ T.tile j := by
+    intro j hj
+    exact (Finset.mem_filter.mp hj).2
+  have hneighborsNonempty : neighbors.Nonempty := by
+    refine ⟨j₀, Finset.mem_filter.mpr ⟨Finset.mem_univ _, ?_⟩⟩
+    exact ⟨hji₀, htiles₀.2⟩
+  have hpairData (j : Fin T.count) (hj : j ∈ neighbors) :
+      ∃ pair : Fin T.count × Fin T.count,
+        FanRefinement.FiniteOverlapDependency
+          ((cone p, Sum.inr pair), .strip k) ((cone p, Sum.inl i), .strip k) ∧
+        FanRefinement.FiniteOverlapDependency
+          ((cone p, Sum.inr pair), .strip k) ((cone p, Sum.inl j), .strip k) ∧
+        x ∈ FanRefinement.oneBitFanFaceTaskPatch facePatch mixed lower upper
+          ((cone p, Sum.inr pair), .strip k) := by
+    have ⟨hji, hyj⟩ := hneighbors j hj
+    by_cases hlt : i.val < j.val
+    · refine ⟨(i, j),
+        FanRefinement.FiniteOverlapDependency.baseLeft (cone p) i j (.strip k) hlt,
+        FanRefinement.FiniteOverlapDependency.baseRight (cone p) i j (.strip k) hlt,
+        ?_⟩
+      refine ⟨hx.1, ?_⟩
+      change (let y := ZeroSeparatingInduction.forgetLastCoordinate n x;
+        y ∈ mixed (cone p, Sum.inr (i, j)) ∧
+          ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper
+            k.castSucc y ≤ x (Fin.last n) ∧
+          x (Fin.last n) ≤
+            ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper k.succ y)
+      have hpairBase : y ∈ mixed (cone p, Sum.inr (i, j)) := by
+        change y ∈ FanRefinement.euclideanProperConeBaseTile base (cone p) ∩
+          (T.tile i ∩ T.tile j)
+        exact ⟨hycone, hybase.2, hyj⟩
+      exact ⟨by simpa [y] using hpairBase, hxstrip.2.1, hxstrip.2.2⟩
+    · have hval : j.val < i.val := by
+        have hne : i.val ≠ j.val := by
+          intro h
+          exact hji (Fin.ext h.symm)
+        omega
+      refine ⟨(j, i),
+        FanRefinement.FiniteOverlapDependency.baseRight (cone p) j i (.strip k) hval,
+        FanRefinement.FiniteOverlapDependency.baseLeft (cone p) j i (.strip k) hval,
+        ?_⟩
+      refine ⟨hx.1, ?_⟩
+      change (let y := ZeroSeparatingInduction.forgetLastCoordinate n x;
+        y ∈ mixed (cone p, Sum.inr (j, i)) ∧
+          ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper
+            k.castSucc y ≤ x (Fin.last n) ∧
+          x (Fin.last n) ≤
+            ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper k.succ y)
+      have hpairBase : y ∈ mixed (cone p, Sum.inr (j, i)) := by
+        change y ∈ FanRefinement.euclideanProperConeBaseTile base (cone p) ∩
+          (T.tile j ∩ T.tile i)
+        exact ⟨hycone, hyj, hybase.2⟩
+      exact ⟨by simpa [y] using hpairBase, hxstrip.2.1, hxstrip.2.2⟩
+  let ps : List (Σ r : Fin c × Sum (Fin T.count) (Fin T.count × Fin T.count),
+      Fin (restricted.tiling.subdivisionCount + 1)) :=
+    neighbors.toList.map fun j => ⟨(p, Sum.inl j), k⟩
+  have hroot : ψ x ∈ ψ '' ((facePatch ∩ Set.univ) ∩
+      ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (mixed (cone p, Sum.inl i)) lower upper k) := by
+    refine ⟨x, ?_, rfl⟩
+    exact ⟨⟨hx.1, Set.mem_univ x⟩, hx.2⟩
+  have hps : ∀ r ∈ ps, ψ x ∈ ψ '' ((facePatch ∩ Set.univ) ∩
+      ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (mixed (cone r.1.1, r.1.2)) lower upper r.2) := by
+    intro r hr
+    obtain ⟨j, hjList, hEq⟩ := List.mem_map.mp hr
+    have hj : j ∈ neighbors := Finset.mem_toList.mp hjList
+    subst r
+    have hj' := hneighbors j hj
+    have hbase : y ∈ mixed (cone p, Sum.inl j) := ⟨hycone, hj'.2⟩
+    have hpatch : x ∈ FanRefinement.oneBitFanFaceTaskPatch facePatch mixed lower upper
+        ((cone p, Sum.inl j), .strip k) := by
+      refine ⟨hx.1, ?_⟩
+      change (let y := ZeroSeparatingInduction.forgetLastCoordinate n x;
+        y ∈ mixed (cone p, Sum.inl j) ∧
+          ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper
+            k.castSucc y ≤ x (Fin.last n) ∧
+          x (Fin.last n) ≤
+            ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper k.succ y)
+      exact ⟨by simpa [y] using hbase, hxstrip.2.1, hxstrip.2.2⟩
+    exact ⟨x, ⟨⟨hpatch.1, Set.mem_univ x⟩, hpatch.2⟩, rfl⟩
+  have hglue := N.restrictedOneBitFiberPatch_finite_overlap_glue
+    κ cover Set.univ isClosed_univ ψ z selected offset tailHead tail
+    ⟨(p, Sum.inl i), k⟩ ps (q := ψ x) hroot hps hatlas
+  refine ⟨neighbors, hneighborsNonempty, ?_, ?_⟩
+  · intro j hj
+    rcases hneighbors j hj with ⟨hji, hyj⟩
+    exact ⟨hji, hyj, hpairData j hj⟩
+  ·
+    let barrier := fun r : Σ r : Fin c × Sum (Fin T.count) (Fin T.count × Fin T.count),
+        Fin (restricted.tiling.subdivisionCount + 1) =>
+      SmoothBarrierGluing.smoothWallList
+        ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+        (tailHead :: tail)
+    have hmap : ps.map barrier = neighbors.toList.map (fun j =>
+        SmoothBarrierGluing.smoothWallList
+          ((selected ⟨(p, Sum.inl j), k⟩).elim tailHead.1
+            (fun wall => innerSL ℝ (z wall).1), offset ⟨(p, Sum.inl j), k⟩)
+          (tailHead :: tail)) := by
+      simp [ps, barrier, List.map_map, Function.comp_def]
+      intro j hj
+      rfl
+    rcases hglue with ⟨D, hD, hle⟩
+    refine ⟨D, ?_, hle⟩
+    rw [hmap] at hD
+    exact hD
+
+
+end CRNT

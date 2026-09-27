@@ -237,3 +237,19 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   `Dynamics/GlobalAttractorTheorem.lean`. The exact target audit still reports
   `sorryAx`. This connects one recursive seam to local dynamics; it does not yet
   assemble the finite face family into one global surface.
+
+## Continuation checkpoint — multiway projected-tile junction
+
+- Added `Network.exists_boundarySmallTile_allIncident_smoothMax_descent` to
+  `ToricUniformWallMargin.lean`. At a projected boundary point it enumerates the
+  full finite set of other incident base tiles, constructs for each one a
+  pair-labelled strip seam and its two predecessor edges, and proves one
+  smooth-maximum derivative certificate across all incident local barriers.
+- Direct Lean 4.34 compilation succeeded for the modified toric module,
+  `Dynamics/ComplexBalanceStoichFanInclusion.lean`, and
+  `Dynamics/GlobalAttractorTheorem.lean`. Axiom audits of both boundary-gluing
+  theorems report only `[propext, Classical.choice, Quot.sound]`; the target
+  continues to report `sorryAx`.
+- This handles a multiway small-tile junction for one arrangement cell and one
+  fiber strip. The recursive arrangement-face extension and the global
+  zero-separating surface remain to be constructed.
