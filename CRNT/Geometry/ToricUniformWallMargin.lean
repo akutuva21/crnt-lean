@@ -414,6 +414,21 @@ theorem Network.exists_negativeLogWall_margin_on_small_patch
     exact hdiam x hx q hq
   exact hchart q hqball
 
+/-- Heine-Cantor transfers any positive state-space chart radius to a coordinate radius on a
+compact face patch. This is the compactness step used to choose the projected-base and fiber scales
+before selecting one wall on each refined tile. -/
+theorem exists_uniform_chart_radius_on_compact_facePatch
+    {n : ℕ} {facePatch : Set (Fin (n + 1) → ℝ)}
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S) (hψ : Continuous ψ)
+    (hfaceCompact : IsCompact facePatch) {δwall : ℝ} (hδwall : 0 < δwall) :
+    ∃ δcoord : ℝ, 0 < δcoord ∧
+      ∀ x ∈ facePatch, ∀ y ∈ facePatch, dist x y < δcoord →
+        dist (ψ x) (ψ y) < δwall := by
+  obtain ⟨δcoord, hδcoord, hmap⟩ :=
+    (Metric.uniformContinuousOn_iff.mp
+      (hfaceCompact.uniformContinuousOn_of_continuous hψ.continuousOn)) δwall hδwall
+  exact ⟨δcoord, hδcoord, hmap⟩
+
 /-- A sufficiently fine restricted one-bit fiber patch inherits one fixed inward wall from the
 compact wall-chart cover. The geometric strip estimate controls distance in fiber coordinates;
 `hmapDiam` transfers that bound through the chosen state-space chart, after which the existing
