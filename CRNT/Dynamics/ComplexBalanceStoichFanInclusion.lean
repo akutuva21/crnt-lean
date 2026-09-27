@@ -752,5 +752,37 @@ theorem relativeSourceOrderNegativeConeStoichFan_isPolyhedralFan (N : Network S)
       obtain ⟨C, hC, hz⟩ := N.exists_relativeSourceOrderNegativeConeStoichFan_mem z
       exact ⟨C, hC, hz⟩
 
+/-- The ambient source-order fan used by the complex-balanced mass-action selector satisfies the
+exposed common-face property. Its common cone is the set intersection, and the source-order
+construction supplies supporting normals for each incident chamber. -/
+theorem relativeSourceOrderNegativeConeFamily_hasExposedCommonFaces (N : Network S) :
+    FanRefinement.HasExposedCommonFaces N.relativeSourceOrderNegativeConeFamily := by
+  intro C hC D hD
+  have hfaces := N.relativeSourceOrderNegativeConeFamily_inter_commonExposedFace hC hD
+  refine ⟨C ⊓ D, N.relativeSourceOrderNegativeConeFamily_inter_mem hC hD, ?_, hfaces.1,
+    hfaces.2⟩
+  ext z
+  simp
+
+/-- The actual complex-balanced mass-action vector field obeys every normal inequality of a
+source-order chamber whenever the full projected-log neighborhood lies in that chamber. The
+proof combines the network's toric-field selector with the exposed-face local field bridge. -/
+theorem massActionVectorField_inner_nonneg_of_projectedLogBall
+    (N : Network S) (κ : N.RateConstants) {x xstar : Concentration S}
+    (hx : x.Positive) (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {δ : ℝ} (hδ : 0 < δ)
+    {D : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (hD : D ∈ N.relativeSourceOrderNegativeConeFamily)
+    {n : EuclideanSpace ℝ S} (hn : n ∈ (D : Set (EuclideanSpace ℝ S)))
+    (hball : Metric.ball (-CRNT.toEuclid (N.relativeLogStoichProjection
+      (fun s => Real.log (x s) - Real.log (xstar s)))) δ ⊆
+        interior (D : Set (EuclideanSpace ℝ S))) :
+    0 ≤ ⟪n, CRNT.toEuclid (N.massActionVectorField κ x)⟫_ℝ := by
+  have hselector := N.massActionVectorField_mem_relativeSourceOrderToricField
+    κ hx hxs hcb hδ
+  have hlocal := FanRefinement.toricField_subset_coneDual_of_ball_inside_cell
+    (N.relativeSourceOrderNegativeConeFamily_hasExposedCommonFaces) hD hball
+  exact coneDual_subset_dualHalfPlane_of_mem hn (hlocal hselector)
+
 end Network
 end CRNT
