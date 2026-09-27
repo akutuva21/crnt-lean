@@ -293,6 +293,23 @@ theorem radialBoxDiagramTile_contains_of_normalized_source {n : ℕ}
   exact radialBoxDiagramTile_contains_of_ray_in_box diagramTile upper
     hdiagramNonnegative hdiagramNonzero hupper hsource hpanchor.le hscale hpupper
 
+/-- A cover of normalized projective directions lifts to a cover of the corresponding
+positive-anchor part of the blue box by radial boundary tiles. This is the chartwise cover transfer
+used when assembling Craciun v3's restricted boundary blueprint. -/
+theorem radialBoxDiagramTiles_cover_of_normalized_source {ι : Sort*} {n : ℕ}
+    (diagramTile : ι → Set (Fin n → ℝ)) (upper : Fin n → ℝ) (anchor : Fin n)
+    (hdiagramNonnegative : ∀ k x, x ∈ diagramTile k → ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ k x, x ∈ diagramTile k → x ≠ 0)
+    (hupper : ∀ i, 0 < upper i) {p : Fin n → ℝ}
+    (hpanchor : 0 < p anchor) (hpupper : ∀ i, p i ≤ upper i)
+    (hsource : (fun i => p i / p anchor) ∈ ⋃ k, diagramTile k) :
+    p ∈ ⋃ k, radialBoxDiagramTile (diagramTile k) upper
+      (hdiagramNonnegative k) (hdiagramNonzero k) hupper := by
+  obtain ⟨k, hk⟩ := Set.mem_iUnion.mp hsource
+  exact Set.mem_iUnion.mpr ⟨k,
+    radialBoxDiagramTile_contains_of_normalized_source (diagramTile k) upper anchor
+      (hdiagramNonnegative k) (hdiagramNonzero k) hupper hpanchor hk hpupper⟩
+
 /-- Exact ray description of a radial boundary tile: its points are exactly the in-box points on
 rays through its projective source diagram. This is the membership form used to transfer a cover
 or an overlap statement from the projective diagram to the blue box. -/
