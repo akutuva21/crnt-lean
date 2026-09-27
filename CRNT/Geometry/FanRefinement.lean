@@ -1773,6 +1773,293 @@ theorem compactSet_hyperplaneArrangement_patchCover [CompleteSpace E] [Decidable
     rw [hyperplaneArrangementFamily_interiors_disjoint hC hD hne] at hx'
     simpa using hx'
 
+/-- A lower-dimensional base tile cut out by a fan arrangement, expressed in the coordinate
+function space used by the one-bit fiber blueprint. The arrangement itself lives in
+`EuclideanSpace`, where the fan's inner-product geometry is available; `EuclideanSpace.equiv`
+transports its cells to the coordinate chart without changing their topology. -/
+def euclideanHyperplaneArrangementBaseTile {n : ℕ}
+    (base : Set (Fin n → ℝ)) (F : Fan (EuclideanSpace ℝ (Fin n)))
+    (hFdual : HasDualFGCells F) :
+    {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)} → Set (Fin n → ℝ) := by
+  let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
+  let baseE : Set (EuclideanSpace ℝ (Fin n)) := e.symm '' base
+  exact fun C => e '' (baseE ∩ (C.1 : Set (EuclideanSpace ℝ (Fin n))))
+
+/-- A normal lying in an arrangement chamber labels the whole projected tile with a coarse fan
+cell whose toric polar field points into the normal's half-space. The coordinate-space tile is
+transported back to Euclidean coordinates only for its cone label; the inwardness statement is in
+the inner-product space used by the toric differential inclusion. -/
+theorem euclideanHyperplaneArrangementBaseTile_inward_normal_label {n : ℕ}
+    (base : Set (Fin n → ℝ)) (F : Fan (EuclideanSpace ℝ (Fin n)))
+    (hF : IsPolyhedralFan F) (hFdual : HasDualFGCells F)
+    (C : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)})
+    {v : EuclideanSpace ℝ (Fin n)} (hv : v ∈ (C.1 : Set _)) :
+    ∃ D ∈ F,
+      euclideanHyperplaneArrangementBaseTile base F hFdual C ⊆
+        (EuclideanSpace.equiv (Fin n) ℝ) '' (D : Set (EuclideanSpace ℝ (Fin n))) ∧
+      (coneDual (D : Set (EuclideanSpace ℝ (Fin n))) : Set (EuclideanSpace ℝ (Fin n))) ⊆
+        {w | 0 ≤ ⟪v, w⟫_ℝ} := by
+  let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
+  obtain ⟨D, hD, hCD⟩ :=
+    hyperplaneArrangementFamily_refines_of_dualFG hF hFdual C.1 C.2
+  refine ⟨D, hD, ?_, ?_⟩
+  · intro x hx
+    change x ∈ e '' (e.symm '' base ∩ (C.1 : Set (EuclideanSpace ℝ (Fin n)))) at hx
+    rcases hx with ⟨y, hy, rfl⟩
+    exact ⟨y, hCD hy.2, rfl⟩
+  · exact coneDual_subset_dualHalfPlane_of_mem (hCD hv)
+
+/-- The intersection of two coordinate-transported arrangement base tiles is the tile cut from
+their common arrangement face. This preserves the fan label across the seams of the one-bit fiber
+subdivision, rather than retaining only an unlabeled set intersection. -/
+theorem euclideanHyperplaneArrangementBaseTile_intersection {n : ℕ}
+    (base : Set (Fin n → ℝ)) (F : Fan (EuclideanSpace ℝ (Fin n)))
+    (hFdual : HasDualFGCells F)
+    (C D : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)}) :
+    ∃ (G : ProperCone ℝ (EuclideanSpace ℝ (Fin n)))
+      (hG : G ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)),
+      euclideanHyperplaneArrangementBaseTile base F hFdual C ∩
+        euclideanHyperplaneArrangementBaseTile base F hFdual D =
+          euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩ := by
+  let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
+  let baseE : Set (EuclideanSpace ℝ (Fin n)) := e.symm '' base
+  let fine := hyperplaneArrangementFamily (fanNormalSet F hFdual)
+  have hfine : IsPolyhedralFan fine := hyperplaneArrangementFamily_isPolyhedralFan _
+  obtain ⟨G, hG, hmeet⟩ :=
+    compactSet_fanRefinement_patch_intersection baseE hfine C.1 D.1 C.2 D.2
+  refine ⟨G, hG, ?_⟩
+  ext x
+  constructor
+  · rintro ⟨⟨a, ha, rfl⟩, b, hb, hab⟩
+    have hba : b = a := e.injective hab
+    subst b
+    have hcommon : a ∈
+        (baseE ∩ (C.1 : Set (EuclideanSpace ℝ (Fin n)))) ∩
+          (baseE ∩ (D.1 : Set (EuclideanSpace ℝ (Fin n)))) := ⟨ha, hb⟩
+    have hmeetMem := congrArg (fun s : Set (EuclideanSpace ℝ (Fin n)) => a ∈ s) hmeet
+    have hGmem : a ∈ baseE ∩ (G : Set (EuclideanSpace ℝ (Fin n))) := hmeetMem.mp hcommon
+    exact ⟨a, hGmem, rfl⟩
+  · rintro ⟨a, ha, rfl⟩
+    have hmeetMem := congrArg (fun s : Set (EuclideanSpace ℝ (Fin n)) => a ∈ s) hmeet
+    have hcommon := hmeetMem.mpr ha
+    exact ⟨⟨a, hcommon.1, rfl⟩, a, hcommon.2, rfl⟩
+
+/-- Craciun v3, §7.4.3: adjoining one-bit strips above arrangement tiles glue along the endpoint
+graph over their common lower-dimensional arrangement face. The tile intersection is retained as
+an arrangement label, so the seam is compatible with the projected fan subdivision. -/
+theorem euclideanHyperplaneArrangementBaseTiles_adjacentStrip_seam {n : ℕ}
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {lower upper : (Fin n → ℝ) → ℝ} {epsilon : ℝ}
+    (F : Fan (EuclideanSpace ℝ (Fin n))) (hFdual : HasDualFGCells F)
+    (cover : CompactOneBitFiberPatchCover facePatch base
+      (euclideanHyperplaneArrangementBaseTile base F hFdual) lower upper epsilon)
+    (C D : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)})
+    (horder : ∀ y ∈
+      euclideanHyperplaneArrangementBaseTile base F hFdual C ∩
+        euclideanHyperplaneArrangementBaseTile base F hFdual D,
+      lower y ≤ upper y)
+    (k : Fin cover.tiling.subdivisionCount) :
+    ∃ (G : ProperCone ℝ (EuclideanSpace ℝ (Fin n)))
+      (hG : G ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)),
+      (facePatch ∩ projectionFiberSubdivisionTile
+          (euclideanHyperplaneArrangementBaseTile base F hFdual C) lower upper k.castSucc) ∩
+        (facePatch ∩ projectionFiberSubdivisionTile
+          (euclideanHyperplaneArrangementBaseTile base F hFdual D) lower upper k.succ) =
+      facePatch ∩ (fun y : Fin n → ℝ =>
+        projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y) ''
+          euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩ := by
+  obtain ⟨G, hG, hintersection⟩ :=
+    euclideanHyperplaneArrangementBaseTile_intersection base F hFdual C D
+  refine ⟨G, hG, ?_⟩
+  rw [← hintersection]
+  exact cover.adjacent_base_tiles_share_seam C D horder k
+
+/-- Craciun's one-bit fiber subdivision can be placed over the finite central arrangement of a
+complete fan in Euclidean coordinates. This is the coordinate bridge between the fan-label
+refinement and the projected-base tiles of §7.4.3: the tiles cover the original base, are compact
+with disjoint interiors, and each retains a containing coarse-fan cell label. -/
+theorem exists_compactOneBitFiberPatchCover_of_euclideanHyperplaneArrangement {n : ℕ}
+    (facePatch : Set (Fin (n + 1) → ℝ)) (hfaceCompact : IsCompact facePatch)
+    (base : Set (Fin n → ℝ)) (hbaseCompact : IsCompact base)
+    (lower upper : (Fin n → ℝ) → ℝ) (epsilon : ℝ)
+    (hlower : Continuous lower) (hupper : Continuous upper)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) (hepsilon : 0 < epsilon)
+    (hfaceBand : facePatch ⊆
+      projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y)))
+    (F : Fan (EuclideanSpace ℝ (Fin n))) (hF : IsPolyhedralFan F)
+    (hFdual : HasDualFGCells F) :
+    ∃ cover : CompactOneBitFiberPatchCover facePatch base
+        (euclideanHyperplaneArrangementBaseTile base F hFdual) lower upper epsilon,
+      ∀ C, ∃ D ∈ F,
+        euclideanHyperplaneArrangementBaseTile base F hFdual C ⊆
+          (EuclideanSpace.equiv (Fin n) ℝ) '' (D : Set (EuclideanSpace ℝ (Fin n))) ∧
+        ∀ k : Fin (cover.tiling.subdivisionCount + 1),
+          (facePatch ∩ projectionFiberSubdivisionTile
+            (euclideanHyperplaneArrangementBaseTile base F hFdual C) lower upper k).Nonempty →
+          ∃ x, x ∈ facePatch ∩ projectionFiberSubdivisionTile
+              (euclideanHyperplaneArrangementBaseTile base F hFdual C) lower upper k ∧
+            forgetLastCoordinate n x ∈
+              (EuclideanSpace.equiv (Fin n) ℝ) '' (D : Set (EuclideanSpace ℝ (Fin n))) := by
+  classical
+  let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
+  let fine := hyperplaneArrangementFamily (fanNormalSet F hFdual)
+  let baseE : Set (EuclideanSpace ℝ (Fin n)) := e.symm '' base
+  let baseTile := euclideanHyperplaneArrangementBaseTile base F hFdual
+  have hfine : IsPolyhedralFan fine :=
+    hyperplaneArrangementFamily_isPolyhedralFan (fanNormalSet F hFdual)
+  have hbaseEcompact : IsCompact baseE := hbaseCompact.image e.symm.continuous
+  have hpatch := compactSet_hyperplaneArrangement_patchCover baseE hbaseEcompact hF hFdual
+  rcases hpatch with ⟨hcompactTile, hcoverE, hcoarseLabel, _, hinteriors⟩
+  have hfineCovers (y : EuclideanSpace ℝ (Fin n)) :
+      y ∈ ⋃ C ∈ fine, (C : Set (EuclideanSpace ℝ (Fin n))) := by
+    rw [hyperplaneArrangementFamily_covers (fanNormalSet F hFdual)]
+    simp
+  have hbaseCover : base = ⋃ C, baseTile C := by
+    ext x
+    constructor
+    · intro hx
+      have hy : e.symm x ∈ baseE := ⟨x, hx, rfl⟩
+      have hy' : e.symm x ∈ ⋃ C ∈ fine, baseE ∩ (C : Set (EuclideanSpace ℝ (Fin n))) := by
+        rcases Set.mem_iUnion.mp (hfineCovers (e.symm x)) with ⟨C, hC⟩
+        rcases Set.mem_iUnion.mp hC with ⟨hC, hyC⟩
+        exact Set.mem_iUnion.mpr ⟨C, Set.mem_iUnion.mpr ⟨hC, ⟨hy, hyC⟩⟩⟩
+      rcases Set.mem_iUnion.mp hy' with ⟨C, hC⟩
+      rcases Set.mem_iUnion.mp hC with ⟨hC, hyC⟩
+      refine Set.mem_iUnion.mpr ⟨⟨C, hC⟩, ?_⟩
+      exact ⟨e.symm x, ⟨hy, hyC.2⟩, e.apply_symm_apply x⟩
+    · intro hx
+      rcases Set.mem_iUnion.mp hx with ⟨C, hxC⟩
+      change x ∈ e '' (baseE ∩ (C.1 : Set (EuclideanSpace ℝ (Fin n)))) at hxC
+      rcases hxC with ⟨y, hy, rfl⟩
+      rcases hy.1 with ⟨z, hz, hzy⟩
+      have heq : e y = z := by rw [← hzy, e.apply_symm_apply]
+      rw [heq]
+      exact hz
+  have htileCompact : ∀ C, IsCompact (baseTile C) := by
+    intro C
+    change IsCompact (e '' (baseE ∩ (C.1 : Set (EuclideanSpace ℝ (Fin n)))))
+    exact (hcompactTile C.1 C.2).image e.continuous
+  have htileInteriorsDisjoint : ∀ C D, C ≠ D →
+      interior (baseTile C) ∩ interior (baseTile D) = ∅ := by
+    intro C D hCD
+    have hcones : C.1 ≠ D.1 := by
+      intro hEq
+      exact hCD (Subtype.ext hEq)
+    let tileC : Set (EuclideanSpace ℝ (Fin n)) := baseE ∩ (C.1 : Set _)
+    let tileD : Set (EuclideanSpace ℝ (Fin n)) := baseE ∩ (D.1 : Set _)
+    have hCeq : baseTile C = e '' tileC := rfl
+    have hDeq : baseTile D = e '' tileD := rfl
+    have hCpre : e ⁻¹' (e '' tileC) = tileC := by
+      ext y
+      simp
+    have hDpre : e ⁻¹' (e '' tileD) = tileD := by
+      ext y
+      simp
+    ext x
+    simp only [Set.mem_inter_iff, Set.mem_empty_iff_false, iff_false]
+    intro hx
+    rw [hCeq, hDeq] at hx
+    have hyC : e.symm x ∈ interior tileC := by
+      have hxpre : e.symm x ∈ e ⁻¹' interior (e '' tileC) := by
+        change e (e.symm x) ∈ interior (e '' tileC)
+        simpa using hx.1
+      have := (preimage_interior_subset_interior_preimage (t := e '' tileC)
+        e.continuous) hxpre
+      simpa [hCpre] using this
+    have hyD : e.symm x ∈ interior tileD := by
+      have hxpre : e.symm x ∈ e ⁻¹' interior (e '' tileD) := by
+        change e (e.symm x) ∈ interior (e '' tileD)
+        simpa using hx.2
+      have := (preimage_interior_subset_interior_preimage (t := e '' tileD)
+        e.continuous) hxpre
+      simpa [hDpre] using this
+    have hy : e.symm x ∈ interior tileC ∩ interior tileD := ⟨hyC, hyD⟩
+    have hdis := hinteriors C.1 C.2 D.1 D.2 hcones
+    rw [hdis] at hy
+    simpa using hy
+  let cover := compactOneBitFiberPatchCover_of_compactBand
+    facePatch hfaceCompact base baseTile lower upper epsilon hbaseCover htileCompact
+    htileInteriorsDisjoint hlower hupper horder hepsilon hfaceBand
+  refine ⟨cover, ?_⟩
+  intro C
+  obtain ⟨D, hD, hsubset⟩ := hcoarseLabel C.1 C.2
+  have htileLabel : baseTile C ⊆ e '' (D : Set (EuclideanSpace ℝ (Fin n))) := by
+    intro x hx
+    change x ∈ e '' (baseE ∩ (C.1 : Set (EuclideanSpace ℝ (Fin n)))) at hx
+    rcases hx with ⟨y, hy, rfl⟩
+    exact ⟨y, hsubset hy, rfl⟩
+  refine ⟨D, hD, htileLabel, ?_⟩
+  intro k hne
+  obtain ⟨x, hx, hprojected⟩ :=
+    cover.exists_restricted_tile_basepoint_incidence ⟨C, k⟩ hne
+  exact ⟨x, hx, htileLabel hprojected⟩
+
+/-- The projected-fan version of the one-bit cover construction. Start with the fan one dimension
+higher, take the finite arrangement refinement of its last-coordinate image family, and use that
+refinement to label every compact projected tile by an actual projected coarse cone. This is the
+fan-to-blueprint step needed when Craciun's lower-dimensional face subdivision is obtained by
+projecting the next-dimensional fan. -/
+theorem exists_compactOneBitFiberPatchCover_of_forgetLastFanImage {n : ℕ}
+    (facePatch : Set (Fin (n + 1) → ℝ)) (hfaceCompact : IsCompact facePatch)
+    (base : Set (Fin n → ℝ)) (hbaseCompact : IsCompact base)
+    (lower upper : (Fin n → ℝ) → ℝ) (epsilon : ℝ)
+    (hlower : Continuous lower) (hupper : Continuous upper)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) (hepsilon : 0 < epsilon)
+    (hfaceBand : facePatch ⊆
+      projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y)))
+    (G : Fan (EuclideanSpace ℝ (Fin (n + 1)))) (hG : IsPolyhedralFan G)
+    (hGdual : HasDualFGCells G) :
+    ∃ H : Fan (EuclideanSpace ℝ (Fin n)), ∃ hH : IsPolyhedralFan H,
+      ∃ hHdual : HasDualFGCells H,
+      ∃ href : Refines H (linearImageFamily (forgetLastEuclidean n) G),
+      ∃ cover : CompactOneBitFiberPatchCover facePatch base
+          (euclideanHyperplaneArrangementBaseTile base H hHdual)
+          lower upper epsilon,
+        ∀ C, ∃ D ∈ linearImageFamily (forgetLastEuclidean n) G,
+          euclideanHyperplaneArrangementBaseTile base H hHdual C ⊆
+            (EuclideanSpace.equiv (Fin n) ℝ) '' (D : Set (EuclideanSpace ℝ (Fin n))) ∧
+          ∀ k : Fin (cover.tiling.subdivisionCount + 1),
+            (facePatch ∩ projectionFiberSubdivisionTile
+              (euclideanHyperplaneArrangementBaseTile base H hHdual C)
+              lower upper k).Nonempty →
+            ∃ x, x ∈ facePatch ∩ projectionFiberSubdivisionTile
+                (euclideanHyperplaneArrangementBaseTile base H hHdual C)
+                lower upper k ∧
+              forgetLastCoordinate n x ∈
+                (EuclideanSpace.equiv (Fin n) ℝ) ''
+                  (D : Set (EuclideanSpace ℝ (Fin n))) := by
+  let image : Fan (EuclideanSpace ℝ (Fin n)) :=
+    linearImageFamily (forgetLastEuclidean n) G
+  have hImageDual : HasDualFGCells image :=
+    linearImageFamily_forgetLast_hasDualFGCells G hGdual
+  let H : Fan (EuclideanSpace ℝ (Fin n)) := hyperplaneArrangementFamily
+    (fanNormalSet image hImageDual)
+  have hH : IsPolyhedralFan H := hyperplaneArrangementFamily_isPolyhedralFan _
+  have hHdual : HasDualFGCells H := hyperplaneArrangementFamily_hasDualFGCells _
+  have href : Refines H image :=
+    hyperplaneArrangementFamily_refines_of_covering_dualFG
+      (linearImageFamily_forgetLastEuclidean_covers G hG) hImageDual
+  obtain ⟨cover, htiles⟩ := exists_compactOneBitFiberPatchCover_of_euclideanHyperplaneArrangement
+    facePatch hfaceCompact base hbaseCompact lower upper epsilon hlower hupper horder hepsilon
+    hfaceBand H hH hHdual
+  refine ⟨H, hH, hHdual, href, cover, ?_⟩
+  intro C
+  obtain ⟨D, hD, htile, hincidence⟩ := htiles C
+  obtain ⟨K, hK, hDK⟩ := href D hD
+  refine ⟨K, hK, ?_, ?_⟩
+  · intro x hx
+    rcases htile hx with ⟨y, hy, rfl⟩
+    exact ⟨y, hDK hy, rfl⟩
+  · intro k hne
+    obtain ⟨x, hx, hy⟩ := hincidence k hne
+    exact ⟨x, hx, by
+      rcases hy with ⟨y, hyD, hxy⟩
+      exact ⟨y, hDK hyD, hxy⟩⟩
+
 /-- The arrangement from finite dual normals refines the family of one-coordinate projections of a
 complete polyhedral fan. The image family need not satisfy the fan intersection axioms itself. -/
 theorem hyperplaneArrangementFamily_refines_forgetLastImage {n : ℕ}
