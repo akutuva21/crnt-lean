@@ -102,6 +102,67 @@ def HasExposedCommonFaces [CompleteSpace E] (F : Fan E) : Prop :=
     (G : Set E) = (C : Set E) ∩ (D : Set E) ∧
       IsExposedFaceOf G C ∧ IsExposedFaceOf G D
 
+/-- Compact subsets of an open set have a uniform positive ball margin. -/
+theorem IsCompact.exists_pos_uniform_ball_subset {K U : Set E} (hK : IsCompact K)
+    (hU : IsOpen U) (hKU : K ⊆ U) :
+    ∃ δ > 0, ∀ x ∈ K, Metric.ball x δ ⊆ U := by
+  classical
+  by_cases hKempty : K = ∅
+  · refine ⟨1, by norm_num, ?_⟩
+    intro x hx
+    exact (hKempty ▸ hx).elim
+  have hlocal : ∀ x ∈ K, ∃ r > 0, Metric.ball x (2 * r) ⊆ U := by
+    intro x hx
+    obtain ⟨r, hr, hball⟩ := Metric.mem_nhds_iff.mp (hU.mem_nhds (hKU hx))
+    refine ⟨r / 2, half_pos hr, ?_⟩
+    intro y hy
+    apply hball
+    have hy' : dist y x < r := by
+      simpa only [Metric.mem_ball, show 2 * (r / 2) = r by ring] using hy
+    exact Metric.mem_ball.mpr hy'
+  let radius : K → ℝ := fun x => Classical.choose (hlocal x.1 x.2)
+  have hradius_pos (x : K) : 0 < radius x := (Classical.choose_spec (hlocal x.1 x.2)).1
+  have hlocal_ball (x : K) : Metric.ball x.1 (2 * radius x) ⊆ U :=
+    (Classical.choose_spec (hlocal x.1 x.2)).2
+  have hcover : K ⊆ ⋃ x : K, Metric.ball x.1 (radius x) := by
+    intro x hx
+    have hxball : x ∈ Metric.ball x (radius ⟨x, hx⟩) :=
+      Metric.mem_ball_self (hradius_pos ⟨x, hx⟩)
+    exact Set.mem_iUnion.mpr ⟨⟨x, hx⟩, hxball⟩
+  obtain ⟨s, hs⟩ := hK.elim_finite_subcover
+    (fun x : K => Metric.ball x.1 (radius x)) (fun x => Metric.isOpen_ball) hcover
+  have hsne : s.Nonempty := by
+    by_contra h
+    have hsempty : s = ∅ := Finset.not_nonempty_iff_eq_empty.mp h
+    have hKempty' : K = ∅ := by
+      ext x
+      constructor
+      · intro hx
+        have hxcover := hs hx
+        simp [hsempty] at hxcover
+      · simp
+    exact hKempty hKempty'
+  let radii := s.image radius
+  have hradii : radii.Nonempty := Finset.image_nonempty.mpr hsne
+  let δ := radii.min' hradii
+  have hδ : 0 < δ := by
+    obtain ⟨x, hx, hxδ⟩ := Finset.mem_image.mp (Finset.min'_mem radii hradii)
+    change 0 < radii.min' hradii
+    rw [← hxδ]
+    exact hradius_pos x
+  refine ⟨δ, hδ, ?_⟩
+  intro x hx z hz
+  obtain ⟨y, hy, hxy⟩ := Set.mem_iUnion₂.mp (hs hx)
+  have hδy : δ ≤ radius y := by
+    exact Finset.min'_le radii (radius y) (Finset.mem_image.mpr ⟨y, hy, rfl⟩)
+  have hzy : dist z y.1 < 2 * radius y := by
+    calc
+      dist z y.1 ≤ dist z x + dist x y.1 := dist_triangle _ _ _
+      _ < δ + radius y := add_lt_add (Metric.mem_ball.mp hz) (Metric.mem_ball.mp hxy)
+      _ ≤ radius y + radius y := add_le_add hδy le_rfl
+      _ = 2 * radius y := by ring
+  exact hlocal_ball y (Metric.mem_ball.mpr hzy)
+
 /-- A genuine face of a cone that contains an interior point is the whole cone. -/
 theorem exposedFace_eq_of_mem_interior [CompleteSpace E]
     {G D : ProperCone ℝ E} (hface : IsExposedFaceOf G D) {x : E}
@@ -2505,6 +2566,21 @@ theorem toricField_subset_halfPlane_of_refinement_cell [CompleteSpace E]
     (toricField F δ x : Set E) ⊆ {y | 0 ≤ ⟪n, y⟫_ℝ} := by
   exact (toricField_subset_coneDual_of_ball_inside_cell hFfaces hD hball).trans
     (coneDual_coarse_subset_halfPlane_of_fine_mem hsub hn)
+
+/-- A compact refined patch contained in the interior of one coarse chamber has a single positive
+radius on which the coarse toric field points into the half-space of every normal selected from
+its refining cell. The uniform radius is the compact wall margin used in the piecewise construction. -/
+theorem compact_patch_toricField_subset_halfPlane [CompleteSpace E]
+    {F : Fan E} (hFfaces : HasExposedCommonFaces F)
+    {D C' : ProperCone ℝ E} (hD : D ∈ F)
+    (hsub : (C' : Set E) ⊆ (D : Set E)) {n : E} (hn : n ∈ (C' : Set E))
+    {K : Set E} (hK : IsCompact K) (hKinterior : K ⊆ interior (D : Set E)) :
+    ∃ δ > 0, ∀ x ∈ K,
+      (toricField F δ x : Set E) ⊆ {y | 0 ≤ ⟪n, y⟫_ℝ} := by
+  obtain ⟨δ, hδ, hball⟩ :=
+    IsCompact.exists_pos_uniform_ball_subset hK isOpen_interior hKinterior
+  exact ⟨δ, hδ, fun x hx =>
+    toricField_subset_halfPlane_of_refinement_cell hFfaces hD hsub hn (hball x hx)⟩
 
 /-- The general local inward-pointing bridge instantiated with the explicit arrangement fan from
 Craciun v3, §8. The arrangement's exposed-common-face data is constructed above from its sign cells. -/
