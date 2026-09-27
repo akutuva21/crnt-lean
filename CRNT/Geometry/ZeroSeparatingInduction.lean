@@ -2726,6 +2726,75 @@ theorem projectionFiberSubdivisionCenter_mem_tile {n m : ℕ}
   · dsimp [projectionFiberSubdivisionCenter]
     linarith
 
+/-- On a nondegenerate fiber above an interior basepoint, the selected strip center lies in the
+ordinary ambient interior of that strip. This is the local geometric fact behind the faithful
+basepoint criterion in Craciun v3, §7.4.3, Step 2 and Remarks 7.5–7.7. -/
+theorem projectionFiberSubdivisionCenter_mem_interior_tile {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (hlower : Continuous lower) (hupper : Continuous upper)
+    (horderStrict : ∀ y ∈ base, lower y < upper y)
+    (i : Fin (m + 1)) (y : Fin n → ℝ) (hy : y ∈ interior base) :
+    Fin.snoc y (projectionFiberSubdivisionCenter lower upper i y) ∈
+      interior (projectionFiberSubdivisionTile base lower upper i) := by
+  let p := forgetLastCoordinate n
+  let lo := projectionFiberSubdivisionEndpoint lower upper i.castSucc
+  let hi := projectionFiberSubdivisionEndpoint lower upper i.succ
+  have hybase : y ∈ base := interior_subset hy
+  have hgap : lo y < hi y := by
+    have hgapEq : hi y - lo y =
+        (upper y - lower y) / ((m + 1 : ℕ) : ℝ) := by
+      simpa [hi, lo] using projectionFiberSubdivisionEndpoint_gap lower upper i y
+    have hgapPos : 0 < (upper y - lower y) / ((m + 1 : ℕ) : ℝ) :=
+      div_pos (sub_pos.mpr (horderStrict y hybase)) (by positivity)
+    linarith
+  have hcenterLo : lo y < projectionFiberSubdivisionCenter lower upper i y := by
+    dsimp [projectionFiberSubdivisionCenter, lo, hi]
+    linarith
+  have hcenterHi : projectionFiberSubdivisionCenter lower upper i y < hi y := by
+    dsimp [projectionFiberSubdivisionCenter, lo, hi]
+    linarith
+  have hp : Continuous p := (forgetLastCoordinate n).continuous_of_finiteDimensional
+  have hlo : Continuous (fun x : Fin (n + 1) → ℝ => lo (p x)) :=
+    (continuous_projectionFiberSubdivisionEndpoint lower upper i.castSucc hlower hupper).comp hp
+  have hhi : Continuous (fun x : Fin (n + 1) → ℝ => hi (p x)) :=
+    (continuous_projectionFiberSubdivisionEndpoint lower upper i.succ hlower hupper).comp hp
+  have hlast : Continuous (fun x : Fin (n + 1) → ℝ => x (Fin.last n)) :=
+    continuous_apply (Fin.last n)
+  let U : Set (Fin (n + 1) → ℝ) :=
+    p ⁻¹' interior base ∩ {x | lo (p x) < x (Fin.last n)} ∩
+      {x | x (Fin.last n) < hi (p x)}
+  have hUopen : IsOpen U := by
+    change IsOpen ((p ⁻¹' interior base ∩ {x | lo (p x) < x (Fin.last n)}) ∩
+      {x | x (Fin.last n) < hi (p x)})
+    exact ((isOpen_interior.preimage hp).inter (isOpen_lt hlo hlast)).inter
+      (isOpen_lt hlast hhi)
+  have hUsub : U ⊆ projectionFiberSubdivisionTile base lower upper i := by
+    intro x hx
+    change x ∈ (p ⁻¹' interior base ∩ {x | lo (p x) < x (Fin.last n)}) ∩
+      {x | x (Fin.last n) < hi (p x)} at hx
+    rcases hx with ⟨⟨hbaseInt, hloX⟩, hhiX⟩
+    change p x ∈ base ∧ lo (p x) ≤ x (Fin.last n) ∧
+      x (Fin.last n) ≤ hi (p x)
+    exact ⟨interior_subset hbaseInt, le_of_lt hloX, le_of_lt hhiX⟩
+  rw [mem_interior]
+  refine ⟨U, hUsub, hUopen, ?_⟩
+  have hproj : p (Fin.snoc y (projectionFiberSubdivisionCenter lower upper i y)) = y := by
+    simp [p, forgetLastCoordinate]
+  have hlastVal :
+      (Fin.snoc y (projectionFiberSubdivisionCenter lower upper i y) :
+        Fin (n + 1) → ℝ) (Fin.last n) =
+        projectionFiberSubdivisionCenter lower upper i y := by
+    rw [Fin.snoc_last]
+  let xc : Fin (n + 1) → ℝ := Fin.snoc y
+    (projectionFiberSubdivisionCenter lower upper i y)
+  have hcenterInU : xc ∈ U := by
+    change ((p xc ∈ interior base) ∧ lo (p xc) < xc (Fin.last n)) ∧
+      xc (Fin.last n) < hi (p xc)
+    exact ⟨⟨by simpa [xc, hproj] using hy,
+      by simpa [xc, hproj, hlastVal] using hcenterLo⟩,
+      by simpa [xc, hproj, hlastVal] using hcenterHi⟩
+  exact hcenterInU
+
 /-- The graph of the selected center representatives over a projected tile. -/
 def projectionFiberSubdivisionCenterGraph {n m : ℕ}
     (base : Set (Fin n → ℝ))
@@ -2761,6 +2830,87 @@ theorem projectionFiberSubdivisionCenterGraph_incidence {n m : ℕ}
       refine ⟨Fin.snoc y (center i y), ?_, ?_⟩
       · exact ⟨y, hy, rfl⟩
       · simp [forgetLastCoordinate]
+
+/-- The center section over the interior of a projected base lies entirely in the ambient
+interior of its lifted strip and still projects onto that full interior. This is the face-local
+tile incidence used by the faithful-basepoint criterion of Craciun v3, §7.4.3, Remarks 7.5–7.7. -/
+theorem projectionFiberSubdivisionCenterGraph_interior_incidence {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (hlower : Continuous lower) (hupper : Continuous upper)
+    (horderStrict : ∀ y ∈ base, lower y < upper y) (i : Fin (m + 1)) :
+    projectionFiberSubdivisionCenterGraph (interior base)
+        (fun _ => projectionFiberSubdivisionCenter lower upper i) i ⊆
+        interior (projectionFiberSubdivisionTile base lower upper i) ∧
+      forgetLastCoordinate n ''
+        projectionFiberSubdivisionCenterGraph (interior base)
+          (fun _ => projectionFiberSubdivisionCenter lower upper i) i = interior base := by
+  constructor
+  · rintro x ⟨y, hy, rfl⟩
+    exact projectionFiberSubdivisionCenter_mem_interior_tile base lower upper hlower hupper
+      horderStrict i y hy
+  · ext y
+    constructor
+    · rintro ⟨x, ⟨z, hz, rfl⟩, hproj⟩
+      have hproj' : forgetLastCoordinate n
+          (Fin.snoc z (projectionFiberSubdivisionCenter lower upper i z)) = z := by
+        simp [forgetLastCoordinate]
+      rw [hproj'] at hproj
+      simpa [hproj] using hz
+    · intro hy
+      refine ⟨Fin.snoc y (projectionFiberSubdivisionCenter lower upper i y), ?_, ?_⟩
+      · exact ⟨y, hy, rfl⟩
+      · simp [forgetLastCoordinate]
+
+/-- A center selected in a positive-height fiber belongs to no other closed strip over the same
+basepoint. Thus center representatives lie away from the shared endpoint seams of the equal-width
+subdivision in Craciun v3, §7.4.3, Step 2. -/
+theorem projectionFiberSubdivisionCenter_not_mem_otherTile {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horderStrict : ∀ y ∈ base, lower y < upper y)
+    (i j : Fin (m + 1)) (hij : i ≠ j) {y : Fin n → ℝ} (hy : y ∈ base) :
+    Fin.snoc y (projectionFiberSubdivisionCenter lower upper i y) ∉
+      projectionFiberSubdivisionTile base lower upper j := by
+  intro hmem
+  have htile := (mem_projectionFiberSubdivisionTile_snoc_iff
+    base lower upper j y (projectionFiberSubdivisionCenter lower upper i y)).mp hmem
+  have hmidLo : projectionFiberSubdivisionEndpoint lower upper i.castSucc y <
+      projectionFiberSubdivisionCenter lower upper i y := by
+    dsimp [projectionFiberSubdivisionCenter]
+    have hgap := projectionFiberSubdivisionEndpoint_gap lower upper i y
+    have hgapPos : 0 < (upper y - lower y) / ((m + 1 : ℕ) : ℝ) :=
+      div_pos (sub_pos.mpr (horderStrict y hy)) (by positivity)
+    linarith
+  have hmidHi : projectionFiberSubdivisionCenter lower upper i y <
+      projectionFiberSubdivisionEndpoint lower upper i.succ y := by
+    dsimp [projectionFiberSubdivisionCenter]
+    have hgap := projectionFiberSubdivisionEndpoint_gap lower upper i y
+    have hgapPos : 0 < (upper y - lower y) / ((m + 1 : ℕ) : ℝ) :=
+      div_pos (sub_pos.mpr (horderStrict y hy)) (by positivity)
+    linarith
+  have hstrict := strictMono_tileScaleInterpolation (n := m) (horderStrict y hy)
+  have hmono := hstrict.monotone
+  by_cases hji : j.val < i.val
+  · have hidx : j.succ ≤ i.castSucc := by
+      apply Fin.le_iff_val_le_val.mpr
+      simp
+      omega
+    have hendpoint := hmono hidx
+    have hendpoint' : projectionFiberSubdivisionEndpoint lower upper j.succ y ≤
+        projectionFiberSubdivisionEndpoint lower upper i.castSucc y := by
+      simpa [projectionFiberSubdivisionEndpoint] using hendpoint
+    exact (not_lt_of_ge (le_trans htile.2.2 hendpoint')) hmidLo
+  · have hijval : i.val < j.val := by
+      have hneq : i.val ≠ j.val := fun h => hij (Fin.ext h)
+      omega
+    have hidx : i.succ ≤ j.castSucc := by
+      apply Fin.le_iff_val_le_val.mpr
+      simp
+      omega
+    have hendpoint := hmono hidx
+    have hendpoint' : projectionFiberSubdivisionEndpoint lower upper i.succ y ≤
+        projectionFiberSubdivisionEndpoint lower upper j.castSucc y := by
+      simpa [projectionFiberSubdivisionEndpoint] using hendpoint
+    exact (not_lt_of_ge (le_trans hendpoint' htile.2.1)) hmidHi
 
 /-- On a compact projected base, each continuous subdivision endpoint has a uniform
 continuity modulus. This lets the projected tiling scale control endpoint variation uniformly. -/
