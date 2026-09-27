@@ -2237,6 +2237,42 @@ theorem mem_projectionFiberTube_iff {n : ℕ} (base : Set (Fin n → ℝ))
     rw [abs_le] at habs
     refine ⟨hy, ?_, ?_⟩ <;> linarith
 
+/-- A tube around a selected face lift lies inside the Craciun zero-bit pre-blueprint whenever
+its last-coordinate radius is bounded by the final binary-prefix width. The other fiber
+coordinates are zero, and nonnegative prefix widths absorb those coordinates. -/
+theorem projectionFiberTube_subset_zeroBitPreBlueprintNeighborhood {n : ℕ}
+    (face : Set (Fin (n + 1) → ℝ)) (base baseNeighborhood : Set (Fin n → ℝ))
+    (center : (Fin n → ℝ) → ℝ) (radius : ℝ)
+    (epsilon : List Bool → ℝ) (word : List Bool)
+    (hepsilon : ∀ p, 0 ≤ epsilon p)
+    (hwidth : radius ≤ epsilon (word.take (n + 1)))
+    (hbase : base ⊆ baseNeighborhood)
+    (hlift : ∀ y ∈ base, Fin.snoc y (center y) ∈ face) :
+    projectionFiberTube base center radius ⊆
+      zeroBitPreBlueprintNeighborhood face baseNeighborhood epsilon word := by
+  intro x hx
+  rcases (mem_projectionFiberTube_iff base center radius x).mp hx with ⟨hy, hdist⟩
+  let y := forgetLastCoordinate n x
+  let p : Fin (n + 1) → ℝ := Fin.snoc y (center y)
+  have hbox : x - p ∈ binaryWordFiberBox (n := n + 1) epsilon word := by
+    change x - p ∈ coordinateFiberBox
+      (fun i => epsilon (word.take (i.val + 1)))
+    rw [mem_coordinateFiberBox_iff]
+    intro i
+    refine Fin.lastCases ?_ (fun j => ?_) i
+    · have hlast : (x - p) (Fin.last n) =
+          x (Fin.last n) - center (forgetLastCoordinate n x) := by
+        simp [p, y]
+      rw [hlast, Fin.val_last]
+      exact hdist.trans hwidth
+    · have hzero : (x - p) j.castSucc = 0 := by
+        simp [p, y, forgetLastCoordinate]
+      rw [hzero]
+      simpa using hepsilon (word.take (j.val + 1))
+  refine ⟨Set.mem_add.mpr ⟨p, hlift y hy, x - p, hbox, ?_⟩, hbase hy⟩
+  dsimp [p]
+  abel
+
 /-- A nonnegative-radius graph tube projects onto exactly its base. -/
 theorem projectionFiberTube_projects_onto_base {n : ℕ} (base : Set (Fin n → ℝ))
     (center : (Fin n → ℝ) → ℝ) {radius : ℝ} (hradius : 0 ≤ radius) :
@@ -2768,6 +2804,25 @@ theorem CompactZeroBitFiberPatchCover.tile_basepoint_lift_mem_restrictedTube
     · simpa [forgetLastCoordinate] using hy
     · simp [forgetLastCoordinate, cover.radius_nonneg]
   · simp [forgetLastCoordinate]
+
+/-- Every tile tube from a zero-bit cover lies inside the corresponding Craciun
+pre-blueprint when its base tile is already inside the lower-dimensional neighborhood
+and the tube radius fits the final binary-prefix width. This combines the Case 1.1
+basepoint lift with the §7.3 Minkowski construction. -/
+theorem CompactZeroBitFiberPatchCover.tile_tube_subset_zeroBitPreBlueprintNeighborhood
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {margin radius : ℝ}
+    (cover : CompactZeroBitFiberPatchCover facePatch base baseTile margin radius)
+    (baseNeighborhood : Set (Fin n → ℝ)) (epsilon : List Bool → ℝ) (word : List Bool)
+    (i : ι) (hepsilon : ∀ p, 0 ≤ epsilon p)
+    (hwidth : radius ≤ epsilon (word.take (n + 1)))
+    (htile : baseTile i ⊆ baseNeighborhood) :
+    projectionFiberTube (baseTile i) cover.center radius ⊆
+      zeroBitPreBlueprintNeighborhood facePatch baseNeighborhood epsilon word := by
+  exact projectionFiberTube_subset_zeroBitPreBlueprintNeighborhood
+    facePatch (baseTile i) baseNeighborhood cover.center radius epsilon word
+    hepsilon hwidth htile (fun y hy => cover.tile_basepoint_lift i y hy)
 
 /-- Every point of the projected face belongs to some lower tile and therefore has its selected
 center lift on the face patch, inside that tile's restricted graph tube, with projection exactly
