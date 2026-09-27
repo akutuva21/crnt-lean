@@ -2503,6 +2503,136 @@ def euclideanHyperplaneArrangementBaseTile {n : ℕ}
   let baseE : Set (EuclideanSpace ℝ (Fin n)) := e.symm '' base
   exact fun C => e '' (baseE ∩ (C.1 : Set (EuclideanSpace ℝ (Fin n))))
 
+/-- The coordinate-space tile cut out by an arbitrary proper cone, before restricting its label
+to the finite arrangement family. Keeping this untagged form lets the well-founded face task
+retain its geometric output at every predecessor. -/
+def euclideanProperConeBaseTile {n : ℕ} (base : Set (Fin n → ℝ))
+    (C : ProperCone ℝ (EuclideanSpace ℝ (Fin n))) : Set (Fin n → ℝ) := by
+  let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
+  let baseE : Set (EuclideanSpace ℝ (Fin n)) := e.symm '' base
+  exact e '' (baseE ∩ (C : Set (EuclideanSpace ℝ (Fin n))))
+
+/-- Exposed-face incidence gives genuine nesting of the untagged projected cone tiles. -/
+theorem euclideanProperConeBaseTile_mono {n : ℕ}
+    (base : Set (Fin n → ℝ)) {G C : ProperCone ℝ (EuclideanSpace ℝ (Fin n))}
+    (hsubset : (G : Set (EuclideanSpace ℝ (Fin n))) ⊆ C) :
+    euclideanProperConeBaseTile base G ⊆ euclideanProperConeBaseTile base C := by
+  let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
+  let baseE : Set (EuclideanSpace ℝ (Fin n)) := e.symm '' base
+  change e '' (baseE ∩ (G : Set (EuclideanSpace ℝ (Fin n)))) ⊆
+    e '' (baseE ∩ (C : Set (EuclideanSpace ℝ (Fin n))))
+  apply Set.image_mono
+  intro x hx
+  exact ⟨hx.1, hsubset hx.2⟩
+
+/-- The underlying set of an exposed face lies in its parent cone. -/
+theorem properCone_subset_of_isExposedFaceOf {E : Type*}
+    [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+    {G C : ProperCone ℝ E} (hface : IsExposedFaceOf G C) :
+    (G : Set E) ⊆ C := by
+  rcases hface with ⟨a, ha, hfaceEq⟩
+  intro x hx
+  have hx' : x ∈ (exposedFace (C : PointedCone ℝ E) a : Set E) := by
+    rw [← hfaceEq]
+    exact hx
+  exact exposedFace_subset (C : PointedCone ℝ E) a hx'
+
+/-- Specialization of the patch monotonicity theorem to the projected cone arrangement crossed
+with a small blueprint tile. Thus every exposed-face predecessor has its actual strip or endpoint
+patch contained in the corresponding parent patch, with the projected small-tile label fixed. -/
+theorem euclideanArrangementTaskPatch_mono_of_commonFace {n m : ℕ} {ι : Type*}
+    (facePatch : Set (Fin (n + 1) → ℝ)) (base : Set (Fin n → ℝ))
+    (smallTile : ι → Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (G C : ProperCone ℝ (EuclideanSpace ℝ (Fin n))) (k : ι)
+    (hface : IsExposedFaceOf G C) (cell : OneBitFiberCell m) :
+    oneBitFanFaceTaskPatch facePatch
+        (fun p : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × ι =>
+          euclideanProperConeBaseTile base p.1 ∩ smallTile p.2)
+        lower upper ((G, k), cell) ⊆
+      oneBitFanFaceTaskPatch facePatch
+        (fun p : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × ι =>
+          euclideanProperConeBaseTile base p.1 ∩ smallTile p.2)
+        lower upper ((C, k), cell) := by
+  apply oneBitFanFaceTaskPatch_mono_of_commonFace facePatch _ lower upper ?_ G C k hface cell
+  intro G C hface k
+  exact Set.inter_subset_inter
+    (euclideanProperConeBaseTile_mono base (properCone_subset_of_isExposedFaceOf hface))
+    (fun _ hx => hx)
+
+/-- Every endpoint graph lies in either adjacent closed strip. -/
+theorem projectionFiberSubdivisionEndpointGraphPoint_mem_adjacentTile {n m : ℕ}
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) (i : Fin (m + 1))
+    (j : Fin (m + 2)) (hadjacent : j = i.castSucc ∨ j = i.succ)
+    (y : Fin n → ℝ) (hy : y ∈ base) :
+    projectionFiberSubdivisionEndpointGraphPoint lower upper j y ∈
+      projectionFiberSubdivisionTile base lower upper i := by
+  change Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y
+    (projectionFiberSubdivisionEndpoint lower upper j y) ∈ _
+  rw [mem_projectionFiberSubdivisionTile_snoc_iff]
+  refine ⟨hy, ?_, ?_⟩
+  · rcases hadjacent with hleft | hright
+    · rw [hleft]
+    · rw [hright]
+      have hmono := tileScaleInterpolation_monotone_of_le (m := m) (horder y hy)
+      have hindex : i.castSucc ≤ i.succ := by
+        apply Fin.le_iff_val_le_val.mpr
+        simp
+      simpa [projectionFiberSubdivisionEndpoint] using hmono hindex
+  · rcases hadjacent with hleft | hright
+    · rw [hleft]
+      have hmono := tileScaleInterpolation_monotone_of_le (m := m) (horder y hy)
+      have hindex : i.castSucc ≤ i.succ := by
+        apply Fin.le_iff_val_le_val.mpr
+        simp
+      simpa [projectionFiberSubdivisionEndpoint] using hmono hindex
+    · rw [hright]
+
+/-- A fiber-endpoint dependency gives inclusion of the actual endpoint task patch in its incident
+strip patch, provided projected face tiles are nested. -/
+theorem oneBitFanFaceTaskPatch_mono_of_fiberEndpoint {n m : ℕ} {ι : Type*}
+    (facePatch : Set (Fin (n + 1) → ℝ))
+    (baseTile : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × ι → Set (Fin n → ℝ))
+    (lower upper : (Fin n → ℝ) → ℝ)
+    (hbaseTile : ∀ {G C : ProperCone ℝ (EuclideanSpace ℝ (Fin n))},
+      IsExposedFaceOf G C → ∀ k, baseTile (G, k) ⊆ baseTile (C, k))
+    (G C : ProperCone ℝ (EuclideanSpace ℝ (Fin n))) (k : ι)
+    (i : Fin (m + 1)) (j : Fin (m + 2)) (hface : IsExposedFaceOf G C)
+    (hadjacent : j = i.castSucc ∨ j = i.succ)
+    (horder : ∀ y ∈ baseTile (C, k), lower y ≤ upper y) :
+    oneBitFanFaceTaskPatch facePatch baseTile lower upper ((G, k), .endpoint j) ⊆
+      oneBitFanFaceTaskPatch facePatch baseTile lower upper ((C, k), .strip i) := by
+  intro x hx
+  refine ⟨hx.1, ?_⟩
+  rcases hx.2 with ⟨y, hy, rfl⟩
+  exact projectionFiberSubdivisionEndpointGraphPoint_mem_adjacentTile
+    (baseTile (C, k)) lower upper horder i j hadjacent y (hbaseTile hface k hy)
+
+/-- Every edge of the well-founded task relation carries an inclusion between its concrete
+geometric outputs. Face edges use projected-tile nesting; endpoint edges use the shared closed
+fiber subdivision. -/
+theorem oneBitFanFaceDependency.taskPatch_subset {n m : ℕ} {ι : Type*}
+    (facePatch : Set (Fin (n + 1) → ℝ))
+    (baseTile : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × ι → Set (Fin n → ℝ))
+    (lower upper : (Fin n → ℝ) → ℝ)
+    (hbaseTile : ∀ {G C : ProperCone ℝ (EuclideanSpace ℝ (Fin n))},
+      IsExposedFaceOf G C → ∀ k, baseTile (G, k) ⊆ baseTile (C, k))
+    (horder : ∀ C k y, y ∈ baseTile (C, k) → lower y ≤ upper y)
+    {predecessor task : OneBitFanFaceTask (EuclideanSpace ℝ (Fin n)) ι m}
+    (hdep : OneBitFanFaceDependency predecessor task) :
+    oneBitFanFaceTaskPatch facePatch baseTile lower upper predecessor ⊆
+      oneBitFanFaceTaskPatch facePatch baseTile lower upper task := by
+  cases hdep with
+  | fanFace C G k i hface hne =>
+      exact oneBitFanFaceTaskPatch_mono_of_commonFace facePatch baseTile lower upper
+        hbaseTile G C k hface (.strip i)
+  | fanFaceEndpoint C G k j hface hne =>
+      exact oneBitFanFaceTaskPatch_mono_of_commonFace facePatch baseTile lower upper
+        hbaseTile G C k hface (.endpoint j)
+  | fiberEndpoint C G k i j hface hadjacent =>
+      exact oneBitFanFaceTaskPatch_mono_of_fiberEndpoint facePatch baseTile lower upper
+        hbaseTile G C k i j hface hadjacent (horder C k)
+
 /-- A normal lying in an arrangement chamber labels the whole projected tile with a coarse fan
 cell whose toric polar field points into the normal's half-space. The coordinate-space tile is
 transported back to Euclidean coordinates only for its cone label; the inwardness statement is in

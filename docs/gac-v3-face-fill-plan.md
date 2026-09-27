@@ -107,13 +107,20 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   actual restricted strip patch and endpoint-graph patch, plus a face-mono
   lemma under projected-tile containment. Recompiled the geometry module and
   target successfully; the target warning and `sorryAx` remain unchanged.
+- Added untagged projected cone tiles, proved exposed-face tile nesting, and
+  specialized task-patch nesting to the arrangement tile crossed with each
+  small blueprint tile. The endpoint graph is now proved to lie in either
+  adjacent closed strip, and `oneBitFanFaceDependency.taskPatch_subset` proves
+  every dependency constructor gives an inclusion between its actual task
+  patches. The target recompiles, and audits of these new lemmas report only
+  standard Lean axioms.
 - The current face-mono lemma still assumes tile containment, and it does not
   itself assemble the inherited outputs or barriers. The arrangement atlas
   gives exact common-face patch intersections, while the radial atlas's smooth
   maximum controls derivatives only at points incident to every listed patch.
-  Next specialize the task outputs to the arrangement tiles, prove the
-  predecessor patch/seam invariants from the shared cover, and use those
-  invariants in a recursive parent fill. Then derive a global
+  Next connect the shared cover's exact seam equalities to the face-task
+  outputs, build the recursive parent fill and its scale/faithfulness invariant,
+  and derive a global
   `ZeroSeparatingSurfaceExists` witness and apply it in the target branch.
   Keep the checklist open until its exact theorem and kernel axiom audit are
   clean.
