@@ -3517,9 +3517,10 @@ theorem craciunProjectiveArrangementRadialPoint_fanInwardLabel {n : ℕ}
       _ = v := e.symm_apply_apply v
   exact ⟨v, D, hD, hnormal, hv, hpolar⟩
 
-/-- A radial overlap between two distinct projective arrangement tiles projects into their exact
-common fan face. The face label, both exposed-face certificates, and both strict rank drops are
-retained so the lower-dimensional overlap is a proper recursive task. -/
+/-- A radial overlap between two distinct projective arrangement tiles has its ray source in the
+exact common arrangement face and therefore projects into that face. The face label, both exposed-
+face certificates, and both strict rank drops are retained so the lower-dimensional overlap is a
+proper recursive task. -/
 theorem craciunProjectiveArrangementRadialOverlap_commonFace {n : ℕ}
     (upper : Fin (n + 1) → ℝ) (hupper : ∀ i, 0 < upper i)
     (F : Fan (EuclideanSpace ℝ (Fin n))) (hFdual : HasDualFGCells F)
@@ -3531,6 +3532,21 @@ theorem craciunProjectiveArrangementRadialOverlap_commonFace {n : ℕ}
       (G ≠ C.1 → coneSpanRank G < coneSpanRank C.1) ∧
       (G ≠ D.1 → coneSpanRank G < coneSpanRank D.1) ∧
       (G ≠ C.1 ∨ G ≠ D.1) ∧
+      (∀ p, p ∈
+        (radialBoxDiagramTile (craciunProjectiveArrangementTile upper
+            (fanNormalSet F hFdual) C) upper
+            (fun x hx i => craciunProjectiveArrangementTile_nonnegative
+              upper (fanNormalSet F hFdual) C hx i)
+            (fun x hx => craciunProjectiveArrangementTile_nonzero
+              upper (fanNormalSet F hFdual) C hx) hupper ∩ craciunProjectiveDomain) ∩
+          (radialBoxDiagramTile (craciunProjectiveArrangementTile upper
+            (fanNormalSet F hFdual) D) upper
+            (fun x hx i => craciunProjectiveArrangementTile_nonnegative
+              upper (fanNormalSet F hFdual) D hx i)
+            (fun x hx => craciunProjectiveArrangementTile_nonzero
+              upper (fanNormalSet F hFdual) D hx) hupper ∩ craciunProjectiveDomain) →
+        ∃ x, x ∈ craciunProjectiveArrangementTile upper
+          (fanNormalSet F hFdual) ⟨G, hG⟩ ∧ ∃ s : ℝ, 0 ≤ s ∧ p = s • x) ∧
       forgetLastCoordinate n ''
         ((radialBoxDiagramTile (craciunProjectiveArrangementTile upper
             (fanNormalSet F hFdual) C) upper
@@ -3583,24 +3599,29 @@ theorem craciunProjectiveArrangementRadialOverlap_commonFace {n : ℕ}
       intro hGDeq
       exact hne (Subtype.ext (hGCeq.symm.trans hGDeq))
     · exact Or.inl hGCeq
-  refine ⟨G, hG, hGC, hGD, hrankC, hrankD, hproper, ?_⟩
-  intro y hy
-  rcases hy with ⟨p, ⟨⟨hpC, hdomain⟩, ⟨hpD, _⟩⟩, rfl⟩
-  have hpBoth : p ∈
+  have hsource : ∀ p, p ∈
       (radialBoxDiagramTile tileC upper nonnegC nonzeroC hupper ∩ craciunProjectiveDomain) ∩
-        (radialBoxDiagramTile tileD upper nonnegD nonzeroD hupper ∩ craciunProjectiveDomain) :=
-    ⟨⟨hpC, hdomain⟩, ⟨hpD, hdomain⟩⟩
-  have hpCommon := (congrArg (fun s => p ∈ s) hclip).mp hpBoth
-  have hpBox := radialBoxDiagramTile_subset_box tileC upper nonnegC nonzeroC hupper hpC
-  have hpG : p ∈ radialBoxDiagramTile tileG upper nonnegG nonzeroG hupper := by
+        (radialBoxDiagramTile tileD upper nonnegD nonzeroD hupper ∩ craciunProjectiveDomain) →
+      ∃ x, x ∈ tileG ∧ ∃ s : ℝ, 0 ≤ s ∧ p = s • x := by
+    intro p hp
+    have hpBoth : p ∈
+        (radialBoxDiagramTile tileC upper nonnegC nonzeroC hupper ∩ craciunProjectiveDomain) ∩
+          (radialBoxDiagramTile tileD upper nonnegD nonzeroD hupper ∩ craciunProjectiveDomain) := hp
+    have hpCommon := (congrArg (fun s => p ∈ s) hclip).mp hpBoth
     rcases (mem_radialBoxDiagramTile_iff_exists_source_ray (tileC ∩ tileD) upper
-        (fun x hx i => nonnegC x hx.1 i) (fun x hx => nonzeroC x hx.1) hupper).1 hpCommon.1 with
-      ⟨x, hx, s, hs, hpx, _⟩
+        (fun x hx i => nonnegC x hx.1 i) (fun x hx => nonzeroC x hx.1) hupper).1
+        hpCommon.1 with ⟨x, hx, s, hs, hpx, _⟩
     have hxG : x ∈ tileG := by
       have hfaceAt := congrArg (fun S => x ∈ S) htileFace
       exact hfaceAt.mp hx
-    exact radialBoxDiagramTile_contains_of_ray_in_box tileG upper nonnegG nonzeroG hupper
-      hxG hs hpx (fun i => (hpBox i).2)
+    exact ⟨x, hxG, s, hs, hpx⟩
+  refine ⟨G, hG, hGC, hGD, hrankC, hrankD, hproper, hsource, ?_⟩
+  intro y hy
+  rcases hy with ⟨p, ⟨⟨hpC, hdomain⟩, ⟨hpD, _⟩⟩, rfl⟩
+  obtain ⟨x, hxG, s, hs, hpx⟩ := hsource p ⟨⟨hpC, hdomain⟩, ⟨hpD, hdomain⟩⟩
+  have hpBox := radialBoxDiagramTile_subset_box tileC upper nonnegC nonzeroC hupper hpC
+  have hpG := radialBoxDiagramTile_contains_of_ray_in_box tileG upper nonnegG nonzeroG hupper
+    hxG hs hpx (fun i => (hpBox i).2)
   have hsubsetG := craciunProjectiveArrangementTile_radialProjection_subset
     upper (fanNormalSet F hFdual) hupper ⟨G, hG⟩
   exact hsubsetG ⟨p, ⟨hpG, hdomain⟩, rfl⟩
