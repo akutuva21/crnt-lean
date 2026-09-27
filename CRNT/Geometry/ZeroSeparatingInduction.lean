@@ -612,45 +612,41 @@ theorem radialBoxDiagramTile_intersection_clip_eq {n : ℕ}
     (hB_nonzero : ∀ x ∈ tileB, x ≠ 0)
     (hB_anchor : ∀ x ∈ tileB, x anchor = 1)
     (hupper : ∀ i, 0 < upper i)
-    (hA_nonempty : tileA.Nonempty) (hB_nonempty : tileB.Nonempty)
     (horigin : (0 : Fin n → ℝ) ∉ domain) :
     (radialBoxDiagramTile tileA upper hA_nonnegative hA_nonzero hupper ∩ domain) ∩
       (radialBoxDiagramTile tileB upper hB_nonnegative hB_nonzero hupper ∩ domain) =
     radialBoxDiagramTile (tileA ∩ tileB) upper
       (fun x hx i => hA_nonnegative x hx.1 i)
       (fun x hx => hA_nonzero x hx.1) hupper ∩ domain := by
-  have hoverlap := radialBoxDiagramTile_intersection_eq tileA tileB upper anchor
-    hA_nonnegative hA_nonzero hA_anchor hB_nonnegative hB_nonzero hB_anchor hupper
-    hA_nonempty hB_nonempty
   ext p
   constructor
   · intro hp
-    have hpAB : p ∈
-        radialBoxDiagramTile tileA upper hA_nonnegative hA_nonzero hupper ∩
-          radialBoxDiagramTile tileB upper hB_nonnegative hB_nonzero hupper :=
-      ⟨hp.1.1, hp.2.1⟩
-    have hpCommonOrZero : p ∈
-        radialBoxDiagramTile (tileA ∩ tileB) upper
-          (fun x hx i => hA_nonnegative x hx.1 i)
-          (fun x hx => hA_nonzero x hx.1) hupper ∪ {0} := by
-      rw [← hoverlap]
-      exact hpAB
-    rcases hpCommonOrZero with hpCommon | hpzero
-    · exact ⟨hpCommon, hp.1.2⟩
+    obtain hpzero | ⟨x, hxA, hxB, s, hspos, _, hpx⟩ :=
+      radialBoxDiagramTile_overlap_source tileA tileB upper anchor
+        hA_nonnegative hA_nonzero hA_anchor hB_nonnegative hB_nonzero hB_anchor
+        hupper p ⟨hp.1.1, hp.2.1⟩
     · subst p
       exact False.elim (horigin hp.1.2)
-  · intro hp
-    have hpCommonOrZero : p ∈
-        radialBoxDiagramTile (tileA ∩ tileB) upper
+    · have hbox := radialBoxDiagramTile_subset_box tileA upper hA_nonnegative
+        hA_nonzero hupper hp.1.1
+      have hpcommon : p ∈ radialBoxDiagramTile (tileA ∩ tileB) upper
           (fun x hx i => hA_nonnegative x hx.1 i)
-          (fun x hx => hA_nonzero x hx.1) hupper ∪ {0} :=
-      Set.mem_union_left _ hp.1
-    have hpAB : p ∈
-        radialBoxDiagramTile tileA upper hA_nonnegative hA_nonzero hupper ∩
-          radialBoxDiagramTile tileB upper hB_nonnegative hB_nonzero hupper := by
-      rw [hoverlap]
-      exact hpCommonOrZero
-    exact ⟨⟨hpAB.1, hp.2⟩, ⟨hpAB.2, hp.2⟩⟩
+          (fun x hx => hA_nonzero x hx.1) hupper :=
+        radialBoxDiagramTile_contains_of_ray_in_box (tileA ∩ tileB) upper
+          (fun x hx i => hA_nonnegative x hx.1 i)
+          (fun x hx => hA_nonzero x hx.1) hupper
+          (x := x) (p := p) (s := s) ⟨hxA, hxB⟩ hspos.le hpx
+          (fun i => (hbox i).2)
+      exact ⟨hpcommon, hp.1.2⟩
+  · intro hp
+    rcases hp.1 with ⟨x, hx, hsegment⟩
+    have hpA : p ∈ radialBoxDiagramTile tileA upper hA_nonnegative hA_nonzero hupper := by
+      refine ⟨x, hx.1, ?_⟩
+      simpa [radialBoxRaySegment] using hsegment
+    have hpB : p ∈ radialBoxDiagramTile tileB upper hB_nonnegative hB_nonzero hupper := by
+      refine ⟨x, hx.2, ?_⟩
+      simpa [radialBoxRaySegment] using hsegment
+    exact ⟨⟨hpA, hp.2⟩, ⟨hpB, hp.2⟩⟩
 
 /-- A shared point of two clipped radial tiles has a unique common lower-dimensional source
 point. Clipping away the origin turns the seam identity into the tile-to-face incidence datum
@@ -811,8 +807,7 @@ theorem radialBoxDiagramTile_projectiveDomain_intersection_eq {n : ℕ} [NeZero 
         (fun x hx => hA_nonzero x hx.1) hupper ∩ craciunProjectiveDomain := by
   exact radialBoxDiagramTile_intersection_clip_eq tileA tileB upper anchor
     craciunProjectiveDomain hA_nonnegative hA_nonzero hA_anchor
-    hB_nonnegative hB_nonzero hB_anchor hupper hA_nonempty hB_nonempty
-    craciunProjectiveDomain_origin_not_mem
+    hB_nonnegative hB_nonzero hB_anchor hupper craciunProjectiveDomain_origin_not_mem
 
 /-- A shared point of radial tiles clipped to `D^P_n` comes from a shared source point in the
 same normalized projective domain. With the chart anchor `X_2 = 1`, the order inequalities on the
