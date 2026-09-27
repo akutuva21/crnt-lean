@@ -321,6 +321,65 @@ theorem radialBoxDiagramTile_overlap_source {n : ℕ}
     refine Or.inr ⟨x, hxA, hxy ▸ hyB, s, hspos, ?_, hpx⟩
     simpa [hxy] using hst
 
+/-- Craciun v3, §8 Step 1: radial extensions of two boundary-diagram tiles overlap exactly on
+the radial extension of their common diagram, together with the origin. The origin is shared by
+all radial tiles; away from it, the affine chart normalization makes the source ray unique. This
+is the exact seam identity needed to glue neighboring boundary tiles after their extension to the
+blue-box boundary. -/
+theorem radialBoxDiagramTile_intersection_eq {n : ℕ}
+    (tileA tileB : Set (Fin n → ℝ)) (upper : Fin n → ℝ) (anchor : Fin n)
+    (hA_nonnegative : ∀ x ∈ tileA, ∀ i, 0 ≤ x i)
+    (hA_nonzero : ∀ x ∈ tileA, x ≠ 0)
+    (hA_anchor : ∀ x ∈ tileA, x anchor = 1)
+    (hB_nonnegative : ∀ x ∈ tileB, ∀ i, 0 ≤ x i)
+    (hB_nonzero : ∀ x ∈ tileB, x ≠ 0)
+    (hB_anchor : ∀ x ∈ tileB, x anchor = 1)
+    (hupper : ∀ i, 0 < upper i)
+    (hA_nonempty : tileA.Nonempty) (hB_nonempty : tileB.Nonempty) :
+    radialBoxDiagramTile tileA upper hA_nonnegative hA_nonzero hupper ∩
+      radialBoxDiagramTile tileB upper hB_nonnegative hB_nonzero hupper =
+    radialBoxDiagramTile (tileA ∩ tileB) upper
+      (fun x hx i => hA_nonnegative x hx.1 i)
+      (fun x hx => hA_nonzero x hx.1) hupper ∪ {0} := by
+  ext p
+  constructor
+  · intro hp
+    rcases radialBoxDiagramTile_overlap_source tileA tileB upper anchor
+        hA_nonnegative hA_nonzero hA_anchor hB_nonnegative hB_nonzero hB_anchor
+        hupper p hp with hpzero | ⟨x, hxA, hxB, s, hspos, hst, rfl⟩
+    · exact Set.mem_union_right _ (Set.mem_singleton_iff.mpr hpzero)
+    · apply Set.mem_union_left
+      refine ⟨x, ⟨hxA, hxB⟩, ?_⟩
+      change ∃ r, 0 ≤ r ∧
+        r ≤ (radialBoxExitData x upper
+          (hA_nonnegative x hxA) (hA_nonzero x hxA) hupper).1 ∧
+          s • x = r • x
+      -- The segment scale and source are unchanged; proof arguments are proposition-valued.
+      refine ⟨s, hspos.le, ?_, rfl⟩
+      simpa using hst
+  · intro hp
+    simp only [Set.mem_union, Set.mem_singleton_iff] at hp
+    rcases hp with hpcommon | hpzero
+    · rcases hpcommon with ⟨x, hx, hpsegment⟩
+      have hpA : p ∈ radialBoxDiagramTile tileA upper hA_nonnegative hA_nonzero hupper := by
+        refine ⟨x, hx.1, ?_⟩
+        simpa [radialBoxRaySegment] using hpsegment
+      have hpB : p ∈ radialBoxDiagramTile tileB upper hB_nonnegative hB_nonzero hupper := by
+        refine ⟨x, hx.2, ?_⟩
+        simpa [radialBoxRaySegment] using hpsegment
+      exact ⟨hpA, hpB⟩
+    · have hp0 : p = 0 := hpzero
+      subst p
+      rcases hA_nonempty with ⟨x, hxA⟩
+      rcases hB_nonempty with ⟨y, hyB⟩
+      constructor
+      · refine ⟨x, hxA, ?_⟩
+        exact ⟨0, le_rfl, (radialBoxExitData_spec x upper
+          (hA_nonnegative x hxA) (hA_nonzero x hxA) hupper).1.le, by simp⟩
+      · refine ⟨y, hyB, ?_⟩
+        exact ⟨0, le_rfl, (radialBoxExitData_spec y upper
+          (hB_nonnegative y hyB) (hB_nonzero y hyB) hupper).1.le, by simp⟩
+
 /-- An open map sends interiors into the interior of the image. -/
 theorem image_interior_subset_interior_image_of_isOpenMap
     {α β : Type*} [TopologicalSpace α] [TopologicalSpace β]
