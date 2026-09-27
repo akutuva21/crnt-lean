@@ -796,8 +796,7 @@ theorem radialBoxDiagramTile_projectiveDomain_intersection_eq {n : ℕ} [NeZero 
     (hB_nonnegative : ∀ x ∈ tileB, ∀ i, 0 ≤ x i)
     (hB_nonzero : ∀ x ∈ tileB, x ≠ 0)
     (hB_anchor : ∀ x ∈ tileB, x anchor = 1)
-    (hupper : ∀ i, 0 < upper i)
-    (hA_nonempty : tileA.Nonempty) (hB_nonempty : tileB.Nonempty) :
+    (hupper : ∀ i, 0 < upper i) :
     (radialBoxDiagramTile tileA upper hA_nonnegative hA_nonzero hupper ∩
       craciunProjectiveDomain) ∩
         (radialBoxDiagramTile tileB upper hB_nonnegative hB_nonzero hupper ∩
@@ -908,6 +907,32 @@ theorem mem_radialBoxDiagramTile_projectiveDomain_iff {n : ℕ} [NeZero n]
     have hp0 : 0 < p 0 := lt_of_lt_of_le zero_lt_one (hpDomain.1 0)
     exact ⟨radialBoxDiagramTile_contains_of_normalized_source diagramTile upper 0
       hdiagramNonnegative hdiagramNonzero hupper hp0 hsource hpupper, hpDomain⟩
+
+/-- On the normalized chart `X_2 = 1`, an overlap of two restricted radial tiles projects exactly
+to the overlap of their source diagram tiles. This is the seam-to-face incidence required when
+the lower-dimensional boundary diagram is assembled from adjacent patches (Craciun v3, §8 Step 1).
+-/
+theorem radialBoxDiagramTile_projectiveDomain_overlap_normalized_source {n : ℕ} [NeZero n]
+    (tileA tileB : Set (Fin n → ℝ)) (upper : Fin n → ℝ)
+    (hA_nonnegative : ∀ x ∈ tileA, ∀ i, 0 ≤ x i)
+    (hA_nonzero : ∀ x ∈ tileA, x ≠ 0)
+    (hA_anchor : ∀ x ∈ tileA, x 0 = 1)
+    (hB_nonnegative : ∀ x ∈ tileB, ∀ i, 0 ≤ x i)
+    (hB_nonzero : ∀ x ∈ tileB, x ≠ 0)
+    (hB_anchor : ∀ x ∈ tileB, x 0 = 1)
+    (hupper : ∀ i, 0 < upper i) {p : Fin n → ℝ}
+    (hp : p ∈
+      (radialBoxDiagramTile tileA upper hA_nonnegative hA_nonzero hupper ∩
+        craciunProjectiveDomain) ∩
+      (radialBoxDiagramTile tileB upper hB_nonnegative hB_nonzero hupper ∩
+        craciunProjectiveDomain)) :
+    (fun i => p i / p 0) ∈ tileA ∩ tileB := by
+  rw [radialBoxDiagramTile_projectiveDomain_intersection_eq tileA tileB upper 0
+    hA_nonnegative hA_nonzero hA_anchor hB_nonnegative hB_nonzero hB_anchor hupper] at hp
+  exact (mem_radialBoxDiagramTile_projectiveDomain_iff (tileA ∩ tileB) upper
+    (fun x hx i => hA_nonnegative x hx.1 i)
+    (fun x hx => hA_nonzero x hx.1)
+    (fun x hx => hA_anchor x hx.1) hupper).mp hp |>.2.2
 
 /-- Craciun v3, §8 Step 1: extending a lower-dimensional diagram covered by patches gives the
 union of the radial boundary tiles obtained from those patches. This is the cover-assembly
