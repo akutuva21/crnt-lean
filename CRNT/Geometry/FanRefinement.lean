@@ -2441,6 +2441,132 @@ theorem exists_compactOneBitFiberPatchCover_of_euclideanHyperplaneArrangement {n
     cover.exists_restricted_tile_basepoint_incidence ⟨C, k⟩ hne
   exact ⟨x, hx, htileLabel hprojected⟩
 
+/-- Intersect a small projected-patch cover with the central arrangement of a fan. The product
+labels retain both properties needed by Craciun's next fill: each tile remains small enough for its
+local wall chart, and its first coordinate names the actual fan cell whose common faces order the
+recursive seam tasks. -/
+noncomputable def exists_small_fan_labeledOneBitFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
+    (facePatch : Set (Fin (n + 1) → ℝ)) (hfaceCompact : IsCompact facePatch)
+    (base : Set (Fin n → ℝ)) (smallTile : ι → Set (Fin n → ℝ))
+    (hsmallCover : base = ⋃ i, smallTile i)
+    (hsmallCompact : ∀ i, IsCompact (smallTile i))
+    (hsmallDisjoint : ∀ i j, i ≠ j →
+      interior (smallTile i) ∩ interior (smallTile j) = ∅)
+    (lower upper : (Fin n → ℝ) → ℝ) (epsilon : ℝ)
+    (hlower : Continuous lower) (hupper : Continuous upper)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) (hepsilon : 0 < epsilon)
+    (hfaceBand : facePatch ⊆
+      projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y)))
+    (F : Fan (EuclideanSpace ℝ (Fin n))) (hF : IsPolyhedralFan F)
+    (hFdual : HasDualFGCells F)
+    [Fintype {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)}] :
+    CompactOneBitFiberPatchCover facePatch base
+      (fun p : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+        C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)} × ι =>
+          euclideanHyperplaneArrangementBaseTile base F hFdual p.1 ∩ smallTile p.2)
+      lower upper epsilon := by
+  classical
+  let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
+  let baseE : Set (EuclideanSpace ℝ (Fin n)) := e.symm '' base
+  let fanTile := euclideanHyperplaneArrangementBaseTile base F hFdual
+  let productTile : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)} × ι → Set (Fin n → ℝ) :=
+    fun p => fanTile p.1 ∩ smallTile p.2
+  have hfanCovers (y : EuclideanSpace ℝ (Fin n)) :
+      y ∈ ⋃ C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual),
+        (C : Set (EuclideanSpace ℝ (Fin n))) := by
+    rw [hyperplaneArrangementFamily_covers (fanNormalSet F hFdual)]
+    simp
+  have hbaseCover : base = ⋃ p, productTile p := by
+    ext x
+    constructor
+    · intro hx
+      rcases Set.mem_iUnion.mp (hfanCovers (e.symm x)) with ⟨C, hCmem⟩
+      rcases Set.mem_iUnion.mp hCmem with ⟨hC, hxC⟩
+      rcases Set.mem_iUnion.mp (show x ∈ ⋃ i, smallTile i from by rw [← hsmallCover]; exact hx)
+        with ⟨i, hxi⟩
+      refine Set.mem_iUnion.mpr ⟨(⟨C, hC⟩, i), ?_⟩
+      change x ∈ fanTile ⟨C, hC⟩ ∩ smallTile i
+      refine ⟨?_, hxi⟩
+      change x ∈ e '' (baseE ∩ (C : Set (EuclideanSpace ℝ (Fin n))))
+      exact ⟨e.symm x, ⟨⟨x, hx, rfl⟩, hxC⟩, e.apply_symm_apply x⟩
+    · intro hx
+      rcases Set.mem_iUnion.mp hx with ⟨p, hp⟩
+      rcases hp.1 with ⟨y, hy, hxy⟩
+      rcases hy.1 with ⟨x', hx', hxy'⟩
+      have hxy'' : e y = x' := by
+        calc
+          e y = e (e.symm x') := congrArg e hxy'.symm
+          _ = x' := e.apply_symm_apply x'
+      have hxEq : x = x' := hxy.symm.trans hxy''
+      exact hxEq.symm ▸ hx'
+  have hbaseCompact : IsCompact base := by
+    rw [hsmallCover]
+    exact isCompact_iUnion hsmallCompact
+  have hbaseEcompact : IsCompact baseE := hbaseCompact.image e.symm.continuous
+  have hpatch := compactSet_hyperplaneArrangement_patchCover baseE hbaseEcompact hF hFdual
+  rcases hpatch with ⟨hcompactFanTile, _, _, _, hfanInteriors⟩
+  have hproductCompact : ∀ p, IsCompact (productTile p) := by
+    intro p
+    exact ((hcompactFanTile p.1.1 p.1.2).image e.continuous).inter (hsmallCompact p.2)
+  have hproductDisjoint : ∀ p q, p ≠ q →
+      interior (productTile p) ∩ interior (productTile q) = ∅ := by
+    intro p q hpq
+    have hfanP : interior (productTile p) ⊆ interior (fanTile p.1) :=
+      interior_mono Set.inter_subset_left
+    have hfanQ : interior (productTile q) ⊆ interior (fanTile q.1) :=
+      interior_mono Set.inter_subset_left
+    by_cases hcells : p.1 = q.1
+    · have hsmallne : p.2 ≠ q.2 := by
+        intro heq
+        apply hpq
+        exact Prod.ext hcells heq
+      have hs := hsmallDisjoint p.2 q.2 hsmallne
+      ext x
+      simp only [Set.mem_inter_iff, Set.mem_empty_iff_false, iff_false]
+      intro hx
+      have hxsmall : x ∈ interior (smallTile p.2) ∩ interior (smallTile q.2) := by
+        refine ⟨?_, ?_⟩
+        · exact interior_mono Set.inter_subset_right hx.1
+        · exact interior_mono Set.inter_subset_right hx.2
+      rw [hs] at hxsmall
+      exact hxsmall
+    · have hconeNe : p.1.1 ≠ q.1.1 := by
+        intro hEq
+        apply hcells
+        exact Subtype.ext hEq
+      have hf := hfanInteriors p.1.1 p.1.2 q.1.1 q.1.2 hconeNe
+      let tileP : Set (EuclideanSpace ℝ (Fin n)) := baseE ∩ (p.1.1 : Set _)
+      let tileQ : Set (EuclideanSpace ℝ (Fin n)) := baseE ∩ (q.1.1 : Set _)
+      have hpEq : fanTile p.1 = e '' tileP := rfl
+      have hqEq : fanTile q.1 = e '' tileQ := rfl
+      have hpPre : e ⁻¹' (e '' tileP) = tileP := by ext y; simp
+      have hqPre : e ⁻¹' (e '' tileQ) = tileQ := by ext y; simp
+      ext x
+      simp only [Set.mem_inter_iff, Set.mem_empty_iff_false, iff_false]
+      intro hx
+      have hyP : e.symm x ∈ interior tileP := by
+        have hpre : e.symm x ∈ e ⁻¹' interior (e '' tileP) := by
+          change e (e.symm x) ∈ interior (e '' tileP)
+          simpa [hpEq] using hfanP hx.1
+        have hpre' := (preimage_interior_subset_interior_preimage (t := e '' tileP)
+          e.continuous) hpre
+        simpa [hpPre] using hpre'
+      have hyQ : e.symm x ∈ interior tileQ := by
+        have hpre : e.symm x ∈ e ⁻¹' interior (e '' tileQ) := by
+          change e (e.symm x) ∈ interior (e '' tileQ)
+          simpa [hqEq] using hfanQ hx.2
+        have hpre' := (preimage_interior_subset_interior_preimage (t := e '' tileQ)
+          e.continuous) hpre
+        simpa [hqPre] using hpre'
+      have hboth : e.symm x ∈ interior tileP ∩ interior tileQ := ⟨hyP, hyQ⟩
+      rw [hf] at hboth
+      exact hboth
+  exact compactOneBitFiberPatchCover_of_compactBand facePatch hfaceCompact base productTile
+    lower upper epsilon hbaseCover hproductCompact hproductDisjoint hlower hupper horder
+    hepsilon hfaceBand
+
 /-- The projected-fan version of the one-bit cover construction. Start with the fan one dimension
 higher, take the finite arrangement refinement of its last-coordinate image family, and use that
 refinement to label every compact projected tile by an actual projected coarse cone. This is the

@@ -646,7 +646,10 @@ theorem Network.exists_compactProjectiveRadialWallSelection
           ψ '' (facePatch ∩ ZeroSeparatingInduction.projectionFiberSubdivisionTile
             (baseTile p.1) (fun _ => 0) (fun _ => upper (Fin.last n)) p.2),
           ε < ⟪(z wall).1,
-            toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ) := by
+            toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ) ∧
+      (ZeroSeparatingInduction.forgetLastCoordinate n '' facePatch = ⋃ p, baseTile p) ∧
+      (∀ p, IsCompact (baseTile p)) ∧
+      (∀ p q, p ≠ q → interior (baseTile p) ∩ interior (baseTile q) = ∅) := by
   classical
   let facePatch : Set (Fin (n + 1) → ℝ) :=
     ⋃ k, ZeroSeparatingInduction.radialBoxDiagramTile (diagramTile k) upper
@@ -681,7 +684,10 @@ theorem Network.exists_compactProjectiveRadialWallSelection
       hdiagramAnchor hdiagramCompact hupper hεtile heta hdiagramCoversNormalizedDomain
       hprojectedInteriorsDisjoint
   let cover := coverData.1
-  have hsmall := coverData.2
+  have hsmall := coverData.2.1
+  have hbaseCover := coverData.2.2.1
+  have hbaseTileCompact := coverData.2.2.2.1
+  have hbaseTileDisjoint := coverData.2.2.2.2
   have himage : ∀ p : Σ i : ι × Fin m, Fin (cover.tiling.subdivisionCount + 1),
       ψ '' (facePatch ∩ ZeroSeparatingInduction.projectionFiberSubdivisionTile
         (baseTile p.1) (fun _ => 0) (fun _ => upper (Fin.last n)) p.2) ⊆ K := by
@@ -723,7 +729,7 @@ theorem Network.exists_compactProjectiveRadialWallSelection
       hprojectedSmall hendpointVariation (by linarith) hbudget hδcoord
   dsimp only
   exact ⟨δcoord, hδcoord, m, baseTile, cover, z, t, ε, selected, hε,
-    hnone, hsome, hselected⟩
+    hnone, hsome, hselected, hbaseCover, hbaseTileCompact, hbaseTileDisjoint⟩
 
 /-- A selected inward wall on a compact one-bit tile produces a differentiable local barrier.
 Compactness lets its affine offset dominate the finite tail of other walls, and the existing
@@ -992,7 +998,7 @@ theorem Network.exists_compactProjectiveRadialBarrierAtlas
           D (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ 0) := by
   dsimp only
   obtain ⟨δcoord, hδcoord, m, baseTile, cover, z, t, ε, selected,
-      hε, hnone, hsome, hselected⟩ :=
+      hε, hnone, hsome, hselected, _, _, _⟩ :=
     N.exists_compactProjectiveRadialWallSelection κ hxs hcb diagramTile upper ψ hψ
       hdiagramNonnegative hdiagramNonzero hdiagramAnchor hdiagramCompact hupper
       hdiagramCoversNormalizedDomain hprojectedInteriorsDisjoint hfaceNonempty hpositive hnotcb
@@ -1144,7 +1150,7 @@ theorem Network.exists_compactProjectiveRadialRestrictedBarrierAtlas
           D (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ 0) := by
   dsimp only
   obtain ⟨δcoord, hδcoord, m, baseTile, cover, z, t, ε, selected,
-      hε, _, hlabels, hselected⟩ :=
+      hε, _, hlabels, hselected, _, _, _⟩ :=
     N.exists_compactProjectiveRadialWallSelection κ hxs hcb diagramTile upper ψ hψ
       hdiagramNonnegative hdiagramNonzero hdiagramAnchor hdiagramCompact hupper
       hdiagramCoversNormalizedDomain hprojectedInteriorsDisjoint hfaceNonempty hpositive hnotcb

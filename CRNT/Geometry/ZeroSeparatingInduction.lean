@@ -5740,7 +5740,13 @@ noncomputable def compactProjectiveRadialFamily_smallPatchCover_refiningDiagramT
           (⋃ k, radialBoxDiagramTile (diagramTile k) upper
             (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩ craciunProjectiveDomain))
         baseTile (fun _ => 0) (fun _ => upper (Fin.last n)) epsilon //
-        (∀ p a, a ∈ baseTile p → ∀ b, b ∈ baseTile p → dist a b < eta) } := by
+        (∀ p a, a ∈ baseTile p → ∀ b, b ∈ baseTile p → dist a b < eta) ∧
+        (forgetLastCoordinate n ''
+          (⋃ k, radialBoxDiagramTile (diagramTile k) upper
+            (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩ craciunProjectiveDomain)) =
+          ⋃ p, baseTile p ∧
+        (∀ p, IsCompact (baseTile p)) ∧
+        (∀ p q, p ≠ q → interior (baseTile p) ∩ interior (baseTile q) = ∅) } := by
   classical
   let radialPatch : ι → Set (Fin (n + 1) → ℝ) := fun k =>
     radialBoxDiagramTile (diagramTile k) upper
@@ -5851,7 +5857,8 @@ noncomputable def compactProjectiveRadialFamily_smallPatchCover_refiningDiagramT
   have hsmallRefined : ∀ p a, a ∈ baseTile p → ∀ b, b ∈ baseTile p → dist a b < eta := by
     intro p a ha b hb
     exact hsmall p.2 a ha.2 b hb.2
-  exact ⟨m, baseTile, ⟨cover, hsmallRefined⟩⟩
+  exact ⟨m, baseTile,
+    ⟨cover, hsmallRefined, hbaseCover, hbaseTileCompact, hbaseTileDisjoint⟩⟩
 
 /-- Craciun v3, §8 Step 1: restrict a compact one-bit blueprint to a closed projective domain by
 intersecting every tile patch with that domain. The clipped family still covers the clipped face,
