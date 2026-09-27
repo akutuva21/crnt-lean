@@ -1440,6 +1440,117 @@ theorem Network.exists_restrictedOneBitFiberPatch_finite_overlap_glue
   exact ⟨offset, N.restrictedOneBitFiberPatch_finite_overlap_glue
     κ cover domain hdomain ψ z selected offset tailHead tail p ps hp hps hatlas⟩
 
+/-- Craciun v3, §8 Step 2: if a lower-dimensional point lies on the common endpoint graph and
+the listed tile labels are incident to it, the finite smooth maximum of their barriers descends
+along the mass-action field at the lifted seam point. This turns the projected seam incidence
+into the finite-face compatibility needed by the recursive fill. -/
+theorem Network.restrictedOneBitFiberPatch_finite_seam_glue
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base baseTile lower upper epsilon)
+    (domain : Set (Fin (n + 1) → ℝ)) (hdomain : IsClosed domain)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (selected : (Σ i : ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)) → Option K)
+    (offset : (Σ i : ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)) → ℝ)
+    (tailHead : (EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)
+    (tail : List ((EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ))
+    (hatlas : ∀ r q, q ∈ ψ '' ((facePatch ∩ domain) ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile r.1) lower upper r.2) →
+      ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothWallList
+            ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+            (tailHead :: tail)) D q ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ 0)
+    (i : ι) (k : Fin (cover.tiling.subdivisionCount))
+    (y : Fin n → ℝ) (horder : ∀ y ∈ base, lower y ≤ upper y)
+    (hy : y ∈ baseTile i)
+    (hgraph : CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+      lower upper k.succ.castSucc y ∈ facePatch ∩ domain)
+    (ps : List (Σ j : ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)))
+    (hincident : ∀ r ∈ ps, y ∈ baseTile r.1 ∧
+      (r.2 = k.castSucc ∨ r.2 = k.succ)) :
+    ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+      HasFDerivAt
+        (SmoothBarrierGluing.smoothMaxList
+          (SmoothBarrierGluing.smoothWallList
+            ((selected ⟨i, k.castSucc⟩).elim tailHead.1
+              (fun wall => innerSL ℝ (z wall).1), offset ⟨i, k.castSucc⟩)
+            (tailHead :: tail))
+          (ps.map (fun r => SmoothBarrierGluing.smoothWallList
+            ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+            (tailHead :: tail)))) D
+        (ψ (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+          lower upper k.succ.castSucc y)) ∧
+      D (toEuclid (N.massActionVectorField κ (toEuclid.symm
+        (ψ (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+          lower upper k.succ.castSucc y))))) ≤ 0 := by
+  let restricted := cover.restrict_to_closedDomain domain hdomain
+  let x := CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+    lower upper k.succ.castSucc y
+  let p : Σ j : ι, Fin (restricted.tiling.subdivisionCount + 1) := ⟨i, k.castSucc⟩
+  have horderPair (j l : ι) (z₀ : Fin n → ℝ)
+      (hz₀ : z₀ ∈ baseTile j ∩ baseTile l) : lower z₀ ≤ upper z₀ :=
+    horder z₀ (cover.baseTile_subset j hz₀.1)
+  have hrootSeam := restricted.adjacent_base_tiles_share_seam i i
+    (fun z₀ hz₀ => horderPair i i z₀ hz₀) k
+  have hrootGraph : x ∈ (facePatch ∩ domain) ∩
+      (fun z₀ : Fin n → ℝ =>
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+          lower upper k.succ.castSucc z₀) '' (baseTile i ∩ baseTile i) :=
+    ⟨hgraph, y, ⟨hy, hy⟩, rfl⟩
+  have hrootAt := congrArg (fun A : Set (Fin (n + 1) → ℝ) => x ∈ A) hrootSeam
+  have hpX := hrootAt.mpr hrootGraph
+  have hp : ψ x ∈ ψ '' ((facePatch ∩ domain) ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile i) lower upper k.castSucc) :=
+    ⟨x, ⟨hpX.1.1, hpX.1.2⟩, rfl⟩
+  have hps' : ∀ r ∈ ps, ψ x ∈ ψ '' ((facePatch ∩ domain) ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile r.1) lower upper r.2) := by
+    intro r hr
+    rcases hincident r hr with ⟨hyr, hside⟩
+    have hoverlap : x ∈ (facePatch ∩ domain) ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile r.1) lower upper r.2 := by
+      rcases hside with hlow | hhigh
+      · have hseam := restricted.adjacent_base_tiles_share_seam r.1 i
+          (fun z₀ hz₀ => horderPair r.1 i z₀ hz₀) k
+        have hgraph' : x ∈ (facePatch ∩ domain) ∩
+            (fun z₀ : Fin n → ℝ =>
+              CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+                lower upper k.succ.castSucc z₀) '' (baseTile r.1 ∩ baseTile i) :=
+          ⟨hgraph, y, ⟨hyr, hy⟩, rfl⟩
+        have hseamAt := congrArg (fun A : Set (Fin (n + 1) → ℝ) => x ∈ A) hseam
+        have hmem := hseamAt.mpr hgraph'
+        refine ⟨hmem.1.1, ?_⟩
+        rw [hlow]
+        exact hmem.1.2
+      · have hseam := restricted.adjacent_base_tiles_share_seam i r.1
+          (fun z₀ hz₀ => horderPair i r.1 z₀ hz₀) k
+        have hgraph' : x ∈ (facePatch ∩ domain) ∩
+            (fun z₀ : Fin n → ℝ =>
+              CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+                lower upper k.succ.castSucc z₀) '' (baseTile i ∩ baseTile r.1) :=
+          ⟨hgraph, y, ⟨hy, hyr⟩, rfl⟩
+        have hseamAt := congrArg (fun A : Set (Fin (n + 1) → ℝ) => x ∈ A) hseam
+        have hmem := hseamAt.mpr hgraph'
+        refine ⟨hmem.2.1, ?_⟩
+        rw [hhigh]
+        exact hmem.2.2
+    exact ⟨x, hoverlap, rfl⟩
+  exact N.restrictedOneBitFiberPatch_finite_overlap_glue
+    κ cover domain hdomain ψ z selected offset tailHead tail p ps hp hps' hatlas
+
 /-- End-to-end local atlas step: a compact wall-chart cover selects one inward wall on each
 nonempty one-bit patch, and the selected barriers then glue over any finite clipped common face.
 This composes the compact-chart-to-tile argument with Craciun v3's restricted blueprint step. -/
