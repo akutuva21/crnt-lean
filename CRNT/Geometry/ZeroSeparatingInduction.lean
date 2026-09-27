@@ -385,6 +385,108 @@ theorem isCompact_zeroBitPreBlueprintNeighborhood {n : ℕ}
     hbase.isClosed.preimage hprojection
   exact hthick.inter_right hclosed
 
+/-- The recursively assembled zero-bit pre-blueprint along every projection stage of a face
+chain. At each step it thickens the current face by the binary-prefix fiber and restricts it to
+the previously constructed neighborhood of its projection, exactly as in Craciun v3, §7.3. -/
+def CoordinateProjectedFaceChain.preBlueprintNeighborhood {n : ℕ}
+    (chain : CoordinateProjectedFaceChain n) (epsilon : List Bool → ℝ)
+    (word : List Bool) : (k : ℕ) → Set (Fin k → ℝ)
+  | 0 => chain.face 0
+  | k + 1 => if hk : k + 1 ≤ n then
+      let j : Fin n := ⟨k, by omega⟩
+      zeroBitPreBlueprintNeighborhood (chain.face j.succ)
+        (chain.preBlueprintNeighborhood epsilon word k) epsilon
+        (word.take (k + 1))
+    else Set.univ
+termination_by k => k
+
+/-- Every projected face lies inside its recursively assembled pre-blueprint when all widths are
+nonnegative. This is the containment invariant passed from one projection dimension to the next. -/
+theorem CoordinateProjectedFaceChain.face_subset_preBlueprintNeighborhood {n : ℕ}
+    (chain : CoordinateProjectedFaceChain n) (epsilon : List Bool → ℝ)
+    (word : List Bool) (hepsilon : ∀ p, 0 ≤ epsilon p) :
+    ∀ k (hk : k ≤ n),
+      chain.face ⟨k, by omega⟩ ⊆ chain.preBlueprintNeighborhood epsilon word k := by
+  intro k
+  induction k with
+  | zero =>
+      intro hk
+      simp only [CoordinateProjectedFaceChain.preBlueprintNeighborhood]
+      exact Set.Subset.rfl
+  | succ k ih =>
+      intro hk
+      let j : Fin n := ⟨k, by omega⟩
+      have hproject : ∀ x ∈ chain.face j.succ,
+          forgetLastCoordinate k x ∈ chain.face j.castSucc := by
+        intro x hx
+        have hximage : forgetLastAffine k x ∈
+            forgetLastAffine k '' chain.face j.succ := ⟨x, hx, rfl⟩
+        rw [chain.projectedFace j] at hximage
+        simpa [forgetLastAffine] using hximage
+      have hbase : chain.face j.castSucc ⊆
+          chain.preBlueprintNeighborhood epsilon word k := by
+        simpa [j] using ih (by omega)
+      have hface : chain.face j.succ ⊆
+          zeroBitPreBlueprintNeighborhood (chain.face j.succ)
+            (chain.preBlueprintNeighborhood epsilon word k) epsilon (word.take (k + 1)) :=
+        subset_zeroBitPreBlueprintNeighborhood_of_projection
+        (chain.face j.succ) (chain.preBlueprintNeighborhood epsilon word k)
+        epsilon (word.take (k + 1)) hepsilon
+        (fun x hx => hbase (hproject x hx))
+      simpa [CoordinateProjectedFaceChain.preBlueprintNeighborhood, hk, j] using hface
+
+/-- The projection of each recursively built zero-bit neighborhood is exactly the projected face
+thickened by the lower-dimensional fiber, then restricted to the preceding neighborhood. This is
+the projection-compatibility equation in Craciun v3, §7.3, and is the datum needed when adjacent
+dimension stages are assembled. -/
+theorem CoordinateProjectedFaceChain.preBlueprintNeighborhood_projected {n : ℕ}
+    (chain : CoordinateProjectedFaceChain n) (epsilon : List Bool → ℝ)
+    (word : List Bool) (hepsilon : ∀ p, 0 ≤ epsilon p)
+    (k : ℕ) (hk : k < n) :
+    forgetLastCoordinate k '' chain.preBlueprintNeighborhood epsilon word (k + 1) =
+      (chain.face ⟨k, by omega⟩ + binaryWordFiberBox (n := k) epsilon (word.take k)) ∩
+        chain.preBlueprintNeighborhood epsilon word k := by
+  let j : Fin n := ⟨k, hk⟩
+  have hprojectedFace :
+      forgetLastCoordinate k '' chain.face j.succ = chain.face j.castSucc := by
+    simpa [forgetLastAffine] using chain.projectedFace j
+  have hrec : chain.preBlueprintNeighborhood epsilon word (k + 1) =
+      zeroBitPreBlueprintNeighborhood (chain.face j.succ)
+        (chain.preBlueprintNeighborhood epsilon word k) epsilon (word.take (k + 1)) := by
+    simp [CoordinateProjectedFaceChain.preBlueprintNeighborhood, hk, j]
+  rw [hrec]
+  rw [forgetLastCoordinate_image_zeroBitPreBlueprintNeighborhood _ _ _ _ hepsilon,
+    hprojectedFace]
+  congr 1
+  simp [List.take_take, j]
+
+/-- Compact faces give compact recursively assembled pre-blueprints stage by stage. This is the
+compactness input for taking finite chart subcovers of a bounded restricted blueprint. -/
+theorem CoordinateProjectedFaceChain.isCompact_preBlueprintNeighborhood {n : ℕ}
+    (chain : CoordinateProjectedFaceChain n) (epsilon : List Bool → ℝ)
+    (word : List Bool) (hface : ∀ j, IsCompact (chain.face j)) :
+    ∀ k (hk : k ≤ n), IsCompact (chain.preBlueprintNeighborhood epsilon word k) := by
+  intro k
+  induction k with
+  | zero =>
+      intro hk
+      simp only [CoordinateProjectedFaceChain.preBlueprintNeighborhood]
+      change IsCompact (chain.face (⟨0, by omega⟩ : Fin (n + 1)))
+      exact hface _
+  | succ k ih =>
+      intro hk
+      let j : Fin n := ⟨k, by omega⟩
+      have hbase : IsCompact (chain.preBlueprintNeighborhood epsilon word k) := ih (by omega)
+      have hcompact := isCompact_zeroBitPreBlueprintNeighborhood
+        (chain.face j.succ) (chain.preBlueprintNeighborhood epsilon word k)
+        epsilon (word.take (k + 1)) (hface j.succ) hbase
+      have hrec : chain.preBlueprintNeighborhood epsilon word (k + 1) =
+          zeroBitPreBlueprintNeighborhood (chain.face j.succ)
+            (chain.preBlueprintNeighborhood epsilon word k) epsilon (word.take (k + 1)) := by
+        simp [CoordinateProjectedFaceChain.preBlueprintNeighborhood, hk, j]
+      rw [hrec]
+      exact hcompact
+
 /-- The full zero-bit pre-blueprint neighborhood retains the reduced origin-avoidance margin
 whenever every coordinate width in its binary-prefix fiber is bounded by a smaller radius. -/
 theorem zeroBitPreBlueprintNeighborhood_separated {n : ℕ}
