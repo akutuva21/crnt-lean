@@ -642,6 +642,51 @@ bounds by one and monotonicity with the `Fin n` index. -/
 def craciunProjectiveDomain {n : ℕ} : Set (Fin n → ℝ) :=
   {x | (∀ i, 1 ≤ x i) ∧ ∀ i j, i.val ≤ j.val → x i ≤ x j}
 
+/-- Craciun's projective domain is closed, so intersecting blueprint tiles with it preserves the
+compact restricted patches required by the next finite-cover construction. -/
+theorem isClosed_craciunProjectiveDomain {n : ℕ} :
+    IsClosed (craciunProjectiveDomain (n := n)) := by
+  change IsClosed ({x : Fin n → ℝ | ∀ i, 1 ≤ x i} ∩
+    {x : Fin n → ℝ | ∀ i j, i.val ≤ j.val → x i ≤ x j})
+  have hcoords : IsClosed {x : Fin n → ℝ | ∀ i, 1 ≤ x i} := by
+    rw [Set.setOf_forall]
+    exact isClosed_iInter fun i => isClosed_le continuous_const (continuous_apply i)
+  have hordered : IsClosed {x : Fin n → ℝ | ∀ i j, i.val ≤ j.val → x i ≤ x j} := by
+    rw [Set.setOf_forall]
+    apply isClosed_iInter
+    intro i
+    rw [Set.setOf_forall]
+    apply isClosed_iInter
+    intro j
+    by_cases hij : i.val ≤ j.val
+    · have heq : {x : Fin n → ℝ | i.val ≤ j.val → x i ≤ x j} =
+          {x | x i ≤ x j} := by
+        ext x
+        simp [hij]
+      rw [heq]
+      exact isClosed_le (continuous_apply i) (continuous_apply j)
+    · have heq : {x : Fin n → ℝ | i.val ≤ j.val → x i ≤ x j} = Set.univ := by
+        ext x
+        simp [hij]
+      rw [heq]
+      exact isClosed_univ
+  exact hcoords.inter hordered
+
+/-- A compact radial tile remains compact after restriction to `D^P_n`; this is the compactness
+certificate for the restricted boundary tiles in Craciun v3, §8 Step 1. -/
+theorem isCompact_radialBoxDiagramTile_projectiveDomain {n : ℕ}
+    (diagramTile : Set (Fin n → ℝ)) (upper : Fin n → ℝ) (anchor : Fin n)
+    (hdiagramNonnegative : ∀ x ∈ diagramTile, ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ x ∈ diagramTile, x ≠ 0)
+    (hdiagramAnchor : ∀ x ∈ diagramTile, x anchor = 1)
+    (hupper : ∀ i, 0 < upper i) (hdiagramCompact : IsCompact diagramTile) :
+    IsCompact
+      (radialBoxDiagramTile diagramTile upper hdiagramNonnegative hdiagramNonzero hupper ∩
+        craciunProjectiveDomain) := by
+  exact (isCompact_radialBoxDiagramTile_of_isCompact diagramTile upper anchor
+    hdiagramNonnegative hdiagramNonzero hdiagramAnchor hupper hdiagramCompact).inter_right
+      isClosed_craciunProjectiveDomain
+
 /-- The origin is outside Craciun's projective domain because its coordinates are all at least
 one. This discharges the exceptional common-origin term in the radial seam identity. -/
 theorem craciunProjectiveDomain_origin_not_mem {n : ℕ} [NeZero n] :
