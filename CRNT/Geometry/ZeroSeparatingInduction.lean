@@ -870,6 +870,50 @@ theorem radialBoxDiagramTile_projectiveDomain_overlap_source {n : ℕ} [NeZero n
       exact le_of_mul_le_mul_left hscaled hsp
   exact ⟨x, hx, hxDomain, s, hs, hpx⟩
 
+/-- Exact chart characterization of a radial tile after restriction to `D^P_n`: its point lies
+under the blue-box ceiling and its normalization by `X_2` belongs to the source diagram tile.
+This identifies each restricted tile with the projective tile data it must carry into the later
+face-filling induction (Craciun v3, §8 Step 1). -/
+theorem mem_radialBoxDiagramTile_projectiveDomain_iff {n : ℕ} [NeZero n]
+    (diagramTile : Set (Fin n → ℝ)) (upper : Fin n → ℝ)
+    (hdiagramNonnegative : ∀ x ∈ diagramTile, ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ x ∈ diagramTile, x ≠ 0)
+    (hdiagramAnchor : ∀ x ∈ diagramTile, x 0 = 1)
+    (hupper : ∀ i, 0 < upper i) {p : Fin n → ℝ} :
+    p ∈ radialBoxDiagramTile diagramTile upper hdiagramNonnegative hdiagramNonzero hupper ∩
+        craciunProjectiveDomain ↔
+      p ∈ craciunProjectiveDomain ∧ (∀ i, p i ≤ upper i) ∧
+        (fun i => p i / p 0) ∈ diagramTile := by
+  constructor
+  · rintro ⟨hpTile, hpDomain⟩
+    rcases hpTile with ⟨x, hx, ⟨s, hs, hsle, hpx⟩⟩
+    have hbox := radialBoxRaySegment_subset_box x upper
+      (hdiagramNonnegative x hx) (hdiagramNonzero x hx) hupper
+      ⟨s, hs, hsle, hpx⟩
+    have hcoord : ∀ i, p i = s * x i := by
+      intro i
+      have h := congrArg (fun z : Fin n → ℝ => z i) hpx
+      simpa [Pi.smul_apply] using h
+    have hsEq : p 0 = s := by
+      have h := congrArg (fun z : Fin n → ℝ => z 0) hpx
+      simpa [Pi.smul_apply, hdiagramAnchor x hx] using h
+    have hspos : 0 < s := by
+      rw [← hsEq]
+      exact lt_of_lt_of_le zero_lt_one (hpDomain.1 0)
+    have hsourceEq : (fun i => p i / p 0) = x := by
+      funext i
+      rw [hcoord i, hsEq]
+      field_simp [ne_of_gt hspos]
+    refine ⟨hpDomain, ?_, ?_⟩
+    · intro i
+      exact (hbox i).2
+    · rw [hsourceEq]
+      exact hx
+  · rintro ⟨hpDomain, hpupper, hsource⟩
+    have hp0 : 0 < p 0 := lt_of_lt_of_le zero_lt_one (hpDomain.1 0)
+    exact ⟨radialBoxDiagramTile_contains_of_normalized_source diagramTile upper 0
+      hdiagramNonnegative hdiagramNonzero hupper hp0 hsource hpupper, hpDomain⟩
+
 /-- Craciun v3, §8 Step 1: extending a lower-dimensional diagram covered by patches gives the
 union of the radial boundary tiles obtained from those patches. This is the cover-assembly
 identity paired with `radialBoxDiagramTile_intersection_eq`, which describes their seams. -/
