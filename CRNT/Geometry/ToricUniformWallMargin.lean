@@ -1605,6 +1605,72 @@ theorem Network.exists_restrictedOneBitFiberPatchAtlas_pairwise_glue
   exact N.oneBitFiberPatchAtlas_pairwise_glue κ restricted ψ z selected
     tailHead tail offset p r hq hatlas
 
+/-- A compact Craciun radial overlap is a closed clipping domain for the one-bit wall atlas.
+Restricting there retains the simultaneous labels and yields the smooth-max derivative inequality
+on every pair of refined patches over that common face. The compactness input is supplied by
+`craciunProjectiveArrangementRadialOverlap_commonFace`. -/
+theorem Network.exists_projectiveArrangementOverlap_pairwiseBarrierGlue
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {fiberLower fiberUpper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base baseTile fiberLower fiberUpper epsilon)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S)
+    (hψ : Continuous ψ)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (t : Finset K) {ε : ℝ} (hε : 0 < ε)
+    (selected : (Σ i : ι, Fin (cover.tiling.subdivisionCount + 1)) → Option K)
+    (hselected : ∀ p wall, selected p = some wall → wall ∈ t ∧ ∀ q ∈
+      ψ '' (facePatch ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) fiberLower fiberUpper p.2),
+      ε < ⟪(z wall).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ)
+    (hlabels : ∀ p, (facePatch ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) fiberLower fiberUpper p.2).Nonempty →
+      ∃ wall, selected p = some wall)
+    (tailHead : (EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)
+    (tail : List ((EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ))
+    (projectiveUpper : Fin (n + 1) → ℝ)
+    (hprojectiveUpper : ∀ i, 0 < projectiveUpper i)
+    (F : Fan (EuclideanSpace ℝ (Fin n))) (hFdual : FanRefinement.HasDualFGCells F)
+    (C D : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)})
+    (hne : C ≠ D) :
+    ∃ offset : (Σ i : ι, Fin ((cover.restrict_to_closedDomain
+        (FanRefinement.craciunProjectiveArrangementRadialOverlapPatch
+          projectiveUpper hprojectiveUpper F hFdual C D)
+          (FanRefinement.craciunProjectiveArrangementRadialOverlapPatch_isCompact
+            projectiveUpper hprojectiveUpper F hFdual C D hne).isClosed).tiling.subdivisionCount + 1)) → ℝ,
+      ∀ p r q, q ∈ ψ ''
+        (((facePatch ∩ FanRefinement.craciunProjectiveArrangementRadialOverlapPatch
+            projectiveUpper hprojectiveUpper F hFdual C D) ∩
+          CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+            (baseTile p.1) fiberLower fiberUpper p.2) ∩
+         ((facePatch ∩ FanRefinement.craciunProjectiveArrangementRadialOverlapPatch
+            projectiveUpper hprojectiveUpper F hFdual C D) ∩
+          CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+            (baseTile r.1) fiberLower fiberUpper r.2)) →
+        ∃ E : EuclideanSpace ℝ S →L[ℝ] ℝ,
+          HasFDerivAt
+            (SmoothBarrierGluing.smoothMaxF
+              (SmoothBarrierGluing.smoothWallList
+                ((selected p).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset p)
+                (tailHead :: tail))
+              (SmoothBarrierGluing.smoothWallList
+                ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+                (tailHead :: tail))) E q ∧
+          E (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ 0 := by
+  let domain := FanRefinement.craciunProjectiveArrangementRadialOverlapPatch
+    projectiveUpper hprojectiveUpper F hFdual C D
+  let hdomain := (FanRefinement.craciunProjectiveArrangementRadialOverlapPatch_isCompact
+    projectiveUpper hprojectiveUpper F hFdual C D hne).isClosed
+  exact N.exists_restrictedOneBitFiberPatchAtlas_pairwise_glue κ cover domain
+    hdomain ψ hψ z t hε selected hselected hlabels tailHead tail
+
 /-- On a finite common intersection of clipped tiles, the nested smooth maximum of every tile's
 barrier still has a nonincreasing derivative along the mass-action field. This is the finite-face
 compatibility form needed when a lexicographic fill encounters a face incident to more than two

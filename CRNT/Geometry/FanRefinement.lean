@@ -3547,6 +3547,19 @@ theorem craciunProjectiveArrangementRadialOverlap_commonFace {n : ℕ}
               upper (fanNormalSet F hFdual) D hx) hupper ∩ craciunProjectiveDomain) →
         ∃ x, x ∈ craciunProjectiveArrangementTile upper
         (fanNormalSet F hFdual) ⟨G, hG⟩ ∧ ∃ s : ℝ, 0 ≤ s ∧ p = s • x) ∧
+      IsCompact
+        ((radialBoxDiagramTile (craciunProjectiveArrangementTile upper
+            (fanNormalSet F hFdual) C) upper
+            (fun x hx i => craciunProjectiveArrangementTile_nonnegative
+              upper (fanNormalSet F hFdual) C hx i)
+            (fun x hx => craciunProjectiveArrangementTile_nonzero
+              upper (fanNormalSet F hFdual) C hx) hupper ∩ craciunProjectiveDomain) ∩
+          (radialBoxDiagramTile (craciunProjectiveArrangementTile upper
+            (fanNormalSet F hFdual) D) upper
+            (fun x hx i => craciunProjectiveArrangementTile_nonnegative
+              upper (fanNormalSet F hFdual) D hx i)
+            (fun x hx => craciunProjectiveArrangementTile_nonzero
+              upper (fanNormalSet F hFdual) D hx) hupper ∩ craciunProjectiveDomain)) ∧
       IsCompact (forgetLastCoordinate n ''
         ((radialBoxDiagramTile (craciunProjectiveArrangementTile upper
             (fanNormalSet F hFdual) C) upper
@@ -3634,8 +3647,12 @@ theorem craciunProjectiveArrangementRadialOverlap_commonFace {n : ℕ}
   have hcompactD := isCompact_radialBoxDiagramTile_projectiveDomain tileD upper 0
     nonnegD nonzeroD anchorD hupper
       (isCompact_craciunProjectiveArrangementTile upper (fanNormalSet F hFdual) D)
-  refine ⟨G, hG, hGC, hGD, hrankC, hrankD, hproper, hsource, ?_, ?_⟩
-  · exact (hcompactC.inter hcompactD).image
+  have hcompactOverlap : IsCompact
+      ((radialBoxDiagramTile tileC upper nonnegC nonzeroC hupper ∩ craciunProjectiveDomain) ∩
+        (radialBoxDiagramTile tileD upper nonnegD nonzeroD hupper ∩ craciunProjectiveDomain)) :=
+    hcompactC.inter hcompactD
+  refine ⟨G, hG, hGC, hGD, hrankC, hrankD, hproper, hsource, hcompactOverlap, ?_, ?_⟩
+  · exact hcompactOverlap.image
       (forgetLastCoordinate n).continuous_of_finiteDimensional
   · intro y hy
     rcases hy with ⟨p, ⟨⟨hpC, hdomain⟩, ⟨hpD, _⟩⟩, rfl⟩
@@ -3646,6 +3663,44 @@ theorem craciunProjectiveArrangementRadialOverlap_commonFace {n : ℕ}
     have hsubsetG := craciunProjectiveArrangementTile_radialProjection_subset
       upper (fanNormalSet F hFdual) hupper ⟨G, hG⟩
     exact hsubsetG ⟨p, ⟨hpG, hdomain⟩, rfl⟩
+
+/-- The radial blue-box tile clipped to Craciun's ordered projective domain. -/
+noncomputable def craciunProjectiveArrangementRadialPatch {n : ℕ}
+    (upper : Fin (n + 1) → ℝ) (hupper : ∀ i, 0 < upper i)
+    (F : Fan (EuclideanSpace ℝ (Fin n))) (hFdual : HasDualFGCells F)
+    (C : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)}) :
+    Set (Fin (n + 1) → ℝ) :=
+  radialBoxDiagramTile (craciunProjectiveArrangementTile upper
+    (fanNormalSet F hFdual) C) upper
+    (fun x hx i => craciunProjectiveArrangementTile_nonnegative
+      upper (fanNormalSet F hFdual) C hx i)
+    (fun x hx => craciunProjectiveArrangementTile_nonzero
+      upper (fanNormalSet F hFdual) C hx) hupper ∩ craciunProjectiveDomain
+
+/-- The clipped overlap of two radial arrangement patches; its compactness permits restriction of
+the one-bit fiber atlas before passing this shared face to the recursive fill. -/
+noncomputable def craciunProjectiveArrangementRadialOverlapPatch {n : ℕ}
+    (upper : Fin (n + 1) → ℝ) (hupper : ∀ i, 0 < upper i)
+    (F : Fan (EuclideanSpace ℝ (Fin n))) (hFdual : HasDualFGCells F)
+    (C D : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)}) :
+    Set (Fin (n + 1) → ℝ) :=
+  craciunProjectiveArrangementRadialPatch upper hupper F hFdual C ∩
+    craciunProjectiveArrangementRadialPatch upper hupper F hFdual D
+
+/-- The face-recursion witness supplies compactness of the actual clipped radial overlap, so that
+the overlap can be used as a closed restriction domain for the neighboring one-bit patches. -/
+theorem craciunProjectiveArrangementRadialOverlapPatch_isCompact {n : ℕ}
+    (upper : Fin (n + 1) → ℝ) (hupper : ∀ i, 0 < upper i)
+    (F : Fan (EuclideanSpace ℝ (Fin n))) (hFdual : HasDualFGCells F)
+    (C D : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)}) (hne : C ≠ D) :
+    IsCompact (craciunProjectiveArrangementRadialOverlapPatch upper hupper F hFdual C D) := by
+  obtain ⟨_, _, _, _, _, _, _, _, hcompact, _, _⟩ :=
+    craciunProjectiveArrangementRadialOverlap_commonFace upper hupper F hFdual C D hne
+  simpa [craciunProjectiveArrangementRadialOverlapPatch,
+    craciunProjectiveArrangementRadialPatch] using hcompact
 
 /-- Distinct projective arrangement tiles have disjoint projected interiors after radial lifting.
 The result follows because each projection stays in its closed cone and the arrangement cone
