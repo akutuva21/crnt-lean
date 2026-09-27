@@ -2357,6 +2357,17 @@ theorem Network.exists_fanSmallProductTile_restrictedSeam_dependency_and_glue_of
           smallTile j) =
         FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩ ∩
           (smallTile i ∩ smallTile j)) ∧
+      ∃ H : ProperCone ℝ (EuclideanSpace ℝ (Fin n)),
+        ∃ hH : H ∈ FanRefinement.hyperplaneArrangementFamily
+          (FanRefinement.fanNormalSet F hFdual),
+        ((EuclideanSpace.equiv (Fin n) ℝ).symm y ∈ (H : Set _) ∧
+        ∀ r ∈ ps,
+          (H : Set (EuclideanSpace ℝ (Fin n))) ⊆ (r.1.1.1 : Set _) ∧
+          IsExposedFaceOf H r.1.1.1 ∧
+          (H ≠ r.1.1.1 → FanRefinement.OneBitFanFaceDependency
+            (E := EuclideanSpace ℝ (Fin n))
+            (m := (cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount)
+            (H, .strip r.2) (r.1.1.1, .strip r.2))) ∧
       ∃ selected : (Σ q : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
         C ∈ FanRefinement.hyperplaneArrangementFamily
           (FanRefinement.fanNormalSet F hFdual)} × ι,
@@ -2381,6 +2392,7 @@ theorem Network.exists_fanSmallProductTile_restrictedSeam_dependency_and_glue_of
         D' (toEuclid (N.massActionVectorField κ (toEuclid.symm
           (ψ (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
             lower upper k.succ.castSucc y))))) ≤ 0 := by
+  classical
   have hprojectedSmall : ∀ p : Σ q : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
       C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)} × ι,
       Fin (cover.tiling.subdivisionCount + 1),
@@ -2398,7 +2410,48 @@ theorem Network.exists_fanSmallProductTile_restrictedSeam_dependency_and_glue_of
       hgraph ps hincident
   obtain ⟨G, hG, hdependency, hdepC, hdepD, hfaceC, hfaceD, hbase, _⟩ :=
     FanRefinement.fanSmallProductTile_adjacentStrip_seam F hFdual cover horder C D i j k
+  let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
+  let cells : Finset (ProperCone ℝ (EuclideanSpace ℝ (Fin n))) :=
+    (ps.map (fun r => r.1.1.1)).toFinset
+  have hCells : ∀ A ∈ cells, A ∈
+      FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual) := by
+    intro A hA
+    simp only [cells, List.mem_toFinset] at hA
+    rcases List.mem_map.mp hA with ⟨r, hr, rfl⟩
+    exact r.1.1.2
+  have hxCells : ∀ A ∈ cells, e.symm y ∈ (A : Set (EuclideanSpace ℝ (Fin n))) := by
+    intro A hA
+    simp only [cells, List.mem_toFinset] at hA
+    rcases List.mem_map.mp hA with ⟨r, hr, rfl⟩
+    have hybase := (hincident r hr).1.1
+    change y ∈ e '' (e.symm '' base ∩ (r.1.1.1 : Set _)) at hybase
+    rcases hybase with ⟨v, hv, hvy⟩
+    have hsymm : e.symm y = v := by
+      calc
+        e.symm y = e.symm (e v) := by rw [hvy]
+        _ = v := e.symm_apply_apply v
+    rw [hsymm]
+    exact hv.2
+  obtain ⟨H, hH, hHy, hHfaces⟩ :=
+    FanRefinement.hyperplaneArrangementFamily_commonFace_at cells hCells hxCells
+  have hHtasks : ∀ r ∈ ps,
+      (H : Set (EuclideanSpace ℝ (Fin n))) ⊆ (r.1.1.1 : Set _) ∧
+      IsExposedFaceOf H r.1.1.1 ∧
+      (H ≠ r.1.1.1 → FanRefinement.OneBitFanFaceDependency
+        (E := EuclideanSpace ℝ (Fin n))
+        (m := (cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount)
+        (H, .strip r.2) (r.1.1.1, .strip r.2)) := by
+    intro r hr
+    have hrCells : r.1.1.1 ∈ cells := by
+      simpa only [cells, List.mem_toFinset] using
+        (List.mem_map.mpr ⟨r, hr, rfl⟩)
+    obtain ⟨hsubset, hface⟩ := hHfaces r.1.1.1 hrCells
+    refine ⟨hsubset, hface, ?_⟩
+    intro hne
+    exact FanRefinement.OneBitFanFaceDependency.fanFace
+      r.1.1.1 H r.2 hface hne
   exact ⟨G, hG, hdependency, hdepC, hdepD, hfaceC, hfaceD, hbase,
+    H, hH, ⟨(by simpa [e] using hHy), hHtasks⟩,
     selected, offset, _, hbarrier⟩
 
 /-- End-to-end local atlas step: a compact wall-chart cover selects one inward wall on each
