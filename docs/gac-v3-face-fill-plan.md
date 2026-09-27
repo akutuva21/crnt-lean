@@ -25,6 +25,7 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
 - [x] Read the specified v3 PDF, including §7.3 Theorem 7.1, §7.4.3 Cases 1.1/1.2 and Step 2, and §8 construction outline.
 - [x] Build the current geometry-to-target chain; record that the build still accepts the target only because of its `sorry`.
 - [ ] Formalize the face-indexed pre-blueprint/faithful-blueprint data required by §7.4.3, reusing current projection chains, shared strips, common-face witnesses, and rank decrease.
+- [x] Prove that every non-interior point of a finite arrangement cell is incident to another cell, and convert the common face of those incident cells into actual strip/endpoint predecessor edges.
 - [ ] Prove and apply the rank-decreasing extension step: construct a strip/face piece from all inherited proper-face and endpoint data while preserving exact projection, coverage, disjoint interiors, and seam agreement.
 - [ ] Recursively assemble a coherent barrier across the whole finite arrangement; local tile offsets and pointwise overlap smooth-max witnesses alone do not establish a global surface.
 - [ ] Construct the `ZeroSeparatingSurfaceExists` witness consumed by the trajectory persistence argument and apply it in the target's higher-codimension branch.
@@ -177,3 +178,19 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   constructor audit to `[propext, Classical.choice, Quot.sound]`. This supplies pairwise Case 1.1
   basepoint agreement, but it still has no finite face-family consumer and does not construct the
   recursive faithful blueprint or global surface.
+
+
+## Continuation checkpoint — 2026-09-27
+
+- Added `hyperplaneArrangementFamily_boundary_incident_cell` and
+  `hyperplaneArrangementFamily_boundary_commonFace_dependency_at` in
+  `CRNT/Geometry/FanRefinement.lean`. The first uses finite closed-cell incidence and complete
+  arrangement coverage; the second calls `hyperplaneArrangementFamily_commonFace_at` and returns
+  actual well-founded predecessor edges for strip and endpoint tasks.
+- The new `FanRefinement.lean` source compiled directly with Lean 4.34 into the fresh module tree;
+  `ToricUniformWallMargin.lean` and `GlobalAttractorTheorem.lean` then compiled against it.
+- `#print axioms` for both new lemmas reports only `[propext, Classical.choice, Quot.sound]`.
+  The exact target audit still reports `sorryAx`; this checkpoint closes only arrangement-cell
+  boundary incidence. The face-indexed geometric filler, global barrier assembly, and target
+  consumer remain open.
+- The preexisting unrelated untracked files remain preserved outside this task checkpoint.

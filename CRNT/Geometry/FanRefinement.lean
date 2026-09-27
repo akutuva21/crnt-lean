@@ -2065,6 +2065,111 @@ theorem hyperplaneArrangementFamily_commonFace_at [CompleteSpace E] [DecidableEq
     hP'T hN'T hPT hNT hP'N' hPN hfaceSet
   exact ⟨hGC, by simpa [hCeq] using hface⟩
 
+/-- A boundary point of a finite central-arrangement cell is also incident to another cell.
+The arrangement covers the ambient space, and the family is finite and closed: if no other cell
+contained the point, the point would have a neighborhood contained in the chosen cell. This is the
+cell-incidence fact needed to turn geometric tile boundaries into recursive face tasks. -/
+theorem hyperplaneArrangementFamily_boundary_incident_cell [CompleteSpace E] [DecidableEq E]
+    {T : Finset E} {C : ProperCone ℝ E} {x : E}
+    (hxnot : x ∉ interior (C : Set E)) :
+    ∃ D, D ∈ hyperplaneArrangementFamily T ∧ D ≠ C ∧ x ∈ (D : Set E) := by
+  classical
+  let Cells := {D : ProperCone ℝ E // D ∈ hyperplaneArrangementFamily T}
+  letI : Fintype Cells := Finset.fintypeCoeSort (hyperplaneArrangementFamily T)
+  let others : Set E := ⋃ D : Cells, if D.1 = C then ∅ else (D.1 : Set E)
+  have hclosed : IsClosed others := isClosed_iUnion_of_finite fun D => by
+    by_cases hDC : D.1 = C
+    · simp [hDC]
+    · simpa [others, hDC] using D.1.isClosed
+  by_contra hfound
+  have hnone : ∀ D : Cells, D.1 ≠ C → x ∉ (D.1 : Set E) := by
+    intro D hDC hxD
+    exact hfound ⟨D.1, D.2, hDC, hxD⟩
+  have hxOthers : x ∉ others := by
+    intro hx
+    simp only [others, Set.mem_iUnion] at hx
+    obtain ⟨D, hD⟩ := hx
+    by_cases hDC : D.1 = C
+    · simp [hDC] at hD
+    · exact hnone D hDC (by simpa [hDC] using hD)
+  have hopen : IsOpen (othersᶜ) := hclosed.isOpen_compl
+  obtain ⟨r, hr, hball⟩ := (Metric.isOpen_iff.mp hopen) x hxOthers
+  have hballSubset : Metric.ball x r ⊆ (C : Set E) := by
+    intro y hy
+    have hyOthers : y ∉ others := hball hy
+    have hyCover : y ∈ ⋃ D ∈ hyperplaneArrangementFamily T, (D : Set E) := by
+      rw [hyperplaneArrangementFamily_covers]
+      simp
+    rcases Set.mem_iUnion.mp hyCover with ⟨D, hD⟩
+    rcases Set.mem_iUnion.mp hD with ⟨hDfam, hyD⟩
+    by_cases hDC : D = C
+    · simpa [hDC] using hyD
+    · have hyInOthers : y ∈ others := by
+        apply Set.mem_iUnion.mpr
+        exact ⟨⟨D, hDfam⟩, by simp [hDC, hyD]⟩
+      exact (hyOthers hyInOthers).elim
+  have hxInterior : x ∈ interior (C : Set E) := by
+    apply mem_interior_iff_mem_nhds.mpr
+    exact Filter.mem_of_superset (Metric.ball_mem_nhds x hr) hballSubset
+  exact hxnot hxInterior
+
+/-- A non-interior point of an arrangement cell gives a genuine predecessor edge among the cells
+incident there. The common face is proper in at least one of the two distinct incident cells, so
+this result is directly usable by the one-bit face recursion for both strip and endpoint tasks. -/
+theorem hyperplaneArrangementFamily_boundary_commonFace_dependency_at [CompleteSpace E] [DecidableEq E]
+    {ι : Type*} {m : ℕ} {T : Finset E} {x : E}
+    (k : ι) (cell : OneBitFiberCell m) (C : ProperCone ℝ E)
+    (hC : C ∈ hyperplaneArrangementFamily T) (hxC : x ∈ (C : Set E))
+    (hxnot : x ∉ interior (C : Set E)) :
+    ∃ D, D ∈ hyperplaneArrangementFamily T ∧ D ≠ C ∧ x ∈ (D : Set E) ∧
+      ∃ G, G ∈ hyperplaneArrangementFamily T ∧ x ∈ (G : Set E) ∧
+        (G ≠ C ∨ G ≠ D) ∧
+        (G ≠ C → OneBitFanFaceDependency (E := E) (ι := ι) (m := m)
+          ((G, k), cell) ((C, k), cell)) ∧
+        (G ≠ D → OneBitFanFaceDependency (E := E) (ι := ι) (m := m)
+          ((G, k), cell) ((D, k), cell)) := by
+  classical
+  obtain ⟨D, hD, hDC, hxD⟩ :=
+    hyperplaneArrangementFamily_boundary_incident_cell (T := T) (C := C) hxnot
+  let cells : Finset (ProperCone ℝ E) := {C, D}
+  have hCells : ∀ Q ∈ cells, Q ∈ hyperplaneArrangementFamily T := by
+    intro Q hQ
+    simp only [cells, Finset.mem_insert, Finset.mem_singleton] at hQ
+    rcases hQ with rfl | rfl
+    · exact hC
+    · exact hD
+  have hxCells : ∀ Q ∈ cells, x ∈ (Q : Set E) := by
+    intro Q hQ
+    simp only [cells, Finset.mem_insert, Finset.mem_singleton] at hQ
+    rcases hQ with rfl | rfl
+    · exact hxC
+    · exact hxD
+  obtain ⟨G, hG, hxG, hfaces⟩ :=
+    hyperplaneArrangementFamily_commonFace_at cells hCells hxCells
+  have hCcells : C ∈ cells := by simp [cells]
+  have hDcells : D ∈ cells := by simp [cells]
+  have hfaceC := (hfaces C hCcells).2
+  have hfaceD := (hfaces D hDcells).2
+  have hproper : G ≠ C ∨ G ≠ D := by
+    by_cases hGC : G = C
+    · right
+      intro hGD
+      exact hDC (hGC.symm.trans hGD).symm
+    · exact Or.inl hGC
+  have hdepC : G ≠ C → OneBitFanFaceDependency (E := E) (ι := ι) (m := m)
+      ((G, k), cell) ((C, k), cell) := by
+    intro hne
+    cases cell with
+    | strip i => exact OneBitFanFaceDependency.fanFace C G k i hfaceC hne
+    | endpoint j => exact OneBitFanFaceDependency.fanFaceEndpoint C G k j hfaceC hne
+  have hdepD : G ≠ D → OneBitFanFaceDependency (E := E) (ι := ι) (m := m)
+      ((G, k), cell) ((D, k), cell) := by
+    intro hne
+    cases cell with
+    | strip i => exact OneBitFanFaceDependency.fanFace D G k i hfaceD hne
+    | endpoint j => exact OneBitFanFaceDependency.fanFaceEndpoint D G k j hfaceD hne
+  exact ⟨D, hD, hDC, hxD, G, hG, hxG, hproper, hdepC, hdepD⟩
+
 /-- The common incident face at a projected basepoint supplies the proper fan-face predecessors
 in Craciun's one-bit recursion. Thus a multi-cell junction can be filled after all of its
 lower-dimensional strip tasks have been discharged by `oneBitFanFaceDependency_induction`. -/
