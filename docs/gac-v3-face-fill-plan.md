@@ -168,3 +168,12 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
 - The current task-patch recursion still has no caller that returns recursive covers, barriers, or
   blueprint data. Keep the checklist open until the global `ZeroSeparatingSurfaceExists` result is
   derived and the exact target theorem and kernel axiom audit are clean.
+- Extended the §7.4.3 Case 1.1 zero-bit cover with the exact graph invariant
+  `center_graph_on_face`, and proved that two independently constructed graph sections agree
+  above the projection of their shared face (`centers_agree_on_shared_face`). The red `#check`
+  probe for the missing invariant failed before implementation; afterward, Lean 4.34 compiled
+  `ZeroSeparatingInduction.lean`, `FanRefinement.lean`, `ToricUniformWallMargin.lean`, and
+  `GlobalAttractorTheorem.lean` against the fresh dependency chain. The new theorem and its
+  constructor audit to `[propext, Classical.choice, Quot.sound]`. This supplies pairwise Case 1.1
+  basepoint agreement, but it still has no finite face-family consumer and does not construct the
+  recursive faithful blueprint or global surface.

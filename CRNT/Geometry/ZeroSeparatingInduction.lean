@@ -3543,7 +3543,9 @@ theorem exists_compact_zeroBitGraphTube {n : ℕ}
         projectionFiberTube (chain.face (Fin.last n).castSucc) center radius ∧
       (∀ y ∈ chain.face (Fin.last n).castSucc,
         Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (center y) ∈
-          chain.face (Fin.last n).succ) := by
+          chain.face (Fin.last n).succ) ∧
+      (∀ x ∈ chain.face (Fin.last n).succ,
+        center (forgetLastCoordinate n x) = x (Fin.last n)) := by
   classical
   let j : Fin (n + 1) := Fin.last n
   let face := chain.face j.succ
@@ -3632,7 +3634,7 @@ theorem exists_compact_zeroBitGraphTube {n : ℕ}
         simpa [forgetLastCoordinate, Fin.snoc_castSucc] using hi.symm
     rw [hcoordinates]
     exact xA.2
-  refine ⟨center, hcenter, ?_, ?_, ?_, hgraphPoint⟩
+  refine ⟨center, hcenter, ?_, ?_, ?_, hgraphPoint, hgraph⟩
   · exact isCompact_projectionFiberTube_of_continuousOn base center
       hbaseCompact hcenter hradius
   · exact projectionFiberTube_projects_onto_base base center hradius
@@ -3665,10 +3667,13 @@ theorem exists_compact_separated_zeroBitGraphTube {n : ℕ}
         (Metric.ball (0 : Fin (n + 1) → ℝ) (margin - radius))ᶜ ∧
       (∀ y ∈ chain.face (Fin.last n).castSucc,
         Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (center y) ∈
-          chain.face (Fin.last n).succ) := by
-  obtain ⟨center, hcenter, hcompact, hprojects, hfaceTube, hgraphPoint⟩ :=
+          chain.face (Fin.last n).succ) ∧
+      (∀ x ∈ chain.face (Fin.last n).succ,
+        center (forgetLastCoordinate n x) = x (Fin.last n)) := by
+  obtain ⟨center, hcenter, hcompact, hprojects, hfaceTube, hgraphPoint, hgraph⟩ :=
     exists_compact_zeroBitGraphTube chain hbit hface hradius
-  refine ⟨center, hcenter, hcompact, hprojects, hfaceTube, sub_pos.mpr hsmall, ?_, hgraphPoint⟩
+  refine ⟨center, hcenter, hcompact, hprojects, hfaceTube, sub_pos.mpr hsmall, ?_,
+    hgraphPoint, hgraph⟩
   apply projectionFiberTube_subset_compl_ball_of_graph_separated
     (chain.face (Fin.last n).castSucc) center radius margin
   intro y hy
@@ -3742,15 +3747,17 @@ theorem exists_compact_separated_zeroBitGraphTube_over_tile {n : ℕ}
         (Metric.ball (0 : Fin (n + 1) → ℝ) (margin - radius))ᶜ ∧
       (∀ y ∈ tile,
         Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (center y) ∈
-          chain.face (Fin.last n).succ) := by
+          chain.face (Fin.last n).succ) ∧
+      (∀ x ∈ chain.face (Fin.last n).succ,
+        center (forgetLastCoordinate n x) = x (Fin.last n)) := by
   obtain ⟨center, hcenter, hcompact, hprojects, hfaceTube, hpositive, hseparated,
-      hbasepoint⟩ :=
+      hbasepoint, hcenterGraph⟩ :=
     exists_compact_separated_zeroBitGraphTube chain hbit hface margin radius
       hfaceSeparated hradius hsmall
   have hcenterTile : ContinuousOn center tile := hcenter.mono htile
   have hrestrict := projectionFiberTube_restrict_to_tile
     (chain.face (Fin.last n).castSucc) tile center radius htile
-  refine ⟨center, hcenter, ?_, ?_, ?_, hpositive, ?_, ?_⟩
+  refine ⟨center, hcenter, ?_, ?_, ?_, hpositive, ?_, ?_, hcenterGraph⟩
   · exact isCompact_projectionFiberTube_of_continuousOn tile center
       htileCompact hcenterTile hradius
   · exact projectionFiberTube_projects_onto_base tile center hradius
@@ -3816,6 +3823,10 @@ structure CompactZeroBitFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
   Craciun v3, §7.4.3, Case 1.1. -/
   tile_basepoint_lift : ∀ i y, y ∈ baseTile i →
     Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (center y) ∈ facePatch
+  /-- The center section is the graph of the face itself. This Case 1.1 invariant makes
+  independently constructed zero-bit face patches agree on a projected common face. -/
+  center_graph_on_face : ∀ x, x ∈ facePatch →
+    center (forgetLastCoordinate n x) = x (Fin.last n)
   /-- Every tile tube retains the parent origin-avoidance margin. -/
   positive_margin : 0 < margin - radius
   radius_nonneg : 0 ≤ radius
@@ -3901,6 +3912,25 @@ theorem CompactZeroBitFiberPatchCover.shared_basepoint_incidence
     exact ⟨hi.1.2, hj.1.2⟩
   exact ⟨⟨hi.1.1, hcommon⟩, hi.2⟩
 
+/-- Craciun v3, §7.4.3, Case 1.1: independently constructed graph lifts agree over a shared
+face. The shared-face incidence supplies one point in both face patches above the projected
+basepoint; each graph section must therefore select that point's final coordinate. This is the
+basepoint compatibility needed when the face recursion meets along a common zero-bit face. -/
+theorem CompactZeroBitFiberPatchCover.centers_agree_on_shared_face
+    {n : ℕ} {ιA ιB : Type*} [Fintype ιA] [Fintype ιB]
+    {faceA faceB : Set (Fin (n + 1) → ℝ)}
+    {baseA baseB : Set (Fin n → ℝ)}
+    {tileA : ιA → Set (Fin n → ℝ)} {tileB : ιB → Set (Fin n → ℝ)}
+    {marginA radiusA marginB radiusB : ℝ}
+    (coverA : CompactZeroBitFiberPatchCover faceA baseA tileA marginA radiusA)
+    (coverB : CompactZeroBitFiberPatchCover faceB baseB tileB marginB radiusB)
+    {y : Fin n → ℝ}
+    (hy : y ∈ forgetLastCoordinate n '' (faceA ∩ faceB)) :
+    coverA.center y = coverB.center y := by
+  rcases hy with ⟨x, hx, hxy⟩
+  subst y
+  rw [coverA.center_graph_on_face x hx.1, coverB.center_graph_on_face x hx.2]
+
 /-- Construct zero-bit graph tubes over a finite compact cover of the projected face whose tile
 interiors are pairwise disjoint. The same continuous section is used on every tile; openness of
 the projection lifts the lower-dimensional disjointness to ambient tube interiors. -/
@@ -3925,13 +3955,13 @@ noncomputable def compactZeroBitFiberPatchCover_of_compactBaseCover {n : ℕ} {�
   let center := Classical.choose hcenterExists
   have hcenterData := Classical.choose_spec hcenterExists
   rcases hcenterData with
-    ⟨hcenter, _, _, hfaceTube, hpositive, hseparated, hbasepoint⟩
+    ⟨hcenter, _, _, hfaceTube, hpositive, hseparated, hbasepoint, hcenterGraph⟩
   have htileBase : ∀ i, baseTile i ⊆ chain.face (Fin.last n).castSucc := by
     intro i y hy
     rw [hbaseCover]
     exact Set.mem_iUnion.mpr ⟨i, hy⟩
   refine ⟨center, hcenter, hface, hbaseCover, hfaceTube, ?_, ?_, ?_, ?_, ?_, ?_, ?_,
-    hpositive, hradius, ?_⟩
+    hcenterGraph, hpositive, hradius, ?_⟩
   · rw [← projectionFiberTube_eq_iUnion_of_base_cover
       (chain.face (Fin.last n).castSucc) baseTile center radius hbaseCover]
     exact hfaceTube
