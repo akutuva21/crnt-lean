@@ -95,6 +95,46 @@ theorem Network.WeaklyReversible.exists_uniform_toric_activeWallList_margin_on_c
         · exact le_trans (min_le_right _ _) (hmst q hq p hp)
 
 
+/-- A strictly positive pairing with the mass-action field at a positive concentration is
+witnessed by a reaction whose displacement has positive pairing with the same normal. Weak
+reversibility then makes that reaction's normal an active wall. This turns the local inward-wall
+data selected on Craciun blueprint tiles into the active-wall certificates consumed by the
+zero-separating surface construction. -/
+theorem Network.WeaklyReversible.activeWall_of_positive_toricField_pairing
+    {N : Network S} (hwr : N.WeaklyReversible) (κ : N.RateConstants)
+    {x : Concentration S} (hx : x.Positive) (n : S → ℝ)
+    (hpair : 0 < ⟪toEuclid n,
+      N.toricMassActionField κ (toEuclid x)⟫_ℝ) :
+    N.ActiveWall n := by
+  rw [N.inner_toricMassActionField_eq_sum κ n (toEuclid x)] at hpair
+  have hsum : 0 < ∑ r : N.R,
+      N.massActionRate κ r x *
+      ⟪toEuclid n, toEuclid (N.reactionVector r)⟫_ℝ := by
+    simpa using hpair
+  have hterm : ∃ r : N.R, 0 < N.massActionRate κ r x *
+      ⟪toEuclid n, toEuclid (N.reactionVector r)⟫_ℝ := by
+    by_contra hnone
+    have hnonpos : ∀ r ∈ (Finset.univ : Finset N.R),
+        N.massActionRate κ r x *
+          ⟪toEuclid n, toEuclid (N.reactionVector r)⟫_ℝ ≤ 0 := by
+      intro r _
+      exact le_of_not_gt (fun hr => hnone ⟨r, hr⟩)
+    have hsum_nonpos : ∑ r : N.R, N.massActionRate κ r x *
+        ⟪toEuclid n, toEuclid (N.reactionVector r)⟫_ℝ ≤ 0 :=
+      Finset.sum_nonpos hnonpos
+    linarith
+  obtain ⟨r, hr⟩ := hterm
+  have hrate : 0 < N.massActionRate κ r x := N.massActionRate_pos κ r hx
+  have hdisplacement : 0 <
+      ⟪toEuclid n, toEuclid (N.reactionVector r)⟫_ℝ := by
+    rcases mul_pos_iff.mp hr with ⟨_, hdisp⟩ | ⟨hrateNeg, _⟩
+    · exact hdisp
+    · exact (not_lt_of_ge hrate.le hrateNeg).elim
+  have hpotential := N.reaction_strictlyInward_iff_potential_lt n r |>.mp hdisplacement
+  exact ⟨(N.reaction r).source, (N.reaction r).target,
+    N.reaches_of_reaction r, hwr r, ne_of_lt hpotential⟩
+
+
 /-- **Uniform source-order margin on one compact chamber patch.** If a fixed stoichiometric
 direction lies in the interior of the selected negative source-order cone at every point of a
 compact positive patch, and the patch avoids complex-balanced equilibria, strict chamber attraction
@@ -2637,13 +2677,57 @@ theorem Network.adjacent_oneBitFiberPatchWalls_inward_on_seam
   have hspec₁ := hselected ⟨j, k.succ⟩ wall₁ hwall₁
   exact ⟨hspec₀.1, hspec₁.1, hspec₀.2 q hq₀, hspec₁.2 q hq₁⟩
 
+/-- On a positive shared seam, the two selected tile walls are active network walls as well as
+strictly inward directions. This is the wall-activity certificate needed when the local seam data
+is promoted to the finite active-wall family used by the zero-separating surface theorem. -/
+theorem Network.adjacent_oneBitFiberPatchWalls_active_on_seam
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (hwr : N.WeaklyReversible) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base baseTile lower upper epsilon)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (t : Finset K) {ε : ℝ} (hε : 0 < ε)
+    (selected : (Σ i : ι, Fin (cover.tiling.subdivisionCount + 1)) → Option K)
+    (hselected : ∀ p wall, selected p = some wall → wall ∈ t ∧ ∀ q ∈
+      ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2),
+      ε < ⟪(z wall).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ)
+    (i j : ι)
+    (horder : ∀ y ∈ baseTile i ∩ baseTile j, lower y ≤ upper y)
+    (k : Fin cover.tiling.subdivisionCount)
+    (wall₀ wall₁ : K)
+    (hwall₀ : selected ⟨i, k.castSucc⟩ = some wall₀)
+    (hwall₁ : selected ⟨j, k.succ⟩ = some wall₁)
+    {q : EuclideanSpace ℝ S}
+    (hq : q ∈ ψ '' (facePatch ∩
+      (fun y : Fin n → ℝ =>
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+          lower upper k.succ.castSucc y) '' (baseTile i ∩ baseTile j)))
+    (hpositive : Concentration.Positive (toEuclid.symm q)) :
+    N.ActiveWall (toEuclid.symm (z wall₀).1) ∧
+      N.ActiveWall (toEuclid.symm (z wall₁).1) := by
+  obtain ⟨_, _, hleft, hright⟩ := N.adjacent_oneBitFiberPatchWalls_inward_on_seam
+    κ cover ψ z t selected hselected i j horder k wall₀ wall₁ hwall₀ hwall₁ hq
+  constructor
+  · apply hwr.activeWall_of_positive_toricField_pairing κ hpositive
+    have hstrict := lt_trans hε hleft
+    simpa [Network.toricMassActionField] using hstrict
+  · apply hwr.activeWall_of_positive_toricField_pairing κ hpositive
+    have hstrict := lt_trans hε hright
+    simpa [Network.toricMassActionField] using hstrict
+
 /-- The two inward wall labels on a compact shared seam admit a common smooth barrier there.
 The seam compactness comes from the one-bit blueprint, while the strict inward inequalities on
 both incident tiles make the two-wall smooth maximum decrease along the mass-action field. This
 is the analytic gluing datum for crossing a Case 1.2 tile seam. -/
 theorem Network.exists_adjacent_oneBitFiberPatch_seam_smoothBarrier
     {n : ℕ} {ι : Type*} [Fintype ι]
-    (N : Network S) (κ : N.RateConstants)
+    (N : Network S) (hwr : N.WeaklyReversible) (κ : N.RateConstants)
     {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
     {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
     {epsilon : ℝ}
@@ -2663,7 +2747,18 @@ theorem Network.exists_adjacent_oneBitFiberPatch_seam_smoothBarrier
     (k : Fin cover.tiling.subdivisionCount)
     (wall₀ wall₁ : K)
     (hwall₀ : selected ⟨i, k.castSucc⟩ = some wall₀)
-    (hwall₁ : selected ⟨j, k.succ⟩ = some wall₁) :
+    (hwall₁ : selected ⟨j, k.succ⟩ = some wall₁)
+    (hseamNonempty : (ψ '' (facePatch ∩
+      (fun y : Fin n → ℝ =>
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+          lower upper k.succ.castSucc y) '' (baseTile i ∩ baseTile j))).Nonempty)
+    (hpositive : ∀ q ∈ ψ '' (facePatch ∩
+      (fun y : Fin n → ℝ =>
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+          lower upper k.succ.castSucc y) '' (baseTile i ∩ baseTile j)),
+      Concentration.Positive (toEuclid.symm q)) :
+    N.ActiveWall (toEuclid.symm (z wall₀).1) ∧
+    N.ActiveWall (toEuclid.symm (z wall₁).1) ∧
     IsCompact (ψ '' (facePatch ∩
       (fun y : Fin n → ℝ =>
         CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
@@ -2684,6 +2779,10 @@ theorem Network.exists_adjacent_oneBitFiberPatch_seam_smoothBarrier
         lower upper k.succ.castSucc y) '' (baseTile i ∩ baseTile j)
   have hseamCompact : IsCompact (ψ '' seam) :=
     (cover.adjacent_base_tiles_shared_seam_compact i j horder k).image hψ
+  obtain ⟨q₀, hq₀⟩ := hseamNonempty
+  have hactive := N.adjacent_oneBitFiberPatchWalls_active_on_seam
+    hwr κ cover ψ z t hε selected hselected i j horder k wall₀ wall₁
+    hwall₀ hwall₁ hq₀ (hpositive q₀ hq₀)
   have hwall : ∀ q ∈ ψ '' seam,
       ε < ⟪(z wall₀).1,
         toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ ∧
@@ -2704,7 +2803,7 @@ theorem Network.exists_adjacent_oneBitFiberPatch_seam_smoothBarrier
     have hMb' : Mb = (innerSL ℝ (z wall₁).1, (0 : ℝ)) := by simpa using hMb
     rw [hMb']
     simpa only [innerSL_apply_apply] using le_of_lt (hwall q hq).2
-  refine ⟨hseamCompact, ?_⟩
+  refine ⟨hactive.1, hactive.2, hseamCompact, ?_⟩
   intro q hq
   obtain ⟨D, hD, hDmargin⟩ := SmoothBarrierGluing.smoothWallList_descends_strictly
     (X := fun q : EuclideanSpace ℝ S =>
