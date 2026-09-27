@@ -548,44 +548,51 @@ inductive OneBitFiberCell (m : ℕ)
 
 /-- A face-filling task pairs a fan cell with one of its one-bit strips or endpoint seams. -/
 abbrev OneBitFanFaceTask (E : Type*) [NormedAddCommGroup E] [InnerProductSpace ℝ E]
-    (m : ℕ) := ProperCone ℝ E × OneBitFiberCell m
+    (ι : Type*) (m : ℕ) := (ProperCone ℝ E × ι) × OneBitFiberCell m
 
 /-- Geometric dimension for the one-bit face recursion: the span rank of the fan cell, plus one
 for an interval strip and zero for an endpoint face. -/
 noncomputable def oneBitFanFaceTaskRank [CompleteSpace E] {m : ℕ}
-    (task : OneBitFanFaceTask E m) : ℕ :=
-  coneSpanRank task.1 + (match task.2 with
+    {ι : Type*} (task : OneBitFanFaceTask E ι m) : ℕ :=
+  coneSpanRank task.1.1 + (match task.2 with
     | .strip _ => 1
     | .endpoint _ => 0)
 
 /-- A fan-face or fiber-endpoint dependency points from a required lower-dimensional task to the
 strip task whose boundary uses it. -/
-inductive OneBitFanFaceDependency [CompleteSpace E] {m : ℕ} :
-    OneBitFanFaceTask E m → OneBitFanFaceTask E m → Prop
-  | fanFace (C G : ProperCone ℝ E) (i : Fin (m + 1))
+inductive OneBitFanFaceDependency [CompleteSpace E] {ι : Type*} {m : ℕ} :
+    OneBitFanFaceTask E ι m → OneBitFanFaceTask E ι m → Prop
+  | fanFace (C G : ProperCone ℝ E) (k : ι) (i : Fin (m + 1))
       (hface : IsExposedFaceOf G C) (hne : G ≠ C) :
-      OneBitFanFaceDependency (G, .strip i) (C, .strip i)
-  | fiberEndpoint (C G : ProperCone ℝ E) (i : Fin (m + 1)) (j : Fin (m + 2))
+      OneBitFanFaceDependency ((G, k), .strip i) ((C, k), .strip i)
+  | fanFaceEndpoint (C G : ProperCone ℝ E) (k : ι) (j : Fin (m + 2))
+      (hface : IsExposedFaceOf G C) (hne : G ≠ C) :
+      OneBitFanFaceDependency ((G, k), .endpoint j) ((C, k), .endpoint j)
+  | fiberEndpoint (C G : ProperCone ℝ E) (k : ι) (i : Fin (m + 1))
+      (j : Fin (m + 2))
       (hface : IsExposedFaceOf G C)
       (hadjacent : j = i.castSucc ∨ j = i.succ) :
-      OneBitFanFaceDependency (G, .endpoint j) (C, .strip i)
+      OneBitFanFaceDependency ((G, k), .endpoint j) ((C, k), .strip i)
 
 /-- The combined fan-cell/one-bit-face dependency order is well-founded. Fan-face steps lower the
 cone span rank; endpoint steps lower the one-bit fiber dimension, including when the fan cell is
 unchanged. -/
 theorem oneBitFanFaceDependency_wellFounded [CompleteSpace E] [FiniteDimensional ℝ E]
-    {m : ℕ} :
-    WellFounded (OneBitFanFaceDependency (E := E) (m := m)) := by
-  have hmeasure : WellFounded (fun a b : OneBitFanFaceTask E m =>
+    {ι : Type*} {m : ℕ} :
+    WellFounded (OneBitFanFaceDependency (E := E) (ι := ι) (m := m)) := by
+  have hmeasure : WellFounded (fun a b : OneBitFanFaceTask E ι m =>
       oneBitFanFaceTaskRank a < oneBitFanFaceTaskRank b) :=
     InvImage.wf oneBitFanFaceTaskRank (Nat.lt_wfRel).2
   apply hmeasure.mono
   intro a b hab
   cases hab with
-  | fanFace C G i hface hne =>
+  | fanFace C G k i hface hne =>
       simp [oneBitFanFaceTaskRank]
       exact coneSpanRank_lt_of_isExposedFaceOf_of_ne hface hne
-  | fiberEndpoint C G i j hface hadjacent =>
+  | fanFaceEndpoint C G k j hface hne =>
+      simp [oneBitFanFaceTaskRank]
+      exact coneSpanRank_lt_of_isExposedFaceOf_of_ne hface hne
+  | fiberEndpoint C G k i j hface hadjacent =>
       have hrank : coneSpanRank G ≤ coneSpanRank C := by
         by_cases hGC : G = C
         · subst G
@@ -598,19 +605,20 @@ theorem oneBitFanFaceDependency_wellFounded [CompleteSpace E] [FiniteDimensional
 `oneBitFanFaceDependency_induction`, this recursion is `Sort`-valued and therefore returns the
 filled patch, barrier, or seam object itself from the already-constructed predecessor data. -/
 noncomputable def oneBitFanFaceDependency_recursion [CompleteSpace E]
-    [FiniteDimensional ℝ E] {m : ℕ} {P : OneBitFanFaceTask E m → Sort v}
+    [FiniteDimensional ℝ E] {ι : Type*} {m : ℕ}
+    {P : OneBitFanFaceTask E ι m → Sort v}
     (step : ∀ task, (∀ predecessor,
-      OneBitFanFaceDependency (E := E) (m := m) predecessor task → P predecessor) → P task) :
+      OneBitFanFaceDependency (E := E) (ι := ι) (m := m) predecessor task → P predecessor) → P task) :
     ∀ task, P task :=
-  (oneBitFanFaceDependency_wellFounded (E := E) (m := m)).fix step
+  (oneBitFanFaceDependency_wellFounded (E := E) (ι := ι) (m := m)).fix step
 
 /-- Prop-valued induction for the combined fan-cell/fiber-cell dependency. For constructions that
 must return actual patch data rather than only a proposition, use
 `oneBitFanFaceDependency_recursion`. -/
 theorem oneBitFanFaceDependency_induction [CompleteSpace E] [FiniteDimensional ℝ E]
-    {m : ℕ} {P : OneBitFanFaceTask E m → Prop}
+    {ι : Type*} {m : ℕ} {P : OneBitFanFaceTask E ι m → Prop}
     (step : ∀ task, (∀ predecessor,
-      OneBitFanFaceDependency (E := E) (m := m) predecessor task → P predecessor) → P task) :
+      OneBitFanFaceDependency (E := E) (ι := ι) (m := m) predecessor task → P predecessor) → P task) :
     ∀ task, P task := by
   intro task
   exact oneBitFanFaceDependency_recursion step task
@@ -1944,14 +1952,15 @@ theorem hyperplaneArrangementFamily_commonFace_at [CompleteSpace E] [DecidableEq
 in Craciun's one-bit recursion. Thus a multi-cell junction can be filled after all of its
 lower-dimensional strip tasks have been discharged by `oneBitFanFaceDependency_induction`. -/
 theorem hyperplaneArrangementFamily_commonFace_tasks_at [CompleteSpace E]
-    [DecidableEq E] [FiniteDimensional ℝ E] {m : ℕ} {T : Finset E} {x : E}
-    (i : Fin (m + 1)) (cells : Finset (ProperCone ℝ E))
+    [DecidableEq E] [FiniteDimensional ℝ E] {ι : Type*} {m : ℕ}
+    {T : Finset E} {x : E}
+    (k : ι) (i : Fin (m + 1)) (cells : Finset (ProperCone ℝ E))
     (hCells : ∀ C ∈ cells, C ∈ hyperplaneArrangementFamily T)
     (hxCells : ∀ C ∈ cells, x ∈ (C : Set E)) :
     ∃ G ∈ hyperplaneArrangementFamily T, x ∈ (G : Set E) ∧
       ∀ C ∈ cells, (G : Set E) ⊆ (C : Set E) ∧ IsExposedFaceOf G C ∧
-        (G ≠ C → OneBitFanFaceDependency (E := E) (m := m)
-          (G, .strip i) (C, .strip i)) := by
+        (G ≠ C → OneBitFanFaceDependency (E := E) (ι := ι) (m := m)
+          ((G, k), .strip i) ((C, k), .strip i)) := by
   obtain ⟨G, hG, hxG, hfaces⟩ :=
     hyperplaneArrangementFamily_commonFace_at cells hCells hxCells
   refine ⟨G, hG, hxG, ?_⟩
@@ -1959,7 +1968,30 @@ theorem hyperplaneArrangementFamily_commonFace_tasks_at [CompleteSpace E]
   obtain ⟨hsubset, hface⟩ := hfaces C hC
   refine ⟨hsubset, hface, ?_⟩
   intro hne
-  exact OneBitFanFaceDependency.fanFace C G i hface hne
+  exact OneBitFanFaceDependency.fanFace C G k i hface hne
+
+/-- At an endpoint seam, the common incident arrangement face is also a predecessor endpoint
+task. This is the face-recursive counterpart to `hyperplaneArrangementFamily_commonFace_tasks_at`:
+the inherited seam data must descend through proper exposed faces even when the fiber dimension is
+already zero. -/
+theorem hyperplaneArrangementFamily_commonEndpoint_tasks_at [CompleteSpace E]
+    [DecidableEq E] [FiniteDimensional ℝ E] {ι : Type*} {m : ℕ}
+    {T : Finset E} {x : E}
+    (k : ι) (j : Fin (m + 2)) (cells : Finset (ProperCone ℝ E))
+    (hCells : ∀ C ∈ cells, C ∈ hyperplaneArrangementFamily T)
+    (hxCells : ∀ C ∈ cells, x ∈ (C : Set E)) :
+    ∃ G ∈ hyperplaneArrangementFamily T, x ∈ (G : Set E) ∧
+      ∀ C ∈ cells, (G : Set E) ⊆ (C : Set E) ∧ IsExposedFaceOf G C ∧
+        (G ≠ C → OneBitFanFaceDependency (E := E) (ι := ι) (m := m)
+          ((G, k), .endpoint j) ((C, k), .endpoint j)) := by
+  obtain ⟨G, hG, hxG, hfaces⟩ :=
+    hyperplaneArrangementFamily_commonFace_at cells hCells hxCells
+  refine ⟨G, hG, hxG, ?_⟩
+  intro C hC
+  obtain ⟨hsubset, hface⟩ := hfaces C hC
+  refine ⟨hsubset, hface, ?_⟩
+  intro hne
+  exact OneBitFanFaceDependency.fanFaceEndpoint C G k j hface hne
 
 /-- Arrangement-cell intersections provide the actual exposed-face dependencies used by the
 well-founded order. If the common cell is proper in either incident cell, its rank is strictly
@@ -2574,11 +2606,13 @@ theorem euclideanHyperplaneArrangementBaseTiles_adjacentStrip_seam_dependency
       (hG : G ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)),
       IsExposedFaceOf G C.1 ∧ IsExposedFaceOf G D.1 ∧
       OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (ι := Unit)
         (m := cover.tiling.subdivisionCount)
-        (G, .endpoint k.succ.castSucc) (C.1, .strip k.castSucc) ∧
+        ((G, ()), .endpoint k.succ.castSucc) ((C.1, ()), .strip k.castSucc) ∧
       OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (ι := Unit)
         (m := cover.tiling.subdivisionCount)
-        (G, .endpoint k.succ.castSucc) (D.1, .strip k.succ) ∧
+        ((G, ()), .endpoint k.succ.castSucc) ((D.1, ()), .strip k.succ) ∧
       (facePatch ∩ projectionFiberSubdivisionTile
           (euclideanHyperplaneArrangementBaseTile base F hFdual C) lower upper k.castSucc) ∩
         (facePatch ∩ projectionFiberSubdivisionTile
@@ -2592,9 +2626,9 @@ theorem euclideanHyperplaneArrangementBaseTiles_adjacentStrip_seam_dependency
     apply Fin.ext
     simp
   refine ⟨G, hG, hGC, hGD, ?_, ?_, hseam⟩
-  · exact OneBitFanFaceDependency.fiberEndpoint C.1 G k.castSucc
+  · exact OneBitFanFaceDependency.fiberEndpoint C.1 G () k.castSucc
       k.succ.castSucc hGC (Or.inr hindex)
-  · exact OneBitFanFaceDependency.fiberEndpoint D.1 G k.succ
+  · exact OneBitFanFaceDependency.fiberEndpoint D.1 G () k.succ
       k.succ.castSucc hGD (Or.inl rfl)
 
 /-- Craciun's one-bit fiber subdivision can be placed over the finite central arrangement of a
@@ -2867,17 +2901,25 @@ theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype �
       (C.1 ≠ D.1 → ProperExposedFaceDependency G C.1 ∨
         ProperExposedFaceDependency G D.1) ∧
       OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (ι := _ × ι)
         (m := cover.tiling.subdivisionCount)
-        (G, .endpoint k.succ.castSucc) (C.1, .strip k.castSucc) ∧
+        ((G, (C, i)), .endpoint k.succ.castSucc)
+          ((C.1, (C, i)), .strip k.castSucc) ∧
       OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (ι := _ × ι)
         (m := cover.tiling.subdivisionCount)
-        (G, .endpoint k.succ.castSucc) (D.1, .strip k.succ) ∧
+        ((G, (D, j)), .endpoint k.succ.castSucc)
+          ((D.1, (D, j)), .strip k.succ) ∧
       (C.1 ≠ G → OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (ι := _ × ι)
         (m := cover.tiling.subdivisionCount)
-        (G, .strip k.castSucc) (C.1, .strip k.castSucc)) ∧
+        ((G, (C, i)), .strip k.castSucc)
+          ((C.1, (C, i)), .strip k.castSucc)) ∧
       (D.1 ≠ G → OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (ι := _ × ι)
         (m := cover.tiling.subdivisionCount)
-        (G, .strip k.succ) (D.1, .strip k.succ)) ∧
+        ((G, (D, j)), .strip k.succ)
+          ((D.1, (D, j)), .strip k.succ)) ∧
       ((euclideanHyperplaneArrangementBaseTile base F hFdual C ∩ smallTile i) ∩
         (euclideanHyperplaneArrangementBaseTile base F hFdual D ∩ smallTile j) =
           euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩ ∩
@@ -2934,14 +2976,14 @@ theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype �
     apply Fin.ext
     simp
   refine ⟨G, hG, hdependency, ?_, ?_, ?_, ?_, hbaseMeet, ?_⟩
-  · exact OneBitFanFaceDependency.fiberEndpoint C.1 G k.castSucc
+  · exact OneBitFanFaceDependency.fiberEndpoint C.1 G (C, i) k.castSucc
       k.succ.castSucc hGC (Or.inr hindex)
-  · exact OneBitFanFaceDependency.fiberEndpoint D.1 G k.succ
+  · exact OneBitFanFaceDependency.fiberEndpoint D.1 G (D, j) k.succ
       k.succ.castSucc hGD (Or.inl rfl)
   · intro hCG
-    exact OneBitFanFaceDependency.fanFace C.1 G k.castSucc hGC hCG.symm
+    exact OneBitFanFaceDependency.fanFace C.1 G (C, i) k.castSucc hGC hCG.symm
   · intro hDG
-    exact OneBitFanFaceDependency.fanFace D.1 G k.succ hGD hDG.symm
+    exact OneBitFanFaceDependency.fanFace D.1 G (D, j) k.succ hGD hDG.symm
   · rw [← hbaseMeet]
     exact hseam
 
