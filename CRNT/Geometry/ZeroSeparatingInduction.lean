@@ -552,6 +552,90 @@ theorem radialBoxDiagramTile_intersection_eq {n : ℕ}
         exact ⟨0, le_rfl, (radialBoxExitData_spec y upper
           (hB_nonnegative y hyB) (hB_nonzero y hyB) hupper).1.le, by simp⟩
 
+/-- Clipping radial boundary tiles to a projective domain that avoids the origin preserves their
+exact common-source seam. This is the overlap identity after the restriction to `D^P_n` in
+Craciun v3, §8 Step 1; the origin term disappears because that domain lies away from zero. -/
+theorem radialBoxDiagramTile_intersection_clip_eq {n : ℕ}
+    (tileA tileB : Set (Fin n → ℝ)) (upper : Fin n → ℝ) (anchor : Fin n)
+    (domain : Set (Fin n → ℝ))
+    (hA_nonnegative : ∀ x ∈ tileA, ∀ i, 0 ≤ x i)
+    (hA_nonzero : ∀ x ∈ tileA, x ≠ 0)
+    (hA_anchor : ∀ x ∈ tileA, x anchor = 1)
+    (hB_nonnegative : ∀ x ∈ tileB, ∀ i, 0 ≤ x i)
+    (hB_nonzero : ∀ x ∈ tileB, x ≠ 0)
+    (hB_anchor : ∀ x ∈ tileB, x anchor = 1)
+    (hupper : ∀ i, 0 < upper i)
+    (hA_nonempty : tileA.Nonempty) (hB_nonempty : tileB.Nonempty)
+    (horigin : (0 : Fin n → ℝ) ∉ domain) :
+    (radialBoxDiagramTile tileA upper hA_nonnegative hA_nonzero hupper ∩ domain) ∩
+      (radialBoxDiagramTile tileB upper hB_nonnegative hB_nonzero hupper ∩ domain) =
+    radialBoxDiagramTile (tileA ∩ tileB) upper
+      (fun x hx i => hA_nonnegative x hx.1 i)
+      (fun x hx => hA_nonzero x hx.1) hupper ∩ domain := by
+  have hoverlap := radialBoxDiagramTile_intersection_eq tileA tileB upper anchor
+    hA_nonnegative hA_nonzero hA_anchor hB_nonnegative hB_nonzero hB_anchor hupper
+    hA_nonempty hB_nonempty
+  ext p
+  constructor
+  · intro hp
+    have hpAB : p ∈
+        radialBoxDiagramTile tileA upper hA_nonnegative hA_nonzero hupper ∩
+          radialBoxDiagramTile tileB upper hB_nonnegative hB_nonzero hupper :=
+      ⟨hp.1.1, hp.2.1⟩
+    have hpCommonOrZero : p ∈
+        radialBoxDiagramTile (tileA ∩ tileB) upper
+          (fun x hx i => hA_nonnegative x hx.1 i)
+          (fun x hx => hA_nonzero x hx.1) hupper ∪ {0} := by
+      rw [← hoverlap]
+      exact hpAB
+    rcases hpCommonOrZero with hpCommon | hpzero
+    · exact ⟨hpCommon, hp.1.2⟩
+    · subst p
+      exact False.elim (horigin hp.1.2)
+  · intro hp
+    have hpCommonOrZero : p ∈
+        radialBoxDiagramTile (tileA ∩ tileB) upper
+          (fun x hx i => hA_nonnegative x hx.1 i)
+          (fun x hx => hA_nonzero x hx.1) hupper ∪ {0} :=
+      Set.mem_union_left _ hp.1
+    have hpAB : p ∈
+        radialBoxDiagramTile tileA upper hA_nonnegative hA_nonzero hupper ∩
+          radialBoxDiagramTile tileB upper hB_nonnegative hB_nonzero hupper := by
+      rw [hoverlap]
+      exact hpCommonOrZero
+    exact ⟨⟨hpAB.1, hp.2⟩, ⟨hpAB.2, hp.2⟩⟩
+
+/-- A shared point of two clipped radial tiles has a unique common lower-dimensional source
+point. Clipping away the origin turns the seam identity into the tile-to-face incidence datum
+used when passing overlaps from the blue-box boundary back to the restricted projective diagram
+(Craciun v3, §8 Step 1). -/
+theorem radialBoxDiagramTile_clip_overlap_source {n : ℕ}
+    (tileA tileB : Set (Fin n → ℝ)) (upper : Fin n → ℝ) (anchor : Fin n)
+    (domain : Set (Fin n → ℝ))
+    (hA_nonnegative : ∀ x ∈ tileA, ∀ i, 0 ≤ x i)
+    (hA_nonzero : ∀ x ∈ tileA, x ≠ 0)
+    (hA_anchor : ∀ x ∈ tileA, x anchor = 1)
+    (hB_nonnegative : ∀ x ∈ tileB, ∀ i, 0 ≤ x i)
+    (hB_nonzero : ∀ x ∈ tileB, x ≠ 0)
+    (hB_anchor : ∀ x ∈ tileB, x anchor = 1)
+    (hupper : ∀ i, 0 < upper i)
+    (horigin : (0 : Fin n → ℝ) ∉ domain) :
+    ∀ p, p ∈ radialBoxDiagramTile tileA upper hA_nonnegative hA_nonzero hupper ∩ domain ∩
+        (radialBoxDiagramTile tileB upper hB_nonnegative hB_nonzero hupper ∩ domain) →
+      ∃ x, x ∈ tileA ∩ tileB ∧ ∃ s : ℝ, 0 < s ∧ p = s • x ∧ p ∈ domain := by
+  intro p hp
+  have hpAB : p ∈
+      radialBoxDiagramTile tileA upper hA_nonnegative hA_nonzero hupper ∩
+        radialBoxDiagramTile tileB upper hB_nonnegative hB_nonzero hupper :=
+    ⟨hp.1.1, hp.2.1⟩
+  obtain hpzero | ⟨x, hxA, hxB, s, hspos, _, hpx⟩ :=
+    radialBoxDiagramTile_overlap_source tileA tileB upper anchor
+      hA_nonnegative hA_nonzero hA_anchor hB_nonnegative hB_nonzero hB_anchor
+      hupper p hpAB
+  · subst p
+    exact False.elim (horigin hp.1.2)
+  · exact ⟨x, ⟨hxA, hxB⟩, s, hspos, hpx, hp.1.2⟩
+
 /-- Craciun v3, §8 Step 1: extending a lower-dimensional diagram covered by patches gives the
 union of the radial boundary tiles obtained from those patches. This is the cover-assembly
 identity paired with `radialBoxDiagramTile_intersection_eq`, which describes their seams. -/
@@ -581,6 +665,34 @@ theorem radialBoxDiagramTile_iUnion {ι : Sort*} {n : ℕ}
     rcases hi with ⟨x, hx, hsegment⟩
     refine ⟨x, Set.mem_iUnion.mpr ⟨i, hx⟩, ?_⟩
     simpa [radialBoxRaySegment] using hsegment
+
+/-- Clipping the radial extension of an assembled lower-dimensional diagram is the union of
+the individually clipped tiles. This is Craciun v3, §8 Step 1's cover assembly after restriction
+to the projective domain. -/
+theorem radialBoxDiagramTile_iUnion_clip {ι : Sort*} {n : ℕ}
+    (diagramTile : ι → Set (Fin n → ℝ)) (upper : Fin n → ℝ)
+    (domain : Set (Fin n → ℝ))
+    (hdiagramNonnegative : ∀ i x, x ∈ diagramTile i → ∀ j, 0 ≤ x j)
+    (hdiagramNonzero : ∀ i x, x ∈ diagramTile i → x ≠ 0)
+    (hupper : ∀ i, 0 < upper i) :
+    radialBoxDiagramTile (⋃ i, diagramTile i) upper
+        (fun x hx j => by
+          obtain ⟨i, hi⟩ := Set.mem_iUnion.mp hx
+          exact hdiagramNonnegative i x hi j)
+        (fun x hx => by
+          obtain ⟨i, hi⟩ := Set.mem_iUnion.mp hx
+          exact hdiagramNonzero i x hi) hupper ∩ domain =
+      ⋃ i, radialBoxDiagramTile (diagramTile i) upper
+        (hdiagramNonnegative i) (hdiagramNonzero i) hupper ∩ domain := by
+  rw [radialBoxDiagramTile_iUnion diagramTile upper hdiagramNonnegative
+    hdiagramNonzero hupper]
+  ext p
+  simp only [Set.mem_inter_iff, Set.mem_iUnion]
+  constructor
+  · rintro ⟨⟨i, hi⟩, hdomain⟩
+    exact ⟨i, hi, hdomain⟩
+  · rintro ⟨i, hi, hdomain⟩
+    exact ⟨⟨i, hi⟩, hdomain⟩
 
 /-- An open map sends interiors into the interior of the image. -/
 theorem image_interior_subset_interior_image_of_isOpenMap
