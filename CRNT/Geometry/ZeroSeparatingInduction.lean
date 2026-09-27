@@ -4679,6 +4679,110 @@ theorem CompactZeroBitFiberPatchCover.exists_preBlueprint_overlap_within_shared_
     exact hxInter.elim
   exact (Metric.infDist_lt_iff hshared).mp hcollar
 
+/-- A scale-compatible metric form of the same-projection face step: by making the critical
+`11…110` width small enough, every overlap point of two pre-blueprints lies in any prescribed
+ambient neighborhood of an actual point on their common lower face. The selected lifts agree on
+that face, and compact uniform continuity controls their variation across the collar. -/
+theorem CompactZeroBitFiberPatchCover.exists_preBlueprint_overlap_near_shared_face
+    {n : ℕ} {ιA ιB : Type*} [Fintype ιA] [Fintype ιB]
+    {faceA faceB : Set (Fin (n + 1) → ℝ)}
+    {baseA baseB : Set (Fin n → ℝ)}
+    {tilesA : ιA → Set (Fin n → ℝ)} {tilesB : ιB → Set (Fin n → ℝ)}
+    {marginA radiusA marginB radiusB : ℝ}
+    (coverA : CompactZeroBitFiberPatchCover faceA baseA tilesA marginA radiusA)
+    (coverB : CompactZeroBitFiberPatchCover faceB baseB tilesB marginB radiusB)
+    (hshared : (forgetLastCoordinate n '' (faceA ∩ faceB)).Nonempty)
+    {epsilon : ℝ} (hepsilon : 0 < epsilon) :
+    ∃ radius : ℝ, 0 < radius ∧ radius < epsilon / 3 ∧
+      ∀ x,
+        x ∈ zeroBitPreBlueprintNeighborhood faceA (baseA ∩ baseB)
+          (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+          (criticalFacetBinaryWord n) →
+        x ∈ zeroBitPreBlueprintNeighborhood faceB (baseA ∩ baseB)
+          (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+          (criticalFacetBinaryWord n) →
+        ∃ q ∈ faceA ∩ faceB, dist x q < epsilon := by
+  obtain ⟨eta₀, heta₀, hvariation⟩ := Metric.uniformContinuousOn_iff.mp
+    (coverA.base_isCompact.uniformContinuousOn_of_continuous coverA.center_continuous)
+    (epsilon / 3) (by linarith)
+  let eta := min eta₀ (epsilon / 3)
+  have heta : 0 < eta := lt_min heta₀ (by linarith)
+  have heta₀bound : eta ≤ eta₀ := min_le_left _ _
+  have hetaBound : eta ≤ epsilon / 3 := min_le_right _ _
+  obtain ⟨radius, hradius, hradiusCap, hoverlap⟩ :=
+    coverA.exists_preBlueprint_overlap_within_shared_face_collar coverB hshared heta
+      (by linarith : 0 < epsilon / 3)
+  refine ⟨radius, hradius, hradiusCap, ?_⟩
+  intro x hxA hxB
+  obtain ⟨z, hz, hdistBase⟩ := hoverlap x hxA hxB
+  have hwidth := craciunCriticalFacetWord_prefix_width n radius
+  rw [zeroBitPreBlueprintNeighborhood_eq_projectionFiberTube_of_last_width
+      faceA (baseA ∩ baseB) coverA.center
+      (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+      (criticalFacetBinaryWord n) radius coverA.center_graph_on_face
+      (fun y hy => coverA.center_lift_mem_face hy.1) hwidth] at hxA
+  rw [zeroBitPreBlueprintNeighborhood_eq_projectionFiberTube_of_last_width
+      faceB (baseA ∩ baseB) coverB.center
+      (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+      (criticalFacetBinaryWord n) radius coverB.center_graph_on_face
+      (fun y hy => coverB.center_lift_mem_face hy.2) hwidth] at hxB
+  rw [mem_projectionFiberTube_iff] at hxA hxB
+  let y := forgetLastCoordinate n x
+  obtain ⟨w, hw, hwproj⟩ := hz
+  have hzShared : z ∈ forgetLastCoordinate n '' (faceA ∩ faceB) :=
+    ⟨w, hw, hwproj⟩
+  have hwTubeA := coverA.facePatch_subset_tube hw.1
+  have hwTubeB := coverB.facePatch_subset_tube hw.2
+  have hzA : z ∈ baseA := by
+    have hwbase := (mem_projectionFiberTube_iff baseA coverA.center radiusA w).mp hwTubeA |>.1
+    rw [hwproj] at hwbase
+    exact hwbase
+  have hzB : z ∈ baseB := by
+    have hwbase := (mem_projectionFiberTube_iff baseB coverB.center radiusB w).mp hwTubeB |>.1
+    rw [hwproj] at hwbase
+    exact hwbase
+  have hcenterEq := coverA.centers_agree_on_shared_face coverB hzShared
+  let q := Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) z (coverA.center z)
+  have hqA : q ∈ faceA := by
+    exact coverA.center_lift_mem_face hzA
+  have hqB : q ∈ faceB := by
+    change Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) z (coverA.center z) ∈ faceB
+    rw [hcenterEq]
+    exact coverB.center_lift_mem_face hzB
+  have hvariation' : |coverA.center y - coverA.center z| < epsilon / 3 := by
+    have hvar := hvariation y hxA.1.1 z hzA
+      (lt_of_lt_of_le hdistBase heta₀bound)
+    simpa [Real.dist_eq] using hvar
+  have hbaseCoordinates : ∀ j : Fin n,
+      dist (x j.castSucc) (q j.castSucc) < epsilon := by
+    intro j
+    have hcoord := dist_le_pi_dist y z j
+    have hcoord' : dist (y j) (z j) < eta := lt_of_le_of_lt hcoord hdistBase
+    calc
+      dist (x j.castSucc) (q j.castSucc) = dist (y j) (z j) := by
+        simp [y, q, forgetLastCoordinate]
+      _ < eta := hcoord'
+      _ ≤ epsilon / 3 := hetaBound
+      _ < epsilon := by linarith
+  have hlastAbs : |x (Fin.last n) - coverA.center z| < epsilon := by
+    calc
+      |x (Fin.last n) - coverA.center z| ≤
+          |x (Fin.last n) - coverA.center y| +
+            |coverA.center y - coverA.center z| := abs_sub_le _ _ _
+      _ ≤ radius + |coverA.center y - coverA.center z| :=
+        add_le_add hxA.2 le_rfl
+      _ < radius + epsilon / 3 := by linarith
+      _ < epsilon := by linarith
+  have hlastDistance : dist (x (Fin.last n)) (q (Fin.last n)) < epsilon := by
+    simpa [Real.dist_eq, q] using hlastAbs
+  have hdist : dist x q < epsilon := by
+    rw [dist_pi_lt_iff hepsilon]
+    intro i
+    refine Fin.lastCases ?_ (fun j => ?_) i
+    · simpa [q, Fin.snoc_last] using hlastDistance
+    · simpa [q, Fin.snoc_castSucc] using hbaseCoordinates j
+  exact ⟨q, ⟨hqA, hqB⟩, hdist⟩
+
 /-- Construct zero-bit graph tubes over a finite compact cover of the projected face whose tile
 interiors are pairwise disjoint. The same continuous section is used on every tile; openness of
 the projection lifts the lower-dimensional disjointness to ambient tube interiors. -/

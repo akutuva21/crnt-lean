@@ -307,3 +307,8 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
 - This supplies the equal-projection critical-facet separation clause of §7.3 with an explicit
   interface for passing residual overlap to the lower face. The recursive face filler, coherent
   global surface, and target consumer remain unproved.
+- Strengthened the collar to an ambient metric statement: for every `epsilon > 0`, the critical
+  width can be chosen below `epsilon / 3` so every overlap point is within `epsilon` of an actual
+  point on the shared face. This uses compact uniform continuity of one graph section and the
+  proved agreement of the two sections along the common face; it still does not construct the
+  recursive filler itself.
