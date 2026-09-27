@@ -329,6 +329,80 @@ theorem radialBoxDiagramTile_subset_box {n : ℕ} (diagramTile : Set (Fin n → 
   exact radialBoxRaySegment_subset_box x upper (hdiagramNonnegative x hx)
     (hdiagramNonzero x hx) hupper hp
 
+/-- A radial boundary tile is compact when its projective source patch is compact and has a fixed
+coordinate normalized to one. The normalized coordinate bounds the ray parameter by the matching
+blue-box side; the admissible source-scale pairs form a closed subset of a compact product. -/
+theorem isCompact_radialBoxDiagramTile_of_isCompact {n : ℕ}
+    (diagramTile : Set (Fin n → ℝ)) (upper : Fin n → ℝ) (anchor : Fin n)
+    (hdiagramNonnegative : ∀ x ∈ diagramTile, ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ x ∈ diagramTile, x ≠ 0)
+    (hdiagramAnchor : ∀ x ∈ diagramTile, x anchor = 1)
+    (hupper : ∀ i, 0 < upper i) (hdiagramCompact : IsCompact diagramTile) :
+    IsCompact
+      (radialBoxDiagramTile diagramTile upper hdiagramNonnegative hdiagramNonzero hupper) := by
+  let constraints : Set ((Fin n → ℝ) × ℝ) :=
+    {q | ∀ i, q.2 * q.1 i ≤ upper i}
+  have hconstraints : IsClosed constraints := by
+    have hclosed : IsClosed
+        (⋂ i : Fin n, {q : (Fin n → ℝ) × ℝ | q.2 * q.1 i ≤ upper i}) := by
+      apply isClosed_iInter
+      intro i
+      exact isClosed_Iic.preimage
+        (continuous_snd.mul ((continuous_apply i).comp continuous_fst))
+    have heq : constraints =
+        ⋂ i : Fin n, {q : (Fin n → ℝ) × ℝ | q.2 * q.1 i ≤ upper i} := by
+      ext q
+      simp [constraints]
+    rw [heq]
+    exact hclosed
+  let parameters : Set ((Fin n → ℝ) × ℝ) :=
+    (diagramTile ×ˢ Set.Icc (0 : ℝ) (upper anchor)) ∩ constraints
+  have hparametersClosed : IsClosed parameters := by
+    change IsClosed ((diagramTile ×ˢ Set.Icc (0 : ℝ) (upper anchor)) ∩ constraints)
+    exact hdiagramCompact.isClosed.prod isClosed_Icc |>.inter hconstraints
+  have hparameters : IsCompact parameters := by
+    apply IsCompact.of_isClosed_subset (hdiagramCompact.prod isCompact_Icc)
+      hparametersClosed
+    intro q hq
+    exact hq.1
+  let radial : (Fin n → ℝ) × ℝ → (Fin n → ℝ) := fun q => q.2 • q.1
+  have hradeq :
+      radialBoxDiagramTile diagramTile upper hdiagramNonnegative hdiagramNonzero hupper =
+        radial '' parameters := by
+    ext p
+    constructor
+    · intro hp
+      obtain ⟨x, hx, s, hs, hpeq, hpbox⟩ :=
+        (mem_radialBoxDiagramTile_iff_exists_source_ray diagramTile upper
+          hdiagramNonnegative hdiagramNonzero hupper).mp hp
+      have hsval : p anchor = s := by
+        have h := congrArg (fun z : Fin n → ℝ => z anchor) hpeq
+        simpa [Pi.smul_apply, hdiagramAnchor x hx] using h
+      refine ⟨(x, s), ?_, ?_⟩
+      · change (x, s) ∈
+          (diagramTile ×ˢ Set.Icc (0 : ℝ) (upper anchor)) ∩ constraints
+        refine ⟨⟨hx, hs, ?_⟩, ?_⟩
+        · rw [← hsval]
+          exact hpbox anchor
+        · intro i
+          have hi := hpbox i
+          rw [hpeq, Pi.smul_apply] at hi
+          simpa [smul_eq_mul] using hi
+      · simpa [radial] using hpeq.symm
+    · rintro ⟨q, hq, rfl⟩
+      rcases q with ⟨x, s⟩
+      change (x, s) ∈
+        (diagramTile ×ˢ Set.Icc (0 : ℝ) (upper anchor)) ∩ constraints at hq
+      rcases hq with ⟨⟨hx, hs, _⟩, hcoord⟩
+      apply (mem_radialBoxDiagramTile_iff_exists_source_ray diagramTile upper
+        hdiagramNonnegative hdiagramNonzero hupper).2
+      refine ⟨x, hx, s, hs, rfl, ?_⟩
+      intro i
+      change s * x i ≤ upper i
+      exact hcoord i
+  rw [hradeq]
+  exact hparameters.image (continuous_snd.smul continuous_fst)
+
 /-- Every point of the lower-dimensional diagram tile reaches the outer boundary as part of its
 radial extension. The endpoint's active coordinate records the specific blue-box face incidence. -/
 theorem radialBoxDiagramTile_endpoint_incidence {n : ℕ}
