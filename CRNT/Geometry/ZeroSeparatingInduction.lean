@@ -5975,6 +5975,102 @@ theorem CompactOneBitFiberPatchCover.exists_restrictedDomain_adjacent_seam_basep
   refine ⟨y, hy, hxface, ?_⟩
   simp [projectionFiberSubdivisionEndpointGraphPoint, forgetLastCoordinate]
 
+/-- Craciun v3, §8 Step 1 followed by §8 Step 2: after clipping a parent-labeled one-bit
+refinement, the projection of the common seam is exactly the lower-dimensional seam patch whose
+endpoint lift remains in the clipped face. The two parent tile labels are retained in the
+intersection `baseTile i ∩ baseTile j`, so the next lower-dimensional fill receives the precise
+shared incidence domain rather than only a pointwise witness. -/
+theorem CompactOneBitFiberPatchCover.restrictedDomain_adjacent_seam_projects_exactly
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CompactOneBitFiberPatchCover facePatch base baseTile lower upper epsilon)
+    (domain : Set (Fin (n + 1) → ℝ))
+    (i j : ι) (horder : ∀ y ∈ baseTile i ∩ baseTile j, lower y ≤ upper y)
+    (k : Fin cover.tiling.subdivisionCount) :
+    forgetLastCoordinate n ''
+        (((facePatch ∩ domain) ∩
+            projectionFiberSubdivisionTile (baseTile i) lower upper k.castSucc) ∩
+          ((facePatch ∩ domain) ∩
+            projectionFiberSubdivisionTile (baseTile j) lower upper k.succ)) =
+      {y | y ∈ baseTile i ∩ baseTile j ∧
+        projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y ∈
+          facePatch ∩ domain} := by
+  have hseamRaw := cover.adjacent_base_tiles_share_seam i j horder k
+  have hseam :
+      (((facePatch ∩ domain) ∩
+          projectionFiberSubdivisionTile (baseTile i) lower upper k.castSucc) ∩
+        ((facePatch ∩ domain) ∩
+          projectionFiberSubdivisionTile (baseTile j) lower upper k.succ)) =
+        (facePatch ∩ domain) ∩
+          (fun y : Fin n → ℝ =>
+            projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y) ''
+            (baseTile i ∩ baseTile j) := by
+    ext x
+    have hseamAt := congrArg (fun s : Set (Fin (n + 1) → ℝ) => x ∈ s) hseamRaw
+    simp only [Set.mem_inter_iff] at hseamAt ⊢
+    constructor
+    · rintro ⟨⟨⟨hface, hdom⟩, hi⟩, ⟨⟨_, _⟩, hj⟩⟩
+      have horiginal := hseamAt.mp ⟨⟨hface, hi⟩, ⟨hface, hj⟩⟩
+      exact ⟨⟨hface, hdom⟩, horiginal.2⟩
+    · rintro ⟨⟨hface, hdom⟩, hgraph⟩
+      have horiginal := hseamAt.mpr ⟨hface, hgraph⟩
+      rcases horiginal with ⟨⟨_, hi⟩, ⟨_, hj⟩⟩
+      exact ⟨⟨⟨hface, hdom⟩, hi⟩, ⟨⟨hface, hdom⟩, hj⟩⟩
+  rw [hseam]
+  ext y
+  have hindex : k.succ.castSucc = k.castSucc.succ := by
+    apply Fin.ext
+    simp
+  constructor
+  · rintro ⟨x, ⟨hpatch, ⟨z, hz, rfl⟩⟩, hxy⟩
+    have hforget : forgetLastCoordinate n
+        (projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc z) = z := by
+      simp [projectionFiberSubdivisionEndpointGraphPoint, forgetLastCoordinate]
+    have hyz : y = z := hxy.symm.trans hforget
+    have hgraphy :
+        projectionFiberSubdivisionEndpointGraphPoint lower upper k.castSucc.succ y ∈
+          facePatch ∩ domain := by
+      rw [hyz]
+      simpa [hindex] using hpatch
+    exact ⟨hyz ▸ hz, hgraphy⟩
+  · rintro ⟨hy, hgraph⟩
+    have hgraphRaw :
+        projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y ∈
+          facePatch ∩ domain := by
+      simpa [hindex] using hgraph
+    refine ⟨projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y,
+      ⟨hgraphRaw, ⟨y, hy, rfl⟩⟩, ?_⟩
+    simp [projectionFiberSubdivisionEndpointGraphPoint, forgetLastCoordinate]
+
+/-- The clipped lower-dimensional seam patch from
+`restrictedDomain_adjacent_seam_projects_exactly` is compact. This is the compact incidence
+domain required when the next induction stage fills the common face of two parent-labeled tiles. -/
+theorem CompactOneBitFiberPatchCover.isCompact_restrictedDomain_adjacent_seam
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CompactOneBitFiberPatchCover facePatch base baseTile lower upper epsilon)
+    (domain : Set (Fin (n + 1) → ℝ)) (hdomain : IsClosed domain)
+    (i j : ι) (horder : ∀ y ∈ baseTile i ∩ baseTile j, lower y ≤ upper y)
+    (k : Fin cover.tiling.subdivisionCount) :
+    IsCompact {y | y ∈ baseTile i ∩ baseTile j ∧
+      projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y ∈
+        facePatch ∩ domain} := by
+  rw [← cover.restrictedDomain_adjacent_seam_projects_exactly domain i j horder k]
+  have hleft : IsCompact ((facePatch ∩ domain) ∩
+      projectionFiberSubdivisionTile (baseTile i) lower upper k.castSucc) := by
+    simpa [Set.inter_assoc, Set.inter_left_comm, Set.inter_comm] using
+      (cover.facePatch_tile_compact ⟨i, k.castSucc⟩).inter_right hdomain
+  have hright : IsCompact ((facePatch ∩ domain) ∩
+      projectionFiberSubdivisionTile (baseTile j) lower upper k.succ) := by
+    simpa [Set.inter_assoc, Set.inter_left_comm, Set.inter_comm] using
+      (cover.facePatch_tile_compact ⟨j, k.succ⟩).inter_right hdomain
+  exact (hleft.inter hright).image
+    (forgetLastCoordinate n).continuous_of_finiteDimensional
+
 /-! ## The ruled-surface step -/
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
