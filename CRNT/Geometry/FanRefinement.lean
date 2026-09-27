@@ -1793,6 +1793,143 @@ theorem hyperplaneArrangementFamily_inter_common [CompleteSpace E] [DecidableEq 
         (signCell T P N : Set E) := by rw [hset, Set.inter_comm]
     exact signCell_inter_isExposedFaceOf_left hP'T hN'T hPT hNT hP'N' hPN hset'
 
+/-- At a point of a finite central arrangement there is a canonical smallest sign cell: normals
+with strictly positive or negative evaluation keep that sign, while normals vanishing at the
+point become equalities. This cell is contained in every arrangement cell incident to the point.
+It is the common lower-dimensional face needed when a face-filling step has more than two incident
+tiles. -/
+theorem hyperplaneArrangementFamily_commonFace_at [CompleteSpace E] [DecidableEq E]
+    {T : Finset E} {x : E} (cells : Finset (ProperCone ℝ E))
+    (hCells : ∀ C ∈ cells, C ∈ hyperplaneArrangementFamily T)
+    (hxCells : ∀ C ∈ cells, x ∈ (C : Set E)) :
+    ∃ G ∈ hyperplaneArrangementFamily T, x ∈ (G : Set E) ∧
+      ∀ C ∈ cells, (G : Set E) ⊆ (C : Set E) ∧ IsExposedFaceOf G C := by
+  classical
+  let P := T.filter (fun a => 0 < ⟪a, x⟫_ℝ)
+  let N := T.filter (fun a => ⟪a, x⟫_ℝ < 0)
+  have hPT : P ⊆ T := Finset.filter_subset _ _
+  have hNT : N ⊆ T := Finset.filter_subset _ _
+  have hPN : Disjoint P N := by
+    rw [Finset.disjoint_left]
+    intro a haP haN
+    simp only [P, N, Finset.mem_filter] at haP haN
+    linarith
+  let G := signCell T P N
+  have hG : G ∈ hyperplaneArrangementFamily T :=
+    mem_hyperplaneArrangementFamily_iff.mpr ⟨P, N, hPT, hNT, hPN, rfl⟩
+  have hGx : x ∈ G := by
+    apply mem_signCell.mpr
+    refine ⟨?_, ?_, ?_⟩
+    · intro a ha
+      exact le_of_lt (Finset.mem_filter.mp ha).2
+    · intro a ha
+      rw [inner_neg_left]
+      linarith [(Finset.mem_filter.mp ha).2]
+    · intro a ha
+      have haT := (Finset.mem_sdiff.mp ha).1
+      have haNot := (Finset.mem_sdiff.mp ha).2
+      have haP : a ∉ P := by
+        intro h
+        exact haNot (Finset.mem_union.mpr (Or.inl h))
+      have haN : a ∉ N := by
+        intro h
+        exact haNot (Finset.mem_union.mpr (Or.inr h))
+      have hnotPos : ¬ 0 < ⟪a, x⟫_ℝ := by
+        intro h
+        exact haP (Finset.mem_filter.mpr ⟨haT, h⟩)
+      have hnotNeg : ¬ ⟪a, x⟫_ℝ < 0 := by
+        intro h
+        exact haN (Finset.mem_filter.mpr ⟨haT, h⟩)
+      linarith
+  refine ⟨G, hG, hGx, ?_⟩
+  intro C hC
+  have hCfam := hCells C hC
+  have hxC := hxCells C hC
+  obtain ⟨P', N', hP'T, hN'T, hP'N', hCeq⟩ :=
+    mem_hyperplaneArrangementFamily_iff.mp hCfam
+  have hxC' : x ∈ signCell T P' N' := by simpa [hCeq] using hxC
+  have hGC' : (G : Set E) ⊆ (signCell T P' N' : Set E) := by
+    intro y hy
+    apply mem_signCell.mpr
+    refine ⟨?_, ?_, ?_⟩
+    · intro a haP'
+      have hax := (mem_signCell.mp hxC').1 a haP'
+      by_cases hapos : 0 < ⟪a, x⟫_ℝ
+      · exact (mem_signCell.mp hy).1 a (Finset.mem_filter.mpr ⟨hP'T haP', hapos⟩)
+      · have hzero : ⟪a, x⟫_ℝ = 0 := by linarith
+        have haP : a ∉ P := by
+          intro hp
+          have := (Finset.mem_filter.mp hp).2
+          linarith
+        have haN : a ∉ N := by
+          intro hn
+          have := (Finset.mem_filter.mp hn).2
+          linarith
+        have hyzero := (mem_signCell.mp hy).2.2 a
+          (Finset.mem_sdiff.mpr ⟨hP'T haP', by
+            intro hu
+            rcases Finset.mem_union.mp hu with hp | hn
+            · exact haP hp
+            · exact haN hn⟩)
+        linarith
+    · intro a haN'
+      have hax := (mem_signCell.mp hxC').2.1 a haN'
+      have hax' : ⟪a, x⟫_ℝ ≤ 0 := by
+        simpa [inner_neg_left] using hax
+      by_cases haneg : ⟪a, x⟫_ℝ < 0
+      · exact (mem_signCell.mp hy).2.1 a (Finset.mem_filter.mpr ⟨hN'T haN', haneg⟩)
+      · have hzero : ⟪a, x⟫_ℝ = 0 := by linarith
+        have haP : a ∉ P := by
+          intro hp
+          have := (Finset.mem_filter.mp hp).2
+          linarith
+        have haN : a ∉ N := by
+          intro hn
+          exact haneg (Finset.mem_filter.mp hn).2
+        have hyzero := (mem_signCell.mp hy).2.2 a
+          (Finset.mem_sdiff.mpr ⟨hN'T haN', by
+            intro hu
+            rcases Finset.mem_union.mp hu with hp | hn
+            · exact haP hp
+            · exact haN hn⟩)
+        rw [inner_neg_left]
+        linarith
+    · intro a haZ
+      have hxzero := (mem_signCell.mp hxC').2.2 a haZ
+      have haP : a ∉ P := by
+        intro hp
+        have hpos := (Finset.mem_filter.mp hp).2
+        rw [hxzero] at hpos
+        linarith
+      have haN : a ∉ N := by
+        intro hn
+        have hneg := (Finset.mem_filter.mp hn).2
+        rw [hxzero] at hneg
+        linarith
+      exact (mem_signCell.mp hy).2.2 a
+        (Finset.mem_sdiff.mpr ⟨(Finset.mem_sdiff.mp haZ).1, by
+          intro hu
+          rcases Finset.mem_union.mp hu with hp | hn
+          · exact haP hp
+          · exact haN hn⟩)
+  have hGC : (G : Set E) ⊆ (C : Set E) := by simpa [hCeq] using hGC'
+  have hmeet : (C : Set E) ∩ (G : Set E) = (G : Set E) := by
+    rw [hCeq]
+    ext y
+    simp only [Set.mem_inter_iff]
+    constructor
+    · rintro ⟨_, hy⟩
+      exact hy
+    · intro hy
+      exact ⟨hGC' hy, hy⟩
+  have hfaceSet : (G : Set E) =
+      (signCell T P' N' : Set E) ∩ (signCell T P N : Set E) := by
+    rw [hCeq] at hmeet
+    exact hmeet.symm
+  have hface := signCell_inter_isExposedFaceOf_left
+    hP'T hN'T hPT hNT hP'N' hPN hfaceSet
+  exact ⟨hGC, by simpa [hCeq] using hface⟩
+
 /-- Arrangement-cell intersections provide the actual exposed-face dependencies used by the
 well-founded order. If the common cell is proper in either incident cell, its rank is strictly
 smaller there; equal cells are the only zero-decrease case. -/
@@ -2704,6 +2841,12 @@ theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype �
       OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
         (m := cover.tiling.subdivisionCount)
         (G, .endpoint k.succ.castSucc) (D.1, .strip k.succ) ∧
+      (C.1 ≠ G → OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (m := cover.tiling.subdivisionCount)
+        (G, .strip k.castSucc) (C.1, .strip k.castSucc)) ∧
+      (D.1 ≠ G → OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (m := cover.tiling.subdivisionCount)
+        (G, .strip k.succ) (D.1, .strip k.succ)) ∧
       ((euclideanHyperplaneArrangementBaseTile base F hFdual C ∩ smallTile i) ∩
         (euclideanHyperplaneArrangementBaseTile base F hFdual D ∩ smallTile j) =
           euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩ ∩
@@ -2759,11 +2902,15 @@ theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype �
   have hindex : k.succ.castSucc = k.castSucc.succ := by
     apply Fin.ext
     simp
-  refine ⟨G, hG, hdependency, ?_, ?_, hbaseMeet, ?_⟩
+  refine ⟨G, hG, hdependency, ?_, ?_, ?_, ?_, hbaseMeet, ?_⟩
   · exact OneBitFanFaceDependency.fiberEndpoint C.1 G k.castSucc
       k.succ.castSucc hGC (Or.inr hindex)
   · exact OneBitFanFaceDependency.fiberEndpoint D.1 G k.succ
       k.succ.castSucc hGD (Or.inl rfl)
+  · intro hCG
+    exact OneBitFanFaceDependency.fanFace C.1 G k.castSucc hGC hCG.symm
+  · intro hDG
+    exact OneBitFanFaceDependency.fanFace D.1 G k.succ hGD hDG.symm
   · rw [← hbaseMeet]
     exact hseam
 
