@@ -650,6 +650,53 @@ theorem craciunProjectiveDomain_origin_not_mem {n : ℕ} [NeZero n] :
   have hcoord := h.1 (0 : Fin n)
   norm_num at hcoord
 
+/-- Dividing a point of `D^P_n` by its least coordinate returns a point of the same projective
+domain on the chart `X_2 = 1`. This is the normalization used to identify the section
+`{X_1 = 1} ∩ (-C)` with a subdivision of `D^P_n` in Craciun v3, §8 Step 1. -/
+theorem craciunProjectiveDomain_normalized_source_mem {n : ℕ} [NeZero n]
+    {p : Fin n → ℝ} (hp : p ∈ craciunProjectiveDomain) :
+    (fun i => p i / p 0) ∈ craciunProjectiveDomain ∧
+      (fun i => p i / p 0) 0 = 1 := by
+  have hp0 : 0 < p 0 := lt_of_lt_of_le zero_lt_one (hp.1 0)
+  let source : Fin n → ℝ := fun i => p i / p 0
+  have hsourceDomain : source ∈ craciunProjectiveDomain := by
+    constructor
+    · intro i
+      have h0i : (0 : Fin n).val ≤ i.val := Nat.zero_le _
+      have hmono := hp.2 0 i h0i
+      change 1 ≤ p i / p 0
+      rw [le_div_iff₀ hp0]
+      simpa using hmono
+    · intro i j hij
+      change p i / p 0 ≤ p j / p 0
+      exact div_le_div_of_nonneg_right (hp.2 i j hij) hp0.le
+  have hsourceAnchor : source 0 = 1 := by
+    simp [source, ne_of_gt hp0]
+  exact ⟨hsourceDomain, hsourceAnchor⟩
+
+/-- A projective diagram covering the normalized slice of `D^P_n` induces a cover of its
+intersection with the coordinate blue box by radial boundary tiles. This is Craciun v3, §8 Step 1:
+the projective subdivision is lifted along rays and clipped by the blue box. -/
+theorem radialBoxDiagramTiles_cover_projectiveDomain_box {ι : Sort*} {n : ℕ} [NeZero n]
+    (diagramTile : ι → Set (Fin n → ℝ)) (upper : Fin n → ℝ)
+    (hdiagramNonnegative : ∀ k x, x ∈ diagramTile k → ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ k x, x ∈ diagramTile k → x ≠ 0)
+    (hupper : ∀ i, 0 < upper i)
+    (hdiagramCoversNormalizedDomain : ∀ x,
+      x ∈ craciunProjectiveDomain → x 0 = 1 → x ∈ ⋃ k, diagramTile k)
+    {p : Fin n → ℝ} (hp : p ∈ craciunProjectiveDomain)
+    (hpupper : ∀ i, p i ≤ upper i) :
+    p ∈ ⋃ k, radialBoxDiagramTile (diagramTile k) upper
+      (hdiagramNonnegative k) (hdiagramNonzero k) hupper := by
+  have hp0 : 0 < p 0 := lt_of_lt_of_le zero_lt_one (hp.1 0)
+  obtain ⟨hsourceDomain, hsourceAnchor⟩ :=
+    craciunProjectiveDomain_normalized_source_mem hp
+  let source : Fin n → ℝ := fun i => p i / p 0
+  have hcover : source ∈ ⋃ k, diagramTile k :=
+    hdiagramCoversNormalizedDomain source hsourceDomain hsourceAnchor
+  exact radialBoxDiagramTiles_cover_of_normalized_source diagramTile upper 0
+    hdiagramNonnegative hdiagramNonzero hupper hp0 hpupper hcover
+
 /-- Craciun's restricted projective domain removes the common origin, so two radial boundary
 tiles clipped to `D^P_n` meet exactly in the radial extension of the common lower-dimensional
 diagram tile, clipped to that same domain (§8 Step 1). -/
