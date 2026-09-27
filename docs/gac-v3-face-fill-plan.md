@@ -145,15 +145,26 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   Quot.sound]`.
 - This mixed relation still only orders preassigned set-valued patches. It does not construct the
   faithful blueprint, select compatible basepoints/scales across projected subdivisions, or
-  produce the exhaustive zero-separating family. The missing geometric endpoint in the existing
-  API is a theorem of the form
-  `∀ F δ f, (∀ x, f x ∈ toricInclusionField F δ x) → ∀ x₀,
-  ZeroSeparatingSurfaceExists f x₀`; the present `ZeroSeparatingSurfaceExists` module proves the
-  one-dimensional case but explicitly leaves the higher-dimensional simplicial/faithful-blueprint
-  construction as the unproved `InductionStepHypothesis` input. Craciun v3 §7.4.3 requires that
-  recursive faithful-blueprint step to preserve projection/basepoint and scale compatibility;
-  §8 Steps 2–4 then use the resulting blueprint to build an exhaustive ZSH family and the
-  invariant region. No current theorem constructs that output from a fan selection.
+  produce the exhaustive zero-separating family. The exact missing endpoint theorem should have
+  this Lean shape (with the complete-fan record supplied as part of the formalization):
+  ```lean
+  theorem exists_zeroSeparatingSurface_of_completePointedPolyhedralFan
+      {S : Type*} [Fintype S]
+      (F : Fan (EuclideanSpace ℝ S)) (hF : IsCompletePointedPolyhedralFan F)
+      (δfan : ℝ) (hδfan : 0 < δfan)
+      (f : EuclideanSpace ℝ S → EuclideanSpace ℝ S)
+      (hselect : ∀ x, f x ∈ toricInclusionField F δfan x)
+      (x₀ : EuclideanSpace ℝ S) :
+      DifferentialInclusion.ZeroSeparatingSurfaceExists f x₀
+  ```
+  `IsCompletePointedPolyhedralFan` is not currently defined: `Fan` is only a `Finset` of proper
+  cones, with the face-lattice and covering axioms explicitly omitted in `ToricFan.lean:47–51`.
+  The surface module proves the one-dimensional case but leaves its higher-dimensional simplicial
+  gluing as the `InductionStepHypothesis` input. Craciun v3 §7.4.3 requires recursive
+  faithful-blueprint refinement preserving projection/basepoint and scale compatibility; §8
+  Steps 2–4 use that output to build an exhaustive ZSH family and invariant region. No current
+  theorem constructs this output from complete pointed fan data, so this is a real missing
+  mathematical/formal result rather than another missing wrapper.
 - The current task-patch recursion still has no caller that returns recursive covers, barriers, or
   blueprint data. Keep the checklist open until the global `ZeroSeparatingSurfaceExists` result is
   derived and the exact target theorem and kernel axiom audit are clean.
