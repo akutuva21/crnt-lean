@@ -94,6 +94,84 @@ coarse one. -/
 def Refines [CompleteSpace E] (F' F : Fan E) : Prop :=
   ∀ C' ∈ F', ∃ C ∈ F, (C' : Set E) ⊆ (C : Set E)
 
+/-- The actual common-face condition for a fan: every pairwise intersection is an exposed face of
+both incident cones. `IsPolyhedralFan.inter_common` records only the set equality to a fan cell;
+this stronger property is needed when transferring local toric-field polars across a wall. -/
+def HasExposedCommonFaces [CompleteSpace E] (F : Fan E) : Prop :=
+  ∀ C ∈ F, ∀ D ∈ F, ∃ G ∈ F,
+    (G : Set E) = (C : Set E) ∩ (D : Set E) ∧
+      IsExposedFaceOf G C ∧ IsExposedFaceOf G D
+
+/-- A genuine face of a cone that contains an interior point is the whole cone. -/
+theorem exposedFace_eq_of_mem_interior [CompleteSpace E]
+    {G D : ProperCone ℝ E} (hface : IsExposedFaceOf G D) {x : E}
+    (hxD : x ∈ interior (D : Set E)) (hxG : x ∈ (G : Set E)) : G = D := by
+  have hface' := isExposedFaceOf_isFaceOf hface
+  have hDG : (D : Set E) ⊆ (G : Set E) := by
+    intro z hz
+    obtain ⟨r, hr, hball⟩ := Metric.mem_nhds_iff.mp
+      (isOpen_interior.mem_nhds hxD)
+    let t : ℝ := r / (‖z‖ + 1)
+    have ht : 0 < t := div_pos hr (by positivity)
+    have hdist : dist (x - t • z) x = t * ‖z‖ := by
+      rw [dist_eq_norm, show x - t • z - x = -(t • z) by abel,
+        norm_neg, norm_smul, Real.norm_eq_abs, abs_of_pos ht]
+    have hnear : t * ‖z‖ < r := by
+      calc
+        t * ‖z‖ = r * ‖z‖ / (‖z‖ + 1) := by dsimp [t]; ring
+        _ < r := (div_lt_iff₀ (by positivity : 0 < ‖z‖ + 1)).2 (by
+          nlinarith [hr, norm_nonneg z])
+    have hyD : x - t • z ∈ (D : Set E) :=
+      interior_subset (hball (Metric.mem_ball.mpr (calc
+        dist (x - t • z) x = t * ‖z‖ := hdist
+        _ < r := hnear)))
+    have hsum : t • z + (x - t • z) = x := by abel
+    have hsumG : t • z + (x - t • z) ∈ (G : Set E) := by rw [hsum]; exact hxG
+    exact hface'.mem_of_smul_add_mem hz hyD ht hsumG
+  have hGsubD : (G : Set E) ⊆ (D : Set E) := SetLike.coe_subset_coe.mpr hface'.le
+  have hGDset : (G : Set E) = (D : Set E) := Set.Subset.antisymm hGsubD hDG
+  exact SetLike.coe_injective hGDset
+
+/-- If a metric ball around a state lies inside one fan cell, every cone admitted by the toric
+differential inclusion has its polar contained in that cell's polar. Hence every allowed velocity
+obeys all linear inequalities given by vectors in the cell. This is the local field-to-normal
+bridge used after the Craciun blueprint has placed a patch within a single fan chamber. -/
+theorem toricField_subset_coneDual_of_ball_inside_cell [CompleteSpace E]
+    {F : Fan E} (hFfaces : HasExposedCommonFaces F)
+    {D : ProperCone ℝ E} (hD : D ∈ F) {x : E} {δ : ℝ}
+    (hball : Metric.ball x δ ⊆ interior (D : Set E)) :
+    (toricField F δ x : Set E) ⊆ (coneDual (D : Set E) : Set E) := by
+  have hgenerators : toricGenerators F δ x ⊆ coneDual (D : Set E) := by
+    intro v hv
+    obtain ⟨C, hC, hnear, hvC⟩ := mem_toricGenerators.mp hv
+    obtain ⟨y, hyC, hyDist⟩ := (Metric.infDist_lt_iff ⟨0, zero_mem C⟩).mp hnear
+    have hyball : y ∈ Metric.ball x δ := Metric.mem_ball.mpr (by
+      rw [dist_comm]
+      exact hyDist)
+    have hyD : y ∈ interior (D : Set E) := hball hyball
+    obtain ⟨G, _hG, hintersection, _hGC, hGD⟩ := hFfaces C hC D hD
+    have hyG : y ∈ (G : Set E) := by
+      rw [hintersection]
+      exact ⟨hyC, interior_subset hyD⟩
+    have hGD_eq : G = D := exposedFace_eq_of_mem_interior hGD hyD hyG
+    have hDsubsetC : (D : Set E) ⊆ (C : Set E) := by
+      intro z hz
+      have hzG : z ∈ (G : Set E) := by rw [hGD_eq]; exact hz
+      rw [hintersection] at hzG
+      exact hzG.1
+    have hvC' : v ∈ coneDual (C : Set E) := by simpa using hvC
+    exact mem_coneDual.mpr (by
+      intro z hz
+      exact (mem_coneDual.mp hvC') (hDsubsetC hz))
+  change (PointedCone.hull ℝ (toricGenerators F δ x) : Set E) ⊆
+    (coneDual (D : Set E) : Set E)
+  intro v hv
+  change v ∈ Submodule.span (Nonneg ℝ) (toricGenerators F δ x) at hv
+  have hspan : Submodule.span (Nonneg ℝ) (toricGenerators F δ x) ≤
+      (coneDual (D : Set E)).toPointedCone := by
+    exact Submodule.span_le.2 hgenerators
+  exact hspan hv
+
 /-- Intersecting a compact seam patch with every cell of a finite complete fan refinement gives a
 finite compact cover whose pieces inherit a containing cell label from the coarse fan. This is the
 compact local-patch decomposition used to pass projected tile seams into the faithful fan stage. -/
@@ -1203,11 +1281,162 @@ theorem hyperplaneArrangementFamily_eq_of_interiors_intersect [CompleteSpace E] 
 
 /-- Pairwise intersections of sign cells are sign cells: coordinates with opposite signs or a
 zero assignment become equalities, while coordinates with the same strict sign retain it. -/
+private theorem signCell_inter_isExposedFaceOf_left [CompleteSpace E] [DecidableEq E]
+    {T P N P' N' : Finset E} (hPT : P ⊆ T) (hNT : N ⊆ T)
+    (hP'T : P' ⊆ T) (hN'T : N' ⊆ T) (hPN : Disjoint P N)
+    (hP'N' : Disjoint P' N') {G : ProperCone ℝ E}
+    (hG : (G : Set E) = (signCell T P N : Set E) ∩ (signCell T P' N' : Set E)) :
+    IsExposedFaceOf G (signCell T P N) := by
+  classical
+  let A := P \ P'
+  let B := N \ N'
+  let a : E := (∑ i ∈ A, i) + (∑ i ∈ B, -i)
+  have not_union {S U : Finset E} {i : E} (hiS : i ∉ S) (hiU : i ∉ U) :
+      i ∉ S ∪ U := by
+    intro hi
+    rcases Finset.mem_union.mp hi with hi | hi
+    · exact hiS hi
+    · exact hiU hi
+  have hAdual : (∑ i ∈ A, i) ∈ coneDual (signCell T P N : Set E) := by
+    apply Submodule.sum_mem
+    intro i hi
+    change i ∈ coneDual (signCell T P N : Set E)
+    apply mem_coneDual.mpr
+    intro x hx
+    have hpos := (mem_signCell.mp hx).1 i (Finset.mem_sdiff.mp hi).1
+    simpa [real_inner_comm] using hpos
+  have hBdual : (∑ i ∈ B, -i) ∈ coneDual (signCell T P N : Set E) := by
+    apply Submodule.sum_mem
+    intro i hi
+    change -i ∈ coneDual (signCell T P N : Set E)
+    apply mem_coneDual.mpr
+    intro x hx
+    have hneg := (mem_signCell.mp hx).2.1 i (Finset.mem_sdiff.mp hi).1
+    simpa [real_inner_comm] using hneg
+  have hadual : a ∈ coneDual (signCell T P N : Set E) := by
+    dsimp [a]
+    exact add_mem hAdual hBdual
+  have hinner (x : E) : ⟪a, x⟫_ℝ =
+      (∑ i ∈ A, ⟪i, x⟫_ℝ) + (∑ i ∈ B, ⟪-i, x⟫_ℝ) := by
+    change ⟪(∑ i ∈ A, i) + (∑ i ∈ B, -i), x⟫_ℝ = _
+    rw [inner_add_left, sum_inner, sum_inner]
+  have hfaceSet : (G : Set E) =
+      (exposedFace (signCell T P N : PointedCone ℝ E) a : Set E) := by
+    rw [hG]
+    ext x
+    constructor
+    · rintro ⟨hxC, hxD⟩
+      refine mem_exposedFace.mpr ⟨hxC, ?_⟩
+      have hP := (mem_signCell.mp hxC).1
+      have hN := (mem_signCell.mp hxC).2.1
+      have hDpos := (mem_signCell.mp hxD).1
+      have hDneg := (mem_signCell.mp hxD).2.1
+      have hDzero := (mem_signCell.mp hxD).2.2
+      have hAzero : ∀ i ∈ A, ⟪i, x⟫_ℝ = 0 := by
+        intro i hi
+        have hnonneg := hP i (Finset.mem_sdiff.mp hi).1
+        by_cases hiN' : i ∈ N'
+        · have hnonpos : ⟪i, x⟫_ℝ ≤ 0 := by
+            simpa [inner_neg_left] using hDneg i hiN'
+          exact le_antisymm hnonpos hnonneg
+        · exact hDzero i (Finset.mem_sdiff.mpr
+            ⟨hPT (Finset.mem_sdiff.mp hi).1, not_union
+              (Finset.mem_sdiff.mp hi).2 hiN'⟩)
+      have hBzero : ∀ i ∈ B, ⟪-i, x⟫_ℝ = 0 := by
+        intro i hi
+        have hnonpos := hN i (Finset.mem_sdiff.mp hi).1
+        by_cases hiP' : i ∈ P'
+        · have hpos := hDpos i hiP'
+          have hnegNonpos : ⟪-i, x⟫_ℝ ≤ 0 := by
+            simpa [inner_neg_left] using hpos
+          have hzero : ⟪-i, x⟫_ℝ = 0 := le_antisymm hnegNonpos hnonpos
+          exact hzero
+        · have hzero := hDzero i (Finset.mem_sdiff.mpr
+            ⟨hNT (Finset.mem_sdiff.mp hi).1, not_union hiP'
+              (Finset.mem_sdiff.mp hi).2⟩)
+          simpa [inner_neg_left] using hzero
+      rw [hinner x, Finset.sum_eq_zero hAzero, Finset.sum_eq_zero hBzero]
+      simp
+    · intro hxFace
+      have hxC : x ∈ signCell T P N := (mem_exposedFace.mp hxFace).1
+      have hzero : ⟪a, x⟫_ℝ = 0 := (mem_exposedFace.mp hxFace).2
+      have hCpos := (mem_signCell.mp hxC).1
+      have hCneg := (mem_signCell.mp hxC).2.1
+      have hCzero := (mem_signCell.mp hxC).2.2
+      have hAzeroNonneg : ∀ i ∈ A, 0 ≤ ⟪i, x⟫_ℝ := fun i hi => hCpos i (Finset.mem_sdiff.mp hi).1
+      have hBzeroNonneg : ∀ i ∈ B, 0 ≤ ⟪-i, x⟫_ℝ := by
+        intro i hi
+        exact hCneg i (Finset.mem_sdiff.mp hi).1
+      have hsum : (∑ i ∈ A, ⟪i, x⟫_ℝ) +
+          (∑ i ∈ B, ⟪-i, x⟫_ℝ) = 0 := by rw [← hinner x, hzero]
+      have hAsum : (∑ i ∈ A, ⟪i, x⟫_ℝ) = 0 := by
+        have hA' := Finset.sum_nonneg hAzeroNonneg
+        have hB' := Finset.sum_nonneg hBzeroNonneg
+        nlinarith
+      have hBsum : (∑ i ∈ B, ⟪-i, x⟫_ℝ) = 0 := by
+        have hA' := Finset.sum_nonneg hAzeroNonneg
+        have hB' := Finset.sum_nonneg hBzeroNonneg
+        nlinarith
+      have hAzero : ∀ i ∈ A, ⟪i, x⟫_ℝ = 0 := by
+        intro i hi
+        exact (Finset.sum_eq_zero_iff_of_nonneg hAzeroNonneg).mp hAsum i hi
+      have hBzero : ∀ i ∈ B, ⟪-i, x⟫_ℝ = 0 := by
+        intro i hi
+        exact (Finset.sum_eq_zero_iff_of_nonneg hBzeroNonneg).mp hBsum i hi
+      have hxD : x ∈ signCell T P' N' := by
+        apply mem_signCell.mpr
+        refine ⟨?_, ?_, ?_⟩
+        · intro i hi
+          by_cases hiP : i ∈ P
+          · exact hCpos i hiP
+          · by_cases hiN : i ∈ N
+            · have hiB : i ∈ B := Finset.mem_sdiff.mpr
+                ⟨hiN, fun hiN' => (Finset.disjoint_left.mp hP'N') hi hiN'⟩
+              have hz := hBzero i hiB
+              have hz' : ⟪i, x⟫_ℝ = 0 := by simpa [inner_neg_left] using hz
+              rw [hz']
+            · have hz := hCzero i (Finset.mem_sdiff.mpr
+                ⟨hP'T hi, not_union hiP hiN⟩)
+              rw [hz]
+        · intro i hi
+          by_cases hiN : i ∈ N
+          · exact hCneg i hiN
+          · by_cases hiP : i ∈ P
+            · have hiA : i ∈ A := Finset.mem_sdiff.mpr
+                ⟨hiP, fun hiP' => (Finset.disjoint_left.mp hP'N') hiP' hi⟩
+              have hz := hAzero i hiA
+              simpa [inner_neg_left, hz]
+            · have hz := hCzero i (Finset.mem_sdiff.mpr
+                ⟨hN'T hi, not_union hiP hiN⟩)
+              have hz' : ⟪-i, x⟫_ℝ = 0 := by simpa [inner_neg_left] using hz
+              rw [hz']
+        · intro i hi
+          by_cases hiP : i ∈ P
+          · have hiA : i ∈ A := Finset.mem_sdiff.mpr
+              ⟨hiP, fun hiP' => (Finset.mem_sdiff.mp hi).2
+                (Finset.mem_union.mpr (Or.inl hiP'))⟩
+            exact hAzero i hiA
+          · by_cases hiN : i ∈ N
+            · have hiB : i ∈ B := Finset.mem_sdiff.mpr
+                ⟨hiN, fun hiN' => (Finset.mem_sdiff.mp hi).2
+                  (Finset.mem_union.mpr (Or.inr hiN'))⟩
+              have hz := hBzero i hiB
+              have hz' : ⟪i, x⟫_ℝ = 0 := by simpa [inner_neg_left] using hz
+              exact hz'
+            · exact hCzero i (Finset.mem_sdiff.mpr
+                ⟨(Finset.mem_sdiff.mp hi).1, not_union hiP hiN⟩)
+      exact ⟨hxC, hxD⟩
+  refine ⟨a, hadual, ?_⟩
+  exact hfaceSet
+
+/-- Pairwise intersections of sign cells are sign cells: coordinates with opposite signs or a
+zero assignment become equalities, while coordinates with the same strict sign retain it. -/
 theorem hyperplaneArrangementFamily_inter_common [CompleteSpace E] [DecidableEq E]
     {T : Finset E} {C D : ProperCone ℝ E}
     (hC : C ∈ hyperplaneArrangementFamily T) (hD : D ∈ hyperplaneArrangementFamily T) :
     ∃ G ∈ hyperplaneArrangementFamily T,
-      (G : Set E) = (C : Set E) ∩ (D : Set E) := by
+      (G : Set E) = (C : Set E) ∩ (D : Set E) ∧
+        IsExposedFaceOf G C ∧ IsExposedFaceOf G D := by
   classical
   obtain ⟨P, N, hPT, hNT, hPN, rfl⟩ := mem_hyperplaneArrangementFamily_iff.mp hC
   obtain ⟨P', N', hP'T, hN'T, hP'N', rfl⟩ := mem_hyperplaneArrangementFamily_iff.mp hD
@@ -1346,7 +1575,19 @@ theorem hyperplaneArrangementFamily_inter_common [CompleteSpace E] [DecidableEq 
                   ⟨haT, not_union haP' haN'⟩)
           · exact hZP a (Finset.mem_sdiff.mpr
               ⟨haT, not_union haP haN⟩)
-  exact ⟨G, hG, hset⟩
+  refine ⟨G, hG, hset, ?_, ?_⟩
+  · exact signCell_inter_isExposedFaceOf_left hPT hNT hP'T hN'T hPN hP'N' hset
+  · have hset' : (G : Set E) = (signCell T P' N' : Set E) ∩
+        (signCell T P N : Set E) := by rw [hset, Set.inter_comm]
+    exact signCell_inter_isExposedFaceOf_left hP'T hN'T hPT hNT hP'N' hPN hset'
+
+/-- Finite central arrangements satisfy the true common-face axiom, with each intersection exposed
+from both incident cells. This is the face information required to transfer the local toric field
+through a chamber wall. -/
+theorem hyperplaneArrangementFamily_hasExposedCommonFaces [CompleteSpace E] [DecidableEq E]
+    (T : Finset E) : HasExposedCommonFaces (hyperplaneArrangementFamily T) := by
+  intro C hC D hD
+  exact hyperplaneArrangementFamily_inter_common hC hD
 
 /-- A dual vector of a finite half-space sign cell is a finite nonnegative combination of its
 normals. This finite Farkas representation identifies the active inequalities on an exposed face. -/
@@ -1561,7 +1802,10 @@ theorem hyperplaneArrangementFamily_faces_mem [CompleteSpace E] [DecidableEq E]
 theorem hyperplaneArrangementFamily_isPolyhedralFan [CompleteSpace E] [DecidableEq E]
     (T : Finset E) : IsPolyhedralFan (hyperplaneArrangementFamily T) where
   faces_mem := fun _ hC _ hD => hyperplaneArrangementFamily_faces_mem hC hD
-  inter_common := fun _ hC _ hD => hyperplaneArrangementFamily_inter_common hC hD
+  inter_common := by
+    intro C hC D hD
+    obtain ⟨G, hG, hcommon, _, _⟩ := hyperplaneArrangementFamily_inter_common hC hD
+    exact ⟨G, hG, hcommon⟩
   covers := hyperplaneArrangementFamily_covers T
 
 /-- Distinct cells of a central hyperplane arrangement have disjoint ordinary interiors. -/
@@ -2248,6 +2492,31 @@ theorem coneDual_coarse_subset_halfPlane_of_fine_mem [CompleteSpace E] {n : E} {
     (hsub : (C' : Set E) ⊆ (C : Set E)) (h : n ∈ (C' : Set E)) :
     (coneDual (C : Set E) : Set E) ⊆ {y : E | 0 ≤ ⟪n, y⟫_ℝ} :=
   coneDual_subset_dualHalfPlane_of_mem (hsub h)
+
+/-- Craciun v3, §8: if a patch's full local ball stays inside a coarse fan cell and its normal
+belongs to a refining cell contained there, the coarse toric differential inclusion points into
+the normal's half-space. This composes the local field-to-polar bound with the refinement label. -/
+theorem toricField_subset_halfPlane_of_refinement_cell [CompleteSpace E]
+    {F : Fan E} (hFfaces : HasExposedCommonFaces F)
+    {D C' : ProperCone ℝ E} (hD : D ∈ F)
+    (hsub : (C' : Set E) ⊆ (D : Set E)) {n : E} (hn : n ∈ (C' : Set E))
+    {x : E} {δ : ℝ}
+    (hball : Metric.ball x δ ⊆ interior (D : Set E)) :
+    (toricField F δ x : Set E) ⊆ {y | 0 ≤ ⟪n, y⟫_ℝ} := by
+  exact (toricField_subset_coneDual_of_ball_inside_cell hFfaces hD hball).trans
+    (coneDual_coarse_subset_halfPlane_of_fine_mem hsub hn)
+
+/-- The general local inward-pointing bridge instantiated with the explicit arrangement fan from
+Craciun v3, §8. The arrangement's exposed-common-face data is constructed above from its sign cells. -/
+theorem hyperplaneArrangement_toricField_subset_halfPlane [CompleteSpace E] [DecidableEq E]
+    (T : Finset E) {D : ProperCone ℝ E}
+    (hD : D ∈ hyperplaneArrangementFamily T) {n : E} (hn : n ∈ (D : Set E))
+    {x : E} {δ : ℝ}
+    (hball : Metric.ball x δ ⊆ interior (D : Set E)) :
+    (toricField (hyperplaneArrangementFamily T) δ x : Set E) ⊆
+      {y | 0 ≤ ⟪n, y⟫_ℝ} := by
+  exact toricField_subset_halfPlane_of_refinement_cell
+    (hyperplaneArrangementFamily_hasExposedCommonFaces T) hD Set.Subset.rfl hn hball
 
 /-- **Admissibility for a refinement cell gives a coarse cell.** Packaged over `Refines`: if `n`
 attracts toward a cell `C'` of the refinement `F'`, then `n` attracts toward some cell `C` of the
