@@ -397,3 +397,21 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
 - The exact target still audits to `[propext, sorryAx, Classical.choice, Quot.sound]`. This
   checkpoint supplies the missing per-word Step 2 bound only; recursive face-family construction,
   global faithful blueprint/ZSH assembly, and the target consumer remain the active goal.
+
+## Continuation checkpoint — one-ending interpolated profile carried by each fill
+
+- Added a positivity proof for every in-range one-ending interpolated tile scale, including the
+  all-ones chain whose interpolation starts at zero.
+- Strengthened `exists_common_scale_and_oneBit_fills_for_craciun_words` to take the finite family
+  of one-ending words assigned to boundary pairs. It chooses the common ratio first, derives the
+  uniform binary-chain factor at that ratio, caps the shared fill radius by the positive minimum
+  of all supplied interpolated scales, and returns both a radius bound and a strict bound on each
+  resulting strip by its assigned `tilde epsilon` profile.
+- Fresh Lean 4.34 compilation succeeded for `ZeroSeparatingInduction.lean`, then
+  `FanRefinement.lean`, `ToricUniformWallMargin.lean`,
+  `ComplexBalanceStoichFanInclusion.lean`, and `GlobalAttractorTheorem.lean` against that fresh
+  source artifact. The positivity lemma and integrated fill theorem audit to
+  `[propext, Classical.choice, Quot.sound]`.
+- The exact target still audits to `[propext, sorryAx, Classical.choice, Quot.sound]`. This is a
+  Step 2 profile-scale bridge; the actual face-lattice caller, recursive faithful blueprint,
+  global zero-separating surface, and target consumer remain unfinished.

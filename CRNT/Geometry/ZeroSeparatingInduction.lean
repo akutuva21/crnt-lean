@@ -3306,6 +3306,67 @@ theorem tileScaleInterpolation_bounds {m : ℕ} {lo hi : ℝ} (hlohi : lo ≤ hi
     · have h := hmono.monotone (Fin.le_last i)
       simpa [tileScaleInterpolation_endpoints] using h
 
+/-- Every in-range one-ending word receives a strictly positive interpolated tilde scale. The
+ordinary chains interpolate between positive zero-ending endpoints; the all-ones chain starts at
+zero, but every nonempty word on it has a positive interpolation index. -/
+theorem coherentBinaryWordTileScale_pos_of_getLast_true {n : ℕ} {q : ℝ}
+    (hq0 : 0 < q) (hq1 : q < 1) (w : List Bool) (hw : w.length ≤ n)
+    (hlast : w.getLast? = some true) :
+    0 < coherentBinaryWordTileScale n q w hw := by
+  classical
+  cases hidx : binaryWordChainIndex w with
+  | mk chain k =>
+      cases chain with
+      | none =>
+          have hword : w = List.replicate k true := by
+            simpa [hidx] using binaryWordChainIndex_reconstruct w
+          have hkpos : 0 < k := by
+            have hlen : 1 ≤ w.length := by
+              cases w with
+              | nil => simp at hlast
+              | cons b bs => simp
+            rw [hword] at hlen
+            simp only [List.length_replicate] at hlen
+            exact hlen
+          have hk : (List.replicate k true).length ≤ n := by
+            rw [← hword]
+            exact hw
+          have hendpoint : 0 < binaryWordAllOnesEndpointScale n q :=
+            pow_pos hq0 _
+          have hindex : 0 < ((k : ℕ) : ℝ) / ((n + 1 : ℕ) : ℝ) :=
+            div_pos (by exact_mod_cast hkpos) (by positivity)
+          subst w
+          change 0 < binaryWordTileScale n (binaryWordLowerEndpointScale n q)
+            (binaryWordUpperEndpointScale n q) (binaryWordAllOnesEndpointScale n q)
+            (List.replicate k true) hk
+          rw [binaryWordTileScale_on_allOnes
+            (binaryWordLowerEndpointScale n q) (binaryWordUpperEndpointScale n q)
+            (binaryWordAllOnesEndpointScale n q) k hk]
+          simpa [tileScaleInterpolation] using
+            (mul_pos hendpoint hindex)
+      | some p =>
+          have hword : w = p ++ [false] ++ List.replicate k true := by
+            simpa [hidx] using binaryWordChainIndex_reconstruct w
+          have hbase : p.length + 1 ≤ n := by
+            have hlen := congrArg List.length hword
+            simp only [List.length_append, List.length_cons, List.length_nil,
+              List.length_replicate] at hlen
+            omega
+          subst w
+          have hindex : k < n - (p.length + 1) + 2 :=
+            binaryWordChainWord_scaleIndex_lt p k hw
+          have hlower : 0 < binaryWordLowerEndpointScale n q p := pow_pos hq0 _
+          have hendpoints := binaryWordLowerEndpointScale_lt_upper hq0 hq1 hbase
+          have hbounds := tileScaleInterpolation_bounds hendpoints.le
+            (⟨k, hindex⟩ : Fin (n - (p.length + 1) + 2))
+          change 0 < binaryWordTileScale n (binaryWordLowerEndpointScale n q)
+            (binaryWordUpperEndpointScale n q) (binaryWordAllOnesEndpointScale n q)
+            (p ++ [false] ++ List.replicate k true) hw
+          rw [binaryWordTileScale_on_chainWord
+            (binaryWordLowerEndpointScale n q) (binaryWordUpperEndpointScale n q)
+            (binaryWordAllOnesEndpointScale n q) p k hw]
+          exact lt_of_lt_of_le hlower hbounds.1
+
 /-- Every point in a bounded interval belongs to one adjacent strip of its finite equal
 interpolation. The index is the floored normalized position, capped at the final strip. -/
 theorem exists_tileScaleInterpolation_segment {m : ℕ} {lo hi t : ℝ}
@@ -7331,7 +7392,10 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_for_c
     (oneBitBoundary : ι → ι → Prop)
     (hOneBitDifferent : ∀ i j, oneBitBoundary i j → i ≠ j)
     (hcenterOrder : ∀ i j, oneBitBoundary i j → ∀ y ∈ base i ∩ base j,
-      (cover i).center y ≤ (cover j).center y) :
+      (cover i).center y ≤ (cover j).center y)
+    (oneBitWord : {p : ι × ι // oneBitBoundary p.1 p.2} → List Bool)
+    (hOneBitWordLength : ∀ p, (oneBitWord p).length ≤ n + 1)
+    (hOneBitWordLast : ∀ p, (oneBitWord p).getLast? = some true) :
     ∃ ρ : ℝ, 0 < ρ ∧ ρ < 1 ∧
       ∃ q : ℝ, 0 < q ∧ q < 1 ∧
         ∃ extension : ι → C(Fin n → ℝ, ℝ),
@@ -7339,6 +7403,8 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_for_c
           ∃ radius : ℝ, 0 < radius ∧
             (∀ i, radius < ρ * faceRadius i) ∧
             (∀ i, radius < craciunBinaryWordEpsilon (n + 1) q (word i)) ∧
+            (∀ p, radius < coherentBinaryWordTileScale (n + 1) q (oneBitWord p)
+              (hOneBitWordLength p)) ∧
             (∀ i,
               projectionFiberTube (base i) (extension i) radius ⊆
                 zeroBitPreBlueprintNeighborhood (face i) (base i)
@@ -7351,7 +7417,7 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_for_c
             (∀ i j, i ≠ j →
               projectionFiberTube (base i) (extension i) radius ∩
                 projectionFiberTube (base j) (extension j) radius ⊆ neighborhood i j) ∧
-            (∀ i j, oneBitBoundary i j →
+            (∀ i j (hboundary : oneBitBoundary i j),
               ∃ refinement : CompactOneBitFiberPatchCover
                   (projectionFiberBand (base i ∩ base j)
                     (fun y => some (extension i y)) (fun y => some (extension j y)))
@@ -7378,7 +7444,12 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_for_c
                         craciunBinaryWordEpsilon (n + 1) q (word i) ∧
                     projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
                       projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y <
-                        craciunBinaryWordEpsilon (n + 1) q (word j)) := by
+                        craciunBinaryWordEpsilon (n + 1) q (word j) ∧
+                    projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
+                      projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y <
+                        coherentBinaryWordTileScale (n + 1) q
+                          (oneBitWord ⟨(i, j), hboundary⟩)
+                          (hOneBitWordLength ⟨(i, j), hboundary⟩)) := by
   classical
   have hqCap : (0 : ℝ) < 1 / 2 := by norm_num
   obtain ⟨q, hq, hqone, _hqcap, hpreOverlap⟩ :=
@@ -7389,6 +7460,36 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_for_c
     intro i
     exact craciunBinaryWordEpsilon_pos_of_getLast_false hq (word i)
       (hwordLength i) (hwordLast i)
+  have htildeWidth : ∀ p, 0 < coherentBinaryWordTileScale (n + 1) q
+      (oneBitWord p) (hOneBitWordLength p) := by
+    intro p
+    exact coherentBinaryWordTileScale_pos_of_getLast_true hq hqone
+      (oneBitWord p) (hOneBitWordLength p) (hOneBitWordLast p)
+  have htildeFloor : ∃ floor : ℝ, 0 < floor ∧
+      ∀ p, floor ≤ coherentBinaryWordTileScale (n + 1) q
+        (oneBitWord p) (hOneBitWordLength p) := by
+    by_cases hpairs : Nonempty {p : ι × ι // oneBitBoundary p.1 p.2}
+    · let widths : Finset ℝ := Finset.univ.image
+        (fun p : {p : ι × ι // oneBitBoundary p.1 p.2} =>
+          coherentBinaryWordTileScale (n + 1) q (oneBitWord p) (hOneBitWordLength p))
+      have hwidths : widths.Nonempty := by
+        obtain ⟨p⟩ := hpairs
+        exact ⟨coherentBinaryWordTileScale (n + 1) q (oneBitWord p)
+            (hOneBitWordLength p),
+          Finset.mem_image.mpr ⟨p, Finset.mem_univ _, rfl⟩⟩
+      let floor := widths.min' hwidths
+      have hfloorMem : floor ∈ widths := Finset.min'_mem widths hwidths
+      obtain ⟨p, _, hfloorEq⟩ := Finset.mem_image.mp hfloorMem
+      refine ⟨floor, ?_, ?_⟩
+      · rw [← hfloorEq]
+        exact htildeWidth p
+      · intro p
+        exact Finset.min'_le widths
+          (coherentBinaryWordTileScale (n + 1) q (oneBitWord p)
+            (hOneBitWordLength p))
+          (Finset.mem_image.mpr ⟨p, Finset.mem_univ _, rfl⟩)
+    · exact ⟨1, by norm_num, fun p => (hpairs ⟨p⟩).elim⟩
+  obtain ⟨tildeFloor, htildeFloorPos, htildeFloorLe⟩ := htildeFloor
   have hprofileFloor : ∃ floor : ℝ, 0 < floor ∧
       ∀ i, floor ≤ craciunBinaryWordEpsilon (n + 1) q (word i) := by
     by_cases hι : Nonempty ι
@@ -7410,10 +7511,8 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_for_c
           (Finset.mem_image.mpr ⟨i, Finset.mem_univ _, rfl⟩)
     · exact ⟨1, by norm_num, fun i => (hι ⟨i⟩).elim⟩
   obtain ⟨profileFloor, hprofileFloorPos, hprofileFloorLe⟩ := hprofileFloor
-  have hhalf : (0 : ℝ) < 1 / 2 := by norm_num
-  have hhalfOne : (1 / 2 : ℝ) < 1 := by norm_num
   obtain ⟨ρ, hρ, hρone, _hordinary, _hallOnes⟩ :=
-    exists_uniform_coherentBinaryWordTileScale_separation (n := n + 1) hhalf hhalfOne
+    exists_uniform_coherentBinaryWordTileScale_separation (n := n + 1) hq hqone
   have hfaceFloor : ∃ scale : ℝ, 0 < scale ∧ ∀ i, scale ≤ faceRadius i := by
     by_cases hι : Nonempty ι
     · let values : Finset ℝ := Finset.univ.image faceRadius
@@ -7431,8 +7530,9 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_for_c
           (Finset.mem_image.mpr ⟨i, Finset.mem_univ _, rfl⟩)
     · exact ⟨1, by norm_num, fun i => (hι ⟨i⟩).elim⟩
   obtain ⟨scale, hscalePos, hscaleLe⟩ := hfaceFloor
-  let fillCap := min (ρ * scale) profileFloor
-  have hfillCap : 0 < fillCap := lt_min (mul_pos hρ hscalePos) hprofileFloorPos
+  let fillCap := min (min (ρ * scale) profileFloor) tildeFloor
+  have hfillCap : 0 < fillCap :=
+    lt_min (lt_min (mul_pos hρ hscalePos) hprofileFloorPos) htildeFloorPos
   obtain ⟨extension, hextension, radius, hradius, hradiusCap, _hcritical, hfills⟩ :=
     CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills
       face base tiles margin faceRadius cover neighborhood hOpen hFace oneBitBoundary
@@ -7441,6 +7541,7 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_for_c
     intro i
     calc
       radius < fillCap := hradiusCap
+      _ ≤ min (ρ * scale) profileFloor := min_le_left _ _
       _ ≤ ρ * scale := min_le_left _ _
       _ ≤ ρ * faceRadius i := mul_le_mul_of_nonneg_left (hscaleLe i) hρ.le
   have hradiusWord : ∀ i,
@@ -7448,8 +7549,18 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_for_c
     intro i
     calc
       radius < fillCap := hradiusCap
+      _ ≤ min (ρ * scale) profileFloor := min_le_left _ _
       _ ≤ profileFloor := min_le_right _ _
       _ ≤ craciunBinaryWordEpsilon (n + 1) q (word i) := hprofileFloorLe i
+  have hradiusTilde : ∀ p,
+      radius < coherentBinaryWordTileScale (n + 1) q (oneBitWord p)
+        (hOneBitWordLength p) := by
+    intro p
+    calc
+      radius < fillCap := hradiusCap
+      _ ≤ tildeFloor := min_le_right _ _
+      _ ≤ coherentBinaryWordTileScale (n + 1) q (oneBitWord p)
+          (hOneBitWordLength p) := htildeFloorLe p
   have htube : ∀ i,
       projectionFiberTube (base i) (extension i) radius ⊆
         zeroBitPreBlueprintNeighborhood (face i) (base i)
@@ -7473,7 +7584,7 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_for_c
     intro i j hij
     exact (Set.inter_subset_inter (htube i) (htube j)).trans (hpreOverlap i j hij)
   refine ⟨ρ, hρ, hρone, q, hq, hqone, extension, hextension, radius, hradius,
-    hradiusFace, hradiusWord, htube, hpreOverlap, htubeOverlap, ?_⟩
+    hradiusFace, hradiusWord, hradiusTilde, htube, hpreOverlap, htubeOverlap, ?_⟩
   intro i j hboundary
   obtain ⟨refinement, hleft, hright⟩ := hfills i j hboundary
   refine ⟨refinement, hleft, hright, ?_⟩
@@ -7496,11 +7607,20 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_for_c
               projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
                 radius := refinement.tiling.fiber_width_le k y hy
           _ < craciunBinaryWordEpsilon (n + 1) q (word i) := hradiusWord i
-      · calc
-          projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
-              projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
-                radius := refinement.tiling.fiber_width_le k y hy
-          _ < craciunBinaryWordEpsilon (n + 1) q (word j) := hradiusWord j
+      · constructor
+        · calc
+            projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
+                projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
+                  radius := refinement.tiling.fiber_width_le k y hy
+            _ < craciunBinaryWordEpsilon (n + 1) q (word j) := hradiusWord j
+        · calc
+            projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
+                projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
+                  radius := refinement.tiling.fiber_width_le k y hy
+            _ < coherentBinaryWordTileScale (n + 1) q
+                (oneBitWord ⟨(i, j), hboundary⟩)
+                (hOneBitWordLength ⟨(i, j), hboundary⟩) :=
+              hradiusTilde ⟨(i, j), hboundary⟩
 
 /-- Craciun v3, §8 Step 1 followed by §7.4.3 Case 1.2: clip a finite family of compact
 projective radial tiles to the projective domain, project those pieces to the lower-dimensional
