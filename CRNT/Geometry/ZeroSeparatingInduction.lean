@@ -4129,6 +4129,25 @@ theorem CompactOneBitFiberPatchCover.adjacent_base_tiles_share_seam
           (baseTile i ∩ baseTile j) := by
   exact cover.baseTile_adjacent_seam i j horder k
 
+/-- The shared endpoint seam of two neighboring restricted patches is compact. This packages
+the geometric overlap from Craciun v3, §7.4.3 with the compact tile certificates, so a wall
+margin on both incident tiles can be made uniform on their common seam before the pieces are
+glued. -/
+theorem CompactOneBitFiberPatchCover.adjacent_base_tiles_shared_seam_compact
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ} {epsilon : ℝ}
+    (cover : CompactOneBitFiberPatchCover facePatch base baseTile lower upper epsilon)
+    (i j : ι)
+    (horder : ∀ y ∈ baseTile i ∩ baseTile j, lower y ≤ upper y)
+    (k : Fin cover.tiling.subdivisionCount) :
+    IsCompact (facePatch ∩ (fun y : Fin n → ℝ =>
+      projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y) ''
+        (baseTile i ∩ baseTile j)) := by
+  rw [← cover.adjacent_base_tiles_share_seam i j horder k]
+  exact (cover.facePatch_tile_compact ⟨i, k.castSucc⟩).inter
+    (cover.facePatch_tile_compact ⟨j, k.succ⟩)
+
 /-- Lift a finite compact cover of a projected base with pairwise disjoint interiors to a finite
 cover of a compact face patch in a bounded fiber band. A single subdivision over the full base
 guarantees exact coverage, compactness, pairwise ambient-interior disjointness, and aligned seams. -/

@@ -581,7 +581,7 @@ theorem Network.exists_selected_oneBitFiberPatch_smoothBarrier
       facePatch base baseTile lower upper epsilon)
     (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S) (hψ : Continuous ψ)
     {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
-    (t : Finset K) {ε M gap : ℝ} (hε : 0 ≤ ε)
+    (t : Finset K) {ε : ℝ} (hε : 0 < ε)
     (selected : (Σ i : ι, Fin (cover.tiling.subdivisionCount + 1)) → Option K)
     (hselected : ∀ p wall, selected p = some wall → wall ∈ t ∧ ∀ q ∈
       ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
@@ -592,12 +592,7 @@ theorem Network.exists_selected_oneBitFiberPatch_smoothBarrier
     (hwall : selected p = some wall)
     (tailHead : (EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)
     (tail : List ((EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ))
-    (hTailBound : ∀ Mb ∈ tailHead :: tail, ∀ q ∈
-      ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
-        (baseTile p.1) lower upper p.2),
-      -Mb.1 (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ M)
-    (hM : M ≤ Real.exp gap * ε) :
-    ∃ a : ℝ, ∀ q ∈
+    : ∃ gap a : ℝ, ∀ q ∈
       ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
         (baseTile p.1) lower upper p.2),
       ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
@@ -616,11 +611,16 @@ theorem Network.exists_selected_oneBitFiberPatch_smoothBarrier
         (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) := by
     intro q hq
     simpa only [innerSL_apply_apply] using le_of_lt (hwall.2 q hq)
-  have hbound : ∀ Mb ∈ tailHead :: tail, ∀ q ∈ ψ '' patch,
-      -Mb.1 (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ M :=
-    fun Mb hMb q hq => hTailBound Mb hMb q hq
-  exact SmoothBarrierGluing.exists_compact_wallBarrier_offset_with_smoothWallList_nonpos
-    (ψ '' patch) hcompact (innerSL ℝ (z wall).1) tailHead tail hε hhead hbound hM
+  have hfield : Continuous
+      (fun q : EuclideanSpace ℝ S =>
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))) := by
+    exact (LinearMap.continuous_of_finiteDimensional
+      (toEuclid (ι := S)).toLinearMap).comp
+        ((Network.continuous_massActionVectorField N κ).comp
+          (LinearMap.continuous_of_finiteDimensional
+            (toEuclid (ι := S)).symm.toLinearMap))
+  exact SmoothBarrierGluing.exists_compact_wallBarrier_offset_with_smoothWallList_nonpos_of_continuousField
+    hfield (ψ '' patch) hcompact (innerSL ℝ (z wall).1) tailHead tail hε hhead
 
 /-- A selected wall for a restricted one-bit tile remains inward at its Craciun midpoint
 representative whenever the parent patch is the corresponding full fiber band. The geometric
@@ -771,6 +771,83 @@ theorem Network.adjacent_oneBitFiberPatchWalls_inward_on_seam
   have hspec₀ := hselected ⟨i, k.castSucc⟩ wall₀ hwall₀
   have hspec₁ := hselected ⟨j, k.succ⟩ wall₁ hwall₁
   exact ⟨hspec₀.1, hspec₁.1, hspec₀.2 q hq₀, hspec₁.2 q hq₁⟩
+
+/-- The two inward wall labels on a compact shared seam admit a common smooth barrier there.
+The seam compactness comes from the one-bit blueprint, while the strict inward inequalities on
+both incident tiles make the two-wall smooth maximum decrease along the mass-action field. This
+is the analytic gluing datum for crossing a Case 1.2 tile seam. -/
+theorem Network.exists_adjacent_oneBitFiberPatch_seam_smoothBarrier
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base baseTile lower upper epsilon)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S) (hψ : Continuous ψ)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (t : Finset K) {ε : ℝ} (hε : 0 < ε)
+    (selected : (Σ i : ι, Fin (cover.tiling.subdivisionCount + 1)) → Option K)
+    (hselected : ∀ p wall, selected p = some wall → wall ∈ t ∧ ∀ q ∈
+      ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2),
+      ε < ⟪(z wall).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ)
+    (i j : ι)
+    (horder : ∀ y ∈ baseTile i ∩ baseTile j, lower y ≤ upper y)
+    (k : Fin cover.tiling.subdivisionCount)
+    (wall₀ wall₁ : K)
+    (hwall₀ : selected ⟨i, k.castSucc⟩ = some wall₀)
+    (hwall₁ : selected ⟨j, k.succ⟩ = some wall₁) :
+    IsCompact (ψ '' (facePatch ∩
+      (fun y : Fin n → ℝ =>
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+          lower upper k.succ.castSucc y) '' (baseTile i ∩ baseTile j))) ∧
+    (∀ q ∈ ψ '' (facePatch ∩
+      (fun y : Fin n → ℝ =>
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+          lower upper k.succ.castSucc y) '' (baseTile i ∩ baseTile j)),
+      ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothWallList
+            (innerSL ℝ (z wall₀).1, 0)
+            [(innerSL ℝ (z wall₁).1, 0)]) D q ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) < 0) := by
+  let seam : Set (Fin (n + 1) → ℝ) := facePatch ∩
+    (fun y : Fin n → ℝ =>
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+        lower upper k.succ.castSucc y) '' (baseTile i ∩ baseTile j)
+  have hseamCompact : IsCompact (ψ '' seam) :=
+    (cover.adjacent_base_tiles_shared_seam_compact i j horder k).image hψ
+  have hwall : ∀ q ∈ ψ '' seam,
+      ε < ⟪(z wall₀).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ ∧
+      ε < ⟪(z wall₁).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ := by
+    intro q hq
+    exact (N.adjacent_oneBitFiberPatchWalls_inward_on_seam κ cover ψ z t
+      selected hselected i j horder k wall₀ wall₁ hwall₀ hwall₁ hq).2.2
+  have hhead : ∀ q ∈ ψ '' seam,
+      ε ≤ innerSL ℝ (z wall₀).1
+        (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) := by
+    intro q hq
+    simpa only [innerSL_apply_apply] using le_of_lt (hwall q hq).1
+  have htail : ∀ Mb ∈ [(innerSL ℝ (z wall₁).1, (0 : ℝ))],
+      ∀ q ∈ ψ '' seam,
+        ε ≤ Mb.1 (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) := by
+    intro Mb hMb q hq
+    have hMb' : Mb = (innerSL ℝ (z wall₁).1, (0 : ℝ)) := by simpa using hMb
+    rw [hMb']
+    simpa only [innerSL_apply_apply] using le_of_lt (hwall q hq).2
+  refine ⟨hseamCompact, ?_⟩
+  intro q hq
+  obtain ⟨D, hD, hDmargin⟩ := SmoothBarrierGluing.smoothWallList_descends_strictly
+    (X := fun q : EuclideanSpace ℝ S =>
+      toEuclid (N.massActionVectorField κ (toEuclid.symm q)))
+    (x := q) (ε := ε)
+    (innerSL ℝ (z wall₀).1, (0 : ℝ)) [(innerSL ℝ (z wall₁).1, (0 : ℝ))]
+    (hhead q hq) (fun Mb hMb => htail Mb hMb q hq)
+  exact ⟨D, hD, lt_of_le_of_lt hDmargin (neg_neg_of_pos hε)⟩
 
 /-- A compact patch can be covered by finitely many small balls, each carrying one fixed
 inward wall on the entire ball. The radius is chosen so each patch has diameter below the local

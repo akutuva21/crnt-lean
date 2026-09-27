@@ -629,6 +629,34 @@ theorem exists_wallBarrier_offset_dominates_smoothWallList_on_compact
   dsimp [wallBarrier]
   linarith
 
+/-- A finite collection of continuous linear walls has a common outward-derivative bound on a
+compact patch for every continuous vector field. -/
+theorem exists_uniform_wall_outward_bound_on_compact
+    {X : E → E} (hX : Continuous X) (Kset : Set E) (hK : IsCompact Kset)
+    (walls : List ((E →L[ℝ] ℝ) × ℝ)) :
+    ∃ M : ℝ, 0 ≤ M ∧ ∀ Mb ∈ walls, ∀ x ∈ Kset, -Mb.1 (X x) ≤ M := by
+  induction walls with
+  | nil =>
+      exact ⟨0, le_rfl, by simp⟩
+  | cons Mb rest ih =>
+      obtain ⟨Mrest, hMrest, hrest⟩ := ih
+      have hcont : Continuous (fun x => -Mb.1 (X x)) :=
+        (Mb.1.continuous.comp hX).neg
+      let values : Set ℝ := (fun x => -Mb.1 (X x)) '' Kset
+      have hvaluesCompact : IsCompact values := by
+        change IsCompact ((fun x => -Mb.1 (X x)) '' Kset)
+        exact hK.image hcont
+      have hvaluesBounded : BddAbove values := hvaluesCompact.bddAbove
+      let Mhead : ℝ := Classical.choose hvaluesBounded
+      have hMhead : ∀ z ∈ values, z ≤ Mhead := Classical.choose_spec hvaluesBounded
+      let M : ℝ := max Mhead Mrest
+      refine ⟨M, le_trans hMrest (le_max_right _ _), ?_⟩
+      intro Q hQ x hx
+      rcases List.mem_cons.mp hQ with hQ | hQ
+      · subst Q
+        exact (hMhead _ ⟨x, hx, rfl⟩).trans (le_max_left _ _)
+      · exact (hrest Q hQ x hx).trans (le_max_right _ _)
+
 /-- A head wall with inward derivative margin `ε` controls an arbitrarily outward-pointing tail
 when the tail's value is sufficiently lower. The tail derivative is bounded by `M`; the gap
 makes its log-sum-exp weight small enough that the head's inward margin dominates it. -/
@@ -667,6 +695,37 @@ theorem exists_fderiv_smoothWallList_nonpos_of_dominantHead
           ⟨Drest, hDrest, hDrestM⟩ hε hM hgap
       refine ⟨D, ?_, hDnonpos⟩
       simpa [smoothWallList] using hD
+
+/-- A strictly inward wall on a compact patch can be made the dominant head of a finite smooth
+wall list without additional bounds as hypotheses. Compactness bounds the outward derivatives of
+the tail; a sufficiently large value gap then makes the glued barrier nonincreasing everywhere
+on the patch. -/
+theorem exists_compact_wallBarrier_offset_with_smoothWallList_nonpos_of_continuousField
+    {X : E → E} (hX : Continuous X) (Kset : Set E) (hK : IsCompact Kset)
+    (L : E →L[ℝ] ℝ) (tailHead : (E →L[ℝ] ℝ) × ℝ)
+    (tail : List ((E →L[ℝ] ℝ) × ℝ)) {ε : ℝ} (hε : 0 < ε)
+    (hhead : ∀ x ∈ Kset, ε ≤ L (X x)) :
+    ∃ gap a : ℝ, ∀ x ∈ Kset,
+      ∃ D : E →L[ℝ] ℝ,
+        HasFDerivAt (smoothWallList (L, a) (tailHead :: tail)) D x ∧ D (X x) ≤ 0 := by
+  obtain ⟨M, _hMnonneg, hbound⟩ :=
+    exists_uniform_wall_outward_bound_on_compact hX Kset hK (tailHead :: tail)
+  let gap : ℝ := Real.log (M / ε + 1)
+  have harg : 0 < M / ε + 1 := by positivity
+  have hMgap : M ≤ Real.exp gap * ε := by
+    have hratio : M / ε * ε = M := div_mul_cancel₀ M (ne_of_gt hε)
+    dsimp [gap]
+    rw [Real.exp_log harg]
+    nlinarith
+  obtain ⟨a, ha⟩ := exists_wallBarrier_offset_dominates_smoothWallList_on_compact
+    Kset hK L tailHead tail gap
+  refine ⟨gap, a, ?_⟩
+  intro x hx
+  have hgap : dominantHeadGap (L, a) (tailHead :: tail) gap x := by
+    simpa [dominantHeadGap] using ha x hx
+  exact exists_fderiv_smoothWallList_nonpos_of_dominantHead
+    (L, a) (tailHead :: tail) hε.le (hhead x hx)
+    (fun Mb hMb => hbound Mb hMb x hx) hMgap hgap
 
 /-- A uniformly inward wall can be made the dominant head of a finite smooth barrier on a compact
 patch by choosing its affine offset. If every tail wall has a bounded outward derivative there,
