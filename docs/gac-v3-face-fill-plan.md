@@ -220,3 +220,20 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   data, construct compatible scales/basepoints, assemble a faithful blueprint,
   or build the global zero-separating surface. Continue with the rank-decreasing
   geometric extension step rather than treating this helper as completion.
+
+## Continuation checkpoint — boundary seam feeds local barrier gluing
+
+- Added `Network.exists_boundarySmallTile_strip_smoothMax_descent` to
+  `CRNT/Geometry/ToricUniformWallMargin.lean`. It consumes the boundary-point
+  seam result from `FanRefinement`, follows the pair-seam dependency inclusion to
+  the neighboring single-tile patch, and applies the existing finite-overlap
+  barrier theorem to obtain a smooth-maximum derivative certificate at that
+  actual point.
+- A red probe caught and fixed the index mismatch between the small-base tiling
+  and the mixed seam labels. The completed temporary probe compiled and its
+  axiom audit returned only `[propext, Classical.choice, Quot.sound]`.
+- Fresh Lean 4.34 compilation succeeded for `ToricUniformWallMargin.lean`,
+  `Dynamics/ComplexBalanceStoichFanInclusion.lean`, and
+  `Dynamics/GlobalAttractorTheorem.lean`. The exact target audit still reports
+  `sorryAx`. This connects one recursive seam to local dynamics; it does not yet
+  assemble the finite face family into one global surface.

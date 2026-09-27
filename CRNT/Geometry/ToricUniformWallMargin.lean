@@ -3391,3 +3391,106 @@ theorem Network.WeaklyReversible.zeroSeparatingSurfaceExists_toric_activeWallLis
   · exact hac
 
 end CRNT
+
+
+namespace CRNT
+
+theorem Network.exists_boundarySmallTile_strip_smoothMax_descent
+    {S : Type} [DecidableEq S] [Fintype S]
+    {n c : ℕ}
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {eta epsilon : ℝ}
+    (T : ZeroSeparatingInduction.CompactSmallBaseTiling base eta)
+    (cone : Fin c → ProperCone ℝ (EuclideanSpace ℝ (Fin n)))
+    {lower upper : (Fin n → ℝ) → ℝ}
+    (cover : ZeroSeparatingInduction.CompactOneBitFiberPatchCover facePatch base
+      (fun p : Fin c × Sum (Fin T.count) (Fin T.count × Fin T.count) =>
+        FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile (cone p.1, p.2))
+      lower upper epsilon)
+    (horder : ∀ C label y,
+      y ∈ FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile (C, label) →
+        lower y ≤ upper y)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S)
+    {K : Set (EuclideanSpace ℝ S)}
+    (z : K → N.euclideanStoichSubspace)
+    (selected : (Σ p : Fin c × Sum (Fin T.count) (Fin T.count × Fin T.count),
+      Fin (cover.tiling.subdivisionCount + 1)) → Option K)
+    (offset : (Σ p : Fin c × Sum (Fin T.count) (Fin T.count × Fin T.count),
+      Fin (cover.tiling.subdivisionCount + 1)) → ℝ)
+    (tailHead : (EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)
+    (tail : List ((EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ))
+    (hatlas : ∀ r q₀,
+      q₀ ∈ ψ '' ((facePatch ∩ Set.univ) ∩
+        ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile
+            (cone r.1.1, r.1.2))
+          lower upper r.2) →
+      ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothWallList
+            ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+            (tailHead :: tail)) D q₀ ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm q₀))) ≤ 0)
+    (p : Fin c) (i : Fin T.count) (k : Fin (cover.tiling.subdivisionCount + 1))
+    {x : Fin (n + 1) → ℝ}
+    (hx : x ∈ FanRefinement.oneBitFanFaceTaskPatch facePatch
+      (FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile)
+      lower upper ((cone p, Sum.inl i), .strip k))
+    (hyInterior : ZeroSeparatingInduction.forgetLastCoordinate n x ∈ interior base)
+    (hyNotInterior : ZeroSeparatingInduction.forgetLastCoordinate n x ∉ interior (T.tile i)) :
+    ∃ j : Fin T.count, j ≠ i ∧
+      ZeroSeparatingInduction.forgetLastCoordinate n x ∈ T.tile i ∩ T.tile j ∧
+      ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothMaxList
+            (SmoothBarrierGluing.smoothWallList
+              ((selected ⟨(p, Sum.inl i), k⟩).elim tailHead.1
+                (fun wall => innerSL ℝ (z wall).1), offset ⟨(p, Sum.inl i), k⟩)
+              (tailHead :: tail))
+            [SmoothBarrierGluing.smoothWallList
+              ((selected ⟨(p, Sum.inl j), k⟩).elim tailHead.1
+                (fun wall => innerSL ℝ (z wall).1), offset ⟨(p, Sum.inl j), k⟩)
+              (tailHead :: tail)])
+          D (ψ x) ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm (ψ x)))) ≤ 0 := by
+  let mixed := FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile
+  let restricted := cover.restrict_to_closedDomain Set.univ isClosed_univ
+  obtain ⟨j, hji, htiles, hdeps⟩ :=
+    FanRefinement.CompactSmallBaseTiling.boundary_overlap_patch_at T facePatch lower upper horder
+      (C := cone p) (.strip k) hx hyInterior hyNotInterior
+  have hneighbor : x ∈ FanRefinement.oneBitFanFaceTaskPatch facePatch mixed
+      lower upper ((cone p, Sum.inl j), .strip k) := by
+    rcases hdeps with hdeps | hdeps
+    · exact FanRefinement.finiteOverlapDependency_taskPatch_subset
+        facePatch base T.tile lower upper horder hdeps.2.1 hdeps.2.2.2
+    · exact FanRefinement.finiteOverlapDependency_taskPatch_subset
+        facePatch base T.tile lower upper horder hdeps.2.1 hdeps.2.2.2
+  let root : Σ r : Fin c × Sum (Fin T.count) (Fin T.count × Fin T.count),
+      Fin (restricted.tiling.subdivisionCount + 1) := ⟨(p, Sum.inl i), k⟩
+  let other : Σ r : Fin c × Sum (Fin T.count) (Fin T.count × Fin T.count),
+      Fin (restricted.tiling.subdivisionCount + 1) := ⟨(p, Sum.inl j), k⟩
+  have hroot : ψ x ∈ ψ '' ((facePatch ∩ Set.univ) ∩
+      ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (mixed (cone p, Sum.inl i)) lower upper k) := by
+    refine ⟨x, ?_, rfl⟩
+    exact ⟨⟨hx.1, Set.mem_univ x⟩, hx.2⟩
+  have hother : ψ x ∈ ψ '' ((facePatch ∩ Set.univ) ∩
+      ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (mixed (cone p, Sum.inl j)) lower upper k) := by
+    refine ⟨x, ?_, rfl⟩
+    exact ⟨⟨hneighbor.1, Set.mem_univ x⟩, hneighbor.2⟩
+  have hglue := N.restrictedOneBitFiberPatch_finite_overlap_glue
+    κ cover Set.univ isClosed_univ ψ z selected offset tailHead tail
+    root [other] (q := ψ x) hroot
+    (by
+      intro r hr
+      simp only [List.mem_singleton] at hr
+      subst r
+      exact hother)
+    hatlas
+  refine ⟨j, hji, htiles, ?_⟩
+  exact hglue
+
+
+end CRNT
