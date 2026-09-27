@@ -899,6 +899,46 @@ theorem mem_signCell [CompleteSpace E] [DecidableEq E] {T P N : Finset E} {x : E
       have : ⟪y, x⟫_ℝ = 0 := by simpa using hzero
       rw [this]
 
+/-- Interior membership in a finite dual cone is strict on every nonzero defining normal. -/
+theorem inner_pos_of_mem_interior_finiteDual [CompleteSpace E]
+    {S : Finset E} {x v : E} (hx : x ∈ interior (coneDual (S : Set E) : Set E))
+    (hv : v ∈ S) (hvne : v ≠ 0) :
+    0 < ⟪v, x⟫_ℝ := by
+  have hxCone : x ∈ coneDual (S : Set E) := interior_subset hx
+  have hnonneg : 0 ≤ ⟪v, x⟫_ℝ := (mem_coneDual.mp hxCone) hv
+  by_contra hnot
+  have hzero : ⟪v, x⟫_ℝ = 0 := le_antisymm (le_of_not_gt hnot) hnonneg
+  have hopen : IsOpen (interior (coneDual (S : Set E) : Set E)) := isOpen_interior
+  obtain ⟨r, hr, hball⟩ := (Metric.isOpen_iff.mp hopen) x hx
+  have hvnorm : 0 < ‖v‖ := norm_pos_iff.mpr hvne
+  let δ : ℝ := r / (2 * ‖v‖)
+  have hδ : 0 < δ := div_pos hr (mul_pos (by norm_num) hvnorm)
+  let y : E := x + δ • (-v)
+  have hdist : dist y x = δ * ‖v‖ := by
+    have hsub : (x + δ • (-v)) - x = δ • (-v) := by abel
+    rw [dist_eq_norm, show y = x + δ • (-v) from rfl, hsub, norm_smul,
+      Real.norm_eq_abs, abs_of_pos hδ, norm_neg]
+  have hδnorm : δ * ‖v‖ = r / 2 := by
+    dsimp [δ]
+    field_simp [ne_of_gt hvnorm]
+  have hdistlt : dist y x < r := by
+    rw [hdist, hδnorm]
+    linarith
+  have hyball : y ∈ Metric.ball x r := by
+    simpa only [Metric.mem_ball] using hdistlt
+  have hyInterior : y ∈ interior (coneDual (S : Set E) : Set E) := hball hyball
+  have hyCone : y ∈ coneDual (S : Set E) := interior_subset hyInterior
+  have hynonneg : 0 ≤ ⟪v, y⟫_ℝ := (mem_coneDual.mp hyCone) hv
+  have hinner : ⟪v, y⟫_ℝ = ⟪v, x⟫_ℝ - δ * ‖v‖ ^ 2 := by
+    rw [show y = x + δ • (-v) from rfl, inner_add_right,
+      real_inner_smul_right, inner_neg_right, real_inner_self_eq_norm_sq]
+    ring
+  have hnegative : ⟪v, y⟫_ℝ < 0 := by
+    rw [hinner, hzero]
+    have hnormsq : 0 < ‖v‖ ^ 2 := sq_pos_of_pos hvnorm
+    nlinarith
+  exact (not_lt_of_ge hynonneg) hnegative
+
 /-- The finite central hyperplane arrangement family consists of every disjoint choice of
 nonnegative and nonpositive normals, with all remaining normals imposing equality. -/
 noncomputable def hyperplaneArrangementFamily [CompleteSpace E] [DecidableEq E]
@@ -981,6 +1021,185 @@ theorem mem_hyperplaneArrangementFamily_iff [CompleteSpace E] [DecidableEq E]
     refine ⟨(P, N), Finset.mem_filter.mpr ?_, rfl⟩
     exact ⟨Finset.mk_mem_product (Finset.mem_powerset.mpr hP)
       (Finset.mem_powerset.mpr hN), hdis⟩
+
+/-- If two cells from the same central arrangement have a common interior point, their sign
+patterns agree on every nonzero normal, and hence they are the same cone. -/
+theorem hyperplaneArrangementFamily_eq_of_interiors_intersect [CompleteSpace E] [DecidableEq E]
+    {T : Finset E} {C D : ProperCone ℝ E}
+    (hC : C ∈ hyperplaneArrangementFamily T) (hD : D ∈ hyperplaneArrangementFamily T)
+    {x : E} (hxC : x ∈ interior (C : Set E)) (hxD : x ∈ interior (D : Set E)) :
+    C = D := by
+  classical
+  obtain ⟨P, N, hPT, hNT, hPN, rfl⟩ := mem_hyperplaneArrangementFamily_iff.mp hC
+  obtain ⟨P', N', hP'T, hN'T, hP'N', rfl⟩ := mem_hyperplaneArrangementFamily_iff.mp hD
+  have hpositiveC : ∀ a ∈ T, a ≠ 0 → a ∈ P → 0 < ⟪a, x⟫_ℝ := by
+    intro a ha ha0 haP
+    have haS : a ∈ signCellNormals T P N := by
+      change a ∈ (P ∪ N.image (fun v => -v)) ∪
+        ((T \ (P ∪ N)) ∪ (T \ (P ∪ N)).image (fun v => -v))
+      exact Finset.mem_union.mpr (Or.inl (Finset.mem_union.mpr (Or.inl haP)))
+    exact inner_pos_of_mem_interior_finiteDual hxC haS ha0
+  have hnegativeC : ∀ a ∈ T, a ≠ 0 → a ∈ N → ⟪a, x⟫_ℝ < 0 := by
+    intro a ha ha0 haN
+    have hminusS : -a ∈ signCellNormals T P N := by
+      change -a ∈ (P ∪ N.image (fun v => -v)) ∪
+        ((T \ (P ∪ N)) ∪ (T \ (P ∪ N)).image (fun v => -v))
+      apply Finset.mem_union.mpr (Or.inl (Finset.mem_union.mpr (Or.inr ?_)))
+      exact Finset.mem_image.mpr ⟨a, haN, by simp⟩
+    have hstrict := inner_pos_of_mem_interior_finiteDual hxC hminusS (neg_ne_zero.mpr ha0)
+    have hneg : ⟪-a, x⟫_ℝ = -⟪a, x⟫_ℝ := by rw [inner_neg_left]
+    rw [hneg] at hstrict
+    linarith
+  have hpositiveD : ∀ a ∈ T, a ≠ 0 → a ∈ P' → 0 < ⟪a, x⟫_ℝ := by
+    intro a ha ha0 haP
+    have haS : a ∈ signCellNormals T P' N' := by
+      change a ∈ (P' ∪ N'.image (fun v => -v)) ∪
+        ((T \ (P' ∪ N')) ∪ (T \ (P' ∪ N')).image (fun v => -v))
+      exact Finset.mem_union.mpr (Or.inl (Finset.mem_union.mpr (Or.inl haP)))
+    exact inner_pos_of_mem_interior_finiteDual hxD haS ha0
+  have hnegativeD : ∀ a ∈ T, a ≠ 0 → a ∈ N' → ⟪a, x⟫_ℝ < 0 := by
+    intro a ha ha0 haN
+    have hminusS : -a ∈ signCellNormals T P' N' := by
+      change -a ∈ (P' ∪ N'.image (fun v => -v)) ∪
+        ((T \ (P' ∪ N')) ∪ (T \ (P' ∪ N')).image (fun v => -v))
+      apply Finset.mem_union.mpr (Or.inl (Finset.mem_union.mpr (Or.inr ?_)))
+      exact Finset.mem_image.mpr ⟨a, haN, by simp⟩
+    have hstrict := inner_pos_of_mem_interior_finiteDual hxD hminusS (neg_ne_zero.mpr ha0)
+    have hneg : ⟪-a, x⟫_ℝ = -⟪a, x⟫_ℝ := by rw [inner_neg_left]
+    rw [hneg] at hstrict
+    linarith
+  have hequalC : ∀ a ∈ T, a ≠ 0 → a ∉ P → a ∉ N → False := by
+    intro a ha ha0 haP haN
+    have hnotunion : a ∉ P ∪ N := by
+      intro hu
+      rcases Finset.mem_union.mp hu with hp | hn
+      · exact haP hp
+      · exact haN hn
+    have hrem : a ∈ T \ (P ∪ N) := Finset.mem_sdiff.mpr ⟨ha, hnotunion⟩
+    have haS : a ∈ signCellNormals T P N := by
+      change a ∈ (P ∪ N.image (fun v => -v)) ∪
+        ((T \ (P ∪ N)) ∪ (T \ (P ∪ N)).image (fun v => -v))
+      exact Finset.mem_union.mpr (Or.inr (Finset.mem_union.mpr (Or.inl hrem)))
+    have hzero := (mem_signCell.mp (interior_subset hxC)).2.2 a hrem
+    have hstrict := inner_pos_of_mem_interior_finiteDual hxC haS ha0
+    rw [hzero] at hstrict
+    exact (lt_irrefl _ hstrict)
+  have hequalD : ∀ a ∈ T, a ≠ 0 → a ∉ P' → a ∉ N' → False := by
+    intro a ha ha0 haP haN
+    have hnotunion : a ∉ P' ∪ N' := by
+      intro hu
+      rcases Finset.mem_union.mp hu with hp | hn
+      · exact haP hp
+      · exact haN hn
+    have hrem : a ∈ T \ (P' ∪ N') := Finset.mem_sdiff.mpr ⟨ha, hnotunion⟩
+    have haS : a ∈ signCellNormals T P' N' := by
+      change a ∈ (P' ∪ N'.image (fun v => -v)) ∪
+        ((T \ (P' ∪ N')) ∪ (T \ (P' ∪ N')).image (fun v => -v))
+      exact Finset.mem_union.mpr (Or.inr (Finset.mem_union.mpr (Or.inl hrem)))
+    have hzero := (mem_signCell.mp (interior_subset hxD)).2.2 a hrem
+    have hstrict := inner_pos_of_mem_interior_finiteDual hxD haS ha0
+    rw [hzero] at hstrict
+    exact (lt_irrefl _ hstrict)
+  have hPiff : ∀ a ∈ T, a ≠ 0 → (a ∈ P ↔ a ∈ P') := by
+    intro a ha ha0
+    constructor
+    · intro haP
+      by_contra haP'
+      by_cases haN' : a ∈ N'
+      · have hp := hpositiveC a ha ha0 haP
+        have hn := hnegativeD a ha ha0 haN'
+        linarith
+      · exact hequalD a ha ha0 haP' haN'
+    · intro haP'
+      by_contra haP
+      by_cases haN : a ∈ N
+      · have hp := hpositiveD a ha ha0 haP'
+        have hn := hnegativeC a ha ha0 haN
+        linarith
+      · exact hequalC a ha ha0 haP haN
+  have hNiff : ∀ a ∈ T, a ≠ 0 → (a ∈ N ↔ a ∈ N') := by
+    intro a ha ha0
+    constructor
+    · intro haN
+      by_contra haN'
+      by_cases haP' : a ∈ P'
+      · have hn := hnegativeC a ha ha0 haN
+        have hp := hpositiveD a ha ha0 haP'
+        linarith
+      · exact hequalD a ha ha0 haP' haN'
+    · intro haN'
+      by_contra haN
+      by_cases haP : a ∈ P
+      · have hn := hnegativeD a ha ha0 haN'
+        have hp := hpositiveC a ha ha0 haP
+        linarith
+      · exact hequalC a ha ha0 haP haN
+  have hcell : signCell T P N = signCell T P' N' := by
+    apply ProperCone.ext
+    intro y
+    rw [mem_signCell, mem_signCell]
+    constructor
+    · rintro ⟨hP, hN, hZ⟩
+      refine ⟨?_, ?_, ?_⟩
+      · intro a haP'
+        have haT := hP'T haP'
+        by_cases ha0 : a = 0
+        · simp [ha0]
+        · exact hP a ((hPiff a haT ha0).mpr haP')
+      · intro a haN'
+        have haT := hN'T haN'
+        by_cases ha0 : a = 0
+        · simp [ha0]
+        · exact hN a ((hNiff a haT ha0).mpr haN')
+      · intro a ha
+        have haT := (Finset.mem_sdiff.mp ha).1
+        have haNot := (Finset.mem_sdiff.mp ha).2
+        by_cases ha0 : a = 0
+        · simp [ha0]
+        · have haP : a ∉ P := by
+            intro hP
+            exact haNot (Finset.mem_union.mpr
+              (Or.inl ((hPiff a haT ha0).mp hP)))
+          have haN : a ∉ N := by
+            intro hN
+            exact haNot (Finset.mem_union.mpr
+              (Or.inr ((hNiff a haT ha0).mp hN)))
+          exact hZ a (Finset.mem_sdiff.mpr ⟨haT, by
+            intro hu
+            rcases Finset.mem_union.mp hu with hp | hn
+            · exact haP hp
+            · exact haN hn⟩)
+    · rintro ⟨hP', hN', hZ'⟩
+      refine ⟨?_, ?_, ?_⟩
+      · intro a haP
+        have haT := hPT haP
+        by_cases ha0 : a = 0
+        · simp [ha0]
+        · exact hP' a ((hPiff a haT ha0).mp haP)
+      · intro a haN
+        have haT := hNT haN
+        by_cases ha0 : a = 0
+        · simp [ha0]
+        · exact hN' a ((hNiff a haT ha0).mp haN)
+      · intro a ha
+        have haT := (Finset.mem_sdiff.mp ha).1
+        have haNot := (Finset.mem_sdiff.mp ha).2
+        by_cases ha0 : a = 0
+        · simp [ha0]
+        · have haP' : a ∉ P' := by
+            intro hP
+            exact haNot (Finset.mem_union.mpr
+              (Or.inl ((hPiff a haT ha0).mpr hP)))
+          have haN' : a ∉ N' := by
+            intro hN
+            exact haNot (Finset.mem_union.mpr
+              (Or.inr ((hNiff a haT ha0).mpr hN)))
+          exact hZ' a (Finset.mem_sdiff.mpr ⟨haT, by
+            intro hu
+            rcases Finset.mem_union.mp hu with hp | hn
+            · exact haP' hp
+            · exact haN' hn⟩)
+  exact hcell
 
 /-- Pairwise intersections of sign cells are sign cells: coordinates with opposite signs or a
 zero assignment become equalities, while coordinates with the same strict sign retain it. -/
@@ -1345,6 +1564,17 @@ theorem hyperplaneArrangementFamily_isPolyhedralFan [CompleteSpace E] [Decidable
   inter_common := fun _ hC _ hD => hyperplaneArrangementFamily_inter_common hC hD
   covers := hyperplaneArrangementFamily_covers T
 
+/-- Distinct cells of a central hyperplane arrangement have disjoint ordinary interiors. -/
+theorem hyperplaneArrangementFamily_interiors_disjoint [CompleteSpace E] [DecidableEq E]
+    {T : Finset E} {C D : ProperCone ℝ E}
+    (hC : C ∈ hyperplaneArrangementFamily T) (hD : D ∈ hyperplaneArrangementFamily T)
+    (hne : C ≠ D) :
+    interior (C : Set E) ∩ interior (D : Set E) = ∅ := by
+  ext x
+  simp only [Set.mem_inter_iff, Set.mem_empty_iff_false, iff_false]
+  intro hx
+  exact hne (hyperplaneArrangementFamily_eq_of_interiors_intersect hC hD hx.1 hx.2)
+
 /-- Every sign cell in a finite central hyperplane arrangement has a finite half-space
 representation, using the signed arrangement normals themselves. -/
 theorem hyperplaneArrangementFamily_hasDualFGCells [CompleteSpace E] [DecidableEq E]
@@ -1512,14 +1742,17 @@ theorem compactSet_hyperplaneArrangement_patchCover [CompleteSpace E] [Decidable
       (∀ C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual),
         ∀ D ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual),
           ∃ G ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual),
-            (K ∩ (C : Set E)) ∩ (K ∩ (D : Set E)) = K ∩ (G : Set E)) := by
+            (K ∩ (C : Set E)) ∩ (K ∩ (D : Set E)) = K ∩ (G : Set E)) ∧
+      (∀ C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual),
+        ∀ D ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual), C ≠ D →
+          interior (K ∩ (C : Set E)) ∩ interior (K ∩ (D : Set E)) = ∅) := by
   let fine : Fan E := hyperplaneArrangementFamily (fanNormalSet F hFdual)
   have hfine : IsPolyhedralFan fine :=
     hyperplaneArrangementFamily_isPolyhedralFan (fanNormalSet F hFdual)
   have href : Refines fine F :=
     hyperplaneArrangementFamily_refines_of_dualFG hF hFdual
   have hcover := compactSet_fanRefinement_patchCover K hK href hfine
-  refine ⟨?_, ?_, ?_, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩
   · intro C hC
     exact hcover.1 C hC
   · simpa [fine] using hcover.2.1
@@ -1527,6 +1760,18 @@ theorem compactSet_hyperplaneArrangement_patchCover [CompleteSpace E] [Decidable
     exact hcover.2.2 C hC
   · intro C hC D hD
     exact compactSet_fanRefinement_patch_intersection K hfine C D hC hD
+  · intro C hC D hD hne
+    have hCint : interior (K ∩ (C : Set E)) ⊆ interior (C : Set E) :=
+      interior_mono Set.inter_subset_right
+    have hDint : interior (K ∩ (D : Set E)) ⊆ interior (D : Set E) :=
+      interior_mono Set.inter_subset_right
+    ext x
+    simp only [Set.mem_inter_iff, Set.mem_empty_iff_false, iff_false]
+    intro hx
+    have hx' : x ∈ interior (C : Set E) ∩ interior (D : Set E) :=
+      ⟨hCint hx.1, hDint hx.2⟩
+    rw [hyperplaneArrangementFamily_interiors_disjoint hC hD hne] at hx'
+    simpa using hx'
 
 /-- The arrangement from finite dual normals refines the family of one-coordinate projections of a
 complete polyhedral fan. The image family need not satisfy the fan intersection axioms itself. -/
