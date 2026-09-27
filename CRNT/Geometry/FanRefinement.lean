@@ -1930,6 +1930,27 @@ theorem hyperplaneArrangementFamily_commonFace_at [CompleteSpace E] [DecidableEq
     hP'T hN'T hPT hNT hP'N' hPN hfaceSet
   exact ⟨hGC, by simpa [hCeq] using hface⟩
 
+/-- The common incident face at a projected basepoint supplies the proper fan-face predecessors
+in Craciun's one-bit recursion. Thus a multi-cell junction can be filled after all of its
+lower-dimensional strip tasks have been discharged by `oneBitFanFaceDependency_induction`. -/
+theorem hyperplaneArrangementFamily_commonFace_tasks_at [CompleteSpace E]
+    [DecidableEq E] [FiniteDimensional ℝ E] {m : ℕ} {T : Finset E} {x : E}
+    (i : Fin (m + 1)) (cells : Finset (ProperCone ℝ E))
+    (hCells : ∀ C ∈ cells, C ∈ hyperplaneArrangementFamily T)
+    (hxCells : ∀ C ∈ cells, x ∈ (C : Set E)) :
+    ∃ G ∈ hyperplaneArrangementFamily T, x ∈ (G : Set E) ∧
+      ∀ C ∈ cells, (G : Set E) ⊆ (C : Set E) ∧ IsExposedFaceOf G C ∧
+        (G ≠ C → OneBitFanFaceDependency (E := E) (m := m)
+          (G, .strip i) (C, .strip i)) := by
+  obtain ⟨G, hG, hxG, hfaces⟩ :=
+    hyperplaneArrangementFamily_commonFace_at cells hCells hxCells
+  refine ⟨G, hG, hxG, ?_⟩
+  intro C hC
+  obtain ⟨hsubset, hface⟩ := hfaces C hC
+  refine ⟨hsubset, hface, ?_⟩
+  intro hne
+  exact OneBitFanFaceDependency.fanFace C G i hface hne
+
 /-- Arrangement-cell intersections provide the actual exposed-face dependencies used by the
 well-founded order. If the common cell is proper in either incident cell, its rank is strictly
 smaller there; equal cells are the only zero-decrease case. -/
