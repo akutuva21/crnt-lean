@@ -2286,16 +2286,16 @@ theorem Network.fanSmallProductTile_restrictedSeam_dependency_and_glue
         FanRefinement.ProperExposedFaceDependency G C.1 ∨
           FanRefinement.ProperExposedFaceDependency G D.1) ∧
       FanRefinement.OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
-        (m := cover.tiling.subdivisionCount)
+        (ι := ι) (m := cover.tiling.subdivisionCount)
         ((G, i), .endpoint k.succ.castSucc) ((C.1, i), .strip k.castSucc) ∧
       FanRefinement.OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
-        (m := cover.tiling.subdivisionCount)
+        (ι := ι) (m := cover.tiling.subdivisionCount)
         ((G, j), .endpoint k.succ.castSucc) ((D.1, j), .strip k.succ) ∧
       (C.1 ≠ G → FanRefinement.OneBitFanFaceDependency
-        (E := EuclideanSpace ℝ (Fin n)) (m := cover.tiling.subdivisionCount)
+        (E := EuclideanSpace ℝ (Fin n)) (ι := ι) (m := cover.tiling.subdivisionCount)
         ((G, i), .strip k.castSucc) ((C.1, i), .strip k.castSucc)) ∧
       (D.1 ≠ G → FanRefinement.OneBitFanFaceDependency
-        (E := EuclideanSpace ℝ (Fin n)) (m := cover.tiling.subdivisionCount)
+        (E := EuclideanSpace ℝ (Fin n)) (ι := ι) (m := cover.tiling.subdivisionCount)
         ((G, j), .strip k.succ) ((D.1, j), .strip k.succ)) ∧
       ((FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual C ∩ smallTile i) ∩
         (FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual D ∩ smallTile j) =
@@ -2316,7 +2316,7 @@ theorem Network.fanSmallProductTile_restrictedSeam_dependency_and_glue
         D' (toEuclid (N.massActionVectorField κ (toEuclid.symm
           (ψ (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
             lower upper k.succ.castSucc y))))) ≤ 0 := by
-  obtain ⟨G, hG, hdependency, hdepC, hdepD, _, _, hfaceC, hfaceD, hbase, _, _, _, _⟩ :=
+  obtain ⟨G, hG, hdependency, hdepC, hdepD, _, _, hfaceC, hfaceD, hbase, _, _, _, _, _, _⟩ :=
     FanRefinement.fanSmallProductTile_adjacentStrip_seam F hFdual cover horder C D i j k
   have hbarrier := N.restrictedOneBitFiberPatch_finite_seam_glue
     κ cover domain hdomain ψ z selected offset tailHead tail hatlas (C, i) k y horder hy
@@ -2507,16 +2507,16 @@ theorem Network.exists_fanSmallProductTile_restrictedSeam_dependency_and_glue_of
       (C.1 ≠ D.1 → FanRefinement.ProperExposedFaceDependency G C.1 ∨
         FanRefinement.ProperExposedFaceDependency G D.1) ∧
       FanRefinement.OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
-        (m := cover.tiling.subdivisionCount)
+        (ι := ι) (m := cover.tiling.subdivisionCount)
         ((G, i), .endpoint k.succ.castSucc) ((C.1, i), .strip k.castSucc) ∧
       FanRefinement.OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
-        (m := cover.tiling.subdivisionCount)
+        (ι := ι) (m := cover.tiling.subdivisionCount)
         ((G, j), .endpoint k.succ.castSucc) ((D.1, j), .strip k.succ) ∧
       (C.1 ≠ G → FanRefinement.OneBitFanFaceDependency
-        (E := EuclideanSpace ℝ (Fin n)) (m := cover.tiling.subdivisionCount)
+        (E := EuclideanSpace ℝ (Fin n)) (ι := ι) (m := cover.tiling.subdivisionCount)
         ((G, i), .strip k.castSucc) ((C.1, i), .strip k.castSucc)) ∧
       (D.1 ≠ G → FanRefinement.OneBitFanFaceDependency
-        (E := EuclideanSpace ℝ (Fin n)) (m := cover.tiling.subdivisionCount)
+        (E := EuclideanSpace ℝ (Fin n)) (ι := ι) (m := cover.tiling.subdivisionCount)
         ((G, j), .strip k.succ) ((D.1, j), .strip k.succ)) ∧
       ((FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual C ∩
           smallTile i) ∩
@@ -2575,7 +2575,7 @@ theorem Network.exists_fanSmallProductTile_restrictedSeam_dependency_and_glue_of
       κ cover ψ hψ z t hε hchart himage hmapDiam hprojectedSmall hendpointVariation
       hηsmall hbudget hδcoord domain hdomain tailHead tail (C, i) k y horder hy
       hgraph ps hincident
-  obtain ⟨G, hG, hdependency, hdepC, hdepD, _, _, hfaceC, hfaceD, hbase, _, _, _, _⟩ :=
+  obtain ⟨G, hG, hdependency, hdepC, hdepD, _, _, hfaceC, hfaceD, hbase, _, _, _, _, _, _⟩ :=
     FanRefinement.fanSmallProductTile_adjacentStrip_seam F hFdual cover horder C D i j k
   let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
   let cells : Finset (ProperCone ℝ (EuclideanSpace ℝ (Fin n))) :=

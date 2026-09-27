@@ -133,14 +133,27 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   modules and audited the exact target; the new seam inclusion lemmas remain
   `sorryAx`-free, but `Network.complexBalanced_genuinePermanent` still reports
   `sorryAx`.
-- The current face-mono lemma still assumes tile containment, and it does not
-  itself assemble the inherited outputs or barriers. The arrangement atlas
-  gives exact common-face patch intersections, while the radial atlas's smooth
-  maximum controls derivatives only at points incident to every listed patch.
-  The generic face-task recursion still has no caller that returns those
-  covers/barriers. Next refactor the recursive task domain so it consumes these
-  pair-labelled endpoint outputs and preserves the scale/faithfulness
-  invariant, then derive a global
-  `ZeroSeparatingSurfaceExists` witness and apply it in the target branch.
-  Keep the checklist open until its exact theorem and kernel axiom audit are
-  clean.
+- Added a mixed-label recursion domain with single-tile strip tasks and pair-labelled seam tasks.
+  The adjacent-strip certificate now returns actual predecessor edges from the pair seam to both
+  incident strips, and `oneBitFanFaceSeamDependency.taskPatch_subset` proves every mixed edge is
+  an inclusion between its concrete geometric patches. Direct Lean 4.34 compilation succeeded for
+  `FanRefinement.lean`, `ToricUniformWallMargin.lean`, and
+  `GlobalAttractorTheorem.lean` using the fresh temporary module search tree. The target still
+  warns at line 1442 that it uses `sorry`; the exact axiom audit reports `sorryAx` on
+  `Network.complexBalanced_genuinePermanent`, while the mixed recursion, its recursor, the edge
+  inclusion theorem, and the adjacent-strip certificate use only `[propext, Classical.choice,
+  Quot.sound]`.
+- This mixed relation still only orders preassigned set-valued patches. It does not construct the
+  faithful blueprint, select compatible basepoints/scales across projected subdivisions, or
+  produce the exhaustive zero-separating family. The missing geometric endpoint in the existing
+  API is a theorem of the form
+  `∀ F δ f, (∀ x, f x ∈ toricInclusionField F δ x) → ∀ x₀,
+  ZeroSeparatingSurfaceExists f x₀`; the present `ZeroSeparatingSurfaceExists` module proves the
+  one-dimensional case but explicitly leaves the higher-dimensional simplicial/faithful-blueprint
+  construction as the unproved `InductionStepHypothesis` input. Craciun v3 §7.4.3 requires that
+  recursive faithful-blueprint step to preserve projection/basepoint and scale compatibility;
+  §8 Steps 2–4 then use the resulting blueprint to build an exhaustive ZSH family and the
+  invariant region. No current theorem constructs that output from a fan selection.
+- The current task-patch recursion still has no caller that returns recursive covers, barriers, or
+  blueprint data. Keep the checklist open until the global `ZeroSeparatingSurfaceExists` result is
+  derived and the exact target theorem and kernel axiom audit are clean.
