@@ -5527,6 +5527,190 @@ noncomputable def compactProjectiveRadialFamily_patchCover {n : ℕ} {ι : Type*
     (fun _ => 0) (fun _ => upper (Fin.last n)) epsilon hbaseCover hbaseTileCompact
     hbaseTileInteriorsDisjoint continuous_const continuous_const horder hepsilon hfaceBand
 
+/-- A compact Euclidean base admits a finite closed refinement of arbitrarily small diameter
+whose members have pairwise disjoint interiors. Start with a finite cover by small closed balls,
+then assign each point to the least ball containing it, removing the interiors of earlier balls.
+This is the finite small-base subdivision needed by Craciun v3's repeated face refinement. -/
+structure CompactSmallBaseTiling {n : ℕ} (base : Set (Fin n → ℝ)) (eta : ℝ) where
+  count : ℕ
+  tile : Fin count → Set (Fin n → ℝ)
+  covers : base = ⋃ i, tile i
+  tile_compact : ∀ i, IsCompact (tile i)
+  interiors_disjoint : ∀ i j, i ≠ j → interior (tile i) ∩ interior (tile j) = ∅
+  tile_diameter_lt : ∀ i x, x ∈ tile i → ∀ y, y ∈ tile i → dist x y < eta
+
+noncomputable def exists_compact_small_interior_disjoint_cover {n : ℕ}
+    (base : Set (Fin n → ℝ)) (hbase : IsCompact base) {η : ℝ} (hη : 0 < η) :
+    CompactSmallBaseTiling base η := by
+  classical
+  let r : ℝ := η / 3
+  have hr : 0 < r := by dsimp [r]; positivity
+  let V : base → Set (Fin n → ℝ) := fun x => Metric.ball x.1 r
+  have hopen : ∀ x : base, IsOpen (V x) := fun _ => Metric.isOpen_ball
+  have hcover : base ⊆ ⋃ x : base, V x := by
+    intro x hx
+    exact Set.mem_iUnion.mpr ⟨⟨x, hx⟩, Metric.mem_ball_self hr⟩
+  have hfinite : ∃ centers : Finset base, base ⊆ ⋃ x ∈ centers, V x :=
+    hbase.elim_finite_subcover V hopen hcover
+  let centers : Finset base := Classical.choose hfinite
+  have hcenters : base ⊆ ⋃ x ∈ centers, V x := Classical.choose_spec hfinite
+  let I := {x : base // x ∈ centers}
+  letI : Fintype I := Fintype.ofFinite I
+  let m : ℕ := Fintype.card I
+  let e : I ≃ Fin m := Fintype.equivFin I
+  let center : Fin m → Fin n → ℝ := fun i => (e.symm i).1.1
+  let smallTile : Fin m → Set (Fin n → ℝ) := fun i => base ∩ Metric.closedBall (center i) r
+  let members (x : Fin n → ℝ) : Finset (Fin m) :=
+    Finset.univ.filter (fun i => x ∈ smallTile i)
+  let earlierInterior (i : Fin m) : Set (Fin n → ℝ) :=
+    ⋃ j : Fin m, if j < i then interior (smallTile j) else ∅
+  let baseTile (i : Fin m) : Set (Fin n → ℝ) :=
+    smallTile i \ earlierInterior i
+  have hbaseeq : base = ⋃ i, baseTile i := by
+    ext x
+    constructor
+    · intro hx
+      have hmems : (members x).Nonempty := by
+        obtain ⟨p, hpcover⟩ := Set.mem_iUnion.mp (hcenters hx)
+        obtain ⟨hp, hpx⟩ := Set.mem_iUnion.mp hpcover
+        let i : Fin m := e ⟨p, hp⟩
+        have hcenter : center i = p.1 := by simp [center, i]
+        have hclosed : x ∈ Metric.closedBall (center i) r := by
+          rw [Metric.mem_closedBall, hcenter]
+          exact le_of_lt (by simpa [V] using hpx)
+        exact ⟨i, Finset.mem_filter.mpr ⟨Finset.mem_univ _, ⟨hx, hclosed⟩⟩⟩
+      let i := (members x).min' hmems
+      have hi : i ∈ members x := Finset.min'_mem _ _
+      have hsmall : x ∈ smallTile i := (Finset.mem_filter.mp hi).2
+      have hnotEarlier : x ∉ earlierInterior i := by
+        intro hxEarlier
+        obtain ⟨j, hxEarlier⟩ := Set.mem_iUnion.mp hxEarlier
+        by_cases hj : j < i
+        · have hxInterior : x ∈ interior (smallTile j) := by
+            simpa [earlierInterior, hj] using hxEarlier
+          have hxSmall : x ∈ smallTile j := interior_subset hxInterior
+          have hjmem : j ∈ members x := Finset.mem_filter.mpr ⟨Finset.mem_univ _, hxSmall⟩
+          have hminle : i ≤ j := Finset.min'_le _ _ hjmem
+          exact (not_lt_of_ge hminle) hj
+        · simp [earlierInterior, hj] at hxEarlier
+      exact Set.mem_iUnion.mpr ⟨i, by
+        change x ∈ smallTile i \ earlierInterior i
+        exact ⟨hsmall, hnotEarlier⟩⟩
+    · intro hx
+      obtain ⟨i, hi⟩ := Set.mem_iUnion.mp hx
+      exact hi.1.1
+  have hsmallCompact : ∀ i, IsCompact (smallTile i) := by
+    intro i
+    exact hbase.inter_right Metric.isClosed_closedBall
+  have htileCompact : ∀ i, IsCompact (baseTile i) := by
+    intro i
+    have hopenEarlier : IsOpen (earlierInterior i) := by
+      apply isOpen_iUnion
+      intro j
+      by_cases hj : j < i
+      · simp [earlierInterior, hj, isOpen_interior]
+      · simp [earlierInterior, hj]
+    have hclosed : IsClosed
+        (earlierInterior i)ᶜ :=
+      hopenEarlier.isClosed_compl
+    change IsCompact (smallTile i ∩ (earlierInterior i)ᶜ)
+    exact (hsmallCompact i).inter_right hclosed
+  have htileSubset : ∀ i, baseTile i ⊆ smallTile i := fun i => Set.diff_subset
+  have hinteriorSubset : ∀ i, interior (baseTile i) ⊆ interior (smallTile i) :=
+    fun i => interior_mono (htileSubset i)
+  have hdisjoint : ∀ i j, i ≠ j →
+      interior (baseTile i) ∩ interior (baseTile j) = ∅ := by
+    intro i j hij
+    rcases lt_or_gt_of_ne hij with hij' | hji
+    · ext x
+      constructor
+      · intro hx
+        have hxi : x ∈ interior (smallTile i) := hinteriorSubset i hx.1
+        have hxj : x ∈ baseTile j := interior_subset hx.2
+        have hremove : x ∈ earlierInterior j := by
+          exact Set.mem_iUnion.mpr ⟨i, by simp [earlierInterior, hij', hxi]⟩
+        exact (hxj.2 hremove).elim
+      · simp
+    · rw [Set.inter_comm]
+      ext x
+      constructor
+      · intro hx
+        have hxj : x ∈ interior (smallTile j) := hinteriorSubset j hx.1
+        have hxi : x ∈ baseTile i := interior_subset hx.2
+        have hremove : x ∈ earlierInterior i := by
+          exact Set.mem_iUnion.mpr ⟨j, by simp [earlierInterior, hji, hxj]⟩
+        exact (hxi.2 hremove).elim
+      · simp
+  have hdiameter : ∀ i x, x ∈ baseTile i → ∀ y, y ∈ baseTile i → dist x y < η := by
+    intro i x hx y hy
+    have hxball : dist x (center i) ≤ r := (Metric.mem_closedBall.mp hx.1.2)
+    have hyball : dist y (center i) ≤ r := (Metric.mem_closedBall.mp hy.1.2)
+    calc
+      dist x y ≤ dist x (center i) + dist (center i) y := dist_triangle x (center i) y
+      _ ≤ r + r := add_le_add hxball (by simpa [dist_comm] using hyball)
+      _ < η := by dsimp [r]; linarith
+  exact ⟨m, baseTile, hbaseeq, htileCompact, hdisjoint, hdiameter⟩
+
+/-- Craciun v3, §8 Step 1 and §7.4.3 Case 1.2, with the scale refinement made explicit: a
+finite compact projective radial family yields a restricted one-bit cover whose projected base
+tiles have diameter below any prescribed positive tolerance. The finite small-base partition is
+constructed from compactness, so the local wall-chart selection can use the tile diameter directly
+instead of requiring it as an external property of the lower-dimensional blueprint. -/
+noncomputable def compactProjectiveRadialFamily_smallPatchCover {n : ℕ} {ι : Type*}
+    [Fintype ι]
+    (diagramTile : ι → Set (Fin (n + 1) → ℝ)) (upper : Fin (n + 1) → ℝ)
+    (epsilon eta : ℝ)
+    (hdiagramNonnegative : ∀ k x, x ∈ diagramTile k → ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ k x, x ∈ diagramTile k → x ≠ 0)
+    (hdiagramAnchor : ∀ k x, x ∈ diagramTile k → x 0 = 1)
+    (hdiagramCompact : ∀ k, IsCompact (diagramTile k))
+    (hupper : ∀ i, 0 < upper i) (hepsilon : 0 < epsilon) (heta : 0 < eta)
+    (hdiagramCoversNormalizedDomain : ∀ x,
+      x ∈ craciunProjectiveDomain → x 0 = 1 → x ∈ ⋃ k, diagramTile k) :
+    Σ m : ℕ, Σ baseTile : Fin m → Set (Fin n → ℝ),
+      {cover : CompactOneBitFiberPatchCover
+        (⋃ k, radialBoxDiagramTile (diagramTile k) upper
+          (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩ craciunProjectiveDomain)
+        (forgetLastCoordinate n ''
+          (⋃ k, radialBoxDiagramTile (diagramTile k) upper
+            (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩ craciunProjectiveDomain))
+        baseTile (fun _ => 0) (fun _ => upper (Fin.last n)) epsilon //
+        (∀ i a, a ∈ baseTile i → ∀ b, b ∈ baseTile i → dist a b < eta) } := by
+  classical
+  let facePatch : Set (Fin (n + 1) → ℝ) :=
+    ⋃ k, radialBoxDiagramTile (diagramTile k) upper
+      (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩ craciunProjectiveDomain
+  let base : Set (Fin n → ℝ) := forgetLastCoordinate n '' facePatch
+  have hfaceCompact : IsCompact facePatch := by
+    exact (isCompact_and_covers_projectiveRadialTiles diagramTile upper
+      hdiagramNonnegative hdiagramAnchor hdiagramCompact hupper
+      hdiagramCoversNormalizedDomain).1
+  have hbaseCompact : IsCompact base := by
+    exact hfaceCompact.image ((forgetLastCoordinate n).continuous_of_finiteDimensional)
+  obtain ⟨m, baseTile, hbaseCover, htileCompact, htileDisjoint, hsmall⟩ :=
+    exists_compact_small_interior_disjoint_cover base hbaseCompact heta
+  have hupperPositive : 0 < upper (Fin.last n) := hupper (Fin.last n)
+  have horder : ∀ y ∈ base, (fun _ : Fin n → ℝ => 0) y ≤ upper (Fin.last n) := by
+    intro y hy
+    exact le_of_lt hupperPositive
+  have hfaceBand : facePatch ⊆ projectionFiberBand base
+      (fun _ => some (0 : ℝ)) (fun _ => some (upper (Fin.last n))) := by
+    intro x hx
+    obtain ⟨k, hk⟩ := Set.mem_iUnion.mp hx
+    have hbox := radialBoxDiagramTile_subset_box (diagramTile k) upper
+      (hdiagramNonnegative k) (hdiagramNonzero k) hupper hk.1
+    apply (mem_projectionFiberBand_bounded_iff base (fun _ => 0)
+      (fun _ => upper (Fin.last n)) x).2
+    refine ⟨⟨x, hx, rfl⟩, ?_, ?_⟩
+    · exact (hbox (Fin.last n)).1
+    · exact (hbox (Fin.last n)).2
+  have cover : CompactOneBitFiberPatchCover facePatch base baseTile
+      (fun _ => 0) (fun _ => upper (Fin.last n)) epsilon :=
+    compactOneBitFiberPatchCover_of_compactBand facePatch hfaceCompact base baseTile
+      (fun _ => 0) (fun _ => upper (Fin.last n)) epsilon hbaseCover htileCompact
+      htileDisjoint continuous_const continuous_const horder hepsilon hfaceBand
+  exact ⟨m, baseTile, cover, hsmall⟩
+
 /-- Craciun v3, §8 Step 1: restrict a compact one-bit blueprint to a closed projective domain by
 intersecting every tile patch with that domain. The clipped family still covers the clipped face,
 its pieces remain compact, and the common fiber subdivision preserves every seam and overlap
