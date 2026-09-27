@@ -471,6 +471,92 @@ theorem properExposedFace_isExposedFaceOf [CompleteSpace E] {C : ProperCone ℝ 
   simp [properExposedFace, properSupportingHyperplane, mem_exposedFace,
     LinearMap.mem_ker, innerₗ_apply_apply]
 
+/-- The rank used to order Craciun's face-filling tasks is the dimension of the linear span
+of a cone. -/
+noncomputable def coneSpanRank (C : ProperCone ℝ E) : ℕ :=
+  Module.finrank ℝ (Submodule.span ℝ (C : Set E))
+
+/-- A proper exposed face has strictly smaller span dimension than its containing cone. This is
+the geometric decrease needed for the lexicographic face recursion: it is proved from the actual
+exposing functional, not assumed as a property of an abstract dependency relation. -/
+theorem coneSpanRank_lt_of_isExposedFaceOf_of_ne [CompleteSpace E]
+    [FiniteDimensional ℝ E] {D C : ProperCone ℝ E}
+    (hface : IsExposedFaceOf D C) (hne : D ≠ C) :
+    coneSpanRank D < coneSpanRank C := by
+  obtain ⟨a, ha, hfaceSet⟩ := hface
+  have hfaceSet' : (D : Set E) = (exposedFace (C : PointedCone ℝ E) a : Set E) := by
+    ext x
+    have hmem := congrArg (fun A : Set E => x ∈ A) hfaceSet
+    simpa using hmem
+  have hsubset : (D : Set E) ⊆ (C : Set E) := by
+    intro x hx
+    have hface' : x ∈ exposedFace (C : PointedCone ℝ E) a := by
+      change x ∈ (exposedFace (C : PointedCone ℝ E) a : Set E)
+      rw [← hfaceSet']
+      exact hx
+    exact (mem_exposedFace.mp hface').1
+  have hnotSubset : ¬ (C : Set E) ⊆ (D : Set E) := by
+    intro hCD
+    apply hne
+    exact SetLike.coe_injective (Set.Subset.antisymm hsubset hCD)
+  obtain ⟨x, hxC, hxD⟩ := Set.not_subset.mp hnotSubset
+  let φ : E →ₗ[ℝ] ℝ := innerₗ E a
+  have hspanKernel :
+      Submodule.span ℝ (D : Set E) ≤ LinearMap.ker φ := by
+    apply Submodule.span_le.2
+    intro y hy
+    apply LinearMap.mem_ker.mpr
+    have hyFace : y ∈ exposedFace (C : PointedCone ℝ E) a := by
+      change y ∈ (exposedFace (C : PointedCone ℝ E) a : Set E)
+      rw [← hfaceSet']
+      exact hy
+    simpa [φ, innerₗ_apply_apply] using (mem_exposedFace.mp hyFace).2
+  have hxNotKernel : φ x ≠ 0 := by
+    intro hxKernel
+    have hxFace : x ∈ exposedFace (C : PointedCone ℝ E) a :=
+      (mem_exposedFace).2 ⟨hxC, by
+        simpa [φ, innerₗ_apply_apply] using hxKernel⟩
+    have hxD' : x ∈ D := by
+      change x ∈ (D : Set E)
+      rw [hfaceSet']
+      exact hxFace
+    exact hxD hxD'
+  let SD : Submodule ℝ E := Submodule.span ℝ (D : Set E)
+  let SC : Submodule ℝ E := Submodule.span ℝ (C : Set E)
+  have hSDleSC : SD ≤ SC := Submodule.span_mono hsubset
+  have hSDneSC : SD ≠ SC := by
+    intro hEq
+    have hxSD : x ∈ SD := by
+      rw [hEq]
+      exact Submodule.subset_span hxC
+    exact hxNotKernel (hspanKernel hxSD)
+  have hSDltSC : SD < SC := lt_of_le_of_ne hSDleSC hSDneSC
+  simpa [coneSpanRank, SD, SC] using Submodule.finrank_lt_finrank_of_lt hSDltSC
+
+/-- A face dependency points from the face being filled to a strictly lower-dimensional exposed
+face whose data it needs. The relation is well-founded because every dependency lowers the span
+rank. -/
+def ProperExposedFaceDependency [CompleteSpace E]
+    (required face : ProperCone ℝ E) : Prop :=
+  IsExposedFaceOf required face ∧ required ≠ face
+
+theorem properExposedFaceDependency_wellFounded [CompleteSpace E]
+    [FiniteDimensional ℝ E] :
+    WellFounded (ProperExposedFaceDependency (E := E)) := by
+  have hacc : ∀ n : ℕ, ∀ C : ProperCone ℝ E,
+      coneSpanRank C = n → Acc (ProperExposedFaceDependency (E := E)) C := by
+    intro n
+    induction n using Nat.strong_induction_on with
+    | h n ih =>
+        intro C hC
+        apply Acc.intro
+        intro D hdep
+        have hdecrease : coneSpanRank D < n := by
+          rw [← hC]
+          exact coneSpanRank_lt_of_isExposedFaceOf_of_ne hdep.1 hdep.2
+        exact ih (coneSpanRank D) hdecrease D rfl
+  exact ⟨fun C => hacc (coneSpanRank C) C rfl⟩
+
 /-- Dual decomposition condition needed to prove exposed-face closure for pairwise intersections. -/
 def HasIntersectionDualDecomposition [CompleteSpace E] (F G : Fan E) : Prop :=
   ∀ C ∈ F, ∀ D ∈ G, ∀ a : E,
@@ -1642,6 +1728,27 @@ theorem hyperplaneArrangementFamily_inter_common [CompleteSpace E] [DecidableEq 
         (signCell T P N : Set E) := by rw [hset, Set.inter_comm]
     exact signCell_inter_isExposedFaceOf_left hP'T hN'T hPT hNT hP'N' hPN hset'
 
+/-- Arrangement-cell intersections provide the actual exposed-face dependencies used by the
+well-founded order. If the common cell is proper in either incident cell, its rank is strictly
+smaller there; equal cells are the only zero-decrease case. -/
+theorem hyperplaneArrangement_commonFace_rank_decrease [CompleteSpace E]
+    [DecidableEq E] [FiniteDimensional ℝ E] {T : Finset E}
+    {C D : ProperCone ℝ E}
+    (hC : C ∈ hyperplaneArrangementFamily T)
+    (hD : D ∈ hyperplaneArrangementFamily T) :
+    ∃ G ∈ hyperplaneArrangementFamily T,
+      (G : Set E) = (C : Set E) ∩ (D : Set E) ∧
+      IsExposedFaceOf G C ∧ IsExposedFaceOf G D ∧
+      (G ≠ C → coneSpanRank G < coneSpanRank C) ∧
+      (G ≠ D → coneSpanRank G < coneSpanRank D) := by
+  obtain ⟨G, hG, hset, hGC, hGD⟩ :=
+    hyperplaneArrangementFamily_inter_common hC hD
+  refine ⟨G, hG, hset, hGC, hGD, ?_, ?_⟩
+  · intro hne
+    exact coneSpanRank_lt_of_isExposedFaceOf_of_ne hGC hne
+  · intro hne
+    exact coneSpanRank_lt_of_isExposedFaceOf_of_ne hGD hne
+
 /-- Finite central arrangements satisfy the true common-face axiom, with each intersection exposed
 from both incident cells. This is the face information required to transfer the local toric field
 through a chamber wall. -/
@@ -2116,9 +2223,9 @@ theorem euclideanHyperplaneArrangementBaseTile_inward_normal_label {n : ℕ}
     exact ⟨y, hCD hy.2, rfl⟩
   · exact coneDual_subset_dualHalfPlane_of_mem (hCD hv)
 
-/-- The intersection of two coordinate-transported arrangement base tiles is the tile cut from
-their common arrangement face. This preserves the fan label across the seams of the one-bit fiber
-subdivision, rather than retaining only an unlabeled set intersection. -/
+/-- The intersection of two coordinate-transported arrangement base tiles is cut from their
+actual common fan face, with the exposed-face certificates and rank drops retained for the
+lexicographic fill order. -/
 theorem euclideanHyperplaneArrangementBaseTile_intersection {n : ℕ}
     (base : Set (Fin n → ℝ)) (F : Fan (EuclideanSpace ℝ (Fin n)))
     (hFdual : HasDualFGCells F)
@@ -2128,33 +2235,45 @@ theorem euclideanHyperplaneArrangementBaseTile_intersection {n : ℕ}
       (hG : G ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)),
       euclideanHyperplaneArrangementBaseTile base F hFdual C ∩
         euclideanHyperplaneArrangementBaseTile base F hFdual D =
-          euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩ := by
+          euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩ ∧
+      IsExposedFaceOf G C.1 ∧ IsExposedFaceOf G D.1 ∧
+      (G ≠ C.1 → coneSpanRank G < coneSpanRank C.1) ∧
+      (G ≠ D.1 → coneSpanRank G < coneSpanRank D.1) := by
   let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
   let baseE : Set (EuclideanSpace ℝ (Fin n)) := e.symm '' base
-  let fine := hyperplaneArrangementFamily (fanNormalSet F hFdual)
-  have hfine : IsPolyhedralFan fine := hyperplaneArrangementFamily_isPolyhedralFan _
-  obtain ⟨G, hG, hmeet⟩ :=
-    compactSet_fanRefinement_patch_intersection baseE hfine C.1 D.1 C.2 D.2
-  refine ⟨G, hG, ?_⟩
+  obtain ⟨G, hG, hcommon, hGC, hGD, hrankC, hrankD⟩ :=
+    hyperplaneArrangement_commonFace_rank_decrease C.2 D.2
+  have hmeet :
+      (baseE ∩ (C.1 : Set (EuclideanSpace ℝ (Fin n)))) ∩
+          (baseE ∩ (D.1 : Set (EuclideanSpace ℝ (Fin n)))) =
+        baseE ∩ (G : Set (EuclideanSpace ℝ (Fin n)) ) := by
+    ext x
+    simp [hcommon, and_assoc, and_left_comm, and_comm]
+  refine ⟨G, hG, ?_, hGC, hGD, hrankC, hrankD⟩
+  change e '' (baseE ∩ (C.1 : Set (EuclideanSpace ℝ (Fin n)))) ∩
+      e '' (baseE ∩ (D.1 : Set (EuclideanSpace ℝ (Fin n)))) =
+    e '' (baseE ∩ (G : Set (EuclideanSpace ℝ (Fin n))))
   ext x
   constructor
   · rintro ⟨⟨a, ha, rfl⟩, b, hb, hab⟩
     have hba : b = a := e.injective hab
     subst b
-    have hcommon : a ∈
+    have hcommonMem : a ∈
         (baseE ∩ (C.1 : Set (EuclideanSpace ℝ (Fin n)))) ∩
           (baseE ∩ (D.1 : Set (EuclideanSpace ℝ (Fin n)))) := ⟨ha, hb⟩
     have hmeetMem := congrArg (fun s : Set (EuclideanSpace ℝ (Fin n)) => a ∈ s) hmeet
-    have hGmem : a ∈ baseE ∩ (G : Set (EuclideanSpace ℝ (Fin n))) := hmeetMem.mp hcommon
+    have hGmem : a ∈ baseE ∩ (G : Set (EuclideanSpace ℝ (Fin n))) :=
+      hmeetMem.mp hcommonMem
     exact ⟨a, hGmem, rfl⟩
   · rintro ⟨a, ha, rfl⟩
     have hmeetMem := congrArg (fun s : Set (EuclideanSpace ℝ (Fin n)) => a ∈ s) hmeet
-    have hcommon := hmeetMem.mpr ha
-    exact ⟨⟨a, hcommon.1, rfl⟩, a, hcommon.2, rfl⟩
+    have hcommonMem := hmeetMem.mpr ha
+    exact ⟨⟨a, hcommonMem.1, rfl⟩, a, hcommonMem.2, rfl⟩
 
-/-- Craciun v3, §7.4.3: adjoining one-bit strips above arrangement tiles glue along the endpoint
-graph over their common lower-dimensional arrangement face. The tile intersection is retained as
-an arrangement label, so the seam is compatible with the projected fan subdivision. -/
+/-- Craciun v3, §7.4.3: neighboring one-bit strips above arrangement tiles meet on the endpoint
+graph over their actual common lower-dimensional arrangement face. The returned face label carries
+its exposed-face rank certificates, giving the lexicographic fill a well-founded geometric
+dependency. -/
 theorem euclideanHyperplaneArrangementBaseTiles_adjacentStrip_seam {n : ℕ}
     {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
     {lower upper : (Fin n → ℝ) → ℝ} {epsilon : ℝ}
@@ -2170,6 +2289,11 @@ theorem euclideanHyperplaneArrangementBaseTiles_adjacentStrip_seam {n : ℕ}
     (k : Fin cover.tiling.subdivisionCount) :
     ∃ (G : ProperCone ℝ (EuclideanSpace ℝ (Fin n)))
       (hG : G ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)),
+      IsExposedFaceOf G C.1 ∧ IsExposedFaceOf G D.1 ∧
+      (G ≠ C.1 → coneSpanRank G < coneSpanRank C.1) ∧
+      (G ≠ D.1 → coneSpanRank G < coneSpanRank D.1) ∧
+      (C.1 ≠ D.1 → ProperExposedFaceDependency G C.1 ∨
+        ProperExposedFaceDependency G D.1) ∧
       (facePatch ∩ projectionFiberSubdivisionTile
           (euclideanHyperplaneArrangementBaseTile base F hFdual C) lower upper k.castSucc) ∩
         (facePatch ∩ projectionFiberSubdivisionTile
@@ -2177,11 +2301,25 @@ theorem euclideanHyperplaneArrangementBaseTiles_adjacentStrip_seam {n : ℕ}
       facePatch ∩ (fun y : Fin n → ℝ =>
         projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y) ''
           euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩ := by
-  obtain ⟨G, hG, hintersection⟩ :=
+  obtain ⟨G, hG, hintersection, hGC, hGD, hrankC, hrankD⟩ :=
     euclideanHyperplaneArrangementBaseTile_intersection base F hFdual C D
-  refine ⟨G, hG, ?_⟩
-  rw [← hintersection]
-  exact cover.adjacent_base_tiles_share_seam C D horder k
+  refine ⟨G, hG, hGC, hGD, hrankC, hrankD, ?_, ?_⟩
+  · intro hCD
+    by_cases hGC' : G = C.1
+    · right
+      constructor
+      · simpa [hGC'] using hGD
+      · intro hGD'
+        apply hCD
+        apply SetLike.coe_injective
+        calc
+          (C.1 : Set (EuclideanSpace ℝ (Fin n))) = G := by rw [hGC']
+          _ = D.1 := congrArg (fun H : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) =>
+            (H : Set (EuclideanSpace ℝ (Fin n)))) hGD'
+    · left
+      exact ⟨hGC, hGC'⟩
+  · rw [← hintersection]
+    exact cover.adjacent_base_tiles_share_seam C D horder k
 
 /-- Craciun's one-bit fiber subdivision can be placed over the finite central arrangement of a
 complete fan in Euclidean coordinates. This is the coordinate bridge between the fan-label
