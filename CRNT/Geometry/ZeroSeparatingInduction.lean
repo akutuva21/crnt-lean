@@ -113,6 +113,117 @@ open scoped Pointwise
 open scoped InnerProductSpace
 open ZeroSeparatingCurve2D
 
+/-- Craciun v3, §8 Step 1: a nonzero ray in the nonnegative orthant has a first positive
+intersection with the outer boundary of any coordinate box with positive side lengths. The ray
+segment up to that point stays in the box, and the endpoint lies on at least one box face. This is
+the pointwise radial operation used to extend lower-dimensional boundary tiles to the blue box. -/
+theorem exists_radial_box_exit {n : ℕ} (x upper : Fin n → ℝ)
+    (hx : ∀ i, 0 ≤ x i) (hxne : x ≠ 0) (hupper : ∀ i, 0 < upper i) :
+    ∃ q : ℝ × Fin n, 0 < q.1 ∧ 0 < x q.2 ∧ q.1 * x q.2 = upper q.2 ∧
+      ∀ s, 0 ≤ s → s ≤ q.1 → ∀ j, 0 ≤ s * x j ∧ s * x j ≤ upper j := by
+  classical
+  let active : Finset (Fin n) := Finset.univ.filter (fun i => 0 < x i)
+  have hactive : active.Nonempty := by
+    by_contra h
+    have hxzero : ∀ i, x i = 0 := by
+      intro i
+      have hnot : ¬ 0 < x i := by
+        intro hi
+        exact h ⟨i, Finset.mem_filter.mpr ⟨Finset.mem_univ i, hi⟩⟩
+      exact le_antisymm (le_of_not_gt hnot) (hx i)
+    exact hxne (funext hxzero)
+  let ratios : Finset ℝ := active.image (fun i => upper i / x i)
+  have hratios : ratios.Nonempty := Finset.image_nonempty.mpr hactive
+  let t : ℝ := ratios.min' hratios
+  obtain ⟨i, hiActive, hti⟩ := Finset.mem_image.mp
+    (Finset.min'_mem ratios hratios)
+  have hxi : 0 < x i := (Finset.mem_filter.mp hiActive).2
+  have htiPos : 0 < t := by
+    change 0 < ratios.min' hratios
+    rw [← hti]
+    exact div_pos (hupper i) hxi
+  have hface : t * x i = upper i := by
+    change ratios.min' hratios * x i = upper i
+    rw [← hti]
+    field_simp [ne_of_gt hxi]
+  refine ⟨(t, i), htiPos, hxi, hface, ?_⟩
+  intro s hs0 hst j
+  have hbox : t * x j ≤ upper j := by
+    by_cases hxj : 0 < x j
+    · have hjActive : j ∈ active :=
+        Finset.mem_filter.mpr ⟨Finset.mem_univ j, hxj⟩
+      have hjRatio : upper j / x j ∈ ratios :=
+        Finset.mem_image.mpr ⟨j, hjActive, rfl⟩
+      have hmin := Finset.min'_le ratios (upper j / x j) hjRatio
+      exact (le_div_iff₀ hxj).mp hmin
+    · have hxj0 : x j = 0 := le_antisymm (le_of_not_gt hxj) (hx j)
+      simpa [hxj0] using (hupper j).le
+  refine ⟨mul_nonneg hs0 (hx j), ?_⟩
+  exact (mul_le_mul_of_nonneg_right hst (hx j)).trans hbox
+
+/-- The selected first-exit scale and active box face for a nonnegative ray. -/
+noncomputable def radialBoxExitData {n : ℕ} (x upper : Fin n → ℝ)
+    (hx : ∀ i, 0 ≤ x i) (hxne : x ≠ 0) (hupper : ∀ i, 0 < upper i) : ℝ × Fin n :=
+  Classical.choose (exists_radial_box_exit x upper hx hxne hupper)
+
+/-- The selected radial exit certificate retains positivity, face incidence, and containment of
+the entire ray segment in the blue box. -/
+theorem radialBoxExitData_spec {n : ℕ} (x upper : Fin n → ℝ)
+    (hx : ∀ i, 0 ≤ x i) (hxne : x ≠ 0) (hupper : ∀ i, 0 < upper i) :
+    0 < (radialBoxExitData x upper hx hxne hupper).1 ∧
+      0 < x (radialBoxExitData x upper hx hxne hupper).2 ∧
+      (radialBoxExitData x upper hx hxne hupper).1 *
+        x (radialBoxExitData x upper hx hxne hupper).2 =
+          upper (radialBoxExitData x upper hx hxne hupper).2 ∧
+      ∀ s, 0 ≤ s → s ≤ (radialBoxExitData x upper hx hxne hupper).1 →
+        ∀ j, 0 ≤ s * x j ∧ s * x j ≤ upper j :=
+  Classical.choose_spec (exists_radial_box_exit x upper hx hxne hupper)
+
+/-- The endpoint of the selected ray segment on the outer boundary of the coordinate blue box. -/
+noncomputable def radialBoxEndpoint {n : ℕ} (x upper : Fin n → ℝ)
+    (hx : ∀ i, 0 ≤ x i) (hxne : x ≠ 0) (hupper : ∀ i, 0 < upper i) : Fin n → ℝ :=
+  (radialBoxExitData x upper hx hxne hupper).1 • x
+
+/-- The selected radial endpoint lies in the blue box and on one of its outer faces. -/
+theorem radialBoxEndpoint_mem_box_boundary {n : ℕ} (x upper : Fin n → ℝ)
+    (hx : ∀ i, 0 ≤ x i) (hxne : x ≠ 0) (hupper : ∀ i, 0 < upper i) :
+    (∀ j, 0 ≤ radialBoxEndpoint x upper hx hxne hupper j ∧
+      radialBoxEndpoint x upper hx hxne hupper j ≤ upper j) ∧
+      radialBoxEndpoint x upper hx hxne hupper
+        (radialBoxExitData x upper hx hxne hupper).2 =
+          upper (radialBoxExitData x upper hx hxne hupper).2 := by
+  obtain ⟨ht, hi, hface, hsegment⟩ := radialBoxExitData_spec x upper hx hxne hupper
+  constructor
+  · intro j
+    simpa [radialBoxEndpoint, Pi.smul_apply] using
+      hsegment (radialBoxExitData x upper hx hxne hupper).1 (le_of_lt ht) le_rfl j
+  · simpa [radialBoxEndpoint, Pi.smul_apply] using hface
+
+/-- The radial extension of one diagram point is the segment from the origin to its selected
+first intersection with the boundary of the blue box. -/
+def radialBoxRaySegment {n : ℕ} (x upper : Fin n → ℝ)
+    (hx : ∀ i, 0 ≤ x i) (hxne : x ≠ 0) (hupper : ∀ i, 0 < upper i) :
+    Set (Fin n → ℝ) :=
+  {p | ∃ s, 0 ≤ s ∧ s ≤ (radialBoxExitData x upper hx hxne hupper).1 ∧ p = s • x}
+
+/-- Every point on a radial boundary segment remains in the blue box. -/
+theorem radialBoxRaySegment_subset_box {n : ℕ} (x upper : Fin n → ℝ)
+    (hx : ∀ i, 0 ≤ x i) (hxne : x ≠ 0) (hupper : ∀ i, 0 < upper i) :
+    radialBoxRaySegment x upper hx hxne hupper ⊆
+      {p | ∀ j, 0 ≤ p j ∧ p j ≤ upper j} := by
+  rintro p ⟨s, hs0, hst, rfl⟩
+  intro j
+  have hsegment := (radialBoxExitData_spec x upper hx hxne hupper).2.2.2 s hs0 hst j
+  simpa [Pi.smul_apply] using hsegment
+
+/-- The selected outer-boundary endpoint belongs to its radial boundary segment. -/
+theorem radialBoxEndpoint_mem_radialBoxRaySegment {n : ℕ} (x upper : Fin n → ℝ)
+    (hx : ∀ i, 0 ≤ x i) (hxne : x ≠ 0) (hupper : ∀ i, 0 < upper i) :
+    radialBoxEndpoint x upper hx hxne hupper ∈ radialBoxRaySegment x upper hx hxne hupper := by
+  refine ⟨(radialBoxExitData x upper hx hxne hupper).1,
+    (radialBoxExitData_spec x upper hx hxne hupper).1.le, le_rfl, ?_⟩
+  rfl
+
 /-- An open map sends interiors into the interior of the image. -/
 theorem image_interior_subset_interior_image_of_isOpenMap
     {α β : Type*} [TopologicalSpace α] [TopologicalSpace β]
