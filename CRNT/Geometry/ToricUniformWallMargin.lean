@@ -623,6 +623,67 @@ theorem Network.exists_selected_oneBitFiberPatch_smoothBarrier
   exact SmoothBarrierGluing.exists_compact_wallBarrier_offset_with_smoothWallList_nonpos_of_continuousField
     hfield (ψ '' patch) hcompact (innerSL ℝ (z wall).1) tailHead tail hε hhead
 
+/-- The compact-patch barriers selected on two intersecting refined tiles can be smoothly glued
+on their entire overlap. The offsets and finite wall tail are the actual ones supplied by the
+tilewise dominant-head construction; membership in the overlap lets each tile's derivative bound
+be applied at the same point. This is the analytic pairwise-gluing step for the finite blueprint.
+-/
+theorem Network.exists_overlapping_oneBitFiberPatch_localSmoothMax
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base baseTile lower upper epsilon)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S) (hψ : Continuous ψ)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (t : Finset K) {ε : ℝ} (hε : 0 < ε)
+    (selected : (Σ i : ι, Fin (cover.tiling.subdivisionCount + 1)) → Option K)
+    (hselected : ∀ p wall, selected p = some wall → wall ∈ t ∧ ∀ q ∈
+      ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2),
+      ε < ⟪(z wall).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ)
+    (p r : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1))
+    (wallP wallR : K)
+    (hwP : selected p = some wallP) (hwR : selected r = some wallR)
+    (tailHead : (EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)
+    (tail : List ((EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)) :
+    ∃ gapP aP gapR aR : ℝ,
+      ∀ q ∈ ψ ''
+        ((facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+            (baseTile p.1) lower upper p.2) ∩
+          (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+            (baseTile r.1) lower upper r.2)),
+        ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+          HasFDerivAt
+            (SmoothBarrierGluing.smoothMaxF
+              (SmoothBarrierGluing.smoothWallList
+                (innerSL ℝ (z wallP).1, aP) (tailHead :: tail))
+              (SmoothBarrierGluing.smoothWallList
+                (innerSL ℝ (z wallR).1, aR) (tailHead :: tail))) D q ∧
+          D (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ 0 := by
+  obtain ⟨gapP, aP, hbarrierP⟩ := N.exists_selected_oneBitFiberPatch_smoothBarrier
+    κ cover ψ hψ z t hε selected hselected p wallP hwP tailHead tail
+  obtain ⟨gapR, aR, hbarrierR⟩ := N.exists_selected_oneBitFiberPatch_smoothBarrier
+    κ cover ψ hψ z t hε selected hselected r wallR hwR tailHead tail
+  refine ⟨gapP, aP, gapR, aR, ?_⟩
+  intro q hq
+  rcases hq with ⟨x, ⟨hxP, hxR⟩, rfl⟩
+  have hqP : ψ x ∈ ψ '' (facePatch ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2) := ⟨x, hxP, rfl⟩
+  have hqR : ψ x ∈ ψ '' (facePatch ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile r.1) lower upper r.2) := ⟨x, hxR, rfl⟩
+  obtain ⟨DP, hDP, hDPnonpos⟩ := hbarrierP (ψ x) hqP
+  obtain ⟨DR, hDR, hDRnonpos⟩ := hbarrierR (ψ x) hqR
+  exact SmoothBarrierGluing.smoothMaxF_descends_along
+    (X := fun q : EuclideanSpace ℝ S =>
+      toEuclid (N.massActionVectorField κ (toEuclid.symm q)))
+    hDP hDR hDPnonpos hDRnonpos
+
 /-- Craciun v3, §7.4.3: any two labels selected on restricted tiles are simultaneously inward on
 their overlap, including overlaps from degenerate fibers. Consequently their two-wall smooth
 maximum descends there. This is the pairwise compatibility statement used when assembling the
