@@ -270,6 +270,57 @@ theorem radialBoxDiagramTile_endpoint_incidence {n : ℕ}
   exact radialBoxEndpoint_mem_box_boundary x upper
     (hdiagramNonnegative x hx) (hdiagramNonzero x hx) hupper
 
+/-- In a fixed affine projective chart, two radial boundary tiles can intersect away from the
+origin only along a ray whose normalized source point lies in both lower-dimensional diagram
+patches. This is the ray-incidence compatibility required when the lower diagram is assembled
+from neighboring tiles. -/
+theorem radialBoxDiagramTile_overlap_source {n : ℕ}
+    (tileA tileB : Set (Fin n → ℝ)) (upper : Fin n → ℝ) (anchor : Fin n)
+    (hA_nonnegative : ∀ x ∈ tileA, ∀ i, 0 ≤ x i)
+    (hA_nonzero : ∀ x ∈ tileA, x ≠ 0)
+    (hA_anchor : ∀ x ∈ tileA, x anchor = 1)
+    (hB_nonnegative : ∀ x ∈ tileB, ∀ i, 0 ≤ x i)
+    (hB_nonzero : ∀ x ∈ tileB, x ≠ 0)
+    (hB_anchor : ∀ x ∈ tileB, x anchor = 1)
+    (hupper : ∀ i, 0 < upper i) :
+    ∀ p, p ∈ radialBoxDiagramTile tileA upper hA_nonnegative hA_nonzero hupper ∩
+        radialBoxDiagramTile tileB upper hB_nonnegative hB_nonzero hupper →
+      p = 0 ∨ ∃ x, ∃ hxA : x ∈ tileA, ∃ hxB : x ∈ tileB, ∃ s, 0 < s ∧
+        s ≤ (radialBoxExitData x upper (hA_nonnegative x hxA)
+          (hA_nonzero x hxA) hupper).1 ∧ p = s • x := by
+  intro p hp
+  rcases hp.1 with ⟨x, hxA, hxRadA⟩
+  rcases hp.2 with ⟨y, hyB, hyRadB⟩
+  rcases hxRadA with ⟨s, hs0, hst, hpx⟩
+  rcases hyRadB with ⟨t, ht0, hut, hpy⟩
+  by_cases hpzero : p = 0
+  · exact Or.inl hpzero
+  · have hspos : 0 < s := by
+      by_contra hnot
+      have hsEq : s = 0 := le_antisymm (le_of_not_gt hnot) hs0
+      apply hpzero
+      rw [hpx, hsEq]
+      simp
+    have hsAnchor : p anchor = s := by
+      have h := congrArg (fun z : Fin n → ℝ => z anchor) hpx
+      simpa [Pi.smul_apply, hA_anchor x hxA] using h
+    have htAnchor : p anchor = t := by
+      have h := congrArg (fun z : Fin n → ℝ => z anchor) hpy
+      simpa [Pi.smul_apply, hB_anchor y hyB] using h
+    have hscale : s = t := by linarith
+    have hxy : x = y := by
+      funext j
+      have hjx := congrArg (fun z : Fin n → ℝ => z j) hpx
+      have hjy := congrArg (fun z : Fin n → ℝ => z j) hpy
+      have hmul : s * x j = s * y j := by
+        calc
+          s * x j = p j := by simpa [Pi.smul_apply] using hjx.symm
+          _ = t * y j := by simpa [Pi.smul_apply] using hjy
+          _ = s * y j := by rw [hscale]
+      exact mul_left_cancel₀ (ne_of_gt hspos) hmul
+    refine Or.inr ⟨x, hxA, hxy ▸ hyB, s, hspos, ?_, hpx⟩
+    simpa [hxy] using hst
+
 /-- An open map sends interiors into the interior of the image. -/
 theorem image_interior_subset_interior_image_of_isOpenMap
     {α β : Type*} [TopologicalSpace α] [TopologicalSpace β]
