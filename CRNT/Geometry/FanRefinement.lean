@@ -4428,3 +4428,212 @@ noncomputable def craciunProjectiveArrangement_smallPatchCover {n : ℕ}
 end FanRefinement
 
 end CRNT
+namespace CRNT
+namespace FanRefinement
+
+open ZeroSeparatingInduction
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
+
+inductive FiniteOverlapDependency {q m : ℕ} :
+    OneBitFanFaceTask E (Sum (Fin q) (Fin q × Fin q)) m →
+      OneBitFanFaceTask E (Sum (Fin q) (Fin q × Fin q)) m → Prop
+  | inherited {a b : OneBitFanFaceTask E (Sum (Fin q) (Fin q × Fin q)) m}
+      (hdep : OneBitFanFaceSeamDependency (E := E) a b) :
+      FiniteOverlapDependency a b
+  | baseLeft (C : ProperCone ℝ E) (i j : Fin q) (cell : OneBitFiberCell m)
+      (hij : i.val < j.val) :
+      FiniteOverlapDependency ((C, Sum.inr (i, j)), cell) ((C, Sum.inl i), cell)
+  | baseRight (C : ProperCone ℝ E) (i j : Fin q) (cell : OneBitFiberCell m)
+      (hij : i.val < j.val) :
+      FiniteOverlapDependency ((C, Sum.inr (i, j)), cell) ((C, Sum.inl j), cell)
+
+def finiteSeamLabelRank {q : ℕ} : Sum (Fin q) (Fin q × Fin q) → ℕ
+  | .inl i => 2 * i.val + 1
+  | .inr (i, j) => 2 * min i.val j.val
+
+noncomputable def finiteSeamTaskRank {q m : ℕ}
+    (a : OneBitFanFaceTask E (Sum (Fin q) (Fin q × Fin q)) m) : ℕ :=
+  (2 * q + 1) * oneBitFanFaceTaskRank a + finiteSeamLabelRank a.1.2
+
+theorem finiteSeamLabelRank_lt_bound {q : ℕ}
+    (label : Sum (Fin q) (Fin q × Fin q)) :
+    finiteSeamLabelRank label < 2 * q + 1 := by
+  cases label with
+  | inl i => simp [finiteSeamLabelRank]
+  | inr pair =>
+      rcases pair with ⟨i, j⟩
+      simp [finiteSeamLabelRank]
+
+theorem finiteSeamRank_lt_of_geoRank_lt {q m : ℕ}
+    {a b : OneBitFanFaceTask E (Sum (Fin q) (Fin q × Fin q)) m}
+    (hgeo : oneBitFanFaceTaskRank a < oneBitFanFaceTaskRank b) :
+    finiteSeamTaskRank a < finiteSeamTaskRank b := by
+  have ha := finiteSeamLabelRank_lt_bound a.1.2
+  have hb := finiteSeamLabelRank_lt_bound b.1.2
+  calc
+    (2 * q + 1) * oneBitFanFaceTaskRank a + finiteSeamLabelRank a.1.2 <
+        (2 * q + 1) * oneBitFanFaceTaskRank a + (2 * q + 1) :=
+      Nat.add_lt_add_left ha _
+    _ = (2 * q + 1) * (oneBitFanFaceTaskRank a + 1) := by simp [Nat.mul_add]
+    _ ≤ (2 * q + 1) * oneBitFanFaceTaskRank b :=
+      Nat.mul_le_mul_left _ (Nat.succ_le_of_lt hgeo)
+    _ ≤ (2 * q + 1) * oneBitFanFaceTaskRank b + finiteSeamLabelRank b.1.2 :=
+      Nat.le_add_right _ _
+
+theorem finiteOverlapDependency_wellFounded [FiniteDimensional ℝ E]
+    {q m : ℕ} : WellFounded (FiniteOverlapDependency (E := E) (q := q) (m := m)) := by
+  have hmeasure : WellFounded (fun a b : OneBitFanFaceTask E
+      (Sum (Fin q) (Fin q × Fin q)) m => finiteSeamTaskRank a < finiteSeamTaskRank b) :=
+    InvImage.wf finiteSeamTaskRank (Nat.lt_wfRel).2
+  apply hmeasure.mono
+  intro a b hab
+  cases hab with
+  | inherited hdep =>
+      have hgeo : oneBitFanFaceTaskRank a < oneBitFanFaceTaskRank b := by
+        cases hdep with
+        | inherited hdep =>
+            cases hdep with
+            | fanFace C G k i hface hne =>
+                simp [oneBitFanFaceTaskRank]
+                exact coneSpanRank_lt_of_isExposedFaceOf_of_ne hface hne
+            | fanFaceEndpoint C G k j hface hne =>
+                simp [oneBitFanFaceTaskRank]
+                exact coneSpanRank_lt_of_isExposedFaceOf_of_ne hface hne
+            | fiberEndpoint C G k i j hface hadjacent =>
+                have hrank : coneSpanRank G ≤ coneSpanRank C := by
+                  by_cases hGC : G = C
+                  · subst G
+                    exact le_rfl
+                  · exact (coneSpanRank_lt_of_isExposedFaceOf_of_ne hface hGC).le
+                simp [oneBitFanFaceTaskRank]
+                omega
+        | productSeamLeft C G i j k endpoint hface hadjacent =>
+            by_cases hGC : G = C
+            · subst G
+              simp [oneBitFanFaceTaskRank]
+            · simp [oneBitFanFaceTaskRank]
+              have hlt := coneSpanRank_lt_of_isExposedFaceOf_of_ne hface hGC
+              omega
+        | productSeamRight C G i j k endpoint hface hadjacent =>
+            by_cases hGC : G = C
+            · subst G
+              simp [oneBitFanFaceTaskRank]
+            · simp [oneBitFanFaceTaskRank]
+              have hlt := coneSpanRank_lt_of_isExposedFaceOf_of_ne hface hGC
+              omega
+      exact finiteSeamRank_lt_of_geoRank_lt hgeo
+  | baseLeft C i j cell hij =>
+      have hlabels : finiteSeamLabelRank (Sum.inr (i, j)) < finiteSeamLabelRank (Sum.inl i) := by
+        change 2 * min i.val j.val < 2 * i.val + 1
+        rw [Nat.min_eq_left (Nat.le_of_lt hij)]
+        omega
+      have hbase : oneBitFanFaceTaskRank
+          (E := E) (ι := Sum (Fin q) (Fin q × Fin q)) (m := m)
+          ((C, Sum.inr (i, j)), cell) = oneBitFanFaceTaskRank
+          (E := E) (ι := Sum (Fin q) (Fin q × Fin q)) (m := m)
+          ((C, Sum.inl i), cell) := rfl
+      unfold finiteSeamTaskRank
+      rw [hbase]
+      exact Nat.add_lt_add_left hlabels _
+  | baseRight C i j cell hij =>
+      have hlabels : finiteSeamLabelRank (Sum.inr (i, j)) < finiteSeamLabelRank (Sum.inl j) := by
+        change 2 * min i.val j.val < 2 * j.val + 1
+        rw [Nat.min_eq_left (Nat.le_of_lt hij)]
+        omega
+      have hbase : oneBitFanFaceTaskRank
+          (E := E) (ι := Sum (Fin q) (Fin q × Fin q)) (m := m)
+          ((C, Sum.inr (i, j)), cell) = oneBitFanFaceTaskRank
+          (E := E) (ι := Sum (Fin q) (Fin q × Fin q)) (m := m)
+          ((C, Sum.inl j), cell) := rfl
+      unfold finiteSeamTaskRank
+      rw [hbase]
+      exact Nat.add_lt_add_left hlabels _
+
+noncomputable def finiteOverlapDependency_recursion [FiniteDimensional ℝ E]
+    {q m : ℕ}
+    {P : OneBitFanFaceTask E (Sum (Fin q) (Fin q × Fin q)) m → Sort v}
+    (step : ∀ task, (∀ predecessor,
+      FiniteOverlapDependency (E := E) (q := q) (m := m) predecessor task → P predecessor) →
+        P task) :
+    ∀ task, P task :=
+  (finiteOverlapDependency_wellFounded (E := E) (q := q) (m := m)).fix step
+
+theorem finiteOverlapDependency_taskPatch_subset {n m q : ℕ}
+    (facePatch : Set (Fin (n + 1) → ℝ)) (base : Set (Fin n → ℝ))
+    (smallTile : Fin q → Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horder : ∀ C label y, y ∈ euclideanProperConeMixedTileBaseTile base smallTile
+      (C, label) → lower y ≤ upper y)
+    {predecessor task : OneBitFanFaceTask (EuclideanSpace ℝ (Fin n))
+      (Sum (Fin q) (Fin q × Fin q)) m}
+    (hdep : FiniteOverlapDependency (E := EuclideanSpace ℝ (Fin n)) predecessor task) :
+    oneBitFanFaceTaskPatch facePatch
+        (euclideanProperConeMixedTileBaseTile base smallTile) lower upper predecessor ⊆
+      oneBitFanFaceTaskPatch facePatch
+        (euclideanProperConeMixedTileBaseTile base smallTile) lower upper task := by
+  cases hdep with
+  | inherited hdep =>
+      exact oneBitFanFaceSeamDependency.taskPatch_subset facePatch base smallTile lower upper
+        horder hdep
+  | baseLeft C i j cell hij =>
+      have hbase : euclideanProperConeMixedTileBaseTile base smallTile
+          (C, Sum.inr (i, j)) ⊆
+          euclideanProperConeMixedTileBaseTile base smallTile (C, Sum.inl i) := by
+        intro y hy
+        change y ∈ euclideanProperConeBaseTile base C ∩ (smallTile i ∩ smallTile j) at hy
+        change y ∈ euclideanProperConeBaseTile base C ∩ smallTile i
+        exact ⟨hy.1, hy.2.1⟩
+      cases cell with
+      | strip k =>
+          intro x hx
+          exact ⟨hx.1, projectionFiberSubdivisionTile_mono hbase lower upper k hx.2⟩
+      | endpoint k =>
+          intro x hx
+          exact ⟨hx.1, Set.image_mono hbase hx.2⟩
+  | baseRight C i j cell hij =>
+      have hbase : euclideanProperConeMixedTileBaseTile base smallTile
+          (C, Sum.inr (i, j)) ⊆
+          euclideanProperConeMixedTileBaseTile base smallTile (C, Sum.inl j) := by
+        intro y hy
+        change y ∈ euclideanProperConeBaseTile base C ∩ (smallTile i ∩ smallTile j) at hy
+        change y ∈ euclideanProperConeBaseTile base C ∩ smallTile j
+        exact ⟨hy.1, hy.2.2⟩
+      cases cell with
+      | strip k =>
+          intro x hx
+          exact ⟨hx.1, projectionFiberSubdivisionTile_mono hbase lower upper k hx.2⟩
+      | endpoint k =>
+          intro x hx
+          exact ⟨hx.1, Set.image_mono hbase hx.2⟩
+
+theorem compactSmallBaseTiling_boundary_overlap_tasks_at {n m : ℕ}
+    {base : Set (Fin n → ℝ)} {eta : ℝ}
+    (T : ZeroSeparatingInduction.CompactSmallBaseTiling base eta)
+    {i : Fin T.count} {x : Fin n → ℝ}
+    (C : ProperCone ℝ (EuclideanSpace ℝ (Fin n))) (cell : OneBitFiberCell m)
+    (hxb : x ∈ interior base) (hxi : x ∈ T.tile i)
+    (hxnot : x ∉ interior (T.tile i)) :
+    ∃ j : Fin T.count, j ≠ i ∧ x ∈ T.tile i ∩ T.tile j ∧
+      ((FiniteOverlapDependency
+          ((C, Sum.inr (i, j)), cell) ((C, Sum.inl i), cell) ∧
+        FiniteOverlapDependency
+          ((C, Sum.inr (i, j)), cell) ((C, Sum.inl j), cell)) ∨
+       (FiniteOverlapDependency
+          ((C, Sum.inr (j, i)), cell) ((C, Sum.inl i), cell) ∧
+        FiniteOverlapDependency
+          ((C, Sum.inr (j, i)), cell) ((C, Sum.inl j), cell))) := by
+  obtain ⟨j, hji, hxj⟩ := T.boundary_incident_tile hxb hxnot
+  refine ⟨j, hji, ⟨hxi, hxj⟩, ?_⟩
+  by_cases horder : i.val < j.val
+  · left
+    exact ⟨FiniteOverlapDependency.baseLeft C i j cell horder,
+      FiniteOverlapDependency.baseRight C i j cell horder⟩
+  · right
+    have hvalNe : i.val ≠ j.val := by
+      intro hval
+      exact hji (Fin.ext hval.symm)
+    have hrev : j.val < i.val := by omega
+    exact ⟨FiniteOverlapDependency.baseRight C j i cell hrev,
+      FiniteOverlapDependency.baseLeft C j i cell hrev⟩
+end FanRefinement
+end CRNT

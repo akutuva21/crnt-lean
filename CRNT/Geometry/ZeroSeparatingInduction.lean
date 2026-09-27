@@ -7022,3 +7022,55 @@ theorem inductionStep_of_ruledBuild {f : E → E} {x₀ : E} {ι : Type*} [Finty
 end DifferentialInclusion
 
 end CRNT
+
+namespace CRNT
+namespace ZeroSeparatingInduction
+
+/-- An interior point of a covered base that is not interior to one closed tile must also belong
+to a different tile. This supplies an actual pair-labeled seam predecessor for finite tile
+refinement. -/
+theorem CompactSmallBaseTiling.boundary_incident_tile {n : ℕ}
+    {base : Set (Fin n → ℝ)} {eta : ℝ}
+    (T : CompactSmallBaseTiling base eta) {i : Fin T.count} {x : Fin n → ℝ}
+    (hxb : x ∈ interior base)
+    (hxnot : x ∉ interior (T.tile i)) :
+    ∃ j : Fin T.count, j ≠ i ∧ x ∈ T.tile j := by
+  classical
+  let others : Set (Fin n → ℝ) := ⋃ j : Fin T.count, if j = i then ∅ else T.tile j
+  have hclosed : IsClosed others := isClosed_iUnion_of_finite fun j => by
+    by_cases hji : j = i
+    · simp [hji]
+    · simpa [others, hji] using (T.tile_compact j).isClosed
+  by_contra hfound
+  have hnone : ∀ j : Fin T.count, j ≠ i → x ∉ T.tile j := by
+    intro j hji hxj
+    exact hfound ⟨j, hji, hxj⟩
+  have hxOthers : x ∉ others := by
+    intro hx
+    simp only [others, Set.mem_iUnion] at hx
+    obtain ⟨j, hj⟩ := hx
+    by_cases hji : j = i
+    · simp [hji] at hj
+    · exact hnone j hji (by simpa [hji] using hj)
+  have hhood := Filter.inter_mem (isOpen_interior.mem_nhds hxb)
+      (hclosed.isOpen_compl.mem_nhds hxOthers)
+  have hsubset : interior base ∩ othersᶜ ⊆ T.tile i := by
+    intro y hy
+    have hybase : y ∈ base := interior_subset hy.1
+    have hycover : y ∈ ⋃ j : Fin T.count, T.tile j := by
+      rw [← T.covers]
+      exact hybase
+    obtain ⟨j, hyj⟩ := Set.mem_iUnion.mp hycover
+    by_cases hji : j = i
+    · simpa [hji] using hyj
+    · have hyOthers : y ∈ others := by
+        apply Set.mem_iUnion.mpr
+        exact ⟨j, by simp [hji, hyj]⟩
+      exact (hy.2 hyOthers).elim
+  have hxint : x ∈ interior (T.tile i) := by
+    apply mem_interior_iff_mem_nhds.mpr
+    exact Filter.mem_of_superset hhood hsubset
+  exact hxnot hxint
+
+end ZeroSeparatingInduction
+end CRNT

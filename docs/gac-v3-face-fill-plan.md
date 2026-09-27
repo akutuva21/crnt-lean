@@ -194,3 +194,11 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   boundary incidence. The face-indexed geometric filler, global barrier assembly, and target
   consumer remain open.
 - The preexisting unrelated untracked files remain preserved outside this task checkpoint.
+
+## Continuation checkpoint — finite projected-tile seam recursion
+
+- Added `CompactSmallBaseTiling.boundary_incident_tile`: over an interior point of the compact base, failure to be interior to one closed tile yields a distinct incident tile.
+- Added a Fin-indexed pair-overlap dependency to the existing fan-face and one-bit endpoint dependency. Its lexicographic rank strictly decreases on every edge, and its recursor returns task data in `Sort`.
+- Proved each pair-overlap edge is an inclusion between the actual mixed tile/strip or tile/endpoint patches. A boundary-point lemma now returns the common pair-labeled task and its edges to both incident single-tile tasks.
+- Fresh direct Lean compilation succeeded for `ZeroSeparatingInduction.lean`, `FanRefinement.lean`, `ToricUniformWallMargin.lean`, `Dynamics/ComplexBalanceStoichFanInclusion.lean`, and `Dynamics/GlobalAttractorTheorem.lean`. Axiom audits of the new relation and patch consumers report only standard axioms; the exact target still reports `sorryAx`.
+- This supplies internal projected-tile seam predecessors for the §7.4.3 fill. It does not yet construct the recursive face-filling geometry, assemble the global ZSH, or discharge the target.
