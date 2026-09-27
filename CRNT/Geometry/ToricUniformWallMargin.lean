@@ -525,6 +525,8 @@ theorem Network.exists_oneBitFiberPatchWallSelection
     ∃ selected : (Σ i : ι, Fin (cover.tiling.subdivisionCount + 1)) → Option K,
       (∀ p, ¬ (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
         (baseTile p.1) lower upper p.2).Nonempty → selected p = none) ∧
+      (∀ p, (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2).Nonempty → ∃ wall, selected p = some wall) ∧
       (∀ p wall, selected p = some wall → wall ∈ t ∧ ∀ q ∈
         ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
           (baseTile p.1) lower upper p.2),
@@ -548,8 +550,11 @@ theorem Network.exists_oneBitFiberPatchWallSelection
         CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
           (baseTile p.1) lower upper p.2).Nonempty then
       some (Classical.choose (hlocal p hne)) else none
-  refine ⟨selected, ?_, ?_⟩
+  refine ⟨selected, ?_, ?_, ?_⟩
   · intro p hne
+    simp [selected, hne]
+  · intro p hne
+    refine ⟨Classical.choose (hlocal p hne), ?_⟩
     simp [selected, hne]
   · intro p wall hselected
     dsimp [selected] at hselected
@@ -598,6 +603,44 @@ theorem Network.selected_oneBitFiberPatchWall_inward_at_center
     ⟨Fin.snoc y (cover.tiling.tile_center p.2 y), hpatch, rfl⟩
   have hwallSpec := hselected p wall hwall
   exact ⟨hwallSpec.1, hwallSpec.2 _ hcenter⟩
+
+/-- Craciun v3, §7.4.3, Step 2 followed by the local wall selection: every nonempty restricted
+tile has an actual face-patch basepoint, the basepoint projects into the corresponding lower tile,
+and the tile's selected toric wall points strictly inward at that point. -/
+theorem Network.exists_oneBitFiberPatchInwardBasepoint
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base baseTile lower upper epsilon)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (t : Finset K) {ε : ℝ}
+    (selected : (Σ i : ι, Fin (cover.tiling.subdivisionCount + 1)) → Option K)
+    (hselected : ∀ p wall, selected p = some wall → wall ∈ t ∧ ∀ q ∈
+      ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2),
+      ε < ⟪(z wall).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ)
+    (p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1))
+    (hne : (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+      (baseTile p.1) lower upper p.2).Nonempty)
+    (hselectedNonempty : ∃ wall, selected p = some wall) :
+    ∃ wall x, selected p = some wall ∧
+      x ∈ facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2 ∧
+      CRNT.ZeroSeparatingInduction.forgetLastCoordinate n x ∈ baseTile p.1 ∧
+      wall ∈ t ∧ ε < ⟪(z wall).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm (ψ x)))⟫_ℝ := by
+  obtain ⟨wall, hwall⟩ := hselectedNonempty
+  obtain ⟨x, hx, hprojected⟩ := cover.exists_restricted_tile_basepoint_incidence p hne
+  have hwallSpec := hselected p wall hwall
+  have himage : ψ x ∈ ψ ''
+      (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2) := ⟨x, hx, rfl⟩
+  exact ⟨wall, x, hwall, hx, hprojected, hwallSpec.1, hwallSpec.2 _ himage⟩
 
 /-- A compact patch can be covered by finitely many small balls, each carrying one fixed
 inward wall on the entire ball. The radius is chosen so each patch has diameter below the local

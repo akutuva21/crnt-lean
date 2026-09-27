@@ -3772,6 +3772,32 @@ theorem CompactOneBitFiberPatchCover.center_lift_mem_band_patch
       base lower upper p.2 y (cover.tiling.tile_center p.2 y)).mp hcenterMem
     exact ⟨hy, hcoords.2.1, hcoords.2.2⟩
 
+/-- Craciun v3, §7.4.3, Step 2: every nonempty restricted tile has an actual basepoint on the
+face patch, and its coordinate projection lies in the corresponding lower-dimensional tile. This
+is the incidence datum for arbitrary restricted patches; it does not presume that the face patch
+fills the parent band or that the midpoint graph lies on the face. -/
+theorem CompactOneBitFiberPatchCover.exists_restricted_tile_basepoint_incidence
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CompactOneBitFiberPatchCover facePatch base baseTile lower upper epsilon)
+    (p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1))
+    (hne : (facePatch ∩ projectionFiberSubdivisionTile
+      (baseTile p.1) lower upper p.2).Nonempty) :
+    ∃ x, x ∈ facePatch ∩ projectionFiberSubdivisionTile
+      (baseTile p.1) lower upper p.2 ∧
+      forgetLastCoordinate n x ∈ baseTile p.1 := by
+  obtain ⟨x, hx⟩ := hne
+  have htile := hx.2
+  have hprojected : forgetLastCoordinate n x ∈ baseTile p.1 := by
+    change (let y := forgetLastCoordinate n x
+      y ∈ baseTile p.1 ∧ projectionFiberSubdivisionEndpoint lower upper p.2.castSucc y ≤
+        x (Fin.last n) ∧ x (Fin.last n) ≤
+          projectionFiberSubdivisionEndpoint lower upper p.2.succ y) at htile
+    exact htile.1
+  exact ⟨x, hx, hprojected⟩
+
 /-- The midpoint representative of one strip cannot lie in any different closed strip over the
 same restricted lower-dimensional base tile. The only overlaps left between those refined patches
 are therefore the endpoint seams identified by the adjacent-tile compatibility theorem. -/
