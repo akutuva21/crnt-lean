@@ -290,3 +290,20 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   This closes an endpoint junction lemma under the supplied local wall atlas; it does not construct
   the §7.4.3 faithful blueprint, the §8 lexicographic face fill, or a global zero-separating surface.
   Continue with that construction.
+
+## Continuation checkpoint — critical-facet overlap collar
+
+- In `CRNT/Geometry/ZeroSeparatingInduction.lean`, proved that when a binary fiber has width only
+  in the final coordinate, its zero-bit pre-blueprint is exactly the graph tube around the face's
+  selected lift.
+- For two compact zero-bit face covers, compactness now gives a positive common graph-tube radius
+  below any supplied parent cap on every compact shared projected tile that avoids the common
+  face. Specializing to the critical word `11…110` yields disjoint pre-blueprints there and the
+  stronger collar form: any overlap projects within the chosen distance of an actual point on the
+  shared lower face.
+- Lean 4.34 compiled the geometry source and the fresh dependency chain through
+  `GlobalAttractorTheorem.lean`. New geometry lemmas audit to only standard Lean axioms; the exact
+  `Network.complexBalanced_genuinePermanent` audit still contains `sorryAx`.
+- This supplies the equal-projection critical-facet separation clause of §7.3 with an explicit
+  interface for passing residual overlap to the lower face. The recursive face filler, coherent
+  global surface, and target consumer remain unproved.

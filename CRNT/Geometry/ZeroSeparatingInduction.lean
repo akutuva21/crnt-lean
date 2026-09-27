@@ -3601,6 +3601,136 @@ theorem mem_projectionFiberTube_iff {n : ℕ} (base : Set (Fin n → ℝ))
     rw [abs_le] at habs
     refine ⟨hy, ?_, ?_⟩ <;> linarith
 
+/-- Two graph tubes over one projected patch are disjoint when their vertical gap exceeds the
+sum of their radii uniformly over that patch. This is the final separation estimate in the
+same-projection case of Craciun v3, §7.3, once the shared lower-face neighborhood has been removed. -/
+theorem projectionFiberTube_inter_eq_empty_of_centers_separated
+    {n : ℕ} (base : Set (Fin n → ℝ))
+    (centerA centerB : (Fin n → ℝ) → ℝ) (radiusA radiusB : ℝ)
+    (hgap : ∀ y ∈ base, radiusA + radiusB < |centerA y - centerB y|) :
+    projectionFiberTube base centerA radiusA ∩
+      projectionFiberTube base centerB radiusB = ∅ := by
+  apply Set.eq_empty_iff_forall_notMem.mpr
+  intro x hx
+  rw [Set.mem_inter_iff, mem_projectionFiberTube_iff,
+    mem_projectionFiberTube_iff] at hx
+  obtain ⟨⟨hyA, hA⟩, ⟨hyB, hB⟩⟩ := hx
+  have hy : forgetLastCoordinate n x ∈ base := hyA
+  have hdist : |centerA (forgetLastCoordinate n x) -
+      centerB (forgetLastCoordinate n x)| ≤ radiusA + radiusB := by
+    calc
+      _ ≤ |centerA (forgetLastCoordinate n x) - x (Fin.last n)| +
+          |x (Fin.last n) - centerB (forgetLastCoordinate n x)| :=
+        abs_sub_le _ _ _
+      _ = |x (Fin.last n) - centerA (forgetLastCoordinate n x)| +
+          |x (Fin.last n) - centerB (forgetLastCoordinate n x)| := by
+        rw [abs_sub_comm]
+      _ ≤ radiusA + radiusB := add_le_add hA hB
+  exact (not_lt_of_ge hdist) (hgap _ hy)
+
+/-- Compactness gives a positive uniform separation between two graph sections that never agree.
+The resulting common tube radius makes their closed tubes disjoint. In the §7.3 face argument,
+the compact base is the part left after trimming away the shared lower-dimensional face. -/
+theorem exists_disjoint_projectionFiberTube_of_compact_separated_centers
+    {n : ℕ} {base : Set (Fin n → ℝ)}
+    (centerA centerB : (Fin n → ℝ) → ℝ)
+    (hbase : IsCompact base)
+    (hcenterA : ContinuousOn centerA base) (hcenterB : ContinuousOn centerB base)
+    (hneCenter : ∀ y ∈ base, centerA y ≠ centerB y) :
+    ∃ radius : ℝ, 0 < radius ∧
+      projectionFiberTube base centerA radius ∩
+        projectionFiberTube base centerB radius = ∅ := by
+  have hgapContinuous : ContinuousOn (fun y => |centerA y - centerB y|) base :=
+    (hcenterA.sub hcenterB).abs
+  have hgapPositive : ∀ y ∈ base, 0 < |centerA y - centerB y| := by
+    intro y hy
+    exact abs_pos.mpr (sub_ne_zero.mpr (hneCenter y hy))
+  obtain ⟨δ, hδ, hδle⟩ := hbase.exists_forall_le'
+    (a := 0) hgapContinuous hgapPositive
+  refine ⟨δ / 3, by linarith, ?_⟩
+  apply projectionFiberTube_inter_eq_empty_of_centers_separated
+  intro y hy
+  have hle := hδle y hy
+  linarith
+
+/-- If a binary-word fiber has width only in the final coordinate, its zero-bit
+pre-blueprint is exactly the tube around the face's graph section. This is the critical
+`11…110` face type in Craciun v3, §7.3. -/
+theorem zeroBitPreBlueprintNeighborhood_eq_projectionFiberTube_of_last_width
+    {n : ℕ} (face : Set (Fin (n + 1) → ℝ)) (base : Set (Fin n → ℝ))
+    (center : (Fin n → ℝ) → ℝ) (epsilon : List Bool → ℝ) (word : List Bool)
+    (radius : ℝ)
+    (hgraph : ∀ x ∈ face, center (forgetLastCoordinate n x) = x (Fin.last n))
+    (hlift : ∀ y ∈ base,
+      Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (center y) ∈ face)
+    (hwidth : ∀ i : Fin (n + 1),
+      epsilon (word.take (i.val + 1)) = if i = Fin.last n then radius else 0) :
+    zeroBitPreBlueprintNeighborhood face base epsilon word =
+      projectionFiberTube base center radius := by
+  ext x
+  constructor
+  · rintro ⟨hthick, hproj⟩
+    rcases Set.mem_add.mp hthick with ⟨a, ha, b, hb, hab⟩
+    change forgetLastCoordinate n x ∈ base at hproj
+    change b ∈ coordinateFiberBox
+      (fun i : Fin (n + 1) => epsilon (word.take (i.val + 1))) at hb
+    have hbbox := (mem_coordinateFiberBox_iff _ b).mp hb
+    have hprojB : forgetLastCoordinate n b = 0 := by
+      ext j
+      have hwidthZero : epsilon (word.take ((j.castSucc).val + 1)) = 0 := by
+        simpa using hwidth j.castSucc
+      have hj := hbbox j.castSucc
+      rw [hwidthZero] at hj
+      have hzero : b j.castSucc = 0 := abs_eq_zero.mp
+        (le_antisymm hj (abs_nonneg _))
+      simp [forgetLastCoordinate, hzero]
+    have hprojAB : forgetLastCoordinate n (a + b) = forgetLastCoordinate n a := by
+      simp [map_add, hprojB]
+    have hwidthLast : epsilon (word.take ((Fin.last n).val + 1)) = radius := by
+      simpa [Fin.val_last] using hwidth (Fin.last n)
+    have hbound : |b (Fin.last n)| ≤ radius := by
+      have hbound := hbbox (Fin.last n)
+      rw [hwidthLast] at hbound
+      exact hbound
+    have hlast : (a + b) (Fin.last n) -
+        center (forgetLastCoordinate n (a + b)) = b (Fin.last n) := by
+      rw [hprojAB, hgraph a ha]
+      simp
+    rw [mem_projectionFiberTube_iff]
+    refine ⟨hproj, ?_⟩
+    calc
+      |x (Fin.last n) - center (forgetLastCoordinate n x)| =
+          |(a + b) (Fin.last n) - center (forgetLastCoordinate n (a + b))| := by rw [hab]
+      _ = |b (Fin.last n)| := by rw [hlast]
+      _ ≤ radius := hbound
+  · intro hx
+    rw [mem_projectionFiberTube_iff] at hx
+    obtain ⟨hy, hdist⟩ := hx
+    let y := forgetLastCoordinate n x
+    let a := Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (center y)
+    let b := x - a
+    have ha : a ∈ face := by exact hlift y hy
+    have hb : b ∈ binaryWordFiberBox epsilon word := by
+      change b ∈ coordinateFiberBox
+        (fun i : Fin (n + 1) => epsilon (word.take (i.val + 1)))
+      rw [mem_coordinateFiberBox_iff]
+      intro i
+      refine Fin.lastCases ?_ (fun j => ?_) i
+      · have hwidthLast : epsilon (word.take ((Fin.last n).val + 1)) = radius := by
+          simpa [Fin.val_last] using hwidth (Fin.last n)
+        rw [hwidthLast]
+        simpa [b, a, y] using hdist
+      · have hwidthZero : epsilon (word.take ((j.castSucc).val + 1)) = 0 := by
+          simpa using hwidth j.castSucc
+        rw [hwidthZero]
+        simp [b, a, y, forgetLastCoordinate]
+    have hadd : a + b = x := by
+      funext i
+      refine Fin.lastCases ?_ (fun j => ?_) i
+      · simp [a, b]
+      · simp [a, b, y, forgetLastCoordinate]
+    exact ⟨Set.mem_add.mpr ⟨a, ha, b, hb, hadd⟩, hy⟩
+
 /-- A tube around a selected face lift lies inside the Craciun zero-bit pre-blueprint whenever
 its last-coordinate radius is bounded by the final binary-prefix width. The other fiber
 coordinates are zero, and nonnegative prefix widths absorb those coordinates. -/
@@ -4255,6 +4385,299 @@ theorem CompactZeroBitFiberPatchCover.centers_agree_on_shared_face
   rcases hy with ⟨x, hx, hxy⟩
   subst y
   rw [coverA.center_graph_on_face x hx.1, coverB.center_graph_on_face x hx.2]
+
+/-- Increasing a graph tube's transverse radius can only enlarge the tube. -/
+theorem projectionFiberTube_subset_of_radius_le
+    {n : ℕ} (base : Set (Fin n → ℝ)) (center : (Fin n → ℝ) → ℝ)
+    {radius₁ radius₂ : ℝ} (hradius : radius₁ ≤ radius₂) :
+    projectionFiberTube base center radius₁ ⊆ projectionFiberTube base center radius₂ := by
+  intro x hx
+  rw [mem_projectionFiberTube_iff] at hx ⊢
+  exact ⟨hx.1, hx.2.trans hradius⟩
+
+/-- Compact graph sections with no intersections have disjoint tubes at a radius that can be
+chosen below any prescribed positive scale. This is the scale-order form used by the recursive
+face construction. -/
+theorem exists_disjoint_projectionFiberTube_of_compact_separated_centers_below
+    {n : ℕ} {base : Set (Fin n → ℝ)}
+    (centerA centerB : (Fin n → ℝ) → ℝ)
+    (hbase : IsCompact base)
+    (hcenterA : ContinuousOn centerA base) (hcenterB : ContinuousOn centerB base)
+    (hneCenter : ∀ y ∈ base, centerA y ≠ centerB y)
+    (cap : ℝ) (hcap : 0 < cap) :
+    ∃ radius : ℝ, 0 < radius ∧ radius < cap ∧
+      projectionFiberTube base centerA radius ∩
+        projectionFiberTube base centerB radius = ∅ := by
+  obtain ⟨radius₀, hradius₀, hdisjoint₀⟩ :=
+    exists_disjoint_projectionFiberTube_of_compact_separated_centers
+      centerA centerB hbase hcenterA hcenterB hneCenter
+  let radius := min radius₀ (cap / 2)
+  have hradius : 0 < radius := lt_min hradius₀ (by linarith)
+  have hradiusCap : radius < cap :=
+    lt_of_le_of_lt (min_le_right _ _) (by linarith)
+  have hsubA : projectionFiberTube base centerA radius ⊆
+      projectionFiberTube base centerA radius₀ :=
+    projectionFiberTube_subset_of_radius_le base centerA (min_le_left _ _)
+  have hsubB : projectionFiberTube base centerB radius ⊆
+      projectionFiberTube base centerB radius₀ :=
+    projectionFiberTube_subset_of_radius_le base centerB (min_le_left _ _)
+  have hdisjoint : projectionFiberTube base centerA radius ∩
+      projectionFiberTube base centerB radius = ∅ := by
+    apply Set.eq_empty_iff_forall_notMem.mpr
+    intro x hx
+    have hx₀ : x ∈ projectionFiberTube base centerA radius₀ ∩
+        projectionFiberTube base centerB radius₀ := ⟨hsubA hx.1, hsubB hx.2⟩
+    rw [hdisjoint₀] at hx₀
+    exact hx₀.elim
+  exact ⟨radius, hradius, hradiusCap, hdisjoint⟩
+
+/-- Every projected basepoint has its selected graph lift on the face, independent of which
+member of the finite tile cover contains it. -/
+theorem CompactZeroBitFiberPatchCover.center_lift_mem_face
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {face : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {margin radius : ℝ}
+    (cover : CompactZeroBitFiberPatchCover face base baseTile margin radius)
+    {y : Fin n → ℝ} (hy : y ∈ base) :
+    Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (cover.center y) ∈ face := by
+  rw [cover.baseTile_cover] at hy
+  obtain ⟨i, hi⟩ := Set.mem_iUnion.mp hy
+  exact cover.tile_basepoint_lift i y hi
+
+/-- A compact zero-bit cover has a compact projected base: the base is exactly the projection of
+its compact face patch, since every basepoint has a chosen graph lift on the face. -/
+theorem CompactZeroBitFiberPatchCover.base_isCompact
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {face : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {margin radius : ℝ}
+    (cover : CompactZeroBitFiberPatchCover face base baseTile margin radius) :
+    IsCompact base := by
+  have himage : forgetLastCoordinate n '' face = base := by
+    ext y
+    constructor
+    · rintro ⟨x, hx, rfl⟩
+      exact (mem_projectionFiberTube_iff base cover.center radius x).mp
+        (cover.facePatch_subset_tube hx) |>.1
+    · intro hy
+      refine ⟨Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (cover.center y),
+        cover.center_lift_mem_face hy, ?_⟩
+      simp [forgetLastCoordinate]
+  rw [← himage]
+  exact cover.facePatch_compact.image (forgetLastCoordinate n).continuous_of_finiteDimensional
+
+/-- Equal-projection face tubes separate on any compact part of the shared projected base that
+avoids the projection of the common face. The graph lifts force the two center sections to differ
+there, and compactness makes the gap uniform. -/
+theorem CompactZeroBitFiberPatchCover.exists_disjoint_faceTubes_on_compact_base
+    {n : ℕ} {ιA ιB : Type*} [Fintype ιA] [Fintype ιB]
+    {faceA faceB : Set (Fin (n + 1) → ℝ)}
+    {baseA baseB : Set (Fin n → ℝ)}
+    {tilesA : ιA → Set (Fin n → ℝ)} {tilesB : ιB → Set (Fin n → ℝ)}
+    {marginA radiusA marginB radiusB cap : ℝ}
+    (coverA : CompactZeroBitFiberPatchCover faceA baseA tilesA marginA radiusA)
+    (coverB : CompactZeroBitFiberPatchCover faceB baseB tilesB marginB radiusB)
+    (tile : Set (Fin n → ℝ)) (htileCompact : IsCompact tile)
+    (htileA : tile ⊆ baseA) (htileB : tile ⊆ baseB)
+    (havoid : tile ∩ forgetLastCoordinate n '' (faceA ∩ faceB) = ∅)
+    (hcap : 0 < cap) :
+    ∃ radius : ℝ, 0 < radius ∧ radius < cap ∧
+      projectionFiberTube tile coverA.center radius ∩
+        projectionFiberTube tile coverB.center radius = ∅ := by
+  have hcenters : ∀ y ∈ tile, coverA.center y ≠ coverB.center y := by
+    intro y hy heq
+    have hfaceA := coverA.center_lift_mem_face (htileA hy)
+    have hfaceB : Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (coverA.center y) ∈ faceB := by
+      rw [heq]
+      exact coverB.center_lift_mem_face (htileB hy)
+    have himage : y ∈ forgetLastCoordinate n '' (faceA ∩ faceB) := by
+      exact ⟨Fin.snoc (α := fun _ : Fin (n + 1) => ℝ) y (coverA.center y),
+        ⟨hfaceA, hfaceB⟩, by simp [forgetLastCoordinate]⟩
+    have hbad : y ∈ tile ∩ forgetLastCoordinate n '' (faceA ∩ faceB) := ⟨hy, himage⟩
+    rw [havoid] at hbad
+    exact hbad.elim
+  exact exists_disjoint_projectionFiberTube_of_compact_separated_centers_below
+    coverA.center coverB.center htileCompact
+    (coverA.center_continuous.mono htileA)
+    (coverB.center_continuous.mono htileB) hcenters cap hcap
+
+/-- Craciun v3, §7.3, equal-projection face case away from the shared lower face. The compact
+common projected base is trimmed by a positive distance from the projected intersection; its two
+graph tubes then admit one positive width below any prescribed parent scale, with disjoint closed
+sets. -/
+theorem CompactZeroBitFiberPatchCover.exists_disjoint_faceTubes_away_from_shared_face
+    {n : ℕ} {ιA ιB : Type*} [Fintype ιA] [Fintype ιB]
+    {faceA faceB : Set (Fin (n + 1) → ℝ)}
+    {baseA baseB : Set (Fin n → ℝ)}
+    {tilesA : ιA → Set (Fin n → ℝ)} {tilesB : ιB → Set (Fin n → ℝ)}
+    {marginA radiusA marginB radiusB eta cap : ℝ}
+    (coverA : CompactZeroBitFiberPatchCover faceA baseA tilesA marginA radiusA)
+    (coverB : CompactZeroBitFiberPatchCover faceB baseB tilesB marginB radiusB)
+    (heta : 0 < eta) (hcap : 0 < cap) :
+    ∃ radius : ℝ, 0 < radius ∧ radius < cap ∧
+      projectionFiberTube
+        ((baseA ∩ baseB) ∩ {y | eta ≤ Metric.infDist y
+          (forgetLastCoordinate n '' (faceA ∩ faceB))}) coverA.center radius ∩
+      projectionFiberTube
+        ((baseA ∩ baseB) ∩ {y | eta ≤ Metric.infDist y
+          (forgetLastCoordinate n '' (faceA ∩ faceB))}) coverB.center radius = ∅ := by
+  let shared := forgetLastCoordinate n '' (faceA ∩ faceB)
+  let tile := (baseA ∩ baseB) ∩ {y | eta ≤ Metric.infDist y shared}
+  have hdistContinuous : Continuous fun y : Fin n → ℝ => Metric.infDist y shared :=
+    (Metric.lipschitz_infDist_pt shared).continuous
+  have hclosed : IsClosed {y | eta ≤ Metric.infDist y shared} :=
+    isClosed_Ici.preimage hdistContinuous
+  have htileCompact : IsCompact tile := by
+    dsimp [tile]
+    exact (coverA.base_isCompact.inter coverB.base_isCompact).inter_right hclosed
+  have havoid : tile ∩ shared = ∅ := by
+    apply Set.eq_empty_iff_forall_notMem.mpr
+    intro y hy
+    obtain ⟨⟨⟨_, _⟩, hdist⟩, hyShared⟩ := hy
+    change eta ≤ Metric.infDist y shared at hdist
+    have hzero : Metric.infDist y shared = 0 := Metric.infDist_zero_of_mem hyShared
+    rw [hzero] at hdist
+    exact (not_le_of_gt heta) hdist
+  have htileA : tile ⊆ baseA := by
+    intro y hy
+    exact hy.1.1
+  have htileB : tile ⊆ baseB := by
+    intro y hy
+    exact hy.1.2
+  simpa [tile, shared] using coverA.exists_disjoint_faceTubes_on_compact_base
+    coverB tile htileCompact htileA htileB (by simpa [shared] using havoid) hcap
+
+/-- The critical facet type `11…110` has zero width in every earlier coordinate and positive
+width only in the final coordinate. This is the binary scale case in Theorem 7.1 whose two
+projected graph tubes are separated away from their shared ridge. -/
+def criticalFacetBinaryWord (n : ℕ) : List Bool := List.replicate n true ++ [false]
+
+theorem craciunCriticalFacetWord_prefix_width (n : ℕ) (radius : ℝ) :
+    ∀ i : Fin (n + 1),
+      (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+          ((criticalFacetBinaryWord n).take (i.val + 1)) =
+        if i = Fin.last n then radius else 0 := by
+  intro i
+  by_cases hi : i = Fin.last n
+  · subst i
+    simp [criticalFacetBinaryWord]
+  · have hval : i.val < n := by
+      have hne : i.val ≠ n := by
+        intro h
+        apply hi
+        apply Fin.ext
+        simpa using h
+      omega
+    have hlenTake :
+        ((criticalFacetBinaryWord n).take (i.val + 1)).length = i.val + 1 := by
+      simp only [criticalFacetBinaryWord, List.length_take, List.length_append,
+        List.length_replicate, List.length_cons, List.length_nil]
+      omega
+    have hlenWord : (criticalFacetBinaryWord n).length = n + 1 := by
+      simp [criticalFacetBinaryWord]
+    have hnotEq : (criticalFacetBinaryWord n).take (i.val + 1) ≠
+        criticalFacetBinaryWord n := by
+      intro heq
+      have hlen := congrArg List.length heq
+      omega
+    simp [hnotEq, hi]
+
+/-- Applying the critical `11…110` word to the graph-tube equality turns the compact gap into
+actual disjoint §7.3 pre-blueprint neighborhoods. The selected final width remains below the
+supplied parent-face scale, as required by the binary hierarchy. -/
+theorem CompactZeroBitFiberPatchCover.exists_disjoint_preBlueprints_away_from_shared_face
+    {n : ℕ} {ιA ιB : Type*} [Fintype ιA] [Fintype ιB]
+    {faceA faceB : Set (Fin (n + 1) → ℝ)}
+    {baseA baseB : Set (Fin n → ℝ)}
+    {tilesA : ιA → Set (Fin n → ℝ)} {tilesB : ιB → Set (Fin n → ℝ)}
+    {marginA radiusA marginB radiusB eta cap : ℝ}
+    (coverA : CompactZeroBitFiberPatchCover faceA baseA tilesA marginA radiusA)
+    (coverB : CompactZeroBitFiberPatchCover faceB baseB tilesB marginB radiusB)
+    (heta : 0 < eta) (hcap : 0 < cap) :
+    ∃ radius : ℝ, 0 < radius ∧ radius < cap ∧
+      zeroBitPreBlueprintNeighborhood faceA
+        ((baseA ∩ baseB) ∩ {y | eta ≤ Metric.infDist y
+          (forgetLastCoordinate n '' (faceA ∩ faceB))})
+        (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+        (criticalFacetBinaryWord n) ∩
+      zeroBitPreBlueprintNeighborhood faceB
+        ((baseA ∩ baseB) ∩ {y | eta ≤ Metric.infDist y
+          (forgetLastCoordinate n '' (faceA ∩ faceB))})
+        (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+        (criticalFacetBinaryWord n) = ∅ := by
+  obtain ⟨radius, hradius, hradiusCap, htubes⟩ :=
+    coverA.exists_disjoint_faceTubes_away_from_shared_face coverB heta hcap
+  have hwidth := craciunCriticalFacetWord_prefix_width n radius
+  refine ⟨radius, hradius, hradiusCap, ?_⟩
+  rw [zeroBitPreBlueprintNeighborhood_eq_projectionFiberTube_of_last_width
+      faceA ((baseA ∩ baseB) ∩ {y | eta ≤ Metric.infDist y
+        (forgetLastCoordinate n '' (faceA ∩ faceB))}) coverA.center
+      (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+      (criticalFacetBinaryWord n) radius coverA.center_graph_on_face
+      (fun y hy => coverA.center_lift_mem_face hy.1.1) hwidth,
+    zeroBitPreBlueprintNeighborhood_eq_projectionFiberTube_of_last_width
+      faceB ((baseA ∩ baseB) ∩ {y | eta ≤ Metric.infDist y
+        (forgetLastCoordinate n '' (faceA ∩ faceB))}) coverB.center
+      (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+      (criticalFacetBinaryWord n) radius coverB.center_graph_on_face
+      (fun y hy => coverB.center_lift_mem_face hy.1.2) hwidth]
+  exact htubes
+
+/-- The pairwise §7.3 separation statement in collar form: after choosing the final width below
+the parent scale, any overlap of the two critical-facet pre-blueprints projects within `eta` of
+their shared lower-dimensional face. This is the interface needed for the recursive filler to
+hand the remaining overlap to the already-constructed common-face neighborhood. -/
+theorem CompactZeroBitFiberPatchCover.exists_preBlueprint_overlap_within_shared_face_collar
+    {n : ℕ} {ιA ιB : Type*} [Fintype ιA] [Fintype ιB]
+    {faceA faceB : Set (Fin (n + 1) → ℝ)}
+    {baseA baseB : Set (Fin n → ℝ)}
+    {tilesA : ιA → Set (Fin n → ℝ)} {tilesB : ιB → Set (Fin n → ℝ)}
+    {marginA radiusA marginB radiusB eta cap : ℝ}
+    (coverA : CompactZeroBitFiberPatchCover faceA baseA tilesA marginA radiusA)
+    (coverB : CompactZeroBitFiberPatchCover faceB baseB tilesB marginB radiusB)
+    (hshared : (forgetLastCoordinate n '' (faceA ∩ faceB)).Nonempty)
+    (heta : 0 < eta) (hcap : 0 < cap) :
+    ∃ radius : ℝ, 0 < radius ∧ radius < cap ∧
+      ∀ x,
+        x ∈ zeroBitPreBlueprintNeighborhood faceA (baseA ∩ baseB)
+          (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+          (criticalFacetBinaryWord n) →
+        x ∈ zeroBitPreBlueprintNeighborhood faceB (baseA ∩ baseB)
+          (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+          (criticalFacetBinaryWord n) →
+        ∃ y ∈ forgetLastCoordinate n '' (faceA ∩ faceB),
+          dist (forgetLastCoordinate n x) y < eta := by
+  obtain ⟨radius, hradius, hradiusCap, hdisjoint⟩ :=
+    coverA.exists_disjoint_faceTubes_away_from_shared_face coverB heta hcap
+  refine ⟨radius, hradius, hradiusCap, ?_⟩
+  intro x hxA hxB
+  let shared := forgetLastCoordinate n '' (faceA ∩ faceB)
+  have hcollar : Metric.infDist (forgetLastCoordinate n x) shared < eta := by
+    by_contra hnot
+    have hfar : eta ≤ Metric.infDist (forgetLastCoordinate n x) shared := le_of_not_gt hnot
+    have hwidth := craciunCriticalFacetWord_prefix_width n radius
+    rw [zeroBitPreBlueprintNeighborhood_eq_projectionFiberTube_of_last_width
+        faceA (baseA ∩ baseB) coverA.center
+        (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+        (criticalFacetBinaryWord n) radius coverA.center_graph_on_face
+        (fun y hy => coverA.center_lift_mem_face hy.1) hwidth] at hxA
+    rw [zeroBitPreBlueprintNeighborhood_eq_projectionFiberTube_of_last_width
+        faceB (baseA ∩ baseB) coverB.center
+        (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+        (criticalFacetBinaryWord n) radius coverB.center_graph_on_face
+        (fun y hy => coverB.center_lift_mem_face hy.2) hwidth] at hxB
+    rw [mem_projectionFiberTube_iff] at hxA hxB
+    have hxTileA : x ∈ projectionFiberTube
+        ((baseA ∩ baseB) ∩ {y | eta ≤ Metric.infDist y shared}) coverA.center radius := by
+      rw [mem_projectionFiberTube_iff]
+      exact ⟨⟨hxA.1, hfar⟩, hxA.2⟩
+    have hxTileB : x ∈ projectionFiberTube
+        ((baseA ∩ baseB) ∩ {y | eta ≤ Metric.infDist y shared}) coverB.center radius := by
+      rw [mem_projectionFiberTube_iff]
+      exact ⟨⟨hxB.1, hfar⟩, hxB.2⟩
+    have hxInter := Set.mem_inter hxTileA hxTileB
+    rw [hdisjoint] at hxInter
+    exact hxInter.elim
+  exact (Metric.infDist_lt_iff hshared).mp hcollar
 
 /-- Construct zero-bit graph tubes over a finite compact cover of the projected face whose tile
 interiors are pairwise disjoint. The same continuous section is used on every tile; openness of
