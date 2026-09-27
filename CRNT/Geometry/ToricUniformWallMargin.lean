@@ -1212,6 +1212,12 @@ theorem Network.exists_compactProjectiveFanRadialBarrierAtlas
     ⋃ k, ZeroSeparatingInduction.radialBoxDiagramTile (diagramTile k) upper
       (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩
         ZeroSeparatingInduction.craciunProjectiveDomain
+  have hfaceExact : facePatch = ZeroSeparatingInduction.craciunProjectiveDomain ∩
+      {x | ∀ i, x i ≤ upper i} := by
+    dsimp [facePatch]
+    exact ZeroSeparatingInduction.radialBoxDiagramTiles_projectiveDomain_box_eq
+      diagramTile upper hdiagramNonnegative hdiagramNonzero hupper
+      hdiagramCoversNormalizedDomain
   let base : Set (Fin n → ℝ) := ZeroSeparatingInduction.forgetLastCoordinate n '' facePatch
   let K : Set (EuclideanSpace ℝ S) := ψ '' facePatch
   have hfaceCompact : IsCompact facePatch := by
@@ -1238,14 +1244,12 @@ theorem Network.exists_compactProjectiveFanRadialBarrierAtlas
   have hfaceBand : facePatch ⊆ ZeroSeparatingInduction.projectionFiberBand base
       (fun _ => some (0 : ℝ)) (fun _ => some (upper (Fin.last n))) := by
     intro x hx
-    obtain ⟨k, hk⟩ := Set.mem_iUnion.mp hx
-    have hbox := ZeroSeparatingInduction.radialBoxDiagramTile_subset_box (diagramTile k) upper
-      (hdiagramNonnegative k) (hdiagramNonzero k) hupper hk.1
+    have hxExact := hfaceExact ▸ hx
     apply (ZeroSeparatingInduction.mem_projectionFiberBand_bounded_iff base
       (fun _ => 0) (fun _ => upper (Fin.last n)) x).2
     refine ⟨⟨x, hx, rfl⟩, ?_, ?_⟩
-    · exact (hbox (Fin.last n)).1
-    · exact (hbox (Fin.last n)).2
+    · exact le_trans zero_le_one (hxExact.1.1 (Fin.last n))
+    · exact hxExact.2 (Fin.last n)
   let cover := FanRefinement.exists_small_fan_labeledOneBitFiberPatchCover
     facePatch hfaceCompact base small.tile small.covers small.tile_compact
       small.interiors_disjoint (fun _ => 0) (fun _ => upper (Fin.last n))

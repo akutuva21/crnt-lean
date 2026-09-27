@@ -785,6 +785,36 @@ theorem radialBoxDiagramTiles_cover_projectiveDomain_box {ι : Sort*} {n : ℕ} 
   exact radialBoxDiagramTiles_cover_of_normalized_source diagramTile upper 0
     hdiagramNonnegative hdiagramNonzero hupper hp0 hpupper hcover
 
+/-- Craciun v3, §8 Step 1: after clipping to the ordered projective domain, the union of all
+radially extended diagram tiles is exactly the part of that domain inside the coordinate blue box.
+The reverse inclusion is the cover-transfer theorem above; the forward inclusion is radial
+containment in the box. Keeping this as an equality makes the restricted blueprint cover exactly
+the intended bounded projective region, rather than merely a family of patches known to lie in it.
+-/
+theorem radialBoxDiagramTiles_projectiveDomain_box_eq {ι : Type*} {n : ℕ} [NeZero n]
+    (diagramTile : ι → Set (Fin n → ℝ)) (upper : Fin n → ℝ)
+    (hdiagramNonnegative : ∀ k x, x ∈ diagramTile k → ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ k x, x ∈ diagramTile k → x ≠ 0)
+    (hupper : ∀ i, 0 < upper i)
+    (hdiagramCoversNormalizedDomain : ∀ x,
+      x ∈ craciunProjectiveDomain → x 0 = 1 → x ∈ ⋃ k, diagramTile k) :
+    (⋃ k, radialBoxDiagramTile (diagramTile k) upper
+      (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩ craciunProjectiveDomain) =
+      craciunProjectiveDomain ∩ {p | ∀ i, p i ≤ upper i} := by
+  ext p
+  constructor
+  · intro hp
+    obtain ⟨k, hk⟩ := Set.mem_iUnion.mp hp
+    refine ⟨hk.2, ?_⟩
+    intro i
+    exact (radialBoxDiagramTile_subset_box (diagramTile k) upper
+      (hdiagramNonnegative k) (hdiagramNonzero k) hupper hk.1 i).2
+  · rintro ⟨hp, hpupper⟩
+    have htile := radialBoxDiagramTiles_cover_projectiveDomain_box diagramTile upper
+      hdiagramNonnegative hdiagramNonzero hupper hdiagramCoversNormalizedDomain hp hpupper
+    obtain ⟨k, hk⟩ := Set.mem_iUnion.mp htile
+    exact Set.mem_iUnion.mpr ⟨k, ⟨hk, hp⟩⟩
+
 /-- Craciun's restricted projective domain removes the common origin, so two radial boundary
 tiles clipped to `D^P_n` meet exactly in the radial extension of the common lower-dimensional
 diagram tile, clipped to that same domain (§8 Step 1). -/
