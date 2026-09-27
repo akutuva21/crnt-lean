@@ -784,5 +784,33 @@ theorem massActionVectorField_inner_nonneg_of_projectedLogBall
     (N.relativeSourceOrderNegativeConeFamily_hasExposedCommonFaces) hD hball
   exact coneDual_subset_dualHalfPlane_of_mem hn (hlocal hselector)
 
+/-- Uniform version on a compact patch: if the projected-log states lie in a compact subset of
+one source-order chamber's interior, every refined-cell normal contained in that chamber has
+nonnegative pairing with the complex-balanced mass-action field, with one common radius. -/
+theorem massActionVectorField_inner_nonneg_on_compact_projectedLogPatch
+    (N : Network S) (κ : N.RateConstants) {xstar : Concentration S}
+    (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {D C' : ProperCone ℝ (EuclideanSpace ℝ S)}
+    (hD : D ∈ N.relativeSourceOrderNegativeConeFamily)
+    (hsub : (C' : Set (EuclideanSpace ℝ S)) ⊆ (D : Set (EuclideanSpace ℝ S)))
+    {n : EuclideanSpace ℝ S} (hn : n ∈ (C' : Set (EuclideanSpace ℝ S)))
+    {K : Set (EuclideanSpace ℝ S)} (hK : IsCompact K)
+    (hKinterior : K ⊆ interior (D : Set (EuclideanSpace ℝ S))) :
+    ∃ δ : ℝ, 0 < δ ∧
+      (∀ z ∈ K, (CRNT.toricField N.relativeSourceOrderNegativeConeFamily δ z :
+        Set (EuclideanSpace ℝ S)) ⊆ {y | 0 ≤ ⟪n, y⟫_ℝ}) ∧
+      (∀ x : Concentration S, x.Positive →
+      -CRNT.toEuclid (N.relativeLogStoichProjection
+        (fun s => Real.log (x s) - Real.log (xstar s))) ∈ K →
+      0 ≤ ⟪n, CRNT.toEuclid (N.massActionVectorField κ x)⟫_ℝ) := by
+  obtain ⟨δ, hδ, hfield⟩ := FanRefinement.compact_patch_toricField_subset_halfPlane
+    (N.relativeSourceOrderNegativeConeFamily_hasExposedCommonFaces)
+    hD hsub hn hK hKinterior
+  refine ⟨δ, hδ, hfield, ?_⟩
+  intro x hx hxK
+  have hselector := N.massActionVectorField_mem_relativeSourceOrderToricField
+    κ hx hxs hcb hδ
+  exact hfield _ hxK hselector
+
 end Network
 end CRNT
