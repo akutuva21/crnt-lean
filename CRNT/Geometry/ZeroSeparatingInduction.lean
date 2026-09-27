@@ -5711,6 +5711,148 @@ noncomputable def compactProjectiveRadialFamily_smallPatchCover {n : ℕ} {ι : 
       htileDisjoint continuous_const continuous_const horder hepsilon hfaceBand
   exact ⟨m, baseTile, cover, hsmall⟩
 
+/-- Refine each projected projective diagram tile into small compact pieces without losing its
+parent-tile index. This preserves the lower-dimensional blueprint incidence while adding the
+diameter bound needed by local chart selection (Craciun v3, §7.4.3 Case 1.2). -/
+noncomputable def compactProjectiveRadialFamily_smallPatchCover_refiningDiagramTiles
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (diagramTile : ι → Set (Fin (n + 1) → ℝ)) (upper : Fin (n + 1) → ℝ)
+    (epsilon eta : ℝ)
+    (hdiagramNonnegative : ∀ k x, x ∈ diagramTile k → ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ k x, x ∈ diagramTile k → x ≠ 0)
+    (hdiagramAnchor : ∀ k x, x ∈ diagramTile k → x 0 = 1)
+    (hdiagramCompact : ∀ k, IsCompact (diagramTile k))
+    (hupper : ∀ i, 0 < upper i) (hepsilon : 0 < epsilon) (heta : 0 < eta)
+    (hdiagramCoversNormalizedDomain : ∀ x,
+      x ∈ craciunProjectiveDomain → x 0 = 1 → x ∈ ⋃ k, diagramTile k)
+    (hprojectedInteriorsDisjoint : ∀ i j, i ≠ j →
+      interior (forgetLastCoordinate n ''
+        (radialBoxDiagramTile (diagramTile i) upper
+          (hdiagramNonnegative i) (hdiagramNonzero i) hupper ∩ craciunProjectiveDomain)) ∩
+      interior (forgetLastCoordinate n ''
+        (radialBoxDiagramTile (diagramTile j) upper
+          (hdiagramNonnegative j) (hdiagramNonzero j) hupper ∩ craciunProjectiveDomain)) = ∅) :
+    Σ m : ℕ, Σ baseTile : ι × Fin m → Set (Fin n → ℝ),
+      {cover : CompactOneBitFiberPatchCover
+        (⋃ k, radialBoxDiagramTile (diagramTile k) upper
+          (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩ craciunProjectiveDomain)
+        (forgetLastCoordinate n ''
+          (⋃ k, radialBoxDiagramTile (diagramTile k) upper
+            (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩ craciunProjectiveDomain))
+        baseTile (fun _ => 0) (fun _ => upper (Fin.last n)) epsilon //
+        (∀ p a, a ∈ baseTile p → ∀ b, b ∈ baseTile p → dist a b < eta) } := by
+  classical
+  let radialPatch : ι → Set (Fin (n + 1) → ℝ) := fun k =>
+    radialBoxDiagramTile (diagramTile k) upper
+      (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩ craciunProjectiveDomain
+  let facePatch : Set (Fin (n + 1) → ℝ) := ⋃ k, radialPatch k
+  let base : Set (Fin n → ℝ) := forgetLastCoordinate n '' facePatch
+  let projectedTile : ι → Set (Fin n → ℝ) := fun k =>
+    forgetLastCoordinate n '' radialPatch k
+  have hfaceCompact : IsCompact facePatch := by
+    change IsCompact (⋃ k, radialPatch k)
+    exact (isCompact_and_covers_projectiveRadialTiles diagramTile upper
+      hdiagramNonnegative hdiagramAnchor hdiagramCompact hupper
+      hdiagramCoversNormalizedDomain).1
+  have hbaseCompact : IsCompact base :=
+    hfaceCompact.image (forgetLastCoordinate n).continuous_of_finiteDimensional
+  have hprojectedCompact : ∀ k, IsCompact (projectedTile k) := by
+    intro k
+    change IsCompact (forgetLastCoordinate n '' radialPatch k)
+    exact (isCompact_radialBoxDiagramTile_projectiveDomain (diagramTile k) upper 0
+      (hdiagramNonnegative k) (hdiagramNonzero k) (hdiagramAnchor k) hupper
+      (hdiagramCompact k)).image
+        (forgetLastCoordinate n).continuous_of_finiteDimensional
+  obtain ⟨m, smallTile, hsmallCover, hsmallCompact, hsmallDisjoint, hsmall⟩ :=
+    exists_compact_small_interior_disjoint_cover base hbaseCompact heta
+  let baseTile : ι × Fin m → Set (Fin n → ℝ) := fun p =>
+    projectedTile p.1 ∩ smallTile p.2
+  have hbaseCover : base = ⋃ p, baseTile p := by
+    ext y
+    constructor
+    · intro hy
+      have hprojectedCover : base = ⋃ k, projectedTile k := by
+        change forgetLastCoordinate n '' (⋃ k, radialPatch k) =
+          ⋃ k, forgetLastCoordinate n '' radialPatch k
+        exact Set.image_iUnion
+      rw [hprojectedCover] at hy
+      obtain ⟨k, hk⟩ := Set.mem_iUnion.mp hy
+      have hsmall : y ∈ ⋃ j, smallTile j := by
+        rw [← hsmallCover]
+        rw [hprojectedCover]
+        exact hy
+      obtain ⟨j, hj⟩ := Set.mem_iUnion.mp hsmall
+      exact Set.mem_iUnion.mpr ⟨(k, j), ⟨hk, hj⟩⟩
+    · intro hy
+      obtain ⟨p, hp⟩ := Set.mem_iUnion.mp hy
+      have hprojectedCover : base = ⋃ k, projectedTile k := by
+        change forgetLastCoordinate n '' (⋃ k, radialPatch k) =
+          ⋃ k, forgetLastCoordinate n '' radialPatch k
+        exact Set.image_iUnion
+      rw [hprojectedCover]
+      exact Set.mem_iUnion.mpr ⟨p.1, hp.1⟩
+  have hbaseTileCompact : ∀ p, IsCompact (baseTile p) := by
+    intro p
+    exact (hprojectedCompact p.1).inter (hsmallCompact p.2)
+  have hbaseTileDisjoint : ∀ p q, p ≠ q →
+      interior (baseTile p) ∩ interior (baseTile q) = ∅ := by
+    intro p q hpq
+    by_cases hparent : p.1 = q.1
+    · have hchild : p.2 ≠ q.2 := by
+        intro h
+        apply hpq
+        cases p
+        cases q
+        simp_all
+      have hleft : interior (baseTile p) ⊆ interior (smallTile p.2) :=
+        interior_mono Set.inter_subset_right
+      have hright : interior (baseTile q) ⊆ interior (smallTile q.2) :=
+        interior_mono Set.inter_subset_right
+      ext x
+      constructor
+      · intro hx
+        have hxsmall : x ∈ interior (smallTile p.2) ∩ interior (smallTile q.2) :=
+          ⟨hleft hx.1, hright hx.2⟩
+        rw [hsmallDisjoint p.2 q.2 hchild] at hxsmall
+        exact hxsmall
+      · simp
+    · have hleft : interior (baseTile p) ⊆ interior (projectedTile p.1) :=
+        interior_mono Set.inter_subset_left
+      have hright : interior (baseTile q) ⊆ interior (projectedTile q.1) :=
+        interior_mono Set.inter_subset_left
+      ext x
+      constructor
+      · intro hx
+        have hxparent : x ∈ interior (projectedTile p.1) ∩
+            interior (projectedTile q.1) := ⟨hleft hx.1, hright hx.2⟩
+        rw [hprojectedInteriorsDisjoint p.1 q.1 hparent] at hxparent
+        exact hxparent
+      · simp
+  have hupperPositive : 0 < upper (Fin.last n) := hupper (Fin.last n)
+  have horder : ∀ y ∈ base, (fun _ : Fin n → ℝ => 0) y ≤ upper (Fin.last n) := by
+    intro y hy
+    exact le_of_lt hupperPositive
+  have hfaceBand : facePatch ⊆ projectionFiberBand base
+      (fun _ => some (0 : ℝ)) (fun _ => some (upper (Fin.last n))) := by
+    intro x hx
+    obtain ⟨k, hk⟩ := Set.mem_iUnion.mp hx
+    have hbox := radialBoxDiagramTile_subset_box (diagramTile k) upper
+      (hdiagramNonnegative k) (hdiagramNonzero k) hupper hk.1
+    apply (mem_projectionFiberBand_bounded_iff base (fun _ => 0)
+      (fun _ => upper (Fin.last n)) x).2
+    refine ⟨⟨x, hx, rfl⟩, ?_, ?_⟩
+    · exact (hbox (Fin.last n)).1
+    · exact (hbox (Fin.last n)).2
+  have cover : CompactOneBitFiberPatchCover facePatch base baseTile
+      (fun _ => 0) (fun _ => upper (Fin.last n)) epsilon :=
+    compactOneBitFiberPatchCover_of_compactBand facePatch hfaceCompact base baseTile
+      (fun _ => 0) (fun _ => upper (Fin.last n)) epsilon hbaseCover hbaseTileCompact
+      hbaseTileDisjoint continuous_const continuous_const horder hepsilon hfaceBand
+  have hsmallRefined : ∀ p a, a ∈ baseTile p → ∀ b, b ∈ baseTile p → dist a b < eta := by
+    intro p a ha b hb
+    exact hsmall p.2 a ha.2 b hb.2
+  exact ⟨m, baseTile, ⟨cover, hsmallRefined⟩⟩
+
 /-- Craciun v3, §8 Step 1: restrict a compact one-bit blueprint to a closed projective domain by
 intersecting every tile patch with that domain. The clipped family still covers the clipped face,
 its pieces remain compact, and the common fiber subdivision preserves every seam and overlap

@@ -601,6 +601,15 @@ theorem Network.exists_compactProjectiveRadialWallSelection
     (hdiagramCoversNormalizedDomain : ∀ x,
       x ∈ ZeroSeparatingInduction.craciunProjectiveDomain → x 0 = 1 →
         x ∈ ⋃ k, diagramTile k)
+    (hprojectedInteriorsDisjoint : ∀ i j, i ≠ j →
+      interior (ZeroSeparatingInduction.forgetLastCoordinate n ''
+        (ZeroSeparatingInduction.radialBoxDiagramTile (diagramTile i) upper
+          (hdiagramNonnegative i) (hdiagramNonzero i) hupper ∩
+            ZeroSeparatingInduction.craciunProjectiveDomain)) ∩
+      interior (ZeroSeparatingInduction.forgetLastCoordinate n ''
+        (ZeroSeparatingInduction.radialBoxDiagramTile (diagramTile j) upper
+          (hdiagramNonnegative j) (hdiagramNonzero j) hupper ∩
+            ZeroSeparatingInduction.craciunProjectiveDomain)) = ∅)
     (hfaceNonempty : (⋃ k, ZeroSeparatingInduction.radialBoxDiagramTile
       (diagramTile k) upper (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩
         ZeroSeparatingInduction.craciunProjectiveDomain).Nonempty)
@@ -618,12 +627,13 @@ theorem Network.exists_compactProjectiveRadialWallSelection
           ZeroSeparatingInduction.craciunProjectiveDomain
     let K : Set (EuclideanSpace ℝ S) := ψ '' facePatch
     ∃ δcoord : ℝ, 0 < δcoord ∧
-    ∃ m : ℕ, ∃ baseTile : Fin m → Set (Fin n → ℝ),
+    ∃ m : ℕ, ∃ baseTile : ι × Fin m → Set (Fin n → ℝ),
       ∃ cover : ZeroSeparatingInduction.CompactOneBitFiberPatchCover facePatch
         (ZeroSeparatingInduction.forgetLastCoordinate n '' facePatch) baseTile (fun _ => 0)
           (fun _ => upper (Fin.last n)) (δcoord / 4),
       ∃ z : K → N.euclideanStoichSubspace, ∃ t : Finset K, ∃ ε : ℝ,
-      ∃ selected : (Σ i : Fin m, Fin (cover.tiling.subdivisionCount + 1)) → Option K,
+      ∃ selected : (Σ i : ι × Fin m,
+          Fin (cover.tiling.subdivisionCount + 1)) → Option K,
         0 < ε ∧
         (∀ p, ¬ (facePatch ∩ ZeroSeparatingInduction.projectionFiberSubdivisionTile
           (baseTile p.1) (fun _ => 0) (fun _ => upper (Fin.last n)) p.2).Nonempty →
@@ -665,18 +675,19 @@ theorem Network.exists_compactProjectiveRadialWallSelection
   have hεtile : 0 < εtile := by dsimp [εtile]; positivity
   have heta : 0 < δcoord / 4 := by positivity
   obtain ⟨m, baseTile, coverData⟩ :=
-    ZeroSeparatingInduction.compactProjectiveRadialFamily_smallPatchCover
+    ZeroSeparatingInduction.compactProjectiveRadialFamily_smallPatchCover_refiningDiagramTiles
       diagramTile upper εtile (δcoord / 4) hdiagramNonnegative hdiagramNonzero
       hdiagramAnchor hdiagramCompact hupper hεtile heta hdiagramCoversNormalizedDomain
+      hprojectedInteriorsDisjoint
   let cover := coverData.1
   have hsmall := coverData.2
-  have himage : ∀ p : Σ i : Fin m, Fin (cover.tiling.subdivisionCount + 1),
+  have himage : ∀ p : Σ i : ι × Fin m, Fin (cover.tiling.subdivisionCount + 1),
       ψ '' (facePatch ∩ ZeroSeparatingInduction.projectionFiberSubdivisionTile
         (baseTile p.1) (fun _ => 0) (fun _ => upper (Fin.last n)) p.2) ⊆ K := by
     intro p q hq
     rcases hq with ⟨x, hx, rfl⟩
     exact ⟨x, hx.1, rfl⟩
-  have hmapDiam : ∀ p : Σ i : Fin m, Fin (cover.tiling.subdivisionCount + 1),
+  have hmapDiam : ∀ p : Σ i : ι × Fin m, Fin (cover.tiling.subdivisionCount + 1),
       ∀ x ∈ facePatch ∩ ZeroSeparatingInduction.projectionFiberSubdivisionTile
           (baseTile p.1) (fun _ => 0) (fun _ => upper (Fin.last n)) p.2,
       ∀ y ∈ facePatch ∩ ZeroSeparatingInduction.projectionFiberSubdivisionTile
@@ -684,11 +695,11 @@ theorem Network.exists_compactProjectiveRadialWallSelection
       dist x y < δcoord → dist (ψ x) (ψ y) < δwall := by
     intro p x hx y hy hdist
     exact hmap x hx.1 y hy.1 hdist
-  have hprojectedSmall : ∀ p : Σ i : Fin m, Fin (cover.tiling.subdivisionCount + 1),
+  have hprojectedSmall : ∀ p : Σ i : ι × Fin m, Fin (cover.tiling.subdivisionCount + 1),
       ∀ a ∈ baseTile p.1, ∀ b ∈ baseTile p.1, dist a b < δcoord / 4 := by
     intro p a ha b hb
     exact hsmall p.1 a ha b hb
-  have hendpointVariation : ∀ p : Σ i : Fin m, Fin (cover.tiling.subdivisionCount + 1),
+  have hendpointVariation : ∀ p : Σ i : ι × Fin m, Fin (cover.tiling.subdivisionCount + 1),
       ∀ a ∈ baseTile p.1, ∀ b ∈ baseTile p.1, dist a b < δcoord / 4 →
         dist (ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint
           (fun _ => 0) (fun _ => upper (Fin.last n)) p.2.succ a)
