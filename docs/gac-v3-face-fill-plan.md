@@ -114,13 +114,19 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   every dependency constructor gives an inclusion between its actual task
   patches. The target recompiles, and audits of these new lemmas report only
   standard Lean axioms.
+- Added `CompactOneBitFiberPatchCover.arrangementTaskPatch_cover`, identifying
+  the actual finite arrangement/small-tile cover with the corresponding task
+  strip outputs. The geometry module and target compile against this change;
+  the coverage and edge-inclusion audits have no `sorryAx`, while the exact
+  target audit still does.
 - The current face-mono lemma still assumes tile containment, and it does not
   itself assemble the inherited outputs or barriers. The arrangement atlas
   gives exact common-face patch intersections, while the radial atlas's smooth
   maximum controls derivatives only at points incident to every listed patch.
-  Next connect the shared cover's exact seam equalities to the face-task
-  outputs, build the recursive parent fill and its scale/faithfulness invariant,
-  and derive a global
+  The generic face-task recursion still has no caller that returns those
+  covers/barriers. Next package shared-cover seam equalities as task outputs,
+  build the recursive parent fill and its scale/faithfulness invariant, and
+  derive a global
   `ZeroSeparatingSurfaceExists` witness and apply it in the target branch.
   Keep the checklist open until its exact theorem and kernel axiom audit are
   clean.

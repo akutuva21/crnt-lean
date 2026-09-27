@@ -2633,6 +2633,62 @@ theorem oneBitFanFaceDependency.taskPatch_subset {n m : ℕ} {ι : Type*}
       exact oneBitFanFaceTaskPatch_mono_of_fiberEndpoint facePatch baseTile lower upper
         hbaseTile G C k i j hface hadjacent (horder C k)
 
+/-- A compact one-bit cover is exactly covered by its face-task strip outputs whenever its base
+labels are realized by the corresponding projected cone/small-tile patches. This connects the
+recursive task geometry to the actual finite blueprint cover. -/
+theorem compactOneBitFiberPatchCover_taskPatch_cover_of_baseTile_eq {n : ℕ}
+    {τ ι : Type*} [Fintype τ]
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : τ → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base baseTile lower upper epsilon)
+    (smallTile : ι → Set (Fin n → ℝ))
+    (encode : τ → ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × ι)
+    (hbaseTile : ∀ p, baseTile p =
+      euclideanProperConeBaseTile base (encode p).1 ∩ smallTile (encode p).2) :
+    facePatch = ⋃ p : Σ q : τ, Fin (cover.tiling.subdivisionCount + 1),
+      oneBitFanFaceTaskPatch facePatch
+        (fun q => euclideanProperConeBaseTile base q.1 ∩ smallTile q.2)
+        lower upper ((encode p.1, .strip p.2)) := by
+  calc
+    facePatch = ⋃ p : Σ q : τ, Fin (cover.tiling.subdivisionCount + 1),
+        facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2 :=
+      cover.facePatch_eq_iUnion_tiles
+    _ = ⋃ p : Σ q : τ, Fin (cover.tiling.subdivisionCount + 1),
+        oneBitFanFaceTaskPatch facePatch
+          (fun q => euclideanProperConeBaseTile base q.1 ∩ smallTile q.2)
+          lower upper ((encode p.1, .strip p.2)) := by
+      apply Set.iUnion_congr
+      rintro ⟨q, i⟩
+      rw [hbaseTile q]
+      rfl
+
+/-- Arrangement atlas specialization of `taskPatch_cover_of_baseTile_eq`: the actual compact
+fan/small-tile cover is indexed by arrangement cells, and its pieces are exactly the corresponding
+one-bit face-task outputs. -/
+theorem CompactOneBitFiberPatchCover.arrangementTaskPatch_cover {n : ℕ} {ι : Type*}
+    [Fintype ι] {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {lower upper : (Fin n → ℝ) → ℝ} {epsilon : ℝ}
+    (F : Fan (EuclideanSpace ℝ (Fin n))) (hFdual : HasDualFGCells F)
+    (smallTile : ι → Set (Fin n → ℝ))
+    (cover : ZeroSeparatingInduction.CompactOneBitFiberPatchCover facePatch base
+      (fun p : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+        C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)} × ι =>
+          euclideanHyperplaneArrangementBaseTile base F hFdual p.1 ∩ smallTile p.2)
+      lower upper epsilon) :
+    facePatch = ⋃ p : Σ q : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+        C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)} × ι,
+        Fin (cover.tiling.subdivisionCount + 1),
+      oneBitFanFaceTaskPatch facePatch
+        (fun q : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × ι =>
+          euclideanProperConeBaseTile base q.1 ∩ smallTile q.2)
+        lower upper ((p.1.1.1, p.1.2), .strip p.2) := by
+  apply compactOneBitFiberPatchCover_taskPatch_cover_of_baseTile_eq
+    cover smallTile (fun p => (p.1.1, p.2))
+  intro p
+  rfl
+
 /-- A normal lying in an arrangement chamber labels the whole projected tile with a coarse fan
 cell whose toric polar field points into the normal's half-space. The coordinate-space tile is
 transported back to Euclidean coordinates only for its cone label; the inwardness statement is in
