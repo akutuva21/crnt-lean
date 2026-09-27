@@ -1651,6 +1651,89 @@ theorem Network.fanLabeled_restrictedOneBitFiberPatch_seam_dependency_and_glue
       hgraph ps hincident
   exact ⟨G, hG, hdependency, hintersection, hbarrier⟩
 
+/-- Craciun v3, §7.4.3 and §8 Step 2: for small fan-labeled base patches, the common lower fan
+face and the finite smooth-barrier derivative are available at the same lifted seam point. The
+returned base incidence retains the two small-patch labels, so the local chart scale and the
+lexicographic geometric dependency survive the analytic gluing step. -/
+theorem Network.fanSmallProductTile_restrictedSeam_dependency_and_glue
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {smallTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ} (F : Fan (EuclideanSpace ℝ (Fin n)))
+    (hFdual : FanRefinement.HasDualFGCells F)
+    [Fintype {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)}]
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover facePatch base
+      (fun p : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+        C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)} × ι =>
+          FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual p.1 ∩ smallTile p.2)
+      lower upper epsilon)
+    (domain : Set (Fin (n + 1) → ℝ)) (hdomain : IsClosed domain)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (selected : (Σ p : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)} × ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)) → Option K)
+    (offset : (Σ p : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)} × ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)) → ℝ)
+    (tailHead : (EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)
+    (tail : List ((EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ))
+    (hatlas : ∀ r q, q ∈ ψ '' ((facePatch ∩ domain) ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual r.1.1 ∩
+          smallTile r.1.2) lower upper r.2) →
+      ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothWallList
+            ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+            (tailHead :: tail)) D q ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ 0)
+    (C D : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)})
+    (i j : ι) (k : Fin (cover.tiling.subdivisionCount))
+    (y : Fin n → ℝ) (horder : ∀ y ∈ base, lower y ≤ upper y)
+    (hy : y ∈ FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual C ∩ smallTile i)
+    (hgraph : CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+      lower upper k.succ.castSucc y ∈ facePatch ∩ domain)
+    (ps : List (Σ p : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)} × ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)))
+    (hincident : ∀ r ∈ ps,
+      y ∈ FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual r.1.1 ∩
+        smallTile r.1.2 ∧ (r.2 = k.castSucc ∨ r.2 = k.succ)) :
+    ∃ (G : ProperCone ℝ (EuclideanSpace ℝ (Fin n)))
+      (hG : G ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)),
+      (C.1 ≠ D.1 →
+        FanRefinement.ProperExposedFaceDependency G C.1 ∨
+          FanRefinement.ProperExposedFaceDependency G D.1) ∧
+      ((FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual C ∩ smallTile i) ∩
+        (FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual D ∩ smallTile j) =
+          FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩ ∩
+            (smallTile i ∩ smallTile j)) ∧
+      ∃ D' : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothMaxList
+            (SmoothBarrierGluing.smoothWallList
+              ((selected ⟨(C, i), k.castSucc⟩).elim tailHead.1
+                (fun wall => innerSL ℝ (z wall).1), offset ⟨(C, i), k.castSucc⟩)
+              (tailHead :: tail))
+            (ps.map (fun r => SmoothBarrierGluing.smoothWallList
+              ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+              (tailHead :: tail)))) D'
+          (ψ (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+            lower upper k.succ.castSucc y)) ∧
+        D' (toEuclid (N.massActionVectorField κ (toEuclid.symm
+          (ψ (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+            lower upper k.succ.castSucc y))))) ≤ 0 := by
+  obtain ⟨G, hG, hdependency, hbase, _⟩ :=
+    FanRefinement.fanSmallProductTile_adjacentStrip_seam F hFdual cover horder C D i j k
+  have hbarrier := N.restrictedOneBitFiberPatch_finite_seam_glue
+    κ cover domain hdomain ψ z selected offset tailHead tail hatlas (C, i) k y horder hy
+      hgraph ps hincident
+  exact ⟨G, hG, hdependency, hbase, hbarrier⟩
+
 /-- Craciun v3, §8 Step 2: a compact wall-chart cover supplies the local barriers needed to
 glue every listed face incident to a clipped adjacent-strip seam. The shared projected basepoint
 and endpoint-graph incidence are used to transfer each incident label to the same lifted seam
