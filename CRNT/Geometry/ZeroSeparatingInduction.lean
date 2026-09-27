@@ -224,6 +224,52 @@ theorem radialBoxEndpoint_mem_radialBoxRaySegment {n : ℕ} (x upper : Fin n →
     (radialBoxExitData_spec x upper hx hxne hupper).1.le, le_rfl, ?_⟩
   rfl
 
+/-- Radially extend every point of a lower-dimensional diagram tile from the origin to the blue
+box boundary. The nonnegativity and nonzero hypotheses describe the projective ray chart on which
+Craciun v3 constructs its boundary tiles. -/
+def radialBoxDiagramTile {n : ℕ} (diagramTile : Set (Fin n → ℝ))
+    (upper : Fin n → ℝ)
+    (hdiagramNonnegative : ∀ x ∈ diagramTile, ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ x ∈ diagramTile, x ≠ 0)
+    (hupper : ∀ i, 0 < upper i) : Set (Fin n → ℝ) :=
+  {p | ∃ x, ∃ hx : x ∈ diagramTile,
+    p ∈ radialBoxRaySegment x upper (hdiagramNonnegative x hx)
+      (hdiagramNonzero x hx) hupper}
+
+/-- A radially extended diagram tile lies wholly inside the blue box. -/
+theorem radialBoxDiagramTile_subset_box {n : ℕ} (diagramTile : Set (Fin n → ℝ))
+    (upper : Fin n → ℝ)
+    (hdiagramNonnegative : ∀ x ∈ diagramTile, ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ x ∈ diagramTile, x ≠ 0)
+    (hupper : ∀ i, 0 < upper i) :
+    radialBoxDiagramTile diagramTile upper hdiagramNonnegative hdiagramNonzero hupper ⊆
+      {p | ∀ j, 0 ≤ p j ∧ p j ≤ upper j} := by
+  rintro p ⟨x, hx, hp⟩
+  exact radialBoxRaySegment_subset_box x upper (hdiagramNonnegative x hx)
+    (hdiagramNonzero x hx) hupper hp
+
+/-- Every point of the lower-dimensional diagram tile reaches the outer boundary as part of its
+radial extension. The endpoint's active coordinate records the specific blue-box face incidence. -/
+theorem radialBoxDiagramTile_endpoint_incidence {n : ℕ}
+    (diagramTile : Set (Fin n → ℝ)) (upper : Fin n → ℝ)
+    (hdiagramNonnegative : ∀ x ∈ diagramTile, ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ x ∈ diagramTile, x ≠ 0)
+    (hupper : ∀ i, 0 < upper i) {x : Fin n → ℝ} (hx : x ∈ diagramTile) :
+    let endpoint := radialBoxEndpoint x upper (hdiagramNonnegative x hx)
+      (hdiagramNonzero x hx) hupper
+    endpoint ∈ radialBoxDiagramTile diagramTile upper
+        hdiagramNonnegative hdiagramNonzero hupper ∧
+      (∀ j, 0 ≤ endpoint j ∧ endpoint j ≤ upper j) ∧
+      endpoint (radialBoxExitData x upper (hdiagramNonnegative x hx)
+        (hdiagramNonzero x hx) hupper).2 =
+          upper (radialBoxExitData x upper (hdiagramNonnegative x hx)
+            (hdiagramNonzero x hx) hupper).2 := by
+  dsimp
+  refine ⟨⟨x, hx, radialBoxEndpoint_mem_radialBoxRaySegment x upper
+    (hdiagramNonnegative x hx) (hdiagramNonzero x hx) hupper⟩, ?_⟩
+  exact radialBoxEndpoint_mem_box_boundary x upper
+    (hdiagramNonnegative x hx) (hdiagramNonzero x hx) hupper
+
 /-- An open map sends interiors into the interior of the image. -/
 theorem image_interior_subset_interior_image_of_isOpenMap
     {α β : Type*} [TopologicalSpace α] [TopologicalSpace β]
