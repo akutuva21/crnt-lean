@@ -594,6 +594,17 @@ theorem oneBitFanFaceDependency_wellFounded [CompleteSpace E] [FiniteDimensional
       simp [oneBitFanFaceTaskRank]
       omega
 
+/-- Face-filling data can be constructed by recursion over the combined fan-cell/fiber-cell
+dependency. The induction hypothesis is available for every proper fan face used by a strip and
+for both endpoint graphs of that strip. -/
+theorem oneBitFanFaceDependency_induction [CompleteSpace E] [FiniteDimensional ℝ E]
+    {m : ℕ} {P : OneBitFanFaceTask E m → Prop}
+    (step : ∀ task, (∀ predecessor,
+      OneBitFanFaceDependency (E := E) (m := m) predecessor task → P predecessor) → P task) :
+    ∀ task, P task := by
+  intro task
+  exact (oneBitFanFaceDependency_wellFounded (E := E) (m := m)).induction task step
+
 theorem properExposedFaceDependency_wellFounded [CompleteSpace E]
     [FiniteDimensional ℝ E] :
     WellFounded (ProperExposedFaceDependency (E := E)) := by
