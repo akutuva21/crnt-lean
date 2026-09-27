@@ -380,6 +380,36 @@ theorem radialBoxDiagramTile_intersection_eq {n : ℕ}
         exact ⟨0, le_rfl, (radialBoxExitData_spec y upper
           (hB_nonnegative y hyB) (hB_nonzero y hyB) hupper).1.le, by simp⟩
 
+/-- Craciun v3, §8 Step 1: extending a lower-dimensional diagram covered by patches gives the
+union of the radial boundary tiles obtained from those patches. This is the cover-assembly
+identity paired with `radialBoxDiagramTile_intersection_eq`, which describes their seams. -/
+theorem radialBoxDiagramTile_iUnion {ι : Sort*} {n : ℕ}
+    (diagramTile : ι → Set (Fin n → ℝ)) (upper : Fin n → ℝ)
+    (hdiagramNonnegative : ∀ i x, x ∈ diagramTile i → ∀ j, 0 ≤ x j)
+    (hdiagramNonzero : ∀ i x, x ∈ diagramTile i → x ≠ 0)
+    (hupper : ∀ i, 0 < upper i) :
+    radialBoxDiagramTile (⋃ i, diagramTile i) upper
+      (fun x hx j => by
+        obtain ⟨i, hi⟩ := Set.mem_iUnion.mp hx
+        exact hdiagramNonnegative i x hi j)
+      (fun x hx => by
+        obtain ⟨i, hi⟩ := Set.mem_iUnion.mp hx
+        exact hdiagramNonzero i x hi) hupper =
+      ⋃ i, radialBoxDiagramTile (diagramTile i) upper
+        (hdiagramNonnegative i) (hdiagramNonzero i) hupper := by
+  ext p
+  constructor
+  · rintro ⟨x, hx, hsegment⟩
+    obtain ⟨i, hi⟩ := Set.mem_iUnion.mp hx
+    apply Set.mem_iUnion.mpr
+    refine ⟨i, x, hi, ?_⟩
+    simpa [radialBoxRaySegment] using hsegment
+  · intro hp
+    obtain ⟨i, hi⟩ := Set.mem_iUnion.mp hp
+    rcases hi with ⟨x, hx, hsegment⟩
+    refine ⟨x, Set.mem_iUnion.mpr ⟨i, hx⟩, ?_⟩
+    simpa [radialBoxRaySegment] using hsegment
+
 /-- An open map sends interiors into the interior of the image. -/
 theorem image_interior_subset_interior_image_of_isOpenMap
     {α β : Type*} [TopologicalSpace α] [TopologicalSpace β]
