@@ -576,6 +576,44 @@ inductive OneBitFanFaceDependency [CompleteSpace E] {ι : Type*} {m : ℕ} :
       (hadjacent : j = i.castSucc ∨ j = i.succ) :
       OneBitFanFaceDependency ((G, k), .endpoint j) ((C, k), .strip i)
 
+/-- The geometric output attached to a one-bit fan-face task: a strip task returns the face patch
+inside that projected tile and fiber strip, while an endpoint task returns the face patch on the
+corresponding endpoint graph. -/
+def oneBitFanFaceTaskPatch {n m : ℕ} {ι : Type*}
+    (facePatch : Set (Fin (n + 1) → ℝ))
+    (baseTile : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × ι → Set (Fin n → ℝ))
+    (lower upper : (Fin n → ℝ) → ℝ)
+    (task : OneBitFanFaceTask (EuclideanSpace ℝ (Fin n)) ι m) :
+    Set (Fin (n + 1) → ℝ) :=
+  match task.2 with
+  | .strip i =>
+      facePatch ∩ projectionFiberSubdivisionTile (baseTile task.1) lower upper i
+  | .endpoint j =>
+      facePatch ∩ (projectionFiberSubdivisionEndpointGraphPoint lower upper j) ''
+        baseTile task.1
+
+/-- Proper exposed-face tasks carry nested geometric outputs whenever their projected tiles are
+nested. This is the patch-level invariant needed by a recursive face filler: all inherited strip
+or endpoint data actually lie in the parent task's patch. -/
+theorem oneBitFanFaceTaskPatch_mono_of_commonFace {n m : ℕ} {ι : Type*}
+    (facePatch : Set (Fin (n + 1) → ℝ))
+    (baseTile : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) × ι → Set (Fin n → ℝ))
+    (lower upper : (Fin n → ℝ) → ℝ)
+    (hbaseTile : ∀ {G C : ProperCone ℝ (EuclideanSpace ℝ (Fin n))},
+      IsExposedFaceOf G C → ∀ k, baseTile (G, k) ⊆ baseTile (C, k))
+    (G C : ProperCone ℝ (EuclideanSpace ℝ (Fin n))) (k : ι)
+    (hface : IsExposedFaceOf G C) (cell : OneBitFiberCell m) :
+    oneBitFanFaceTaskPatch facePatch baseTile lower upper ((G, k), cell) ⊆
+      oneBitFanFaceTaskPatch facePatch baseTile lower upper ((C, k), cell) := by
+  cases cell with
+  | strip i =>
+      intro x hx
+      exact ⟨hx.1, projectionFiberSubdivisionTile_mono (hbaseTile hface k)
+        lower upper i hx.2⟩
+  | endpoint j =>
+      intro x hx
+      exact ⟨hx.1, Set.image_mono (hbaseTile hface k) hx.2⟩
+
 /-- The combined fan-cell/one-bit-face dependency order is well-founded. Fan-face steps lower the
 cone span rank; endpoint steps lower the one-bit fiber dimension, including when the fan cell is
 unchanged. -/

@@ -103,11 +103,17 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   `GlobalAttractorTheorem.lean` against it. The exact target axiom audit still
   reports `sorryAx`; the well-founded dependency and common-endpoint lemmas
   report only standard Lean axioms.
-- The recursive geometric output remains absent. Current local patch covers
-  and finite-overlap barrier gluing do not yet prove an invariant that relates
-  all predecessor barriers to the parent task or yields one global surface.
-  Next, inspect the radial atlas interfaces and formalize that
-  parent/predecessor invariant; then derive a global
+- Added `oneBitFanFaceTaskPatch`, whose strip and endpoint cases now return the
+  actual restricted strip patch and endpoint-graph patch, plus a face-mono
+  lemma under projected-tile containment. Recompiled the geometry module and
+  target successfully; the target warning and `sorryAx` remain unchanged.
+- The current face-mono lemma still assumes tile containment, and it does not
+  itself assemble the inherited outputs or barriers. The arrangement atlas
+  gives exact common-face patch intersections, while the radial atlas's smooth
+  maximum controls derivatives only at points incident to every listed patch.
+  Next specialize the task outputs to the arrangement tiles, prove the
+  predecessor patch/seam invariants from the shared cover, and use those
+  invariants in a recursive parent fill. Then derive a global
   `ZeroSeparatingSurfaceExists` witness and apply it in the target branch.
   Keep the checklist open until its exact theorem and kernel axiom audit are
   clean.
