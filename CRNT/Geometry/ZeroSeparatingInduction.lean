@@ -4339,6 +4339,42 @@ theorem CompactOneBitFiberPatchCover.exists_restrictedDomain_tile_basepoint_inci
   obtain ⟨x, hx, hprojected⟩ := restricted.exists_restricted_tile_basepoint_incidence p hne
   exact ⟨x, hx, hx.1.2, hprojected⟩
 
+/-- Craciun v3, §8 Step 1 followed by §8 Step 2: if two clipped neighboring patches over lower
+tiles have a nonempty intersection, their shared endpoint seam has a projected basepoint in the
+intersection of those lower tiles. Its endpoint-graph lift remains in the clipped face patch.
+This is the incidence datum needed to pass the clipped seam to the lower-dimensional boundary
+construction. -/
+theorem CompactOneBitFiberPatchCover.exists_restrictedDomain_adjacent_seam_basepoint
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CompactOneBitFiberPatchCover facePatch base baseTile lower upper epsilon)
+    (domain : Set (Fin (n + 1) → ℝ)) (hdomain : IsClosed domain)
+    (i j : ι) (horder : ∀ y ∈ baseTile i ∩ baseTile j, lower y ≤ upper y)
+    (k : Fin cover.tiling.subdivisionCount)
+    (hne : (((facePatch ∩ domain) ∩
+        projectionFiberSubdivisionTile (baseTile i) lower upper k.castSucc) ∩
+      ((facePatch ∩ domain) ∩
+        projectionFiberSubdivisionTile (baseTile j) lower upper k.succ)).Nonempty) :
+    ∃ y, y ∈ baseTile i ∩ baseTile j ∧
+      projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y ∈
+        facePatch ∩ domain ∧
+      forgetLastCoordinate n
+        (projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y) = y := by
+  let restricted := cover.restrict_to_closedDomain domain hdomain
+  have hseam := restricted.adjacent_base_tiles_share_seam i j horder k
+  obtain ⟨x, hx⟩ := hne
+  have hx' : x ∈ (facePatch ∩ domain) ∩
+      (fun y : Fin n → ℝ =>
+        projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y) ''
+        (baseTile i ∩ baseTile j) := by
+    have hseamAt := congrArg (fun s : Set (Fin (n + 1) → ℝ) => x ∈ s) hseam
+    exact hseamAt.mp hx
+  rcases hx' with ⟨hxface, y, hy, rfl⟩
+  refine ⟨y, hy, hxface, ?_⟩
+  simp [projectionFiberSubdivisionEndpointGraphPoint, forgetLastCoordinate]
+
 /-! ## The ruled-surface step -/
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]

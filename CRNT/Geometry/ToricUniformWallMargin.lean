@@ -1110,6 +1110,82 @@ theorem Network.exists_restrictedOneBitFiberPatch_finite_overlap_glue
   exact ⟨offset, N.restrictedOneBitFiberPatch_finite_overlap_glue
     κ cover domain hdomain ψ z selected offset tailHead tail p ps hp hps hatlas⟩
 
+/-- End-to-end local atlas step: a compact wall-chart cover selects one inward wall on each
+nonempty one-bit patch, and the selected barriers then glue over any finite clipped common face.
+This composes the compact-chart-to-tile argument with Craciun v3's restricted blueprint step. -/
+theorem Network.exists_restrictedOneBitFiberPatch_finite_overlap_glue_of_wallChart
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base baseTile lower upper epsilon)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S) (hψ : Continuous ψ)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (t : Finset K) {ε δwall δcoord η tolerance : ℝ} (hε : 0 < ε)
+    (hchart : ∀ y ∈ K, ∃ wall ∈ t, ∀ q ∈ Metric.ball y δwall,
+      ε < ⟪(z wall).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ)
+    (himage : ∀ p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1),
+      ψ '' (facePatch ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2) ⊆ K)
+    (hmapDiam : ∀ p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1),
+      ∀ x ∈ facePatch ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2,
+      ∀ y ∈ facePatch ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2,
+      dist x y < δcoord → dist (ψ x) (ψ y) < δwall)
+    (hprojectedSmall : ∀ p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1),
+      ∀ a ∈ baseTile p.1, ∀ b ∈ baseTile p.1, dist a b < η)
+    (hendpointVariation : ∀ p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1),
+      ∀ a ∈ baseTile p.1, ∀ b ∈ baseTile p.1, dist a b < η →
+        dist
+          (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint
+            lower upper p.2.succ a)
+          (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint
+            lower upper p.2.succ b) < tolerance)
+    (hηsmall : η < δcoord) (hbudget : epsilon + tolerance < δcoord)
+    (hδcoord : 0 < δcoord)
+    (domain : Set (Fin (n + 1) → ℝ)) (hdomain : IsClosed domain)
+    (tailHead : (EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)
+    (tail : List ((EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ))
+    (p : Σ i : ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1))
+    (ps : List (Σ i : ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)))
+    {q : EuclideanSpace ℝ S}
+    (hp : q ∈ ψ '' ((facePatch ∩ domain) ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2))
+    (hps : ∀ r ∈ ps, q ∈ ψ '' ((facePatch ∩ domain) ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile r.1) lower upper r.2)) :
+    ∃ selected : (Σ i : ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)) → Option K,
+      ∃ offset : (Σ i : ι,
+        Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)) → ℝ,
+      ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothMaxList
+            (SmoothBarrierGluing.smoothWallList
+              ((selected p).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset p)
+              (tailHead :: tail))
+            (ps.map (fun r => SmoothBarrierGluing.smoothWallList
+              ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+              (tailHead :: tail)))) D q ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ 0 := by
+  obtain ⟨selected, _, hlabels, hselected⟩ := N.exists_oneBitFiberPatchWallSelection
+    κ cover ψ z t hchart himage hmapDiam
+    hprojectedSmall hendpointVariation hηsmall hbudget hδcoord
+  obtain ⟨offset, hglue⟩ := N.exists_restrictedOneBitFiberPatch_finite_overlap_glue
+    κ cover domain hdomain ψ hψ z t hε
+    selected hselected hlabels tailHead tail p ps hp hps
+  exact ⟨selected, offset, hglue⟩
+
 /-- Craciun v3, §7.4.3: any two labels selected on restricted tiles are simultaneously inward on
 their overlap, including overlaps from degenerate fibers. Consequently their two-wall smooth
 maximum descends there. This is the pairwise compatibility statement used when assembling the
@@ -1294,6 +1370,78 @@ theorem Network.exists_restrictedOneBitFiberPatchInwardBasepoint
       CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
         (baseTile p.1) lower upper p.2) := ⟨x, hx, rfl⟩
   exact ⟨wall, x, hwall, hx, hdomain_x, hprojected, hwallSpec.1, hwallSpec.2 _ himage⟩
+
+/-- A nonempty shared seam between two clipped neighboring patches supplies a lower-dimensional
+basepoint whose endpoint lift lies in the clipped face. The two selected tile walls are both
+strictly inward at that lift, so the compatibility data survives restriction to the projective
+domain. -/
+theorem Network.exists_restrictedAdjacentOneBitFiberPatchWalls_inward_on_seam
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base baseTile lower upper epsilon)
+    (domain : Set (Fin (n + 1) → ℝ)) (hdomain : IsClosed domain)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (t : Finset K) {ε : ℝ}
+    (selected : (Σ i : ι, Fin (cover.tiling.subdivisionCount + 1)) → Option K)
+    (hselected : ∀ p wall, selected p = some wall → wall ∈ t ∧ ∀ q ∈
+      ψ '' ((facePatch ∩ domain) ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2),
+      ε < ⟪(z wall).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ)
+    (i j : ι)
+    (horder : ∀ y ∈ baseTile i ∩ baseTile j, lower y ≤ upper y)
+    (k : Fin cover.tiling.subdivisionCount)
+    (wall₀ wall₁ : K)
+    (hwall₀ : selected ⟨i, k.castSucc⟩ = some wall₀)
+    (hwall₁ : selected ⟨j, k.succ⟩ = some wall₁)
+    (hne : (((facePatch ∩ domain) ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile i) lower upper k.castSucc) ∩
+      ((facePatch ∩ domain) ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile j) lower upper k.succ)).Nonempty) :
+    ∃ y, y ∈ baseTile i ∩ baseTile j ∧
+      ε < ⟪(z wall₀).1, toEuclid (N.massActionVectorField κ
+        (toEuclid.symm (ψ (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+          lower upper k.succ.castSucc y))))⟫_ℝ ∧
+      ε < ⟪(z wall₁).1, toEuclid (N.massActionVectorField κ
+        (toEuclid.symm (ψ (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+          lower upper k.succ.castSucc y))))⟫_ℝ := by
+  obtain ⟨y, hy, hface, _⟩ := cover.exists_restrictedDomain_adjacent_seam_basepoint
+    domain hdomain i j horder k hne
+  let x := CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+    lower upper k.succ.castSucc y
+  let restricted := cover.restrict_to_closedDomain domain hdomain
+  have hseam := restricted.adjacent_base_tiles_share_seam i j horder k
+  have hxSeam : x ∈
+      ((facePatch ∩ domain) ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile i) lower upper k.castSucc) ∩
+      ((facePatch ∩ domain) ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile j) lower upper k.succ) := by
+    have hxGraph : x ∈ (facePatch ∩ domain) ∩
+        (fun z : Fin n → ℝ =>
+          CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+            lower upper k.succ.castSucc z) '' (baseTile i ∩ baseTile j) := by
+      refine ⟨hface, y, hy, ?_⟩
+      rfl
+    have hseamAt := congrArg (fun s : Set (Fin (n + 1) → ℝ) => x ∈ s) hseam
+    exact hseamAt.mpr hxGraph
+  have himage₀ : ψ x ∈ ψ '' ((facePatch ∩ domain) ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile i) lower upper k.castSucc) := ⟨x, hxSeam.1, rfl⟩
+  have himage₁ : ψ x ∈ ψ '' ((facePatch ∩ domain) ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile j) lower upper k.succ) := ⟨x, hxSeam.2, rfl⟩
+  exact ⟨y, hy, (hselected ⟨i, k.castSucc⟩ wall₀ hwall₀).2 _ himage₀,
+    (hselected ⟨j, k.succ⟩ wall₁ hwall₁).2 _ himage₁⟩
 
 /-- Adjacent fiber strips meet on their shared endpoint graph, and both selected tile walls remain
 strictly inward at every point of that seam. This is the wall-orientation compatibility needed
