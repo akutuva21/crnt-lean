@@ -3452,6 +3452,159 @@ theorem craciunProjectiveArrangementTile_radialProjection_subset {n : ℕ}
     exact hsC
   exact e.apply_symm_apply _
 
+/-- Transfer a projective arrangement tile's radial points to a containing cell of the original
+fan. If the tile's chamber contains a candidate surface normal, the containing fan cell's toric
+polar field points into that normal's half-space. This is the inwardness interface needed after
+the combinatorial projective subdivision (Craciun v3, §8 Steps 1–2). -/
+theorem craciunProjectiveArrangementTile_fanInwardLabel {n : ℕ}
+    (upper : Fin (n + 1) → ℝ) (hupper : ∀ i, 0 < upper i)
+    (F : Fan (EuclideanSpace ℝ (Fin n)))
+    (hF : IsPolyhedralFan F) (hFdual : HasDualFGCells F)
+    (C : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)})
+    {v : EuclideanSpace ℝ (Fin n)} (hv : v ∈ C.1) :
+    ∃ D ∈ F,
+      forgetLastCoordinate n ''
+        (radialBoxDiagramTile (craciunProjectiveArrangementTile upper
+          (fanNormalSet F hFdual) C) upper
+          (fun x hx i => craciunProjectiveArrangementTile_nonnegative
+            upper (fanNormalSet F hFdual) C hx i)
+          (fun x hx => craciunProjectiveArrangementTile_nonzero
+            upper (fanNormalSet F hFdual) C hx) hupper ∩ craciunProjectiveDomain) ⊆
+        (EuclideanSpace.equiv (Fin n) ℝ) '' (D : Set (EuclideanSpace ℝ (Fin n))) ∧
+      (coneDual (D : Set (EuclideanSpace ℝ (Fin n))) :
+        Set (EuclideanSpace ℝ (Fin n))) ⊆ {w | 0 ≤ ⟪v, w⟫_ℝ} := by
+  obtain ⟨D, hD, hCD⟩ :=
+    hyperplaneArrangementFamily_refines_of_dualFG hF hFdual C.1 C.2
+  refine ⟨D, hD, ?_, coneDual_subset_dualHalfPlane_of_mem (hCD hv)⟩
+  intro y hy
+  have hCtile := craciunProjectiveArrangementTile_radialProjection_subset
+    upper (fanNormalSet F hFdual) hupper C hy
+  rcases hCtile with ⟨x, hx, rfl⟩
+  exact ⟨x, hCD hx, rfl⟩
+
+/-- Every clipped radial point carries a concrete fan inwardness certificate. Its projected
+coordinate itself is the candidate normal: the projective tile places that point in an arrangement
+chamber, and finite-dual refinement supplies an original fan cell whose polar points into it. -/
+theorem craciunProjectiveArrangementRadialPoint_fanInwardLabel {n : ℕ}
+    (upper : Fin (n + 1) → ℝ) (hupper : ∀ i, 0 < upper i)
+    (F : Fan (EuclideanSpace ℝ (Fin n))) (hF : IsPolyhedralFan F)
+    (hFdual : HasDualFGCells F)
+    (C : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)})
+    {p : Fin (n + 1) → ℝ}
+    (hp : p ∈ radialBoxDiagramTile
+      (craciunProjectiveArrangementTile upper (fanNormalSet F hFdual) C) upper
+        (fun x hx i => craciunProjectiveArrangementTile_nonnegative
+          upper (fanNormalSet F hFdual) C hx i)
+        (fun x hx => craciunProjectiveArrangementTile_nonzero
+          upper (fanNormalSet F hFdual) C hx) hupper ∩ craciunProjectiveDomain) :
+    ∃ v : EuclideanSpace ℝ (Fin n), ∃ D ∈ F,
+      (EuclideanSpace.equiv (Fin n) ℝ).symm (forgetLastCoordinate n p) = v ∧
+      v ∈ C.1 ∧
+      (coneDual (D : Set (EuclideanSpace ℝ (Fin n))) :
+        Set (EuclideanSpace ℝ (Fin n))) ⊆ {w | 0 ≤ ⟪v, w⟫_ℝ} := by
+  let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
+  have hprojectionSubset := craciunProjectiveArrangementTile_radialProjection_subset
+    upper (fanNormalSet F hFdual) hupper C
+  have hprojection := hprojectionSubset ⟨p, hp, rfl⟩
+  rcases hprojection with ⟨v, hv, hpv⟩
+  obtain ⟨D, hD, _, hpolar⟩ :=
+    craciunProjectiveArrangementTile_fanInwardLabel upper hupper F hF hFdual C hv
+  have hnormal : e.symm (forgetLastCoordinate n p) = v := by
+    calc
+      e.symm (forgetLastCoordinate n p) = e.symm (e v) := congrArg e.symm hpv.symm
+      _ = v := e.symm_apply_apply v
+  exact ⟨v, D, hD, hnormal, hv, hpolar⟩
+
+/-- A radial overlap between two distinct projective arrangement tiles projects into their exact
+common fan face. The face label, both exposed-face certificates, and both strict rank drops are
+retained so the lower-dimensional overlap is a proper recursive task. -/
+theorem craciunProjectiveArrangementRadialOverlap_commonFace {n : ℕ}
+    (upper : Fin (n + 1) → ℝ) (hupper : ∀ i, 0 < upper i)
+    (F : Fan (EuclideanSpace ℝ (Fin n))) (hFdual : HasDualFGCells F)
+    (C D : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)}) (hne : C ≠ D) :
+    ∃ (G : ProperCone ℝ (EuclideanSpace ℝ (Fin n)))
+      (hG : G ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)),
+      IsExposedFaceOf G C.1 ∧ IsExposedFaceOf G D.1 ∧
+      (G ≠ C.1 → coneSpanRank G < coneSpanRank C.1) ∧
+      (G ≠ D.1 → coneSpanRank G < coneSpanRank D.1) ∧
+      (G ≠ C.1 ∨ G ≠ D.1) ∧
+      forgetLastCoordinate n ''
+        ((radialBoxDiagramTile (craciunProjectiveArrangementTile upper
+            (fanNormalSet F hFdual) C) upper
+            (fun x hx i => craciunProjectiveArrangementTile_nonnegative
+              upper (fanNormalSet F hFdual) C hx i)
+            (fun x hx => craciunProjectiveArrangementTile_nonzero
+              upper (fanNormalSet F hFdual) C hx) hupper ∩ craciunProjectiveDomain) ∩
+          (radialBoxDiagramTile (craciunProjectiveArrangementTile upper
+            (fanNormalSet F hFdual) D) upper
+            (fun x hx i => craciunProjectiveArrangementTile_nonnegative
+              upper (fanNormalSet F hFdual) D hx i)
+            (fun x hx => craciunProjectiveArrangementTile_nonzero
+              upper (fanNormalSet F hFdual) D hx) hupper ∩ craciunProjectiveDomain)) ⊆
+        (EuclideanSpace.equiv (Fin n) ℝ) '' (G : Set (EuclideanSpace ℝ (Fin n))) := by
+  let tileC := craciunProjectiveArrangementTile upper (fanNormalSet F hFdual) C
+  let tileD := craciunProjectiveArrangementTile upper (fanNormalSet F hFdual) D
+  obtain ⟨G, hG, htileFace, hGC, hGD, hrankC, hrankD⟩ :=
+    craciunProjectiveArrangementTile_intersection upper (fanNormalSet F hFdual) C D
+  let tileG := craciunProjectiveArrangementTile upper (fanNormalSet F hFdual) ⟨G, hG⟩
+  let nonnegC : ∀ x, x ∈ tileC → ∀ i, 0 ≤ x i := by
+    intro x hx i
+    exact craciunProjectiveArrangementTile_nonnegative upper (fanNormalSet F hFdual) C hx i
+  let nonzeroC : ∀ x, x ∈ tileC → x ≠ 0 := by
+    intro x hx
+    exact craciunProjectiveArrangementTile_nonzero upper (fanNormalSet F hFdual) C hx
+  let anchorC : ∀ x, x ∈ tileC → x 0 = 1 := by
+    intro x hx
+    exact craciunProjectiveArrangementTile_anchor upper (fanNormalSet F hFdual) C hx
+  let nonnegD : ∀ x, x ∈ tileD → ∀ i, 0 ≤ x i := by
+    intro x hx i
+    exact craciunProjectiveArrangementTile_nonnegative upper (fanNormalSet F hFdual) D hx i
+  let nonzeroD : ∀ x, x ∈ tileD → x ≠ 0 := by
+    intro x hx
+    exact craciunProjectiveArrangementTile_nonzero upper (fanNormalSet F hFdual) D hx
+  let anchorD : ∀ x, x ∈ tileD → x 0 = 1 := by
+    intro x hx
+    exact craciunProjectiveArrangementTile_anchor upper (fanNormalSet F hFdual) D hx
+  let nonnegG : ∀ x, x ∈ tileG → ∀ i, 0 ≤ x i := by
+    intro x hx i
+    exact craciunProjectiveArrangementTile_nonnegative upper (fanNormalSet F hFdual) ⟨G, hG⟩ hx i
+  let nonzeroG : ∀ x, x ∈ tileG → x ≠ 0 := by
+    intro x hx
+    exact craciunProjectiveArrangementTile_nonzero upper (fanNormalSet F hFdual) ⟨G, hG⟩ hx
+  have hclip := radialBoxDiagramTile_intersection_clip_eq tileC tileD upper 0
+    craciunProjectiveDomain nonnegC nonzeroC anchorC nonnegD nonzeroD anchorD hupper
+    craciunProjectiveDomain_origin_not_mem
+  have hproper : G ≠ C.1 ∨ G ≠ D.1 := by
+    by_cases hGCeq : G = C.1
+    · right
+      intro hGDeq
+      exact hne (Subtype.ext (hGCeq.symm.trans hGDeq))
+    · exact Or.inl hGCeq
+  refine ⟨G, hG, hGC, hGD, hrankC, hrankD, hproper, ?_⟩
+  intro y hy
+  rcases hy with ⟨p, ⟨⟨hpC, hdomain⟩, ⟨hpD, _⟩⟩, rfl⟩
+  have hpBoth : p ∈
+      (radialBoxDiagramTile tileC upper nonnegC nonzeroC hupper ∩ craciunProjectiveDomain) ∩
+        (radialBoxDiagramTile tileD upper nonnegD nonzeroD hupper ∩ craciunProjectiveDomain) :=
+    ⟨⟨hpC, hdomain⟩, ⟨hpD, hdomain⟩⟩
+  have hpCommon := (congrArg (fun s => p ∈ s) hclip).mp hpBoth
+  have hpBox := radialBoxDiagramTile_subset_box tileC upper nonnegC nonzeroC hupper hpC
+  have hpG : p ∈ radialBoxDiagramTile tileG upper nonnegG nonzeroG hupper := by
+    rcases (mem_radialBoxDiagramTile_iff_exists_source_ray (tileC ∩ tileD) upper
+        (fun x hx i => nonnegC x hx.1 i) (fun x hx => nonzeroC x hx.1) hupper).1 hpCommon.1 with
+      ⟨x, hx, s, hs, hpx, _⟩
+    have hxG : x ∈ tileG := by
+      have hfaceAt := congrArg (fun S => x ∈ S) htileFace
+      exact hfaceAt.mp hx
+    exact radialBoxDiagramTile_contains_of_ray_in_box tileG upper nonnegG nonzeroG hupper
+      hxG hs hpx (fun i => (hpBox i).2)
+  have hsubsetG := craciunProjectiveArrangementTile_radialProjection_subset
+    upper (fanNormalSet F hFdual) hupper ⟨G, hG⟩
+  exact hsubsetG ⟨p, ⟨hpG, hdomain⟩, rfl⟩
+
 /-- Distinct projective arrangement tiles have disjoint projected interiors after radial lifting.
 The result follows because each projection stays in its closed cone and the arrangement cone
 interiors are disjoint. -/
