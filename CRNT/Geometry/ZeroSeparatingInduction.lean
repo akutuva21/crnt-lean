@@ -1011,6 +1011,51 @@ theorem radialBoxDiagramTile_projectiveDomain_iUnion_clip {ι : Sort*} {n : ℕ}
   exact radialBoxDiagramTile_iUnion_clip diagramTile upper craciunProjectiveDomain
     hdiagramNonnegative hdiagramNonzero hupper
 
+/-- Craciun v3, §8 Step 1: a finite compact family of normalized projective diagram tiles yields
+a compact family of restricted radial boundary tiles covering `D^P_n` inside the blue box. The
+source cover is the lower-dimensional input; compactness, radial extension, clipping, and cover
+transfer are proved here. -/
+theorem isCompact_and_covers_projectiveRadialTiles {ι : Type*} [Fintype ι]
+    {n : ℕ} [NeZero n]
+    (diagramTile : ι → Set (Fin n → ℝ)) (upper : Fin n → ℝ)
+    (hdiagramNonnegative : ∀ k x, x ∈ diagramTile k → ∀ i, 0 ≤ x i)
+    (hdiagramAnchor : ∀ k x, x ∈ diagramTile k → x 0 = 1)
+    (hdiagramCompact : ∀ k, IsCompact (diagramTile k))
+    (hupper : ∀ i, 0 < upper i)
+    (hdiagramCoversNormalizedDomain : ∀ x,
+      x ∈ craciunProjectiveDomain → x 0 = 1 → x ∈ ⋃ k, diagramTile k) :
+    IsCompact (⋃ k, radialBoxDiagramTile (diagramTile k) upper
+      (hdiagramNonnegative k)
+      (fun x hx => by
+        intro hzero
+        have hzeroCoord : x 0 = (0 : ℝ) := congrFun hzero 0
+        rw [hdiagramAnchor k x hx] at hzeroCoord
+        exact one_ne_zero hzeroCoord)
+      hupper ∩ craciunProjectiveDomain) ∧
+    (∀ p, p ∈ craciunProjectiveDomain → (∀ i, p i ≤ upper i) →
+      p ∈ ⋃ k, radialBoxDiagramTile (diagramTile k) upper
+        (hdiagramNonnegative k)
+        (fun x hx => by
+          intro hzero
+          have hzeroCoord : x 0 = (0 : ℝ) := congrFun hzero 0
+          rw [hdiagramAnchor k x hx] at hzeroCoord
+          exact one_ne_zero hzeroCoord)
+        hupper ∩ craciunProjectiveDomain) := by
+  let hdiagramNonzero : ∀ k x, x ∈ diagramTile k → x ≠ 0 := by
+    intro k x hx hzero
+    have hzeroCoord : x 0 = (0 : ℝ) := congrFun hzero 0
+    rw [hdiagramAnchor k x hx] at hzeroCoord
+    exact one_ne_zero hzeroCoord
+  refine ⟨isCompact_iUnion (fun k => ?_), ?_⟩
+  · exact isCompact_radialBoxDiagramTile_projectiveDomain (diagramTile k) upper 0
+      (hdiagramNonnegative k) (hdiagramNonzero k) (hdiagramAnchor k) hupper
+      (hdiagramCompact k)
+  · intro p hp hpupper
+    have htile := radialBoxDiagramTiles_cover_projectiveDomain_box diagramTile upper
+      hdiagramNonnegative hdiagramNonzero hupper hdiagramCoversNormalizedDomain hp hpupper
+    obtain ⟨k, hk⟩ := Set.mem_iUnion.mp htile
+    exact Set.mem_iUnion.mpr ⟨k, hk, hp⟩
+
 /-- An open map sends interiors into the interior of the image. -/
 theorem image_interior_subset_interior_image_of_isOpenMap
     {α β : Type*} [TopologicalSpace α] [TopologicalSpace β]
