@@ -89,8 +89,25 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   `sorryAx` (as well as Lean's standard `propext`, `Classical.choice`, and
   `Quot.sound`).
 - The preexisting dirty `CRNT/Geometry/ZeroSeparatingInduction.lean` lemma and
-  unrelated untracked artifacts are preserved. This verified recursion-layer
-  checkpoint is being committed and pushed separately; the target remains open.
-- Next action: define and prove the face-task geometric output type and the
-  recursive strip-fill step against the actual atlas, then wire its assembled
-  output into the target branch.
+  unrelated untracked artifacts are preserved. The verified checkpoint was
+  committed locally as `05900e8`; the target remains open. Push was rejected by
+  automatic review because it treats this private repository payload as
+  external source-code egress and says general push authorization does not
+  authorize that specific destination. Do not retry by an alternate route
+  without destination-specific approval.
+- After that commit, corrected the product seam task index to retain only the
+  projected small-tile label (the fan cell is a separate index), and added
+  proper-face endpoint-to-endpoint and strip-to-strip dependency witnesses.
+  Compiled `FanRefinement.lean` directly to `/tmp/FanRefinement.olean`, overlaid
+  that artifact into the temporary Lean search tree, and compiled
+  `GlobalAttractorTheorem.lean` against it. The exact target axiom audit still
+  reports `sorryAx`; the well-founded dependency and common-endpoint lemmas
+  report only standard Lean axioms.
+- The recursive geometric output remains absent. Current local patch covers
+  and finite-overlap barrier gluing do not yet prove an invariant that relates
+  all predecessor barriers to the parent task or yields one global surface.
+  Next, inspect the radial atlas interfaces and formalize that
+  parent/predecessor invariant; then derive a global
+  `ZeroSeparatingSurfaceExists` witness and apply it in the target branch.
+  Keep the checklist open until its exact theorem and kernel axiom audit are
+  clean.

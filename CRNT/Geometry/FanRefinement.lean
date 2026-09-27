@@ -546,7 +546,9 @@ inductive OneBitFiberCell (m : ℕ)
   | strip : Fin (m + 1) → OneBitFiberCell m
   | endpoint : Fin (m + 2) → OneBitFiberCell m
 
-/-- A face-filling task pairs a fan cell with one of its one-bit strips or endpoint seams. -/
+/-- A face-filling task identifies its fan cell, projected small-tile label, and one-bit strip or
+endpoint seam. The label is kept separate from the fan cell so proper-face dependencies retain the
+same projected tile while replacing the cell by its actual common face. -/
 abbrev OneBitFanFaceTask (E : Type*) [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     (ι : Type*) (m : ℕ) := (ProperCone ℝ E × ι) × OneBitFiberCell m
 
@@ -559,7 +561,7 @@ noncomputable def oneBitFanFaceTaskRank [CompleteSpace E] {m : ℕ}
     | .endpoint _ => 0)
 
 /-- A fan-face or fiber-endpoint dependency points from a required lower-dimensional task to the
-strip task whose boundary uses it. -/
+strip or endpoint task whose boundary uses it. -/
 inductive OneBitFanFaceDependency [CompleteSpace E] {ι : Type*} {m : ℕ} :
     OneBitFanFaceTask E ι m → OneBitFanFaceTask E ι m → Prop
   | fanFace (C G : ProperCone ℝ E) (k : ι) (i : Fin (m + 1))
@@ -2901,25 +2903,35 @@ theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype �
       (C.1 ≠ D.1 → ProperExposedFaceDependency G C.1 ∨
         ProperExposedFaceDependency G D.1) ∧
       OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
-        (ι := _ × ι)
+        (ι := ι)
         (m := cover.tiling.subdivisionCount)
-        ((G, (C, i)), .endpoint k.succ.castSucc)
-          ((C.1, (C, i)), .strip k.castSucc) ∧
+        ((G, i), .endpoint k.succ.castSucc)
+          ((C.1, i), .strip k.castSucc) ∧
       OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
-        (ι := _ × ι)
+        (ι := ι)
         (m := cover.tiling.subdivisionCount)
-        ((G, (D, j)), .endpoint k.succ.castSucc)
-          ((D.1, (D, j)), .strip k.succ) ∧
+        ((G, j), .endpoint k.succ.castSucc)
+          ((D.1, j), .strip k.succ) ∧
       (C.1 ≠ G → OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
-        (ι := _ × ι)
+        (ι := ι)
         (m := cover.tiling.subdivisionCount)
-        ((G, (C, i)), .strip k.castSucc)
-          ((C.1, (C, i)), .strip k.castSucc)) ∧
+        ((G, i), .endpoint k.succ.castSucc)
+          ((C.1, i), .endpoint k.succ.castSucc)) ∧
       (D.1 ≠ G → OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
-        (ι := _ × ι)
+        (ι := ι)
         (m := cover.tiling.subdivisionCount)
-        ((G, (D, j)), .strip k.succ)
-          ((D.1, (D, j)), .strip k.succ)) ∧
+        ((G, j), .endpoint k.succ.castSucc)
+          ((D.1, j), .endpoint k.succ.castSucc)) ∧
+      (C.1 ≠ G → OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (ι := ι)
+        (m := cover.tiling.subdivisionCount)
+        ((G, i), .strip k.castSucc)
+          ((C.1, i), .strip k.castSucc)) ∧
+      (D.1 ≠ G → OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (ι := ι)
+        (m := cover.tiling.subdivisionCount)
+        ((G, j), .strip k.succ)
+          ((D.1, j), .strip k.succ)) ∧
       ((euclideanHyperplaneArrangementBaseTile base F hFdual C ∩ smallTile i) ∩
         (euclideanHyperplaneArrangementBaseTile base F hFdual D ∩ smallTile j) =
           euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩ ∩
@@ -2975,15 +2987,21 @@ theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype �
   have hindex : k.succ.castSucc = k.castSucc.succ := by
     apply Fin.ext
     simp
-  refine ⟨G, hG, hdependency, ?_, ?_, ?_, ?_, hbaseMeet, ?_⟩
-  · exact OneBitFanFaceDependency.fiberEndpoint C.1 G (C, i) k.castSucc
+  refine ⟨G, hG, hdependency, ?_, ?_, ?_, ?_, ?_, ?_, hbaseMeet, ?_⟩
+  · exact OneBitFanFaceDependency.fiberEndpoint C.1 G i k.castSucc
       k.succ.castSucc hGC (Or.inr hindex)
-  · exact OneBitFanFaceDependency.fiberEndpoint D.1 G (D, j) k.succ
+  · exact OneBitFanFaceDependency.fiberEndpoint D.1 G j k.succ
       k.succ.castSucc hGD (Or.inl rfl)
   · intro hCG
-    exact OneBitFanFaceDependency.fanFace C.1 G (C, i) k.castSucc hGC hCG.symm
+    exact OneBitFanFaceDependency.fanFaceEndpoint C.1 G i
+      k.succ.castSucc hGC hCG.symm
   · intro hDG
-    exact OneBitFanFaceDependency.fanFace D.1 G (D, j) k.succ hGD hDG.symm
+    exact OneBitFanFaceDependency.fanFaceEndpoint D.1 G j
+      k.succ.castSucc hGD hDG.symm
+  · intro hCG
+    exact OneBitFanFaceDependency.fanFace C.1 G i k.castSucc hGC hCG.symm
+  · intro hDG
+    exact OneBitFanFaceDependency.fanFace D.1 G j k.succ hGD hDG.symm
   · rw [← hbaseMeet]
     exact hseam
 
