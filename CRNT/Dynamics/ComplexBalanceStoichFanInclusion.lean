@@ -35,6 +35,50 @@ theorem relativeSourceOrderNegativeStoichFan_hasDualFGCells (N : Network S) :
   CRNT.FanRefinement.negatedFan_hasDualFGCells N.relativeSourceOrderStoichFan
     (N.relativeSourceOrderStoichFan_hasDualFGCells)
 
+/-- Coordinates on the intrinsic stoichiometric space, indexed by its actual dimension. The
+chosen finite basis is only a chart choice; the resulting complete fan refinement below carries
+the network's source-order geometry into the coordinate space used by projective tile atlases. -/
+noncomputable def euclideanStoichCoordinateEquiv (N : Network S) :
+    N.euclideanStoichSubspace ≃L[ℝ]
+      EuclideanSpace ℝ (Fin (Module.finrank ℝ N.euclideanStoichSubspace)) := by
+  let b := Module.finBasis ℝ N.euclideanStoichSubspace
+  exact b.equivFun.toContinuousLinearEquiv.trans
+    (EuclideanSpace.equiv (Fin (Module.finrank ℝ N.euclideanStoichSubspace)) ℝ).symm
+
+/-- A complete polyhedral fan in finite coordinates refines the transported negative source-order
+fan of the network. This supplies the actual fan-label input for a Craciun projective tile chart,
+rather than leaving its fan parameter unrelated to the complex-balanced network. -/
+theorem exists_coordinate_refinement_of_relativeSourceOrderNegativeStoichFan
+    (N : Network S) :
+    ∃ F : CRNT.Fan
+        (EuclideanSpace ℝ (Fin (Module.finrank ℝ N.euclideanStoichSubspace))),
+      CRNT.IsPolyhedralFan F ∧
+      CRNT.FanRefinement.HasDualFGCells F ∧
+      CRNT.FanRefinement.Refines F
+        (CRNT.FanRefinement.linearImageFamily
+          N.euclideanStoichCoordinateEquiv.toContinuousLinearMap
+          N.relativeSourceOrderNegativeStoichFan) := by
+  let e := N.euclideanStoichCoordinateEquiv
+  let f : N.euclideanStoichSubspace →L[ℝ]
+      EuclideanSpace ℝ (Fin (Module.finrank ℝ N.euclideanStoichSubspace)) :=
+    e.toContinuousLinearMap
+  let g : EuclideanSpace ℝ (Fin (Module.finrank ℝ N.euclideanStoichSubspace)) →L[ℝ]
+      N.euclideanStoichSubspace := e.symm.toContinuousLinearMap
+  have hfg : ∀ y, f (g y) = y := by
+    intro y
+    exact e.apply_symm_apply y
+  have hv0 : f (0 : N.euclideanStoichSubspace) = 0 := map_zero f
+  have hdecomp : ∀ x : N.euclideanStoichSubspace,
+      ∃ t : ℝ, x = g (f x) + t • (0 : N.euclideanStoichSubspace) := by
+    intro x
+    refine ⟨0, ?_⟩
+    simp [f, g, e.symm_apply_apply]
+  exact CRNT.FanRefinement.exists_polyhedral_fan_refinement_of_oneDimensional_projection
+    N.relativeSourceOrderNegativeStoichFan
+    N.relativeSourceOrderNegativeStoichFan_isPolyhedralFan
+    N.relativeSourceOrderNegativeStoichFan_hasDualFGCells
+    f g 0 hfg hv0 hdecomp
+
 /-- The common refinement of the toric source-order fan with any dual-finitely-generated
 polyhedral fan is again a polyhedral fan. This is the entry point for combining toric chambers
 with a simplicial subdivision in the zero-separating construction. -/
