@@ -582,6 +582,137 @@ theorem Network.exists_oneBitFiberPatchWallSelection
       exact Classical.choose_spec (hlocal p hne)
     · simp at hselected
 
+/-- Craciun v3, §7.4.3 Case 1.2 and §8 Step 1: on a compact positive projective face patch,
+choose the fiber and projected-base tile scales from Heine-Cantor, then select one inward wall on
+every nonempty refined patch. This composes the projective small-tile construction with the local
+wall selector, rather than leaving the scale and map-diameter obligations as caller hypotheses. -/
+theorem Network.exists_compactProjectiveRadialWallSelection
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive)
+    (hcb : N.IsComplexBalanced κ xstar)
+    (diagramTile : ι → Set (Fin (n + 1) → ℝ)) (upper : Fin (n + 1) → ℝ)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S) (hψ : Continuous ψ)
+    (hdiagramNonnegative : ∀ k x, x ∈ diagramTile k → ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ k x, x ∈ diagramTile k → x ≠ 0)
+    (hdiagramAnchor : ∀ k x, x ∈ diagramTile k → x 0 = 1)
+    (hdiagramCompact : ∀ k, IsCompact (diagramTile k))
+    (hupper : ∀ i, 0 < upper i)
+    (hdiagramCoversNormalizedDomain : ∀ x,
+      x ∈ ZeroSeparatingInduction.craciunProjectiveDomain → x 0 = 1 →
+        x ∈ ⋃ k, diagramTile k)
+    (hfaceNonempty : (⋃ k, ZeroSeparatingInduction.radialBoxDiagramTile
+      (diagramTile k) upper (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩
+        ZeroSeparatingInduction.craciunProjectiveDomain).Nonempty)
+    (hpositive : ∀ x, x ∈ ⋃ k, ZeroSeparatingInduction.radialBoxDiagramTile
+      (diagramTile k) upper (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩
+        ZeroSeparatingInduction.craciunProjectiveDomain →
+      Concentration.Positive (toEuclid.symm (ψ x)))
+    (hnotcb : ∀ x, x ∈ ⋃ k, ZeroSeparatingInduction.radialBoxDiagramTile
+      (diagramTile k) upper (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩
+        ZeroSeparatingInduction.craciunProjectiveDomain →
+      ¬ N.IsComplexBalanced κ (toEuclid.symm (ψ x))) :
+    let facePatch : Set (Fin (n + 1) → ℝ) :=
+      ⋃ k, ZeroSeparatingInduction.radialBoxDiagramTile (diagramTile k) upper
+        (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩
+          ZeroSeparatingInduction.craciunProjectiveDomain
+    let K : Set (EuclideanSpace ℝ S) := ψ '' facePatch
+    ∃ δcoord : ℝ, 0 < δcoord ∧
+    ∃ m : ℕ, ∃ baseTile : Fin m → Set (Fin n → ℝ),
+      ∃ cover : ZeroSeparatingInduction.CompactOneBitFiberPatchCover facePatch
+        (ZeroSeparatingInduction.forgetLastCoordinate n '' facePatch) baseTile (fun _ => 0)
+          (fun _ => upper (Fin.last n)) (δcoord / 4),
+      ∃ z : K → N.euclideanStoichSubspace, ∃ t : Finset K, ∃ ε : ℝ,
+      ∃ selected : (Σ i : Fin m, Fin (cover.tiling.subdivisionCount + 1)) → Option K,
+        0 < ε ∧
+        (∀ p, ¬ (facePatch ∩ ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) (fun _ => 0) (fun _ => upper (Fin.last n)) p.2).Nonempty →
+            selected p = none) ∧
+        (∀ p, (facePatch ∩ ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) (fun _ => 0) (fun _ => upper (Fin.last n)) p.2).Nonempty →
+            ∃ wall, selected p = some wall) ∧
+        (∀ p wall, selected p = some wall → wall ∈ t ∧ ∀ q ∈
+          ψ '' (facePatch ∩ ZeroSeparatingInduction.projectionFiberSubdivisionTile
+            (baseTile p.1) (fun _ => 0) (fun _ => upper (Fin.last n)) p.2),
+          ε < ⟪(z wall).1,
+            toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ) := by
+  classical
+  let facePatch : Set (Fin (n + 1) → ℝ) :=
+    ⋃ k, ZeroSeparatingInduction.radialBoxDiagramTile (diagramTile k) upper
+      (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩
+        ZeroSeparatingInduction.craciunProjectiveDomain
+  let K : Set (EuclideanSpace ℝ S) := ψ '' facePatch
+  have hfaceCompact : IsCompact facePatch := by
+    dsimp [facePatch]
+    exact (ZeroSeparatingInduction.isCompact_and_covers_projectiveRadialTiles
+      diagramTile upper hdiagramNonnegative hdiagramAnchor hdiagramCompact hupper
+      hdiagramCoversNormalizedDomain).1
+  have hKcompact : IsCompact K := hfaceCompact.image hψ
+  have hKne : K.Nonempty := by
+    obtain ⟨x, hx⟩ := hfaceNonempty
+    exact ⟨ψ x, ⟨x, hx, rfl⟩⟩
+  have hKpos : ∀ p ∈ K, Concentration.Positive (toEuclid.symm p) := by
+    rintro p ⟨x, hx, rfl⟩
+    exact hpositive x hx
+  have hKnotcb : ∀ p ∈ K, ¬ N.IsComplexBalanced κ (toEuclid.symm p) := by
+    rintro p ⟨x, hx, rfl⟩
+    exact hnotcb x hx
+  obtain ⟨z, _, t, ε, hε, _, δwall, hδwall, hchart⟩ :=
+    N.exists_finite_negativeLogWallCover_on_compact κ hxs hcb hKcompact hKne hKpos hKnotcb
+  obtain ⟨δcoord, hδcoord, hmap⟩ :=
+    exists_uniform_chart_radius_on_compact_facePatch ψ hψ hfaceCompact hδwall
+  let εtile : ℝ := δcoord / 4
+  have hεtile : 0 < εtile := by dsimp [εtile]; positivity
+  have heta : 0 < δcoord / 4 := by positivity
+  obtain ⟨m, baseTile, coverData⟩ :=
+    ZeroSeparatingInduction.compactProjectiveRadialFamily_smallPatchCover
+      diagramTile upper εtile (δcoord / 4) hdiagramNonnegative hdiagramNonzero
+      hdiagramAnchor hdiagramCompact hupper hεtile heta hdiagramCoversNormalizedDomain
+  let cover := coverData.1
+  have hsmall := coverData.2
+  have himage : ∀ p : Σ i : Fin m, Fin (cover.tiling.subdivisionCount + 1),
+      ψ '' (facePatch ∩ ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) (fun _ => 0) (fun _ => upper (Fin.last n)) p.2) ⊆ K := by
+    intro p q hq
+    rcases hq with ⟨x, hx, rfl⟩
+    exact ⟨x, hx.1, rfl⟩
+  have hmapDiam : ∀ p : Σ i : Fin m, Fin (cover.tiling.subdivisionCount + 1),
+      ∀ x ∈ facePatch ∩ ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) (fun _ => 0) (fun _ => upper (Fin.last n)) p.2,
+      ∀ y ∈ facePatch ∩ ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) (fun _ => 0) (fun _ => upper (Fin.last n)) p.2,
+      dist x y < δcoord → dist (ψ x) (ψ y) < δwall := by
+    intro p x hx y hy hdist
+    exact hmap x hx.1 y hy.1 hdist
+  have hprojectedSmall : ∀ p : Σ i : Fin m, Fin (cover.tiling.subdivisionCount + 1),
+      ∀ a ∈ baseTile p.1, ∀ b ∈ baseTile p.1, dist a b < δcoord / 4 := by
+    intro p a ha b hb
+    exact hsmall p.1 a ha b hb
+  have hendpointVariation : ∀ p : Σ i : Fin m, Fin (cover.tiling.subdivisionCount + 1),
+      ∀ a ∈ baseTile p.1, ∀ b ∈ baseTile p.1, dist a b < δcoord / 4 →
+        dist (ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint
+          (fun _ => 0) (fun _ => upper (Fin.last n)) p.2.succ a)
+          (ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint
+            (fun _ => 0) (fun _ => upper (Fin.last n)) p.2.succ b) < δcoord / 4 := by
+    intro p a ha b hb hab
+    have heq : ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint
+        (fun _ => 0) (fun _ => upper (Fin.last n)) p.2.succ a =
+        ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint
+          (fun _ => 0) (fun _ => upper (Fin.last n)) p.2.succ b := by
+      simp [ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint,
+        ZeroSeparatingInduction.tileScaleInterpolation]
+    rw [heq]
+    simpa using heta
+  have hbudget : εtile + δcoord / 4 < δcoord := by
+    dsimp [εtile]
+    linarith
+  obtain ⟨selected, hnone, hsome, hselected⟩ :=
+    N.exists_oneBitFiberPatchWallSelection κ cover ψ z t hchart himage hmapDiam
+      hprojectedSmall hendpointVariation (by linarith) hbudget hδcoord
+  dsimp only
+  exact ⟨δcoord, hδcoord, m, baseTile, cover, z, t, ε, selected, hε,
+    hnone, hsome, hselected⟩
+
 /-- A selected inward wall on a compact one-bit tile produces a differentiable local barrier.
 Compactness lets its affine offset dominate the finite tail of other walls, and the existing
 dominant-head estimate then makes the smooth wall list nonincreasing along the toric mass-action
