@@ -94,6 +94,48 @@ coarse one. -/
 def Refines [CompleteSpace E] (F' F : Fan E) : Prop :=
   ∀ C' ∈ F', ∃ C ∈ F, (C' : Set E) ⊆ (C : Set E)
 
+/-- Intersecting a compact seam patch with every cell of a finite complete fan refinement gives a
+finite compact cover whose pieces inherit a containing cell label from the coarse fan. This is the
+compact local-patch decomposition used to pass projected tile seams into the faithful fan stage. -/
+theorem compactSet_fanRefinement_patchCover [CompleteSpace E]
+    (K : Set E) (hK : IsCompact K) {F' F : Fan E}
+    (href : Refines F' F) (hF' : IsPolyhedralFan F') :
+    (∀ C ∈ F', IsCompact (K ∩ (C : Set E))) ∧
+      K = ⋃ C ∈ F', K ∩ (C : Set E) ∧
+      (∀ C ∈ F', ∃ D ∈ F, (K ∩ (C : Set E)) ⊆ (D : Set E)) := by
+  refine ⟨?_, ?_, ?_⟩
+  · intro C hC
+    exact hK.inter_right C.isClosed
+  · ext x
+    constructor
+    · intro hx
+      have hxcover : x ∈ ⋃ C ∈ F', (C : Set E) := by
+        rw [hF'.covers]
+        simp
+      rcases Set.mem_iUnion.mp hxcover with ⟨C, hxC⟩
+      rcases Set.mem_iUnion.mp hxC with ⟨hC, hxCmem⟩
+      exact Set.mem_iUnion.mpr ⟨C, Set.mem_iUnion.mpr ⟨hC, ⟨hx, hxCmem⟩⟩⟩
+    · intro hx
+      rcases Set.mem_iUnion.mp hx with ⟨C, hxC⟩
+      rcases Set.mem_iUnion.mp hxC with ⟨_, hxPatch⟩
+      exact hxPatch.1
+  · intro C hC
+    obtain ⟨D, hD, hsubset⟩ := href C hC
+    exact ⟨D, hD, fun x hx => hsubset hx.2⟩
+
+/-- Two compact pieces cut from a polyhedral fan refinement overlap in the patch cut from their
+common fan face. This records exact overlap compatibility for the finite chamber-labeled cover. -/
+theorem compactSet_fanRefinement_patch_intersection [CompleteSpace E]
+    (K : Set E) {F : Fan E} (hF : IsPolyhedralFan F)
+    (C D : ProperCone ℝ E) (hC : C ∈ F) (hD : D ∈ F) :
+    ∃ G ∈ F,
+      (K ∩ (C : Set E)) ∩ (K ∩ (D : Set E)) = K ∩ (G : Set E) := by
+  obtain ⟨G, hG, hcommon⟩ := hF.inter_common C hC D hD
+  refine ⟨G, hG, ?_⟩
+  rw [hcommon]
+  ext x
+  simp [and_assoc, and_left_comm]
+
 /-- The finite family of closed-cone images of a fan under a continuous linear map. Since the
 proper-cone image operation takes closure, this family need not itself satisfy the fan axioms. -/
 noncomputable def linearImageFamily {F : Type*} [NormedAddCommGroup F]
