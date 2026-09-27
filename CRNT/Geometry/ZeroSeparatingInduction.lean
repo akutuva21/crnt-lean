@@ -636,6 +636,45 @@ theorem radialBoxDiagramTile_clip_overlap_source {n : ℕ}
     exact False.elim (horigin hp.1.2)
   · exact ⟨x, ⟨hxA, hxB⟩, s, hspos, hpx, hp.1.2⟩
 
+/-- Craciun v3, §8 Step 1's projective domain `D^P_n`, with coordinate `i` representing
+`X_(i+2)`. The manuscript conditions `X_(n+1) ≥ ... ≥ X_2 ≥ 1` become coordinatewise lower
+bounds by one and monotonicity with the `Fin n` index. -/
+def craciunProjectiveDomain {n : ℕ} : Set (Fin n → ℝ) :=
+  {x | (∀ i, 1 ≤ x i) ∧ ∀ i j, i.val ≤ j.val → x i ≤ x j}
+
+/-- The origin is outside Craciun's projective domain because its coordinates are all at least
+one. This discharges the exceptional common-origin term in the radial seam identity. -/
+theorem craciunProjectiveDomain_origin_not_mem {n : ℕ} [NeZero n] :
+    (0 : Fin n → ℝ) ∉ craciunProjectiveDomain := by
+  intro h
+  have hcoord := h.1 (0 : Fin n)
+  norm_num at hcoord
+
+/-- Craciun's restricted projective domain removes the common origin, so two radial boundary
+tiles clipped to `D^P_n` meet exactly in the radial extension of the common lower-dimensional
+diagram tile, clipped to that same domain (§8 Step 1). -/
+theorem radialBoxDiagramTile_projectiveDomain_intersection_eq {n : ℕ} [NeZero n]
+    (tileA tileB : Set (Fin n → ℝ)) (upper : Fin n → ℝ) (anchor : Fin n)
+    (hA_nonnegative : ∀ x ∈ tileA, ∀ i, 0 ≤ x i)
+    (hA_nonzero : ∀ x ∈ tileA, x ≠ 0)
+    (hA_anchor : ∀ x ∈ tileA, x anchor = 1)
+    (hB_nonnegative : ∀ x ∈ tileB, ∀ i, 0 ≤ x i)
+    (hB_nonzero : ∀ x ∈ tileB, x ≠ 0)
+    (hB_anchor : ∀ x ∈ tileB, x anchor = 1)
+    (hupper : ∀ i, 0 < upper i)
+    (hA_nonempty : tileA.Nonempty) (hB_nonempty : tileB.Nonempty) :
+    (radialBoxDiagramTile tileA upper hA_nonnegative hA_nonzero hupper ∩
+      craciunProjectiveDomain) ∩
+        (radialBoxDiagramTile tileB upper hB_nonnegative hB_nonzero hupper ∩
+          craciunProjectiveDomain) =
+      radialBoxDiagramTile (tileA ∩ tileB) upper
+        (fun x hx i => hA_nonnegative x hx.1 i)
+        (fun x hx => hA_nonzero x hx.1) hupper ∩ craciunProjectiveDomain := by
+  exact radialBoxDiagramTile_intersection_clip_eq tileA tileB upper anchor
+    craciunProjectiveDomain hA_nonnegative hA_nonzero hA_anchor
+    hB_nonnegative hB_nonzero hB_anchor hupper hA_nonempty hB_nonempty
+    craciunProjectiveDomain_origin_not_mem
+
 /-- Craciun v3, §8 Step 1: extending a lower-dimensional diagram covered by patches gives the
 union of the radial boundary tiles obtained from those patches. This is the cover-assembly
 identity paired with `radialBoxDiagramTile_intersection_eq`, which describes their seams. -/
@@ -693,6 +732,25 @@ theorem radialBoxDiagramTile_iUnion_clip {ι : Sort*} {n : ℕ}
     exact ⟨i, hi, hdomain⟩
   · rintro ⟨i, hi, hdomain⟩
     exact ⟨⟨i, hi⟩, hdomain⟩
+
+/-- The assembled radial cover of the lower-dimensional diagram remains an exact cover after
+restriction to Craciun's projective domain `D^P_n` (§8 Step 1). -/
+theorem radialBoxDiagramTile_projectiveDomain_iUnion_clip {ι : Sort*} {n : ℕ}
+    (diagramTile : ι → Set (Fin n → ℝ)) (upper : Fin n → ℝ)
+    (hdiagramNonnegative : ∀ i x, x ∈ diagramTile i → ∀ j, 0 ≤ x j)
+    (hdiagramNonzero : ∀ i x, x ∈ diagramTile i → x ≠ 0)
+    (hupper : ∀ i, 0 < upper i) :
+    radialBoxDiagramTile (⋃ i, diagramTile i) upper
+        (fun x hx j => by
+          obtain ⟨i, hi⟩ := Set.mem_iUnion.mp hx
+          exact hdiagramNonnegative i x hi j)
+        (fun x hx => by
+          obtain ⟨i, hi⟩ := Set.mem_iUnion.mp hx
+          exact hdiagramNonzero i x hi) hupper ∩ craciunProjectiveDomain =
+      ⋃ i, radialBoxDiagramTile (diagramTile i) upper
+        (hdiagramNonnegative i) (hdiagramNonzero i) hupper ∩ craciunProjectiveDomain := by
+  exact radialBoxDiagramTile_iUnion_clip diagramTile upper craciunProjectiveDomain
+    hdiagramNonnegative hdiagramNonzero hupper
 
 /-- An open map sends interiors into the interior of the image. -/
 theorem image_interior_subset_interior_image_of_isOpenMap
