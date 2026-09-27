@@ -4006,3 +4006,333 @@ theorem Network.fanSmallProductTile_allIncident_strip_dependency_and_glue
 
 
 end CRNT
+
+namespace CRNT
+
+theorem Network.fanSmallProductTile_allIncident_endpoint_dependency_and_glue
+    {S : Type} [DecidableEq S] [Fintype S]
+    {n : ℕ} {base : Set (Fin n → ℝ)} {eta epsilon : ℝ}
+    (N : Network S) (κ : N.RateConstants)
+    (T : ZeroSeparatingInduction.CompactSmallBaseTiling base eta)
+    (F : Fan (EuclideanSpace ℝ (Fin n)))
+    (hFdual : FanRefinement.HasDualFGCells F)
+    [Fintype (FanArrangementCell n F hFdual)]
+    {facePatch : Set (Fin (n + 1) → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    (cover : ZeroSeparatingInduction.CompactOneBitFiberPatchCover facePatch base
+      (fun p : FanArrangementCell n F hFdual × Sum (Fin T.count) (Fin T.count × Fin T.count) =>
+        FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile (p.1.1, p.2))
+      lower upper epsilon)
+    (horder : ∀ y ∈ base, lower y ≤ upper y)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (selected : (Σ p : FanArrangementCell n F hFdual × Sum (Fin T.count) (Fin T.count × Fin T.count),
+      Fin (cover.tiling.subdivisionCount + 1)) → Option K)
+    (offset : (Σ p : FanArrangementCell n F hFdual × Sum (Fin T.count) (Fin T.count × Fin T.count),
+      Fin (cover.tiling.subdivisionCount + 1)) → ℝ)
+    (tailHead : (EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)
+    (tail : List ((EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ))
+    (hatlas : ∀ r q₀,
+      q₀ ∈ ψ '' ((facePatch ∩ Set.univ) ∩
+        ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile
+            (r.1.1.1, r.1.2)) lower upper r.2) →
+      ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothWallList
+            ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+            (tailHead :: tail)) D q₀ ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm q₀))) ≤ 0)
+    (C : FanArrangementCell n F hFdual) (i : Fin T.count)
+    (k : Fin (cover.tiling.subdivisionCount)) (y : Fin n → ℝ)
+    (hy : y ∈ FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual C ∩ T.tile i)
+    (hgraph : ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+      lower upper k.succ.castSucc y ∈ facePatch) :
+    ∃ H : ProperCone ℝ (EuclideanSpace ℝ (Fin n)),
+      ∃ hH : H ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual),
+      (EuclideanSpace.equiv (Fin n) ℝ).symm y ∈ H ∧
+      ∃ ps : List (Σ p : FanArrangementCell n F hFdual ×
+          Sum (Fin T.count) (Fin T.count × Fin T.count),
+          Fin (cover.tiling.subdivisionCount + 1)),
+        (∀ D j side,
+          y ∈ FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual D →
+          y ∈ T.tile j →
+          (side = k.castSucc ∨ side = k.succ) →
+          (D, j, side) ≠ (C, i, k.castSucc) →
+          ∃ r ∈ ps, r.1 = (D, Sum.inl j) ∧ r.2 = side) ∧
+        (∀ r ∈ ps,
+          ∃ seam : FanRefinement.OneBitFanFaceTask (EuclideanSpace ℝ (Fin n))
+              (Sum (Fin T.count) (Fin T.count × Fin T.count)) cover.tiling.subdivisionCount,
+            ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+              lower upper k.succ.castSucc y ∈
+              FanRefinement.oneBitFanFaceTaskPatch facePatch
+                (FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile)
+                lower upper seam ∧
+            Relation.ReflTransGen
+              (FanRefinement.FiniteOverlapDependency (E := EuclideanSpace ℝ (Fin n))
+                (q := T.count) (m := cover.tiling.subdivisionCount))
+              seam (((C.1, Sum.inl i), .strip k.castSucc)) ∧
+            Relation.ReflTransGen
+              (FanRefinement.FiniteOverlapDependency (E := EuclideanSpace ℝ (Fin n))
+                (q := T.count) (m := cover.tiling.subdivisionCount))
+              seam (((r.1.1.1, r.1.2), .strip r.2))) ∧
+        ∃ Dbar : EuclideanSpace ℝ S →L[ℝ] ℝ,
+          HasFDerivAt
+            (SmoothBarrierGluing.smoothMaxList
+              (SmoothBarrierGluing.smoothWallList
+                ((selected ⟨(C, Sum.inl i), k.castSucc⟩).elim tailHead.1
+                  (fun wall => innerSL ℝ (z wall).1), offset ⟨(C, Sum.inl i), k.castSucc⟩)
+                (tailHead :: tail))
+              (ps.map fun r => SmoothBarrierGluing.smoothWallList
+                ((selected r).elim tailHead.1
+                  (fun wall => innerSL ℝ (z wall).1), offset r)
+                (tailHead :: tail))) Dbar
+            (ψ (ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+              lower upper k.succ.castSucc y)) ∧
+          Dbar (toEuclid (N.massActionVectorField κ (toEuclid.symm
+            (ψ (ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+              lower upper k.succ.castSucc y))))) ≤ 0 := by
+  classical
+  let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
+  let x := ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+    lower upper k.succ.castSucc y
+  let mixed := FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile
+  let left : Fin (cover.tiling.subdivisionCount + 1) := k.castSucc
+  let right : Fin (cover.tiling.subdivisionCount + 1) := k.succ
+  have hindex : k.succ.castSucc = left.succ := by
+    apply Fin.ext
+    simp [left]
+  have hyroot : y ∈ mixed (C.1, Sum.inl i) := by
+    change y ∈ FanRefinement.euclideanProperConeBaseTile base C.1 ∩ T.tile i
+    simpa [FanRefinement.euclideanHyperplaneArrangementBaseTile,
+      FanRefinement.euclideanProperConeBaseTile] using hy
+  have hyrootBase : y ∈ FanRefinement.euclideanProperConeBaseTile base C.1 ∩ T.tile i := by
+    simpa [mixed, FanRefinement.euclideanProperConeMixedTileBaseTile] using hyroot
+  have hyrootCone : y ∈ FanRefinement.euclideanProperConeBaseTile base C.1 :=
+    hyrootBase.1
+  have hyBase : y ∈ base := by
+    change y ∈ e '' (e.symm '' base ∩ (C.1 : Set (EuclideanSpace ℝ (Fin n)))) at hyrootCone
+    rcases hyrootCone with ⟨u, ⟨hvBase, hvC⟩, huy⟩
+    rcases hvBase with ⟨w, hw, hwv⟩
+    have hyw : y = w := by
+      calc
+        y = e u := huy.symm
+        _ = e (e.symm w) := by rw [← hwv]
+        _ = w := e.apply_symm_apply w
+    simpa [hyw] using hw
+  have hpointStripBase (side : Fin (cover.tiling.subdivisionCount + 1))
+      (hside : side = left ∨ side = right) :
+      x ∈ ZeroSeparatingInduction.projectionFiberSubdivisionTile base lower upper side := by
+    rcases hside with hleft | hright
+    · subst side
+      simpa [x, left] using
+        (FanRefinement.projectionFiberSubdivisionEndpointGraphPoint_mem_adjacentTile
+          base lower upper horder left k.succ.castSucc (Or.inr hindex) y hyBase)
+    · subst side
+      simpa [x, right] using
+        (FanRefinement.projectionFiberSubdivisionEndpointGraphPoint_mem_adjacentTile
+          base lower upper horder right k.succ.castSucc (Or.inl rfl) y hyBase)
+  have hpointStrip (D : FanArrangementCell n F hFdual) (j : Fin T.count)
+      (side : Fin (cover.tiling.subdivisionCount + 1))
+      (hside : side = left ∨ side = right)
+      (hbase : y ∈ mixed (D.1, Sum.inl j)) :
+      x ∈ ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (mixed (D.1, Sum.inl j)) lower upper side := by
+    have hbaseStrip := hpointStripBase side hside
+    change (let y := ZeroSeparatingInduction.forgetLastCoordinate n x;
+      y ∈ mixed (D.1, Sum.inl j) ∧
+        ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper side.castSucc y ≤
+          x (Fin.last n) ∧
+        x (Fin.last n) ≤
+          ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper side.succ y)
+    have hbaseStrip' := hbaseStrip
+    change (let y := ZeroSeparatingInduction.forgetLastCoordinate n x;
+      y ∈ base ∧
+        ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper side.castSucc y ≤
+          x (Fin.last n) ∧
+        x (Fin.last n) ≤
+          ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper side.succ y) at hbaseStrip'
+    have hyx : ZeroSeparatingInduction.forgetLastCoordinate n x = y := by
+      simp [x, ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint,
+        ZeroSeparatingInduction.forgetLastCoordinate]
+    refine ⟨by simpa [hyx] using hbase, ?_, ?_⟩
+    · simpa [hyx] using hbaseStrip'.2.1
+    · simpa [hyx] using hbaseStrip'.2.2
+  let incident : Finset (FanArrangementCell n F hFdual ×
+      (Fin T.count × Fin (cover.tiling.subdivisionCount + 1))) :=
+    Finset.univ.filter fun p =>
+      (p.2.2 = left ∨ p.2.2 = right) ∧
+      y ∈ FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual p.1 ∧
+      y ∈ T.tile p.2.1 ∧ p ≠ (C, (i, left))
+  let ps : List (Σ p : FanArrangementCell n F hFdual ×
+      Sum (Fin T.count) (Fin T.count × Fin T.count),
+      Fin (cover.tiling.subdivisionCount + 1)) :=
+    incident.toList.map fun p => ⟨(p.1, Sum.inl p.2.1), p.2.2⟩
+  let cells : Finset (ProperCone ℝ (EuclideanSpace ℝ (Fin n))) :=
+    insert C.1 (incident.image fun p => p.1.1)
+  have hcellAt (D : FanArrangementCell n F hFdual)
+      (hD : y ∈ FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual D) :
+      e.symm y ∈ (D.1 : Set (EuclideanSpace ℝ (Fin n))) := by
+    change y ∈ FanRefinement.euclideanProperConeBaseTile base D.1 at hD
+    change y ∈ e '' (e.symm '' base ∩ (D.1 : Set _)) at hD
+    rcases hD with ⟨v, ⟨hvBase, hvD⟩, hvy⟩
+    have heq : e.symm y = v := by
+      calc
+        e.symm y = e.symm (e v) := by rw [hvy]
+        _ = v := e.symm_apply_apply v
+    rw [heq]
+    exact hvD
+  have hCells : ∀ A ∈ cells,
+      A ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual) := by
+    intro A hA
+    simp only [cells, Finset.mem_insert, Finset.mem_image] at hA
+    rcases hA with hA | ⟨p, hp, rfl⟩
+    · simpa [hA] using C.2
+    · exact p.1.2
+  have hxCells : ∀ A ∈ cells, e.symm y ∈ (A : Set (EuclideanSpace ℝ (Fin n))) := by
+    intro A hA
+    simp only [cells, Finset.mem_insert, Finset.mem_image] at hA
+    rcases hA with hA | ⟨p, hp, rfl⟩
+    · subst A
+      exact hcellAt C (by simpa [FanRefinement.euclideanHyperplaneArrangementBaseTile,
+        FanRefinement.euclideanProperConeBaseTile] using hy.1)
+    · exact hcellAt p.1 (Finset.mem_filter.mp hp).2.2.1
+  obtain ⟨H, hH, hHy, hHfaces⟩ :=
+    FanRefinement.hyperplaneArrangementFamily_commonFace_at cells hCells hxCells
+  have hHbase : y ∈ FanRefinement.euclideanProperConeBaseTile base H := by
+    change y ∈ e '' (e.symm '' base ∩ (H : Set _))
+    exact ⟨e.symm y, ⟨⟨y, hyBase, rfl⟩, hHy⟩, e.apply_symm_apply y⟩
+  have hrootBase : y ∈ FanRefinement.euclideanProperConeBaseTile base H ∩ T.tile i :=
+    ⟨hHbase, hyroot.2⟩
+  have hrootStrip : x ∈ ZeroSeparatingInduction.projectionFiberSubdivisionTile
+      (FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual C ∩ T.tile i)
+      lower upper left := by
+    have hb := hpointStripBase left (Or.inl rfl)
+    change (let y := ZeroSeparatingInduction.forgetLastCoordinate n x;
+      y ∈ FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual C ∩ T.tile i ∧
+        ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper left.castSucc y ≤
+          x (Fin.last n) ∧
+        x (Fin.last n) ≤
+          ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper left.succ y)
+    have hb' := hb
+    change (let y := ZeroSeparatingInduction.forgetLastCoordinate n x;
+      y ∈ base ∧
+        ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper left.castSucc y ≤
+          x (Fin.last n) ∧
+        x (Fin.last n) ≤
+          ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper left.succ y) at hb'
+    have hyx : ZeroSeparatingInduction.forgetLastCoordinate n x = y := by
+      simp [x, ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint,
+        ZeroSeparatingInduction.forgetLastCoordinate]
+    exact ⟨by simpa [hyx] using hy, by simpa [hyx] using hb'.2.1, by simpa [hyx] using hb'.2.2⟩
+  have hps : ∀ r ∈ ps,
+      ψ x ∈ ψ '' ((facePatch ∩ Set.univ) ∩
+        ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile
+            (r.1.1.1, r.1.2)) lower upper r.2) := by
+    intro r hr
+    rcases List.mem_map.mp hr with ⟨p, hp, hEq⟩
+    subst r
+    have hpIncident : p ∈ incident := Finset.mem_toList.mp hp
+    have hpData := (Finset.mem_filter.mp hpIncident).2
+    rcases hpData with ⟨hside, hD, hj, hne⟩
+    have hbaseTile : y ∈ mixed (p.1.1, Sum.inl p.2.1) := by
+      change y ∈ FanRefinement.euclideanProperConeBaseTile base p.1.1 ∩ T.tile p.2.1
+      simpa [FanRefinement.euclideanHyperplaneArrangementBaseTile,
+        FanRefinement.euclideanProperConeBaseTile] using And.intro hD hj
+    have hstrip := hpointStrip p.1 p.2.1 p.2.2 hside hbaseTile
+    have hpatch : x ∈ FanRefinement.oneBitFanFaceTaskPatch facePatch mixed lower upper
+        ((p.1.1, Sum.inl p.2.1), .strip p.2.2) := ⟨hgraph, hstrip⟩
+    exact ⟨x, ⟨⟨hpatch.1, Set.mem_univ x⟩, hpatch.2⟩, rfl⟩
+  have hroot : ψ x ∈ ψ '' ((facePatch ∩ Set.univ) ∩
+      ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual C ∩ T.tile i)
+        lower upper left) := by
+    refine ⟨x, ?_, rfl⟩
+    exact ⟨⟨hgraph, Set.mem_univ x⟩, hrootStrip⟩
+  have hglue := N.restrictedOneBitFiberPatch_finite_overlap_glue
+    κ cover Set.univ isClosed_univ ψ z selected offset tailHead tail
+    ⟨(C, Sum.inl i), left⟩ ps (q := ψ x) hroot hps hatlas
+  have hcoverage : ∀ D j side,
+      y ∈ FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual D →
+      y ∈ T.tile j → (side = left ∨ side = right) →
+      (D, j, side) ≠ (C, i, left) →
+      ∃ r ∈ ps, r.1 = (D, Sum.inl j) ∧ r.2 = side := by
+    intro D j side hD hj hside hne
+    let p := (D, (j, side))
+    have hp : p ∈ incident := by
+      apply Finset.mem_filter.mpr
+      exact ⟨Finset.mem_univ _, hside, hD, hj, hne⟩
+    refine ⟨⟨(D, Sum.inl j), side⟩,
+      List.mem_map.mpr ⟨p, Finset.mem_toList.mpr hp, rfl⟩, rfl, rfl⟩
+  have hdeps : ∀ r ∈ ps,
+      ∃ seam : FanRefinement.OneBitFanFaceTask (EuclideanSpace ℝ (Fin n))
+          (Sum (Fin T.count) (Fin T.count × Fin T.count)) cover.tiling.subdivisionCount,
+        ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+          lower upper k.succ.castSucc y ∈
+          FanRefinement.oneBitFanFaceTaskPatch facePatch mixed lower upper seam ∧
+        Relation.ReflTransGen
+          (FanRefinement.FiniteOverlapDependency (E := EuclideanSpace ℝ (Fin n))
+            (q := T.count) (m := cover.tiling.subdivisionCount))
+          seam (((C.1, Sum.inl i), .strip left)) ∧
+        Relation.ReflTransGen
+          (FanRefinement.FiniteOverlapDependency (E := EuclideanSpace ℝ (Fin n))
+            (q := T.count) (m := cover.tiling.subdivisionCount))
+          seam (((r.1.1.1, r.1.2), .strip r.2)) := by
+    intro r hr
+    rcases List.mem_map.mp hr with ⟨p, hp, hEq⟩
+    subst r
+    have hpIncident : p ∈ incident := Finset.mem_toList.mp hp
+    have hpData := (Finset.mem_filter.mp hpIncident).2
+    rcases hpData with ⟨hside, hD, hj, hne⟩
+    have hpConeCell : p.1.1 ∈ cells := by
+      apply Finset.mem_insert.mpr
+      right
+      exact Finset.mem_image.mpr ⟨p, hpIncident, rfl⟩
+    have hfaceD : IsExposedFaceOf H p.1.1 := (hHfaces p.1.1 hpConeCell).2
+    have hfaceRoot : IsExposedFaceOf H C.1 :=
+      (hHfaces C.1 (Finset.mem_insert.mpr (Or.inl rfl))).2
+    by_cases htileeq : p.2.1 = i
+    · refine ⟨((H, Sum.inl i), .endpoint k.succ.castSucc), ?_, ?_, ?_⟩
+      · change x ∈ facePatch ∩ _
+        refine ⟨hgraph, ?_⟩
+        refine ⟨y, ?_, rfl⟩
+        change y ∈ mixed (H, Sum.inl i)
+        exact ⟨hHbase, hyroot.2⟩
+      · exact Relation.ReflTransGen.single
+          (FanRefinement.FiniteOverlapDependency.inherited
+              (FanRefinement.OneBitFanFaceSeamDependency.inherited
+              (FanRefinement.OneBitFanFaceDependency.fiberEndpoint
+                C.1 H (Sum.inl i) left k.succ.castSucc hfaceRoot (Or.inr hindex))))
+      · rcases hside with hleft | hright
+        · simpa [hleft, left, htileeq] using Relation.ReflTransGen.single
+            (FanRefinement.FiniteOverlapDependency.inherited
+                (FanRefinement.OneBitFanFaceSeamDependency.inherited
+                (FanRefinement.OneBitFanFaceDependency.fiberEndpoint
+                  p.1.1 H (Sum.inl p.2.1) left k.succ.castSucc hfaceD (Or.inr hindex))))
+        · simpa [hright, right, htileeq] using Relation.ReflTransGen.single
+            (FanRefinement.FiniteOverlapDependency.inherited
+                (FanRefinement.OneBitFanFaceSeamDependency.inherited
+                (FanRefinement.OneBitFanFaceDependency.fiberEndpoint
+                  p.1.1 H (Sum.inl p.2.1) right k.succ.castSucc hfaceD (Or.inl rfl))))
+    · refine ⟨((H, Sum.inr (i, p.2.1)), .endpoint k.succ.castSucc), ?_, ?_, ?_⟩
+      · change x ∈ facePatch ∩ _
+        refine ⟨hgraph, ?_⟩
+        refine ⟨y, ?_, rfl⟩
+        change y ∈ mixed (H, Sum.inr (i, p.2.1))
+        exact ⟨hHbase, hyroot.2, hj⟩
+      · exact Relation.ReflTransGen.single
+          (FanRefinement.FiniteOverlapDependency.inherited
+            (FanRefinement.OneBitFanFaceSeamDependency.productSeamLeft
+              C.1 H i p.2.1 left k.succ.castSucc hfaceRoot (Or.inr hindex)))
+      · rcases hside with hleft | hright
+        · simpa [hleft, left] using Relation.ReflTransGen.single
+            (FanRefinement.FiniteOverlapDependency.inherited
+              (FanRefinement.OneBitFanFaceSeamDependency.productSeamRight
+                p.1.1 H i p.2.1 left k.succ.castSucc hfaceD (Or.inr hindex)))
+        · simpa [hright, right] using Relation.ReflTransGen.single
+            (FanRefinement.FiniteOverlapDependency.inherited
+              (FanRefinement.OneBitFanFaceSeamDependency.productSeamRight
+                p.1.1 H i p.2.1 right k.succ.castSucc hfaceD (Or.inl rfl)))
+  exact ⟨H, hH, hHy, ps, hcoverage, hdeps, hglue⟩
+
+end CRNT

@@ -273,3 +273,20 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
 - The exact target audit still reports `sorryAx`. This checkpoint supplies a multiway
   product-junction dependency/gluing result; it does not yet construct the recursive
   face-fill output or the global zero-separating surface.
+
+## Continuation checkpoint — endpoint product-tile junction
+
+- Added `Network.fanSmallProductTile_allIncident_endpoint_dependency_and_glue` to
+  `CRNT/Geometry/ToricUniformWallMargin.lean`. At a fiber endpoint it enumerates all incident
+  arrangement-cell/small-tile strips on both sides, chooses a common lower arrangement face,
+  constructs either a same-tile fiber endpoint task or a pair-labelled product seam, and gives
+  dependency paths to the root and every incident strip. It then applies finite smooth-maximum
+  gluing to the local wall atlas.
+- Fresh Lean 4.34 compilation succeeded for `ZeroSeparatingInduction.lean`, `FanRefinement.lean`,
+  the modified `ToricUniformWallMargin.lean`, `Dynamics/ComplexBalanceStoichFanInclusion.lean`,
+  and `Dynamics/GlobalAttractorTheorem.lean`. The new theorem's axiom audit is
+  `[propext, Classical.choice, Quot.sound]`.
+- The exact target still warns that it uses `sorry`, and its axiom audit still contains `sorryAx`.
+  This closes an endpoint junction lemma under the supplied local wall atlas; it does not construct
+  the §7.4.3 faithful blueprint, the §8 lexicographic face fill, or a global zero-separating surface.
+  Continue with that construction.
