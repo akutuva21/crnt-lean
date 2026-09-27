@@ -312,3 +312,7 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   point on the shared face. This uses compact uniform continuity of one graph section and the
   proved agreement of the two sections along the common face; it still does not construct the
   recursive filler itself.
+- Consumed that estimate against any open neighborhood containing the compact common face: the two
+  pre-blueprints can be scaled so their full intersection lies inside the inherited neighborhood.
+  This makes the residual-overlap-to-lower-face handoff an explicit theorem, conditional only on
+  the lower-face neighborhood already having been constructed.

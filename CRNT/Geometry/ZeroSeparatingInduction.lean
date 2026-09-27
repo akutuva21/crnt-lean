@@ -4783,6 +4783,41 @@ theorem CompactZeroBitFiberPatchCover.exists_preBlueprint_overlap_near_shared_fa
     · simpa [q, Fin.snoc_castSucc] using hbaseCoordinates j
   exact ⟨q, ⟨hqA, hqB⟩, hdist⟩
 
+/-- If an inherited lower-face neighborhood is open, then the two critical-facet pre-blueprints
+can be chosen so that their entire intersection is already inside that neighborhood. Thus the
+equal-projection face step reduces precisely to the recursive construction on the common face. -/
+theorem CompactZeroBitFiberPatchCover.exists_preBlueprint_intersection_subset_of_open_shared_face
+    {n : ℕ} {ιA ιB : Type*} [Fintype ιA] [Fintype ιB]
+    {faceA faceB : Set (Fin (n + 1) → ℝ)}
+    {baseA baseB : Set (Fin n → ℝ)}
+    {tilesA : ιA → Set (Fin n → ℝ)} {tilesB : ιB → Set (Fin n → ℝ)}
+    {marginA radiusA marginB radiusB : ℝ}
+    (coverA : CompactZeroBitFiberPatchCover faceA baseA tilesA marginA radiusA)
+    (coverB : CompactZeroBitFiberPatchCover faceB baseB tilesB marginB radiusB)
+    (hshared : (forgetLastCoordinate n '' (faceA ∩ faceB)).Nonempty)
+    {neighborhood : Set (Fin (n + 1) → ℝ)} (hneighborhood : IsOpen neighborhood)
+    (hface : faceA ∩ faceB ⊆ neighborhood) :
+    ∃ radius : ℝ, 0 < radius ∧
+      zeroBitPreBlueprintNeighborhood faceA (baseA ∩ baseB)
+        (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+        (criticalFacetBinaryWord n) ∩
+      zeroBitPreBlueprintNeighborhood faceB (baseA ∩ baseB)
+        (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+        (criticalFacetBinaryWord n) ⊆ neighborhood := by
+  have hfaceCompact : IsCompact (faceA ∩ faceB) :=
+    coverA.facePatch_compact.inter coverB.facePatch_compact
+  obtain ⟨epsilon, hepsilon, hthick⟩ :=
+    hfaceCompact.exists_thickening_subset_open hneighborhood hface
+  obtain ⟨radius, hradius, _hradiusEpsilon, hoverlap⟩ :=
+    coverA.exists_preBlueprint_overlap_near_shared_face coverB hshared hepsilon
+  refine ⟨radius, hradius, ?_⟩
+  intro x hx
+  rcases hx with ⟨hxA, hxB⟩
+  obtain ⟨q, hq, hdist⟩ := hoverlap x hxA hxB
+  have hxThick : x ∈ Metric.thickening epsilon (faceA ∩ faceB) :=
+    Metric.mem_thickening_iff.mpr ⟨q, hq, hdist⟩
+  exact hthick hxThick
+
 /-- Construct zero-bit graph tubes over a finite compact cover of the projected face whose tile
 interiors are pairwise disjoint. The same continuous section is used on every tile; openness of
 the projection lifts the lower-dimensional disjointness to ambient tube interiors. -/
