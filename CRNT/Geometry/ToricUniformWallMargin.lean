@@ -566,6 +566,62 @@ theorem Network.exists_oneBitFiberPatchWallSelection
       exact Classical.choose_spec (hlocal p hne)
     · simp at hselected
 
+/-- A selected inward wall on a compact one-bit tile produces a differentiable local barrier.
+Compactness lets its affine offset dominate the finite tail of other walls, and the existing
+dominant-head estimate then makes the smooth wall list nonincreasing along the toric mass-action
+field throughout that tile. This is the local analytic output consumed by the later cross-tile
+gluing step. -/
+theorem Network.exists_selected_oneBitFiberPatch_smoothBarrier
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base baseTile lower upper epsilon)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S) (hψ : Continuous ψ)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (t : Finset K) {ε M gap : ℝ} (hε : 0 ≤ ε)
+    (selected : (Σ i : ι, Fin (cover.tiling.subdivisionCount + 1)) → Option K)
+    (hselected : ∀ p wall, selected p = some wall → wall ∈ t ∧ ∀ q ∈
+      ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2),
+      ε < ⟪(z wall).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ)
+    (p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1)) (wall : K)
+    (hwall : selected p = some wall)
+    (tailHead : (EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)
+    (tail : List ((EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ))
+    (hTailBound : ∀ Mb ∈ tailHead :: tail, ∀ q ∈
+      ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2),
+      -Mb.1 (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ M)
+    (hM : M ≤ Real.exp gap * ε) :
+    ∃ a : ℝ, ∀ q ∈
+      ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2),
+      ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothWallList
+            (innerSL ℝ (z wall).1, a) (tailHead :: tail)) D q ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ 0 := by
+  let patch := facePatch ∩
+    CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+      (baseTile p.1) lower upper p.2
+  have hcompact : IsCompact (ψ '' patch) :=
+    (cover.facePatch_tile_compact p).image hψ
+  have hwall := hselected p wall hwall
+  have hhead : ∀ q ∈ ψ '' patch,
+      ε ≤ innerSL ℝ (z wall).1
+        (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) := by
+    intro q hq
+    simpa only [innerSL_apply_apply] using le_of_lt (hwall.2 q hq)
+  have hbound : ∀ Mb ∈ tailHead :: tail, ∀ q ∈ ψ '' patch,
+      -Mb.1 (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ M :=
+    fun Mb hMb q hq => hTailBound Mb hMb q hq
+  exact SmoothBarrierGluing.exists_compact_wallBarrier_offset_with_smoothWallList_nonpos
+    (ψ '' patch) hcompact (innerSL ℝ (z wall).1) tailHead tail hε hhead hbound hM
+
 /-- A selected wall for a restricted one-bit tile remains inward at its Craciun midpoint
 representative whenever the parent patch is the corresponding full fiber band. The geometric
 incidence lemma places the representative in the very restricted patch on which wall selection
