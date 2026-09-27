@@ -3743,6 +3743,35 @@ theorem CompactOneBitFiberPatchCover.centerGraph_interior_incidence
       · exact ⟨y, hy, rfl⟩
       · simp [forgetLastCoordinate]
 
+/-- When the Case 1.2 parent patch is the full bounded fiber band, each selected midpoint lies
+in its restricted chart patch. This is the membership bridge that lets a wall label proved on the
+whole patch apply at the Craciun tile basepoint. -/
+theorem CompactOneBitFiberPatchCover.center_lift_mem_band_patch
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CompactOneBitFiberPatchCover facePatch base baseTile lower upper epsilon)
+    (hfaceEq : facePatch =
+      projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y)))
+    (horder : ∀ y ∈ base, lower y ≤ upper y)
+    (p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1))
+    {y : Fin n → ℝ} (hy : y ∈ baseTile p.1) :
+    Fin.snoc y (cover.tiling.tile_center p.2 y) ∈
+      facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2 := by
+  have hbase : y ∈ base := cover.baseTile_subset p.1 hy
+  have hcenterMem := cover.tiling.tile_center_mem p.2 y hbase
+  constructor
+  · have hband : Fin.snoc y (cover.tiling.tile_center p.2 y) ∈
+        projectionFiberBand base (fun y => some (lower y)) (fun y => some (upper y)) :=
+      projectionFiberSubdivisionTile_subset_band base lower upper horder p.2 hcenterMem
+    exact hfaceEq.symm ▸ hband
+  · apply (mem_projectionFiberSubdivisionTile_snoc_iff
+      (baseTile p.1) lower upper p.2 y (cover.tiling.tile_center p.2 y)).2
+    have hcoords := (mem_projectionFiberSubdivisionTile_snoc_iff
+      base lower upper p.2 y (cover.tiling.tile_center p.2 y)).mp hcenterMem
+    exact ⟨hy, hcoords.2.1, hcoords.2.2⟩
+
 /-- The midpoint representative of one strip cannot lie in any different closed strip over the
 same restricted lower-dimensional base tile. The only overlaps left between those refined patches
 are therefore the endpoint seams identified by the adjacent-tile compatibility theorem. -/

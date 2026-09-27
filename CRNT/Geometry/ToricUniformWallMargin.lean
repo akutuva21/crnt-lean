@@ -561,6 +561,44 @@ theorem Network.exists_oneBitFiberPatchWallSelection
       exact Classical.choose_spec (hlocal p hne)
     · simp at hselected
 
+/-- A selected wall for a restricted one-bit tile remains inward at its Craciun midpoint
+representative whenever the parent patch is the corresponding full fiber band. The geometric
+incidence lemma places the representative in the very restricted patch on which wall selection
+was proved. -/
+theorem Network.selected_oneBitFiberPatchWall_inward_at_center
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base baseTile lower upper epsilon)
+    (hfaceEq : facePatch = CRNT.ZeroSeparatingInduction.projectionFiberBand base
+      (fun y => some (lower y)) (fun y => some (upper y)))
+    (horder : ∀ y ∈ base, lower y ≤ upper y)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (t : Finset K) {ε : ℝ}
+    (selected : (Σ i : ι, Fin (cover.tiling.subdivisionCount + 1)) → Option K)
+    (hselected : ∀ p wall, selected p = some wall → wall ∈ t ∧ ∀ q ∈
+      ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2),
+      ε < ⟪(z wall).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ)
+    (p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1))
+    {y : Fin n → ℝ} (hy : y ∈ baseTile p.1) (wall : K)
+    (hwall : selected p = some wall) :
+    wall ∈ t ∧ ε < ⟪(z wall).1,
+      toEuclid (N.massActionVectorField κ
+        (toEuclid.symm (ψ (Fin.snoc y (cover.tiling.tile_center p.2 y)))))⟫_ℝ := by
+  have hpatch := cover.center_lift_mem_band_patch hfaceEq horder p hy
+  have hcenter : ψ (Fin.snoc y (cover.tiling.tile_center p.2 y)) ∈
+      ψ '' (facePatch ∩ CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2) :=
+    ⟨Fin.snoc y (cover.tiling.tile_center p.2 y), hpatch, rfl⟩
+  have hwallSpec := hselected p wall hwall
+  exact ⟨hwallSpec.1, hwallSpec.2 _ hcenter⟩
+
 /-- A compact patch can be covered by finitely many small balls, each carrying one fixed
 inward wall on the entire ball. The radius is chosen so each patch has diameter below the local
 chart radius. -/
