@@ -1573,6 +1573,23 @@ theorem mem_projectionFiberSubdivisionTile_snoc_iff {n m : ℕ}
         t ≤ projectionFiberSubdivisionEndpoint lower upper i.succ y := by
   simp [projectionFiberSubdivisionTile, projectionFiberSubdivisionEndpoint, forgetLastCoordinate]
 
+/-- Restricting the projected base can only shrink a fiber subdivision tile. -/
+theorem projectionFiberSubdivisionTile_mono {n m : ℕ}
+    {base₁ base₂ : Set (Fin n → ℝ)} (hbase : base₁ ⊆ base₂)
+    (lower upper : (Fin n → ℝ) → ℝ) (i : Fin (m + 1)) :
+    projectionFiberSubdivisionTile base₁ lower upper i ⊆
+      projectionFiberSubdivisionTile base₂ lower upper i := by
+  intro x hx
+  change (let y := forgetLastCoordinate n x
+    y ∈ base₁ ∧ projectionFiberSubdivisionEndpoint lower upper i.castSucc y ≤
+      x (Fin.last n) ∧ x (Fin.last n) ≤
+        projectionFiberSubdivisionEndpoint lower upper i.succ y) at hx
+  change (let y := forgetLastCoordinate n x
+    y ∈ base₂ ∧ projectionFiberSubdivisionEndpoint lower upper i.castSucc y ≤
+      x (Fin.last n) ∧ x (Fin.last n) ≤
+        projectionFiberSubdivisionEndpoint lower upper i.succ y)
+  exact ⟨hbase hx.1, hx.2.1, hx.2.2⟩
+
 /-- Every adjacent pair of subdivision points has the same vertical width. -/
 theorem projectionFiberSubdivisionEndpoint_gap {n m : ℕ}
     (lower upper : (Fin n → ℝ) → ℝ) (i : Fin (m + 1)) (y : Fin n → ℝ) :
@@ -3392,6 +3409,10 @@ structure CompactProjectionFiberTiling {n : ℕ} (base : Set (Fin n → ℝ))
   subdivisionCount : ℕ
   /-- A continuous center graph selects one point in every vertical fiber of each strip. -/
   tile_center : ∀ i : Fin (subdivisionCount + 1), (Fin n → ℝ) → ℝ
+  /-- The selected representative is the midpoint of its equal-width fiber strip, so it cannot
+  lie on a shared endpoint seam when the parent fiber has positive height. -/
+  tile_center_eq_midpoint : ∀ i y,
+    tile_center i y = projectionFiberSubdivisionCenter lower upper i y
   tile_center_continuous : ∀ i, Continuous (tile_center i)
   tile_center_mem : ∀ i y, y ∈ base →
     Fin.snoc y (tile_center i y) ∈
@@ -3443,6 +3464,35 @@ structure CompactProjectionFiberTiling {n : ℕ} (base : Set (Fin n → ℝ))
   fiber_width_le : ∀ (i : Fin (subdivisionCount + 1)) (y : Fin n → ℝ), y ∈ base →
     projectionFiberSubdivisionEndpoint lower upper i.succ y -
       projectionFiberSubdivisionEndpoint lower upper i.castSucc y ≤ epsilon
+
+/-- The actual center chosen by the compact tiling lies in the interior of its strip above an
+interior projected basepoint whenever the fiber has positive height. -/
+theorem CompactProjectionFiberTiling.tile_center_mem_interior
+    {n : ℕ} {base : Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ} {epsilon : ℝ}
+    (tiling : CompactProjectionFiberTiling base lower upper epsilon)
+    (hlower : Continuous lower) (hupper : Continuous upper)
+    (horderStrict : ∀ y ∈ base, lower y < upper y)
+    (i : Fin (tiling.subdivisionCount + 1)) {y : Fin n → ℝ}
+    (hy : y ∈ interior base) :
+    Fin.snoc y (tiling.tile_center i y) ∈
+      interior (projectionFiberSubdivisionTile base lower upper i) := by
+  rw [tiling.tile_center_eq_midpoint]
+  exact projectionFiberSubdivisionCenter_mem_interior_tile base lower upper
+    hlower hupper horderStrict i y hy
+
+/-- A compact tiling's midpoint representative cannot belong to a different closed strip over
+the same projected point when the parent fiber has positive height. -/
+theorem CompactProjectionFiberTiling.tile_center_not_mem_otherTile
+    {n : ℕ} {base : Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ} {epsilon : ℝ}
+    (tiling : CompactProjectionFiberTiling base lower upper epsilon)
+    (horderStrict : ∀ y ∈ base, lower y < upper y)
+    (i j : Fin (tiling.subdivisionCount + 1)) (hij : i ≠ j)
+    {y : Fin n → ℝ} (hy : y ∈ base) :
+    Fin.snoc y (tiling.tile_center i y) ∉
+      projectionFiberSubdivisionTile base lower upper j := by
+  rw [tiling.tile_center_eq_midpoint]
+  exact projectionFiberSubdivisionCenter_not_mem_otherTile base lower upper
+    horderStrict i j hij hy
 
 /-- Restricting adjacent strips to an existing face patch preserves the exact endpoint-graph
 overlap. This is the seam compatibility needed when the lower-dimensional face is cut by the
@@ -3520,6 +3570,7 @@ noncomputable def compactProjectionFiberTiling_of_compactBase {n : ℕ}
   refine {
     subdivisionCount := m
     tile_center := fun i y => projectionFiberSubdivisionCenter lower upper i y
+    tile_center_eq_midpoint := by intro i y; rfl
     tile_center_continuous := fun i =>
       continuous_projectionFiberSubdivisionCenter lower upper i hlower hupper
     tile_center_mem := by
@@ -3653,6 +3704,64 @@ structure CompactOneBitFiberPatchCover {n : ℕ} {ι : Type*} [Fintype ι]
       Fin (tiling.subdivisionCount + 1), p ≠ q →
     interior (facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2) ∩
       interior (facePatch ∩ projectionFiberSubdivisionTile (baseTile q.1) lower upper q.2) = ∅
+
+/-- The midpoint representatives of a refined one-bit patch project onto the interior of its
+lower-dimensional base tile and lie in the ambient interior of the corresponding lifted strip.
+This is the concrete tile-to-face incidence for the Case 1.2 refinement when its fiber is
+nondegenerate. -/
+theorem CompactOneBitFiberPatchCover.centerGraph_interior_incidence
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CompactOneBitFiberPatchCover facePatch base baseTile lower upper epsilon)
+    (hlower : Continuous lower) (hupper : Continuous upper)
+    (horderStrict : ∀ y ∈ base, lower y < upper y)
+    (p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1)) :
+    projectionFiberSubdivisionCenterGraph (interior (baseTile p.1))
+        (fun _ y => cover.tiling.tile_center p.2 y) p.2 ⊆
+        interior (projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2) ∧
+      forgetLastCoordinate n ''
+        projectionFiberSubdivisionCenterGraph (interior (baseTile p.1))
+          (fun _ y => cover.tiling.tile_center p.2 y) p.2 = interior (baseTile p.1) := by
+  constructor
+  · rintro x ⟨y, hy, rfl⟩
+    change Fin.snoc y (cover.tiling.tile_center p.2 y) ∈
+      interior (projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2)
+    rw [cover.tiling.tile_center_eq_midpoint]
+    exact projectionFiberSubdivisionCenter_mem_interior_tile (baseTile p.1) lower upper
+      hlower hupper (fun y hy => horderStrict y (cover.baseTile_subset p.1 hy)) p.2 y hy
+  · ext y
+    constructor
+    · rintro ⟨x, ⟨z, hz, rfl⟩, hproj⟩
+      have hproj' : forgetLastCoordinate n (Fin.snoc z (cover.tiling.tile_center p.2 z)) = z := by
+        simp [forgetLastCoordinate]
+      rw [hproj'] at hproj
+      simpa [hproj] using hz
+    · intro hy
+      refine ⟨Fin.snoc y (cover.tiling.tile_center p.2 y), ?_, ?_⟩
+      · exact ⟨y, hy, rfl⟩
+      · simp [forgetLastCoordinate]
+
+/-- The midpoint representative of one strip cannot lie in any different closed strip over the
+same restricted lower-dimensional base tile. The only overlaps left between those refined patches
+are therefore the endpoint seams identified by the adjacent-tile compatibility theorem. -/
+theorem CompactOneBitFiberPatchCover.center_lift_not_mem_other_strip
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CompactOneBitFiberPatchCover facePatch base baseTile lower upper epsilon)
+    (horderStrict : ∀ y ∈ base, lower y < upper y)
+    (i : ι) (j k : Fin (cover.tiling.subdivisionCount + 1)) (hjk : j ≠ k)
+    {y : Fin n → ℝ} (hy : y ∈ baseTile i) :
+    Fin.snoc y (cover.tiling.tile_center j y) ∉
+      projectionFiberSubdivisionTile (baseTile i) lower upper k := by
+  intro hmem
+  have hparent := cover.tiling.tile_center_not_mem_otherTile horderStrict j k hjk
+    (cover.baseTile_subset i hy)
+  exact hparent ((projectionFiberSubdivisionTile_mono (cover.baseTile_subset i)
+    lower upper k) hmem)
 
 /-- Each restricted patch in a compact one-bit cover inherits a projected scale which controls its
 ambient diameter. This packages the fiber-width certificate with uniform continuity of the strip
