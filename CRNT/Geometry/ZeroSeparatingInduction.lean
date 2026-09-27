@@ -6945,6 +6945,87 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills
   exact ⟨refinement, hleft, hright⟩
 
 
+/-- The §7.4.3 graph-level one-bit fill can be chosen below every inherited positive face scale
+by the single multiplicative factor that works on all binary last-zero chains.  Consequently each
+equal strip subdivision produced by the returned compact fill is also below that same fraction of
+every incident face scale. -/
+theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_along_binary_chains
+    {n : ℕ} {ι τ : Type*} [Fintype ι] [Fintype τ]
+    (face : ι → Set (Fin (n + 1) → ℝ))
+    (base : ι → Set (Fin n → ℝ))
+    (tiles : ι → τ → Set (Fin n → ℝ))
+    (margin faceRadius : ι → ℝ)
+    (cover : ∀ i, CompactZeroBitFiberPatchCover (face i) (base i) (tiles i)
+      (margin i) (faceRadius i))
+    (hfaceRadius : ∀ i, 0 < faceRadius i)
+    (neighborhood : ι → ι → Set (Fin (n + 1) → ℝ))
+    (hOpen : ∀ i j, i ≠ j → IsOpen (neighborhood i j))
+    (hFace : ∀ i j, i ≠ j → face i ∩ face j ⊆ neighborhood i j)
+    (oneBitBoundary : ι → ι → Prop)
+    (hOneBitDifferent : ∀ i j, oneBitBoundary i j → i ≠ j)
+    (hcenterOrder : ∀ i j, oneBitBoundary i j → ∀ y ∈ base i ∩ base j,
+      (cover i).center y ≤ (cover j).center y) :
+    ∃ ρ : ℝ, 0 < ρ ∧ ρ < 1 ∧
+      ∃ extension : ι → C(Fin n → ℝ, ℝ),
+        (∀ i y, y ∈ base i → extension i y = (cover i).center y) ∧
+        ∃ radius : ℝ, 0 < radius ∧
+          (∀ i, radius < ρ * faceRadius i) ∧
+          (∀ i j, i ≠ j →
+            zeroBitPreBlueprintNeighborhood (face i) (base i)
+                (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+                (criticalFacetBinaryWord n) ∩
+              zeroBitPreBlueprintNeighborhood (face j) (base j)
+                (fun p => if p = criticalFacetBinaryWord n then radius else 0)
+                (criticalFacetBinaryWord n) ⊆ neighborhood i j) ∧
+          (∀ i j, oneBitBoundary i j →
+            ∃ refinement : CompactOneBitFiberPatchCover
+                (projectionFiberBand (base i ∩ base j)
+                  (fun y => some (extension i y)) (fun y => some (extension j y)))
+                (base i ∩ base j)
+                (fun p : τ × τ => tiles i p.1 ∩ tiles j p.2)
+                (extension i) (extension j) radius,
+              face i ∩ {x | forgetLastCoordinate n x ∈ base j} ⊆
+                projectionFiberBand (base i ∩ base j)
+                  (fun y => some (extension i y)) (fun y => some (extension j y)) ∧
+              face j ∩ {x | forgetLastCoordinate n x ∈ base i} ⊆
+                projectionFiberBand (base i ∩ base j)
+                  (fun y => some (extension i y)) (fun y => some (extension j y))) := by
+  classical
+  have hq0 : (0 : ℝ) < 1 / 2 := by norm_num
+  have hq1 : (1 / 2 : ℝ) < 1 := by norm_num
+  obtain ⟨ρ, hρpos, hρlt, _hordinary, _hallOnes⟩ :=
+    exists_uniform_coherentBinaryWordTileScale_separation (n := n + 1) hq0 hq1
+  have hfloor : ∃ scale : ℝ, 0 < scale ∧ ∀ i, scale ≤ faceRadius i := by
+    by_cases hι : Nonempty ι
+    · let values : Finset ℝ := Finset.univ.image faceRadius
+      have hvalues : values.Nonempty := by
+        obtain ⟨i⟩ := hι
+        exact ⟨faceRadius i,
+          Finset.mem_image.mpr ⟨i, Finset.mem_univ i, rfl⟩⟩
+      let scale : ℝ := values.min' hvalues
+      have hmem : scale ∈ values := by
+        exact Finset.min'_mem values hvalues
+      obtain ⟨i, _hi, hvalue⟩ := Finset.mem_image.mp hmem
+      refine ⟨scale, ?_, ?_⟩
+      · rw [← hvalue]
+        exact hfaceRadius i
+      · intro j
+        exact Finset.min'_le values (faceRadius j)
+          (Finset.mem_image.mpr ⟨j, Finset.mem_univ j, rfl⟩)
+    · exact ⟨1, by norm_num, fun i => (hι ⟨i⟩).elim⟩
+  obtain ⟨scale, hscalePos, hscaleLe⟩ := hfloor
+  have hcap : 0 < ρ * scale := mul_pos hρpos hscalePos
+  obtain ⟨extension, hextension, radius, hradius, hradiusCap, hconstraints, hfills⟩ :=
+    CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills
+      face base tiles margin faceRadius cover neighborhood hOpen hFace oneBitBoundary
+      hOneBitDifferent hcenterOrder (ρ * scale) hcap
+  refine ⟨ρ, hρpos, hρlt, extension, hextension, radius, hradius, ?_, hconstraints, hfills⟩
+  intro i
+  calc
+    radius < ρ * scale := hradiusCap
+    _ ≤ ρ * faceRadius i := mul_le_mul_of_nonneg_left (hscaleLe i) hρpos.le
+
+
 
 /-- Craciun v3, §8 Step 1 followed by §7.4.3 Case 1.2: clip a finite family of compact
 projective radial tiles to the projective domain, project those pieces to the lower-dimensional

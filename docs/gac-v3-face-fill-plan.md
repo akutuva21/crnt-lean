@@ -340,3 +340,20 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
   The remaining construction must derive the directed boundary-pair/order data from the actual
   projected face lattice, incorporate the thickened inherited neighborhoods in the Case 1.2 fill,
   and recursively assemble these local fills into the faithful blueprint.
+
+## Continuation checkpoint — binary-chain factor consumed by one-bit fill
+
+- Added `CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_along_binary_chains`.
+  It obtains the common strict factor from the full coherent binary-word chain theorem at depth
+  `n + 1`, chooses a positive lower bound for the finite family of inherited graph radii, and
+  invokes the existing Case 1.2 graph fill with cap `rho * scale`. The returned radius is below
+  `rho * faceRadius i` for every face; each produced equal strip has width at most that radius by
+  the tiling's `fiber_width_le` invariant.
+- `ZeroSeparatingInduction.lean` compiled directly. A fresh module chain compiled
+  `FanRefinement.lean`, `ToricUniformWallMargin.lean`,
+  `ComplexBalanceStoichFanInclusion.lean`, and `GlobalAttractorTheorem.lean`. The new fill theorem
+  audits to `[propext, Classical.choice, Quot.sound]`; the exact target still audits to
+  `[propext, sorryAx, Classical.choice, Quot.sound]`.
+- This supplies one actual Case 1.2 fill with a cross-chain refinement bound. The face-word-specific
+  thickened neighborhood containment, recursive assembly across the face lattice, global surface,
+  and target consumer remain open.
