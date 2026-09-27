@@ -598,6 +598,37 @@ def dominantHeadGap
   | [] => True
   | Mb :: rest => smoothWallList Mb rest x + K ≤ wallBarrier La.1 La.2 x
 
+/-- On a compact patch, the affine offset of a selected wall can be raised until its barrier
+dominates any fixed finite smooth-wall tail by a prescribed gap. This is the quantitative step that
+turns the tile-local wall labels from the zero-bit refinement into the dominant-head hypothesis
+used by the smooth gluing estimate. -/
+theorem exists_wallBarrier_offset_dominates_smoothWallList_on_compact
+    (Kset : Set E) (hK : IsCompact Kset) (L : E →L[ℝ] ℝ)
+    (tailHead : (E →L[ℝ] ℝ) × ℝ) (tail : List ((E →L[ℝ] ℝ) × ℝ))
+    (gap : ℝ) :
+    ∃ a : ℝ, ∀ x ∈ Kset,
+      smoothWallList tailHead tail x + gap ≤ wallBarrier L a x := by
+  have hcontTail : Continuous (fun x => smoothWallList tailHead tail x) := by
+    rw [continuous_iff_continuousAt]
+    intro x
+    exact (Classical.choose_spec
+      (exists_fderiv_smoothWallList tailHead tail x)).continuousAt
+  have hcont : Continuous (fun x => smoothWallList tailHead tail x + gap + L x) :=
+    (hcontTail.add continuous_const).add L.continuous
+  let values : Set ℝ := (fun x => smoothWallList tailHead tail x + gap + L x) '' Kset
+  have hvaluesCompact : IsCompact values := by
+    change IsCompact ((fun x => smoothWallList tailHead tail x + gap + L x) '' Kset)
+    exact hK.image hcont
+  have hvaluesBounded : BddAbove values := hvaluesCompact.bddAbove
+  let a : ℝ := Classical.choose hvaluesBounded
+  have ha : ∀ z ∈ values, z ≤ a := Classical.choose_spec hvaluesBounded
+  refine ⟨a, ?_⟩
+  intro x hx
+  have hbound : smoothWallList tailHead tail x + gap + L x ≤ a :=
+    ha _ ⟨x, hx, rfl⟩
+  dsimp [wallBarrier]
+  linarith
+
 /-- A head wall with inward derivative margin `ε` controls an arbitrarily outward-pointing tail
 when the tail's value is sufficiently lower. The tail derivative is bounded by `M`; the gap
 makes its log-sum-exp weight small enough that the head's inward margin dominates it. -/
@@ -636,6 +667,29 @@ theorem exists_fderiv_smoothWallList_nonpos_of_dominantHead
           ⟨Drest, hDrest, hDrestM⟩ hε hM hgap
       refine ⟨D, ?_, hDnonpos⟩
       simpa [smoothWallList] using hD
+
+/-- A uniformly inward wall can be made the dominant head of a finite smooth barrier on a compact
+patch by choosing its affine offset. If every tail wall has a bounded outward derivative there,
+the resulting smooth barrier has nonpositive derivative throughout the patch. -/
+theorem exists_compact_wallBarrier_offset_with_smoothWallList_nonpos
+    {X : E → E} (Kset : Set E) (hK : IsCompact Kset) (L : E →L[ℝ] ℝ)
+    (tailHead : (E →L[ℝ] ℝ) × ℝ) (tail : List ((E →L[ℝ] ℝ) × ℝ))
+    {ε M gap : ℝ} (hε : 0 ≤ ε)
+    (hhead : ∀ x ∈ Kset, ε ≤ L (X x))
+    (hwalls : ∀ Mb ∈ tailHead :: tail, ∀ x ∈ Kset, -Mb.1 (X x) ≤ M)
+    (hM : M ≤ Real.exp gap * ε) :
+    ∃ a : ℝ, ∀ x ∈ Kset,
+      ∃ D : E →L[ℝ] ℝ,
+        HasFDerivAt (smoothWallList (L, a) (tailHead :: tail)) D x ∧ D (X x) ≤ 0 := by
+  obtain ⟨a, ha⟩ := exists_wallBarrier_offset_dominates_smoothWallList_on_compact
+    Kset hK L tailHead tail gap
+  refine ⟨a, ?_⟩
+  intro x hx
+  have hgap : dominantHeadGap (L, a) (tailHead :: tail) gap x := by
+    simpa [dominantHeadGap] using ha x hx
+  exact exists_fderiv_smoothWallList_nonpos_of_dominantHead
+    (L, a) (tailHead :: tail) hε (hhead x hx)
+    (fun Mb hMb => hwalls Mb hMb x hx) hM hgap
 
 /-- A permutation does not change the sum of a list in an additive commutative monoid. -/
 theorem list_perm_sum_eq {α : Type*} [AddCommMonoid α] {xs ys : List α}
