@@ -1551,6 +1551,111 @@ theorem Network.restrictedOneBitFiberPatch_finite_seam_glue
   exact N.restrictedOneBitFiberPatch_finite_overlap_glue
     κ cover domain hdomain ψ z selected offset tailHead tail p ps hp hps' hatlas
 
+/-- Craciun v3, §8 Step 2: a compact wall-chart cover supplies the local barriers needed to
+glue every listed face incident to a clipped adjacent-strip seam. The shared projected basepoint
+and endpoint-graph incidence are used to transfer each incident label to the same lifted seam
+point before taking the finite smooth maximum. -/
+theorem Network.exists_restrictedOneBitFiberPatch_finite_seam_glue_of_wallChart
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base baseTile lower upper epsilon)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S) (hψ : Continuous ψ)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (t : Finset K) {ε δwall δcoord η tolerance : ℝ} (hε : 0 < ε)
+    (hchart : ∀ y ∈ K, ∃ wall ∈ t, ∀ q ∈ Metric.ball y δwall,
+      ε < ⟪(z wall).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ)
+    (himage : ∀ p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1),
+      ψ '' (facePatch ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2) ⊆ K)
+    (hmapDiam : ∀ p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1),
+      ∀ x ∈ facePatch ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2,
+      ∀ y ∈ facePatch ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2,
+      dist x y < δcoord → dist (ψ x) (ψ y) < δwall)
+    (hprojectedSmall : ∀ p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1),
+      ∀ a ∈ baseTile p.1, ∀ b ∈ baseTile p.1, dist a b < η)
+    (hendpointVariation : ∀ p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1),
+      ∀ a ∈ baseTile p.1, ∀ b ∈ baseTile p.1, dist a b < η →
+        dist
+          (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint
+            lower upper p.2.succ a)
+          (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint
+            lower upper p.2.succ b) < tolerance)
+    (hηsmall : η < δcoord) (hbudget : epsilon + tolerance < δcoord)
+    (hδcoord : 0 < δcoord)
+    (domain : Set (Fin (n + 1) → ℝ)) (hdomain : IsClosed domain)
+    (tailHead : (EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)
+    (tail : List ((EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ))
+    (i : ι) (k : Fin (cover.tiling.subdivisionCount))
+    (y : Fin n → ℝ) (horder : ∀ y ∈ base, lower y ≤ upper y)
+    (hy : y ∈ baseTile i)
+    (hgraph : CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+      lower upper k.succ.castSucc y ∈ facePatch ∩ domain)
+    (ps : List (Σ i : ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)))
+    (hincident : ∀ r ∈ ps, y ∈ baseTile r.1 ∧
+      (r.2 = k.castSucc ∨ r.2 = k.succ)) :
+    ∃ selected : (Σ i : ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)) → Option K,
+      ∃ offset : (Σ i : ι,
+        Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)) → ℝ,
+      ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothMaxList
+            (SmoothBarrierGluing.smoothWallList
+              ((selected ⟨i, k.castSucc⟩).elim tailHead.1
+                (fun wall => innerSL ℝ (z wall).1), offset ⟨i, k.castSucc⟩)
+              (tailHead :: tail))
+            (ps.map (fun r => SmoothBarrierGluing.smoothWallList
+              ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+              (tailHead :: tail)))) D
+        (ψ (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+          lower upper k.succ.castSucc y)) ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm
+          (ψ (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+            lower upper k.succ.castSucc y))))) ≤ 0 := by
+  obtain ⟨selected, _, hlabels, hselected⟩ := N.exists_oneBitFiberPatchWallSelection
+    κ cover ψ z t hchart himage hmapDiam
+    hprojectedSmall hendpointVariation hηsmall hbudget hδcoord
+  let restricted := cover.restrict_to_closedDomain domain hdomain
+  have hselectedRestricted : ∀ p wall, selected p = some wall → wall ∈ t ∧ ∀ q ∈
+      ψ '' ((facePatch ∩ domain) ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2),
+      ε < ⟪(z wall).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ := by
+    intro p wall hp
+    have hs := hselected p wall hp
+    refine ⟨hs.1, ?_⟩
+    intro q hq
+    rcases hq with ⟨x, hx, rfl⟩
+    exact hs.2 _ ⟨x, ⟨hx.1.1, hx.2⟩, rfl⟩
+  have hlabelsRestricted : ∀ p,
+      ((facePatch ∩ domain) ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2).Nonempty →
+      ∃ wall, selected p = some wall := by
+    intro p hne
+    apply hlabels p
+    exact hne.mono (by
+      intro x hx
+      exact ⟨hx.1.1, hx.2⟩)
+  obtain ⟨offset, hatlas⟩ := N.exists_simultaneous_oneBitFiberPatch_barriers
+    κ restricted ψ hψ z t hε selected hselectedRestricted hlabelsRestricted tailHead tail
+  obtain ⟨D, hD⟩ := N.restrictedOneBitFiberPatch_finite_seam_glue
+    κ cover domain hdomain ψ z selected offset tailHead tail hatlas
+    i k y horder hy hgraph ps hincident
+  exact ⟨selected, offset, D, hD⟩
+
 /-- End-to-end local atlas step: a compact wall-chart cover selects one inward wall on each
 nonempty one-bit patch, and the selected barriers then glue over any finite clipped common face.
 This composes the compact-chart-to-tile argument with Craciun v3's restricted blueprint step. -/
