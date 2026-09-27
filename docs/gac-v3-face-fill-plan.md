@@ -330,9 +330,10 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
 - Added a Tietze extension theorem for each compact zero-bit center graph, then consumed the common
   scale in `exists_common_scale_and_oneBit_fills`: for each supplied directed one-bit boundary pair,
   it constructs the compact band between the extended center graphs, proves both restricted face
-  pieces lie in that band, and supplies its finite compact strip refinement at the selected scale.
-  This is a graph-level fill only; the full thickened inherited pre-blueprints are not yet shown to
-  bound the filled region.
+  pieces lie in that band, crosses the two inherited projected tile covers, and returns a
+  `CompactOneBitFiberPatchCover` with exact coverage, compact pieces, interior disjointness, and
+  seam identities at the selected scale. This is a graph-level fill only; the full thickened
+  inherited pre-blueprints are not yet shown to bound the filled region.
 - The extension theorem, finite scale selector, and one-bit fill consumer each audit to
   `[propext, Classical.choice, Quot.sound]`. The exact target audit remains
   `[propext, sorryAx, Classical.choice, Quot.sound]`; the theorem still has its original hole.
