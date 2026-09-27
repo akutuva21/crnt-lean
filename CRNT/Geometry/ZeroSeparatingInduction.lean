@@ -4253,6 +4253,92 @@ noncomputable def compactOneBitFiberPatchCover_of_compactBand {n : ℕ} {ι : Ty
       simpa using htilemem
     · simp
 
+/-- Craciun v3, §8 Step 1: restrict a compact one-bit blueprint to a closed projective domain by
+intersecting every tile patch with that domain. The clipped family still covers the clipped face,
+its pieces remain compact, and the common fiber subdivision preserves every seam and overlap
+identity. Empty clipped tiles are retained as empty members of the same finite index family. -/
+def CompactOneBitFiberPatchCover.restrict_to_closedDomain
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CompactOneBitFiberPatchCover facePatch base baseTile lower upper epsilon)
+    (domain : Set (Fin (n + 1) → ℝ)) (hdomain : IsClosed domain) :
+    CompactOneBitFiberPatchCover (facePatch ∩ domain) base baseTile lower upper epsilon := by
+  refine {
+    tiling := cover.tiling
+    baseTile_subset := cover.baseTile_subset
+    baseTile_interiors_disjoint := cover.baseTile_interiors_disjoint
+    baseTile_adjacent_seam := ?_
+    baseTile_strip_overlap := ?_
+    facePatch_eq_iUnion_tiles := ?_
+    facePatch_tile_compact := ?_
+    facePatch_tile_interiors_disjoint := ?_
+  }
+  · intro i j horder k
+    ext x
+    have hseam := cover.baseTile_adjacent_seam i j horder k
+    have hseamAt := congrArg (fun s : Set (Fin (n + 1) → ℝ) => x ∈ s) hseam
+    simp only [Set.mem_inter_iff] at hseamAt ⊢
+    tauto
+  · intro i j k l
+    ext x
+    have hoverlap := cover.baseTile_strip_overlap i j k l
+    have hoverlapAt := congrArg (fun s : Set (Fin (n + 1) → ℝ) => x ∈ s) hoverlap
+    simp only [Set.mem_inter_iff] at hoverlapAt ⊢
+    tauto
+  · ext x
+    simp only [Set.mem_inter_iff, Set.mem_iUnion]
+    constructor
+    · rintro ⟨hxface, hxdomain⟩
+      obtain ⟨p, hpatch⟩ := Set.mem_iUnion.mp
+        ((cover.facePatch_eq_iUnion_tiles).symm ▸ hxface)
+      exact ⟨p, ⟨hxface, hxdomain⟩, hpatch.2⟩
+    · rintro ⟨p, ⟨hxface, hxdomain⟩, htile⟩
+      exact ⟨hxface, hxdomain⟩
+  · intro p
+    have hcompact := (cover.facePatch_tile_compact p).inter_right hdomain
+    simpa [Set.inter_assoc, Set.inter_left_comm, Set.inter_comm] using hcompact
+  · intro p q hpq
+    apply Set.eq_empty_iff_forall_notMem.mpr
+    intro x hx
+    have hpatchPsubset : facePatch ∩ domain ∩
+        projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2 ⊆
+        facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2 := by
+      intro y hy
+      exact ⟨hy.1.1, hy.2⟩
+    have hpatchQsubset : facePatch ∩ domain ∩
+        projectionFiberSubdivisionTile (baseTile q.1) lower upper q.2 ⊆
+        facePatch ∩ projectionFiberSubdivisionTile (baseTile q.1) lower upper q.2 := by
+      intro y hy
+      exact ⟨hy.1.1, hy.2⟩
+    have hold : x ∈ interior
+        (facePatch ∩ projectionFiberSubdivisionTile (baseTile p.1) lower upper p.2) ∩
+        interior (facePatch ∩ projectionFiberSubdivisionTile (baseTile q.1) lower upper q.2) := by
+      exact ⟨interior_mono hpatchPsubset hx.1, interior_mono hpatchQsubset hx.2⟩
+    rw [cover.facePatch_tile_interiors_disjoint p q hpq] at hold
+    exact hold
+
+/-- A nonempty tile after clipping to a closed domain has a basepoint inside that domain, and the
+basepoint still projects to the corresponding lower-dimensional tile. This is the tile-incidence
+datum required by Craciun v3, §8 Step 1 when the restricted blueprint is used in the next fill. -/
+theorem CompactOneBitFiberPatchCover.exists_restrictedDomain_tile_basepoint_incidence
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CompactOneBitFiberPatchCover facePatch base baseTile lower upper epsilon)
+    (domain : Set (Fin (n + 1) → ℝ)) (hdomain : IsClosed domain)
+    (p : Σ i : ι, Fin (cover.tiling.subdivisionCount + 1))
+    (hne : ((facePatch ∩ domain) ∩ projectionFiberSubdivisionTile
+      (baseTile p.1) lower upper p.2).Nonempty) :
+    ∃ x, x ∈ (facePatch ∩ domain) ∩ projectionFiberSubdivisionTile
+      (baseTile p.1) lower upper p.2 ∧ x ∈ domain ∧
+      forgetLastCoordinate n x ∈ baseTile p.1 := by
+  let restricted := cover.restrict_to_closedDomain domain hdomain
+  obtain ⟨x, hx, hprojected⟩ := restricted.exists_restricted_tile_basepoint_incidence p hne
+  exact ⟨x, hx, hx.1.2, hprojected⟩
+
 /-! ## The ruled-surface step -/
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
