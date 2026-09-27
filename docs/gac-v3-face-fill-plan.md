@@ -253,3 +253,23 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
 - This handles a multiway small-tile junction for one arrangement cell and one
   fiber strip. The recursive arrangement-face extension and the global
   zero-separating surface remain to be constructed.
+
+
+## Continuation checkpoint — mixed fan/tile strip junction
+
+- Added `Network.fanSmallProductTile_allIncident_strip_dependency_and_glue` to
+  `ToricUniformWallMargin.lean`. It constructs the finite list of every other
+  arrangement-cell/small-tile single patch incident to the root strip point, with a
+  coverage statement for every such label.
+- At the point it takes the common lower arrangement face for the root and all incident
+  cells. For each incident patch it supplies an actual lower seam task: a single-tile task
+  when both labels agree, or a pair-labelled tile seam otherwise. Each seam has
+  `ReflTransGen FiniteOverlapDependency` paths to both the root and incident strip tasks.
+- The lemma applies the existing finite smooth-maximum gluing theorem to all incident local
+  barriers at the lifted point. Fresh Lean 4.34 compilation succeeded for
+  `ToricUniformWallMargin.lean`, `Dynamics/ComplexBalanceStoichFanInclusion.lean`, and
+  `Dynamics/GlobalAttractorTheorem.lean`. Its axiom audit is
+  `[propext, Classical.choice, Quot.sound]`.
+- The exact target audit still reports `sorryAx`. This checkpoint supplies a multiway
+  product-junction dependency/gluing result; it does not yet construct the recursive
+  face-fill output or the global zero-separating surface.

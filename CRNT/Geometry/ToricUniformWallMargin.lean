@@ -3700,4 +3700,309 @@ theorem Network.exists_boundarySmallTile_allIncident_smoothMax_descent
     exact hD
 
 
+
+abbrev FanArrangementCell (n : ℕ) (F : Fan (EuclideanSpace ℝ (Fin n))) (hFdual : FanRefinement.HasDualFGCells F) :=
+  {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+    C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)}
+
+/-- At a strip point in a fan-cell/small-tile product, enumerate every incident single-tile
+patch, find the common arrangement face and a pair-labelled tile seam below each incident task,
+and glue all local inward barriers at the point. The two returned dependency paths show that the
+same lower-dimensional seam feeds both the root patch and each incident patch. -/
+theorem Network.fanSmallProductTile_allIncident_strip_dependency_and_glue
+    {S : Type} [DecidableEq S] [Fintype S]
+    {n : ℕ} {base : Set (Fin n → ℝ)} {eta epsilon : ℝ}
+    (N : Network S) (κ : N.RateConstants)
+    (T : ZeroSeparatingInduction.CompactSmallBaseTiling base eta)
+    (F : Fan (EuclideanSpace ℝ (Fin n)))
+    (hFdual : FanRefinement.HasDualFGCells F)
+    [Fintype (FanArrangementCell n F hFdual)]
+    {facePatch : Set (Fin (n + 1) → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    (cover : ZeroSeparatingInduction.CompactOneBitFiberPatchCover facePatch base
+      (fun p : FanArrangementCell n F hFdual × Sum (Fin T.count) (Fin T.count × Fin T.count) =>
+        FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile
+          ((p.1.1 : ProperCone ℝ (EuclideanSpace ℝ (Fin n))), p.2))
+      lower upper epsilon)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (selected : (Σ p : FanArrangementCell n F hFdual × Sum (Fin T.count) (Fin T.count × Fin T.count),
+      Fin (cover.tiling.subdivisionCount + 1)) → Option K)
+    (offset : (Σ p : FanArrangementCell n F hFdual × Sum (Fin T.count) (Fin T.count × Fin T.count),
+      Fin (cover.tiling.subdivisionCount + 1)) → ℝ)
+    (tailHead : (EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)
+    (tail : List ((EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ))
+    (hatlas : ∀ r q₀,
+      q₀ ∈ ψ '' ((facePatch ∩ Set.univ) ∩
+        ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile
+            (r.1.1.1, r.1.2))
+          lower upper r.2) →
+      ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothWallList
+            ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+            (tailHead :: tail)) D q₀ ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm q₀))) ≤ 0)
+    (C : FanArrangementCell n F hFdual) (i : Fin T.count) (k : Fin (cover.tiling.subdivisionCount + 1))
+    {x : Fin (n + 1) → ℝ}
+    (hx : x ∈ FanRefinement.oneBitFanFaceTaskPatch facePatch
+      (FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile)
+      lower upper ((C.1, Sum.inl i), .strip k)) :
+    ∃ H : ProperCone ℝ (EuclideanSpace ℝ (Fin n)),
+      ∃ hH : H ∈ FanRefinement.hyperplaneArrangementFamily
+        (FanRefinement.fanNormalSet F hFdual),
+      (EuclideanSpace.equiv (Fin n) ℝ).symm
+        (ZeroSeparatingInduction.forgetLastCoordinate n x) ∈ H ∧
+      ∃ ps : List (Σ p : FanArrangementCell n F hFdual ×
+          Sum (Fin T.count) (Fin T.count × Fin T.count),
+          Fin (cover.tiling.subdivisionCount + 1)),
+        (∀ D j,
+          ZeroSeparatingInduction.forgetLastCoordinate n x ∈
+            FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual D →
+          ZeroSeparatingInduction.forgetLastCoordinate n x ∈ T.tile j →
+          (D, j) ≠ (C, i) →
+          ∃ r ∈ ps, r.1 = (D, Sum.inl j) ∧ r.2 = k) ∧
+        (∀ r ∈ ps,
+          ∃ seam : FanRefinement.OneBitFanFaceTask (EuclideanSpace ℝ (Fin n))
+              (Sum (Fin T.count) (Fin T.count × Fin T.count)) cover.tiling.subdivisionCount,
+            ZeroSeparatingInduction.forgetLastCoordinate n x ∈
+              FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile seam.1 ∧
+            Relation.ReflTransGen
+              (FanRefinement.FiniteOverlapDependency (E := EuclideanSpace ℝ (Fin n))
+                (q := T.count) (m := cover.tiling.subdivisionCount))
+              seam (((C.1, Sum.inl i), .strip k)) ∧
+            Relation.ReflTransGen
+              (FanRefinement.FiniteOverlapDependency (E := EuclideanSpace ℝ (Fin n))
+                (q := T.count) (m := cover.tiling.subdivisionCount))
+              seam (((r.1.1.1, r.1.2), .strip k))) ∧
+        ∃ Dbar : EuclideanSpace ℝ S →L[ℝ] ℝ,
+          HasFDerivAt
+            (SmoothBarrierGluing.smoothMaxList
+              (SmoothBarrierGluing.smoothWallList
+                ((selected ⟨(C, Sum.inl i), k⟩).elim tailHead.1
+                  (fun wall => innerSL ℝ (z wall).1), offset ⟨(C, Sum.inl i), k⟩)
+                (tailHead :: tail))
+              (ps.map fun r => SmoothBarrierGluing.smoothWallList
+                ((selected r).elim tailHead.1
+                  (fun wall => innerSL ℝ (z wall).1), offset r)
+                (tailHead :: tail))) Dbar (ψ x) ∧
+          Dbar (toEuclid (N.massActionVectorField κ (toEuclid.symm (ψ x)))) ≤ 0 := by
+  classical
+  let y := ZeroSeparatingInduction.forgetLastCoordinate n x
+  let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
+  let mixed := FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile
+  let incident : Finset ({C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)} × Fin T.count) :=
+    Finset.univ.filter fun p =>
+      p ≠ (C, i) ∧
+      y ∈ FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual p.1 ∧
+      y ∈ T.tile p.2
+  let ps : List (Σ p : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)} ×
+      Sum (Fin T.count) (Fin T.count × Fin T.count),
+      Fin (cover.tiling.subdivisionCount + 1)) :=
+    incident.toList.map fun p => ⟨(p.1, Sum.inl p.2), k⟩
+  have hxstrip : (let y := ZeroSeparatingInduction.forgetLastCoordinate n x;
+      y ∈ mixed (C.1, Sum.inl i) ∧
+        ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper k.castSucc y ≤
+          x (Fin.last n) ∧
+        x (Fin.last n) ≤
+          ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper k.succ y) := by
+    change x ∈ facePatch ∩ ZeroSeparatingInduction.projectionFiberSubdivisionTile
+      (mixed (C.1, Sum.inl i)) lower upper k at hx
+    exact hx.2
+  have hyroot : y ∈ mixed (C.1, Sum.inl i) := by
+    simpa [y] using hxstrip.1
+  have hyrootBase : y ∈ FanRefinement.euclideanProperConeBaseTile base C.1 ∩ T.tile i := by
+    simpa [mixed, FanRefinement.euclideanProperConeMixedTileBaseTile] using hyroot
+  have hyarrRoot : y ∈ FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual C := by
+    simpa [FanRefinement.euclideanHyperplaneArrangementBaseTile,
+      FanRefinement.euclideanProperConeBaseTile] using hyrootBase.1
+  have hyTileRoot : y ∈ T.tile i := hyrootBase.2
+  have hyrootCone : y ∈ FanRefinement.euclideanProperConeBaseTile base C.1 :=
+    hyrootBase.1
+  have hyBase : y ∈ base := by
+    change y ∈ e '' (e.symm '' base ∩ (C.1 : Set (EuclideanSpace ℝ (Fin n)))) at hyrootCone
+    rcases hyrootCone with ⟨u, ⟨hvBase, hvC⟩, huy⟩
+    rcases hvBase with ⟨w, hw, hwv⟩
+    have hyw : y = w := by
+      calc
+        y = e u := huy.symm
+        _ = e (e.symm w) := by rw [← hwv]
+        _ = w := e.apply_symm_apply w
+    simpa [hyw] using hw
+  have hcellAt (D : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)})
+      (hD : y ∈ FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual D) :
+      e.symm y ∈ (D.1 : Set (EuclideanSpace ℝ (Fin n))) := by
+    change y ∈ FanRefinement.euclideanProperConeBaseTile base D.1 at hD
+    change y ∈ e '' (e.symm '' base ∩ (D.1 : Set _)) at hD
+    rcases hD with ⟨v, ⟨hvBase, hvD⟩, hvy⟩
+    have heq : e.symm y = v := by
+      calc
+        e.symm y = e.symm (e v) := by rw [hvy]
+        _ = v := e.symm_apply_apply v
+    rw [heq]
+    exact hvD
+  let cells : Finset (ProperCone ℝ (EuclideanSpace ℝ (Fin n))) :=
+    insert C.1 (incident.image fun p => p.1.1)
+  have hCells : ∀ A ∈ cells,
+      A ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual) := by
+    intro A hA
+    simp only [cells, Finset.mem_insert, Finset.mem_image] at hA
+    rcases hA with hA | ⟨p, hp, rfl⟩
+    · simpa [hA] using C.2
+    · exact p.1.2
+  have hxCells : ∀ A ∈ cells, e.symm y ∈ (A : Set (EuclideanSpace ℝ (Fin n))) := by
+    intro A hA
+    simp only [cells, Finset.mem_insert, Finset.mem_image] at hA
+    rcases hA with hA | ⟨p, hp, rfl⟩
+    · subst A
+      exact hcellAt C hyarrRoot
+    · exact hcellAt p.1 (Finset.mem_filter.mp hp).2.2.1
+  obtain ⟨H, hH, hHy, hHfaces⟩ :=
+    FanRefinement.hyperplaneArrangementFamily_commonFace_at cells hCells hxCells
+  have hHbase : y ∈ FanRefinement.euclideanProperConeBaseTile base H := by
+    change y ∈ e '' (e.symm '' base ∩ (H : Set _))
+    exact ⟨e.symm y, ⟨⟨y, hyBase, rfl⟩, hHy⟩, e.apply_symm_apply y⟩
+  have hpairPath (j : Fin T.count) (hji : j ≠ i)
+      (hyj : y ∈ T.tile j) :
+      ∃ pair : Fin T.count × Fin T.count,
+        y ∈ mixed (H, Sum.inr pair) ∧
+        Relation.ReflTransGen
+          (FanRefinement.FiniteOverlapDependency (E := EuclideanSpace ℝ (Fin n))
+            (q := T.count) (m := cover.tiling.subdivisionCount))
+          ((H, Sum.inr pair), .strip k) ((H, Sum.inl i), .strip k) ∧
+        Relation.ReflTransGen
+          (FanRefinement.FiniteOverlapDependency (E := EuclideanSpace ℝ (Fin n))
+            (q := T.count) (m := cover.tiling.subdivisionCount))
+          ((H, Sum.inr pair), .strip k) ((H, Sum.inl j), .strip k) := by
+    by_cases hij : i.val < j.val
+    · refine ⟨(i,j), ?_, ?_, ?_⟩
+      · change y ∈ FanRefinement.euclideanProperConeBaseTile base H ∩
+          (T.tile i ∩ T.tile j)
+        exact ⟨hHbase, hyTileRoot, hyj⟩
+      · exact Relation.ReflTransGen.single
+          (FanRefinement.FiniteOverlapDependency.baseLeft H i j (.strip k) hij)
+      · exact Relation.ReflTransGen.single
+          (FanRefinement.FiniteOverlapDependency.baseRight H i j (.strip k) hij)
+    · have hji' : j.val < i.val := by
+        have hval : i.val ≠ j.val := by
+          intro hv
+          apply hji
+          exact Fin.ext hv.symm
+        omega
+      refine ⟨(j,i), ?_, ?_, ?_⟩
+      · change y ∈ FanRefinement.euclideanProperConeBaseTile base H ∩
+          (T.tile j ∩ T.tile i)
+        exact ⟨hHbase, hyj, hyTileRoot⟩
+      · exact Relation.ReflTransGen.single
+          (FanRefinement.FiniteOverlapDependency.baseRight H j i (.strip k) hji')
+      · exact Relation.ReflTransGen.single
+          (FanRefinement.FiniteOverlapDependency.baseLeft H j i (.strip k) hji')
+  have hfacePath (D : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)})
+      (j : Fin T.count) (hface : IsExposedFaceOf H D.1) :
+      Relation.ReflTransGen
+        (FanRefinement.FiniteOverlapDependency (E := EuclideanSpace ℝ (Fin n))
+          (q := T.count) (m := cover.tiling.subdivisionCount))
+        ((H, Sum.inl j), .strip k) ((D.1, Sum.inl j), .strip k) := by
+    by_cases heq : H = D.1
+    · subst H
+      exact Relation.ReflTransGen.refl
+    · exact Relation.ReflTransGen.single
+        (FanRefinement.FiniteOverlapDependency.inherited
+          (FanRefinement.OneBitFanFaceSeamDependency.inherited
+            (FanRefinement.OneBitFanFaceDependency.fanFace
+              D.1 H (Sum.inl j) k hface heq)))
+  have hrootBase : y ∈ FanRefinement.euclideanProperConeBaseTile base H ∩ T.tile i :=
+    ⟨hHbase, hyTileRoot⟩
+  have hps : ∀ r ∈ ps,
+      ψ x ∈ ψ '' ((facePatch ∩ Set.univ) ∩
+        ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile
+            (r.1.1.1, r.1.2)) lower upper r.2) := by
+    intro r hr
+    rcases List.mem_map.mp hr with ⟨p, hp, hEq⟩
+    subst r
+    have hpIncident : p ∈ incident := Finset.mem_toList.mp hp
+    have hpData := (Finset.mem_filter.mp hpIncident).2
+    rcases hpData with ⟨hne, hD, hj⟩
+    have htile : y ∈ mixed (p.1.1, Sum.inl p.2) := by
+      change y ∈ FanRefinement.euclideanProperConeBaseTile base p.1.1 ∩ T.tile p.2
+      simpa [FanRefinement.euclideanHyperplaneArrangementBaseTile,
+        FanRefinement.euclideanProperConeBaseTile] using And.intro hD hj
+    have hpatch : x ∈ FanRefinement.oneBitFanFaceTaskPatch facePatch mixed lower upper
+        ((p.1.1, Sum.inl p.2), .strip k) := by
+      refine ⟨hx.1, ?_⟩
+      change (let y := ZeroSeparatingInduction.forgetLastCoordinate n x;
+        y ∈ mixed (p.1.1, Sum.inl p.2) ∧
+          ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper k.castSucc y ≤
+            x (Fin.last n) ∧
+          x (Fin.last n) ≤
+            ZeroSeparatingInduction.projectionFiberSubdivisionEndpoint lower upper k.succ y)
+      exact ⟨by simpa [y] using htile, hxstrip.2.1, hxstrip.2.2⟩
+    refine ⟨x, ⟨⟨hpatch.1, Set.mem_univ x⟩, hpatch.2⟩, rfl⟩
+  have hroot : ψ x ∈ ψ '' ((facePatch ∩ Set.univ) ∩
+      ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual C ∩ T.tile i)
+        lower upper k) := by
+    refine ⟨x, ?_, rfl⟩
+    refine ⟨⟨hx.1, Set.mem_univ x⟩, ?_⟩
+    simpa [mixed, FanRefinement.euclideanProperConeMixedTileBaseTile,
+      FanRefinement.euclideanHyperplaneArrangementBaseTile,
+      FanRefinement.euclideanProperConeBaseTile] using hx.2
+  have hglue := N.restrictedOneBitFiberPatch_finite_overlap_glue
+    κ cover Set.univ isClosed_univ ψ z selected offset tailHead tail
+    ⟨(C, Sum.inl i), k⟩ ps (q := ψ x) hroot hps hatlas
+  have hcoverage : ∀ D j,
+      y ∈ FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual D →
+      y ∈ T.tile j → (D, j) ≠ (C, i) →
+      ∃ r ∈ ps, r.1 = (D, Sum.inl j) ∧ r.2 = k := by
+    intro D j hD hj hne
+    let p := (D, j)
+    have hp : p ∈ incident := by
+      apply Finset.mem_filter.mpr
+      exact ⟨Finset.mem_univ _, hne, hD, hj⟩
+    refine ⟨⟨(D, Sum.inl j), k⟩,
+      List.mem_map.mpr ⟨p, Finset.mem_toList.mpr hp, rfl⟩, rfl, rfl⟩
+  have hdeps : ∀ r ∈ ps,
+      ∃ seam : FanRefinement.OneBitFanFaceTask (EuclideanSpace ℝ (Fin n))
+          (Sum (Fin T.count) (Fin T.count × Fin T.count)) cover.tiling.subdivisionCount,
+        y ∈ FanRefinement.euclideanProperConeMixedTileBaseTile base T.tile seam.1 ∧
+        Relation.ReflTransGen
+          (FanRefinement.FiniteOverlapDependency (E := EuclideanSpace ℝ (Fin n))
+            (q := T.count) (m := cover.tiling.subdivisionCount))
+          seam (((C.1, Sum.inl i), .strip k)) ∧
+        Relation.ReflTransGen
+          (FanRefinement.FiniteOverlapDependency (E := EuclideanSpace ℝ (Fin n))
+            (q := T.count) (m := cover.tiling.subdivisionCount))
+          seam (((r.1.1.1, r.1.2), .strip k)) := by
+    intro r hr
+    rcases List.mem_map.mp hr with ⟨p, hp, hEq⟩
+    subst r
+    have hpIncident : p ∈ incident := Finset.mem_toList.mp hp
+    have hpData := (Finset.mem_filter.mp hpIncident).2
+    rcases hpData with ⟨hne, hD, hj⟩
+    have hpConeCell : p.1.1 ∈ cells := by
+      apply Finset.mem_insert.mpr
+      right
+      exact Finset.mem_image.mpr ⟨p, hpIncident, rfl⟩
+    have hfaceD : IsExposedFaceOf H p.1.1 :=
+      (hHfaces p.1.1 hpConeCell).2
+    have hfaceRoot : IsExposedFaceOf H C.1 :=
+      (hHfaces C.1 (Finset.mem_insert.mpr (Or.inl rfl))).2
+    by_cases hji : p.2 = i
+    · refine ⟨((H, Sum.inl i), .strip k), ?_, ?_, ?_⟩
+      · change y ∈ mixed (H, Sum.inl i)
+        exact ⟨hHbase, hyTileRoot⟩
+      · exact hfacePath C i hfaceRoot
+      · simpa [hji] using hfacePath p.1 i hfaceD
+    · obtain ⟨pair, hyPair, hpairI, hpairJ⟩ := hpairPath p.2 hji hj
+      refine ⟨((H, Sum.inr pair), .strip k), hyPair, ?_, ?_⟩
+      · exact Relation.ReflTransGen.trans hpairI (hfacePath C i hfaceRoot)
+      · exact Relation.ReflTransGen.trans hpairJ (hfacePath p.1 p.2 hfaceD)
+  exact ⟨H, hH, hHy, ps, hcoverage, hdeps, hglue⟩
+
+
 end CRNT
