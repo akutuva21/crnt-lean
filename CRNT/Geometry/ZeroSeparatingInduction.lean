@@ -771,7 +771,7 @@ theorem radialBoxDiagramTiles_cover_projectiveDomain_box {ι : Sort*} {n : ℕ} 
     (hdiagramNonzero : ∀ k x, x ∈ diagramTile k → x ≠ 0)
     (hupper : ∀ i, 0 < upper i)
     (hdiagramCoversNormalizedDomain : ∀ x,
-      x ∈ craciunProjectiveDomain → x 0 = 1 → x ∈ ⋃ k, diagramTile k)
+      x ∈ craciunProjectiveDomain → x 0 = 1 → (∀ i, x i ≤ upper i) → x ∈ ⋃ k, diagramTile k)
     {p : Fin n → ℝ} (hp : p ∈ craciunProjectiveDomain)
     (hpupper : ∀ i, p i ≤ upper i) :
     p ∈ ⋃ k, radialBoxDiagramTile (diagramTile k) upper
@@ -780,8 +780,16 @@ theorem radialBoxDiagramTiles_cover_projectiveDomain_box {ι : Sort*} {n : ℕ} 
   obtain ⟨hsourceDomain, hsourceAnchor⟩ :=
     craciunProjectiveDomain_normalized_source_mem hp
   let source : Fin n → ℝ := fun i => p i / p 0
+  have hsourceUpper : ∀ i, source i ≤ upper i := by
+    intro i
+    change p i / p 0 ≤ upper i
+    apply (div_le_iff₀ hp0).2
+    calc
+      p i ≤ upper i := hpupper i
+      _ ≤ upper i * p 0 := by
+        nlinarith [mul_le_mul_of_nonneg_left (hp.1 0) (hupper i).le]
   have hcover : source ∈ ⋃ k, diagramTile k :=
-    hdiagramCoversNormalizedDomain source hsourceDomain hsourceAnchor
+    hdiagramCoversNormalizedDomain source hsourceDomain hsourceAnchor hsourceUpper
   exact radialBoxDiagramTiles_cover_of_normalized_source diagramTile upper 0
     hdiagramNonnegative hdiagramNonzero hupper hp0 hpupper hcover
 
@@ -797,7 +805,7 @@ theorem radialBoxDiagramTiles_projectiveDomain_box_eq {ι : Type*} {n : ℕ} [Ne
     (hdiagramNonzero : ∀ k x, x ∈ diagramTile k → x ≠ 0)
     (hupper : ∀ i, 0 < upper i)
     (hdiagramCoversNormalizedDomain : ∀ x,
-      x ∈ craciunProjectiveDomain → x 0 = 1 → x ∈ ⋃ k, diagramTile k) :
+      x ∈ craciunProjectiveDomain → x 0 = 1 → (∀ i, x i ≤ upper i) → x ∈ ⋃ k, diagramTile k) :
     (⋃ k, radialBoxDiagramTile (diagramTile k) upper
       (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩ craciunProjectiveDomain) =
       craciunProjectiveDomain ∩ {p | ∀ i, p i ≤ upper i} := by
@@ -1053,7 +1061,7 @@ theorem isCompact_and_covers_projectiveRadialTiles {ι : Type*} [Fintype ι]
     (hdiagramCompact : ∀ k, IsCompact (diagramTile k))
     (hupper : ∀ i, 0 < upper i)
     (hdiagramCoversNormalizedDomain : ∀ x,
-      x ∈ craciunProjectiveDomain → x 0 = 1 → x ∈ ⋃ k, diagramTile k) :
+      x ∈ craciunProjectiveDomain → x 0 = 1 → (∀ i, x i ≤ upper i) → x ∈ ⋃ k, diagramTile k) :
     IsCompact (⋃ k, radialBoxDiagramTile (diagramTile k) upper
       (hdiagramNonnegative k)
       (fun x hx => by
@@ -5113,7 +5121,7 @@ noncomputable def compactProjectiveRadialFamily_fiberRefinement {n : ℕ} {ι : 
     (hdiagramCompact : ∀ k, IsCompact (diagramTile k))
     (hupper : ∀ i, 0 < upper i) (hepsilon : 0 < epsilon)
     (hdiagramCoversNormalizedDomain : ∀ x,
-      x ∈ craciunProjectiveDomain → x 0 = 1 → x ∈ ⋃ k, diagramTile k) :
+      x ∈ craciunProjectiveDomain → x 0 = 1 → (∀ i, x i ≤ upper i) → x ∈ ⋃ k, diagramTile k) :
     Σ base : Set (Fin n → ℝ),
       CompactOneBitFiberBlueprintRefinement
         (⋃ k, radialBoxDiagramTile (diagramTile k) upper
@@ -5494,7 +5502,7 @@ noncomputable def compactProjectiveRadialFamily_patchCover {n : ℕ} {ι : Type*
     (hdiagramCompact : ∀ k, IsCompact (diagramTile k))
     (hupper : ∀ i, 0 < upper i) (hepsilon : 0 < epsilon)
     (hdiagramCoversNormalizedDomain : ∀ x,
-      x ∈ craciunProjectiveDomain → x 0 = 1 → x ∈ ⋃ k, diagramTile k)
+      x ∈ craciunProjectiveDomain → x 0 = 1 → (∀ i, x i ≤ upper i) → x ∈ ⋃ k, diagramTile k)
     (hprojectedInteriorsDisjoint : ∀ i j, i ≠ j →
       interior (forgetLastCoordinate n ''
         (radialBoxDiagramTile (diagramTile i) upper
@@ -5696,7 +5704,7 @@ noncomputable def compactProjectiveRadialFamily_smallPatchCover {n : ℕ} {ι : 
     (hdiagramCompact : ∀ k, IsCompact (diagramTile k))
     (hupper : ∀ i, 0 < upper i) (hepsilon : 0 < epsilon) (heta : 0 < eta)
     (hdiagramCoversNormalizedDomain : ∀ x,
-      x ∈ craciunProjectiveDomain → x 0 = 1 → x ∈ ⋃ k, diagramTile k) :
+      x ∈ craciunProjectiveDomain → x 0 = 1 → (∀ i, x i ≤ upper i) → x ∈ ⋃ k, diagramTile k) :
     Σ m : ℕ, Σ baseTile : Fin m → Set (Fin n → ℝ),
       {cover : CompactOneBitFiberPatchCover
         (⋃ k, radialBoxDiagramTile (diagramTile k) upper
@@ -5754,7 +5762,7 @@ noncomputable def compactProjectiveRadialFamily_smallPatchCover_refiningDiagramT
     (hdiagramCompact : ∀ k, IsCompact (diagramTile k))
     (hupper : ∀ i, 0 < upper i) (hepsilon : 0 < epsilon) (heta : 0 < eta)
     (hdiagramCoversNormalizedDomain : ∀ x,
-      x ∈ craciunProjectiveDomain → x 0 = 1 → x ∈ ⋃ k, diagramTile k)
+      x ∈ craciunProjectiveDomain → x 0 = 1 → (∀ i, x i ≤ upper i) → x ∈ ⋃ k, diagramTile k)
     (hprojectedInteriorsDisjoint : ∀ i j, i ≠ j →
       interior (forgetLastCoordinate n ''
         (radialBoxDiagramTile (diagramTile i) upper

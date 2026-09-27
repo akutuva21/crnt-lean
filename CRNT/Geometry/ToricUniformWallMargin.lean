@@ -641,7 +641,7 @@ theorem Network.exists_compactProjectiveRadialWallChart
     (hupper : ∀ i, 0 < upper i)
     (hdiagramCoversNormalizedDomain : ∀ x,
       x ∈ ZeroSeparatingInduction.craciunProjectiveDomain → x 0 = 1 →
-        x ∈ ⋃ k, diagramTile k)
+        (∀ i, x i ≤ upper i) → x ∈ ⋃ k, diagramTile k)
     (hfaceNonempty : (⋃ k, ZeroSeparatingInduction.radialBoxDiagramTile
       (diagramTile k) upper (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩
         ZeroSeparatingInduction.craciunProjectiveDomain).Nonempty)
@@ -715,7 +715,7 @@ theorem Network.exists_compactProjectiveRadialWallSelection
     (hupper : ∀ i, 0 < upper i)
     (hdiagramCoversNormalizedDomain : ∀ x,
       x ∈ ZeroSeparatingInduction.craciunProjectiveDomain → x 0 = 1 →
-        x ∈ ⋃ k, diagramTile k)
+        (∀ i, x i ≤ upper i) → x ∈ ⋃ k, diagramTile k)
     (hprojectedInteriorsDisjoint : ∀ i j, i ≠ j →
       interior (ZeroSeparatingInduction.forgetLastCoordinate n ''
         (ZeroSeparatingInduction.radialBoxDiagramTile (diagramTile i) upper
@@ -1051,7 +1051,7 @@ theorem Network.exists_compactProjectiveRadialBarrierAtlas
     (hupper : ∀ i, 0 < upper i)
     (hdiagramCoversNormalizedDomain : ∀ x,
       x ∈ ZeroSeparatingInduction.craciunProjectiveDomain → x 0 = 1 →
-        x ∈ ⋃ k, diagramTile k)
+        (∀ i, x i ≤ upper i) → x ∈ ⋃ k, diagramTile k)
     (hprojectedInteriorsDisjoint : ∀ i j, i ≠ j →
       interior (ZeroSeparatingInduction.forgetLastCoordinate n ''
         (ZeroSeparatingInduction.radialBoxDiagramTile (diagramTile i) upper
@@ -1139,7 +1139,7 @@ theorem Network.exists_compactProjectiveFanRadialBarrierAtlas
     (hupper : ∀ i, 0 < upper i)
     (hdiagramCoversNormalizedDomain : ∀ x,
       x ∈ ZeroSeparatingInduction.craciunProjectiveDomain → x 0 = 1 →
-        x ∈ ⋃ k, diagramTile k)
+        (∀ i, x i ≤ upper i) → x ∈ ⋃ k, diagramTile k)
     (hfaceNonempty : (⋃ k, ZeroSeparatingInduction.radialBoxDiagramTile
       (diagramTile k) upper (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩
         ZeroSeparatingInduction.craciunProjectiveDomain).Nonempty)
@@ -1399,7 +1399,7 @@ theorem Network.exists_compactProjectiveRadialRestrictedBarrierAtlas
     (hupper : ∀ i, 0 < upper i)
     (hdiagramCoversNormalizedDomain : ∀ x,
       x ∈ ZeroSeparatingInduction.craciunProjectiveDomain → x 0 = 1 →
-        x ∈ ⋃ k, diagramTile k)
+        (∀ i, x i ≤ upper i) → x ∈ ⋃ k, diagramTile k)
     (hprojectedInteriorsDisjoint : ∀ i j, i ≠ j →
       interior (ZeroSeparatingInduction.forgetLastCoordinate n ''
         (ZeroSeparatingInduction.radialBoxDiagramTile (diagramTile i) upper
