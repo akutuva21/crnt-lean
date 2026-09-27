@@ -3546,7 +3546,20 @@ theorem craciunProjectiveArrangementRadialOverlap_commonFace {n : ℕ}
             (fun x hx => craciunProjectiveArrangementTile_nonzero
               upper (fanNormalSet F hFdual) D hx) hupper ∩ craciunProjectiveDomain) →
         ∃ x, x ∈ craciunProjectiveArrangementTile upper
-          (fanNormalSet F hFdual) ⟨G, hG⟩ ∧ ∃ s : ℝ, 0 ≤ s ∧ p = s • x) ∧
+        (fanNormalSet F hFdual) ⟨G, hG⟩ ∧ ∃ s : ℝ, 0 ≤ s ∧ p = s • x) ∧
+      IsCompact (forgetLastCoordinate n ''
+        ((radialBoxDiagramTile (craciunProjectiveArrangementTile upper
+            (fanNormalSet F hFdual) C) upper
+            (fun x hx i => craciunProjectiveArrangementTile_nonnegative
+              upper (fanNormalSet F hFdual) C hx i)
+            (fun x hx => craciunProjectiveArrangementTile_nonzero
+              upper (fanNormalSet F hFdual) C hx) hupper ∩ craciunProjectiveDomain) ∩
+          (radialBoxDiagramTile (craciunProjectiveArrangementTile upper
+            (fanNormalSet F hFdual) D) upper
+            (fun x hx i => craciunProjectiveArrangementTile_nonnegative
+              upper (fanNormalSet F hFdual) D hx i)
+            (fun x hx => craciunProjectiveArrangementTile_nonzero
+              upper (fanNormalSet F hFdual) D hx) hupper ∩ craciunProjectiveDomain))) ∧
       forgetLastCoordinate n ''
         ((radialBoxDiagramTile (craciunProjectiveArrangementTile upper
             (fanNormalSet F hFdual) C) upper
@@ -3615,16 +3628,24 @@ theorem craciunProjectiveArrangementRadialOverlap_commonFace {n : ℕ}
       have hfaceAt := congrArg (fun S => x ∈ S) htileFace
       exact hfaceAt.mp hx
     exact ⟨x, hxG, s, hs, hpx⟩
-  refine ⟨G, hG, hGC, hGD, hrankC, hrankD, hproper, hsource, ?_⟩
-  intro y hy
-  rcases hy with ⟨p, ⟨⟨hpC, hdomain⟩, ⟨hpD, _⟩⟩, rfl⟩
-  obtain ⟨x, hxG, s, hs, hpx⟩ := hsource p ⟨⟨hpC, hdomain⟩, ⟨hpD, hdomain⟩⟩
-  have hpBox := radialBoxDiagramTile_subset_box tileC upper nonnegC nonzeroC hupper hpC
-  have hpG := radialBoxDiagramTile_contains_of_ray_in_box tileG upper nonnegG nonzeroG hupper
-    hxG hs hpx (fun i => (hpBox i).2)
-  have hsubsetG := craciunProjectiveArrangementTile_radialProjection_subset
-    upper (fanNormalSet F hFdual) hupper ⟨G, hG⟩
-  exact hsubsetG ⟨p, ⟨hpG, hdomain⟩, rfl⟩
+  have hcompactC := isCompact_radialBoxDiagramTile_projectiveDomain tileC upper 0
+    nonnegC nonzeroC anchorC hupper
+      (isCompact_craciunProjectiveArrangementTile upper (fanNormalSet F hFdual) C)
+  have hcompactD := isCompact_radialBoxDiagramTile_projectiveDomain tileD upper 0
+    nonnegD nonzeroD anchorD hupper
+      (isCompact_craciunProjectiveArrangementTile upper (fanNormalSet F hFdual) D)
+  refine ⟨G, hG, hGC, hGD, hrankC, hrankD, hproper, hsource, ?_, ?_⟩
+  · exact (hcompactC.inter hcompactD).image
+      (forgetLastCoordinate n).continuous_of_finiteDimensional
+  · intro y hy
+    rcases hy with ⟨p, ⟨⟨hpC, hdomain⟩, ⟨hpD, _⟩⟩, rfl⟩
+    obtain ⟨x, hxG, s, hs, hpx⟩ := hsource p ⟨⟨hpC, hdomain⟩, ⟨hpD, hdomain⟩⟩
+    have hpBox := radialBoxDiagramTile_subset_box tileC upper nonnegC nonzeroC hupper hpC
+    have hpG := radialBoxDiagramTile_contains_of_ray_in_box tileG upper nonnegG nonzeroG hupper
+      hxG hs hpx (fun i => (hpBox i).2)
+    have hsubsetG := craciunProjectiveArrangementTile_radialProjection_subset
+      upper (fanNormalSet F hFdual) hupper ⟨G, hG⟩
+    exact hsubsetG ⟨p, ⟨hpG, hdomain⟩, rfl⟩
 
 /-- Distinct projective arrangement tiles have disjoint projected interiors after radial lifting.
 The result follows because each projection stays in its closed cone and the arrangement cone
