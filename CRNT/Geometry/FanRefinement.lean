@@ -3255,6 +3255,265 @@ theorem exists_patch_normal_of_card_lt_finrank [FiniteDimensional ℝ E] {ι : T
     ∃ n : E, n ≠ 0 ∧ ∀ i, ⟪v i, n⟫_ℝ = 0 :=
   exists_orthogonal_normal_of_card_lt_finrank v hcard
 
+/-- Craciun v3, §7.4.3 and §8 Step 1: the bounded normalized projective source is cut by the
+lower-dimensional central-arrangement cells. The last coordinate is the fiber coordinate; the
+arrangement label is pulled back from the projected base. -/
+noncomputable def craciunProjectiveArrangementTile {n : ℕ}
+    (upper : Fin (n + 1) → ℝ) (T : Finset (EuclideanSpace ℝ (Fin n)))
+    (C : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily T}) : Set (Fin (n + 1) → ℝ) :=
+  {x | x ∈ craciunProjectiveDomain ∧ x 0 = 1 ∧ (∀ i, x i ≤ upper i) ∧
+    (EuclideanSpace.equiv (Fin n) ℝ).symm (forgetLastCoordinate n x) ∈ C.1}
+
+theorem craciunProjectiveArrangementTile_nonnegative {n : ℕ}
+    (upper : Fin (n + 1) → ℝ) (T : Finset (EuclideanSpace ℝ (Fin n)))
+    (C : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily T}) {x : Fin (n + 1) → ℝ}
+    (hx : x ∈ craciunProjectiveArrangementTile upper T C) : ∀ i, 0 ≤ x i := by
+  intro i
+  exact le_trans (by norm_num) (hx.1.1 i)
+
+theorem craciunProjectiveArrangementTile_anchor {n : ℕ}
+    (upper : Fin (n + 1) → ℝ) (T : Finset (EuclideanSpace ℝ (Fin n)))
+    (C : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily T}) {x : Fin (n + 1) → ℝ}
+    (hx : x ∈ craciunProjectiveArrangementTile upper T C) : x 0 = 1 := hx.2.1
+
+theorem craciunProjectiveArrangementTile_nonzero {n : ℕ}
+    (upper : Fin (n + 1) → ℝ) (T : Finset (EuclideanSpace ℝ (Fin n)))
+    (C : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily T}) {x : Fin (n + 1) → ℝ}
+    (hx : x ∈ craciunProjectiveArrangementTile upper T C) : x ≠ 0 := by
+  intro hzero
+  have hcoord : x 0 = 0 := congrArg (fun f => f 0) hzero
+  rw [craciunProjectiveArrangementTile_anchor upper T C hx] at hcoord
+  norm_num at hcoord
+
+/-- The normalized projective slice inside a finite blue box is compact. Its inequalities are
+closed, while the coordinate box supplies the finite upper bound absent from `D^P_n` itself. -/
+theorem isCompact_craciunProjectiveNormalizedBox {n : ℕ} [NeZero n]
+    (upper : Fin n → ℝ) :
+    IsCompact {x : Fin n → ℝ | x ∈ craciunProjectiveDomain ∧ x 0 = 1 ∧
+      ∀ i, x i ≤ upper i} := by
+  let coordBox : Set (Fin n → ℝ) := Set.univ.pi (fun i => Set.Icc (1 : ℝ) (upper i))
+  have hbox : IsCompact coordBox := isCompact_univ_pi fun i => isCompact_Icc
+  have hclosed : IsClosed {x : Fin n → ℝ | x ∈ craciunProjectiveDomain ∧ x 0 = 1 ∧
+      ∀ i, x i ≤ upper i} := by
+    have heq : IsClosed {x : Fin n → ℝ | x 0 = 1} :=
+      isClosed_eq (continuous_apply 0) continuous_const
+    have hup : IsClosed {x : Fin n → ℝ | ∀ i, x i ≤ upper i} := by
+      rw [Set.setOf_forall]
+      exact isClosed_iInter fun i => isClosed_le (continuous_apply i) continuous_const
+    exact isClosed_craciunProjectiveDomain.inter (heq.inter hup)
+  apply IsCompact.of_isClosed_subset hbox hclosed
+  intro x hx
+  change x ∈ Set.univ.pi (fun i => Set.Icc (1 : ℝ) (upper i))
+  rw [Set.mem_univ_pi]
+  intro i
+  rw [Set.mem_Icc]
+  exact ⟨hx.1.1 i, hx.2.2 i⟩
+
+/-- Every arrangement-labeled projective tile is compact, since a `ProperCone` is closed and the
+normalized blue-box slice is compact. -/
+theorem isCompact_craciunProjectiveArrangementTile {n : ℕ}
+    (upper : Fin (n + 1) → ℝ)
+    (T : Finset (EuclideanSpace ℝ (Fin n)))
+    (C : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily T}) :
+    IsCompact (craciunProjectiveArrangementTile upper T C) := by
+  let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
+  let base : Set (Fin (n + 1) → ℝ) := {x | x ∈ craciunProjectiveDomain ∧ x 0 = 1 ∧
+    ∀ i, x i ≤ upper i}
+  have hbase : IsCompact base := isCompact_craciunProjectiveNormalizedBox upper
+  have hpre : IsClosed {x : Fin (n + 1) → ℝ | e.symm (forgetLastCoordinate n x) ∈ C.1} :=
+    C.1.isClosed.preimage
+      (e.symm.continuous.comp (forgetLastCoordinate n).continuous_of_finiteDimensional)
+  have htile : craciunProjectiveArrangementTile upper T C =
+      base ∩ {x | e.symm (forgetLastCoordinate n x) ∈ C.1} := by
+    ext x
+    simp [craciunProjectiveArrangementTile, base, e, and_assoc, and_left_comm, and_comm]
+  rw [htile]
+  exact hbase.inter_right hpre
+
+/-- The arrangement tiles cover the bounded normalized projective slice. This instantiates the
+projective-diagram input used by the radial blue-box construction from §8 Step 1. -/
+theorem craciunProjectiveArrangementTiles_cover {n : ℕ}
+    (upper : Fin (n + 1) → ℝ) (T : Finset (EuclideanSpace ℝ (Fin n)))
+    (x : Fin (n + 1) → ℝ) (hx : x ∈ craciunProjectiveDomain) (hanchor : x 0 = 1)
+    (hupper : ∀ i, x i ≤ upper i) :
+    x ∈ ⋃ C : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily T}, craciunProjectiveArrangementTile upper T C := by
+  let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
+  have hcover := hyperplaneArrangementFamily_covers T
+  have hz : e.symm (forgetLastCoordinate n x) ∈
+      ⋃ C ∈ hyperplaneArrangementFamily T, (C : Set (EuclideanSpace ℝ (Fin n))) := by
+    rw [hcover]
+    simp
+  rcases Set.mem_iUnion.mp hz with ⟨C, hC⟩
+  rcases Set.mem_iUnion.mp hC with ⟨hCF, hxC⟩
+  exact Set.mem_iUnion.mpr ⟨⟨C, hCF⟩, hx, hanchor, hupper, hxC⟩
+
+/-- Craciun's finite arrangement diagram supplies the compact radial cover required at the next
+projective induction stage. This removes the previously abstract diagram-cover input for a bounded
+normalized slice; the coordinate upper bounds are precisely the blue-box restriction. -/
+theorem craciunProjectiveArrangement_radialCover {n : ℕ}
+    (upper : Fin (n + 1) → ℝ) (T : Finset (EuclideanSpace ℝ (Fin n)))
+    (hupperPositive : ∀ i, 0 < upper i) :
+    IsCompact (⋃ C : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily T},
+      radialBoxDiagramTile (craciunProjectiveArrangementTile upper T C) upper
+        (fun x hx => craciunProjectiveArrangementTile_nonnegative upper T C hx)
+        (fun x hx => craciunProjectiveArrangementTile_nonzero upper T C hx) hupperPositive ∩
+        craciunProjectiveDomain) ∧
+    (∀ p, p ∈ craciunProjectiveDomain → (∀ i, p i ≤ upper i) →
+      p ∈ ⋃ C : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+        C ∈ hyperplaneArrangementFamily T},
+        radialBoxDiagramTile (craciunProjectiveArrangementTile upper T C) upper
+          (fun x hx => craciunProjectiveArrangementTile_nonnegative upper T C hx)
+          (fun x hx => craciunProjectiveArrangementTile_nonzero upper T C hx) hupperPositive ∩
+          craciunProjectiveDomain) := by
+  classical
+  let I := {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+    C ∈ hyperplaneArrangementFamily T}
+  letI : Fintype I := Finset.fintypeCoeSort (hyperplaneArrangementFamily T)
+  exact isCompact_and_covers_projectiveRadialTiles
+    (fun C : I => craciunProjectiveArrangementTile upper T C) upper
+    (fun C x hx => craciunProjectiveArrangementTile_nonnegative upper T C hx)
+    (fun C x hx => craciunProjectiveArrangementTile_anchor upper T C hx)
+    (fun C => isCompact_craciunProjectiveArrangementTile upper T C)
+    hupperPositive
+    (fun x hx hanchor hbound => craciunProjectiveArrangementTiles_cover upper T x hx hanchor hbound)
+
+/-- Ray lifting preserves the lower-dimensional arrangement label after projection. This is the
+projected-basepoint invariant needed to pass an upper tile back to its lower-dimensional face. -/
+theorem craciunProjectiveArrangementTile_radialProjection_subset {n : ℕ}
+    (upper : Fin (n + 1) → ℝ) (T : Finset (EuclideanSpace ℝ (Fin n)))
+    (hupper : ∀ i, 0 < upper i)
+    (C : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily T}) :
+    forgetLastCoordinate n ''
+      (radialBoxDiagramTile (craciunProjectiveArrangementTile upper T C) upper
+        (fun x hx i => le_trans (by norm_num) (hx.1.1 i))
+        (fun x hx hzero => by
+          have hcoord : x 0 = 0 := congrArg (fun f => f 0) hzero
+          rw [hx.2.1] at hcoord
+          norm_num at hcoord)
+        hupper ∩ craciunProjectiveDomain) ⊆
+      (EuclideanSpace.equiv (Fin n) ℝ) '' (C.1 : Set (EuclideanSpace ℝ (Fin n))) := by
+  let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
+  rintro y ⟨p, ⟨hpTile, _⟩, rfl⟩
+  rcases (mem_radialBoxDiagramTile_iff_exists_source_ray
+      (craciunProjectiveArrangementTile upper T C) upper
+      (fun x hx i => le_trans (by norm_num) (hx.1.1 i))
+      (fun x hx hzero => by
+        have hcoord : x 0 = 0 := congrArg (fun f => f 0) hzero
+        rw [hx.2.1] at hcoord
+        norm_num at hcoord) hupper).1 hpTile with
+    ⟨x, hx, s, hs, hpx, _⟩
+  have hproject : e.symm (forgetLastCoordinate n p) =
+      s • e.symm (forgetLastCoordinate n x) := by
+    rw [hpx, (forgetLastCoordinate n).map_smul, map_smul]
+  have hsC : s • e.symm (forgetLastCoordinate n x) ∈ C.1 :=
+    C.1.smul_mem hx.2.2.2 hs
+  refine ⟨e.symm (forgetLastCoordinate n p), ?_, ?_⟩
+  · rw [hproject]
+    exact hsC
+  exact e.apply_symm_apply _
+
+/-- Distinct projective arrangement tiles have disjoint projected interiors after radial lifting.
+The result follows because each projection stays in its closed cone and the arrangement cone
+interiors are disjoint. -/
+theorem craciunProjectiveArrangementTiles_projectedInteriorsDisjoint {n : ℕ}
+    (upper : Fin (n + 1) → ℝ) (T : Finset (EuclideanSpace ℝ (Fin n)))
+    (hupper : ∀ i, 0 < upper i)
+    (C D : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily T}) (hne : C ≠ D) :
+    interior (forgetLastCoordinate n ''
+      (radialBoxDiagramTile (craciunProjectiveArrangementTile upper T C) upper
+        (fun x hx i => le_trans (by norm_num) (hx.1.1 i))
+        (fun x hx hzero => by
+          have hcoord : x 0 = 0 := congrArg (fun f => f 0) hzero
+          rw [hx.2.1] at hcoord
+          norm_num at hcoord)
+        hupper ∩ craciunProjectiveDomain)) ∩
+    interior (forgetLastCoordinate n ''
+      (radialBoxDiagramTile (craciunProjectiveArrangementTile upper T D) upper
+        (fun x hx i => le_trans (by norm_num) (hx.1.1 i))
+        (fun x hx hzero => by
+          have hcoord : x 0 = 0 := congrArg (fun f => f 0) hzero
+          rw [hx.2.1] at hcoord
+          norm_num at hcoord)
+        hupper ∩ craciunProjectiveDomain)) = ∅ := by
+  let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
+  have hcone : interior (C.1 : Set (EuclideanSpace ℝ (Fin n))) ∩
+      interior (D.1 : Set (EuclideanSpace ℝ (Fin n))) = ∅ :=
+    hyperplaneArrangementFamily_interiors_disjoint C.2 D.2 (by
+      intro h
+      exact hne (Subtype.ext h))
+  have hCsub : forgetLastCoordinate n ''
+      (radialBoxDiagramTile (craciunProjectiveArrangementTile upper T C) upper
+        (fun x hx i => le_trans (by norm_num) (hx.1.1 i))
+        (fun x hx hzero => by
+          have hcoord : x 0 = 0 := congrArg (fun f => f 0) hzero
+          rw [hx.2.1] at hcoord
+          norm_num at hcoord)
+        hupper ∩ craciunProjectiveDomain) ⊆ e '' (C.1 : Set _) :=
+    craciunProjectiveArrangementTile_radialProjection_subset upper T hupper C
+  have hDsub : forgetLastCoordinate n ''
+      (radialBoxDiagramTile (craciunProjectiveArrangementTile upper T D) upper
+        (fun x hx i => le_trans (by norm_num) (hx.1.1 i))
+        (fun x hx hzero => by
+          have hcoord : x 0 = 0 := congrArg (fun f => f 0) hzero
+          rw [hx.2.1] at hcoord
+          norm_num at hcoord)
+        hupper ∩ craciunProjectiveDomain) ⊆ e '' (D.1 : Set _) :=
+    craciunProjectiveArrangementTile_radialProjection_subset upper T hupper D
+  have hCpre : e ⁻¹' (e '' (C.1 : Set (EuclideanSpace ℝ (Fin n)))) = C.1 := by
+    ext x
+    simp
+  have hDpre : e ⁻¹' (e '' (D.1 : Set (EuclideanSpace ℝ (Fin n)))) = D.1 := by
+    ext x
+    simp
+  ext y
+  simp only [Set.mem_inter_iff, Set.mem_empty_iff_false, iff_false]
+  intro hy
+  have hyC : y ∈ interior (e '' (C.1 : Set (EuclideanSpace ℝ (Fin n)))) :=
+    interior_mono hCsub hy.1
+  have hyD : y ∈ interior (e '' (D.1 : Set (EuclideanSpace ℝ (Fin n)))) :=
+    interior_mono hDsub hy.2
+  have hpreC := preimage_interior_subset_interior_preimage
+    (t := e '' (C.1 : Set (EuclideanSpace ℝ (Fin n)))) e.continuous
+    (show e.symm y ∈ e ⁻¹' interior (e '' (C.1 : Set _)) by simpa using hyC)
+  have hpreD := preimage_interior_subset_interior_preimage
+    (t := e '' (D.1 : Set (EuclideanSpace ℝ (Fin n)))) e.continuous
+    (show e.symm y ∈ e ⁻¹' interior (e '' (D.1 : Set _)) by simpa using hyD)
+  have hcontr : e.symm y ∈ interior (C.1 : Set _) ∩ interior (D.1 : Set _) := by
+    simpa [hCpre, hDpre] using And.intro hpreC hpreD
+  rw [hcone] at hcontr
+  exact hcontr
+
+/-- Feed the concrete projective arrangement into Craciun's one-bit fiber refinement. The result
+retains parent arrangement labels while subdividing each projected tile into compact pieces small
+enough for local wall-chart selection (§7.4.3 Case 1.2). -/
+noncomputable def craciunProjectiveArrangement_smallPatchCover {n : ℕ}
+    (upper : Fin (n + 1) → ℝ) (T : Finset (EuclideanSpace ℝ (Fin n)))
+    (epsilon eta : ℝ) (hupperPositive : ∀ i, 0 < upper i)
+    (hepsilon : 0 < epsilon) (heta : 0 < eta) := by
+  classical
+  let I := {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+    C ∈ hyperplaneArrangementFamily T}
+  letI : Fintype I := Finset.fintypeCoeSort (hyperplaneArrangementFamily T)
+  exact compactProjectiveRadialFamily_smallPatchCover_refiningDiagramTiles
+    (fun C : I => craciunProjectiveArrangementTile upper T C) upper epsilon eta
+    (fun C x hx => craciunProjectiveArrangementTile_nonnegative upper T C hx)
+    (fun C x hx => craciunProjectiveArrangementTile_nonzero upper T C hx)
+    (fun C x hx => craciunProjectiveArrangementTile_anchor upper T C hx)
+    (fun C => isCompact_craciunProjectiveArrangementTile upper T C)
+    hupperPositive hepsilon heta
+    (fun x hx hanchor hbound => craciunProjectiveArrangementTiles_cover upper T x hx hanchor hbound)
+    (fun C D hne => craciunProjectiveArrangementTiles_projectedInteriorsDisjoint
+      upper T hupperPositive C D hne)
+
 end FanRefinement
 
 end CRNT
