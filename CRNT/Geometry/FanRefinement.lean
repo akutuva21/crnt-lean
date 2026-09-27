@@ -540,6 +540,60 @@ def ProperExposedFaceDependency [CompleteSpace E]
     (required face : ProperCone ℝ E) : Prop :=
   IsExposedFaceOf required face ∧ required ≠ face
 
+/-- The one-bit fiber cell attached to a fan cell during Craciun's face filling. A strip has one
+additional geometric dimension over its projected fan cell; an endpoint graph has none. -/
+inductive OneBitFiberCell (m : ℕ)
+  | strip : Fin (m + 1) → OneBitFiberCell m
+  | endpoint : Fin (m + 2) → OneBitFiberCell m
+
+/-- A face-filling task pairs a fan cell with one of its one-bit strips or endpoint seams. -/
+abbrev OneBitFanFaceTask (E : Type*) [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    (m : ℕ) := ProperCone ℝ E × OneBitFiberCell m
+
+/-- Geometric dimension for the one-bit face recursion: the span rank of the fan cell, plus one
+for an interval strip and zero for an endpoint face. -/
+noncomputable def oneBitFanFaceTaskRank [CompleteSpace E] {m : ℕ}
+    (task : OneBitFanFaceTask E m) : ℕ :=
+  coneSpanRank task.1 + (match task.2 with
+    | .strip _ => 1
+    | .endpoint _ => 0)
+
+/-- A fan-face or fiber-endpoint dependency points from a required lower-dimensional task to the
+strip task whose boundary uses it. -/
+inductive OneBitFanFaceDependency [CompleteSpace E] {m : ℕ} :
+    OneBitFanFaceTask E m → OneBitFanFaceTask E m → Prop
+  | fanFace (C G : ProperCone ℝ E) (i : Fin (m + 1))
+      (hface : IsExposedFaceOf G C) (hne : G ≠ C) :
+      OneBitFanFaceDependency (G, .strip i) (C, .strip i)
+  | fiberEndpoint (C G : ProperCone ℝ E) (i : Fin (m + 1)) (j : Fin (m + 2))
+      (hface : IsExposedFaceOf G C)
+      (hadjacent : j = i.castSucc ∨ j = i.succ) :
+      OneBitFanFaceDependency (G, .endpoint j) (C, .strip i)
+
+/-- The combined fan-cell/one-bit-face dependency order is well-founded. Fan-face steps lower the
+cone span rank; endpoint steps lower the one-bit fiber dimension, including when the fan cell is
+unchanged. -/
+theorem oneBitFanFaceDependency_wellFounded [CompleteSpace E] [FiniteDimensional ℝ E]
+    {m : ℕ} :
+    WellFounded (OneBitFanFaceDependency (E := E) (m := m)) := by
+  have hmeasure : WellFounded (fun a b : OneBitFanFaceTask E m =>
+      oneBitFanFaceTaskRank a < oneBitFanFaceTaskRank b) :=
+    InvImage.wf oneBitFanFaceTaskRank (Nat.lt_wfRel).2
+  apply hmeasure.mono
+  intro a b hab
+  cases hab with
+  | fanFace C G i hface hne =>
+      simp [oneBitFanFaceTaskRank]
+      exact coneSpanRank_lt_of_isExposedFaceOf_of_ne hface hne
+  | fiberEndpoint C G i j hface hadjacent =>
+      have hrank : coneSpanRank G ≤ coneSpanRank C := by
+        by_cases hGC : G = C
+        · subst G
+          exact le_rfl
+        · exact (coneSpanRank_lt_of_isExposedFaceOf_of_ne hface hGC).le
+      simp [oneBitFanFaceTaskRank]
+      omega
+
 theorem properExposedFaceDependency_wellFounded [CompleteSpace E]
     [FiniteDimensional ℝ E] :
     WellFounded (ProperExposedFaceDependency (E := E)) := by
@@ -2321,6 +2375,49 @@ theorem euclideanHyperplaneArrangementBaseTiles_adjacentStrip_seam {n : ℕ}
   · rw [← hintersection]
     exact cover.adjacent_base_tiles_share_seam C D horder k
 
+/-- Every adjacent-strip seam in the arrangement cover is a strict dependency of both incident
+strip tasks in the combined fan/one-bit face order. This also handles `C = D`: the endpoint graph
+still has one less dimension than either interval strip. -/
+theorem euclideanHyperplaneArrangementBaseTiles_adjacentStrip_seam_dependency
+    {n : ℕ} {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {lower upper : (Fin n → ℝ) → ℝ} {epsilon : ℝ}
+    (F : Fan (EuclideanSpace ℝ (Fin n))) (hFdual : HasDualFGCells F)
+    (cover : CompactOneBitFiberPatchCover facePatch base
+      (euclideanHyperplaneArrangementBaseTile base F hFdual) lower upper epsilon)
+    (C D : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)})
+    (horder : ∀ y ∈
+      euclideanHyperplaneArrangementBaseTile base F hFdual C ∩
+        euclideanHyperplaneArrangementBaseTile base F hFdual D,
+      lower y ≤ upper y)
+    (k : Fin cover.tiling.subdivisionCount) :
+    ∃ (G : ProperCone ℝ (EuclideanSpace ℝ (Fin n)))
+      (hG : G ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)),
+      IsExposedFaceOf G C.1 ∧ IsExposedFaceOf G D.1 ∧
+      OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (m := cover.tiling.subdivisionCount)
+        (G, .endpoint k.succ.castSucc) (C.1, .strip k.castSucc) ∧
+      OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (m := cover.tiling.subdivisionCount)
+        (G, .endpoint k.succ.castSucc) (D.1, .strip k.succ) ∧
+      (facePatch ∩ projectionFiberSubdivisionTile
+          (euclideanHyperplaneArrangementBaseTile base F hFdual C) lower upper k.castSucc) ∩
+        (facePatch ∩ projectionFiberSubdivisionTile
+          (euclideanHyperplaneArrangementBaseTile base F hFdual D) lower upper k.succ) =
+      facePatch ∩ (fun y : Fin n → ℝ =>
+        projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y) ''
+          euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩ := by
+  obtain ⟨G, hG, hGC, hGD, _, _, _, hseam⟩ :=
+    euclideanHyperplaneArrangementBaseTiles_adjacentStrip_seam F hFdual cover C D horder k
+  have hindex : k.succ.castSucc = k.castSucc.succ := by
+    apply Fin.ext
+    simp
+  refine ⟨G, hG, hGC, hGD, ?_, ?_, hseam⟩
+  · exact OneBitFanFaceDependency.fiberEndpoint C.1 G k.castSucc
+      k.succ.castSucc hGC (Or.inr hindex)
+  · exact OneBitFanFaceDependency.fiberEndpoint D.1 G k.succ
+      k.succ.castSucc hGD (Or.inl rfl)
+
 /-- Craciun's one-bit fiber subdivision can be placed over the finite central arrangement of a
 complete fan in Euclidean coordinates. This is the coordinate bridge between the fan-label
 refinement and the projected-base tiles of §7.4.3: the tiles cover the original base, are compact
@@ -2568,9 +2665,8 @@ noncomputable def exists_small_fan_labeledOneBitFiberPatchCover {n : ℕ} {ι : 
     hepsilon hfaceBand
 
 /-- In the product small-patch/fan cover, adjacent fiber strips meet over the exact intersection
-of the two small patches with their actual common fan face. Distinct fan labels give a proper
-exposed-face dependency on at least one incident cell, so this seam can be passed to the lower
-lexicographic fill without losing either the chart-scale label or the geometric order. -/
+of the two small patches with their actual common fan face. The shared endpoint task is strictly
+lower than both incident strip tasks in the combined well-founded face order. -/
 theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype ι]
     {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
     {smallTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
@@ -2580,7 +2676,7 @@ theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype �
       C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)}]
     (cover : CompactOneBitFiberPatchCover facePatch base
       (fun p : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
-        C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)} × ι =>
+      C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)} × ι =>
           euclideanHyperplaneArrangementBaseTile base F hFdual p.1 ∩ smallTile p.2)
       lower upper epsilon)
     (horder : ∀ y ∈ base, lower y ≤ upper y)
@@ -2591,6 +2687,12 @@ theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype �
       (hG : G ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)),
       (C.1 ≠ D.1 → ProperExposedFaceDependency G C.1 ∨
         ProperExposedFaceDependency G D.1) ∧
+      OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (m := cover.tiling.subdivisionCount)
+        (G, .endpoint k.succ.castSucc) (C.1, .strip k.castSucc) ∧
+      OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (m := cover.tiling.subdivisionCount)
+        (G, .endpoint k.succ.castSucc) (D.1, .strip k.succ) ∧
       ((euclideanHyperplaneArrangementBaseTile base F hFdual C ∩ smallTile i) ∩
         (euclideanHyperplaneArrangementBaseTile base F hFdual D ∩ smallTile j) =
           euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩ ∩
@@ -2643,9 +2745,16 @@ theorem fanSmallProductTile_adjacentStrip_seam {n : ℕ} {ι : Type*} [Fintype �
       C ∈ hyperplaneArrangementFamily (fanNormalSet F hFdual)} × ι := (D, j)
   have hseam := cover.adjacent_base_tiles_share_seam p q
     (fun y hy => horder y (cover.baseTile_subset p hy.1)) k
-  refine ⟨G, hG, hdependency, hbaseMeet, ?_⟩
-  rw [← hbaseMeet]
-  exact hseam
+  have hindex : k.succ.castSucc = k.castSucc.succ := by
+    apply Fin.ext
+    simp
+  refine ⟨G, hG, hdependency, ?_, ?_, hbaseMeet, ?_⟩
+  · exact OneBitFanFaceDependency.fiberEndpoint C.1 G k.castSucc
+      k.succ.castSucc hGC (Or.inr hindex)
+  · exact OneBitFanFaceDependency.fiberEndpoint D.1 G k.succ
+      k.succ.castSucc hGD (Or.inl rfl)
+  · rw [← hbaseMeet]
+    exact hseam
 
 /-- The projected-fan version of the one-bit cover construction. Start with the fan one dimension
 higher, take the finite arrangement refinement of its last-coordinate image family, and use that

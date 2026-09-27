@@ -2118,6 +2118,12 @@ theorem Network.fanSmallProductTile_restrictedSeam_dependency_and_glue
       (C.1 ≠ D.1 →
         FanRefinement.ProperExposedFaceDependency G C.1 ∨
           FanRefinement.ProperExposedFaceDependency G D.1) ∧
+      FanRefinement.OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (m := cover.tiling.subdivisionCount)
+        (G, .endpoint k.succ.castSucc) (C.1, .strip k.castSucc) ∧
+      FanRefinement.OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (m := cover.tiling.subdivisionCount)
+        (G, .endpoint k.succ.castSucc) (D.1, .strip k.succ) ∧
       ((FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual C ∩ smallTile i) ∩
         (FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual D ∩ smallTile j) =
           FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩ ∩
@@ -2137,12 +2143,12 @@ theorem Network.fanSmallProductTile_restrictedSeam_dependency_and_glue
         D' (toEuclid (N.massActionVectorField κ (toEuclid.symm
           (ψ (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
             lower upper k.succ.castSucc y))))) ≤ 0 := by
-  obtain ⟨G, hG, hdependency, hbase, _⟩ :=
+  obtain ⟨G, hG, hdependency, hdepC, hdepD, hbase, _⟩ :=
     FanRefinement.fanSmallProductTile_adjacentStrip_seam F hFdual cover horder C D i j k
   have hbarrier := N.restrictedOneBitFiberPatch_finite_seam_glue
     κ cover domain hdomain ψ z selected offset tailHead tail hatlas (C, i) k y horder hy
       hgraph ps hincident
-  exact ⟨G, hG, hdependency, hbase, hbarrier⟩
+  exact ⟨G, hG, hdependency, hdepC, hdepD, hbase, hbarrier⟩
 
 /-- Craciun v3, §8 Step 2: a compact wall-chart cover supplies the local barriers needed to
 glue every listed face incident to a clipped adjacent-strip seam. The shared projected basepoint
@@ -2327,6 +2333,12 @@ theorem Network.exists_fanSmallProductTile_restrictedSeam_dependency_and_glue_of
         (FanRefinement.fanNormalSet F hFdual)),
       (C.1 ≠ D.1 → FanRefinement.ProperExposedFaceDependency G C.1 ∨
         FanRefinement.ProperExposedFaceDependency G D.1) ∧
+      FanRefinement.OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (m := cover.tiling.subdivisionCount)
+        (G, .endpoint k.succ.castSucc) (C.1, .strip k.castSucc) ∧
+      FanRefinement.OneBitFanFaceDependency (E := EuclideanSpace ℝ (Fin n))
+        (m := cover.tiling.subdivisionCount)
+        (G, .endpoint k.succ.castSucc) (D.1, .strip k.succ) ∧
       ((FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual C ∩
           smallTile i) ∩
         (FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual D ∩
@@ -2372,9 +2384,9 @@ theorem Network.exists_fanSmallProductTile_restrictedSeam_dependency_and_glue_of
       κ cover ψ hψ z t hε hchart himage hmapDiam hprojectedSmall hendpointVariation
       hηsmall hbudget hδcoord domain hdomain tailHead tail (C, i) k y horder hy
       hgraph ps hincident
-  obtain ⟨G, hG, hdependency, hbase, _⟩ :=
+  obtain ⟨G, hG, hdependency, hdepC, hdepD, hbase, _⟩ :=
     FanRefinement.fanSmallProductTile_adjacentStrip_seam F hFdual cover horder C D i j k
-  exact ⟨G, hG, hdependency, hbase, selected, offset, _, hbarrier⟩
+  exact ⟨G, hG, hdependency, hdepC, hdepD, hbase, selected, offset, _, hbarrier⟩
 
 /-- End-to-end local atlas step: a compact wall-chart cover selects one inward wall on each
 nonempty one-bit patch, and the selected barriers then glue over any finite clipped common face.
