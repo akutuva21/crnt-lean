@@ -4865,6 +4865,54 @@ noncomputable def compactOneBitFiberBlueprintRefinement_of_compactBand {n : ℕ}
   · intro i
     exact hfacePatchCompact.inter (tiling.tile_compact i)
 
+/-- The compact restricted radial boundary family from Craciun v3, §8 Step 1 admits one shared
+one-bit fiber subdivision. We use its coordinate projection as the base and the last blue-box
+coordinate as a constant upper graph; every radial tile lies in this band. The shared subdivision
+is the common strip structure needed before assigning and gluing lower-dimensional face data. -/
+noncomputable def compactProjectiveRadialFamily_fiberRefinement {n : ℕ} {ι : Type*}
+    [Fintype ι]
+    (diagramTile : ι → Set (Fin (n + 1) → ℝ)) (upper : Fin (n + 1) → ℝ)
+    (epsilon : ℝ)
+    (hdiagramNonnegative : ∀ k x, x ∈ diagramTile k → ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ k x, x ∈ diagramTile k → x ≠ 0)
+    (hdiagramAnchor : ∀ k x, x ∈ diagramTile k → x 0 = 1)
+    (hdiagramCompact : ∀ k, IsCompact (diagramTile k))
+    (hupper : ∀ i, 0 < upper i) (hepsilon : 0 < epsilon)
+    (hdiagramCoversNormalizedDomain : ∀ x,
+      x ∈ craciunProjectiveDomain → x 0 = 1 → x ∈ ⋃ k, diagramTile k) :
+    Σ base : Set (Fin n → ℝ),
+      CompactOneBitFiberBlueprintRefinement
+        (⋃ k, radialBoxDiagramTile (diagramTile k) upper
+          (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩ craciunProjectiveDomain)
+        base (fun _ => 0) (fun _ => upper (Fin.last n)) epsilon := by
+  let facePatch : Set (Fin (n + 1) → ℝ) :=
+    ⋃ k, radialBoxDiagramTile (diagramTile k) upper
+      (hdiagramNonnegative k) (hdiagramNonzero k) hupper ∩ craciunProjectiveDomain
+  have hfaceCompact : IsCompact facePatch :=
+    (isCompact_and_covers_projectiveRadialTiles diagramTile upper hdiagramNonnegative
+      hdiagramAnchor hdiagramCompact hupper hdiagramCoversNormalizedDomain).1
+  let base : Set (Fin n → ℝ) := forgetLastCoordinate n '' facePatch
+  have hprojection : Continuous (forgetLastCoordinate n) :=
+    (forgetLastCoordinate n).continuous_of_finiteDimensional
+  have hbaseCompact : IsCompact base := by
+    exact hfaceCompact.image hprojection
+  have hupperPositive : 0 < upper (Fin.last n) := hupper (Fin.last n)
+  have hband : facePatch ⊆ projectionFiberBand base
+      (fun _ => some (0 : ℝ)) (fun _ => some (upper (Fin.last n))) := by
+    intro x hx
+    obtain ⟨k, hk⟩ := Set.mem_iUnion.mp hx
+    have hbox := radialBoxDiagramTile_subset_box (diagramTile k) upper
+      (hdiagramNonnegative k) (hdiagramNonzero k) hupper hk.1
+    apply (mem_projectionFiberBand_bounded_iff base (fun _ => 0)
+      (fun _ => upper (Fin.last n)) x).2
+    refine ⟨⟨x, hx, rfl⟩, ?_, ?_⟩
+    · exact (hbox (Fin.last n)).1
+    · exact (hbox (Fin.last n)).2
+  refine ⟨base, ?_⟩
+  exact compactOneBitFiberBlueprintRefinement_of_compactBand facePatch hfaceCompact base
+    (fun _ => 0) (fun _ => upper (Fin.last n)) epsilon hbaseCompact continuous_const
+    continuous_const (fun y hy => le_of_lt hupperPositive) hepsilon hband
+
 /-- A finite family of lower-dimensional base tiles refined by one shared fiber subdivision. Using
 one global tiling is essential: adjacent lower-dimensional patches then use identical endpoint
 graphs on their overlaps, so the higher-dimensional pieces glue along the same seams. -/
