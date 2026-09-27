@@ -7372,7 +7372,13 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_for_c
                         ρ * faceRadius i ∧
                     projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
                       projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y <
-                        ρ * faceRadius j) := by
+                        ρ * faceRadius j ∧
+                    projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
+                      projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y <
+                        craciunBinaryWordEpsilon (n + 1) q (word i) ∧
+                    projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
+                      projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y <
+                        craciunBinaryWordEpsilon (n + 1) q (word j)) := by
   classical
   have hqCap : (0 : ℝ) < 1 / 2 := by norm_num
   obtain ⟨q, hq, hqone, _hqcap, hpreOverlap⟩ :=
@@ -7478,11 +7484,23 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_for_c
           projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
             radius := refinement.tiling.fiber_width_le k y hy
       _ < ρ * faceRadius i := hradiusFace i
-  · calc
-      projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
-          projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
-            radius := refinement.tiling.fiber_width_le k y hy
-      _ < ρ * faceRadius j := hradiusFace j
+  · constructor
+    · calc
+        projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
+            projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
+              radius := refinement.tiling.fiber_width_le k y hy
+        _ < ρ * faceRadius j := hradiusFace j
+    · constructor
+      · calc
+          projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
+              projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
+                radius := refinement.tiling.fiber_width_le k y hy
+          _ < craciunBinaryWordEpsilon (n + 1) q (word i) := hradiusWord i
+      · calc
+          projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
+              projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
+                radius := refinement.tiling.fiber_width_le k y hy
+          _ < craciunBinaryWordEpsilon (n + 1) q (word j) := hradiusWord j
 
 /-- Craciun v3, §8 Step 1 followed by §7.4.3 Case 1.2: clip a finite family of compact
 projective radial tiles to the projective domain, project those pieces to the lower-dimensional

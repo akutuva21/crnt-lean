@@ -383,3 +383,17 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
 - This gives the finite Case 1.1/1.2 consumer the full inherited profile and one compatible scale.
   The actual face-indexed recursive order, filling from all proper-face boundary data, global
   faithful blueprint/ZSH assembly, and target consumer remain open.
+
+## Continuation checkpoint — Step 2 profile-width bounds on every fill strip
+
+- Strengthened `exists_common_scale_and_oneBit_fills_for_craciun_words` so the same subdivision
+  certifies each strip width is strictly below the full Craciun profile width assigned to both
+  incident zero-ending words, in addition to the two face-radius bounds. This is the explicit
+  Step 2 inequality needed when the strip data is carried into the next blueprint stage.
+- Lean 4.34 compiled `ZeroSeparatingInduction.lean` directly, then freshly rebuilt
+  `FanRefinement.lean`, `ToricUniformWallMargin.lean`,
+  `ComplexBalanceStoichFanInclusion.lean`, and `GlobalAttractorTheorem.lean` against that source
+  artifact. The new selector/fill theorem audit to `[propext, Classical.choice, Quot.sound]`.
+- The exact target still audits to `[propext, sorryAx, Classical.choice, Quot.sound]`. This
+  checkpoint supplies the missing per-word Step 2 bound only; recursive face-family construction,
+  global faithful blueprint/ZSH assembly, and the target consumer remain the active goal.
