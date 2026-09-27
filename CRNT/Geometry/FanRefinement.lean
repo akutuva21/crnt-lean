@@ -3353,6 +3353,38 @@ theorem craciunProjectiveArrangementTiles_cover {n : ℕ}
   rcases Set.mem_iUnion.mp hC with ⟨hCF, hxC⟩
   exact Set.mem_iUnion.mpr ⟨⟨C, hCF⟩, hx, hanchor, hupper, hxC⟩
 
+/-- Intersecting two projective tiles gives precisely the tile over their common arrangement face.
+The exposed-face and rank-drop witnesses are retained for the lexicographic recursive fill order
+in Craciun v3, §7.4.3. -/
+theorem craciunProjectiveArrangementTile_intersection {n : ℕ}
+    (upper : Fin (n + 1) → ℝ) (T : Finset (EuclideanSpace ℝ (Fin n)))
+    (C D : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ hyperplaneArrangementFamily T}) :
+    ∃ (G : ProperCone ℝ (EuclideanSpace ℝ (Fin n)))
+      (hG : G ∈ hyperplaneArrangementFamily T),
+      craciunProjectiveArrangementTile upper T C ∩
+        craciunProjectiveArrangementTile upper T D =
+          craciunProjectiveArrangementTile upper T ⟨G, hG⟩ ∧
+      IsExposedFaceOf G C.1 ∧ IsExposedFaceOf G D.1 ∧
+      (G ≠ C.1 → coneSpanRank G < coneSpanRank C.1) ∧
+      (G ≠ D.1 → coneSpanRank G < coneSpanRank D.1) := by
+  let e : EuclideanSpace ℝ (Fin n) ≃L[ℝ] (Fin n → ℝ) := EuclideanSpace.equiv (Fin n) ℝ
+  obtain ⟨G, hG, hcommon, hGC, hGD, hrankC, hrankD⟩ :=
+    hyperplaneArrangement_commonFace_rank_decrease C.2 D.2
+  have hcone (x : EuclideanSpace ℝ (Fin n)) :
+      x ∈ G ↔ x ∈ C.1 ∧ x ∈ D.1 := by
+    change x ∈ (G : Set (EuclideanSpace ℝ (Fin n))) ↔ _
+    rw [hcommon]
+    simp
+  refine ⟨G, hG, ?_, hGC, hGD, hrankC, hrankD⟩
+  ext x
+  constructor
+  · rintro ⟨⟨hdomain, hanchor, hbound, hC⟩, ⟨_, _, _, hD⟩⟩
+    exact ⟨hdomain, hanchor, hbound, (hcone (e.symm (forgetLastCoordinate n x))).mpr ⟨hC, hD⟩⟩
+  · rintro ⟨hdomain, hanchor, hbound, hG⟩
+    have hCD := (hcone (e.symm (forgetLastCoordinate n x))).mp hG
+    exact ⟨⟨hdomain, hanchor, hbound, hCD.1⟩, ⟨hdomain, hanchor, hbound, hCD.2⟩⟩
+
 /-- Craciun's finite arrangement diagram supplies the compact radial cover required at the next
 projective induction stage. This removes the previously abstract diagram-cover input for a bounded
 normalized slice; the coordinate upper bounds are precisely the blue-box restriction. -/
