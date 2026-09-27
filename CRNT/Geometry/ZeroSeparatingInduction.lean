@@ -4702,6 +4702,64 @@ theorem exists_radialBoundaryTiles_adjacentFiberStrips_projected_incidence {n m 
       (fun x hx => hA_nonzero x hx.1)
       (fun x hx => hA_anchor x hx.1) hboxUpper).mp hpRadial |>.2.2
 
+/-- The projection of the full adjacent-strip overlap is exactly the set of lower basepoints whose
+shared endpoint satisfies the projective-domain, blue-box, and common-source-tile conditions.
+This exact image identity is the lower-dimensional seam patch passed to the next stage of
+Craciun's construction (§§7.4.3 and 8). -/
+theorem radialBoundaryTiles_adjacentFiberStrips_projected_seam_eq {n m : ℕ}
+    (tileA tileB : Set (Fin (n + 1) → ℝ)) (boxUpper : Fin (n + 1) → ℝ)
+    (hA_nonnegative : ∀ x ∈ tileA, ∀ i, 0 ≤ x i)
+    (hA_nonzero : ∀ x ∈ tileA, x ≠ 0)
+    (hA_anchor : ∀ x ∈ tileA, x 0 = 1)
+    (hB_nonnegative : ∀ x ∈ tileB, ∀ i, 0 ≤ x i)
+    (hB_nonzero : ∀ x ∈ tileB, x ≠ 0)
+    (hB_anchor : ∀ x ∈ tileB, x 0 = 1)
+    (hboxUpper : ∀ i, 0 < boxUpper i)
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) (k : Fin m) :
+    forgetLastCoordinate n ''
+      (((radialBoxDiagramTile tileA boxUpper hA_nonnegative hA_nonzero hboxUpper ∩
+          craciunProjectiveDomain) ∩
+        projectionFiberSubdivisionTile base lower upper k.castSucc) ∩
+      ((radialBoxDiagramTile tileB boxUpper hB_nonnegative hB_nonzero hboxUpper ∩
+          craciunProjectiveDomain) ∩
+        projectionFiberSubdivisionTile base lower upper k.succ)) =
+      {y | y ∈ base ∧
+        projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y ∈
+          craciunProjectiveDomain ∧
+        (∀ i, projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y i ≤
+          boxUpper i) ∧
+        (fun i =>
+          projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y i /
+            projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y 0) ∈
+          tileA ∩ tileB} := by
+  rw [radialBoundaryTiles_adjacentFiberStrips_seam_eq
+    tileA tileB boxUpper hA_nonnegative hA_nonzero hA_anchor
+    hB_nonnegative hB_nonzero hB_anchor hboxUpper base lower upper horder k]
+  ext y
+  constructor
+  · rintro ⟨p, ⟨hpRadial, hpGraph⟩, hproject⟩
+    rcases hpGraph with ⟨z, hz, rfl⟩
+    have hforget : forgetLastCoordinate n
+        (projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc z) = z := by
+      simp [projectionFiberSubdivisionEndpointGraphPoint, forgetLastCoordinate]
+    rw [hforget] at hproject
+    subst y
+    have hconditions := (mem_radialBoxDiagramTile_projectiveDomain_iff (tileA ∩ tileB)
+      boxUpper (fun x hx i => hA_nonnegative x hx.1 i)
+      (fun x hx => hA_nonzero x hx.1)
+      (fun x hx => hA_anchor x hx.1) hboxUpper).mp hpRadial
+    exact ⟨hz, hconditions.1, hconditions.2.1, hconditions.2.2⟩
+  · rintro ⟨hy, hdomain, hbox, hsource⟩
+    have hRadial := (mem_radialBoxDiagramTile_projectiveDomain_iff (tileA ∩ tileB)
+      boxUpper (fun x hx i => hA_nonnegative x hx.1 i)
+      (fun x hx => hA_nonzero x hx.1)
+      (fun x hx => hA_anchor x hx.1) hboxUpper).mpr
+        ⟨hdomain, hbox, hsource⟩
+    refine ⟨projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y,
+      ⟨hRadial, ⟨y, hy, rfl⟩⟩, ?_⟩
+    simp [projectionFiberSubdivisionEndpointGraphPoint, forgetLastCoordinate]
+
 /-- A shared endpoint seam is compact over a compact projected base when its boundary graphs are
 continuous. -/
 theorem isCompact_projectionFiberSubdivisionAdjacentSeam {n m : ℕ}
@@ -4712,6 +4770,46 @@ theorem isCompact_projectionFiberSubdivisionAdjacentSeam {n m : ℕ}
       projectionFiberSubdivisionEndpointGraphPoint lower upper i.succ.castSucc y) '' base) := by
   exact hbase.image (continuous_projectionFiberSubdivisionEndpointGraphPoint
     lower upper i.succ.castSucc hlower hupper)
+
+/-- The lower-dimensional patch obtained by projecting the common seam of adjacent restricted
+radial tiles is compact. It is the intersection of a compact common-source radial tile and the
+compact shared endpoint graph, so it can be passed to the next finite face refinement. -/
+theorem isCompact_radialBoundaryTiles_adjacentFiberStrips_projected_seam {n m : ℕ}
+    (tileA tileB : Set (Fin (n + 1) → ℝ)) (boxUpper : Fin (n + 1) → ℝ)
+    (hA_nonnegative : ∀ x ∈ tileA, ∀ i, 0 ≤ x i)
+    (hA_nonzero : ∀ x ∈ tileA, x ≠ 0)
+    (hA_anchor : ∀ x ∈ tileA, x 0 = 1)
+    (hB_nonnegative : ∀ x ∈ tileB, ∀ i, 0 ≤ x i)
+    (hB_nonzero : ∀ x ∈ tileB, x ≠ 0)
+    (hB_anchor : ∀ x ∈ tileB, x 0 = 1)
+    (hboxUpper : ∀ i, 0 < boxUpper i)
+    (hA_compact : IsCompact tileA) (hB_compact : IsCompact tileB)
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (hbase_compact : IsCompact base) (hlower : Continuous lower)
+    (hupper : Continuous upper) (horder : ∀ y ∈ base, lower y ≤ upper y)
+    (k : Fin m) :
+    IsCompact (forgetLastCoordinate n ''
+      (((radialBoxDiagramTile tileA boxUpper hA_nonnegative hA_nonzero hboxUpper ∩
+          craciunProjectiveDomain) ∩
+        projectionFiberSubdivisionTile base lower upper k.castSucc) ∩
+      ((radialBoxDiagramTile tileB boxUpper hB_nonnegative hB_nonzero hboxUpper ∩
+          craciunProjectiveDomain) ∩
+        projectionFiberSubdivisionTile base lower upper k.succ))) := by
+  have hcommon_source : IsCompact (tileA ∩ tileB) := hA_compact.inter hB_compact
+  have hcommon_radial := isCompact_radialBoxDiagramTile_projectiveDomain
+    (tileA ∩ tileB) boxUpper 0
+    (fun x hx i => hA_nonnegative x hx.1 i)
+    (fun x hx => hA_nonzero x hx.1)
+    (fun x hx => hA_anchor x hx.1) hboxUpper hcommon_source
+  have hendpoint := isCompact_projectionFiberSubdivisionAdjacentSeam
+    base lower upper hbase_compact hlower hupper k
+  have hseam := radialBoundaryTiles_adjacentFiberStrips_seam_eq
+    tileA tileB boxUpper hA_nonnegative hA_nonzero hA_anchor
+    hB_nonnegative hB_nonzero hB_anchor hboxUpper base lower upper
+    horder k
+  rw [hseam]
+  exact (hcommon_radial.inter hendpoint).image
+    (forgetLastCoordinate n).continuous_of_finiteDimensional
 
 /-- A certificate for the bounded Case 1.2 refinement: finitely many compact strips cover the
 filled fiber band, each strip projects onto the whole lower-dimensional base, and each vertical
