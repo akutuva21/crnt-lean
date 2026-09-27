@@ -4596,6 +4596,65 @@ theorem projectionFiberSubdivisionAdjacentTiles_intersection_eq_graph_over_base_
   exact projectionFiberSubdivisionAdjacentTiles_intersection_eq_graph
     (base₁ ∩ base₂) lower upper horder i
 
+/-- Neighboring one-bit fiber strips above two Craciun radial boundary tiles meet exactly on the
+common normalized source tile and the shared fiber endpoint graph. This combines the §8 Step 1
+projective radial seam with the §7.4.3 Case 1.2 common strip subdivision. -/
+theorem radialBoundaryTiles_adjacentFiberStrips_seam_eq {n m : ℕ}
+    (tileA tileB : Set (Fin (n + 1) → ℝ)) (boxUpper : Fin (n + 1) → ℝ)
+    (hA_nonnegative : ∀ x ∈ tileA, ∀ i, 0 ≤ x i)
+    (hA_nonzero : ∀ x ∈ tileA, x ≠ 0)
+    (hA_anchor : ∀ x ∈ tileA, x 0 = 1)
+    (hB_nonnegative : ∀ x ∈ tileB, ∀ i, 0 ≤ x i)
+    (hB_nonzero : ∀ x ∈ tileB, x ≠ 0)
+    (hB_anchor : ∀ x ∈ tileB, x 0 = 1)
+    (hboxUpper : ∀ i, 0 < boxUpper i)
+    (base : Set (Fin n → ℝ)) (lower upper : (Fin n → ℝ) → ℝ)
+    (horder : ∀ y ∈ base, lower y ≤ upper y) (k : Fin m) :
+    ((radialBoxDiagramTile tileA boxUpper hA_nonnegative hA_nonzero hboxUpper ∩
+        craciunProjectiveDomain) ∩
+      projectionFiberSubdivisionTile base lower upper k.castSucc) ∩
+      ((radialBoxDiagramTile tileB boxUpper hB_nonnegative hB_nonzero hboxUpper ∩
+          craciunProjectiveDomain) ∩
+        projectionFiberSubdivisionTile base lower upper k.succ) =
+      (radialBoxDiagramTile (tileA ∩ tileB) boxUpper
+        (fun x hx i => hA_nonnegative x hx.1 i)
+        (fun x hx => hA_nonzero x hx.1) hboxUpper ∩ craciunProjectiveDomain) ∩
+        (fun y : Fin n → ℝ =>
+          projectionFiberSubdivisionEndpointGraphPoint lower upper k.succ.castSucc y) '' base := by
+  have hradial := radialBoxDiagramTile_projectiveDomain_intersection_eq tileA tileB boxUpper 0
+    hA_nonnegative hA_nonzero hA_anchor hB_nonnegative hB_nonzero hB_anchor hboxUpper
+  have hfiber := projectionFiberSubdivisionAdjacentTiles_intersection_eq_graph
+    base lower upper horder k
+  ext p
+  constructor
+  · intro hp
+    have hpRadial : p ∈
+        (radialBoxDiagramTile tileA boxUpper hA_nonnegative hA_nonzero hboxUpper ∩
+          craciunProjectiveDomain) ∩
+        (radialBoxDiagramTile tileB boxUpper hB_nonnegative hB_nonzero hboxUpper ∩
+          craciunProjectiveDomain) := ⟨hp.1.1, hp.2.1⟩
+    have hpFiber : p ∈
+        projectionFiberSubdivisionTile base lower upper k.castSucc ∩
+          projectionFiberSubdivisionTile base lower upper k.succ :=
+      ⟨hp.1.2, hp.2.2⟩
+    rw [hradial] at hpRadial
+    rw [hfiber] at hpFiber
+    exact ⟨hpRadial, hpFiber⟩
+  · intro hp
+    have hpRadial : p ∈
+        (radialBoxDiagramTile tileA boxUpper hA_nonnegative hA_nonzero hboxUpper ∩
+          craciunProjectiveDomain) ∩
+        (radialBoxDiagramTile tileB boxUpper hB_nonnegative hB_nonzero hboxUpper ∩
+          craciunProjectiveDomain) := by
+      rw [hradial]
+      exact hp.1
+    have hpFiber : p ∈
+        projectionFiberSubdivisionTile base lower upper k.castSucc ∩
+          projectionFiberSubdivisionTile base lower upper k.succ := by
+      rw [hfiber]
+      exact hp.2
+    exact ⟨⟨hpRadial.1, hpFiber.1⟩, ⟨hpRadial.2, hpFiber.2⟩⟩
+
 /-- A shared endpoint seam is compact over a compact projected base when its boundary graphs are
 continuous. -/
 theorem isCompact_projectionFiberSubdivisionAdjacentSeam {n m : ℕ}
