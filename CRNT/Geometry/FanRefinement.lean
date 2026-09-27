@@ -4637,3 +4637,138 @@ theorem compactSmallBaseTiling_boundary_overlap_tasks_at {n m : ℕ}
       FiniteOverlapDependency.baseLeft C j i cell hrev⟩
 end FanRefinement
 end CRNT
+namespace CRNT
+namespace FanRefinement
+
+open ZeroSeparatingInduction
+
+theorem CompactSmallBaseTiling.boundary_overlap_patch_at {n m : ℕ}
+    {base : Set (Fin n → ℝ)} {eta : ℝ}
+    (T : CompactSmallBaseTiling base eta)
+    (facePatch : Set (Fin (n + 1) → ℝ))
+    (lower upper : (Fin n → ℝ) → ℝ)
+    (horder : ∀ C label y, y ∈ euclideanProperConeMixedTileBaseTile base T.tile
+      (C, label) → lower y ≤ upper y)
+    {i : Fin T.count} {x : Fin (n + 1) → ℝ}
+    (C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)))
+    (cell : OneBitFiberCell m)
+    (hx : x ∈ oneBitFanFaceTaskPatch facePatch
+      (euclideanProperConeMixedTileBaseTile base T.tile) lower upper
+      ((C, Sum.inl i), cell))
+    (hyInterior : forgetLastCoordinate n x ∈ interior base)
+    (hyNotInterior : forgetLastCoordinate n x ∉ interior (T.tile i)) :
+    ∃ j : Fin T.count, j ≠ i ∧
+      forgetLastCoordinate n x ∈ T.tile i ∩ T.tile j ∧
+      ((FiniteOverlapDependency
+          ((C, Sum.inr (i, j)), cell) ((C, Sum.inl i), cell) ∧
+        FiniteOverlapDependency
+          ((C, Sum.inr (i, j)), cell) ((C, Sum.inl j), cell) ∧
+        oneBitFanFaceTaskPatch facePatch
+          (euclideanProperConeMixedTileBaseTile base T.tile) lower upper
+          ((C, Sum.inr (i, j)), cell) ⊆
+        oneBitFanFaceTaskPatch facePatch
+          (euclideanProperConeMixedTileBaseTile base T.tile) lower upper
+          ((C, Sum.inl i), cell) ∧
+        x ∈ oneBitFanFaceTaskPatch facePatch
+          (euclideanProperConeMixedTileBaseTile base T.tile) lower upper
+          ((C, Sum.inr (i, j)), cell)) ∨
+       (FiniteOverlapDependency
+          ((C, Sum.inr (j, i)), cell) ((C, Sum.inl i), cell) ∧
+        FiniteOverlapDependency
+          ((C, Sum.inr (j, i)), cell) ((C, Sum.inl j), cell) ∧
+        oneBitFanFaceTaskPatch facePatch
+          (euclideanProperConeMixedTileBaseTile base T.tile) lower upper
+          ((C, Sum.inr (j, i)), cell) ⊆
+        oneBitFanFaceTaskPatch facePatch
+          (euclideanProperConeMixedTileBaseTile base T.tile) lower upper
+          ((C, Sum.inl i), cell) ∧
+        x ∈ oneBitFanFaceTaskPatch facePatch
+          (euclideanProperConeMixedTileBaseTile base T.tile) lower upper
+          ((C, Sum.inr (j, i)), cell))) := by
+  cases cell with
+  | strip k =>
+      have hxface : x ∈ facePatch := hx.1
+      have hstrip : (let y := forgetLastCoordinate n x;
+          y ∈ euclideanProperConeMixedTileBaseTile base T.tile (C, Sum.inl i) ∧
+            projectionFiberSubdivisionEndpoint lower upper k.castSucc y ≤ x (Fin.last n) ∧
+              x (Fin.last n) ≤ projectionFiberSubdivisionEndpoint lower upper k.succ y) := by
+        have hxstrip := hx.2
+        change (let y := forgetLastCoordinate n x;
+          y ∈ euclideanProperConeMixedTileBaseTile base T.tile (C, Sum.inl i) ∧
+            projectionFiberSubdivisionEndpoint lower upper k.castSucc y ≤ x (Fin.last n) ∧
+              x (Fin.last n) ≤ projectionFiberSubdivisionEndpoint lower upper k.succ y)
+          at hxstrip
+        exact hxstrip
+      have hbase : forgetLastCoordinate n x ∈
+          euclideanProperConeMixedTileBaseTile base T.tile (C, Sum.inl i) := hstrip.1
+      change forgetLastCoordinate n x ∈ euclideanProperConeBaseTile base C ∩ T.tile i at hbase
+      have hcone : forgetLastCoordinate n x ∈ euclideanProperConeBaseTile base C := hbase.1
+      obtain ⟨j, hji, htiles, hdeps⟩ := compactSmallBaseTiling_boundary_overlap_tasks_at
+        T C (.strip k)
+        hyInterior hbase.2 hyNotInterior
+      refine ⟨j, hji, htiles, ?_⟩
+      rcases hdeps with hdeps | hdeps
+      · left
+        refine ⟨hdeps.1, hdeps.2, ?_, ?_⟩
+        · exact finiteOverlapDependency_taskPatch_subset facePatch base T.tile lower upper
+            horder hdeps.1
+        refine ⟨hxface, ?_⟩
+        change (let y := forgetLastCoordinate n x;
+          y ∈ euclideanProperConeMixedTileBaseTile base T.tile (C, Sum.inr (i, j)) ∧
+            projectionFiberSubdivisionEndpoint lower upper k.castSucc y ≤ x (Fin.last n) ∧
+              x (Fin.last n) ≤ projectionFiberSubdivisionEndpoint lower upper k.succ y)
+        have hpairBase : forgetLastCoordinate n x ∈
+            euclideanProperConeMixedTileBaseTile base T.tile (C, Sum.inr (i, j)) := by
+          change forgetLastCoordinate n x ∈
+            euclideanProperConeBaseTile base C ∩ (T.tile i ∩ T.tile j)
+          exact ⟨hcone, htiles.1, htiles.2⟩
+        exact ⟨hpairBase, hstrip.2.1, hstrip.2.2⟩
+      · right
+        refine ⟨hdeps.1, hdeps.2, ?_, ?_⟩
+        · exact finiteOverlapDependency_taskPatch_subset facePatch base T.tile lower upper
+            horder hdeps.1
+        refine ⟨hxface, ?_⟩
+        change (let y := forgetLastCoordinate n x;
+          y ∈ euclideanProperConeMixedTileBaseTile base T.tile (C, Sum.inr (j, i)) ∧
+            projectionFiberSubdivisionEndpoint lower upper k.castSucc y ≤ x (Fin.last n) ∧
+              x (Fin.last n) ≤ projectionFiberSubdivisionEndpoint lower upper k.succ y)
+        have hpairBase : forgetLastCoordinate n x ∈
+            euclideanProperConeMixedTileBaseTile base T.tile (C, Sum.inr (j, i)) := by
+          change forgetLastCoordinate n x ∈
+            euclideanProperConeBaseTile base C ∩ (T.tile j ∩ T.tile i)
+          exact ⟨hcone, htiles.2, htiles.1⟩
+        exact ⟨hpairBase, hstrip.2.1, hstrip.2.2⟩
+  | endpoint e =>
+      have hxface : x ∈ facePatch := hx.1
+      rcases hx.2 with ⟨y, hybase, rfl⟩
+      have hyInterior' : y ∈ interior base := by
+        simpa [projectionFiberSubdivisionEndpointGraphPoint, forgetLastCoordinate] using hyInterior
+      have hyNotInterior' : y ∉ interior (T.tile i) := by
+        simpa [projectionFiberSubdivisionEndpointGraphPoint, forgetLastCoordinate] using hyNotInterior
+      change y ∈ euclideanProperConeBaseTile base C ∩ T.tile i at hybase
+      have hcone : y ∈ euclideanProperConeBaseTile base C := hybase.1
+      obtain ⟨j, hji, htiles, hdeps⟩ := compactSmallBaseTiling_boundary_overlap_tasks_at
+        T C (.endpoint e)
+        hyInterior' hybase.2 hyNotInterior'
+      refine ⟨j, hji, ?_, ?_⟩
+      · simpa [projectionFiberSubdivisionEndpointGraphPoint, forgetLastCoordinate] using htiles
+      rcases hdeps with hdeps | hdeps
+      · left
+        refine ⟨hdeps.1, hdeps.2, ?_, ?_⟩
+        · exact finiteOverlapDependency_taskPatch_subset facePatch base T.tile lower upper
+            horder hdeps.1
+        refine ⟨hxface, ?_⟩
+        exact ⟨y, by
+          change y ∈ euclideanProperConeBaseTile base C ∩ (T.tile i ∩ T.tile j)
+          exact ⟨hcone, htiles.1, htiles.2⟩, rfl⟩
+      · right
+        refine ⟨hdeps.1, hdeps.2, ?_, ?_⟩
+        · exact finiteOverlapDependency_taskPatch_subset facePatch base T.tile lower upper
+            horder hdeps.1
+        refine ⟨hxface, ?_⟩
+        exact ⟨y, by
+          change y ∈ euclideanProperConeBaseTile base C ∩ (T.tile j ∩ T.tile i)
+          exact ⟨hcone, htiles.2, htiles.1⟩, rfl⟩
+
+end FanRefinement
+end CRNT

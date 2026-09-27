@@ -202,3 +202,21 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
 - Proved each pair-overlap edge is an inclusion between the actual mixed tile/strip or tile/endpoint patches. A boundary-point lemma now returns the common pair-labeled task and its edges to both incident single-tile tasks.
 - Fresh direct Lean compilation succeeded for `ZeroSeparatingInduction.lean`, `FanRefinement.lean`, `ToricUniformWallMargin.lean`, `Dynamics/ComplexBalanceStoichFanInclusion.lean`, and `Dynamics/GlobalAttractorTheorem.lean`. Axiom audits of the new relation and patch consumers report only standard axioms; the exact target still reports `sorryAx`.
 - This supplies internal projected-tile seam predecessors for the §7.4.3 fill. It does not yet construct the recursive face-filling geometry, assemble the global ZSH, or discharge the target.
+
+## Continuation checkpoint — concrete boundary-point seam consumer
+
+- Added `CompactSmallBaseTiling.boundary_overlap_patch_at` in
+  `CRNT/Geometry/FanRefinement.lean`. Given a point in an actual single-tile strip
+  or endpoint patch whose projection is on that tile's boundary, it returns a
+  distinct incident tile, the corresponding pair-labelled seam task, both
+  predecessor edges to the incident single-tile tasks, and inclusion of the seam
+  patch in the original patch.
+- The current source compiled directly with Lean 4.34 into the fresh module tree;
+  the geometry-to-target dependency chain compiled afterward. Audits of this
+  consumer and its dependencies use only standard Lean axioms. The target still
+  has its original `sorry` and `sorryAx`.
+- This is now an actual pointwise consumer of the projected-tile seam recursion,
+  but it remains a boundary-incidence result: it does not extend inherited face
+  data, construct compatible scales/basepoints, assemble a faithful blueprint,
+  or build the global zero-separating surface. Continue with the rank-decreasing
+  geometric extension step rather than treating this helper as completion.
