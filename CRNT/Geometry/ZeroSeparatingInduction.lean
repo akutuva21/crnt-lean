@@ -442,6 +442,53 @@ theorem radialBoxDiagramTile_endpoint_incidence {n : ℕ}
   exact radialBoxEndpoint_mem_box_boundary x upper
     (hdiagramNonnegative x hx) (hdiagramNonzero x hx) hupper
 
+/-- Any point of a radial boundary tile that lies on a coordinate face of the blue box is the
+selected first-exit endpoint of its source ray. This incidence statement sends outer-boundary
+pieces back to their lower-dimensional projective source in Craciun v3, §8 Step 1. -/
+theorem radialBoxDiagramTile_boxFace_incidence {n : ℕ}
+    (diagramTile : Set (Fin n → ℝ)) (upper : Fin n → ℝ)
+    (hdiagramNonnegative : ∀ x ∈ diagramTile, ∀ i, 0 ≤ x i)
+    (hdiagramNonzero : ∀ x ∈ diagramTile, x ≠ 0)
+    (hupper : ∀ i, 0 < upper i) {p : Fin n → ℝ}
+    (hp : p ∈ radialBoxDiagramTile diagramTile upper
+      hdiagramNonnegative hdiagramNonzero hupper)
+    (i : Fin n) (hface : p i = upper i) :
+    ∃ x, ∃ hx : x ∈ diagramTile,
+      p = radialBoxEndpoint x upper (hdiagramNonnegative x hx)
+        (hdiagramNonzero x hx) hupper ∧ 0 < x i := by
+  rcases hp with ⟨x, hx, ⟨s, hs, hsle, hpx⟩⟩
+  have hfaceRay : s * x i = upper i := by
+    calc
+      s * x i = p i := by
+        have hi := congrArg (fun z : Fin n → ℝ => z i) hpx
+        simpa [Pi.smul_apply] using hi.symm
+      _ = upper i := hface
+  have hxi : 0 < x i := by
+    by_contra hnot
+    have hxiZero : x i = 0 := le_antisymm (le_of_not_gt hnot)
+      (hdiagramNonnegative x hx i)
+    rw [hxiZero] at hfaceRay
+    have hupperZero : (0 : ℝ) = upper i := by simpa using hfaceRay
+    exact (ne_of_gt (hupper i)) hupperZero.symm
+  have hspec := radialBoxExitData_spec x upper (hdiagramNonnegative x hx)
+    (hdiagramNonzero x hx) hupper
+  have hexitFaceBound := hspec.2.2.2
+    (radialBoxExitData x upper (hdiagramNonnegative x hx) (hdiagramNonzero x hx) hupper).1
+    hspec.1.le le_rfl i
+  have hscaleBound :
+      (radialBoxExitData x upper (hdiagramNonnegative x hx) (hdiagramNonzero x hx) hupper).1 *
+          x i ≤ s * x i :=
+    hexitFaceBound.2.trans_eq hfaceRay.symm
+  have hexitLe :
+      (radialBoxExitData x upper (hdiagramNonnegative x hx) (hdiagramNonzero x hx) hupper).1 ≤ s :=
+    le_of_mul_le_mul_right hscaleBound hxi
+  have hscale : s =
+      (radialBoxExitData x upper (hdiagramNonnegative x hx) (hdiagramNonzero x hx) hupper).1 :=
+    le_antisymm hsle hexitLe
+  refine ⟨x, hx, ?_, hxi⟩
+  rw [hpx, radialBoxEndpoint]
+  exact congrArg (fun t : ℝ => t • x) hscale
+
 /-- In a fixed affine projective chart, two radial boundary tiles can intersect away from the
 origin only along a ray whose normalized source point lies in both lower-dimensional diagram
 patches. This is the ray-incidence compatibility required when the lower diagram is assembled
