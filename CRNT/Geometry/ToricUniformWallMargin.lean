@@ -1030,6 +1030,86 @@ theorem Network.restrictedOneBitFiberPatch_finite_overlap_glue
         toEuclid (N.massActionVectorField κ (toEuclid.symm q)))
       (barrier p) (ps.map barrier) hhead htail)
 
+/-- The finite-overlap gluing theorem with its atlas constructed from strict inward wall labels.
+Thus the local toric wall selection, compact barrier offsets, and arbitrary finite smooth maximum
+are available together for each clipped common face. -/
+theorem Network.exists_restrictedOneBitFiberPatch_finite_overlap_glue
+    {n : ℕ} {ι : Type*} [Fintype ι]
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {baseTile : ι → Set (Fin n → ℝ)} {lower upper : (Fin n → ℝ) → ℝ}
+    {epsilon : ℝ}
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base baseTile lower upper epsilon)
+    (domain : Set (Fin (n + 1) → ℝ)) (hdomain : IsClosed domain)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S) (hψ : Continuous ψ)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (t : Finset K) {ε : ℝ} (hε : 0 < ε)
+    (selected : (Σ i : ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)) → Option K)
+    (hselected : ∀ p wall, selected p = some wall → wall ∈ t ∧ ∀ q ∈
+      ψ '' (facePatch ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2),
+      ε < ⟪(z wall).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ)
+    (hlabels : ∀ p, (facePatch ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2).Nonempty →
+      ∃ wall, selected p = some wall)
+    (tailHead : (EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)
+    (tail : List ((EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ))
+    (p : Σ i : ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1))
+    (ps : List (Σ i : ι,
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)))
+    {q : EuclideanSpace ℝ S}
+    (hp : q ∈ ψ '' ((facePatch ∩ domain) ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile p.1) lower upper p.2))
+    (hps : ∀ r ∈ ps, q ∈ ψ '' ((facePatch ∩ domain) ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (baseTile r.1) lower upper r.2)) :
+    ∃ offset : (Σ i : ι,
+        Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)) → ℝ,
+      ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothMaxList
+            (SmoothBarrierGluing.smoothWallList
+              ((selected p).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset p)
+              (tailHead :: tail))
+            (ps.map (fun r => SmoothBarrierGluing.smoothWallList
+              ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+              (tailHead :: tail)))) D q ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ 0 := by
+  let restricted := cover.restrict_to_closedDomain domain hdomain
+  have hselectedRestricted : ∀ p wall, selected p = some wall → wall ∈ t ∧ ∀ q ∈
+      ψ '' ((facePatch ∩ domain) ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2),
+      ε < ⟪(z wall).1,
+        toEuclid (N.massActionVectorField κ (toEuclid.symm q))⟫_ℝ := by
+    intro p wall hp
+    have hs := hselected p wall hp
+    refine ⟨hs.1, ?_⟩
+    intro q hq
+    rcases hq with ⟨x, hx, rfl⟩
+    exact hs.2 _ ⟨x, ⟨hx.1.1, hx.2⟩, rfl⟩
+  have hlabelsRestricted : ∀ p,
+      ((facePatch ∩ domain) ∩
+        CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+          (baseTile p.1) lower upper p.2).Nonempty →
+      ∃ wall, selected p = some wall := by
+    intro p hne
+    apply hlabels p
+    exact hne.mono (by
+      intro x hx
+      exact ⟨hx.1.1, hx.2⟩)
+  obtain ⟨offset, hatlas⟩ := N.exists_simultaneous_oneBitFiberPatch_barriers
+    κ restricted ψ hψ z t hε selected hselectedRestricted hlabelsRestricted tailHead tail
+  exact ⟨offset, N.restrictedOneBitFiberPatch_finite_overlap_glue
+    κ cover domain hdomain ψ z selected offset tailHead tail p ps hp hps hatlas⟩
+
 /-- Craciun v3, §7.4.3: any two labels selected on restricted tiles are simultaneously inward on
 their overlap, including overlaps from degenerate fibers. Consequently their two-wall smooth
 maximum descends there. This is the pairwise compatibility statement used when assembling the
