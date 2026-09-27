@@ -7099,13 +7099,11 @@ noncomputable def compactOneBitFiberPatchCover_of_compactBand {n : ℕ} {ι : Ty
     · simp
 
 /-- Consume the common §7.3 scale and the lifted Case 1.1 graph sections to construct compact
-graph bands for a finite directed family of one-bit boundary pairs. Each pair's two restricted
-zero-bit faces lies in its band. The common projected base is tiled by intersections of the two
-inherited base covers, and the returned `CompactOneBitFiberPatchCover` retains compactness, exact
-coverage, pairwise interior disjointness, and seam identities at the same scale selected for all
-inherited face-neighborhood constraints. This is the graph-level fill; it does not yet show that
-the full thickened inherited neighborhoods bound the filled regions or assemble these local fills
-across the face lattice. -/
+Case 1.2 bands for a finite directed family of one-bit boundary pairs. Each band expands outward
+by the selected common tube radius, so it contains the restricted radius-tubes around both
+inherited boundary graphs, not only their center sections. The common projected base is tiled by
+intersections of the two inherited base covers, and the returned `CompactOneBitFiberPatchCover`
+retains compactness, exact coverage, pairwise interior disjointness, and seam identities. -/
 theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills
     {n : ℕ} {ι τ : Type*} [Fintype ι] [Fintype τ]
     (face : ι → Set (Fin (n + 1) → ℝ))
@@ -7135,16 +7133,22 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills
         (∀ i j, oneBitBoundary i j →
           ∃ refinement : CompactOneBitFiberPatchCover
               (projectionFiberBand (base i ∩ base j)
-                (fun y => some (extension i y)) (fun y => some (extension j y)))
+                (fun y => some (extension i y - radius)) (fun y => some (extension j y + radius)))
               (base i ∩ base j)
               (fun p : τ × τ => tiles i p.1 ∩ tiles j p.2)
-              (extension i) (extension j) radius,
+              (fun y => extension i y - radius) (fun y => extension j y + radius) radius,
             face i ∩ {x | forgetLastCoordinate n x ∈ base j} ⊆
               projectionFiberBand (base i ∩ base j)
-                (fun y => some (extension i y)) (fun y => some (extension j y)) ∧
+                (fun y => some (extension i y - radius)) (fun y => some (extension j y + radius)) ∧
             face j ∩ {x | forgetLastCoordinate n x ∈ base i} ⊆
               projectionFiberBand (base i ∩ base j)
-                (fun y => some (extension i y)) (fun y => some (extension j y))) := by
+                (fun y => some (extension i y - radius)) (fun y => some (extension j y + radius)) ∧
+            projectionFiberTube (base i ∩ base j) (extension i) radius ⊆
+              projectionFiberBand (base i ∩ base j)
+                (fun y => some (extension i y - radius)) (fun y => some (extension j y + radius)) ∧
+            projectionFiberTube (base i ∩ base j) (extension j) radius ⊆
+              projectionFiberBand (base i ∩ base j)
+                (fun y => some (extension i y - radius)) (fun y => some (extension j y + radius))) := by
   classical
   let extension : ι → C(Fin n → ℝ, ℝ) := fun i =>
     Classical.choose (cover i).exists_continuous_center_extension
@@ -7158,20 +7162,30 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills
   intro i j hboundary
   have hij := hOneBitDifferent i j hboundary
   let basePair := base i ∩ base j
-  let lower : (Fin n → ℝ) → ℝ := extension i
-  let upper : (Fin n → ℝ) → ℝ := extension j
+  let lower : (Fin n → ℝ) → ℝ := fun y => extension i y - radius
+  let upper : (Fin n → ℝ) → ℝ := fun y => extension j y + radius
   let band := projectionFiberBand basePair (fun y => some (lower y))
     (fun y => some (upper y))
   have hbasePair : IsCompact basePair :=
     (cover i).base_isCompact.inter (cover j).base_isCompact
-  have horder : ∀ y ∈ basePair, lower y ≤ upper y := by
+  have hcenterOrderExt : ∀ y ∈ basePair, extension i y ≤ extension j y := by
     intro y hy
-    change extension i y ≤ extension j y
     rw [hextension i y hy.1, hextension j y hy.2]
     exact hcenterOrder i j hboundary y hy
+  have horder : ∀ y ∈ basePair, lower y ≤ upper y := by
+    intro y hy
+    change extension i y - radius ≤ extension j y + radius
+    have hcenter := hcenterOrderExt y hy
+    linarith [hradius.le]
+  have hlowerContinuous : Continuous lower := by
+    change Continuous (fun y => extension i y - radius)
+    exact (extension i).continuous.sub continuous_const
+  have hupperContinuous : Continuous upper := by
+    change Continuous (fun y => extension j y + radius)
+    exact (extension j).continuous.add continuous_const
   have hbandCompact : IsCompact band :=
     isCompact_projectionFiberBand_bounded basePair lower upper hbasePair
-      (extension i).continuous (extension j).continuous horder
+      hlowerContinuous hupperContinuous horder
   let baseTile : τ × τ → Set (Fin n → ℝ) := fun p => tiles i p.1 ∩ tiles j p.2
   have hbaseCover : basePair = ⋃ p : τ × τ, baseTile p := by
     change base i ∩ base j = ⋃ p : τ × τ, tiles i p.1 ∩ tiles j p.2
@@ -7215,7 +7229,7 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills
       exact hyBase
   let refinement := compactOneBitFiberPatchCover_of_compactBand
     band hbandCompact basePair baseTile lower upper radius hbaseCover hbaseTileCompact
-    hbaseTileInteriorsDisjoint (extension i).continuous (extension j).continuous horder
+    hbaseTileInteriorsDisjoint hlowerContinuous hupperContinuous horder
     hradius Set.Subset.rfl
   have hleft : face i ∩ {x | forgetLastCoordinate n x ∈ base j} ⊆ band := by
     intro x hx
@@ -7224,17 +7238,20 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills
       exact (mem_projectionFiberTube_iff (base i) (cover i).center (faceRadius i) x).mp
         ((cover i).facePatch_subset_tube hx.1) |>.1
     have hyj : y ∈ base j := hx.2
-    have hlowerEq : lower y = x (Fin.last n) := by
+    have hcenterEq : extension i y = x (Fin.last n) := by
       calc
-        lower y = (cover i).center y := hextension i y hyi
+        extension i y = (cover i).center y := hextension i y hyi
         _ = x (Fin.last n) := by
           simpa [y] using (cover i).center_graph_on_face x hx.1
-    have horderAt : lower y ≤ upper y := horder y ⟨hyi, hyj⟩
+    have hcenterOrderAt := hcenterOrderExt y ⟨hyi, hyj⟩
     apply (mem_projectionFiberBand_bounded_iff basePair lower upper x).2
     refine ⟨⟨hyi, hyj⟩, ?_, ?_⟩
-    · rw [hlowerEq]
-    · rw [hlowerEq] at horderAt
-      exact horderAt
+    · change extension i y - radius ≤ x (Fin.last n)
+      rw [hcenterEq]
+      linarith [hradius.le]
+    · change x (Fin.last n) ≤ extension j y + radius
+      rw [← hcenterEq]
+      linarith
   have hright : face j ∩ {x | forgetLastCoordinate n x ∈ base i} ⊆ band := by
     intro x hx
     let y := forgetLastCoordinate n x
@@ -7242,18 +7259,47 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills
     have hyj : y ∈ base j := by
       exact (mem_projectionFiberTube_iff (base j) (cover j).center (faceRadius j) x).mp
         ((cover j).facePatch_subset_tube hx.1) |>.1
-    have hupperEq : upper y = x (Fin.last n) := by
+    have hcenterEq : extension j y = x (Fin.last n) := by
       calc
-        upper y = (cover j).center y := hextension j y hyj
+        extension j y = (cover j).center y := hextension j y hyj
         _ = x (Fin.last n) := by
           simpa [y] using (cover j).center_graph_on_face x hx.1
-    have horderAt : lower y ≤ upper y := horder y ⟨hyi, hyj⟩
+    have hcenterOrderAt := hcenterOrderExt y ⟨hyi, hyj⟩
     apply (mem_projectionFiberBand_bounded_iff basePair lower upper x).2
     refine ⟨⟨hyi, hyj⟩, ?_, ?_⟩
-    · rw [hupperEq] at horderAt
-      exact horderAt
-    · rw [hupperEq]
-  exact ⟨refinement, hleft, hright⟩
+    · change extension i y - radius ≤ x (Fin.last n)
+      rw [← hcenterEq]
+      linarith
+    · change x (Fin.last n) ≤ extension j y + radius
+      rw [hcenterEq]
+      linarith [hradius.le]
+  have hleftTube : projectionFiberTube basePair (extension i) radius ⊆ band := by
+    intro x hx
+    obtain ⟨hy, hwidth⟩ := (mem_projectionFiberTube_iff basePair (extension i) radius x).mp hx
+    let y := forgetLastCoordinate n x
+    have hcenterOrderAt : extension i y ≤ extension j y := hcenterOrderExt y hy
+    apply (mem_projectionFiberBand_bounded_iff basePair lower upper x).2
+    refine ⟨hy, ?_, ?_⟩
+    · change extension i y - radius ≤ x (Fin.last n)
+      have hwidth' := abs_le.mp hwidth
+      linarith
+    · change x (Fin.last n) ≤ extension j y + radius
+      have hwidth' := abs_le.mp hwidth
+      linarith
+  have hrightTube : projectionFiberTube basePair (extension j) radius ⊆ band := by
+    intro x hx
+    obtain ⟨hy, hwidth⟩ := (mem_projectionFiberTube_iff basePair (extension j) radius x).mp hx
+    let y := forgetLastCoordinate n x
+    have hcenterOrderAt : extension i y ≤ extension j y := hcenterOrderExt y hy
+    apply (mem_projectionFiberBand_bounded_iff basePair lower upper x).2
+    refine ⟨hy, ?_, ?_⟩
+    · change extension i y - radius ≤ x (Fin.last n)
+      have hwidth' := abs_le.mp hwidth
+      linarith
+    · change x (Fin.last n) ≤ extension j y + radius
+      have hwidth' := abs_le.mp hwidth
+      linarith
+  exact ⟨refinement, hleft, hright, hleftTube, hrightTube⟩
 
 
 /-- The §7.4.3 graph-level one-bit fill can be chosen below every inherited positive face scale
@@ -7291,24 +7337,34 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_along
           (∀ i j, oneBitBoundary i j →
             ∃ refinement : CompactOneBitFiberPatchCover
                 (projectionFiberBand (base i ∩ base j)
-                  (fun y => some (extension i y)) (fun y => some (extension j y)))
+                  (fun y => some (extension i y - radius)) (fun y => some (extension j y + radius)))
                 (base i ∩ base j)
                 (fun p : τ × τ => tiles i p.1 ∩ tiles j p.2)
-                (extension i) (extension j) radius,
+                (fun y => extension i y - radius) (fun y => extension j y + radius) radius,
               face i ∩ {x | forgetLastCoordinate n x ∈ base j} ⊆
                 projectionFiberBand (base i ∩ base j)
-                  (fun y => some (extension i y)) (fun y => some (extension j y)) ∧
+                  (fun y => some (extension i y - radius)) (fun y => some (extension j y + radius)) ∧
               face j ∩ {x | forgetLastCoordinate n x ∈ base i} ⊆
                 projectionFiberBand (base i ∩ base j)
-                  (fun y => some (extension i y)) (fun y => some (extension j y)) ∧
+                  (fun y => some (extension i y - radius)) (fun y => some (extension j y + radius)) ∧
+              projectionFiberTube (base i ∩ base j) (extension i) radius ⊆
+                projectionFiberBand (base i ∩ base j)
+                  (fun y => some (extension i y - radius)) (fun y => some (extension j y + radius)) ∧
+              projectionFiberTube (base i ∩ base j) (extension j) radius ⊆
+                projectionFiberBand (base i ∩ base j)
+                  (fun y => some (extension i y - radius)) (fun y => some (extension j y + radius)) ∧
               ∀ (k : Fin (refinement.tiling.subdivisionCount + 1))
                 (y : Fin n → ℝ),
                 y ∈ base i ∩ base j →
-                  projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
-                    projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y <
+                  projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.succ y -
+                    projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.castSucc y <
                       ρ * faceRadius i ∧
-                  projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
-                    projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y <
+                  projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.succ y -
+                    projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.castSucc y <
                       ρ * faceRadius j) := by
   classical
   have hq0 : (0 : ℝ) < 1 / 2 := by norm_num
@@ -7345,13 +7401,15 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_along
       radius < ρ * scale := hradiusCap
       _ ≤ ρ * faceRadius i := mul_le_mul_of_nonneg_left (hscaleLe i) hρpos.le
   · intro i j hboundary
-    obtain ⟨refinement, hleft, hright⟩ := hfills i j hboundary
-    refine ⟨refinement, hleft, hright, ?_⟩
+    obtain ⟨refinement, hleft, hright, hleftTube, hrightTube⟩ := hfills i j hboundary
+    refine ⟨refinement, hleft, hright, hleftTube, hrightTube, ?_⟩
     intro k y hy
     constructor
     · calc
-        projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
-            projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
+        projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.succ y -
+            projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.castSucc y ≤
               radius := refinement.tiling.fiber_width_le k y hy
         _ < ρ * faceRadius i := by
           calc
@@ -7359,8 +7417,10 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_along
             _ ≤ ρ * faceRadius i :=
               mul_le_mul_of_nonneg_left (hscaleLe i) hρpos.le
     · calc
-        projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
-            projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
+        projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.succ y -
+            projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.castSucc y ≤
               radius := refinement.tiling.fiber_width_le k y hy
         _ < ρ * faceRadius j := by
           calc
@@ -7420,33 +7480,49 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_for_c
             (∀ i j (hboundary : oneBitBoundary i j),
               ∃ refinement : CompactOneBitFiberPatchCover
                   (projectionFiberBand (base i ∩ base j)
-                    (fun y => some (extension i y)) (fun y => some (extension j y)))
+                    (fun y => some (extension i y - radius)) (fun y => some (extension j y + radius)))
                   (base i ∩ base j)
                   (fun p : τ × τ => tiles i p.1 ∩ tiles j p.2)
-                  (extension i) (extension j) radius,
+                  (fun y => extension i y - radius) (fun y => extension j y + radius) radius,
                 face i ∩ {x | forgetLastCoordinate n x ∈ base j} ⊆
                   projectionFiberBand (base i ∩ base j)
-                    (fun y => some (extension i y)) (fun y => some (extension j y)) ∧
+                    (fun y => some (extension i y - radius)) (fun y => some (extension j y + radius)) ∧
                 face j ∩ {x | forgetLastCoordinate n x ∈ base i} ⊆
                   projectionFiberBand (base i ∩ base j)
-                    (fun y => some (extension i y)) (fun y => some (extension j y)) ∧
+                    (fun y => some (extension i y - radius)) (fun y => some (extension j y + radius)) ∧
+                projectionFiberTube (base i ∩ base j) (extension i) radius ⊆
+                  projectionFiberBand (base i ∩ base j)
+                    (fun y => some (extension i y - radius)) (fun y => some (extension j y + radius)) ∧
+                projectionFiberTube (base i ∩ base j) (extension j) radius ⊆
+                  projectionFiberBand (base i ∩ base j)
+                    (fun y => some (extension i y - radius)) (fun y => some (extension j y + radius)) ∧
                 ∀ (k : Fin (refinement.tiling.subdivisionCount + 1))
                   (y : Fin n → ℝ),
                   y ∈ base i ∩ base j →
-                    projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
-                      projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y <
+                    projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.succ y -
+                      projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.castSucc y <
                         ρ * faceRadius i ∧
-                    projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
-                      projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y <
+                    projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.succ y -
+                      projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.castSucc y <
                         ρ * faceRadius j ∧
-                    projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
-                      projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y <
+                    projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.succ y -
+                      projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.castSucc y <
                         craciunBinaryWordEpsilon (n + 1) q (word i) ∧
-                    projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
-                      projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y <
+                    projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.succ y -
+                      projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.castSucc y <
                         craciunBinaryWordEpsilon (n + 1) q (word j) ∧
-                    projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
-                      projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y <
+                    projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.succ y -
+                      projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.castSucc y <
                         coherentBinaryWordTileScale (n + 1) q
                           (oneBitWord ⟨(i, j), hboundary⟩)
                           (hOneBitWordLength ⟨(i, j), hboundary⟩)) := by
@@ -7586,36 +7662,46 @@ theorem CompactZeroBitFiberPatchCover.exists_common_scale_and_oneBit_fills_for_c
   refine ⟨ρ, hρ, hρone, q, hq, hqone, extension, hextension, radius, hradius,
     hradiusFace, hradiusWord, hradiusTilde, htube, hpreOverlap, htubeOverlap, ?_⟩
   intro i j hboundary
-  obtain ⟨refinement, hleft, hright⟩ := hfills i j hboundary
-  refine ⟨refinement, hleft, hright, ?_⟩
+  obtain ⟨refinement, hleft, hright, hleftTube, hrightTube⟩ := hfills i j hboundary
+  refine ⟨refinement, hleft, hright, hleftTube, hrightTube, ?_⟩
   intro k y hy
   constructor
   · calc
-      projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
-          projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
+      projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.succ y -
+          projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.castSucc y ≤
             radius := refinement.tiling.fiber_width_le k y hy
       _ < ρ * faceRadius i := hradiusFace i
   · constructor
     · calc
-        projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
-            projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
+        projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.succ y -
+            projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.castSucc y ≤
               radius := refinement.tiling.fiber_width_le k y hy
         _ < ρ * faceRadius j := hradiusFace j
     · constructor
       · calc
-          projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
-              projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
+          projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.succ y -
+              projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.castSucc y ≤
                 radius := refinement.tiling.fiber_width_le k y hy
           _ < craciunBinaryWordEpsilon (n + 1) q (word i) := hradiusWord i
       · constructor
         · calc
-            projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
-                projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
+            projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.succ y -
+                projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.castSucc y ≤
                   radius := refinement.tiling.fiber_width_le k y hy
             _ < craciunBinaryWordEpsilon (n + 1) q (word j) := hradiusWord j
         · calc
-            projectionFiberSubdivisionEndpoint (extension i) (extension j) k.succ y -
-                projectionFiberSubdivisionEndpoint (extension i) (extension j) k.castSucc y ≤
+            projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.succ y -
+                projectionFiberSubdivisionEndpoint (fun y => extension i y - radius)
+                          (fun y => extension j y + radius) k.castSucc y ≤
                   radius := refinement.tiling.fiber_width_le k y hy
             _ < coherentBinaryWordTileScale (n + 1) q
                 (oneBitWord ⟨(i, j), hboundary⟩)

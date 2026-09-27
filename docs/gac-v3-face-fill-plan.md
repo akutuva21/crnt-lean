@@ -415,3 +415,11 @@ Canonical checkout: `/Users/akutuva/.codex/worktrees/c259/crnt-lean`, branch
 - The exact target still audits to `[propext, sorryAx, Classical.choice, Quot.sound]`. This is a
   Step 2 profile-scale bridge; the actual face-lattice caller, recursive faithful blueprint,
   global zero-separating surface, and target consumer remain unfinished.
+
+## Continuation checkpoint — outward Case 1.2 fill from inherited tubes
+
+- Re-read Craciun v3 §7.4.3 Step 1 and Case 1.2. The face fill is delimited by already-built face neighborhoods, whereas the previous Lean band used only the selected center graphs.
+- Changed the finite one-bit fill to use the shifted endpoints `extension i - radius` and `extension j + radius`. On the common projected base, the resulting band contains both selected radius-tubes around the inherited boundary graphs; it still contains the two boundary face pieces.
+- Propagated the shifted endpoint functions and both tube-containment proofs through the binary-chain and full Craciun-profile consumers. The common strip-width bounds remain tied to the same selected radius.
+- Fresh Lean 4.34 source compilation succeeded for `ZeroSeparatingInduction.lean`, `FanRefinement.lean`, `ToricUniformWallMargin.lean`, `ComplexBalanceStoichFanInclusion.lean`, and `GlobalAttractorTheorem.lean`. Axiom audits of the three changed fill theorems contain only standard axioms; the exact target audit still contains `sorryAx`.
+- This closes the selected-neighborhood containment clause for this local Case 1.2 fill. It does not construct the face-lattice caller, recursively assemble the faithful blueprint, build the global zero-separating surface, or remove the target `sorry`.
