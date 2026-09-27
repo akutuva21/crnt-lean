@@ -1,5 +1,6 @@
 import CRNT.Geometry.SmoothBarrierGluing
 import CRNT.Geometry.FanWallsCrossed
+import CRNT.Geometry.FanRefinement
 import CRNT.Geometry.ToricStrictSupport
 import CRNT.Dynamics.DissipationBound
 import CRNT.Dynamics.ComplexBalanceStoichFanInclusion
@@ -1550,6 +1551,99 @@ theorem Network.restrictedOneBitFiberPatch_finite_seam_glue
     exact ⟨x, hoverlap, rfl⟩
   exact N.restrictedOneBitFiberPatch_finite_overlap_glue
     κ cover domain hdomain ψ z selected offset tailHead tail p ps hp hps' hatlas
+
+/-- Craciun v3, §7.4.3 and §8 Step 2: a fan-labeled adjacent-strip seam carries both its
+actual lower-face dependency and the finite smooth-barrier descent certificate at the same lifted
+seam point. This is the geometric-to-dynamical seam datum for a face-by-face fill. -/
+theorem Network.fanLabeled_restrictedOneBitFiberPatch_seam_dependency_and_glue
+    {n : ℕ}
+    (N : Network S) (κ : N.RateConstants)
+    {facePatch : Set (Fin (n + 1) → ℝ)} {base : Set (Fin n → ℝ)}
+    {lower upper : (Fin n → ℝ) → ℝ} {epsilon : ℝ}
+    (F : Fan (EuclideanSpace ℝ (Fin n))) (hFdual : FanRefinement.HasDualFGCells F)
+    [Fintype {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)}]
+    (cover : CRNT.ZeroSeparatingInduction.CompactOneBitFiberPatchCover
+      facePatch base (FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual)
+      lower upper epsilon)
+    (domain : Set (Fin (n + 1) → ℝ)) (hdomain : IsClosed domain)
+    (ψ : (Fin (n + 1) → ℝ) → EuclideanSpace ℝ S)
+    {K : Set (EuclideanSpace ℝ S)} (z : K → N.euclideanStoichSubspace)
+    (selected : (Σ i : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)},
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)) → Option K)
+    (offset : (Σ i : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)},
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)) → ℝ)
+    (tailHead : (EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ)
+    (tail : List ((EuclideanSpace ℝ S →L[ℝ] ℝ) × ℝ))
+    (hatlas : ∀ r q, q ∈ ψ '' ((facePatch ∩ domain) ∩
+      CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionTile
+        (FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual r.1)
+        lower upper r.2) →
+      ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothWallList
+            ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+            (tailHead :: tail)) D q ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm q))) ≤ 0)
+    (i j : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)}) (k : Fin (cover.tiling.subdivisionCount))
+    (y : Fin n → ℝ) (horder : ∀ y ∈ base, lower y ≤ upper y)
+    (hy : y ∈ FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual i)
+    (hgraph : CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+      lower upper k.succ.castSucc y ∈ facePatch ∩ domain)
+    (ps : List (Σ l : {C : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) //
+      C ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)},
+      Fin ((cover.restrict_to_closedDomain domain hdomain).tiling.subdivisionCount + 1)))
+    (hincident : ∀ r ∈ ps,
+      y ∈ FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual r.1 ∧
+        (r.2 = k.castSucc ∨ r.2 = k.succ)) :
+    ∃ (G : ProperCone ℝ (EuclideanSpace ℝ (Fin n)))
+      (hG : G ∈ FanRefinement.hyperplaneArrangementFamily (FanRefinement.fanNormalSet F hFdual)),
+      (i.1 ≠ j.1 →
+        FanRefinement.ProperExposedFaceDependency G i.1 ∨
+          FanRefinement.ProperExposedFaceDependency G j.1) ∧
+      FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual i ∩
+        FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual j =
+          FanRefinement.euclideanHyperplaneArrangementBaseTile base F hFdual ⟨G, hG⟩ ∧
+      ∃ D : EuclideanSpace ℝ S →L[ℝ] ℝ,
+        HasFDerivAt
+          (SmoothBarrierGluing.smoothMaxList
+            (SmoothBarrierGluing.smoothWallList
+              ((selected ⟨i, k.castSucc⟩).elim tailHead.1
+                (fun wall => innerSL ℝ (z wall).1), offset ⟨i, k.castSucc⟩)
+              (tailHead :: tail))
+            (ps.map (fun r => SmoothBarrierGluing.smoothWallList
+              ((selected r).elim tailHead.1 (fun wall => innerSL ℝ (z wall).1), offset r)
+              (tailHead :: tail)))) D
+          (ψ (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+            lower upper k.succ.castSucc y)) ∧
+        D (toEuclid (N.massActionVectorField κ (toEuclid.symm
+          (ψ (CRNT.ZeroSeparatingInduction.projectionFiberSubdivisionEndpointGraphPoint
+            lower upper k.succ.castSucc y))))) ≤ 0 := by
+  obtain ⟨G, hG, hintersection, hGC, hGD, _, _⟩ :=
+    FanRefinement.euclideanHyperplaneArrangementBaseTile_intersection base F hFdual i j
+  have hdependency : i.1 ≠ j.1 →
+      FanRefinement.ProperExposedFaceDependency G i.1 ∨
+        FanRefinement.ProperExposedFaceDependency G j.1 := by
+    intro hne
+    by_cases hGC' : G = i.1
+    · right
+      constructor
+      · simpa [hGC'] using hGD
+      · intro hGD'
+        apply hne
+        apply SetLike.coe_injective
+        calc
+          (i.1 : Set (EuclideanSpace ℝ (Fin n))) = G := by rw [hGC']
+          _ = j.1 := congrArg (fun H : ProperCone ℝ (EuclideanSpace ℝ (Fin n)) =>
+            (H : Set (EuclideanSpace ℝ (Fin n)))) hGD'
+    · exact Or.inl ⟨hGC, hGC'⟩
+  have hbarrier := N.restrictedOneBitFiberPatch_finite_seam_glue
+    κ cover domain hdomain ψ z selected offset tailHead tail hatlas i k y horder hy
+      hgraph ps hincident
+  exact ⟨G, hG, hdependency, hintersection, hbarrier⟩
 
 /-- Craciun v3, §8 Step 2: a compact wall-chart cover supplies the local barriers needed to
 glue every listed face incident to a clipped adjacent-strip seam. The shared projected basepoint
