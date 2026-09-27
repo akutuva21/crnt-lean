@@ -814,6 +814,62 @@ theorem radialBoxDiagramTile_projectiveDomain_intersection_eq {n : ℕ} [NeZero 
     hB_nonnegative hB_nonzero hB_anchor hupper hA_nonempty hB_nonempty
     craciunProjectiveDomain_origin_not_mem
 
+/-- A shared point of radial tiles clipped to `D^P_n` comes from a shared source point in the
+same normalized projective domain. With the chart anchor `X_2 = 1`, the order inequalities on the
+lifted point force the common source itself to satisfy `X_(n+1) ≥ ... ≥ X_2 ≥ 1`. This is the
+projected-basepoint compatibility needed to pass clipped tile seams to the lower-dimensional
+boundary diagram (Craciun v3, §8 Step 1). -/
+theorem radialBoxDiagramTile_projectiveDomain_overlap_source {n : ℕ} [NeZero n]
+    (tileA tileB : Set (Fin n → ℝ)) (upper : Fin n → ℝ)
+    (hA_nonnegative : ∀ x ∈ tileA, ∀ i, 0 ≤ x i)
+    (hA_nonzero : ∀ x ∈ tileA, x ≠ 0)
+    (hA_anchor : ∀ x ∈ tileA, x 0 = 1)
+    (hB_nonnegative : ∀ x ∈ tileB, ∀ i, 0 ≤ x i)
+    (hB_nonzero : ∀ x ∈ tileB, x ≠ 0)
+    (hB_anchor : ∀ x ∈ tileB, x 0 = 1)
+    (hupper : ∀ i, 0 < upper i) :
+    ∀ p, p ∈
+        (radialBoxDiagramTile tileA upper hA_nonnegative hA_nonzero hupper ∩
+          craciunProjectiveDomain) ∩
+        (radialBoxDiagramTile tileB upper hB_nonnegative hB_nonzero hupper ∩
+          craciunProjectiveDomain) →
+      ∃ x, x ∈ tileA ∩ tileB ∧ x ∈ craciunProjectiveDomain ∧
+        ∃ s : ℝ, 0 < s ∧ p = s • x := by
+  intro p hp
+  obtain ⟨x, hx, s, hs, hpx, hpDomain⟩ :=
+    radialBoxDiagramTile_clip_overlap_source tileA tileB upper 0
+      craciunProjectiveDomain hA_nonnegative hA_nonzero hA_anchor
+      hB_nonnegative hB_nonzero hB_anchor hupper
+      craciunProjectiveDomain_origin_not_mem p hp
+  have hcoord : ∀ i, p i = s * x i := by
+    intro i
+    have h := congrArg (fun z : Fin n → ℝ => z i) hpx
+    simpa [Pi.smul_apply] using h
+  have hsEq : p 0 = s := by
+    have h := congrArg (fun z : Fin n → ℝ => z 0) hpx
+    simpa [Pi.smul_apply, hA_anchor x hx.1] using h
+  have hsp : 0 < s := by
+    rw [← hsEq]
+    exact lt_of_lt_of_le zero_lt_one (hpDomain.1 0)
+  have hxDomain : x ∈ craciunProjectiveDomain := by
+    constructor
+    · intro i
+      have h0i : (0 : Fin n).val ≤ i.val := Nat.zero_le _
+      have hordered := hpDomain.2 0 i h0i
+      have hscaled : s * 1 ≤ s * x i := by
+        rw [← hcoord i, mul_one, ← hsEq]
+        exact hordered
+      exact le_of_mul_le_mul_left hscaled hsp
+    · intro i j hij
+      have hordered := hpDomain.2 i j hij
+      have hscaled : s * x i ≤ s * x j := by
+        calc
+          s * x i = p i := (hcoord i).symm
+          _ ≤ p j := hordered
+          _ = s * x j := hcoord j
+      exact le_of_mul_le_mul_left hscaled hsp
+  exact ⟨x, hx, hxDomain, s, hs, hpx⟩
+
 /-- Craciun v3, §8 Step 1: extending a lower-dimensional diagram covered by patches gives the
 union of the radial boundary tiles obtained from those patches. This is the cover-assembly
 identity paired with `radialBoxDiagramTile_intersection_eq`, which describes their seams. -/
