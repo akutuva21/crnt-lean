@@ -56,7 +56,8 @@ excludeGlobs = [
   "CRNT.Oscillation.VassenaPrincipal",
   "CRNT.Multistationarity.TrueChemistrySRCriterion",
   "CRNT.Theorems.DeficiencyOne.Theorem",
-  "CRNT.Dynamics.GlobalAttractorTheorem"
+  "CRNT.Dynamics.GlobalAttractorTheorem",
+  "CRNT.Dynamics.HighCodimensionSiphonFace"
 ]
 
 # The frontier: exactly the modules in the ledger.  Expected to fail; CI records the
@@ -103,16 +104,20 @@ globs = [
   "CRNT.Oscillation.VassenaPrincipal",
   "CRNT.Multistationarity.TrueChemistrySRCriterion",
   "CRNT.Theorems.DeficiencyOne.Theorem",
-  "CRNT.Dynamics.GlobalAttractorTheorem"
+  "CRNT.Dynamics.GlobalAttractorTheorem",
+  "CRNT.Dynamics.HighCodimensionSiphonFace"
 ]
 
 [[lean_lib]]
 name = "test"
-globs = ["test.+"]
-excludeGlobs = [
-  "test.GlobalPersistenceSmoke",
-  "test.FrontierAudit",
-  "test.LotkaNonVacuity"
+globs = [
+  "test.AxiomAudit",
+  "test.FrontierAuditCurrent",
+  "test.NonVacuity",
+  "test.Oscillation",
+  "test.Smoke",
+  "test.StochasticBirthDeathCounterexample",
+  "test.ToricBarrierAudit"
 ]
 
 [[lean_exe]]

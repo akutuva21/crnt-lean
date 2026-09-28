@@ -177,10 +177,10 @@ def N : Network Species :=
   { R := Rxn, decEqR := inferInstance, fintypeR := inferInstance, reaction := rxn }
 
 /-- The empty set is a siphon, decided end-to-end by `decidableIsSiphon`. -/
-example : N.IsSiphon (∅ : Finset Species) := by native_decide
+example : N.IsSiphon (∅ : Finset Species) := by decide
 
 /-- The full species set is a siphon here: each reaction both produces and consumes a
 species of `univ`. -/
-example : N.IsSiphon (Finset.univ : Finset Species) := by native_decide
+example : N.IsSiphon (Finset.univ : Finset Species) := by decide
 
 end CRNT.Examples.SiphonReversiblePair

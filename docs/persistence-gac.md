@@ -7,10 +7,14 @@ builds on the relative-entropy Lyapunov function and the forward semiflow descri
 [`dynamics.md`](dynamics.md), and on the complex-balanced equilibrium theory in
 [`deficiency.md`](deficiency.md).
 
-This document records what is **proven here**, what is **gated on explicit hypotheses**, and where
-the formalization stops. The helper results described as complete are Lean-checked. The main
-`complexBalanced_genuinePermanent` theorem still contains one `sorry` in the higher-rank,
-critical-siphon case; a successful build does not close that obligation.
+The global attractor conjecture is open in general. This document records what is **proven here**,
+what is **gated on explicit hypotheses**, and where the formalization stops. Where a step is
+missing it enters as a named hypothesis (a `Prop`, a structure, or a supplied argument) whenever
+that is possible, so the great majority of what follows is `sorry`-free. Exactly two `sorry`s
+remain in the whole tree: `Dynamics/HighCodimensionSiphonFace.lean`, the residual
+higher-codimension critical-siphon obligation of the Global Attractor chain, and
+`Multistationarity/TrueChemistrySRCriterion.lean`, the ear-decomposition step of the
+Shinar–Feinberg true-SR criterion. A successful build does not close either of them.
 
 ## The reduction: GAC ⟺ persistence
 
@@ -432,13 +436,22 @@ form. The sign content of strong endotacticity along the relative-entropy dissip
   required constants uniformly on a neighborhood. `facet_repelling_near_facet_point` packages
   these choices, while `facet_repelling_near_facet_point_of_facet` also derives the signed facet
   direction from the codimension-one projection-rank condition and a compatible positive point.
-  `complexBalanced_genuinePermanent` still has one `sorry`. In
-  `Dynamics/GlobalAttractorTheorem.lean` the maximal boundary zero face is chosen by
-  `exists_maximal_zeroSet_omegaPoint`, and when its codimension is one the orbit is contradicted by
+  In `Dynamics/GlobalAttractorTheorem.lean` the maximal boundary zero face is chosen by
+  `exists_maximal_zeroSet_omegaPoint`; when its codimension is one the orbit is contradicted by
   `no_omegaLimit_meets_locally_repelling_face` applied through
-  `facet_repelling_near_facet_point_of_facet`; what remains open is the maximal boundary face of
-  codimension greater than one, where the local facet estimate does not construct the required
-  zero-separating surface. Anderson's single-linkage tier argument is also not
+  `facet_repelling_near_facet_point_of_facet`. When the maximal boundary face is not a facet,
+  `highCodimension_of_not_facet` rules out the degenerate zero-projection case and also returns
+  `2 ≤ Pmax.card`, and the branch is discharged by
+  `exists_positive_omegaPoint_of_highCodimension_siphonFace` in `Dynamics/HighCodimensionSiphonFace.lean`.
+  That theorem is where the one remaining GAC `sorry` lives, so `complexBalanced_genuinePermanent`
+  inherits it from exactly one place instead of from an open branch of the main argument. The
+  supporting face-codimension and barrier machinery added alongside it — `Dynamics/FaceCodimension.lean`,
+  `Dynamics/FaceDirectionCone.lean`, `Dynamics/OrbitRegularity.lean`,
+  `Dynamics/ToricBarrierTrapping.lean`, `Dynamics/ToricBarrierExplicit.lean`,
+  `Geometry/PolyhedralBarrier.lean`, `Geometry/ConvexBarrierObstruction.lean` and
+  `Geometry/FanFaceLattice.lean` — is `sorry`-free, and `test/ToricBarrierAudit.lean` pins the
+  axiom set of each entry point so none of them can silently acquire `sorryAx`.
+  Anderson's single-linkage tier argument is also not
   formalized. Also open: in the toric-inclusion approach, the six explicit hypotheses
   enumerated above, none assembled into a persistence or GAC conclusion; and, in the permanence route,
   `StronglyEndotactic ⇒ permanent`.
@@ -454,13 +467,15 @@ form. The sign content of strong endotacticity along the relative-entropy dissip
 `IsolatedInvariant`, `MinimalInvariant`, `ButlerMcGehee`, `EscapeSiphonFace`, `FacetRepulsion`,
 `EndotacticPermanence`, `DifferentialInclusion`, `ToricInclusion`, `ToricEmbedding`,
 `ToricEmbeddingOrder`, `ToricEmbeddingWR`, `ToricCycleSortedBase`, `ToricCycleOrderLimits`,
-`ZeroSeparating`, `Viability`, `FirstExit`,
+`ZeroSeparating`, `Viability`, `FirstExit`, `FaceCodimension`, `FaceDirectionCone`,
+`HighCodimensionSiphonFace`, `OrbitRegularity`, `ToricBarrierTrapping`, `ToricBarrierExplicit`,
 `SublevelInvariant`, `SublevelNagumo`, `ClosedSetNagumo`, `SupportDiniBridge`, `PolyRegionInvariant`,
 `PolyRegionStrictInvariant`, `ThmBGenuine`, `DissipationBound`, `FacetRepulsionAndersonShiu`.
 `Geometry/`: `PolyhedralFan`, `Endotactic`, `ToricFan`, `ConeFace`, `ZeroSeparatingSurface`,
 `ZeroSeparatingCurve2D`, `ZeroSeparatingInduction`, `FanRefinement`, `ToricFieldPolar`,
 `ToricFieldPolarMulti`, `FaithfulCurve`, `FaithfulCurveExistence`, `FaithfulCurveGeneral`,
-`FaithfulCurve2D`, `FaithfulCurve2DFan`.
+`FaithfulCurve2D`, `FaithfulCurve2DFan`, `PolyhedralBarrier`, `ConvexBarrierObstruction`,
+`FanFaceLattice`.
 `Graph/`: `Reachability`, `WeakReversibility`, `CycleCover`.
 `Examples/`: `CycleRateNonMonotone`.
 

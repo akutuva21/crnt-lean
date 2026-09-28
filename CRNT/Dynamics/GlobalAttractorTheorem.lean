@@ -1,6 +1,8 @@
 import CRNT.Dynamics.ComplexBalanceCycleDecomposition
 import CRNT.Dynamics.ComplexBalanceStoichFan
 import CRNT.Dynamics.FacetRepulsionAndersonShiu
+import CRNT.Dynamics.FaceCodimension
+import CRNT.Dynamics.HighCodimensionSiphonFace
 import CRNT.Dynamics.GlobalPersistence
 import CRNT.Dynamics.SiphonDimensionDescent
 import CRNT.Dynamics.ToricInclusion
@@ -1538,9 +1540,21 @@ theorem complexBalanced_genuinePermanent
                     · exact (hnonzero heq.symm).elim
                   exact N.facet_repelling_near_facet_point_of_facet κ hwr hPmaxne hfacet hx₀
                     (hωaff z hz) (hωnn z hz) hzP hpositiveOutside))
-          · -- Remaining case: maximal boundary face has codimension greater than one.
-            -- The local facet estimate does not construct the required zero-separating surface.
-            sorry
+          · -- Remaining case: the maximal boundary face is not a facet.  The degenerate failure
+            -- (the `Pmax`-projection of the stoichiometric subspace being zero) is impossible,
+            -- because every stoichiometric displacement would then vanish on `Pmax` and force
+            -- `wmax s = x₀ s > 0` against `wmax s = 0`; `highCodimension_of_not_facet` also
+            -- returns `2 ≤ Pmax.card`, since a one-species face always satisfies the facet
+            -- count.  So this branch is exactly the codimension `≥ 2` case, and the whole
+            -- residual content is isolated in
+            -- `CRNT.Dynamics.HighCodimensionSiphonFace`.
+            have hcompatMax := hωaff wmax hwmax
+            have hzerosMax : ∀ s ∈ Pmax, wmax s = 0 := fun s hs => (hzeroMax s).1 hs
+            obtain ⟨hcodim, hcard⟩ :=
+              N.highCodimension_of_not_facet hx₀ hcompatMax hzerosMax hPmaxne hfacet
+            exact N.exists_positive_omegaPoint_of_highCodimension_siphonFace κ hxs hcb
+              hϕγ hsol hK hmaps hωnn hgenω hωaff hx₀ hPmaxne hwmax hzeroMax hmaxExact
+              hcodim hcard hrank
 
 /-- The trajectory-level permanence theorem implies the older flow-quantified standard
 permanence API whenever a genuine global mass-action flow is supplied. -/

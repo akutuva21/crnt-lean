@@ -159,8 +159,8 @@ triangle exactly one neighbor per `{0,1}`-door edge, by the lattice-edge inciden
 def multiDoorIncidence : MultiDoorIncidence Cell Outer where
   G := doorGraph
   col := col
-  cell_degree := by native_decide
-  outer_odd := by native_decide
+  cell_degree := by decide
+  outer_odd := by decide
 
 /-- **Geometrically-derived two-dimensional Sperner.** The door-incidence datum built from the
 `N = 2` subdivision's geometry has a rainbow triangle (the central triangle `dn`). -/

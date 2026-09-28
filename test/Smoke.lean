@@ -77,6 +77,60 @@ def interopRevData : NetworkData :=
   { numSpecies := 2,
     reactions := #[ { source := #[1, 0], target := #[0, 1] },
                     { source := #[0, 1], target := #[1, 0] } ] }
+
+/-- The stoichiometric rank of `interopRevData` is one: the 1 × 1 minor at species `0` (entry
+`0 - 1`) bounds it below, the backward reaction vector is the negation of the forward one, so the
+subspace is the line spanned by a single nonzero vector. -/
+theorem interopRev_stoichRank : interopRevData.toNetwork.stoichRank = 1 := by
+  have hv : interopRevData.toNetwork.reactionVector
+      (⟨0, by simp [interopRevData]⟩ : interopRevData.toNetwork.R) ≠ 0 := by
+    intro h
+    have h0 : interopRevData.toNetwork.reactionVector
+        (⟨0, by simp [interopRevData]⟩ : interopRevData.toNetwork.R) (0 : Fin 2) = (0 : ℝ) :=
+      congrFun h (0 : Fin 2)
+    simp only [Network.reactionVector, Reaction.vector] at h0
+    rw [show (interopRevData.toNetwork.reaction
+            (⟨0, by simp [interopRevData]⟩ : interopRevData.toNetwork.R)).target
+          (0 : Fin 2) = 0 from by decide,
+      show (interopRevData.toNetwork.reaction
+            (⟨0, by simp [interopRevData]⟩ : interopRevData.toNetwork.R)).source
+          (0 : Fin 2) = 1 from by decide] at h0
+    norm_num at h0
+  have hbwd : interopRevData.toNetwork.reactionVector
+      (⟨1, by simp [interopRevData]⟩ : interopRevData.toNetwork.R)
+      = fun s => -interopRevData.toNetwork.reactionVector
+          (⟨0, by simp [interopRevData]⟩ : interopRevData.toNetwork.R) s := by
+    funext s
+    fin_cases s
+    all_goals
+      simp [Network.reactionVector, Reaction.vector, NetworkData.toNetwork,
+        NetworkData.toComplex, interopRevData]
+  have hsub : interopRevData.toNetwork.stoichSubspace
+      = Submodule.span ℝ {interopRevData.toNetwork.reactionVector
+          (⟨0, by simp [interopRevData]⟩ : interopRevData.toNetwork.R)} := by
+    apply le_antisymm
+    · apply Submodule.span_le.2
+      rintro x ⟨r, rfl⟩
+      fin_cases r
+      · exact Submodule.subset_span rfl
+      · rw [hbwd]
+        exact Submodule.neg_mem _ (Submodule.subset_span rfl)
+    · apply Submodule.span_le.2
+      intro x hx
+      rw [Set.mem_singleton_iff] at hx
+      subst hx
+      exact interopRevData.toNetwork.reactionVector_mem_stoichSubspace
+        (⟨0, by simp [interopRevData]⟩ : interopRevData.toNetwork.R)
+  rw [Network.stoichRank, hsub, finrank_span_singleton hv]
+
+/-- With the rank pinned to one, the low-rank route of the exclusion disjunction certifies no
+positive periodic orbit. -/
+theorem interopRev_noPositivePeriodicOrbitCertified :
+    interopRevData.analyze.noPositivePeriodicOrbitCertified = true := by
+  rw [NetworkData.analyze_noPositivePeriodicOrbitCertified_eq,
+    NetworkData.analyze_stoichRank_eq, interopRev_stoichRank]
+  exact Bool.or_true _
+
 example : interopRevData.toNetwork.numComplexes = 2 := by decide
 example : interopRevData.toNetwork.numReactions = 2 := by decide
 
@@ -233,15 +287,23 @@ example : interopRevData.analyze.numTerminalSLC = 1 := by decide
 example : interopRevData.analyze.numDiagonalDriveSpecies = 0 := by decide
 example : interopRevData.analyze.hopfBoundaryMargin = none := by decide
 -- The reversible pair is weakly reversible and deficiency zero, so the analyzer can certify that
--- no positive mass-action parameterization admits a nonconstant positive periodic orbit.
-example : interopRevData.analyze.noPositivePeriodicOrbitCertified = true := by decide
+-- no positive mass-action parameterization admits a nonconstant positive periodic orbit.  The flag
+-- is certified through the rank bridge (`computeRank` does not kernel-reduce under `decide`).
+example : interopRevData.analyze.noPositivePeriodicOrbitCertified = true :=
+  interopRev_noPositivePeriodicOrbitCertified
 example (h : interopRevData.analyze.noPositivePeriodicOrbitCertified = true) :
     interopRevData.toNetwork.NeverPositivePeriodic :=
   NetworkData.neverPositivePeriodic_of_analyze interopRevData h
 -- Its stoichiometric rank is one, so it is not a planar (rank-two) compatibility-class candidate.
-example : interopRevData.analyze.stoichRankTwo = false := by decide
+example : interopRevData.analyze.stoichRankTwo = false := by
+  refine Bool.eq_false_iff.mpr ?_
+  intro h
+  rw [NetworkData.analyze_stoichRankTwo_eq] at h
+  rw [interopRev_stoichRank] at h
+  omega
 example : interopRevData.oscillationStatus = Network.OscillationStatus.excluded :=
-  NetworkData.oscillationStatus_eq_excluded_of_certified interopRevData (by decide)
+  NetworkData.oscillationStatus_eq_excluded_of_certified interopRevData
+    interopRev_noPositivePeriodicOrbitCertified
 example (d : NetworkData) :
     d.analyze.numDiagonalDriveSpecies = d.numSpecies ↔ d.toNetwork.ConsistentDiagonalDrive :=
   NetworkData.analyze_numDiagonalDriveSpecies_eq_card_iff d
@@ -254,9 +316,58 @@ def interopTriData : NetworkData :=
     reactions := #[ { source := #[1, 0, 0], target := #[0, 1, 0] },
                     { source := #[0, 1, 0], target := #[0, 0, 1] },
                     { source := #[0, 0, 1], target := #[1, 0, 0] } ] }
+
+/-- The stoichiometric rank of the three-cycle is two: the 2 × 2 minor on species `0, 1` and
+reactions `0, 1` has determinant `1`, and the third reaction vector is the negation of the sum of
+the first two, so the subspace is spanned by two vectors. -/
+theorem interopTri_stoichRank : interopTriData.toNetwork.stoichRank = 2 := by
+  have hge : 2 ≤ interopTriData.toNetwork.stoichRank :=
+    interopTriData.toNetwork.stoichRank_ge_of_det_ne_zero
+      (k := 2)
+      (fun j => (⟨j.val, j.isLt.trans (by simp [interopTriData])⟩ : interopTriData.toNetwork.R))
+      (fun i => (⟨i.val, i.isLt.trans (by simp [interopTriData])⟩ : Fin interopTriData.numSpecies))
+      (by
+        simp +decide [Matrix.det_fin_one, Matrix.det_fin_two, Matrix.det_fin_three]
+        all_goals first | decide | (norm_cast <;> decide))
+  have hv2 : interopTriData.toNetwork.reactionVector
+      (⟨2, by simp [interopTriData]⟩ : interopTriData.toNetwork.R)
+      = fun s =>
+        -((interopTriData.toNetwork.reactionVector
+            (⟨0, by simp [interopTriData]⟩ : interopTriData.toNetwork.R)) s
+          + (interopTriData.toNetwork.reactionVector
+            (⟨1, by simp [interopTriData]⟩ : interopTriData.toNetwork.R)) s) := by
+    funext s
+    fin_cases s
+    all_goals
+      simp [Network.reactionVector, Reaction.vector, NetworkData.toNetwork,
+        NetworkData.toComplex, interopTriData]
+  have hle : interopTriData.toNetwork.stoichSubspace
+      ≤ Submodule.span ℝ
+          {interopTriData.toNetwork.reactionVector
+              (⟨0, by simp [interopTriData]⟩ : interopTriData.toNetwork.R),
+           interopTriData.toNetwork.reactionVector
+              (⟨1, by simp [interopTriData]⟩ : interopTriData.toNetwork.R)} := by
+    apply Submodule.span_le.2
+    rintro x ⟨r, rfl⟩
+    fin_cases r
+    · exact Submodule.subset_span (by simp)
+    · exact Submodule.subset_span (by simp)
+    · rw [hv2]
+      exact Submodule.neg_mem _
+        (Submodule.add_mem _
+          (Submodule.subset_span (by simp))
+          (Submodule.subset_span (by simp)))
+  have hle2 : interopTriData.toNetwork.stoichRank ≤ 2 := by
+    rw [Network.stoichRank]
+    refine (Submodule.finrank_mono hle).trans ?_
+    refine (finrank_span_le_card _).trans ?_
+    simpa using Finset.card_le_two
+  omega
+
 example : interopTriData.analyze.hopfBoundaryMargin.isSome = true := by decide
 -- The three-cycle has a two-dimensional stoichiometric subspace, exposing the planar-global route.
-example : interopTriData.analyze.stoichRankTwo = true := by decide
+example : interopTriData.analyze.stoichRankTwo = true := by
+  rw [NetworkData.analyze_stoichRankTwo_eq, interopTri_stoichRank]
 example (d : NetworkData) :
     d.analyze.stoichRankTwo = true ↔ d.toNetwork.stoichRank = 2 :=
   NetworkData.analyze_stoichRankTwo_eq d

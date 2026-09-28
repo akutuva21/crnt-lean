@@ -144,7 +144,7 @@ def N : Network Species :=
   { R := Rxn, decEqR := inferInstance, fintypeR := inferInstance, reaction := rxn }
 
 /-- The structural Shinar–Feinberg pair condition holds in species `A`, decided by computation. -/
-example : N.HasShinarFeinbergPair Species.A := by native_decide
+example : N.HasShinarFeinbergPair Species.A := by decide
 
 end Examples.ACRPair
 

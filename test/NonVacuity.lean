@@ -36,8 +36,10 @@ namespace CRNT.Test.NonVacuity
 /-! ## Structural predicates: witnesses where they fail
 
 Lines below reuse `decide` only on analyzer fields that `Smoke.lean` already reduces
-(`weaklyReversible`, `srSignConsistent`, `acrSpecies`, `numACRSpecies`, `hopfBoundaryMargin`,
-`noPositivePeriodicOrbitCertified`).  Compound flags go through their bridge lemmas instead. -/
+(`weaklyReversible`, `srSignConsistent`, `acrSpecies`, `numACRSpecies`, `hopfBoundaryMargin`).
+Compound flags go through their bridge lemmas instead, and `noPositivePeriodicOrbitCertified` is
+certified through the stoichiometric-rank bridge, because the `computeRank`-backed value does not
+kernel-reduce. -/
 
 -- Weak reversibility fails on the irreversible chain and on the minimal network.
 example : ¬ Examples.IrreversibleChain.N.WeaklyReversible :=
@@ -56,6 +58,56 @@ def revPair : NetworkData :=
   { numSpecies := 2,
     reactions := #[ { source := #[1, 0], target := #[0, 1] },
                     { source := #[0, 1], target := #[1, 0] } ] }
+
+/-- The stoichiometric rank of `revPair` is one: the 1 × 1 minor at species `0` (entry `0 - 1`)
+bounds it below, the backward reaction vector is the negation of the forward one, so the subspace
+is the line spanned by a single nonzero vector. -/
+theorem revPair_stoichRank : revPair.toNetwork.stoichRank = 1 := by
+  have hv : revPair.toNetwork.reactionVector
+      (⟨0, by simp [revPair]⟩ : revPair.toNetwork.R) ≠ 0 := by
+    intro h
+    have h0 : revPair.toNetwork.reactionVector
+        (⟨0, by simp [revPair]⟩ : revPair.toNetwork.R) (0 : Fin 2) = (0 : ℝ) :=
+      congrFun h (0 : Fin 2)
+    simp only [Network.reactionVector, Reaction.vector] at h0
+    rw [show (revPair.toNetwork.reaction (⟨0, by simp [revPair]⟩ : revPair.toNetwork.R)).target
+          (0 : Fin 2) = 0 from by decide,
+      show (revPair.toNetwork.reaction (⟨0, by simp [revPair]⟩ : revPair.toNetwork.R)).source
+          (0 : Fin 2) = 1 from by decide] at h0
+    norm_num at h0
+  have hbwd : revPair.toNetwork.reactionVector (⟨1, by simp [revPair]⟩ : revPair.toNetwork.R)
+      = fun s => -revPair.toNetwork.reactionVector
+          (⟨0, by simp [revPair]⟩ : revPair.toNetwork.R) s := by
+    funext s
+    fin_cases s
+    all_goals
+      simp [Network.reactionVector, Reaction.vector, NetworkData.toNetwork,
+        NetworkData.toComplex, revPair]
+  have hsub : revPair.toNetwork.stoichSubspace
+      = Submodule.span ℝ {revPair.toNetwork.reactionVector
+          (⟨0, by simp [revPair]⟩ : revPair.toNetwork.R)} := by
+    apply le_antisymm
+    · apply Submodule.span_le.2
+      rintro x ⟨r, rfl⟩
+      fin_cases r
+      · exact Submodule.subset_span rfl
+      · rw [hbwd]
+        exact Submodule.neg_mem _ (Submodule.subset_span rfl)
+    · apply Submodule.span_le.2
+      intro x hx
+      rw [Set.mem_singleton_iff] at hx
+      subst hx
+      exact revPair.toNetwork.reactionVector_mem_stoichSubspace
+        (⟨0, by simp [revPair]⟩ : revPair.toNetwork.R)
+  rw [Network.stoichRank, hsub, finrank_span_singleton hv]
+
+/-- With the rank pinned to one, the low-rank route of the exclusion disjunction certifies no
+positive periodic orbit. -/
+theorem revPair_noPositivePeriodicOrbitCertified :
+    revPair.analyze.noPositivePeriodicOrbitCertified = true := by
+  rw [NetworkData.analyze_noPositivePeriodicOrbitCertified_eq,
+    NetworkData.analyze_stoichRank_eq, revPair_stoichRank]
+  exact Bool.or_true _
 
 /-- The irreversible chain `A → B → C`: weak reversibility must report `false`. -/
 def chain : NetworkData :=
@@ -97,12 +149,14 @@ example : revPair.analyze.hopfBoundaryMargin = none := by decide
 It must be `true` where a route applies and `false` where none does -- a flag that were always
 `true` would make `neverPositivePeriodic_of_analyze` an unconditional non-oscillation theorem. -/
 
--- Rank ≤ 1 route applies to the reversible pair (rank 1), so the flag is `true`.
-example : revPair.analyze.noPositivePeriodicOrbitCertified = true := by decide
+-- Rank ≤ 1 route applies to the reversible pair (rank 1), so the flag is `true`.  The value is
+-- certified through the rank bridge because `computeRank` does not kernel-reduce under `decide`.
+example : revPair.analyze.noPositivePeriodicOrbitCertified = true :=
+  revPair_noPositivePeriodicOrbitCertified
 
 -- And the certified conclusion really follows from the flag, for this concrete network.
 example : revPair.toNetwork.NeverPositivePeriodic :=
-  NetworkData.neverPositivePeriodic_of_analyze revPair (by decide)
+  NetworkData.neverPositivePeriodic_of_analyze revPair revPair_noPositivePeriodicOrbitCertified
 
 /-! ## Negative controls that live in the frontier
 

@@ -74,3 +74,4 @@ CRNT.Multistationarity.TrueChemistrySRCriterion
 CRNT.Theorems.DeficiencyOne.Theorem
 # --- crnt-lean-current-available drop (42 modules) ---
 CRNT.Dynamics.GlobalAttractorTheorem
+CRNT.Dynamics.HighCodimensionSiphonFace

@@ -1,4 +1,7 @@
+import Mathlib.Tactic.DeriveFintype
 import CRNT.Stochastic.BirthDeathExhaustive
+
+set_option backward.isDefEq.respectTransparency false
 
 namespace CRNT
 namespace ScratchBirthDeathCounterexample
@@ -144,7 +147,7 @@ def N : Network Species :=
  theorem qdot_intVec (r : N.R) :
     (∑ s : Species, q s * N.integerReactionVector r s) =
       match r with | birth21 => 1 | birth11 => 0 | death12 => 1 := by
-  cases r <;> native_decide
+  cases r <;> decide
 
  theorem observable_step_nondec {n m : Species → ℕ} (h : N.CountStep n m) :
     Network.integerObservable q n ≤ Network.integerObservable q m := by

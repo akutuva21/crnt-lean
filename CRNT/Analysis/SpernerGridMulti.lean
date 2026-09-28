@@ -97,8 +97,8 @@ instance : DecidableRel doorGraph.Adj := by unfold doorGraph; infer_instance
 def multiDoorIncidence : MultiDoorIncidence Cell Outer where
   G := doorGraph
   col := cellColors
-  cell_degree := by native_decide
-  outer_odd := by native_decide
+  cell_degree := by decide
+  outer_odd := by decide
 
 /-- **Concrete multi-triangle two-dimensional Sperner.** The `N = 2` subdivision's door-incidence
 datum has a rainbow triangle (it is the central triangle `dn`). -/

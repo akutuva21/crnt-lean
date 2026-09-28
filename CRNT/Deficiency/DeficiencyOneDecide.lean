@@ -133,6 +133,6 @@ def N : Network Species :=
 
 /-- The reversible network `A ⇌ B` has one linkage class whose single strong linkage class is
 terminal, so condition (3) holds and decides positively. -/
-example : N.OneTerminalSLCPerLinkageClass := by native_decide
+example : N.OneTerminalSLCPerLinkageClass := by decide
 
 end CRNT.DeficiencyOneDecide.Example

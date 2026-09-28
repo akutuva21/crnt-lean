@@ -18,6 +18,9 @@ CLAUDE.md
 /CRNT_LEAN_PROGRESS_README.md
 /CURRENT_PROOF_HOLES.md
 /HANDOFF*.md
+# ...except this one: `CRNT/Geometry/FanFaceLattice.lean` and
+# `test/FrontierAuditCurrent.lean` both cite it, so it has to be tracked.
+!/HANDOFF_gac_hole.md
 /LEDGER.md
 /MERGE_REPORT*.md
 /OSCILLATION_FILE_MANIFEST.md

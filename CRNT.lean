@@ -65,6 +65,9 @@ import CRNT.LinearAlgebra.PowerProductMonoFinset
 
 -- Convex geometry: generated cones, dual cones, Newton polytopes (endotactic / toric-inclusion routes)
 import CRNT.Geometry.PolyhedralFan
+import CRNT.Geometry.PolyhedralBarrier
+import CRNT.Geometry.ConvexBarrierObstruction
+import CRNT.Geometry.FanFaceLattice
 import CRNT.Geometry.Endotactic
 import CRNT.Geometry.ToricFan
 import CRNT.Geometry.CraciunZSH
@@ -418,6 +421,11 @@ import CRNT.Dynamics.ThmBGenuine
 import CRNT.Dynamics.EndotacticPermanence
 import CRNT.Dynamics.FacetRepulsion
 import CRNT.Dynamics.FacetRepulsionAndersonShiu
+import CRNT.Dynamics.FaceCodimension
+import CRNT.Dynamics.ToricBarrierTrapping
+import CRNT.Dynamics.FaceDirectionCone
+import CRNT.Dynamics.ToricBarrierExplicit
+import CRNT.Dynamics.OrbitRegularity
 import CRNT.Dynamics.CriticalSiphonNearFacetInflux
 import CRNT.Dynamics.SingletonFacetEscape
 import CRNT.Dynamics.SiphonFacetEscape

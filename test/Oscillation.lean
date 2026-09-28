@@ -82,13 +82,61 @@ def irreversibleRankOneData : NetworkData :=
   { numSpecies := 2
     reactions := #[{ source := #[1, 0], target := #[0, 1] }] }
 
+-- The stoichiometric rank of the reconstructed network is one: the 1 × 1 minor at species `0`
+-- (entry `0 - 1 = -1`) bounds it below, and the single reaction vector spans the subspace, so the
+-- rank is exactly the span's dimension.  `analyze` reports `computeRank`, which does not kernel-
+-- reduce, so the numeral is obtained through the `analyze_stoichRank_eq` bridge instead.
+theorem irreversibleRankOne_stoichRank : irreversibleRankOneData.toNetwork.stoichRank = 1 := by
+  have hv : irreversibleRankOneData.toNetwork.reactionVector
+      (⟨0, by simp [irreversibleRankOneData]⟩ : irreversibleRankOneData.toNetwork.R) ≠ 0 := by
+    intro h
+    have h0 : irreversibleRankOneData.toNetwork.reactionVector
+        (⟨0, by simp [irreversibleRankOneData]⟩ : irreversibleRankOneData.toNetwork.R)
+        (0 : Fin 2) = (0 : ℝ) :=
+      congrFun h (0 : Fin 2)
+    simp only [Network.reactionVector, Reaction.vector] at h0
+    rw [show (irreversibleRankOneData.toNetwork.reaction
+            (⟨0, by simp [irreversibleRankOneData]⟩ : irreversibleRankOneData.toNetwork.R)).target
+          (0 : Fin 2) = 0 from by decide,
+      show (irreversibleRankOneData.toNetwork.reaction
+            (⟨0, by simp [irreversibleRankOneData]⟩ : irreversibleRankOneData.toNetwork.R)).source
+          (0 : Fin 2) = 1 from by decide] at h0
+    norm_num at h0
+  have hsub : irreversibleRankOneData.toNetwork.stoichSubspace
+      = Submodule.span ℝ {irreversibleRankOneData.toNetwork.reactionVector
+          (⟨0, by simp [irreversibleRankOneData]⟩ : irreversibleRankOneData.toNetwork.R)} := by
+    apply le_antisymm
+    · apply Submodule.span_le.2
+      rintro x ⟨r, rfl⟩
+      fin_cases r
+      exact Submodule.subset_span rfl
+    · apply Submodule.span_le.2
+      intro x hx
+      rw [Set.mem_singleton_iff] at hx
+      subst hx
+      exact irreversibleRankOneData.toNetwork.reactionVector_mem_stoichSubspace
+        (⟨0, by simp [irreversibleRankOneData]⟩ : irreversibleRankOneData.toNetwork.R)
+  rw [Network.stoichRank, hsub, finrank_span_singleton hv]
+
+-- With the rank pinned to one, the low-rank route of the exclusion disjunction certifies no
+-- positive periodic orbit; the weak-reversibility/deficiency conjunct is irrelevant to the `or`.
+theorem irreversibleRankOne_noPositivePeriodicOrbitCertified :
+    irreversibleRankOneData.analyze.noPositivePeriodicOrbitCertified = true := by
+  rw [NetworkData.analyze_noPositivePeriodicOrbitCertified_eq,
+    NetworkData.analyze_stoichRank_eq, irreversibleRankOne_stoichRank]
+  exact Bool.or_true _
+
 example : irreversibleRankOneData.analyze.weaklyReversible = false := by decide
-example : irreversibleRankOneData.analyze.stoichRank = 1 := by decide
-example : irreversibleRankOneData.analyze.noPositivePeriodicOrbitCertified = true := by decide
+example : irreversibleRankOneData.analyze.stoichRank = 1 := by
+  rw [NetworkData.analyze_stoichRank_eq, irreversibleRankOne_stoichRank]
+example : irreversibleRankOneData.analyze.noPositivePeriodicOrbitCertified = true :=
+  irreversibleRankOne_noPositivePeriodicOrbitCertified
 example : irreversibleRankOneData.toNetwork.NeverPositivePeriodic :=
-  NetworkData.neverPositivePeriodic_of_analyze irreversibleRankOneData (by decide)
+  NetworkData.neverPositivePeriodic_of_analyze irreversibleRankOneData
+    irreversibleRankOne_noPositivePeriodicOrbitCertified
 example : irreversibleRankOneData.oscillationStatus = Network.OscillationStatus.excluded :=
-  NetworkData.oscillationStatus_eq_excluded_of_certified irreversibleRankOneData (by decide)
+  NetworkData.oscillationStatus_eq_excluded_of_certified irreversibleRankOneData
+    irreversibleRankOne_noPositivePeriodicOrbitCertified
 
 -- The theorem is available directly for any finite CRN, independently of the serialized analyzer.
 example {S : Type} [DecidableEq S] [Fintype S] (N : Network S) (h : N.stoichRank ≤ 1) :

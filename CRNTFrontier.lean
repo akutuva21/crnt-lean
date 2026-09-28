@@ -1,4 +1,5 @@
 import CRNT.Dynamics.GlobalAttractorTheorem
+import CRNT.Dynamics.HighCodimensionSiphonFace
 import CRNT.Multistationarity.TrueChemistrySRCriterion
 import CRNT.Oscillation
 import CRNT.Oscillation.CompatibilityAdapters
