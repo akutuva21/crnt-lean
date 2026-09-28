@@ -14,6 +14,7 @@ import CRNT.Basic.Network
 import CRNT.Graph.Reachability
 import CRNT.Graph.WeakReversibility
 import CRNT.Graph.CycleCover
+import CRNT.Graph.SourceBlocks
 import CRNT.Graph.LinkageClass
 import CRNT.Graph.Crossing
 

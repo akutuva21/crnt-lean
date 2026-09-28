@@ -1,5 +1,6 @@
 import CRNT.Multistationarity.TrueSRSpeciesPath
 import CRNT.Multistationarity.TrueSRGlueCPairs
+import CRNT.Multistationarity.TrueChemistrySRGraph
 
 /-!
 # c-pairs of a species-to-species glue
@@ -207,3 +208,230 @@ theorem ssGlueCycle_even_iff_even {i₁ i₂ j : ℕ}
   omega
 
 end CRNT.Network.TrueSRSSPath
+
+namespace CRNT.Network
+
+variable {S : Type} [DecidableEq S] [Fintype S] {N : Network S}
+
+/-- **A species-to-species common subgraph cannot certify an `SToRIntersection`.**
+
+When the common-edge subgraph of two true-SR cycles is one simple path with species at both
+ends, criterion (ii) has no certificate for that pair.  The final vertex of any certificate
+component is an endpoint of the component's last edge, hence one of the listed path's vertices.
+If it were an interior vertex of the list, the list's other edge at that vertex is common as
+well, so some component must cover it: the same component would then reach that vertex twice
+against `vertex_simple`, a different component would share it against `components_separated`.
+So the final vertex is one of the list's two endpoints — a species — contradicting
+`ends_at_reaction`.
+
+This is the formal version of "a species-to-species chord is invisible to
+`TrueSRStrongCriterion`" from this file's header.  Note the subtle case is covered: the common
+path may pass through reaction vertices in its interior — indeed it does when the common
+subgraph is an arc closed off by a cycle right edge, which runs `s_{k+1} — r_k — … — s`, both
+endpoints species — and still fails, because only the two *endpoints* of the whole common
+subgraph matter. -/
+theorem no_sToRIntersection_of_speciesSpecies_common {m n K : ℕ}
+    (C : N.TrueSRCycle m) (D : N.TrueSRCycle n)
+    (edge : Fin K → N.TrueSREdge) (vertex : Fin (K + 1) → N.TrueSRVertex)
+    (hconn : ∀ i : Fin K, (edge i).Connects (vertex (Fin.castSucc i)) (vertex i.succ))
+    (hvsimp : Function.Injective vertex)
+    (hstart : ∃ s : S, vertex 0 = Sum.inl s)
+    (hend : ∃ s : S, vertex (Fin.last K) = Sum.inl s)
+    (hmem : ∀ i : Fin K, C.ContainsEdge (edge i) ∧ D.ContainsEdge (edge i))
+    (hcover : ∀ f : N.TrueSREdge, C.ContainsEdge f → D.ContainsEdge f →
+      ∃ i : Fin K, f.SameIncidence (edge i)) :
+    ¬ Nonempty (C.SToRIntersection D) := by
+  rintro ⟨I⟩
+  have htrans : ∀ {e f g : N.TrueSREdge}, e.SameIncidence f → f.SameIncidence g →
+      e.SameIncidence g := by
+    intro e f g h1 h2
+    exact ⟨h1.1.trans h2.1, h1.2.1.trans h2.2.1, h1.2.2.trans h2.2.2⟩
+  -- A vertex of the listed path at an edge is the edge's species- or reaction-endpoint.
+  have hendsR : ∀ i : Fin K, ∀ u,
+      u = vertex (Fin.castSucc i) ∨ u = vertex (Fin.succ i) →
+      u = Sum.inl (edge i).species ∨
+        u = Sum.inr ⟨(edge i).reaction, (edge i).internal⟩ := by
+    intro i u hu
+    rcases hconn i with hc | hc
+    · obtain ⟨h1, h2⟩ := hc
+      rcases hu with h | h
+      · exact Or.inl (h.trans h1)
+      · exact Or.inr (h.trans h2)
+    · obtain ⟨h1, h2⟩ := hc
+      rcases hu with h | h
+      · exact Or.inr (h.trans h1)
+      · exact Or.inl (h.trans h2)
+  -- SameIncidence classes among the listed edges are unique.
+  have hidx : ∀ i j : Fin K, (edge i).SameIncidence (edge j) → i = j := by
+    intro i j h
+    obtain ⟨hsi, hri, -⟩ := h
+    rcases hconn i with hci | hci <;> rcases hconn j with hcj | hcj
+    · obtain ⟨hi, hi'⟩ := hci
+      obtain ⟨hj, hj'⟩ := hcj
+      have hv : vertex (Fin.castSucc i) = vertex (Fin.castSucc j) := by
+        rw [hi, hj, hsi]
+      exact Fin.castSucc_injective _ (hvsimp hv)
+    · obtain ⟨hi, hi'⟩ := hci
+      obtain ⟨hj, hj'⟩ := hcj
+      have ha : vertex (Fin.castSucc i) = vertex (Fin.succ j) := by
+        rw [hi, hj', hsi]
+      have hb : vertex (Fin.succ i) = vertex (Fin.castSucc j) := by
+        rw [hi', hj]
+        apply congrArg Sum.inr
+        apply Subtype.ext
+        exact hri
+      have hvala : i.val = j.val + 1 := congrArg Fin.val (hvsimp ha)
+      have hvalb : i.val + 1 = j.val := congrArg Fin.val (hvsimp hb)
+      omega
+    · obtain ⟨hi, hi'⟩ := hci
+      obtain ⟨hj, hj'⟩ := hcj
+      have ha : vertex (Fin.succ i) = vertex (Fin.castSucc j) := by
+        rw [hi', hj, hsi]
+      have hb : vertex (Fin.castSucc i) = vertex (Fin.succ j) := by
+        rw [hi, hj']
+        apply congrArg Sum.inr
+        apply Subtype.ext
+        exact hri
+      have hvala : i.val + 1 = j.val := congrArg Fin.val (hvsimp ha)
+      have hvalb : i.val = j.val + 1 := congrArg Fin.val (hvsimp hb)
+      omega
+    · obtain ⟨hi, hi'⟩ := hci
+      obtain ⟨hj, hj'⟩ := hcj
+      have hv : vertex (Fin.succ i) = vertex (Fin.succ j) := by
+        rw [hi', hj', hsi]
+      have h1 : Fin.succ i = Fin.succ j := hvsimp hv
+      apply Fin.ext
+      have hval : i.val + 1 = j.val + 1 := congrArg Fin.val h1
+      omega
+  -- The component that carries the certificate's final vertex.
+  set c : Fin I.componentCount := ⟨0, I.componentCount_pos⟩
+  have hclenpos : 0 < I.componentLength c := I.componentLength_pos c
+  set lastIdx : Fin (I.componentLength c) := ⟨I.componentLength c - 1, by omega⟩
+  have hlasteq : (Fin.last (I.componentLength c)) = Fin.succ lastIdx := by
+    apply Fin.ext
+    show I.componentLength c = (I.componentLength c - 1) + 1
+    omega
+  obtain ⟨ρ, hρ⟩ := I.ends_at_reaction c
+  have hEnd : I.vertex c (Fin.succ lastIdx) = Sum.inr ρ := by
+    rw [← hlasteq]; exact hρ
+  have hcon : (I.edge c lastIdx).Connects (I.vertex c (Fin.castSucc lastIdx))
+      (I.vertex c (Fin.succ lastIdx)) := I.connects c lastIdx
+  have hEndInr : I.vertex c (Fin.succ lastIdx) =
+      Sum.inr ⟨(I.edge c lastIdx).reaction, (I.edge c lastIdx).internal⟩ := by
+    rcases hcon with h | h
+    · exact h.2
+    · have hbad : Sum.inr ρ = Sum.inl (I.edge c lastIdx).species := by
+        rw [← hEnd]; exact h.2
+      exact absurd hbad Sum.inr_ne_inl
+  -- The component's last edge is common, hence listed.
+  obtain ⟨iL, hiL⟩ := hcover (I.edge c lastIdx)
+    (I.edge_on_C c lastIdx) (I.edge_on_D c lastIdx)
+  have hEndListed : I.vertex c (Fin.succ lastIdx) = vertex (Fin.castSucc iL) ∨
+      I.vertex c (Fin.succ lastIdx) = vertex (Fin.succ iL) := by
+    rcases hconn iL with hc | hc
+    · obtain ⟨h1, h2⟩ := hc
+      right
+      rw [h2, hEndInr]
+      apply congrArg Sum.inr
+      apply Subtype.ext
+      exact hiL.2.1
+    · obtain ⟨h1, h2⟩ := hc
+      left
+      rw [h1, hEndInr]
+      apply congrArg Sum.inr
+      apply Subtype.ext
+      exact hiL.2.1
+  -- The final vertex is either an endpoint of the list (contradiction) or an interior
+  -- vertex, in which case the neighbouring listed edge gives the covering component.
+  obtain ⟨iElse, hiE, hEe⟩ : ∃ iElse : Fin K, iElse ≠ iL ∧
+      (I.vertex c (Fin.succ lastIdx) = vertex (Fin.castSucc iElse) ∨
+        I.vertex c (Fin.succ lastIdx) = vertex (Fin.succ iElse)) := by
+    rcases hEndListed with hE | hE
+    · -- final vertex = list vertex at castSucc iL
+      by_cases hz : iL.1 = 0
+      · obtain ⟨s0, hs0⟩ := hstart
+        have hE0 : vertex (Fin.castSucc iL) = vertex (0 : Fin (K + 1)) := by
+          apply congrArg vertex
+          apply Fin.ext
+          exact hz
+        have hbad : Sum.inr ρ = Sum.inl s0 := by
+          rw [← hEnd, hE, hE0]; exact hs0
+        exact absurd hbad Sum.inr_ne_inl
+      · refine ⟨⟨iL.1 - 1, by have := iL.isLt; omega⟩, ?_, ?_⟩
+        · intro hcon2
+          have hval : iL.1 - 1 = iL.1 := congrArg Fin.val hcon2
+          omega
+        · right
+          have hfin : Fin.castSucc iL =
+              Fin.succ ⟨iL.1 - 1, by have := iL.isLt; omega⟩ := by
+            apply Fin.ext
+            show iL.1 = (iL.1 - 1) + 1
+            omega
+          rw [hE, hfin]
+    · -- final vertex = list vertex at Fin.succ iL
+      by_cases hk : iL.1 + 1 = K
+      · obtain ⟨sK, hsK⟩ := hend
+        have hE0 : vertex (Fin.succ iL) = vertex (Fin.last K) := by
+          apply congrArg vertex
+          apply Fin.ext
+          exact hk
+        have hbad : Sum.inr ρ = Sum.inl sK := by
+          rw [← hEnd, hE, hE0]; exact hsK
+        exact absurd hbad Sum.inr_ne_inl
+      · refine ⟨⟨iL.1 + 1, by have := iL.isLt; omega⟩, ?_, ?_⟩
+        · intro hcon2
+          have hval : iL.1 + 1 = iL.1 := congrArg Fin.val hcon2
+          omega
+        · left
+          have hfin : Fin.succ iL =
+              Fin.castSucc ⟨iL.1 + 1, by have := iL.isLt; omega⟩ := by
+            apply Fin.ext
+            rfl
+          rw [hE, hfin]
+  have hEndI : I.vertex c (Fin.succ lastIdx) =
+      Sum.inr ⟨(edge iElse).reaction, (edge iElse).internal⟩ := by
+    have hm := hendsR iElse (I.vertex c (Fin.succ lastIdx)) hEe
+    rcases hm with h | h
+    · exact absurd (h.symm.trans hEndInr) Sum.inl_ne_inr
+    · exact h
+  -- The neighbouring listed edge is common, hence covered by some component.
+  obtain ⟨d, b, hd⟩ := I.covers_common (edge iElse) (hmem iElse).1 (hmem iElse).2
+  by_cases hdc : d = c
+  · subst hdc
+    have hbne : b ≠ lastIdx := by
+      intro hbe
+      rw [hbe] at hd
+      exact hiE (hidx iElse iL (htrans hd hiL))
+    have hEqB : I.vertex c (Fin.succ lastIdx) = I.vertex c (Fin.castSucc b) ∨
+        I.vertex c (Fin.succ lastIdx) = I.vertex c (Fin.succ b) := by
+      have hconb := I.connects c b
+      rcases hconb with hcb | hcb
+      · obtain ⟨h1b, h2b⟩ := hcb
+        right
+        rw [h2b, hEndI]
+        apply congrArg Sum.inr
+        apply Subtype.ext
+        exact hd.2.1
+      · obtain ⟨h1b, h2b⟩ := hcb
+        left
+        rw [h1b, hEndI]
+        apply congrArg Sum.inr
+        apply Subtype.ext
+        exact hd.2.1
+    rcases hEqB with hEq | hEq
+    · have hfin : Fin.succ lastIdx = Fin.castSucc b := I.vertex_simple c hEq
+      have hval : (I.componentLength c - 1) + 1 = b.1 := congrArg Fin.val hfin
+      have hblt := b.isLt
+      omega
+    · have hfin : Fin.succ lastIdx = Fin.succ b := I.vertex_simple c hEq
+      have hval : Nat.succ (I.componentLength c - 1) = Nat.succ b.1 := congrArg Fin.val hfin
+      have hbeq : b = lastIdx := Fin.ext (Nat.succ_injective hval).symm
+      exact hbne hbeq
+  · -- distinct components cannot share the final vertex
+    have hdc' : c ≠ d := Ne.symm hdc
+    have h1 : (I.edge c lastIdx).reaction = (edge iElse).reaction :=
+      (congrArg Subtype.val (Sum.inr.inj (hEndI.symm.trans hEndInr))).symm
+    have h2 : (edge iElse).reaction = (I.edge d b).reaction := hd.2.1
+    exact I.components_separated hdc' lastIdx b (Or.inr (h1.trans h2))
+
+end CRNT.Network
