@@ -17,95 +17,16 @@ rev = "v4.34.0"
 [[lean_lib]]
 name = "CRNT"
 globs = ["CRNT", "CRNT.+"]
-excludeGlobs = [
-  "CRNT.Oscillation",
-  "CRNT.Oscillation.CompatibilityAdapters",
-  "CRNT.Oscillation.DHopfOpenness",
-  "CRNT.Oscillation.DiagonalScaling",
-  "CRNT.Oscillation.FisherFullerScaling",
-  "CRNT.Oscillation.FloquetOrbitalStability",
-  "CRNT.Oscillation.FloquetPersistenceGeneral",
-  "CRNT.Oscillation.GlobalHopfIndex",
-  "CRNT.Oscillation.GlobalHopfIndexTheorem",
-  "CRNT.Oscillation.GlobalHopfSpectralCrossing",
-  "CRNT.Oscillation.HalfPlanePolynomial",
-  "CRNT.Oscillation.HurwitzBordering",
-  "CRNT.Oscillation.OscillationKernelBundle",
-  "CRNT.Oscillation.ParameterRichGlobalHopf",
-  "CRNT.Oscillation.PlanarAdjacentReturnLoop",
-  "CRNT.Oscillation.PlanarDivergenceRegularity",
-  "CRNT.Oscillation.PlanarEndToEnd",
-  "CRNT.Oscillation.PlanarFlowRegularity",
-  "CRNT.Oscillation.PlanarGreenGrid",
-  "CRNT.Oscillation.PlanarGreenJordanApproximation",
-  "CRNT.Oscillation.PlanarGreenRectangle",
-  "CRNT.Oscillation.PlanarJordanBoundaryCurrent",
-  "CRNT.Oscillation.PlanarJordanCrossingOrder",
-  "CRNT.Oscillation.PlanarJordanDyadic",
-  "CRNT.Oscillation.PlanarJordanTopology",
-  "CRNT.Oscillation.PlanarLocalReturnLoops",
-  "CRNT.Oscillation.PlanarLocalReturns",
-  "CRNT.Oscillation.PlanarPoincareBendixson",
-  "CRNT.Oscillation.PlanarReturnMonotonicity",
-  "CRNT.Oscillation.PlanarSectionHitIsolation",
-  "CRNT.Oscillation.ReducedKineticContinuation",
-  "CRNT.Oscillation.SimpleNegativeSpectrum",
-  "CRNT.Oscillation.SmoothGlobalHopf",
-  "CRNT.Oscillation.SpectralOpenness",
-  "CRNT.Oscillation.StableCodimOneDHopf",
-  "CRNT.Oscillation.VassenaPrincipal",
-  "CRNT.Multistationarity.TrueChemistrySRCriterion",
-  "CRNT.Theorems.DeficiencyOne.Theorem",
-  "CRNT.Dynamics.GlobalAttractorTheorem",
-  "CRNT.Dynamics.HighCodimensionSiphonFace"
-]
+excludeGlobs = []
 
-# The frontier: exactly the modules in the ledger.  Expected to fail; CI records the
-# error count instead of gating on it.  See CRNTFrontier.lean.
+# The frontier: exactly the modules in the ledger.  `CRNTFrontier.lean` imports every module
+# the ledger has ever listed, so this target still compiles all of them -- and CI's error
+# count still measures them -- even when the ledger itself is empty.  Historically expected
+# to fail; the count, not the colour, is the progress metric.  See CRNTFrontier.lean.
 [[lean_lib]]
 name = "CRNTFrontier"
 globs = [
-  "CRNTFrontier",
-  "CRNT.Oscillation",
-  "CRNT.Oscillation.CompatibilityAdapters",
-  "CRNT.Oscillation.DHopfOpenness",
-  "CRNT.Oscillation.DiagonalScaling",
-  "CRNT.Oscillation.FisherFullerScaling",
-  "CRNT.Oscillation.FloquetOrbitalStability",
-  "CRNT.Oscillation.FloquetPersistenceGeneral",
-  "CRNT.Oscillation.GlobalHopfIndex",
-  "CRNT.Oscillation.GlobalHopfIndexTheorem",
-  "CRNT.Oscillation.GlobalHopfSpectralCrossing",
-  "CRNT.Oscillation.HalfPlanePolynomial",
-  "CRNT.Oscillation.HurwitzBordering",
-  "CRNT.Oscillation.OscillationKernelBundle",
-  "CRNT.Oscillation.ParameterRichGlobalHopf",
-  "CRNT.Oscillation.PlanarAdjacentReturnLoop",
-  "CRNT.Oscillation.PlanarDivergenceRegularity",
-  "CRNT.Oscillation.PlanarEndToEnd",
-  "CRNT.Oscillation.PlanarFlowRegularity",
-  "CRNT.Oscillation.PlanarGreenGrid",
-  "CRNT.Oscillation.PlanarGreenJordanApproximation",
-  "CRNT.Oscillation.PlanarGreenRectangle",
-  "CRNT.Oscillation.PlanarJordanBoundaryCurrent",
-  "CRNT.Oscillation.PlanarJordanCrossingOrder",
-  "CRNT.Oscillation.PlanarJordanDyadic",
-  "CRNT.Oscillation.PlanarJordanTopology",
-  "CRNT.Oscillation.PlanarLocalReturnLoops",
-  "CRNT.Oscillation.PlanarLocalReturns",
-  "CRNT.Oscillation.PlanarPoincareBendixson",
-  "CRNT.Oscillation.PlanarReturnMonotonicity",
-  "CRNT.Oscillation.PlanarSectionHitIsolation",
-  "CRNT.Oscillation.ReducedKineticContinuation",
-  "CRNT.Oscillation.SimpleNegativeSpectrum",
-  "CRNT.Oscillation.SmoothGlobalHopf",
-  "CRNT.Oscillation.SpectralOpenness",
-  "CRNT.Oscillation.StableCodimOneDHopf",
-  "CRNT.Oscillation.VassenaPrincipal",
-  "CRNT.Multistationarity.TrueChemistrySRCriterion",
-  "CRNT.Theorems.DeficiencyOne.Theorem",
-  "CRNT.Dynamics.GlobalAttractorTheorem",
-  "CRNT.Dynamics.HighCodimensionSiphonFace"
+  "CRNTFrontier"
 ]
 
 [[lean_lib]]

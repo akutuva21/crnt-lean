@@ -101,8 +101,10 @@ name = "CRNT"
 globs = ["CRNT", "CRNT.+"]
 excludeGlobs = {toml_list(unverified)}
 
-# The frontier: exactly the modules in the ledger.  Expected to fail; CI records the
-# error count instead of gating on it.  See CRNTFrontier.lean.
+# The frontier: exactly the modules in the ledger.  `CRNTFrontier.lean` imports every module
+# the ledger has ever listed, so this target still compiles all of them -- and CI's error
+# count still measures them -- even when the ledger itself is empty.  Historically expected
+# to fail; the count, not the colour, is the progress metric.  See CRNTFrontier.lean.
 [[lean_lib]]
 name = "CRNTFrontier"
 globs = {toml_list(frontier_globs)}
