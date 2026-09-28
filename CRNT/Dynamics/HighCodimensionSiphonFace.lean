@@ -354,6 +354,25 @@ scales linearly in `X` along `𝒞`") that fails on an unbounded cone.  The §7.
 hierarchy then handles the remaining self-consistency fixed point.  The repo's reading of the
 obstruction, recorded in that module's header, matches the paper.
 
+**5. The missing object already has a name in this tree.**  v3 §4 states the whole content in one
+sentence: "for any positive initial condition `x₀ ∈ ℝⁿ_{>0}` of a toric dynamical system there
+exists a compact forward invariant region `K_{x₀} ⊂ ℝⁿ_{>0}` such that `x₀ ∈ K_{x₀}`.  Of course,
+this implies that toric dynamical systems are persistent."  Up to the packaging of forward
+invariance, that is `N.PersistentFrom κ x₀` (`SingleLinkageGAC.lean:46`: a compact `K₀`, every
+point of `K₀` strictly positive, every genuine solution through `x₀` staying in `K₀`), whose
+orbit-level shadow is `Permanent ϕ x₀` (`EndotacticPermanence.lean:58`).  Both already yield this
+theorem's conclusion: `omegaLimit_meets_positive_of_permanent` *is* the conclusion above, and
+`persistentOrbit_of_persistentFrom` plus `PersistentOrbit.omegaLimit_positive` gives it for
+`PersistentFrom`.  Two remarks, both checked against the text: (a) `K_{x₀}` compact and inside the
+*open* orthant already forces `dist(K_{x₀}, ∂) > 0`, so no separate separation statement is
+needed — in particular the segment argument of `hsep_fails_of_boundaryPoint_mem_sublevel` plays no
+role here (it belongs to the repo's convex max-of-affine packaging, which the paper's tile-by-tile
+surface is not — see 4); (b) feeding `PersistentFrom` to the chain above under this theorem's
+hypotheses produces a *positive* `wmax` (`wmax ∈ ω ⊆ K₀`, `K₀` closed), contradicting
+`hPmaxne`/`hzeroMax` — i.e. the residual is inconsistent with `PersistentFrom`, which is the
+machine-checkable form of "closing this `sorry` = formalizing Theorem B (§7 + §8)".  What §7+§8
+must therefore deliver is exactly a compact positive absorbing set for the bounded orbit at hand.
+
 -/
 
 /-! ## The static slice of Anderson's descent that IS available here
