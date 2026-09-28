@@ -1511,7 +1511,7 @@ theorem complexBalanced_genuinePermanent
             hϕγ hsol hK hmaps hωnn hgenω hωaff hx₀ with hgood | ⟨_, hbad⟩
         · exact hgood
         · obtain ⟨w, hw, P, hPne, hzeroSet, -, -, -, -, -, -⟩ := hbad
-          obtain ⟨wmax, hwmax, Pmax, hPmaxne, hzeroMax, hmaxExact⟩ :=
+          obtain ⟨wmax, hwmax, Pmax, hPmaxne, hzeroMax, hmaxExact, hzcard⟩ :=
             exists_maximal_zeroSet_omegaPoint hw hPne hzeroSet
           by_cases hfacet : Module.finrank ℝ
               (LinearMap.ker ((projOn Pmax).domRestrict N.stoichSubspace)) + 1 =
@@ -1553,7 +1553,7 @@ theorem complexBalanced_genuinePermanent
             obtain ⟨hcodim, hcard⟩ :=
               N.highCodimension_of_not_facet hx₀ hcompatMax hzerosMax hPmaxne hfacet
             exact N.exists_positive_omegaPoint_of_highCodimension_siphonFace κ hxs hcb
-              hϕγ hsol hK hmaps hωnn hgenω hωaff hx₀ hPmaxne hwmax hzeroMax hmaxExact
+              hϕγ hsol hK hmaps hωnn hgenω hωaff hx₀ hPmaxne hwmax hzeroMax hmaxExact hzcard
               hcodim hcard hrank
 
 /-- The trajectory-level permanence theorem implies the older flow-quantified standard

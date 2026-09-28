@@ -127,7 +127,9 @@ theorem criticalBoundaryOmegaFace_lowerRank
 
 
 /-- A finite species set lets us choose a boundary omega point whose zero set is maximal by
-cardinality. Every omega point on that same zero face then has exactly the same zero set. -/
+cardinality. Every omega point on that same zero face then has exactly the same zero set, and —
+exported as the final component — no omega point of `Ω` has a zero set of larger cardinality
+than `P'`. -/
 theorem exists_maximal_zeroSet_omegaPoint
     {Ω : Set (Concentration S)}
     {w : Concentration S} (hw : w ∈ Ω)
@@ -135,7 +137,8 @@ theorem exists_maximal_zeroSet_omegaPoint
     (hzeroSet : ∀ s, s ∈ P ↔ w s = 0) :
     ∃ w' ∈ Ω, ∃ P' : Finset S, P'.Nonempty ∧
       (∀ s, s ∈ P' ↔ w' s = 0) ∧
-      ∀ z ∈ Ω, (∀ s ∈ P', z s = 0) → ∀ s, z s = 0 ↔ s ∈ P' := by
+      (∀ z ∈ Ω, (∀ s ∈ P', z s = 0) → ∀ s, z s = 0 ↔ s ∈ P') ∧
+      ∀ z ∈ Ω, (Finset.univ.filter (fun s => z s = 0)).card ≤ P'.card := by
   classical
   let candidates : Finset (Finset S) :=
     Finset.univ.powerset.filter fun Q => ∃ z ∈ Ω, ∀ s, s ∈ Q ↔ z s = 0
@@ -170,7 +173,19 @@ theorem exists_maximal_zeroSet_omegaPoint
     have hEq : Pmax = Qz := Finset.eq_of_subset_of_card_le hsubset hcard
     rw [hEq]
     exact (hQexact s).symm
-  exact ⟨wmax, hwmax, Pmax, hPmaxNonempty, hzeroMax, hmaxExact⟩
+  have hzcard : ∀ z ∈ Ω, (Finset.univ.filter (fun s => z s = 0)).card ≤ Pmax.card := by
+    intro z hz
+    let Qz : Finset S := Finset.univ.filter fun i => z i = 0
+    have hQexact : ∀ i, i ∈ Qz ↔ z i = 0 := by
+      intro i
+      simp [Qz]
+    have hQmem : Qz ∈ candidates := by
+      apply Finset.mem_filter.mpr
+      constructor
+      · exact Finset.mem_powerset.mpr (Finset.subset_univ Qz)
+      · exact ⟨z, hz, hQexact⟩
+    exact hPmax Qz hQmem
+  exact ⟨wmax, hwmax, Pmax, hPmaxNonempty, hzeroMax, hmaxExact, hzcard⟩
 
 /-- **Exact output of a boundary-face rank reduction.** A compact forward orbit either already
 has a positive omega-point, or it has a boundary omega-point whose zero set is a nonempty critical
