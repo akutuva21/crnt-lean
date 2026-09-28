@@ -14,21 +14,11 @@ on every causal unit `v → w`, where `G v w` is the edge gain.  This is the mul
 the classical statement that a system of difference constraints is feasible when no cycle has
 negative total weight, and the witness is the extremal (shortest-path) solution.
 
-`CRNT.Network.multiplier_chain` shows why an arbitrary feasible solution will not do: chaining the
-relation along a path bounds the multiplier at the start from *above* in terms of the one at the
-end, so extending multipliers across a new directed ear — the obvious induction, along
-Shinar--Feinberg's own ear decomposition — needs a lower bound it cannot supply.  Hence the
-extremal solution, and hence the bounded-walk maximum defined here.
-
-`gainIter G k v` is the largest gain product over directed walks of length at most `k` leaving
-`v`.  It is monotone in `k` and at least `1` (the empty walk).  The key fact is
-`gainIter_feasible_of_stable`: as soon as one iteration fails to increase the value, the current
-value *is* a feasible multiplier assignment.
-
-What remains for a full Proposition 5.12 is the stabilization step: the iteration stops growing by
-step `|V|`, because a walk longer than `|V|` repeats a vertex and so contains a directed cycle,
-which by non-expansiveness cannot increase the gain product.  That argument needs a walk API with
-cycle deletion and is the one outstanding piece.
+This module proves the finite graph multiplier result in both closed-walk and simple-cycle
+forms (`exists_feasible_multipliers` and `exists_feasible_multipliers_of_simple`).  The proof
+uses bounded-walk maxima, finite cycle deletion, and factorization of closed walks into simple
+cycles.  The remaining work in the CRNT theorem is network-specific: identify the relevant
+reaction blocks and transfer the true-SR hypotheses to their causal gains.
 
 Depends on: Mathlib only.
 -/
