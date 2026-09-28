@@ -6748,6 +6748,115 @@ private theorem finRotate_last_zero (k : ℕ) :
   have h := congrArg Fin.val (finRotate_apply (Fin.last k))
   simpa [Fin.add_def] using h
 
+/-- **A non-neighbor cycle reaction has zero class flux at a cycle species.**
+A nonzero class flux at that species yields a labeled SR edge joining the species
+`C.species j` to the reaction `C.reaction t` (`exists_trueSREdge_of_nonzero_trueInternalClassFlux`);
+when `t` is neither `j` nor `(j - 1) % n` the edge is not a cycle edge
+(`containsEdge_iff_cycleNeighbour`), so it is a single-edge chord of the even cycle `C`, which
+`no_single_edge_chord_of_trueSRCriterion` forbids. The flux therefore vanishes — in *either*
+causal direction, since the SR edge carries no orientation.
+
+Why this matters for the frontier:
+* the **cycle-reaction part of `hrest`** for the degree-two endgame comes for free — at a cycle
+  species every non-adjacent cycle class contributes `0 ≤ 0`, and only off-cycle source classes
+  remain to be controlled (see
+  `no_degree_two_aggregate_causal_cycle_of_offCycle_hrest`);
+* it is the formal content of *"the one-edge test always lands on `leftEdge`"*: from an on-cycle
+  species, a one-step causal edge can reach only its own left-edge partner (the right-edge
+  partner opposes by `hcausal`, every other cycle reaction has zero flux), so the
+  `exists_shortest_relPath_to_good` one-edge test can never produce a non-adjacent target —
+  the branch-(a) closer of the case-B analysis has a **contradictory hypothesis** under `hSR`
+  and is vacuous. -/
+theorem nonAdjacent_cycleClassFlux_eq_zero (N : Network S)
+    (hsep : N.ReactantProductSeparated) (hSR : N.TrueSRStrongCriterion)
+    {n : ℕ} {α : N.fullyOpen.R → ℝ}
+    (C : N.TrueSRCycle n) (hC : C.Even)
+    (j t : Fin n) (hne : t.1 ≠ j.1) (hne' : (t.1 + 1) % n ≠ j.1) :
+    N.trueInternalClassFlux α (C.reaction t) (C.species j) = 0 := by
+  classical
+  by_contra hz
+  obtain ⟨e, hes, her⟩ :=
+    N.exists_trueSREdge_of_nonzero_trueInternalClassFlux (C.reaction t) (C.species j) hz
+  have huniq : ∀ f g : N.TrueSREdge, f.reaction = g.reaction → f.species = g.species →
+      f.endpoint = g.endpoint :=
+    fun f g hr hs => N.trueSREdge_endpoint_eq_of_same_class_and_species hsep f g hr hs
+  have hnc : ¬ C.ContainsEdge e := by
+    rw [N.containsEdge_iff_cycleNeighbour huniq C e j t hes her]
+    intro h
+    rcases h with h | h
+    · exact hne (congrArg Fin.val h).symm
+    · exact hne' h.symm
+  exact no_single_edge_chord_of_trueSRCriterion hSR C hC huniq e j t hes her
+    (fun u hu => hnc (Or.inl ⟨u, hu⟩)) (fun u hu => hnc (Or.inr ⟨u, hu⟩))
+
+/-- **The degree-two endgame only needs `hrest` for off-cycle source classes.**
+At a cycle species every non-adjacent *cycle* class contributes exactly zero
+(`nonAdjacent_cycleClassFlux_eq_zero`), so those terms satisfy `hrest` for free; every
+non-source class is already nonpositive because the source is closed under causal predecessors.
+
+**Scope — this does not close the frontier configuration.** `hrestOff` is dischargeable only
+for a cycle whose species carry **no external source edges**: no off-cycle source class with
+strictly positive class flux at any of its species.  In the frontier branch of
+`stronglyConcordant_fullyOpen_of_trueSRCriterion` the class returned by
+`exists_positive_off_cycle_aggregate_class` violates `hrestOff` at the attachment species
+`C.species (finRotate n i)` — witness `hρpos`/`hattachment`
+(`0 < N.trueInternalClassFlux α ρ s.1 * σ s.1`, off-cycle by `hρnotCycle`, in `F` by `hρF`) —
+so the hypothesis cannot be instantiated for the cycle `C` under construction.  Even with a
+correctly scoped `hrest`, the chain around `C` then lands in Shinar--Feinberg §5.7.2
+Possibility 3: the telescoping slack survives precisely on that positive term, and the
+continuation is their §5.9 leaf-removal over the source block tree — the datum this
+repository still lacks.  This lemma is that reduction, packaged for a future block-based
+proof; it does not by itself settle any case of the frontier branch. -/
+theorem no_degree_two_aggregate_causal_cycle_of_offCycle_hrest (N : Network S)
+    (hsep : N.ReactantProductSeparated) (hSR : N.TrueSRStrongCriterion)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {n : ℕ}
+    (C : N.TrueSRCycle n) (hC : C.Even) (hsc : C.SCycleNet)
+    (F : Finset N.TrueReaction) (β : Fin n → ℝ)
+    (hrep : ∀ i, (C.leftEdge i).representative = (C.rightEdge i).representative)
+    (hbeta : ∀ i t, N.trueInternalClassFlux α (C.reaction i) t =
+      β i * N.reactionVector (C.rightEdge i).representative t)
+    (hclass : ∀ i, C.reaction i ∈ F)
+    (hsum : ∀ i, 0 < ∑ ρ ∈ F,
+      (N.trueInternalClassFlux α ρ (C.species (finRotate n i))) *
+        σ (C.species (finRotate n i)))
+    (hcausal : ∀ i, 0 < (N.trueInternalClassFlux α (C.reaction i)
+      (C.species (finRotate n i))) * σ (C.species (finRotate n i)))
+    (hopp : ∀ i, (N.trueInternalClassFlux α (C.reaction (finRotate n i))
+      (C.species (finRotate n i))) * σ (C.species (finRotate n i)) < 0)
+    (hrestOff : ∀ i ρ, ρ ∈ F → (∀ j : Fin n, ρ ≠ C.reaction j) →
+      (N.trueInternalClassFlux α ρ (C.species (finRotate n i))) *
+        σ (C.species (finRotate n i)) ≤ 0) :
+    False := by
+  classical
+  refine N.no_degree_two_aggregate_causal_cycle hsep C hsc F β hrep hbeta hclass hsum
+    hcausal hopp ?_
+  intro i ρ hρF hρneR hρneL
+  by_cases hex : ∃ j : Fin n, ρ = C.reaction j
+  · obtain ⟨t, ht⟩ := hex
+    -- the species index at this position is `finRotate n i`; `t` differs from it on both counts
+    have hnei : t ≠ i := by
+      intro heq
+      apply hρneR
+      rw [ht, heq]
+    have hnei' : t ≠ finRotate n i := by
+      intro heq
+      apply hρneL
+      rw [ht, heq]
+    have hrotVal : ∀ a : Fin n, (finRotate n a).1 = (a.1 + 1) % n := by
+      intro a
+      have hn1 : 1 < n := by have := C.nontrivial; omega
+      have h := congrArg Fin.val (finRotate_apply a)
+      simpa [Fin.add_def, hn1] using h
+    have hvt : t.1 ≠ (finRotate n i).1 := fun h => hnei' (Fin.ext h)
+    have hvj : (t.1 + 1) % n ≠ (finRotate n i).1 := by
+      intro h
+      rw [← hrotVal t] at h
+      apply hnei
+      exact Equiv.injective (finRotate n) (Fin.ext h)
+    rw [ht]
+    rw [nonAdjacent_cycleClassFlux_eq_zero N hsep hSR C hC (finRotate n i) t hvt hvj, zero_mul]
+  · exact hrestOff i ρ hρF (fun j hj => hex ⟨j, hj⟩)
+
 /-- A chord from a cycle species to a nonadjacent reaction, when its reaction is causal at the
 start and opposing at the other end of the arc, closes an even cycle sharing an S-to-R path with
 the original. This is the concrete `hSR.2` obstruction for an extra class that lies on the cycle. -/
