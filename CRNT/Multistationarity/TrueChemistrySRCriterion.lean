@@ -19,6 +19,7 @@ import CRNT.Multistationarity.TrueSRReactionInteriorPath
 import CRNT.Multistationarity.TrueSRCPairThirdEdge
 import CRNT.Multistationarity.TrueSRDegreeTwoNoSToR
 import CRNT.Multistationarity.TrueSRSSGlueCPairs
+import CRNT.Multistationarity.TrueSRParityRR
 
 /-!
 # True-chemistry SR criteria for concordance and strong concordance
