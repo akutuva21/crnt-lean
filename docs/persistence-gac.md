@@ -7,10 +7,10 @@ builds on the relative-entropy Lyapunov function and the forward semiflow descri
 [`dynamics.md`](dynamics.md), and on the complex-balanced equilibrium theory in
 [`deficiency.md`](deficiency.md).
 
-The global attractor conjecture is open in general. This document records what is **proven here**,
-what is **gated on explicit hypotheses**, and where the formalization stops. Every result discussed
-is `sorry`-free; the conjecture is not closed, and where a step is missing it enters as a named
-hypothesis (a `Prop`, a structure, or a supplied argument), never as a `sorry`.
+This document records what is **proven here**, what is **gated on explicit hypotheses**, and where
+the formalization stops. The helper results described as complete are Lean-checked. The main
+`complexBalanced_genuinePermanent` theorem still contains one `sorry` in the higher-rank,
+critical-siphon case; a successful build does not close that obligation.
 
 ## The reduction: GAC ⟺ persistence
 
@@ -220,7 +220,19 @@ an explicit hypothesis, never a `sorry`:
 3. **The weak-reversibility cycle cover.** `NetworkCycleDecomposition` packages the concrete
    cycle-cover data (path lists with their ordering fields) and is assumed; the reachability-level
    cover is proven (`WeaklyReversible.onDirectedCycle`), but no lemma turns it into the concrete
-   decomposition the embedding consumes.
+   decomposition the embedding consumes. **This interface needs restating before it can be fed.**
+   `mono` and `cmin` pull against each other. For a graph cycle — consecutive reactions, so `vec`
+   makes `u j i` the `i`-th source complex — `mono` demands that the mass-action rates be
+   nondecreasing the whole way round, which is not arrangeable by choosing a starting point:
+   `Examples/CycleRateNonMonotone.lean` exhibits the strongly connected triangle
+   `A → B → A + B → A` at `x = (1/2, 4)`, where the cyclic rates are `1/2, 4, 2` and
+   `tri_no_monotone_rotation` verifies that none of the three rotations is monotone. Reordering the
+   reactions arbitrarily is permitted (`vec` constrains only consecutive differences, and the three
+   reaction vectors sum to zero, `tri_reactionVector_sum_zero`), and sorting by rate does satisfy
+   `mono` — but then `u j i` is a partial sum of reaction vectors in rate order rather than a source
+   complex, and nothing supplies its `C`-minimality. So either `mono` must be weakened to monotone
+   *runs* with explicit descent corrections, or `cmin` must be proven for the sorted partial-sum
+   walk.
 4. **The polyhedral-fan axioms.** `IsPolyhedralFan` (closure under exposed faces, pairwise
    intersection a common face, covering) is a hypothesis; `Fan` is bare cone data.
 5. **Arbitrary-fan faithful-curve existence.** The global slope-interval chaining is the
@@ -261,18 +273,36 @@ form. The sign content of strong endotacticity along the relative-entropy dissip
   Butler–McGehee escape geometry, isolated and minimal invariant sets; the reachability-level cycle
   cover of a weakly-reversible network; the differential-inclusion, polar-cone, embedding, one- and
   two-dimensional zero-separating, and single-valued-Nagumo machinery above; the permanence ⇒
-  convergence bridge.
-- **Open:** persistence in general — the remaining gap is that interior orbits must be repelled from
-  *critical*-siphon faces. The codimension-1 non-siphon facet case is proven
-  (`Dynamics/FacetRepulsion.lean`, via `massActionVectorField_pos_of_not_isSiphon` and Butler–McGehee:
-  a non-siphon facet is strictly repelling and traps no ω-point). The critical-siphon facet is taken
-  as a hypothesis: there the field is tangent, so first-order repulsion gives nothing, and the
-  near-facet quantitative estimate of Anderson & Shiu (*The dynamics of weakly reversible population
-  processes near facets*, 2010) — together with Anderson's single-linkage tier argument — is not
-  formalized; it needs a near-facet differential inequality absent from this layer. Also open: in the
-  toric-inclusion approach, the six explicit hypotheses
-  enumerated above, none assembled into a persistence or GAC conclusion; and, in the permanence route,
-  `StronglyEndotactic ⇒ permanent`.
+  convergence bridge. In `Dynamics/GlobalAttractorTheorem.lean`, `PositiveOmegaPointForRates` now
+  requires the initial curve to solve the mass-action ODE, and the zero-dimensional and rank-one
+  cases are proved. `exists_relEntropy_const_on_omegaLimit` also derives the LaSalle constant
+  `∀ z ∈ ω, relEntropy x* z = c` from a bounded genuine orbit rather than taking it as input.
+  The new `positiveOmega_or_criticalSiphonFaceEquilibrium` dichotomy makes the remaining boundary
+  alternative explicit: a boundary ω-point has a nonempty critical-siphon zero set, its avoiding-
+  face subnetwork is complex-balanced, and that subnetwork has lower stoichiometric rank.
+  `positiveOmega_or_nonstationary_criticalSiphonFaceEquilibrium` also removes the case where the
+  orbit reaches an equilibrium. `omegaLimit_fixed_of_complexBalanced` and
+  `omegaLimit_singleton_of_mem_omegaLimit` show that every ω-point is fixed by the supplied
+  semiflow; this means the Butler–McGehee escape route cannot produce further face descent from
+  such a point. The sufficient conditions `positiveOmegaPointForRates_of_criticalSiphonFaces_miss_classes`
+  and `positiveOmegaPointForRates_of_no_boundary_equilibrium_in_classes` cover additional
+  structural cases, but neither holds in the general critical-siphon situation. In
+  `Dynamics/SiphonFaceWeakReversibility.lean`, the avoiding-reaction subnetwork and its filled face
+  equilibrium are formalized.
+  `Dynamics/ToricCycleSortedBase.lean` and `Dynamics/ToricCycleOrderLimits.lean` prove sorted
+  partial-sum and polar-cone results. `Examples/CycleRateNonMonotone.lean` verifies that no cyclic
+  rotation of a particular weakly reversible triangle has monotone mass-action rates. In
+  `Dynamics/FacetRepulsionAndersonShiu.lean`, `facet_repelling_of_data` proves the stated
+  near-facet inequality from its four explicit hypotheses.
+- **Open:** `complexBalanced_genuinePermanent` still has one `sorry`: the branch with a nontrivial
+  stoichiometric subspace of rank other than one and a critical siphon. The new boundary
+  dichotomy narrows this to an interior orbit accumulating on a critical-siphon boundary
+  equilibrium; the lower-rank face data alone does not rule that out. The Anderson–Shiu module
+  proves the near-facet inequality from explicit geometric and monomial-bound hypotheses, but the
+  formalization does not yet derive those hypotheses for this orbit or connect the local estimate
+  to a contradiction. Also open: in the
+  toric-inclusion approach, the six explicit hypotheses enumerated above, none assembled into a
+  persistence or GAC conclusion; and, in the permanence route, `StronglyEndotactic ⇒ permanent`.
 
 ## Modules
 
@@ -281,12 +311,13 @@ form. The sign content of strong endotacticity along the relative-entropy dissip
 `ForwardInvariance`, `StrictInflow`, `NegativeInvariance`, `BoundaryOmegaSiphon`, `CriticalSiphonOmega`,
 `NoCriticalSiphonPersistence`, `GACNoCriticalSiphon`, `GACOmegaPositive`, `SingleLinkageGAC`,
 `GACConfinement`, `GACSeparatingRegion`, `GACSeparatingRegionNagumo`, `GACSeparatingCapstone`,
-`GenuineConfinement`, `GACSeparatingWitness`,
+`GenuineConfinement`, `GACSeparatingWitness`, `SiphonFaceWeakReversibility`,
 `IsolatedInvariant`, `MinimalInvariant`, `ButlerMcGehee`, `EscapeSiphonFace`, `FacetRepulsion`,
 `EndotacticPermanence`, `DifferentialInclusion`, `ToricInclusion`, `ToricEmbedding`,
-`ToricEmbeddingOrder`, `ToricEmbeddingWR`, `ZeroSeparating`, `Viability`, `FirstExit`,
+`ToricEmbeddingOrder`, `ToricEmbeddingWR`, `ToricCycleSortedBase`, `ToricCycleOrderLimits`,
+`ZeroSeparating`, `Viability`, `FirstExit`,
 `SublevelInvariant`, `SublevelNagumo`, `ClosedSetNagumo`, `SupportDiniBridge`, `PolyRegionInvariant`,
-`PolyRegionStrictInvariant`, `ThmBGenuine`, `DissipationBound`.
+`PolyRegionStrictInvariant`, `ThmBGenuine`, `DissipationBound`, `FacetRepulsionAndersonShiu`.
 `Geometry/`: `PolyhedralFan`, `Endotactic`, `ToricFan`, `ConeFace`, `ZeroSeparatingSurface`,
 `ZeroSeparatingCurve2D`, `ZeroSeparatingInduction`, `FanRefinement`, `ToricFieldPolar`,
 `ToricFieldPolarMulti`, `FaithfulCurve`, `FaithfulCurveExistence`, `FaithfulCurveGeneral`,

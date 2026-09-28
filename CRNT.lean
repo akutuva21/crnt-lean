@@ -195,6 +195,7 @@ import CRNT.Dynamics.HopfTransversality3
 import CRNT.Examples.HopfOscillator3
 import CRNT.Examples.HopfNetwork3
 import CRNT.Examples.HopfNetwork3Branches
+import CRNT.Examples.CycleRateNonMonotone
 import CRNT.Dynamics.HurwitzGershgorin
 import CRNT.Dynamics.HurwitzGershgorinColumn
 import CRNT.Dynamics.QSSA
@@ -401,6 +402,8 @@ import CRNT.Dynamics.ToricInclusion
 import CRNT.Dynamics.ToricEmbedding
 import CRNT.Dynamics.ToricEmbeddingOrder
 import CRNT.Dynamics.ToricEmbeddingWR
+import CRNT.Dynamics.ToricCycleSortedBase
+import CRNT.Dynamics.ToricCycleOrderLimits
 import CRNT.Dynamics.ZeroSeparating
 import CRNT.Dynamics.Viability
 import CRNT.Dynamics.FirstExit
@@ -413,6 +416,7 @@ import CRNT.Dynamics.PolyRegionStrictInvariant
 import CRNT.Dynamics.ThmBGenuine
 import CRNT.Dynamics.EndotacticPermanence
 import CRNT.Dynamics.FacetRepulsion
+import CRNT.Dynamics.FacetRepulsionAndersonShiu
 import CRNT.Dynamics.CriticalSiphonNearFacetInflux
 import CRNT.Dynamics.SingletonFacetEscape
 import CRNT.Dynamics.SiphonFacetEscape
