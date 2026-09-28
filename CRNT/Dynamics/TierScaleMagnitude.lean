@@ -1,5 +1,6 @@
 import CRNT.Dynamics.TierScaleTruncation
 import Mathlib.Analysis.Normed.Ring.Lemmas
+import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 
 /-!
 # Quantitative asymptotics from a tier scale decomposition
@@ -171,6 +172,81 @@ theorem TierScaleDecomposition.eventually_abs_logRatio_le_scale
   have hmul := mul_le_mul_of_nonneg_right hn.le hs.le
   rw [abs_div, abs_of_pos hs, div_mul_cancel₀ _ hs.ne'] at hmul
   simpa [mul_comm] using hmul
+
+/-- An exponentially suppressed source-tier ratio dominates the logarithmic growth of a
+reaction whose first separating scale is no earlier than the source gap. This is the quantitative
+estimate needed to control a tier-upward reaction against a strictly descending top-tier reaction. -/
+theorem TierScaleDecomposition.scale_suppressed_log_ratio_tendsto_zero
+    {N : Network S} {xs : ℕ → Concentration S}
+    (D : N.TierScaleDecomposition xs) (hpos : PositiveSequence xs)
+    (ysrc ydst ytop : Complex S) (isrc ibad : Fin D.levels)
+    (hisrc : isrc ≤ ibad)
+    (hsrcBefore : ∀ j : Fin D.levels, j < isrc →
+      tierDirectionGap (D.direction j) ysrc ytop = 0)
+    (hsrcGap : tierDirectionGap (D.direction isrc) ysrc ytop < 0)
+    (hbadBefore : ∀ j : Fin D.levels, j < ibad →
+      tierDirectionGap (D.direction j) ydst ysrc = 0) :
+    Tendsto (fun n =>
+      (tierMonomial (xs n) ysrc / tierMonomial (xs n) ytop) *
+        |Real.log (tierMonomial (xs n) ydst / tierMonomial (xs n) ysrc)|)
+      atTop (𝓝 0) := by
+  obtain ⟨c, hc, hdecay⟩ :=
+    D.eventually_logRatio_le_negative_scale hpos ysrc ytop isrc hsrcBefore hsrcGap
+  obtain ⟨C, hC, hlog⟩ :=
+    D.eventually_abs_logRatio_le_scale hpos ydst ysrc ibad hbadBefore
+  have hscale : ∀ᶠ n in atTop, D.scale ibad n ≤ D.scale isrc n := by
+    rcases hisrc.eq_or_lt with rfl | hlt
+    · exact Filter.Eventually.of_forall fun _ => le_rfl
+    · have hratio := D.scale_separated isrc ibad hlt
+      have hle : ∀ᶠ n in atTop, D.scale ibad n / D.scale isrc n < 1 :=
+        (tendsto_order.1 hratio).2 1 zero_lt_one
+      filter_upwards [hle, D.scale_pos isrc] with n hn hpos
+      exact (div_le_one hpos).mp hn.le
+  have hbase : Tendsto (fun n => D.scale isrc n *
+      Real.exp (-c * D.scale isrc n)) atTop (𝓝 0) := by
+    have h := (tendsto_rpow_mul_exp_neg_mul_atTop_nhds_zero 1 c hc).comp
+      (D.scale_escape isrc)
+    have heq : (fun n => (D.scale isrc n) ^ (1 : ℝ) *
+        Real.exp (-c * D.scale isrc n)) =
+        (fun n => D.scale isrc n * Real.exp (-c * D.scale isrc n)) := by
+      funext n
+      simp
+    rw [← heq]
+    exact h
+  have hupper : Tendsto (fun n => C *
+      (D.scale isrc n * Real.exp (-c * D.scale isrc n))) atTop (𝓝 0) := by
+    simpa using hbase.const_mul C
+  apply squeeze_zero' (Eventually.of_forall fun n => mul_nonneg
+    (div_nonneg (le_of_lt (tierMonomial_pos_of_positiveSequence hpos n ysrc))
+      (le_of_lt (tierMonomial_pos_of_positiveSequence hpos n ytop))) (abs_nonneg _))
+    ?_ hupper
+  filter_upwards [hdecay, hlog, hscale, D.scale_pos isrc] with n hdecayN hlogN hscaleN hposN
+  have hratioPos : 0 < tierMonomial (xs n) ysrc / tierMonomial (xs n) ytop :=
+    div_pos (tierMonomial_pos_of_positiveSequence hpos n ysrc)
+      (tierMonomial_pos_of_positiveSequence hpos n ytop)
+  have hratio : tierMonomial (xs n) ysrc / tierMonomial (xs n) ytop ≤
+      Real.exp (-c * D.scale isrc n) := by
+    have he := Real.exp_le_exp.mpr hdecayN
+    rw [Real.exp_log hratioPos] at he
+    exact he
+  calc
+    (tierMonomial (xs n) ysrc / tierMonomial (xs n) ytop) *
+        |Real.log (tierMonomial (xs n) ydst / tierMonomial (xs n) ysrc)|
+      ≤ Real.exp (-c * D.scale isrc n) * (C * D.scale ibad n) := by
+        calc
+          _ ≤ Real.exp (-c * D.scale isrc n) *
+              |Real.log (tierMonomial (xs n) ydst / tierMonomial (xs n) ysrc)| :=
+            mul_le_mul_of_nonneg_right hratio (abs_nonneg _)
+          _ ≤ Real.exp (-c * D.scale isrc n) * (C * D.scale ibad n) :=
+            mul_le_mul_of_nonneg_left hlogN (Real.exp_pos _).le
+    _ ≤ C * (D.scale isrc n * Real.exp (-c * D.scale isrc n)) := by
+      have hscaleN' : D.scale ibad n ≤ D.scale isrc n := hscaleN
+      have hexp : 0 ≤ Real.exp (-c * D.scale isrc n) := (Real.exp_pos _).le
+      calc
+        Real.exp (-c * D.scale isrc n) * (C * D.scale ibad n)
+          ≤ Real.exp (-c * D.scale isrc n) * (C * D.scale isrc n) := by
+            exact mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_left hscaleN' hC.le) hexp
+        _ = C * (D.scale isrc n * Real.exp (-c * D.scale isrc n)) := by ring
 
 /-- Later scales are eventually no larger than earlier scales. -/
 theorem TierScaleDecomposition.eventually_scale_le_of_le

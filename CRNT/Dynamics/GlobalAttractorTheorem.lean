@@ -1,4 +1,6 @@
 import CRNT.Dynamics.ComplexBalanceCycleDecomposition
+import CRNT.Dynamics.ComplexBalanceStoichFan
+import CRNT.Dynamics.FacetRepulsionAndersonShiu
 import CRNT.Dynamics.GlobalPersistence
 import CRNT.Dynamics.SiphonDimensionDescent
 import CRNT.Dynamics.ToricInclusion
@@ -276,6 +278,52 @@ def PositiveOmegaPointForRates (N : Network S) (κ : N.RateConstants) : Prop :=
     (∀ z ∈ omegaLimit atTop ϕ {x₀}, (z - x₀ : Concentration S) ∈ N.stoichSubspace) →
     x₀.Positive →
     ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive
+
+omit [DecidableEq S] [Fintype S] in
+/-- Craciun's invariant upper region keeps every concentration coordinate uniformly positive.
+Together with a compact orbit, these coordinate lower bounds pass to the omega-limit set and
+provide the positive omega-point needed by `PositiveOmegaPointForRates`. -/
+theorem exists_positive_omegaPoint_of_uniform_coordinate_lower_bounds
+    {ϕ : Flow ℝ≥0 (Concentration S)}
+    {γ : Concentration S → ℝ → Concentration S} {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hbounded : ∃ K : Set (Concentration S), IsCompact K ∧
+      ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hlower : ∀ s, ∃ ε : ℝ, 0 < ε ∧ ∀ t : ℝ, 0 ≤ t → ε ≤ γ x₀ t s) :
+    ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive := by
+  obtain ⟨K, hKcpt, hmaps⟩ := hbounded
+  have hsubK : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆ K := by
+    rintro z ⟨t, -, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst x
+    exact hmaps t
+  have habs : ∃ v ∈ (atTop : Filter ℝ≥0),
+      closure (Set.image2 ϕ v {x₀}) ⊆ K :=
+    ⟨Set.univ, univ_mem,
+      (IsClosed.closure_subset_iff hKcpt.isClosed).mpr hsubK⟩
+  obtain ⟨p, hp⟩ :=
+    nonempty_omegaLimit_of_isCompact_absorbing atTop ϕ {x₀} hKcpt habs
+      (Set.singleton_nonempty x₀)
+  refine ⟨p, hp, ?_⟩
+  intro s
+  obtain ⟨ε, hε, hcoordinate⟩ := hlower s
+  have hclosed : IsClosed {y : Concentration S | ε ≤ y s} :=
+    isClosed_Ici.preimage (continuous_apply s)
+  have horbit : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆
+      {y : Concentration S | ε ≤ y s} := by
+    rintro y ⟨t, -, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst x
+    rw [hϕγ]
+    exact hcoordinate t t.coe_nonneg
+  have hpclosed : p ∈ {y : Concentration S | ε ≤ y s} := by
+    have hωsub : omegaLimit atTop ϕ {x₀} ⊆
+        closure (Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀}) :=
+      omegaLimit_subset_closure_image2 (f := atTop) (ϕ := ϕ) (s := {x₀})
+        (u := Set.univ) univ_mem
+    have hclosure := (IsClosed.closure_subset_iff hclosed).mpr horbit
+    exact (hωsub.trans hclosure) hp
+  exact lt_of_lt_of_le hε hpclosed
 
 /-- The positive-omega kernel closes when the stoichiometric subspace is trivial: compactness
 makes the omega-limit set nonempty, and affine invariance pins every omega-point to the positive
@@ -1458,32 +1506,41 @@ theorem complexBalanced_genuinePermanent
         intro hϕγ hsol hbounded hωnn hgenω hωaff hx₀
         obtain ⟨K, hK, hmaps⟩ := hbounded
         rcases N.positiveOmega_or_nonstationary_criticalSiphonFaceEquilibrium κ hxs hcb
-            hϕγ hsol hK hmaps hωnn hgenω hωaff hx₀ with hgood | ⟨hns, hbad⟩
+            hϕγ hsol hK hmaps hωnn hgenω hωaff hx₀ with hgood | ⟨_, hbad⟩
         · exact hgood
-        · obtain ⟨w, hw, P, hPne, hzeroSet, hPcrit, hcompat, hwnn, hsteady, hfacecb,
-            hranklt⟩ := hbad
-          -- RESIDUAL OBLIGATION (open; this is the Global Attractor Conjecture proper).
-          --
-          -- In context: the orbit is never stationary (`hns`), so relative entropy is strictly
-          -- decreasing along it; `w` is an omega-limit point of the positive bounded genuine orbit
-          -- through `x₀`; `w` is a mass-action equilibrium (`hsteady`); `w` is nonnegative
-          -- (`hwnn`) and lies in the compatibility class of `x₀` (`hcompat`); its zero set `P`
-          -- is a nonempty critical siphon (`hPcrit`), so `P`'s coordinate face *meets* that
-          -- class; the avoiding-face subnetwork is complex-balanced at `fillSiphonFace P xstar w`
-          -- (`hfacecb`) with strictly smaller stoichiometric rank (`hranklt`).
-          --
-          -- What must be shown is that this configuration cannot occur: an interior orbit of a
-          -- complex-balanced system does not accumulate on a critical-siphon boundary
-          -- equilibrium.  The rank descent `hranklt` is the correct induction measure, but the
-          -- inductive hypothesis governs orbits *inside* the face and does not by itself
-          -- prevent the parent orbit from approaching it (see the docstring of
-          -- `positiveOmega_or_lowerRankCriticalBoundaryFace`). A conditional near-facet estimate
-          -- is formalized in `Dynamics/FacetRepulsionAndersonShiu.lean`, but this branch does not
-          -- yet derive all its geometric and monomial-bound hypotheses or connect the estimate to
-          -- a contradiction for this omega-limit orbit. Note two routes are already refuted in
-          -- `CRNT.Examples.OmegaPointFakeFlow`: `BoundaryOmegaExcluded` and
-          -- `ComparableGrowthDescentForRates` both fail for `2A ⇌ A + B` at `κ ≡ 1`.
-          sorry
+        · obtain ⟨w, hw, P, hPne, hzeroSet, -, -, -, -, -, -⟩ := hbad
+          obtain ⟨wmax, hwmax, Pmax, hPmaxne, hzeroMax, hmaxExact⟩ :=
+            exists_maximal_zeroSet_omegaPoint hw hPne hzeroSet
+          by_cases hfacet : Module.finrank ℝ
+              (LinearMap.ker ((projOn Pmax).domRestrict N.stoichSubspace)) + 1 =
+                Module.finrank ℝ N.stoichSubspace
+          · have hwr : N.WeaklyReversible :=
+              N.weaklyReversible_of_positive_complexBalanced κ hxs hcb
+            exact False.elim
+              (N.no_omegaLimit_meets_locally_repelling_face κ hϕγ hK hmaps
+                hPmaxne
+                ⟨wmax, hwmax, fun s hs => (hzeroMax s).1 hs⟩
+                (N.genuineOrbit_pos κ (by
+                  have hγ0 := fun x => by simpa using (hϕγ x 0).symm
+                  rw [hγ0]
+                  exact hx₀) hsol)
+                hsol
+                (by
+                  intro z hz hzP
+                  have hpositiveOutside : ∀ s, s ∈ Pmaxᶜ → 0 < z s := by
+                    intro s hs
+                    have hsnot : s ∉ Pmax := by simpa using hs
+                    have hnonzero : z s ≠ 0 := by
+                      intro hzs
+                      exact hsnot ((hmaxExact z hz hzP s).1 hzs)
+                    rcases lt_or_eq_of_le (hωnn z hz s) with hpos | heq
+                    · exact hpos
+                    · exact (hnonzero heq.symm).elim
+                  exact N.facet_repelling_near_facet_point_of_facet κ hwr hPmaxne hfacet hx₀
+                    (hωaff z hz) (hωnn z hz) hzP hpositiveOutside))
+          · -- Remaining case: maximal boundary face has codimension greater than one.
+            -- The local facet estimate does not construct the required zero-separating surface.
+            sorry
 
 /-- The trajectory-level permanence theorem implies the older flow-quantified standard
 permanence API whenever a genuine global mass-action flow is supplied. -/
