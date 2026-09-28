@@ -1,6 +1,7 @@
 import CRNT.Dynamics.FaceCodimension
 import CRNT.Dynamics.SiphonDimensionDescent
 import CRNT.Dynamics.ToricBarrierTrapping
+import CRNT.Dynamics.SingleLinkageGAC
 import CRNT.Equilibria.ComplexBalanced
 
 /-!
@@ -321,14 +322,16 @@ Fig. 3(e); Lemma 9.11 puts `{V ≤ L}` between two simplices, which is where the
 from).
 
 **2. The two lemmas above therefore say something stronger than "the criteria are mis-packaged":
-the residual hypotheses are inconsistent with the paper's conclusion.**  The region the paper
-builds is closed and convex (above-`𝒵` is an intersection of halfspaces, `[0,M]ⁿ` is a box,
-`{V ≤ L}` is convex because `V` is), contains the forward orbit by invariance, hence contains
-`wmax`; the segment `x₀ / n + (1 - 1/n) · wmax` then lies inside it with coordinate `x₀ s / n → 0`,
-refuting its separation — exactly `hsep_fails_of_boundaryPoint_mem_sublevel`.  So once the paper's
-Theorem B construction is formalized, this theorem closes by `False`; conversely no weaker
-geometric statement and no repackaging of a *uniform-floor* criterion can be instantiated under
-these hypotheses, because every such criterion proves full permanence while `wmax` sits in `ω`.
+every uniform-floor statement is refutable under this theorem's hypotheses, because `wmax` sits in
+`ω`.**  For the repo's *convex* barrier sublevels this is
+`hsep_fails_of_boundaryPoint_mem_sublevel` — the segment `x₀ / n + (1 - 1/n) · wmax` stays inside
+and takes the value `x₀ s / n → 0` — together with `barrier_le_of_mem_omegaLimit`, which puts
+`wmax` into any sublevel that traps the orbit.  For the paper's own region no convexity is needed
+and none should be assumed (the paper never claims `K_{x₀}` is convex; see 4): compactness plus
+`K_{x₀} ⊂ ℝⁿ_{>0}` already forces `wmax ∈ K_{x₀}` to be positive, contradicting
+`hPmaxne`/`hzeroMax`.  So no weaker geometric statement and no repackaging of a *uniform-floor*
+criterion can be instantiated here — each of them proves full permanence, which `wmax` refutes —
+and once the §4 existence claim (item 5) is available this theorem closes by `False`.
 
 **3. `hMclass` is the repo's hypothesis, not the paper's.**  Craciun never assumes bounded
 compatibility classes.  His standing hypotheses are weak reversibility (Theorem 4.3 embeds a
@@ -370,10 +373,59 @@ role here (it belongs to the repo's convex max-of-affine packaging, which the pa
 surface is not — see 4); (b) feeding `PersistentFrom` to the chain above under this theorem's
 hypotheses produces a *positive* `wmax` (`wmax ∈ ω ⊆ K₀`, `K₀` closed), contradicting
 `hPmaxne`/`hzeroMax` — i.e. the residual is inconsistent with `PersistentFrom`, which is the
-machine-checkable form of "closing this `sorry` = formalizing Theorem B (§7 + §8)".  What §7+§8
-must therefore deliver is exactly a compact positive absorbing set for the bounded orbit at hand.
+machine-checkable form of "closing this `sorry` = supplying that compact positive absorbing set
+for the bounded orbit at hand".  *Correction, verified against the v3 source by `GacLit` (shared
+log, `[GacLit] 19:47`): the paper does **not** prove that such a `K_{x₀}` exists.*  The claim
+appears only as statements — §4 (plan lines 598/637, whose "Step 4" is the assembly), 2D figure
+captions, §5 LaSalle prose — while §8 carries out Steps 1–2 and then stops; there is no
+"§8 Step 4".  Lemmas 9.5/9.7 are stated only for `ℝ³`/`(0,1)³` although §8 Step 2 invokes Lemma 9.7
+in `n` dimensions, and Lemma 9.11's proof is a one-paragraph sketch.  The honest accounting of the
+gap is therefore: **Theorem B (§§5–8) + the Step-4 assembly the paper asserts but does not write
+down + LaSalle/persistence.**  v3 is a preprint (v1 2015, v2 2016, v3 2026-09-23, no journal-ref)
+treated as open in current literature — Wiuf, arXiv:2609.24553v1, lists the GAC as proved only in
+special cases and does not cite 1501.02860; no erratum or refutation was found — so speak of the
+*claimed* proof.
 
 -/
+
+/-- **The paper's §4 region cannot exist under this theorem's hypotheses.**
+`N.PersistentFrom κ x₀` (`SingleLinkageGAC.lean:46`) is verbatim Craciun v3 §4 — "a compact
+forward invariant region `K_{x₀} ⊂ ℝⁿ_{>0}` such that `x₀ ∈ K_{x₀}`" — and it already implies
+this file's conclusion (`omegaLimit_meets_positive_of_permanent`, or
+`persistentOrbit_of_persistentFrom` together with `PersistentOrbit.omegaLimit_positive`).  The
+lemma below records the other side of the collision: if the ω-limit set contains a point that is
+not strictly positive — this theorem has `wmax`, with `wmax s = 0` for the nonempty set `Pmax` —
+then `PersistentFrom κ x₀` is refutable, because the certificate's compact set would have to
+contain that point while being entirely inside the open orthant.
+
+Consequently the `sorry` above is discharged by *any* construction of `PersistentFrom κ x₀` for
+this orbit — which is what v3 *claims* to obtain from boundedness alone (the residual has
+boundedness: `hK`/`hmaps`; the claim is the "Step 4" of §4's plan, asserted but not carried out —
+see the audit above) — and, read the other way, the residual hypotheses are inconsistent with that
+claim, i.e. with the *claimed* Theorem B/C. -/
+theorem not_persistentFrom_of_mem_omegaLimit_notPositive (N : Network S) (κ : N.RateConstants)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S} (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    {w : Concentration S} (hw : w ∈ omegaLimit atTop ϕ {x₀}) (hwn : ¬ w.Positive) :
+    ¬ N.PersistentFrom κ x₀ := by
+  rintro ⟨K₀, hK₀cpt, hK₀pos, hgen⟩
+  -- the genuine curve `γ x₀` starts at `x₀` and stays in the certificate's set
+  have hγ0 : γ x₀ 0 = x₀ := by
+    have h := hϕγ x₀ 0
+    simpa using h.symm
+  have hsub : ∀ t : ℝ, 0 ≤ t → γ x₀ t ∈ K₀ := fun t ht => hgen (γ x₀) hγ0 hsol t ht
+  -- hence the whole forward orbit does, and so does its ω-limit set
+  have himg : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆ K₀ := by
+    rintro z ⟨t, -, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    rw [hϕγ x t]
+    rw [hx]
+    exact hsub t t.coe_nonneg
+  have hω : omegaLimit atTop ϕ {x₀} ⊆ K₀ :=
+    (omegaLimit_subset_closure_image2 (f := atTop) (ϕ := ϕ) (s := {x₀}) (u := Set.univ)
+      univ_mem).trans ((IsClosed.closure_subset_iff hK₀cpt.isClosed).mpr himg)
+  exact hwn (hK₀pos w (hω hw))
 
 /-! ## The static slice of Anderson's descent that IS available here
 
