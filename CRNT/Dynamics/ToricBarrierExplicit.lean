@@ -563,8 +563,18 @@ maximal cones can be forced to `0` — which would contradict `hpos` — a coars
 and refining is the only lever.  That is the role of the `ε(α)` scale hierarchy of v3 §7.4.3.
 
 The hypothesis `hMclass` — that the positive compatibility class is bounded by `M` — is automatic
-for conservative networks.  In general it is replaced by a level set of the Horn--Jackson Lyapunov
-function, which is what `CRNT.Geometry.ZeroSeparatingSurface`'s compact-band machinery is for. -/
+for conservative networks.  It is *not* automatic in general, and the failure is machine-checked:
+`CRNT.Examples.OpenSystem.exists_complexBalanced_unbounded_class` exhibits a weakly reversible
+network of deficiency zero — hence complex balanced for *every* rate vector, so it carries exactly
+the `hxs`/`hcb` a caller of this criterion has — whose stoichiometric subspace is everything, so no
+`M` bounds its positive compatibility classes.  Craciun's paper never assumes bounded classes: the
+bound there is on the invariant *region*, obtained from the cube `[0,M]ⁿ` around the bounded
+trajectory together with a level set of the Horn--Jackson Lyapunov function (v3 §6.1, §9.4
+Lemma 9.11), which is what `CRNT.Geometry.ZeroSeparatingSurface`'s compact-band machinery is for.
+A criterion that replaced the class-wide `hMclass` by a box bound on the guarded region would match
+the paper; it would still be uninstantiable inside
+`CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace`, where any uniform-floor
+statement collides with the boundary ω-point `wmax` (see that module's packaging audit). -/
 theorem exists_positive_omegaPoint_of_blueprintData (N : Network S) (κ : N.RateConstants)
     {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
     {ϕ : Flow ℝ≥0 (Concentration S)}

@@ -300,6 +300,62 @@ theorem barrier_le_of_mem_omegaLimit {ι' : Type*} [Fintype ι'] [Nonempty ι']
       univ_mem).trans ((IsClosed.closure_subset_iff hclosed).mpr hsub)
   exact hω hw
 
+/-! ## The packaging audit against Craciun v3 (arXiv:1501.02860v3)
+
+The question raised while reading the paper — do Theorem B / Lemma 9.5 / Lemma 9.7 *assume*
+uniform coordinate floors, or *prove* them? — has a definite answer, and it fixes two places where
+the repo's packaging is stronger than the paper's text, plus one place where it is exactly right.
+
+**1. `hsep` is a conclusion of the paper, never a hypothesis.**  Definition 4.6 defines a ZSH by
+(i) `𝒵 ⊂ ℝⁿ₊ \ (η + ℝⁿ₊)` — the *surface* stays out of the deep interior box, i.e. it hugs the
+boundary, the opposite direction from a floor — (ii) `𝒵` meets every toric ray exactly once, and
+(iii) `𝒵` cannot be crossed inside some cube `(0,M)ⁿ`.  Lemma 9.5 assumes only "`𝒵` is a ZSH" and
+concludes that the outer normal at `x` lies in every cone `𝒞` with `log x ∈ 𝒞`.  Lemma 9.7 assumes
+only (i) for the unit cube (`𝒵 ⊂ (0,1)³ \ (ε̂ + [0,1]³)`) together with the normal-in-`K_𝒞`
+condition, and concludes non-crossing inside the unit cube.  No coordinate floor appears in either
+statement.  The floor on the *region* — "the upper region of `ℋ` is at positive distance from
+`∂ℝⁿ`", part of the statement of Theorem B — is produced by the construction: §8 Step 2 chooses
+`ε₀ < x₀ⁱ`, so `(ε₀,…,ε₀) + ℝⁿ₊` lies above `𝒵_{ε₀}`, and the compact invariant set is
+`K_{x₀} = (above 𝒵_{ε₀}) ∩ [0,M]ⁿ ∩ {V ≤ L}` with `V` the Horn–Jackson Lyapunov function (§6.1 and
+Fig. 3(e); Lemma 9.11 puts `{V ≤ L}` between two simplices, which is where the outer bound comes
+from).
+
+**2. The two lemmas above therefore say something stronger than "the criteria are mis-packaged":
+the residual hypotheses are inconsistent with the paper's conclusion.**  The region the paper
+builds is closed and convex (above-`𝒵` is an intersection of halfspaces, `[0,M]ⁿ` is a box,
+`{V ≤ L}` is convex because `V` is), contains the forward orbit by invariance, hence contains
+`wmax`; the segment `x₀ / n + (1 - 1/n) · wmax` then lies inside it with coordinate `x₀ s / n → 0`,
+refuting its separation — exactly `hsep_fails_of_boundaryPoint_mem_sublevel`.  So once the paper's
+Theorem B construction is formalized, this theorem closes by `False`; conversely no weaker
+geometric statement and no repackaging of a *uniform-floor* criterion can be instantiated under
+these hypotheses, because every such criterion proves full permanence while `wmax` sits in `ω`.
+
+**3. `hMclass` is the repo's hypothesis, not the paper's.**  Craciun never assumes bounded
+compatibility classes.  His standing hypotheses are weak reversibility (Theorem 4.3 embeds a
+variable-`k` weakly reversible system into a toric differential inclusion), and the boundedness he
+uses is that of the *trajectory*: §8's remark proves that "any bounded trajectory of a variable-`k`
+weakly reversible system is persistent", and the outer bound `M` comes from the cube `[0,M]ⁿ`
+containing the chosen level surface `ℒ` (§6.1) together with `V ≤ L` — it bounds the invariant
+region, not the class.  The class-wide bound fails in the paper's own setting:
+`CRNT.Examples.OpenSystem.exists_complexBalanced_unbounded_class` constructs a weakly reversible
+network of deficiency zero — hence complex balanced for *every* rate vector, so it carries exactly
+this theorem's `hxs`/`hcb` — whose stoichiometric subspace is everything, so no `M` bounds its
+positive compatibility classes.  `hMclass` is therefore not derivable here; it is available only on
+conservative networks (the all-ones law bounds the class), which is what the `ToricBarrierExplicit`
+docstrings scope it to.
+
+**4. The convex obstruction checks out.**  `ConvexBarrierObstruction.not_exists_weights_vector`
+proves that no globally homogeneous max-of-affine barrier can carry a normal lying inside every
+cone of a generic three-dimensional arrangement fan.  The paper never asks for one: its
+non-crossing requirement is confined to a bounded window — the unit cube of Lemma 9.7, the blue box
+`[0,M_{n+1}]×…×[0,M₂]` of §8 Step 1 in compactified log coordinates — and inside a bounded window
+the constant offsets `b_i` *can* repair the violations, which is precisely the step ("the deficit
+scales linearly in `X` along `𝒞`") that fails on an unbounded cone.  The §7.4.3 `ε(α)` scale
+hierarchy then handles the remaining self-consistency fixed point.  The repo's reading of the
+obstruction, recorded in that module's header, matches the paper.
+
+-/
+
 /-! ## The static slice of Anderson's descent that IS available here
 
 Route (A)/(B) of the residual: apply `omegaLimit_positive_of_descend` from
@@ -592,6 +648,103 @@ theorem omegaPoint_zeroSet_trichotomy
       · -- exact tie
         exact ⟨⟨s₀, hs₀P, hs₀z⟩, ⟨t₀, ht₀n, ht₀0⟩,
           le_antisymm (hzcard z hz) hge⟩
+
+/-! ## The open residue is pinned: off-`Pmax` coordinates never approach zero
+
+Both disjuncts left open by `omegaPoint_zeroSet_trichotomy` share one feature — some ω-point
+vanishes on all of `Pmax` (`hface` below), which every tie witness also satisfies after
+specialising `hmaxExact`.  The lemma then says that the failure of positivity is *confined* to
+`Pmax`: every coordinate outside `Pmax` keeps a uniform positive floor for all forward time, so
+the trajectory converges to the **relative interior** of the `Pmax` face and all of its limit
+points are positive exactly on `Pmaxᶜ`.
+
+This does not close the theorem — it sharpens what has to be closed.  Excluding this
+configuration is the dynamical content of Craciun's Theorem B (v3 §7–§8): the degenerate model
+`ω = {wmax}` satisfies every static hypothesis of this module and satisfies the conclusion of the
+lemma below, so no static refinement can finish. -/
+
+omit [DecidableEq S] [Fintype S] in
+/-- **Off-`Pmax` coordinates are uniformly bounded below along the entire orbit.**  If every
+ω-point vanishes on `Pmax`, `hmaxExact` holds, and `t₀ ∉ Pmax`, then there is `ε > 0` with
+`ε ≤ γ x₀ t t₀` for every `t ≥ 0`.
+
+Minimize the continuous coordinate `t₀` over the compact ω-limit set; the minimum `m` is strictly
+positive, since `m = 0` would put a ω-point with `z t₀ = 0` in front of `hmaxExact`, contradicting
+`t₀ ∉ Pmax`.  The open half-space `{y | m/2 < y t₀}` therefore contains ω, so
+`eventually_closure_subset_of_isCompact_absorbing_of_isOpen_of_omegaLimit_subset` pushes the whole
+forward orbit into it after some time `T`; on the compact initial segment `[0,T]` continuity and
+orbit positivity supply a second floor, and the minimum of the two floors is the witness. -/
+theorem uniformLowerBound_offFace_of_zeroSet_eq
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    {K : Set (Concentration S)} (hK : IsCompact K) (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hΓcont : ContinuousOn (γ x₀) (Set.Ici 0))
+    (hΓpos : ∀ t : ℝ, 0 ≤ t → (γ x₀ t).Positive)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    {Pmax : Finset S}
+    (hmaxExact : ∀ z ∈ omegaLimit atTop ϕ {x₀}, (∀ s ∈ Pmax, z s = 0) →
+      ∀ s, z s = 0 ↔ s ∈ Pmax)
+    (hface : ∀ z ∈ omegaLimit atTop ϕ {x₀}, ∀ s ∈ Pmax, z s = 0)
+    {t₀ : S} (ht₀ : t₀ ∉ Pmax) :
+    ∃ ε : ℝ, 0 < ε ∧ ∀ t : ℝ, 0 ≤ t → ε ≤ γ x₀ t t₀ := by
+  classical
+  -- the orbit is absorbed by the compact `K`, so the ω-limit set is compact and nonempty
+  have hKcl : IsClosed K := hK.isClosed
+  have himg : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆ K := by
+    rintro z ⟨t, -, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst hx
+    exact hmaps t
+  have habs : ∃ v ∈ (atTop : Filter ℝ≥0), closure (Set.image2 ϕ v {x₀}) ⊆ K :=
+    ⟨Set.univ, univ_mem, hKcl.closure_subset_iff.mpr himg⟩
+  have hωcpt : IsCompact (omegaLimit atTop ϕ {x₀}) :=
+    isCompact_omegaLimit_of_absorbing ϕ x₀ hK habs
+  have hωne : (omegaLimit atTop ϕ {x₀}).Nonempty :=
+    nonempty_omegaLimit_of_isCompact_absorbing atTop ϕ {x₀} hK habs
+      (Set.singleton_nonempty x₀)
+  -- the minimum of the coordinate `t₀` over ω
+  obtain ⟨zstar, hzstar, hzmin⟩ :=
+    hωcpt.exists_isMinOn hωne (continuous_apply t₀).continuousOn
+  have hm0 : 0 < zstar t₀ := by
+    by_contra h
+    push Not at h
+    have hz0 : zstar t₀ = 0 := le_antisymm h (hωnn zstar hzstar t₀)
+    exact ht₀ ((hmaxExact zstar hzstar (fun s hs => hface zstar hzstar s hs) t₀).mp hz0)
+  -- the open half-space strictly above the minimum contains the whole ω-limit set
+  have hn1 : IsOpen {y : Concentration S | zstar t₀ / 2 < y t₀} :=
+    isOpen_lt continuous_const (continuous_apply t₀)
+  have hn2 : omegaLimit atTop ϕ {x₀} ⊆ {y : Concentration S | zstar t₀ / 2 < y t₀} := by
+    intro z hz
+    have hle : zstar t₀ ≤ z t₀ := isMinOn_iff.mp hzmin z hz
+    exact lt_of_lt_of_le (half_lt_self hm0) hle
+  -- hence the orbit eventually lies in that half-space
+  obtain ⟨u, hu, hun⟩ :=
+    eventually_closure_subset_of_isCompact_absorbing_of_isOpen_of_omegaLimit_subset'
+      atTop ϕ {x₀} hK habs hn1 hn2
+  obtain ⟨T, hT⟩ := Filter.mem_atTop_sets.mp hu
+  -- a second positive floor on the compact initial segment `[0, T]`
+  have hIne : (Set.Icc (0 : ℝ) (T : ℝ)).Nonempty := ⟨0, le_rfl, T.coe_nonneg⟩
+  have hγI : ContinuousOn (γ x₀) (Set.Icc (0 : ℝ) (T : ℝ)) :=
+    hΓcont.mono Set.Icc_subset_Ici_self
+  have hscont : ContinuousOn (fun u : ℝ => γ x₀ u t₀) (Set.Icc (0 : ℝ) (T : ℝ)) :=
+    (continuous_apply t₀).comp_continuousOn hγI
+  obtain ⟨pI, hpII, hpImin⟩ := isCompact_Icc.exists_isMinOn hIne hscont
+  have hpIpos : 0 < γ x₀ pI t₀ := hΓpos pI hpII.1 t₀
+  refine ⟨min (γ x₀ pI t₀) (zstar t₀ / 2), lt_min hpIpos (half_pos hm0), ?_⟩
+  intro t ht
+  by_cases hTt : t ≤ T
+  · -- inside the initial segment: the continuity floor
+    have htI : t ∈ Set.Icc (0 : ℝ) (T : ℝ) := ⟨ht, hTt⟩
+    exact (min_le_left _ _).trans (isMinOn_iff.mp hpImin _ htI)
+  · -- beyond `T`: the ω-half-space floor
+    have hTle : (T : ℝ) ≤ t := le_of_lt (lt_of_not_ge hTt)
+    have htu : (⟨t, ht⟩ : ℝ≥0) ∈ u := hT ⟨t, ht⟩ (by exact_mod_cast hTle)
+    have hineq : zstar t₀ / 2 < ϕ (⟨t, ht⟩ : ℝ≥0) x₀ t₀ := by
+      have h1 := hun (subset_closure (Set.mem_image2_of_mem htu (Set.mem_singleton x₀)))
+      simpa using h1
+    have heq : ϕ (⟨t, ht⟩ : ℝ≥0) x₀ = γ x₀ t := hϕγ x₀ ⟨t, ht⟩
+    exact (min_le_right _ _).trans (le_of_lt (heq ▸ hineq))
 
 end Network
 end CRNT
