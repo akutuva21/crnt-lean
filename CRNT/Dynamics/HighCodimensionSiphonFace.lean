@@ -1436,5 +1436,174 @@ theorem hface_of_trichotomyThird
   exact not_disjoint_closed_cover_omegaLimit hcont hK hmaps hAc hTc hAs hTs hdisj hcov
     hAne hTne'
 
+/-! ## Branch (2): the Step-4 `K_{x₀}` assembly — exact statement, provenance, and the bridge v3
+never writes
+
+This is the compact forward-invariant `K_{x₀} ⊂ ℝⁿ_{>0}` route (v3 §4 line 598, the claim the
+paper asserts but never proves).  The transcription below was checked against both arXiv sources
+by `GacLit` (verbatim quotes recorded in the collaboration log, 2026-09-28).  Three layers:
+
+**Layer A — what this file's proof actually consumes** (pure repo, no paper):
+
+```
+∃ K : Set (Concentration S), IsCompact K ∧ (∀ y ∈ K, Concentration.Positive y) ∧
+  x₀ ∈ K ∧ ∀ t : ℝ≥0, ϕ t x₀ ∈ K
+```
+
+Its orbit-level form is `Permanent ϕ x₀`; both certificate forms are already in-tree —
+`PersistentFrom κ x₀` (`SingleLinkageGAC.lean`, *verbatim* line 598: "compact forward invariant
+region `K_{x₀} ⊂ ℝⁿ_{>0}` such that `x₀ ∈ K_{x₀}`") and `SeparatingConfinement κ x₀`
+(`GACSeparatingCapstone.lean`, the floor form) — and both directions are pinned: the certificate
+implies this theorem's conclusion (`omegaLimit_meets_positive_of_permanent`), and a non-positive
+ω-point refutes it (`not_persistentFrom_of_mem_omegaLimit_notPositive` above).
+
+**Layer B — the paper-asserted claim.**  v3 §4 line 598, verbatim: "for any positive initial
+condition `x₀ ∈ ℝⁿ_{>0}` of a toric dynamical system there exists a compact forward invariant
+region `K_{x₀} ⊂ ℝⁿ_{>0}` such that `x₀ ∈ K_{x₀}`".  Asserted outright; region-level invariance
+(all solutions starting in `K`) at lines 598/637, cube-conditional only at intro line 309; no
+proof anywhere in v3 — §8 stops after Steps 1–2 and there is no "§8 Step 4".
+
+**Layer C — the construction shape.**  v3 tex line 586 (commented-out draft, verbatim):
+`ℝⁿ₊ⁿ \ 𝒵` is the union of two disjoint connected open sets `Zlow`, `Zupper` with `Zlow ⊂ V₀` (`V₀` a
+neighborhood of the origin, defined inline in the same sentence and nowhere else), `Zupper` invariant,
+and the closure of `Zupper` does not contain the origin — the *origin-avoidance* era: it does **not**
+give `K ⊂ ℝⁿ₊ⁿ` (a point like `(1,0)` misses the origin yet has a zero coordinate).  The full
+boundary floor exists only (i) in v2 §6 verbatim — the final region "does not contain any points
+at distance less than `ε_{n-1} > 0` from the boundary of `ℝ₊ⁿ`" — and (ii) as bare assertions in
+v3: line 598 (`K ⊂ ℝⁿ₊ⁿ`) and intro line 309 ("at positive distance from `∂ℝⁿ₊ⁿ`").  The familiar
+formula `K = (upper region) ∩ [0,M]ⁿ ∩ {V ≤ L}` is an **[INFERENCE]-reconstruction**: lines
+600/637/946 (Horn–Jackson level sets determine `K`) + 309 (the cube) assert its factors
+separately; no source writes the formula.  The published three-species `K` of CNP §7 is an
+analogous but different box-and-cuts shape.
+
+**The remaining burden** is therefore exactly one interface, which the two lemmas below consume
+and assemble: a surface split of the open orthant whose upper side `Zupper` (i) contains `x₀`,
+(ii) has a uniform coordinate floor `ε`, and (iii) is never left by the orbit (the orbit never
+meets `𝒵 = {x | x.Positive} \ (Zlow ∪ Zupper)` — non-crossing of Def. 4.6(iii)).  Note what is *not*
+consumed: the connectedness of `Zlow`/`Zupper` from line 586, and `V₀` — the connectivity that the
+assembly needs is that of the orbit's time-image, supplied by `orbit_stays_in_upperRegion`.
+That lemma is v3 §9.1's announced-but-never-stated "non-crossing ⟹ forward invariance" bridge in
+the two-region form; the repo already holds the barrier form of the same bridge
+(`forwardInvariant_barrier_toricInclusion`, `barrier_le_of_toric_descent_in_band`).  The second
+lemma assembles Layer A with
+`K := closure Zupper ∩ {y | y.Nonnegative ∧ relEntropy xstar y ≤ relEntropy xstar x₀}`: closed floors
+survive into `closure Zupper`, boundedness and closedness come from `isCompact_relEntropy_sublevel`
+(the Horn–Jackson level through `x₀`, the [INFERENCE] Layer-C factor), invariance from the bridge
+plus Lyapunov descent, and positivity from the floor.  No `hMclass`, no convex barrier, no `hsep`,
+so the packaged criteria's refutable clauses (`hsep_fails_of_boundaryPoint_mem_sublevel`) do not
+touch this shape — a non-convex upper region is exactly what escapes the segment argument.
+-/
+
+/-- **The missing §9.1 bridge: non-crossing ⟹ the orbit stays in the upper region.**
+
+A continuous orbit defined on the nonnegative times whose values always lie in the union of two
+disjoint open sets, and which starts in `Zupper`, stays in `Zupper` for all forward time.  The orbit's
+time-image is connected (`IsConnected.image` of `Ici 0`), a connected subset of a disjoint open
+cover lies entirely in one side (`IsPreconnected.subset_or_subset`), and the start point picks
+the side.  In the paper's language: a solution that never meets the zero-separating surface `𝒵`
+cannot pass from the upper region `Zupper` to `Zlow` — v3 §9.1 announces this transfer for forward
+invariant regions and never states it; v3 tex line 586's `Zupper`-invariance is the same claim as
+commented-out text. -/
+theorem orbit_stays_in_upperRegion {γ : ℝ → Concentration S}
+    (hcont : ContinuousOn γ (Set.Ici 0))
+    {Zlow Zupper : Set (Concentration S)}
+    (hopenLow : IsOpen Zlow) (hopenUp : IsOpen Zupper)
+    (hdisj : Disjoint Zlow Zupper)
+    (hmem : ∀ t, 0 ≤ t → γ t ∈ Zlow ∪ Zupper)
+    (hx₀ : γ 0 ∈ Zupper) :
+    ∀ t, 0 ≤ t → γ t ∈ Zupper := by
+  intro t ht
+  have hconn : IsConnected (γ '' Set.Ici 0) :=
+    isConnected_Ici.image γ hcont
+  have hsub : γ '' Set.Ici 0 ⊆ Zlow ∪ Zupper := by
+    rintro y ⟨u, hu, rfl⟩
+    exact hmem u (Set.mem_Ici.mp hu)
+  rcases hconn.isPreconnected.subset_or_subset hopenLow hopenUp hdisj hsub with hz0 | hz1
+  · exfalso
+    exact Set.disjoint_left.mp hdisj (hz0 ⟨0, Set.mem_Ici.mpr (le_refl 0), rfl⟩) hx₀
+  · exact hz1 ⟨t, ht, rfl⟩
+
+/-- **The Step-4 assembly, as a criterion: a floored, never-crossed upper region closes the goal.**
+
+This is the Lean statement of what `K_{x₀}` must satisfy, with the surface burden isolated in the
+hypotheses (the three-layer transcription and its provenance are in the module doc above):
+
+* `hopenLow hopenUp hdisj hsplit` — the two-region split: `Zlow ∪ Zupper` is the complement of the
+  surface `𝒵` inside the open orthant (tex 586), and the orbit never meets `𝒵`;
+* `hx₀Z` — `x₀` sits on the upper side (Thm B footnote: "`x₀` is in the upper region");
+* `hfloor` — the upper region is at distance `ε > 0` from `∂ℝⁿ₊ⁿ` (line 309; v2 §6's final floor);
+* `hε hxs hcb hx₀ hϕγ hsol` — the complex-balanced genuine orbit.
+
+The assembled `K` is `closure Zupper ∩ {y | y.Nonnegative ∧ relEntropy xstar y ≤ relEntropy xstar x₀}`:
+compact (Horn–Jackson level through `x₀`), inside the open orthant (floor survives closure),
+containing `x₀`, and absorbing the orbit (bridge + Lyapunov descent) — Layer A above, hence the
+conclusion.  What remains unconstructed in the tree is exactly the surface data: the blueprint of
+v3 §§5–8 whose non-crossing and floor properties the hypotheses record. -/
+theorem exists_positive_omegaPoint_of_upperRegion (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    (hx₀ : x₀.Positive)
+    {Zlow Zupper : Set (Concentration S)} {ε : ℝ} (hε : 0 < ε)
+    (hopenLow : IsOpen Zlow) (hopenUp : IsOpen Zupper) (hdisj : Disjoint Zlow Zupper)
+    (hsplit : ∀ t : ℝ, 0 ≤ t → γ x₀ t ∈ Zlow ∪ Zupper)
+    (hx₀Z : x₀ ∈ Zupper)
+    (hfloor : ∀ y ∈ Zupper, ∀ s, ε ≤ y s) :
+    ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive := by
+  -- the orbit starts at `x₀`
+  have hγ0 : γ x₀ 0 = x₀ := by
+    have h := hϕγ x₀ 0
+    simpa using h.symm
+  -- continuity of the orbit on the nonnegative times
+  have hcont : ContinuousOn (γ x₀) (Set.Ici 0) :=
+    fun t ht => ((hsol t ht).continuousAt).continuousWithinAt
+  -- the orbit is positive (no boundary contact at any forward time)
+  have hpos : ∀ t, 0 ≤ t → (γ x₀ t).Positive :=
+    N.genuineOrbit_pos (Γ := γ x₀) κ (by rw [hγ0]; exact hx₀) hsol
+  -- Lyapunov descent: the relative entropy never rises above its value at the start
+  have hle : ∀ t, 0 ≤ t → relEntropy xstar (γ x₀ t) ≤ relEntropy xstar x₀ :=
+    fun t ht =>
+      (N.genuineOrbit_relEntropy_le (Γ := γ x₀) κ hxs hcb hpos hsol t ht).trans_eq
+        (congrArg (relEntropy xstar) hγ0)
+  -- non-crossing ⟹ the orbit stays on the upper side (the §9.1 bridge)
+  have hstay : ∀ t, 0 ≤ t → γ x₀ t ∈ Zupper :=
+    orbit_stays_in_upperRegion hcont hopenLow hopenUp hdisj hsplit (by rw [hγ0]; exact hx₀Z)
+  -- the floor survives passage to the closure of the upper region
+  have hFloorClosed : IsClosed {y : Concentration S | ∀ s, ε ≤ y s} := by
+    have hrw : {y : Concentration S | ∀ s, ε ≤ y s} = ⋂ s, {y | ε ≤ y s} := by
+      ext y; simp [Set.mem_iInter]
+    rw [hrw]
+    exact isClosed_iInter fun s => isClosed_le continuous_const (continuous_apply s)
+  have hfloorC : closure Zupper ⊆ {y | ∀ s, ε ≤ y s} :=
+    closure_minimal (fun y hy s => hfloor y hy s) hFloorClosed
+  -- the assembled K: closed floors ∧ the Horn–Jackson level through x₀
+  set K : Set (Concentration S) :=
+    closure Zupper ∩ {y | y.Nonnegative ∧ relEntropy xstar y ≤ relEntropy xstar x₀} with hKdef
+  have hKcpt : IsCompact K := by
+    rw [hKdef]
+    exact (isCompact_relEntropy_sublevel hxs (relEntropy xstar x₀)).inter_left isClosed_closure
+  have hKpos : ∀ y ∈ K, Concentration.Positive y := by
+    intro y hy s
+    exact lt_of_lt_of_le hε (hfloorC hy.1 s)
+  have hx₀K : x₀ ∈ K :=
+    ⟨subset_closure hx₀Z, hx₀.nonnegative, le_refl _⟩
+  have horbit : ∀ t : ℝ≥0, ϕ t x₀ ∈ K := by
+    intro t
+    rw [hϕγ x₀ t]
+    have ht : 0 ≤ (t : ℝ) := t.coe_nonneg
+    exact ⟨subset_closure (hstay (t : ℝ) ht), (hpos (t : ℝ) ht).nonnegative, hle (t : ℝ) ht⟩
+  -- Layer A: the whole forward orbit lies in the compact positive set
+  have himgs : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆ K := by
+    rintro z ⟨t, -, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst hx
+    exact horbit t
+  have hperm : Permanent ϕ x₀ :=
+    permanent_of_eventually_in_compact_interior ϕ x₀ hKcpt hKpos univ_mem
+      ((IsClosed.closure_subset_iff hKcpt.isClosed).mpr himgs)
+  exact omegaLimit_meets_positive_of_permanent ϕ x₀ hperm
+
 end Network
 end CRNT
