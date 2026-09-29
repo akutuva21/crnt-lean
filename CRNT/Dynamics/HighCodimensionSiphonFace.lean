@@ -746,5 +746,130 @@ theorem uniformLowerBound_offFace_of_zeroSet_eq
     have heq : ϕ (⟨t, ht⟩ : ℝ≥0) x₀ = γ x₀ t := hϕγ x₀ ⟨t, ht⟩
     exact (min_le_right _ _).trans (le_of_lt (heq ▸ hineq))
 
+/-! ## The chemical reading: what the relative entropy does at the boundary
+
+The Horn–Jackson Lyapunov function in this repository is the finite sum
+`relEntropy xstar x = ∑ i, (x i * log (x i / xstar i) - x i + xstar i)`
+(`CRNT/Theorems/DeficiencyZero/Lyapunov.lean:58`), evaluated with Mathlib's convention
+`Real.log 0 = 0`.  At a coordinate whose species has gone extinct the summand is
+`0 * log 0 - 0 + xstar i = xstar i`: the entropy is **finite on the whole closed orthant** and
+continuous there (`relEntropy_continuous`).  So the heuristic "relative entropy blows up at zero
+concentration, contradicting its constancy on the ω-limit set" is unavailable here — it dies
+precisely at the definition, where the boundary value is defined to be the finite number
+`xstar s` per extinct coordinate rather than `+∞`.
+
+What survives the failed blow-up is exact bookkeeping, and it is what the two lemmas below
+record.  Every extinct species *raises* the entropy by exactly its reference value (the
+`- x i + xstar i` part contributes `xstar s` at `x i = 0`), every surviving coordinate
+contributes a nonnegative amount (Gibbs' inequality, `relEntropyTerm_nonneg`), hence:
+
+* `relEntropy_ge_sum_zeroSet` — the total reference weight of any extinct set is capped by the
+  entropy value at the point;
+* `relEntropy_le_of_mem_omegaLimit` — Lyapunov descent plus continuity put the entire ω-limit
+  set inside the sublevel `{relEntropy xstar · ≤ relEntropy xstar x₀}`;
+* `sum_xstar_le_relEntropy_x₀_of_zero_omegaPoint` — transporting the cap through the ω-limit
+  set: for the residual's `wmax` with zero set `Pmax`, the extinct set's reference weight is
+  bounded by the *initial* entropy,
+
+      ∑ s ∈ Pmax, xstar s ≤ relEntropy xstar x₀.
+
+Combined with `exists_relEntropy_const_on_omegaLimit` (the LaSalle constant `c` is the value of
+the entropy on every ω-point) this pins `c ≥ ∑ s ∈ Pmax, xstar s > 0`: a strictly positive floor
+on the LaSalle constant of any trajectory whose ω-limit meets the boundary.  It is a genuine
+constraint — but not a contradiction: `relEntropy xstar x₀` is an arbitrary nonnegative number
+and can exceed any finite reference weight, so the cap alone cannot exclude `Pmax` and cannot
+deliver the positive ω-point.  The missing dynamical content remains Craciun v3 Theorem B, as
+documented at the head of this file.
+-/
+
+/-- **The reference weight of an extinct set is capped by the relative entropy.** For a
+nonnegative concentration `x` and any set `Z` of coordinates vanishing at `x`, the sum of the
+reference values `xstar s` over `s ∈ Z` is at most `relEntropy xstar x`.  Each summand of the
+entropy over `Z` equals `xstar s` (by `Real.log 0 = 0`) and each summand outside `Z` is
+nonnegative by `relEntropyTerm_nonneg`.  This is the finite substitute for entropy blow-up at
+the boundary: the entropy does not diverge as a species goes extinct, it rises by exactly the
+extinct species' reference value. -/
+theorem relEntropy_ge_sum_zeroSet {xstar x : Concentration S} (hxs : xstar.Positive)
+    (hx : x.Nonnegative) {Z : Finset S} (hZ : ∀ s ∈ Z, x s = 0) :
+    ∑ s ∈ Z, xstar s ≤ relEntropy xstar x := by
+  unfold relEntropy
+  have hnn : ∀ i : S, 0 ≤ x i * Real.log (x i / xstar i) - x i + xstar i :=
+    fun i => relEntropyTerm_nonneg (hx i) (hxs i)
+  have hterm : ∀ i ∈ Z, x i * Real.log (x i / xstar i) - x i + xstar i = xstar i := by
+    intro i hi
+    rw [hZ i hi]
+    simp
+  have hzsum : (∑ i ∈ Z, (x i * Real.log (x i / xstar i) - x i + xstar i)) = ∑ i ∈ Z, xstar i :=
+    Finset.sum_congr rfl hterm
+  have hsplit :
+      (∑ i ∈ Z, (x i * Real.log (x i / xstar i) - x i + xstar i))
+          + (∑ i ∈ Zᶜ, (x i * Real.log (x i / xstar i) - x i + xstar i))
+        = ∑ i : S, (x i * Real.log (x i / xstar i) - x i + xstar i) :=
+    Finset.sum_add_sum_compl Z _
+  have hcompl : 0 ≤ ∑ i ∈ Zᶜ, (x i * Real.log (x i / xstar i) - x i + xstar i) :=
+    Finset.sum_nonneg fun i _ => hnn i
+  linarith
+
+/-- **Lyapunov descent puts the whole ω-limit set in the initial sublevel.** Every ω-point of
+the bounded genuine orbit through the positive `x₀` satisfies
+`relEntropy xstar z ≤ relEntropy xstar x₀`: the forward orbit lies in the closed sublevel by
+`genuineOrbit_relEntropy_le` (Lyapunov descent along the positive genuine orbit), the sublevel
+is closed by `relEntropy_continuous`, and ω-points are limits of forward-orbit points. -/
+theorem relEntropy_le_of_mem_omegaLimit
+    (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    (hx₀ : x₀.Positive)
+    {z : Concentration S} (hz : z ∈ omegaLimit atTop ϕ {x₀}) :
+    relEntropy xstar z ≤ relEntropy xstar x₀ := by
+  have hγ0 : γ x₀ 0 = x₀ := by
+    have h := hϕγ x₀ (0 : ℝ≥0)
+    rw [NNReal.coe_zero] at h
+    exact h.symm.trans (ϕ.map_zero_apply x₀)
+  have hpos : ∀ t : ℝ, 0 ≤ t → (γ x₀ t).Positive :=
+    N.genuineOrbit_pos κ (by rw [hγ0]; exact hx₀) hsol
+  have himg : Set.image2 ϕ Set.univ {x₀} ⊆
+      {y : Concentration S | relEntropy xstar y ≤ relEntropy xstar x₀} := by
+    rintro y ⟨t, _, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst hx
+    rw [hϕγ]
+    have hle := N.genuineOrbit_relEntropy_le κ hxs hcb hpos hsol t t.coe_nonneg
+    rwa [hγ0] at hle
+  have hclosed : IsClosed {y : Concentration S | relEntropy xstar y ≤ relEntropy xstar x₀} :=
+    isClosed_le (relEntropy_continuous hxs) continuous_const
+  exact ((omegaLimit_subset_closure_image2 (f := atTop) (ϕ := ϕ) (s := {x₀}) (u := Set.univ)
+      univ_mem).trans ((IsClosed.closure_subset_iff hclosed).mpr himg)) hz
+
+/-- **The extinct set's reference weight is bounded by the initial relative entropy.** If an
+ω-point `wmax` of the bounded genuine orbit through `x₀` vanishes exactly on `Pmax`, then
+
+    ∑ s ∈ Pmax, xstar s ≤ relEntropy xstar x₀.
+
+This is the quantitative residue of the entropy-blow-up heuristic: since the entropy is finite
+at the boundary and equals `xstar s` per extinct coordinate, extinction of `Pmax` costs at
+least `∑ s ∈ Pmax, xstar s` of relative entropy, which the Lyapunov descent caps by the initial
+value.  Instantiated together with `exists_relEntropy_const_on_omegaLimit` it gives the strict
+floor `∑ s ∈ Pmax, xstar s ≤ c` on the LaSalle constant `c` of the residual's hypotheses. -/
+theorem sum_xstar_le_relEntropy_x₀_of_zero_omegaPoint
+    (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    (hx₀ : x₀.Positive)
+    {Pmax : Finset S} {wmax : Concentration S}
+    (hwmax : wmax ∈ omegaLimit atTop ϕ {x₀})
+    (hwnn : Concentration.Nonnegative wmax)
+    (hzeroMax : ∀ s, s ∈ Pmax ↔ wmax s = 0) :
+    ∑ s ∈ Pmax, xstar s ≤ relEntropy xstar x₀ := by
+  have hzero : ∀ s ∈ Pmax, wmax s = 0 := fun s hs => (hzeroMax s).1 hs
+  exact (relEntropy_ge_sum_zeroSet hxs hwnn hzero).trans
+    (relEntropy_le_of_mem_omegaLimit N κ hxs hcb hϕγ hsol hx₀ hwmax)
+
 end Network
 end CRNT
