@@ -833,5 +833,37 @@ theorem stoichRank_ne_one_of_two_le_finrank_map_projOn (N : Network S) {W : Fins
   show Module.finrank ℝ N.stoichSubspace ≠ 1
   omega
 
+/-! ## The exact applicability boundary of `uniformLowerBound_offFace_of_zeroSet_eq`
+
+Its hypothesis `hface : ∀ z ∈ omegaLimit …, ∀ s ∈ Pmax, z s = 0` is *universal*: every
+ω-point must vanish on the whole face.  The trichotomy
+`omegaPoint_zeroSet_trichotomy` only yields, in its third disjunct, a **per-point** split
+`∀ z, Z(z) = Pmax ∨ tie(z)`, where a tie witness is positive somewhere on `Pmax` and therefore
+violates `hface`.  The lemma below pins the boundary exactly: given `hmaxExact`, `hface` is
+equivalent to "every ω-point has zero set exactly `Pmax`" — so it is obtainable when the
+branch-(2) shape holds for *all* ω-points (in particular in the degenerate model
+`ω = {wmax}`), and it *fails* whenever a tie witness (or any mixed ω-set) exists.  The module
+docstring above `uniformLowerBound_offFace_of_zeroSet_eq` says both open disjuncts "share" `hface`;
+that is correct only for the existential reading ("some ω-point vanishes on `Pmax`", namely
+`wmax` itself) — for the universal `hface` of the lemma the tie branch is not covered. -/
+
+omit [DecidableEq S] in
+/-- **`hface` holds exactly when every ω-point's zero set is `Pmax`.** The forward direction
+feeds each ω-point's vanishing to `hmaxExact`; the backward direction is the definition of the
+zero-set filter. -/
+theorem hface_iff_zeroSet_eq {Ω : Set (Concentration S)} {Pmax : Finset S}
+    (hmaxExact : ∀ z ∈ Ω, (∀ s ∈ Pmax, z s = 0) → ∀ s, z s = 0 ↔ s ∈ Pmax) :
+    (∀ z ∈ Ω, ∀ s ∈ Pmax, z s = 0) ↔
+      ∀ z ∈ Ω, (Finset.univ.filter (fun s => z s = 0)) = Pmax := by
+  constructor
+  · intro hface z hz
+    apply Finset.ext
+    intro s
+    simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+    exact hmaxExact z hz (fun t ht => hface z hz t ht) s
+  · intro h z hz s hs
+    rw [← h z hz] at hs
+    exact (Finset.mem_filter.mp hs).2
+
 end Network
 end CRNT
