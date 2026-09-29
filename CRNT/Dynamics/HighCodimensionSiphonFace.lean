@@ -1009,6 +1009,124 @@ theorem sum_xstar_le_relEntropy_x₀_of_zero_omegaPoint
   have hzero : ∀ s ∈ Pmax, wmax s = 0 := fun s hs => (hzeroMax s).1 hs
   exact (relEntropy_ge_sum_zeroSet hxs hwnn hzero).trans
     (relEntropy_le_of_mem_omegaLimit N κ hxs hcb hϕγ hsol hx₀ hwmax)
+/-! ## Three hypotheses of the residual are redundant
+
+`CRNT.Examples.CodimTwoFaceModel` shows by an explicit model that every hypothesis of
+`exists_positive_omegaPoint_of_highCodimension_siphonFace` except the orbit-ODE premise `hsol`
+is satisfiable simultaneously with the conclusion false, so `hsol` is the only load-bearing
+premise no static argument can avoid.  Within the remaining hypotheses, three are derivable
+from the others and carry no independent content; they are recorded here so that no future
+argument spends effort on them:
+
+* `hmaxExact_of_zeroSet_card_le`: `hmaxExact` follows from `hzcard` alone (the maximality
+  argument of `exists_maximal_zeroSet_omegaPoint` needs no more than the cardinality bound);
+* `two_le_card_of_two_le_finrank_map_projOn`: `hcard` follows from `hcodim`, since the
+  `Pmax`-projection lives in the space of functions supported on `Pmax`, of dimension
+  `Pmax.card` (so `hPmaxne` follows from `hcard` in turn);
+* `stoichRank_ne_one_of_two_le_finrank_map_projOn`: `hrank` follows from `hcodim`, since the
+  rank of a projected subspace never exceeds the rank of `stoichSubspace` itself
+  (`stoichRank = finrank stoichSubspace ≥ 2`). -/
+
+omit [DecidableEq S] in
+/-- **`hmaxExact` is derivable from `hzcard`.** If no ω-point has a zero set of larger
+cardinality than `Pmax`, then any ω-point vanishing on all of `Pmax` has zero set exactly
+`Pmax`: its zero set contains `Pmax` and is no larger, so the two finite sets coincide. -/
+theorem hmaxExact_of_zeroSet_card_le {Ω : Set (Concentration S)} {Pmax : Finset S}
+    (hzcard : ∀ z ∈ Ω, (Finset.univ.filter (fun s => z s = 0)).card ≤ Pmax.card)
+    {z : Concentration S} (hz : z ∈ Ω) (hzero : ∀ s ∈ Pmax, z s = 0) :
+    ∀ s, z s = 0 ↔ s ∈ Pmax := by
+  have hmem : ∀ u : S, u ∈ (Finset.univ.filter (fun s => z s = 0)) ↔ z u = 0 := by
+    intro u
+    simp
+  have hsub : Pmax ⊆ Finset.univ.filter (fun s => z s = 0) :=
+    fun u hu => (hmem u).2 (hzero u hu)
+  have hEq : Pmax = Finset.univ.filter (fun s => z s = 0) :=
+    Finset.eq_of_subset_of_card_le hsub (hzcard z hz)
+  intro s
+  rw [hEq]
+  exact (hmem s).symm
+
+/-- **`hcard` is derivable from `hcodim`.** Every element of the projected subspace
+`stoichSubspace.map (projOn W)` vanishes outside `W` (by definition of `projOn`), and a
+nonempty projected subspace then forces `W` to carry that many species: dimension two needs
+at least two species. -/
+theorem two_le_card_of_two_le_finrank_map_projOn {W : Finset S} (U : Submodule ℝ (S → ℝ))
+    (h : 2 ≤ Module.finrank ℝ (U.map (projOn W))) : 2 ≤ W.card := by
+  by_contra hcard
+  have hle : W.card ≤ 1 := by omega
+  rcases Finset.eq_empty_or_nonempty W with hW | hne
+  · -- the empty face projects everything to zero
+    subst hW
+    have hz : projOn (∅ : Finset S) = 0 := by
+      apply LinearMap.ext
+      intro p
+      funext s
+      simp [projOn_apply]
+    have himg : U.map (projOn (∅ : Finset S)) = ⊥ := by
+      apply le_antisymm
+      · intro q hq
+        obtain ⟨p, -, hp⟩ := Submodule.mem_map.mp hq
+        rw [hz] at hp
+        subst hp
+        exact Submodule.zero_mem _
+      · exact bot_le
+    have h0 : Module.finrank ℝ (U.map (projOn (∅ : Finset S))) = 0 := by
+      rw [himg]
+      exact finrank_bot ℝ (S → ℝ)
+    omega
+  · -- a one-species face projects to dimension at most one
+    obtain ⟨s, hs⟩ := hne
+    have hsingle : W = {s} := by
+      refine Finset.eq_singleton_iff_unique_mem.mpr ⟨hs, ?_⟩
+      intro t ht
+      exact Finset.card_le_one.mp hle t ht s hs
+    rw [hsingle] at h
+    have h1 := finrank_map_projOn_singleton_le_one U s
+    omega
+
+/-- **`hrank` is derivable from `hcodim`.** Rank--nullity for the `W`-projection restricted to
+`stoichSubspace` gives `finrank (map …) + finrank (ker …) = finrank stoichSubspace
+= stoichRank`, so a projected rank of at least two forces `stoichRank ≥ 2 ≠ 1`. -/
+theorem stoichRank_ne_one_of_two_le_finrank_map_projOn (N : Network S) {W : Finset S}
+    (h : 2 ≤ Module.finrank ℝ (N.stoichSubspace.map (projOn W))) :
+    N.stoichRank ≠ 1 := by
+  have hrn := LinearMap.finrank_range_add_finrank_ker
+    ((projOn W).domRestrict N.stoichSubspace)
+  rw [LinearMap.range_domRestrict] at hrn
+  show Module.finrank ℝ N.stoichSubspace ≠ 1
+  omega
+
+/-! ## The exact applicability boundary of `uniformLowerBound_offFace_of_zeroSet_eq`
+
+Its hypothesis `hface : ∀ z ∈ omegaLimit …, ∀ s ∈ Pmax, z s = 0` is *universal*: every
+ω-point must vanish on the whole face.  The trichotomy
+`omegaPoint_zeroSet_trichotomy` only yields, in its third disjunct, a **per-point** split
+`∀ z, Z(z) = Pmax ∨ tie(z)`, where a tie witness is positive somewhere on `Pmax` and therefore
+violates `hface`.  The lemma below pins the boundary exactly: given `hmaxExact`, `hface` is
+equivalent to "every ω-point has zero set exactly `Pmax`" — so it is obtainable when the
+branch-(2) shape holds for *all* ω-points (in particular in the degenerate model
+`ω = {wmax}`), and it *fails* whenever a tie witness (or any mixed ω-set) exists.  The module
+docstring above `uniformLowerBound_offFace_of_zeroSet_eq` says both open disjuncts "share" `hface`;
+that is correct only for the existential reading ("some ω-point vanishes on `Pmax`", namely
+`wmax` itself) — for the universal `hface` of the lemma the tie branch is not covered. -/
+
+omit [DecidableEq S] in
+/-- **`hface` holds exactly when every ω-point's zero set is `Pmax`.** The forward direction
+feeds each ω-point's vanishing to `hmaxExact`; the backward direction is the definition of the
+zero-set filter. -/
+theorem hface_iff_zeroSet_eq {Ω : Set (Concentration S)} {Pmax : Finset S}
+    (hmaxExact : ∀ z ∈ Ω, (∀ s ∈ Pmax, z s = 0) → ∀ s, z s = 0 ↔ s ∈ Pmax) :
+    (∀ z ∈ Ω, ∀ s ∈ Pmax, z s = 0) ↔
+      ∀ z ∈ Ω, (Finset.univ.filter (fun s => z s = 0)) = Pmax := by
+  constructor
+  · intro hface z hz
+    apply Finset.ext
+    intro s
+    simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+    exact hmaxExact z hz (fun t ht => hface z hz t ht) s
+  · intro h z hz s hs
+    rw [← h z hz] at hs
+    exact (Finset.mem_filter.mp hs).2
 
 end Network
 end CRNT
