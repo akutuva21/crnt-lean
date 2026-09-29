@@ -3609,6 +3609,47 @@ theorem cyclic_gain_no_strict' {n : ℕ} [NeZero n]
   rw [herot, harot, hcycle] at hp
   exact lt_irrefl _ hp
 
+/-- **Cyclic gain with one position left open (Shinar--Feinberg §5.7.2, (30)⟹(32)⟹(33)).**
+
+If the strict gain inequality `e (finRotate n i) * a (finRotate n i) < f i * a i` holds at every
+position of the cycle except one, `i₀`, and the edge products obey the s-cycle identity
+`∏ e = ∏ f`, then at the omitted position the inequality is forced to *reverse* strictly:
+
+    f i₀ * a i₀ < e (finRotate n i₀) * a (finRotate n i₀).
+
+This is the algebraic content of the telescope in Shinar--Feinberg §5.7.2: chaining the first
+`n - 1` source inequalities bounds the two in-block terms at the separating species by the
+non-expansive product, and because the s-cycle identity pins the product ratio at exactly one —
+while every factor is positive — the bound is strict.  Equivalently, the gain system with `≤` at
+the omitted position and strict `<` everywhere else is already refuted by `cyclic_gain_no_strict'`,
+so the omitted position must carry the reverse strict inequality.  It is this reverse inequality
+that makes the in-block contribution at the separator nonpositive and yields the sharpened
+external inequality (33) in `sharpened_source_inequality_at_cycle_separator`. -/
+theorem cyclic_gain_reverse_at_of_rest {n : ℕ} [NeZero n]
+    (e f a : Fin n → ℝ)
+    (he : ∀ i, 0 < e i) (ha : ∀ i, 0 < a i)
+    (i₀ : Fin n) (hne : finRotate n i₀ ≠ i₀)
+    (hineq : ∀ i, i ≠ i₀ → e (finRotate n i) * a (finRotate n i) < f i * a i)
+    (hcycle : (∏ i, e i) = ∏ i, f i) :
+    f i₀ * a i₀ < e (finRotate n i₀) * a (finRotate n i₀) := by
+  by_contra h
+  have hge : e (finRotate n i₀) * a (finRotate n i₀) ≤ f i₀ * a i₀ := not_lt.mp h
+  have hfull : ∀ i, e (finRotate n i) * a (finRotate n i) ≤ f i * a i := by
+    intro i
+    by_cases hi : i = i₀
+    · subst hi; exact hge
+    · exact (hineq i hi).le
+  obtain ⟨j, hj⟩ : ∃ j, e (finRotate n j) * a (finRotate n j) < f j * a j :=
+    ⟨finRotate n i₀, hineq (finRotate n i₀) hne⟩
+  have hp : (∏ i, e (finRotate n i) * a (finRotate n i)) < ∏ i, f i * a i :=
+    Finset.prod_lt_prod₀ (fun i _ => mul_pos (he (finRotate n i)) (ha (finRotate n i)))
+      (fun i _ => hfull i) ⟨j, Finset.mem_univ _, hj⟩
+  rw [Finset.prod_mul_distrib, Finset.prod_mul_distrib] at hp
+  have herot : (∏ i, e (finRotate n i)) = ∏ i, e i := Equiv.prod_comp _ _
+  have harot : (∏ i, a (finRotate n i)) = ∏ i, a i := Equiv.prod_comp _ _
+  rw [herot, harot, hcycle] at hp
+  exact lt_irrefl _ hp
+
 /-- An `s`-cycle cannot support strict gain all the way around the cycle, in the orientation
 produced by the source inequalities.  Pair this with `gain_of_two_term_flux` and
 `edge_coeff_eq_abs_reactionVector`: the former gives, at each species of an end species-block,
@@ -3712,8 +3753,13 @@ is where the non-expansiveness hypothesis `∏ f ≤ ∏ e` is consumed.  Feedin
 blocks.
 
 The general case (a strongly connected non-separable block that is not just a cycle) needs the
-full "no positive-gain cycle implies a feasible potential" theorem, which Mathlib does not
-have. -/
+full "no positive-gain cycle implies a feasible potential" theorem.  Mathlib does not have it,
+but this repository proves it: `CRNT.exists_feasible_multipliers` and
+`CRNT.exists_feasible_multipliers_of_simple` in `CRNT.Multistationarity.GainPotential` are
+Shinar--Feinberg Proposition 5.12 in full generality (Proposition 5.12 is formalized, not
+outstanding), and `weighted_source_inequalities_infeasible_of_unit_graph` already consumes them.
+`exists_cycle_multipliers` below is only the closed-form construction for the single-cycle
+special case. -/
 theorem exists_cycle_multipliers {n : ℕ} (hn : 2 ≤ n) (e f : Fin n → ℝ)
     (he : ∀ i, 0 < e i) (hf : ∀ i, 0 < f i)
     (hgain : (∏ i, f i) ≤ ∏ i, e i) :
@@ -3951,6 +3997,166 @@ theorem source_inequalities_survive_leaf_block
     rw [hsourceE, hsourceF] at hs
     exact hs
 
+/-- **S-block leaf removal (Shinar--Feinberg §5.9, species-block case).**
+
+The species-side counterpart of `source_inequalities_survive_leaf_block`.  The block's species
+side is `U`, its reactions `B`, and `s₀` its unique separator.  The sharpened separator
+inequality (40) — the source inequality restricted to the reactions *outside* the block, strict
+— arrives as `hseparator`; for an end species-block cycle it is produced by
+`sharpened_source_inequality_at_cycle_separator`, whose conclusion over `F \ {cycle pair}`
+is exactly this sum once degree-two adjacency of the separator (Definition 5.9) identifies the
+in-block reactions at `s₀` with the cycle pair.  This lemma then performs the restriction step
+of §5.9: after discarding the block's reactions and every block species except the separator,
+the reduced system still carries a strict source inequality at each species it retains.
+
+At the separator the sharpened inequality *is* the reduced inequality; at a species `s ∉ U` the
+block's reactions contribute nothing (`hblockOutside`), so the full source inequality already is
+the reduced one.  The remaining block species drop out of the system, exactly as §5.9
+prescribes.  Paired with `source_inequalities_survive_leaf_block` (reaction-block case) this is
+the whole of the leaf step; iterating both down the block tree (`SrBlocks`) reduces any source
+to a single block with no separating vertex, where `no_degree_two_causal_cycle` or
+`weighted_source_inequalities_infeasible_of_unit_graph` contradicts the surviving system. -/
+theorem source_inequalities_survive_leaf_SBlock
+    {Sp Rx : Type} [Fintype Sp] [DecidableEq Sp] [Fintype Rx] [DecidableEq Rx]
+    (e f : Sp → Rx → ℝ) (w : Rx → ℝ)
+    (U : Finset Sp) (B : Finset Rx) (s₀ : Sp)
+    (hsrc : ∀ s, (∑ r : Rx, e s r * w r) < ∑ r : Rx, f s r * w r)
+    (hseparator : (∑ r ∈ Finset.univ \ B, e s₀ r * w r) <
+        ∑ r ∈ Finset.univ \ B, f s₀ r * w r)
+    (hblockOutside : ∀ r, r ∈ B → ∀ s, s ∉ U → e s r = 0 ∧ f s r = 0) :
+    ∀ s, s ∉ U.erase s₀ →
+      (∑ r ∈ Finset.univ \ B, e s r * w r) <
+        ∑ r ∈ Finset.univ \ B, f s r * w r := by
+  intro s hs
+  by_cases hs₀' : s = s₀
+  · simpa [hs₀'] using hseparator
+  · have hsnotU : s ∉ U := by
+      intro hsU
+      exact hs (Finset.mem_erase.mpr ⟨hs₀', hsU⟩)
+    have hblockE : (∑ r ∈ B, e s r * w r) = 0 := by
+      apply Finset.sum_eq_zero
+      intro r hr
+      rw [(hblockOutside r hr s hsnotU).1, zero_mul]
+    have hblockF : (∑ r ∈ B, f s r * w r) = 0 := by
+      apply Finset.sum_eq_zero
+      intro r hr
+      rw [(hblockOutside r hr s hsnotU).2, zero_mul]
+    have hsplit (g : Rx → ℝ) :
+        (∑ r : Rx, g r) = (∑ r ∈ B, g r) + ∑ r ∈ Finset.univ \ B, g r := by
+      rw [← Finset.sum_union (Finset.disjoint_sdiff)]
+      congr 1
+      exact (Finset.union_sdiff_of_subset (Finset.subset_univ B)).symm
+    have hs' := hsrc s
+    rw [hsplit (fun r => e s r * w r), hsplit (fun r => f s r * w r),
+      hblockE, hblockF, zero_add, zero_add] at hs'
+    exact hs'
+
+/-- **Reaction-block leaf reduction from the simple-cycle hypothesis
+(Shinar--Feinberg §5.8.2, (39); §5.9, (40)).**
+
+`source_inequalities_survive_leaf_block` performs the §5.9 reduction for a reaction-block leaf
+once positive species multipliers satisfying the dual block relations are in hand.  This wrapper
+produces those multipliers from the hypothesis the paper actually assumes — no directed cycle of
+the block is stoichiometrically expansive — via Proposition 5.12 in its simple-cycle form
+(`CRNT.exists_feasible_multipliers_of_simple`, the same machinery
+`weighted_source_inequalities_infeasible_of_unit_graph` feeds).
+
+The block's reactions `B` are units inside the species side `U` (Definition 5.9: an R-block has
+every reaction node adjacent to exactly two species of the block), source reactions outside `B`
+vanish on `U` outside the separator (`houtside`: a non-separating species has no source edges
+leaving the block), and `hsimple` bounds the gains of the simple cycles of the block's unit
+graph.  Discharging `hsimple` is condition (i) of Theorem 2.1 together with Proposition 5.10
+(every cycle of a source is even, `SrProp510`); the conclusion is the reduced-system shape of
+`source_inequalities_survive_leaf_block`, ready for the next leaf iteration. -/
+theorem source_inequalities_survive_leaf_block_of_simple
+    {Sp Rx : Type} [Fintype Sp] [DecidableEq Sp] [Nonempty Sp]
+      [Fintype Rx] [DecidableEq Rx] [Nonempty Rx]
+    (e f : Sp → Rx → ℝ) (w : Rx → ℝ)
+    (U : Finset Sp) (B : Finset Rx) (s₀ : Sp)
+    (src tgt : Rx → Sp) (eb fb : Rx → ℝ)
+    (hw : ∀ r, 0 ≤ w r)
+    (hs₀ : s₀ ∈ U)
+    (hsrc : ∀ s, (∑ r : Rx, e s r * w r) < ∑ r : Rx, f s r * w r)
+    (hsrcU : ∀ r, r ∈ B → src r ∈ U)
+    (htgtU : ∀ r, r ∈ B → tgt r ∈ U)
+    (heb : ∀ r, r ∈ B → 0 < eb r)
+    (hunitE : ∀ r, r ∈ B → ∀ s, e s r = if s = src r then eb r else 0)
+    (hunitF : ∀ r, r ∈ B → ∀ s, f s r = if s = tgt r then fb r else 0)
+    (houtside : ∀ s, s ∈ U → s ≠ s₀ → ∀ r, r ∉ B → e s r = 0 ∧ f s r = 0)
+    (hsimple : ∀ (x : Sp) (q : List Sp), (x :: q).Nodup →
+        CRNT.seqGain
+          (fun u v => max 0 (Finset.univ.sup' Finset.univ_nonempty (fun r =>
+            if r ∈ B ∧ src r = u ∧ tgt r = v then fb r / eb r else 0)))
+          (x :: q ++ [x]) ≤ 1) :
+    ∀ s, s ∉ U.erase s₀ →
+      (∑ r ∈ Finset.univ \ B, e s r * w r) <
+        ∑ r ∈ Finset.univ \ B, f s r * w r := by
+  classical
+  let G : Sp → Sp → ℝ := fun u v =>
+    max 0 (Finset.univ.sup' Finset.univ_nonempty (fun r =>
+      if r ∈ B ∧ src r = u ∧ tgt r = v then fb r / eb r else 0))
+  have hG : ∀ u v, 0 ≤ G u v := fun u v => le_max_left 0 _
+  obtain ⟨M, hMpos, hmultG⟩ :=
+    CRNT.exists_feasible_multipliers_of_simple G hG (by simpa [G] using hsimple)
+  -- every block reaction obeys the dual inequality against the multipliers
+  have hreactionBound (r : Rx) (hr : r ∈ B) : fb r * M (tgt r) ≤ eb r * M (src r) := by
+    have hub : fb r / eb r ≤ G (src r) (tgt r) := by
+      dsimp [G]
+      have hle := Finset.le_sup' (fun r' : Rx =>
+          if r' ∈ B ∧ src r' = src r ∧ tgt r' = tgt r then fb r' / eb r' else (0 : ℝ))
+        (Finset.mem_univ r)
+      have hEq : (if r ∈ B ∧ src r = src r ∧ tgt r = tgt r then fb r / eb r else (0 : ℝ))
+          = fb r / eb r := by simp [hr]
+      rw [hEq] at hle
+      exact le_trans hle (le_max_right _ _)
+    have hgain : (fb r / eb r) * M (tgt r) ≤ M (src r) :=
+      le_trans (mul_le_mul_of_nonneg_right hub (le_of_lt (hMpos (tgt r))))
+        (hmultG (src r) (tgt r))
+    calc fb r * M (tgt r) = eb r * ((fb r / eb r) * M (tgt r)) := by
+          field_simp [ne_of_gt (heb r hr)]
+        _ ≤ eb r * M (src r) :=
+          mul_le_mul_of_nonneg_left hgain (le_of_lt (heb r hr))
+  -- block reactions contribute only on `U`
+  have hblockOutside : ∀ r, r ∈ B → ∀ s, s ∉ U → e s r = 0 ∧ f s r = 0 := by
+    intro r hr s hs
+    have hne1 : s ≠ src r := by
+      intro heq
+      apply hs
+      rw [heq]
+      exact hsrcU r hr
+    have hne2 : s ≠ tgt r := by
+      intro heq
+      apply hs
+      rw [heq]
+      exact htgtU r hr
+    constructor
+    · rw [hunitE r hr s, if_neg hne1]
+    · rw [hunitF r hr s, if_neg hne2]
+  -- the multiplier relations lift to the block-reaction sums over `U`
+  have hmult : ∀ r, r ∈ B →
+      (∑ s ∈ U, f s r * M s) ≤ ∑ s ∈ U, e s r * M s := by
+    intro r hr
+    have hfE : (∑ s ∈ U, f s r * M s) = fb r * M (tgt r) := by
+      have h1 : (∑ s ∈ U, f s r * M s) =
+          ∑ s ∈ U, (if s = tgt r then fb r else 0) * M s :=
+        Finset.sum_congr rfl (fun s _ => by rw [hunitF r hr s])
+      have h2 : (∑ s ∈ U, (if s = tgt r then fb r else 0) * M s) =
+          ∑ s ∈ U, if s = tgt r then fb r * M s else 0 :=
+        Finset.sum_congr rfl (fun s _ => by rw [ite_mul]; simp)
+      rw [h1, h2, Finset.sum_ite_eq', if_pos (htgtU r hr)]
+    have heE : (∑ s ∈ U, e s r * M s) = eb r * M (src r) := by
+      have h1 : (∑ s ∈ U, e s r * M s) =
+          ∑ s ∈ U, (if s = src r then eb r else 0) * M s :=
+        Finset.sum_congr rfl (fun s _ => by rw [hunitE r hr s])
+      have h2 : (∑ s ∈ U, (if s = src r then eb r else 0) * M s) =
+          ∑ s ∈ U, if s = src r then eb r * M s else 0 :=
+        Finset.sum_congr rfl (fun s _ => by rw [ite_mul]; simp)
+      rw [h1, h2, Finset.sum_ite_eq', if_pos (hsrcU r hr)]
+    rw [hfE, heE]
+    exact hreactionBound r hr
+  exact source_inequalities_survive_leaf_block e f w U B s₀ M hw hs₀
+    (fun s _ => hMpos s) hsrc hmult houtside hblockOutside
+
 /-- **The multiplier contradiction (Shinar--Feinberg 5.8), as pure algebra.**
 
 This is the engine of the end reaction-block argument, stated without any reaction-network
@@ -3965,8 +4171,10 @@ each species inequality by its multiplier and exchanging the order of summation 
 family into a statement the second family contradicts.
 
 Shinar--Feinberg obtain the multipliers `M` from the absence of a stoichiometrically expansive
-directed cycle (their Proposition 5.12); that existence result is what remains to be
-formalized. -/
+directed cycle (their Proposition 5.12); that existence result is formalized in this repository
+as `CRNT.exists_feasible_multipliers` and `CRNT.exists_feasible_multipliers_of_simple`
+(`CRNT.Multistationarity.GainPotential`), which `weighted_source_inequalities_infeasible_of_unit_graph`
+feeds with the simple-cycle hypothesis. -/
 theorem weighted_source_inequalities_infeasible
     {Sp Rx : Type} [Fintype Sp] [Fintype Rx] [Nonempty Sp]
     (w : Rx → ℝ) (hw : ∀ r, 0 ≤ w r)
@@ -6857,6 +7065,240 @@ theorem no_degree_two_aggregate_causal_cycle_of_offCycle_hrest (N : Network S)
     rw [ht]
     rw [nonAdjacent_cycleClassFlux_eq_zero N hsep hSR C hC (finRotate n i) t hvt hvj, zero_mul]
   · exact hrestOff i ρ hρF (fun j hj => hex ⟨j, hj⟩)
+
+/-- **The sharpened source inequality at an end-block separator
+(Shinar--Feinberg §5.7.2, (33); §5.9, (40)).**
+
+Take a directed cycle in an end species-block, with one cycle position `i₀` whose species
+`s* = C.species (finRotate n i₀)` is the block's unique separating vertex.  At every *other*
+cycle species the degree-two scope of `hrest` applies: the two cycle reactions account for the
+species' whole block adjacency, so every remaining class of the source contributes
+nonpositively.  At `s*` itself no such scope is assumed — the classes of `F` other than the two
+cycle reactions (the attachment included) are exactly the source reactions the block does *not*
+contain, and they are free to contribute with either sign.
+
+The conclusion is equation (33) = (40): at the separator the source inequality, restricted to
+those off-block classes, remains *strict*.  The derivation is the §5.7.2 telescope: the gain
+inequalities at the other `n - 1` positions chain around the cycle, the s-cycle identity pins
+their product (Remark 5.7 / condition (i), via `C.SCycleNet`), and
+`cyclic_gain_reverse_at_of_rest` turns this into the reverse strict inequality at `i₀` — the two
+in-block terms at `s*` sum to a strictly negative number.  Subtracting from the unscoped source
+strictness `hsum i₀` leaves the external sum strictly positive.
+
+**Scope — this is the correctly-scoped `hrest` frontier.**  The naive scope (all off-cycle
+classes, attachment excluded) is self-refuting: the positive off-cycle class at the attachment
+species *is* `hattachment`.  Here the attachment is absorbed into the positive external sum
+instead of excluded from `hrest`, and the theorem concludes positively rather than by
+contradiction.  Discharging the hypotheses for an end block needs the block decomposition
+(`SrBlocks`): `hrest` at `i ≠ i₀` from degree-two adjacency of non-separating species plus the
+Remark 5.6 nonpositivity of non-source terms, `hsum` from `sum_subset_pos_of_nonpos_outside`
+restricted to the source, and `F \ {pair} = R₀∖REB` at `s*` from Def 5.9 degree-two at the
+separator itself.  The §5.9 iteration then replaces the separator's inequality by this one and
+removes the block (`source_inequalities_survive_leaf_SBlock`), iterating down the block tree to a
+single block with no separating vertex — where the kernels `no_degree_two_causal_cycle`
+(S-block) and `weighted_source_inequalities_infeasible_of_unit_graph` (R-block) finish. -/
+theorem sharpened_source_inequality_at_cycle_separator (N : Network S)
+    (hsep : N.ReactantProductSeparated)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {n : ℕ} [DecidableEq N.TrueReaction]
+    (C : N.TrueSRCycle n) (hsc : C.SCycleNet)
+    (F : Finset N.TrueReaction) (β : Fin n → ℝ)
+    (hrep : ∀ i, (C.leftEdge i).representative = (C.rightEdge i).representative)
+    (hbeta : ∀ i t, N.trueInternalClassFlux α (C.reaction i) t =
+      β i * N.reactionVector (C.rightEdge i).representative t)
+    (hclass : ∀ i, C.reaction i ∈ F)
+    (hsum : ∀ i, 0 < ∑ ρ ∈ F,
+      (N.trueInternalClassFlux α ρ (C.species (finRotate n i))) *
+        σ (C.species (finRotate n i)))
+    (hcausal : ∀ i, 0 < (N.trueInternalClassFlux α (C.reaction i)
+      (C.species (finRotate n i))) * σ (C.species (finRotate n i)))
+    (hopp : ∀ i, (N.trueInternalClassFlux α (C.reaction (finRotate n i))
+      (C.species (finRotate n i))) * σ (C.species (finRotate n i)) < 0)
+    (i₀ : Fin n)
+    (hrest : ∀ i, i ≠ i₀ → ∀ ρ ∈ F,
+      ρ ≠ C.reaction i → ρ ≠ C.reaction (finRotate n i) →
+      (N.trueInternalClassFlux α ρ (C.species (finRotate n i))) *
+        σ (C.species (finRotate n i)) ≤ 0) :
+    0 < ∑ ρ ∈ F \ {C.reaction i₀, C.reaction (finRotate n i₀)},
+      (N.trueInternalClassFlux α ρ (C.species (finRotate n i₀))) *
+        σ (C.species (finRotate n i₀)) := by
+  classical
+  letI : NeZero n := ⟨Nat.ne_of_gt (lt_of_lt_of_le (by decide) C.nontrivial)⟩
+  have hn2 : 2 ≤ n := C.nontrivial
+  have hrotVal : ∀ i : Fin n, (finRotate n i).1 = (i.1 + 1) % n := by
+    intro i
+    have hn1 : 1 < n := by omega
+    have h := congrArg Fin.val (finRotate_apply i)
+    simpa [Fin.add_def, hn1] using h
+  have hrotNe : ∀ i : Fin n, finRotate n i ≠ i := by
+    intro i heq
+    have hv := congrArg Fin.val heq
+    rw [hrotVal i] at hv
+    have hi := i.isLt
+    rcases Nat.lt_or_ge (i.1 + 1) n with hlt | hge
+    · rw [Nat.mod_eq_of_lt hlt] at hv
+      omega
+    · have heq' : i.1 + 1 = n := by omega
+      rw [heq', Nat.mod_self] at hv
+      omega
+  have hreactionNe : ∀ i : Fin n, C.reaction i ≠ C.reaction (finRotate n i) := by
+    intro i heq
+    apply hrotNe i
+    exact (C.reaction_injective heq).symm
+  have hnet : ∀ e : N.TrueSREdge,
+      e.netCoeff = |N.reactionVector e.representative e.species| := by
+    intro e
+    rw [TrueSREdge.netCoeff, reactionVector_apply]
+  have hnetPos (e : N.TrueSREdge) : 0 < e.netCoeff := by
+    have hcoeff : 0 < (e.coeff : ℝ) := by exact_mod_cast e.coeff_pos
+    have hcoeffEq := N.edge_coeff_eq_abs_reactionVector hsep e
+    have hEq : e.netCoeff = (e.coeff : ℝ) := (hnet e).trans hcoeffEq.symm
+    rw [hEq]
+    exact hcoeff
+  have hrightSpecies (i : Fin n) :
+      (C.rightEdge i).species = C.species (finRotate n i) := by
+    rw [C.right_species i]
+    exact congrArg C.species (Fin.ext (hrotVal i).symm)
+  have hLnet (i : Fin n) :
+      (C.leftEdge (finRotate n i)).netCoeff =
+        |N.reactionVector (C.rightEdge (finRotate n i)).representative
+          (C.species (finRotate n i))| := by
+    calc
+      _ = |N.reactionVector (C.leftEdge (finRotate n i)).representative
+            (C.leftEdge (finRotate n i)).species| := hnet _
+      _ = |N.reactionVector (C.rightEdge (finRotate n i)).representative
+            (C.species (finRotate n i))| := by
+          rw [hrep (finRotate n i), C.left_species]
+  have hRnet (i : Fin n) :
+      (C.rightEdge i).netCoeff =
+        |N.reactionVector (C.rightEdge i).representative
+          (C.species (finRotate n i))| := by
+    calc
+      _ = |N.reactionVector (C.rightEdge i).representative
+            (C.rightEdge i).species| := hnet _
+      _ = |N.reactionVector (C.rightEdge i).representative
+            (C.species (finRotate n i))| := by rw [hrightSpecies i]
+  have hLpos : ∀ i, 0 < (C.leftEdge i).netCoeff := fun i => hnetPos (C.leftEdge i)
+  have hRpos : ∀ i, 0 < (C.rightEdge i).netCoeff := fun i => hnetPos (C.rightEdge i)
+  have hbetaNe : ∀ i : Fin n, β i ≠ 0 := by
+    intro i hz
+    have h := hcausal i
+    rw [hbeta i (C.species (finRotate n i)), hz, zero_mul, zero_mul] at h
+    exact (lt_irrefl 0) h
+  have ha : ∀ i, 0 < |β i| := fun i => abs_pos.mpr (hbetaNe i)
+  -- the gain inequalities hold at every index except the separator position
+  have hineq : ∀ i, i ≠ i₀ →
+      (C.leftEdge (finRotate n i)).netCoeff * |β (finRotate n i)| <
+        (C.rightEdge i).netCoeff * |β i| := by
+    intro i hnei
+    have hsigma : σ (C.species (finRotate n i)) ≠ 0 := by
+      intro hz
+      have h := hcausal i
+      rw [hz, mul_zero] at h
+      exact (lt_irrefl 0) h
+    have hterm := N.trueInternalClassFlux_two_term_gain F (hreactionNe i)
+      (hclass i) (hclass (finRotate n i)) (hrest i hnei) (hsum i) (hcausal i) (hopp i)
+    have hflux :
+        |N.trueInternalClassFlux α (C.reaction (finRotate n i))
+          (C.species (finRotate n i))| <
+        |N.trueInternalClassFlux α (C.reaction i)
+          (C.species (finRotate n i))| := by
+      rw [abs_mul, abs_mul] at hterm
+      exact lt_of_mul_lt_mul_right hterm (le_of_lt (abs_pos.mpr hsigma))
+    have hweighted := hflux
+    rw [hbeta (finRotate n i) (C.species (finRotate n i)),
+      hbeta i (C.species (finRotate n i)), abs_mul, abs_mul] at hweighted
+    calc
+      (C.leftEdge (finRotate n i)).netCoeff * |β (finRotate n i)| =
+          |β (finRotate n i)| *
+            |N.reactionVector (C.rightEdge (finRotate n i)).representative
+              (C.species (finRotate n i))| := by rw [hLnet i]; ring
+      _ < |β i| * |N.reactionVector (C.rightEdge i).representative
+            (C.species (finRotate n i))| := hweighted
+      _ = (C.rightEdge i).netCoeff * |β i| := by rw [hRnet i]; ring
+  -- the omitted position carries the reverse strict inequality
+  have hrev := cyclic_gain_reverse_at_of_rest
+    (fun i => (C.leftEdge i).netCoeff) (fun i => (C.rightEdge i).netCoeff)
+    (fun i => |β i|) hLpos ha i₀ (hrotNe i₀) hineq hsc
+  -- the two cycle terms at the separator sum to a strictly negative number
+  have hsigma0 : σ (C.species (finRotate n i₀)) ≠ 0 := by
+    intro hz
+    have h := hcausal i₀
+    rw [hz, mul_zero] at h
+    exact (lt_irrefl 0) h
+  have habsig : 0 < |σ (C.species (finRotate n i₀))| := abs_pos.mpr hsigma0
+  have hcaEq :
+      N.trueInternalClassFlux α (C.reaction i₀) (C.species (finRotate n i₀)) *
+          σ (C.species (finRotate n i₀)) =
+        |β i₀| * (C.rightEdge i₀).netCoeff *
+          |σ (C.species (finRotate n i₀))| := by
+    have habs : |N.trueInternalClassFlux α (C.reaction i₀)
+          (C.species (finRotate n i₀)) * σ (C.species (finRotate n i₀))| =
+        |β i₀| * (C.rightEdge i₀).netCoeff * |σ (C.species (finRotate n i₀))| := by
+      rw [hbeta i₀ (C.species (finRotate n i₀)), abs_mul, abs_mul, ← hRnet i₀]
+    rw [abs_of_pos (hcausal i₀)] at habs
+    exact habs
+  have hopEq :
+      N.trueInternalClassFlux α (C.reaction (finRotate n i₀))
+          (C.species (finRotate n i₀)) * σ (C.species (finRotate n i₀)) =
+        -(|β (finRotate n i₀)| * (C.leftEdge (finRotate n i₀)).netCoeff *
+          |σ (C.species (finRotate n i₀))|) := by
+    have habs : |N.trueInternalClassFlux α (C.reaction (finRotate n i₀))
+          (C.species (finRotate n i₀)) * σ (C.species (finRotate n i₀))| =
+        |β (finRotate n i₀)| * (C.leftEdge (finRotate n i₀)).netCoeff *
+          |σ (C.species (finRotate n i₀))| := by
+      rw [hbeta (finRotate n i₀) (C.species (finRotate n i₀)), abs_mul, abs_mul,
+        ← hLnet i₀]
+    calc N.trueInternalClassFlux α (C.reaction (finRotate n i₀))
+            (C.species (finRotate n i₀)) * σ (C.species (finRotate n i₀))
+        = -|N.trueInternalClassFlux α (C.reaction (finRotate n i₀))
+            (C.species (finRotate n i₀)) * σ (C.species (finRotate n i₀))| := by
+          rw [abs_of_neg (hopp i₀)]
+          ring
+      _ = -(|β (finRotate n i₀)| * (C.leftEdge (finRotate n i₀)).netCoeff *
+            |σ (C.species (finRotate n i₀))|) := by rw [habs]
+  have hpairNeg :
+      N.trueInternalClassFlux α (C.reaction i₀) (C.species (finRotate n i₀)) *
+          σ (C.species (finRotate n i₀)) +
+        N.trueInternalClassFlux α (C.reaction (finRotate n i₀))
+          (C.species (finRotate n i₀)) * σ (C.species (finRotate n i₀)) < 0 := by
+    rw [hcaEq, hopEq]
+    have hlt :
+        |β i₀| * (C.rightEdge i₀).netCoeff * |σ (C.species (finRotate n i₀))| <
+          |β (finRotate n i₀)| * (C.leftEdge (finRotate n i₀)).netCoeff *
+            |σ (C.species (finRotate n i₀))| := by
+      have h1 := mul_lt_mul_of_pos_right hrev habsig
+      have e1 : (C.rightEdge i₀).netCoeff * |β i₀| *
+            |σ (C.species (finRotate n i₀))| =
+          |β i₀| * (C.rightEdge i₀).netCoeff * |σ (C.species (finRotate n i₀))| := by
+        ring
+      have e2 : (C.leftEdge (finRotate n i₀)).netCoeff * |β (finRotate n i₀)| *
+            |σ (C.species (finRotate n i₀))| =
+          |β (finRotate n i₀)| * (C.leftEdge (finRotate n i₀)).netCoeff *
+            |σ (C.species (finRotate n i₀))| := by
+        ring
+      linarith
+    linarith
+  -- subtracting the negative in-block pair from the unscoped strictness leaves the
+  -- off-block sum strictly positive
+  have hsub : ({C.reaction i₀, C.reaction (finRotate n i₀)} : Finset N.TrueReaction) ⊆ F := by
+    intro ρ hρ
+    simp only [Finset.mem_insert, Finset.mem_singleton] at hρ
+    rcases hρ with hρ | hρ <;> subst hρ
+    · exact hclass i₀
+    · exact hclass (finRotate n i₀)
+  have hkey := hsum i₀
+  rw [← Finset.sum_sdiff hsub] at hkey
+  have hpairEq :
+      (∑ ρ ∈ ({C.reaction i₀, C.reaction (finRotate n i₀)} : Finset N.TrueReaction),
+        N.trueInternalClassFlux α ρ (C.species (finRotate n i₀)) *
+          σ (C.species (finRotate n i₀))) =
+        N.trueInternalClassFlux α (C.reaction i₀) (C.species (finRotate n i₀)) *
+            σ (C.species (finRotate n i₀)) +
+          N.trueInternalClassFlux α (C.reaction (finRotate n i₀))
+            (C.species (finRotate n i₀)) * σ (C.species (finRotate n i₀)) := by
+    rw [Finset.sum_pair (hreactionNe i₀)]
+  rw [hpairEq] at hkey
+  linarith
 
 /-- A chord from a cycle species to a nonadjacent reaction, when its reaction is causal at the
 start and opposing at the other end of the arc, closes an even cycle sharing an S-to-R path with
