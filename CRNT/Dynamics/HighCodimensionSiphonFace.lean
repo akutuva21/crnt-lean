@@ -1127,6 +1127,314 @@ theorem hface_iff_zeroSet_eq {Ω : Set (Concentration S)} {Pmax : Finset S}
   · intro h z hz s hs
     rw [← h z hz] at hs
     exact (Finset.mem_filter.mp hs).2
+/-! ## The ω-limit set cannot be split by two closed sets: ties do not mix with face points
+
+`omegaPoint_zeroSet_trichotomy`'s third disjunct is a *per-point* disjunction, so it permits a
+mixed ω-limit set — some points exactly on the `Pmax`-face, some exact ties.  The two lemmas
+below rule the mixture out.  `omegaLimit_eq_iInter_closure_tail` writes ω as the intersection of
+the closures of the forward tails of the orbit; each such tail closure is compact (the orbit
+lives in `K`) and contains ω.  `not_disjoint_closed_cover_omegaLimit` is then Cantor's
+intersection theorem in disguise: two disjoint nonempty closed subsets of ω would give disjoint
+open neighborhoods `U`, `V`, some tail closure would fall inside `U ∪ V`, and a continuous
+segment of the orbit meeting both `U` and `V` would have to cross `U ∩ V = ∅`. -/
+
+/-- The `atTop` ω-limit set of a single point is the intersection of the closures of the forward
+tails of its orbit. -/
+theorem omegaLimit_eq_iInter_closure_tail {α : Type*} [TopologicalSpace α]
+    (ϕ : ℝ≥0 → α → α) (x₀ : α) :
+    omegaLimit atTop ϕ {x₀} =
+      ⋂ T : ℝ≥0, closure (Set.image2 ϕ {t | T ≤ t} {x₀}) := by
+  refine Set.Subset.antisymm ?_ ?_
+  · intro y hy
+    rw [Set.mem_iInter]
+    intro T
+    exact omegaLimit_subset_closure_image2 atTop ϕ {x₀} (Ici_mem_atTop T) hy
+  · intro y hy
+    rw [omegaLimit_eq_iInter]
+    refine Set.mem_iInter.mpr ?_
+    intro u
+    obtain ⟨a, ha⟩ := Filter.mem_atTop_sets.mp u.2
+    have hsub : {t | a ≤ t} ⊆ (u : Set ℝ≥0) := fun t ht => ha t ht
+    have hmono : Set.image2 ϕ {t | a ≤ t} {x₀} ⊆ Set.image2 ϕ u {x₀} :=
+      Set.image2_subset hsub (fun _ h => h)
+    exact closure_mono hmono (Set.mem_iInter.mp hy a)
+
+/-- **The ω-limit set of a precompact orbit with continuous time dependence cannot be covered by
+two disjoint nonempty closed sets.**  Hypotheses: the orbit through `x₀` is a continuous map
+`ℝ≥0 → α` whose range lies in the compact `K`, and `A`, `T` are closed subsets of ω, disjoint and
+nonempty. -/
+theorem not_disjoint_closed_cover_omegaLimit
+    {α : Type*} [MetricSpace α]
+    {ϕ : ℝ≥0 → α → α} {x₀ : α}
+    (hcont : Continuous fun t : ℝ≥0 => ϕ t x₀)
+    {K : Set α} (hK : IsCompact K) (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    {A T : Set α} (hA : IsClosed A) (hT : IsClosed T)
+    (hsubA : A ⊆ omegaLimit atTop ϕ {x₀}) (hsubT : T ⊆ omegaLimit atTop ϕ {x₀})
+    (hdisj : A ∩ T = ∅) (hcov : omegaLimit atTop ϕ {x₀} ⊆ A ∪ T)
+    (hAne : A.Nonempty) (hTne : T.Nonempty) : False := by
+  classical
+  have hKcl : IsClosed K := hK.isClosed
+  have habs : ∀ v : Set ℝ≥0, v ∈ (atTop : Filter ℝ≥0) →
+      closure (Set.image2 ϕ v {x₀}) ⊆ K := by
+    intro v hv
+    refine hKcl.closure_subset_iff.mpr ?_
+    rintro y ⟨t, ht, x, hx, hyy⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst x
+    subst y
+    exact hmaps t
+  -- the ω-limit set is compact (absorbed by `K`)
+  have hωcpt : IsCompact (omegaLimit atTop ϕ {x₀}) :=
+    hK.of_isClosed_subset (isClosed_omegaLimit atTop ϕ {x₀})
+      ((omegaLimit_subset_closure_image2 atTop ϕ {x₀} (univ_mem :
+          (Set.univ : Set ℝ≥0) ∈ (atTop : Filter ℝ≥0))).trans (habs Set.univ univ_mem))
+  -- every forward-tail closure is compact, contains ω, and is characterized by ω
+  have htailsub : ∀ T₀ : ℝ≥0, closure (Set.image2 ϕ {t | T₀ ≤ t} {x₀}) ⊆ K :=
+    fun T₀ => habs {t | T₀ ≤ t} (Ici_mem_atTop T₀)
+  have htail : ∀ T₀ : ℝ≥0, IsCompact (closure (Set.image2 ϕ {t | T₀ ≤ t} {x₀})) :=
+    fun T₀ => (hK.of_isClosed_subset isClosed_closure (htailsub T₀))
+  have hωsub : ∀ T₀ : ℝ≥0, omegaLimit atTop ϕ {x₀} ⊆
+      closure (Set.image2 ϕ {t | T₀ ≤ t} {x₀}) :=
+    fun T₀ => omegaLimit_subset_closure_image2 atTop ϕ {x₀} (Ici_mem_atTop T₀)
+  have hEq : omegaLimit atTop ϕ {x₀} =
+      ⋂ T₀ : ℝ≥0, closure (Set.image2 ϕ {t | T₀ ≤ t} {x₀}) :=
+    omegaLimit_eq_iInter_closure_tail ϕ x₀
+  -- `A` and `T` are compact: closed subsets of the compact ω
+  have hAcmp : IsCompact A := hωcpt.of_isClosed_subset hA hsubA
+  have hTcmp : IsCompact T := hωcpt.of_isClosed_subset hT hsubT
+  -- a uniform positive gap between the two disjoint compacts
+  obtain ⟨p, hpA, hpT, hmin⟩ :
+      ∃ p : α × α, p.1 ∈ A ∧ p.2 ∈ T ∧
+        IsMinOn (fun q : α × α => dist q.1 q.2) (A ×ˢ T) p := by
+    obtain ⟨q, hq, hqmin⟩ := (IsCompact.prod hAcmp hTcmp).exists_isMinOn
+      (Set.Nonempty.prod hAne hTne)
+      continuous_dist.continuousOn
+    exact ⟨q, hq.1, hq.2, hqmin⟩
+  have hne : p.1 ≠ p.2 := fun he =>
+    (Set.mem_empty_iff_false p.1).mp
+      (hdisj ▸ (⟨hpA, by rw [he]; exact hpT⟩ : p.1 ∈ A ∩ T))
+  set m : ℝ := dist p.1 p.2 with hmdef
+  have hm0 : 0 < m := dist_pos.mpr hne
+  have hmdist : ∀ a ∈ A, ∀ t ∈ T, m ≤ dist a t := by
+    intro a ha t ht
+    exact isMinOn_iff.mp hmin (a, t) ⟨ha, ht⟩
+  have hthird : 0 < m / 3 := div_pos hm0 (by norm_num)
+  -- disjoint open neighborhoods of `A` and `T`
+  set U : Set α := ⋃ a ∈ A, Metric.ball a (m / 3) with hUdef
+  set V : Set α := ⋃ t ∈ T, Metric.ball t (m / 3) with hVdef
+  have hUopen : IsOpen U := isOpen_iUnion fun a => isOpen_iUnion fun _ => Metric.isOpen_ball
+  have hVopen : IsOpen V := isOpen_iUnion fun t => isOpen_iUnion fun _ => Metric.isOpen_ball
+  have hUV : U ∩ V = ∅ := by
+    by_contra h
+    obtain ⟨x, hx⟩ := Set.nonempty_iff_ne_empty.mpr h
+    have hxA : x ∈ U := hx.1
+    have hxV : x ∈ V := hx.2
+    obtain ⟨a, ha, hax⟩ : ∃ a ∈ A, dist x a < m / 3 := by
+      simpa [hUdef, Metric.mem_ball] using hxA
+    obtain ⟨t, ht, htx⟩ : ∃ t ∈ T, dist x t < m / 3 := by
+      simpa [hVdef, Metric.mem_ball] using hxV
+    have hlt : dist a t < m / 3 + m / 3 :=
+      lt_of_le_of_lt (dist_triangle a x t) (by
+        rw [dist_comm a x]
+        exact add_lt_add hax htx)
+    have hle : m ≤ dist a t := hmdist a ha t ht
+    linarith
+  -- ω is inside `U ∪ V`
+  have hcovUV : omegaLimit atTop ϕ {x₀} ⊆ U ∪ V := by
+    intro x hx
+    rcases hcov hx with hxA | hxT
+    · exact Or.inl (Set.mem_iUnion₂.mpr ⟨x, hxA, Metric.mem_ball_self hthird⟩)
+    · exact Or.inr (Set.mem_iUnion₂.mpr ⟨x, hxT, Metric.mem_ball_self hthird⟩)
+  -- hence some forward-tail closure is inside `U ∪ V`
+  obtain ⟨T₀, hT₀⟩ : ∃ T₀ : ℝ≥0, closure (Set.image2 ϕ {t | T₀ ≤ t} {x₀}) ⊆ U ∪ V := by
+    by_contra h
+    rw [not_exists] at h
+    set G : ℝ≥0 → Set α := (fun T₀ =>
+      Set.diff (closure (Set.image2 ϕ {t | T₀ ≤ t} {x₀})) (U ∪ V)) with hGdef
+    have hF : ∀ T₀ : ℝ≥0, (G T₀).Nonempty := by
+      intro T₀
+      obtain ⟨z, hz₁, hz₂⟩ := Set.not_subset.mp (h T₀)
+      exact ⟨z, hz₁, hz₂⟩
+    have hFin : ∀ u : Finset ℝ≥0,
+        (K ∩ ⋂ T ∈ u, G T).Nonempty := by
+      intro u
+      set T₀ : ℝ≥0 := u.sup id with hT₀def
+      have hT₀le : ∀ i ∈ u, i ≤ T₀ := fun i hi => Finset.le_sup (f := id) hi
+      obtain ⟨z, hzC, hzUV⟩ := hF T₀
+      refine ⟨z, htailsub T₀ hzC, ?_⟩
+      simp only [Set.mem_iInter]
+      intro i hi
+      exact ⟨closure_mono (Set.image2_subset
+        (fun t ht => le_trans (hT₀le i hi) ht) (fun _ h => h)) hzC, hzUV⟩
+    have hbig : (K ∩ ⋂ T : ℝ≥0, G T).Nonempty :=
+      hK.inter_iInter_nonempty G
+        (fun T₀ => IsClosed.sdiff isClosed_closure (hUopen.union hVopen)) hFin
+    obtain ⟨y, hyK, hy⟩ := hbig
+    have hyall : ∀ T₀ : ℝ≥0, y ∈ G T₀ := Set.mem_iInter.mp hy
+    have hyω : y ∈ omegaLimit atTop ϕ {x₀} := by
+      rw [hEq, Set.mem_iInter]
+      intro T₁
+      exact (hyall T₁).1
+    have hyUV : y ∈ U ∪ V := hcovUV hyω
+    exact (hyall 0).2 hyUV
+  -- the orbit visits `U` and then `V` at arbitrarily late times
+  obtain ⟨a₀, ha₀⟩ := hAne
+  obtain ⟨t₀, ht₀⟩ := hTne
+  obtain ⟨t₁, hge₁, ht₁U⟩ : ∃ t₁ : ℝ≥0, T₀ ≤ t₁ ∧ ϕ t₁ x₀ ∈ U := by
+    obtain ⟨y, hy, hdist⟩ :=
+      Metric.mem_closure_iff.mp (hωsub T₀ (hsubA ha₀)) (m / 3) hthird
+    obtain ⟨t₁, htail₁, x, hx, hyy⟩ := hy
+    rw [Set.mem_singleton_iff] at hx
+    subst x
+    subst y
+    rw [dist_comm] at hdist
+    exact ⟨t₁, htail₁, Set.mem_iUnion₂.mpr ⟨a₀, ha₀, hdist⟩⟩
+  obtain ⟨t₂, hge₂, ht₂V⟩ : ∃ t₂ : ℝ≥0, t₁ ≤ t₂ ∧ ϕ t₂ x₀ ∈ V := by
+    obtain ⟨y, hy, hdist⟩ :=
+      Metric.mem_closure_iff.mp (hωsub t₁ (hsubT ht₀)) (m / 3) hthird
+    obtain ⟨t₂, htail₂, x, hx, hyy⟩ := hy
+    rw [Set.mem_singleton_iff] at hx
+    subst x
+    subst y
+    rw [dist_comm] at hdist
+    exact ⟨t₂, htail₂, Set.mem_iUnion₂.mpr ⟨t₀, ht₀, hdist⟩⟩
+  -- a continuous segment of the orbit crosses from `U` into `V`
+  have hsub' : Set.Icc t₁ t₂ ⊆
+      (fun t : ℝ≥0 => ϕ t x₀) ⁻¹' U ∪ (fun t : ℝ≥0 => ϕ t x₀) ⁻¹' V := by
+    intro t ht
+    have hgeT : (T₀ : ℝ≥0) ≤ t := le_trans hge₁ ht.1
+    have hmem : ϕ t x₀ ∈ closure (Set.image2 ϕ {s | T₀ ≤ s} {x₀}) :=
+      subset_closure (Set.mem_image2_of_mem hgeT (Set.mem_singleton x₀))
+    rcases hT₀ hmem with hU | hV
+    · exact Or.inl (Set.mem_preimage.mpr hU)
+    · exact Or.inr (Set.mem_preimage.mpr hV)
+  have hn1 : (Set.Icc t₁ t₂ ∩ (fun t : ℝ≥0 => ϕ t x₀) ⁻¹' U).Nonempty := by
+    refine ⟨t₁, ?_⟩
+    exact ⟨⟨le_rfl, hge₂⟩, Set.mem_preimage.mpr ht₁U⟩
+  have hn2 : (Set.Icc t₁ t₂ ∩ (fun t : ℝ≥0 => ϕ t x₀) ⁻¹' V).Nonempty := by
+    refine ⟨t₂, ?_⟩
+    exact ⟨⟨hge₂, le_rfl⟩, Set.mem_preimage.mpr ht₂V⟩
+  have hconn : IsConnected (Set.Icc t₁ t₂) := isConnected_Icc hge₂
+  obtain ⟨t, -, htuv⟩ := hconn.isPreconnected _ _
+    (hcont.isOpen_preimage _ hUopen) (hcont.isOpen_preimage _ hVopen) hsub' hn1 hn2
+  have hUv : ϕ t x₀ ∈ U ∩ V :=
+    ⟨Set.mem_preimage.mp htuv.1, Set.mem_preimage.mp htuv.2⟩
+  rw [hUV] at hUv
+  exact hUv
+
+/-! ## Branch (4) of the residue is dead: ties cannot coexist with face points
+
+`omegaPoint_zeroSet_trichotomy`'s third disjunct is a *per-point* disjunction, so it permits a
+mixed ω-limit set — some points exactly on the `Pmax`-face, some exact ties.  The lemma below
+rules the mixture out and therefore pins the residue: whenever the third disjunct holds, **every**
+ω-point vanishes on `Pmax`, i.e. the `hface` hypothesis of
+`uniformLowerBound_offFace_of_zeroSet_eq` is available. -/
+
+/-- **Ties cannot mix with face points: the trichotomy's third disjunct forces `hface`.**
+
+Under the standing orbit hypotheses, if every ω-point either vanishes on all of `Pmax` or
+vanishes somewhere outside `Pmax` (the shape of the trichotomy's third disjunct), then in fact
+*every* ω-point vanishes on `Pmax`.
+
+Proof: the face points `A` and the tie witnesses `T` are closed subsets of ω (ω itself is closed),
+disjoint by `hmaxExact`, cover ω by the hypothesis, and `A` is nonempty because `wmax` lies in it.
+`not_disjoint_closed_cover_omegaLimit` (Cantor's intersection theorem applied to the closures of
+the forward tails of the orbit) says such a partition cannot exist unless `T` is empty. -/
+theorem hface_of_trichotomyThird
+    (N : Network S) (κ : N.RateConstants)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    {K : Set (Concentration S)} (hK : IsCompact K) (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    {Pmax : Finset S} {wmax : Concentration S}
+    (hmaxExact : ∀ z ∈ omegaLimit atTop ϕ {x₀}, (∀ s ∈ Pmax, z s = 0) →
+      ∀ s, z s = 0 ↔ s ∈ Pmax)
+    (hwmax : wmax ∈ omegaLimit atTop ϕ {x₀})
+    (hzeroMax : ∀ s, s ∈ Pmax ↔ wmax s = 0)
+    (hthird : ∀ z ∈ omegaLimit atTop ϕ {x₀},
+      (∀ s ∈ Pmax, z s = 0) ∨ (∃ t, t ∉ Pmax ∧ z t = 0)) :
+    ∀ z ∈ omegaLimit atTop ϕ {x₀}, ∀ s ∈ Pmax, z s = 0 := by
+  classical
+  by_contra h
+  push_neg at h
+  obtain ⟨z, hz, s, hsp, hzs⟩ := h
+  -- the tie witnesses form a nonempty set
+  have hTne : ∃ w, w ∈ omegaLimit atTop ϕ {x₀} ∧ ∃ t ∈ (Pmaxᶜ : Finset S), w t = 0 := by
+    rcases hthird z hz with hall | htie
+    · exact absurd (hall s hsp) hzs
+    · obtain ⟨t, htn, hz0⟩ := htie
+      exact ⟨z, hz, t, Finset.mem_compl.mpr htn, hz0⟩
+  -- closedness of the two defining sets, by induction on the relevant Finset
+  have hAfC : IsClosed {q : Concentration S | ∀ s ∈ Pmax, q s = 0} := by
+    refine Pmax.induction_on ?_ ?_
+    · have h0 : {q : Concentration S | ∀ s ∈ (∅ : Finset S), q s = 0} = Set.univ := by
+        ext q; simp
+      rw [h0]; exact isClosed_univ
+    · intro a F ha ih
+      have h1 : {q : Concentration S | ∀ s ∈ insert a F, q s = 0} =
+          {q | q a = 0} ∩ {q | ∀ s ∈ F, q s = 0} := by
+        ext q; simp [Finset.mem_insert]
+      rw [h1]
+      exact IsClosed.inter (isClosed_eq (continuous_apply a) continuous_const) ih
+  have hTfC : IsClosed {q : Concentration S | ∃ t ∈ (Pmaxᶜ : Finset S), q t = 0} := by
+    refine (Pmaxᶜ).induction_on ?_ ?_
+    · have h0 : {q : Concentration S | ∃ t ∈ (∅ : Finset S), q t = 0} = ∅ := by
+        ext q; simp
+      rw [h0]; exact isClosed_empty
+    · intro a F ha ih
+      have h1 : {q : Concentration S | ∃ t ∈ insert a F, q t = 0} =
+          {q | q a = 0} ∪ {q | ∃ t ∈ F, q t = 0} := by
+        ext q; simp [Finset.mem_insert]
+      rw [h1]
+      exact IsClosed.union (isClosed_eq (continuous_apply a) continuous_const) ih
+  -- the face points and the tie witnesses
+  set A : Set (Concentration S) :=
+    omegaLimit atTop ϕ {x₀} ∩ {q | ∀ s ∈ Pmax, q s = 0} with hAdef
+  set T : Set (Concentration S) :=
+    omegaLimit atTop ϕ {x₀} ∩ {q | ∃ t ∈ (Pmaxᶜ : Finset S), q t = 0} with hTdef
+  have hAc : IsClosed A := by
+    rw [hAdef]; exact IsClosed.inter (isClosed_omegaLimit atTop ϕ {x₀}) hAfC
+  have hTc : IsClosed T := by
+    rw [hTdef]; exact IsClosed.inter (isClosed_omegaLimit atTop ϕ {x₀}) hTfC
+  have hAs : A ⊆ omegaLimit atTop ϕ {x₀} := by
+    rw [hAdef]; exact Set.inter_subset_left
+  have hTs : T ⊆ omegaLimit atTop ϕ {x₀} := by
+    rw [hTdef]; exact Set.inter_subset_left
+  have hdisj : A ∩ T = ∅ := by
+    by_contra hne
+    obtain ⟨q, hq⟩ := Set.nonempty_iff_ne_empty.mpr hne
+    rw [hAdef] at hq
+    rw [hTdef] at hq
+    obtain ⟨hqω, hall⟩ := hq.1
+    obtain ⟨_, ⟨t, htn, hq0⟩⟩ := hq.2
+    exact (Finset.mem_compl.mp htn) ((hmaxExact q hqω hall t).1 hq0)
+  have hcov : omegaLimit atTop ϕ {x₀} ⊆ A ∪ T := by
+    intro q hq
+    rcases hthird q hq with hall | htie
+    · refine Or.inl ?_
+      rw [hAdef]; exact ⟨hq, hall⟩
+    · obtain ⟨t, htn, hq0⟩ := htie
+      refine Or.inr ?_
+      rw [hTdef]; exact ⟨hq, t, Finset.mem_compl.mpr htn, hq0⟩
+  have hAne : A.Nonempty := by
+    refine ⟨wmax, ?_⟩
+    rw [hAdef]
+    exact ⟨hwmax, fun u hu => (hzeroMax u).1 hu⟩
+  have hTne' : T.Nonempty := by
+    obtain ⟨w, hw, t, htm, hw0⟩ := hTne
+    refine ⟨w, ?_⟩
+    rw [hTdef]
+    exact ⟨hw, t, htm, hw0⟩
+  -- the orbit is a continuous map on time
+  have hcont : Continuous fun t : ℝ≥0 => ϕ t x₀ := by
+    have heq : (fun t : ℝ≥0 => ϕ t x₀) = fun t : ℝ≥0 => γ x₀ t := by
+      funext t; exact hϕγ x₀ t
+    rw [heq]
+    exact continuous_iff_continuousAt.mpr fun t =>
+      (hsol t t.coe_nonneg).continuousAt.comp NNReal.continuous_coe.continuousAt
+  exact not_disjoint_closed_cover_omegaLimit hcont hK hmaps hAc hTc hAs hTs hdisj hcov
+    hAne hTne'
 
 end Network
 end CRNT
