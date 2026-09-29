@@ -2,6 +2,7 @@ import CRNT.Dynamics.FaceCodimension
 import CRNT.Dynamics.SiphonDimensionDescent
 import CRNT.Dynamics.ToricBarrierTrapping
 import CRNT.Dynamics.SingleLinkageGAC
+import CRNT.Equilibria.ComplexBalanceStructure
 import CRNT.Equilibria.ComplexBalanced
 
 /-!
@@ -719,6 +720,73 @@ theorem omegaPoint_zeroSet_trichotomy
       · -- exact tie
         exact ⟨⟨s₀, hs₀P, hs₀z⟩, ⟨t₀, ht₀n, ht₀0⟩,
           le_antisymm (hzcard z hz) hge⟩
+
+/-! ## One consequence of the standing hypotheses that the trichotomy alone does not record
+
+`massActionVectorField_eq_zero_on_omegaLimit_of_hypotheses`: **every ω-point is an equilibrium**
+of the mass-action field.  LaSalle for the relative entropy (available from
+`hxs`/`hcb`/`hϕγ`/`hsol`/`hK`/`hmaps`) feeds
+`GACOmegaPositive.massActionVectorField_eq_zero_on_omegaLimit`, which covers boundary ω-points as
+well (their zero sets are siphons, so the face argument applies).
+
+Note that the *third* disjunct of `omegaPoint_zeroSet_trichotomy` (a strictly smaller carried
+critical siphon) is **not** refutable from `hzcard`: `hzcard` only says no ω-point's zero set is
+*larger* than `Pmax.card`, which is perfectly consistent with one being strictly smaller. -/
+
+/-- **Every ω-point is a stationary point of the mass-action vector field.**  Under exactly the
+orbit hypotheses of this module, together with a positive complex-balanced reference and the
+genuine solution property of the start orbit, relative entropy is constant on the ω-limit set and
+the boundary-face analysis of `CRNT.Dynamics.GACOmegaPositive` turns that constancy into
+`N.massActionVectorField κ z = 0` for *every* `z ∈ omegaLimit atTop ϕ {x₀}` — boundary points
+included. -/
+theorem massActionVectorField_eq_zero_on_omegaLimit_of_hypotheses
+    (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    {K : Set (Concentration S)} (hK : IsCompact K) (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    (hgenω : ∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      HasDerivAt (γ y) (N.massActionVectorField κ (γ y t)) t)
+    (hx₀ : x₀.Positive) :
+    ∀ z ∈ omegaLimit atTop ϕ {x₀}, N.massActionVectorField κ z = 0 := by
+  have hwr : N.WeaklyReversible := N.weaklyReversible_of_positive_complexBalanced κ hxs hcb
+  have hγ0 : ∀ x, γ x 0 = x := fun x => by simpa using (hϕγ x 0).symm
+  -- LaSalle for the relative entropy, re-derived here: the packaged
+  -- `GlobalAttractorTheorem.exists_relEntropy_const_on_omegaLimit` lives in a module that
+  -- imports this one, so it cannot be used below its own call site.
+  have hpos : ∀ t, 0 ≤ t → (γ x₀ t).Positive :=
+    N.genuineOrbit_pos κ (by rw [hγ0]; exact hx₀) hsol
+  have hd := fun (t : ℝ) (ht : 0 ≤ t) =>
+    relEntropy_hasDerivAt hxs (hpos t ht) (fun s => (hasDerivAt_pi.mp (hsol t ht)) s)
+  have hAnti : AntitoneOn (fun t => relEntropy xstar (γ x₀ t)) (Set.Ici 0) := by
+    refine antitoneOn_of_deriv_nonpos (convex_Ici 0)
+      (fun t ht => (hd t ht).continuousAt.continuousWithinAt) ?_ ?_
+    · intro t ht
+      rw [interior_Ici, Set.mem_Ioi] at ht
+      exact (hd t ht.le).differentiableAt.differentiableWithinAt
+    · intro t ht
+      rw [interior_Ici, Set.mem_Ioi] at ht
+      rw [(hd t ht.le).deriv]
+      exact dissipation_nonpos N κ (hpos t ht.le) hxs hcb
+  have hsubK : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆ K := by
+    rintro z ⟨t, -, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst x
+    exact hmaps t
+  have habs : ∃ v ∈ (atTop : Filter ℝ≥0), closure (Set.image2 ϕ v {x₀}) ⊆ K :=
+    ⟨Set.univ, univ_mem, (IsClosed.closure_subset_iff hK.isClosed).mpr hsubK⟩
+  have hmono : ∀ a b : ℝ≥0, a ≤ b →
+      relEntropy xstar (ϕ b x₀) ≤ relEntropy xstar (ϕ a x₀) := by
+    intro a b hab
+    rw [hϕγ, hϕγ]
+    exact hAnti (Set.mem_Ici.mpr a.coe_nonneg) (Set.mem_Ici.mpr b.coe_nonneg)
+      (by exact_mod_cast hab)
+  obtain ⟨c, -, -, hωc⟩ := Flow.laSalle ϕ (relEntropy_continuous hxs) x₀ hK habs hmono
+  exact N.massActionVectorField_eq_zero_on_omegaLimit hwr κ hxs hcb hγ0 hϕγ hK hmaps hgenω
+    hωnn hωc
 
 /-! ## The open residue is pinned: off-`Pmax` coordinates never approach zero
 
