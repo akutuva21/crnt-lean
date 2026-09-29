@@ -1476,8 +1476,9 @@ formula `K = (upper region) ∩ [0,M]ⁿ ∩ {V ≤ L}` is an **[INFERENCE]-reco
 separately; no source writes the formula.  The published three-species `K` of CNP §7 is an
 analogous but different box-and-cuts shape.
 
-**The remaining burden** is therefore exactly one interface, which the two lemmas below consume
-and assemble: a surface split of the open orthant whose upper side `Zupper` (i) contains `x₀`,
+**The remaining burden** is therefore exactly one interface, which the three lemmas below consume
+and assemble (and the C ⟹ B ⟹ A chain they form is machine-checked: `persistentFrom_of_upperRegion`,
+`orbit_stays_in_upperRegion`, `exists_positive_omegaPoint_of_upperRegion`): a surface split of the open orthant whose upper side `Zupper` (i) contains `x₀`,
 (ii) has a uniform coordinate floor `ε`, and (iii) is never left by the orbit (the orbit never
 meets `𝒵 = {x | x.Positive} \ (Zlow ∪ Zupper)` — non-crossing of Def. 4.6(iii)).  Note what is *not*
 consumed: the connectedness of `Zlow`/`Zupper` from line 586, and `V₀` — the connectivity that the
@@ -1522,6 +1523,59 @@ theorem orbit_stays_in_upperRegion {γ : ℝ → Concentration S}
   · exfalso
     exact Set.disjoint_left.mp hdisj (hz0 ⟨0, Set.mem_Ici.mpr (le_refl 0), rfl⟩) hx₀
   · exact hz1 ⟨t, ht, rfl⟩
+
+/-- **Layer C ⟹ Layer B: the surface interface yields the paper's §4 certificate.**
+
+Under the same surface hypotheses as the criterion below, but with non-crossing required of
+*every* genuine curve through `x₀` (region-level, the strength v3 line 598 claims), the paper's
+own object — `N.PersistentFrom κ x₀`, *verbatim* "compact forward invariant region
+`K_{x₀} ⊂ ℝⁿ_{>0}` such that `x₀ ∈ K_{x₀}`" — is constructed outright, with
+`K = closure Zupper ∩ {y | y.Nonnegative ∧ relEntropy xstar y ≤ relEntropy xstar x₀}`.  This
+machine-checks the C ⟹ B link of the three-layer transcription; the B ⟹ A direction is
+`persistentOrbit_of_persistentFrom` + `PersistentOrbit.omegaLimit_positive` (in-tree), and
+`persistentFrom_of_upperRegion` composed with them is `exists_positive_omegaPoint_of_upperRegion`
+specialised to region-level non-crossing. -/
+theorem persistentFrom_of_upperRegion (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {x₀ : Concentration S} (hx₀ : x₀.Positive)
+    {Zlow Zupper : Set (Concentration S)} {ε : ℝ} (hε : 0 < ε)
+    (hopenLow : IsOpen Zlow) (hopenUp : IsOpen Zupper) (hdisj : Disjoint Zlow Zupper)
+    (hsplit : ∀ Γ : ℝ → Concentration S, Γ 0 = x₀ →
+      (∀ t, 0 ≤ t → HasDerivAt Γ (N.massActionVectorField κ (Γ t)) t) →
+      ∀ t, 0 ≤ t → Γ t ∈ Zlow ∪ Zupper)
+    (hx₀Z : x₀ ∈ Zupper)
+    (hfloor : ∀ y ∈ Zupper, ∀ s, ε ≤ y s) :
+    N.PersistentFrom κ x₀ := by
+  have hFloorClosed : IsClosed {y : Concentration S | ∀ s, ε ≤ y s} := by
+    have hrw : {y : Concentration S | ∀ s, ε ≤ y s} = ⋂ s, {y | ε ≤ y s} := by
+      ext y; simp [Set.mem_iInter]
+    rw [hrw]
+    exact isClosed_iInter fun s => isClosed_le continuous_const (continuous_apply s)
+  have hfloorC : closure Zupper ⊆ {y | ∀ s, ε ≤ y s} :=
+    closure_minimal (fun y hy s => hfloor y hy s) hFloorClosed
+  set K : Set (Concentration S) :=
+    closure Zupper ∩ {y | y.Nonnegative ∧ relEntropy xstar y ≤ relEntropy xstar x₀} with hKdef
+  have hKcpt : IsCompact K := by
+    rw [hKdef]
+    exact (isCompact_relEntropy_sublevel hxs (relEntropy xstar x₀)).inter_left isClosed_closure
+  have hKpos : ∀ y ∈ K, Concentration.Positive y := by
+    intro y hy s
+    exact lt_of_lt_of_le hε (hfloorC hy.1 s)
+  refine ⟨K, hKcpt, hKpos, ?_⟩
+  intro Γ hΓ0 hΓd t ht
+  -- the genuine curve is positive and its relative entropy never rises
+  have hΓpos : ∀ u, 0 ≤ u → (Γ u).Positive :=
+    N.genuineOrbit_pos (Γ := Γ) κ (by rw [hΓ0]; exact hx₀) hΓd
+  have hle : ∀ u, 0 ≤ u → relEntropy xstar (Γ u) ≤ relEntropy xstar x₀ :=
+    fun u hu =>
+      (N.genuineOrbit_relEntropy_le (Γ := Γ) κ hxs hcb hΓpos hΓd u hu).trans_eq
+        (congrArg (relEntropy xstar) hΓ0)
+  -- non-crossing ⟹ the curve stays on the upper side (the §9.1 bridge)
+  have hstay : ∀ u, 0 ≤ u → Γ u ∈ Zupper :=
+    orbit_stays_in_upperRegion
+      (fun u hu => ((hΓd u hu).continuousAt).continuousWithinAt)
+      hopenLow hopenUp hdisj (hsplit Γ hΓ0 hΓd) (by rw [hΓ0]; exact hx₀Z)
+  exact ⟨subset_closure (hstay t ht), (hΓpos t ht).nonnegative, hle t ht⟩
 
 /-- **The Step-4 assembly, as a criterion: a floored, never-crossed upper region closes the goal.**
 
