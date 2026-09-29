@@ -42,10 +42,15 @@ def ExistsWalkOn (E : V → V → Prop) (S : Finset V) (a b : V) : Prop :=
   ∃ W : SimpleGraph.Walk (relationGraph E) a b, ∀ x ∈ W.support, x ∈ S
 
 /-- `v` separates `a` from `b` within `S`: the two are connected by an `E`-walk inside
-`S`, but only through `v`. -/
+`S`, but only through `v` — every walk that stays inside `S` (the walk universe of the
+subgraph itself, as in the paper's separations) visits `v`.  Quantifying only over walks
+keeping their vertices in `S` is essential: an ambient detour leaving `S` must not be
+counted as bypassing `v`, or separation would be too easy to evade and nonseparability
+too cheap to obtain. -/
 def SeparatesWithin (E : V → V → Prop) (S : Finset V) (v a b : V) : Prop :=
   a ≠ v ∧ b ≠ v ∧ ExistsWalkOn E S a b ∧
-    ∀ W : SimpleGraph.Walk (relationGraph E) a b, v ∈ W.support
+    ∀ W : SimpleGraph.Walk (relationGraph E) a b, (∀ x ∈ W.support, x ∈ S) →
+      v ∈ W.support
 
 /-- `v` is a separating vertex of the graph induced by `S`: some two vertices of `S`
 other than `v` are connected inside `S`, but every such walk passes through `v`
@@ -89,7 +94,11 @@ theorem not_isSeparatingVertexOn_of_card_le_two {E : V → V → Prop} [Decidabl
   rw [← hab] at hsep
   have hnil : v ∈
       (SimpleGraph.Walk.nil : SimpleGraph.Walk (relationGraph E) a a).support :=
-    hsep SimpleGraph.Walk.nil
+    hsep SimpleGraph.Walk.nil (by
+      intro x hx
+      simp only [SimpleGraph.Walk.support, List.mem_cons, List.not_mem_nil, or_false] at hx
+      rw [hx]
+      exact ha)
   simp only [SimpleGraph.Walk.support] at hnil
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hnil
   exact absurd hnil (Ne.symm hav)
