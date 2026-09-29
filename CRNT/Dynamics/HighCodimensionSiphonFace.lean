@@ -1436,5 +1436,159 @@ theorem hface_of_trichotomyThird
   exact not_disjoint_closed_cover_omegaLimit hcont hK hmaps hAc hTc hAs hTs hdisj hcov
     hAne hTne'
 
+/-! ## The topological route stops here: a species split always has a bridging ω-point
+
+Branch (I) of the residue — some ω-point carries a strictly smaller critical siphon — was the
+next candidate for the two-closed-sets technology that eliminated branch (4)
+(`hface_of_trichotomyThird`): split the species set into two parts, partition ω by *which side
+its points' zeros live on*, and contradict connectedness.  The two lemmas below record the exact
+boundary of that attack: **it cannot fire.**  Whenever both sides of a species partition
+`I ∪ J = univ` are visited by zeros of ω-points (and no positive ω-point exists, so every
+ω-point has a zero), some ω-point vanishes on *both* sides at once — the candidate sets
+`{q | ∃ s ∈ I, q s = 0}` and `{q | ∃ t ∈ J, q t = 0}` are then nonempty, closed, and *not*
+disjoint, so `not_disjoint_closed_cover_omegaLimit` returns no contradiction.  The mixed
+zero-set configuration of branch (I) is connected through a straddling point, not separable.
+
+`exists_omegaPoint_vanishing_across_siphon` is the face-shaped specialization: a carried siphon
+`P` whose complement still holds an ω-point zero is straddled by an ω-point vanishing both inside
+`P` and outside it.  Under branch (I) with `P` the cardinality-minimal carried critical siphon
+(`exists_cardMinimal_carried_siphon_lt` in `CRNT.Dynamics.SiphonDimensionDescent`), the complement
+condition is met by `wmax` itself, since `P.card < Pmax.card` forces `Pmax ⊄ P`
+[INFERENCE: the one-line Finset argument, not machine-checked here].
+
+So the connectedness method that killed branch (4) does not extend to branch (I); excluding (I)
+needs genuinely dynamical input — and the descent-iteration route has its own machine-checked
+wall in `CRNT.Dynamics.SiphonDimensionDescent`
+(`descendStep_iff_omegaPointPositive_of_cardMinimal`: at the bottom of the iteration the descent
+step *is* this theorem's conclusion). -/
+
+/-- **A species partition that is used on both sides is straddled by an ω-point.**  Under the
+orbit hypotheses of `hface_of_trichotomyThird` and the absence of a positive ω-point, for any
+`I ∪ J = univ` whose two sides are both hit by zeros of ω-points, some single ω-point vanishes
+at a member of `I` *and* at a member of `J`. -/
+theorem exists_omegaPoint_vanishing_on_both_sides
+    (N : Network S) (κ : N.RateConstants)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    {K : Set (Concentration S)} (hK : IsCompact K) (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    (hnoG : ¬ ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive)
+    {I J : Finset S} (hIJ : I ∪ J = Finset.univ)
+    (hI : ∃ z ∈ omegaLimit atTop ϕ {x₀}, ∃ s ∈ I, z s = 0)
+    (hJ : ∃ z ∈ omegaLimit atTop ϕ {x₀}, ∃ t ∈ J, z t = 0) :
+    ∃ z ∈ omegaLimit atTop ϕ {x₀}, ∃ s ∈ I, ∃ t ∈ J, z s = 0 ∧ z t = 0 := by
+  classical
+  by_contra hc
+  -- no ω-point straddles the two sides
+  have hnoCross : ∀ z ∈ omegaLimit atTop ϕ {x₀}, ∀ s ∈ I, ∀ t ∈ J,
+      ¬ (z s = 0 ∧ z t = 0) := by
+    intro z hz s hsI t htJ hzst
+    exact hc ⟨z, hz, s, hsI, t, htJ, hzst⟩
+  -- closedness of the two candidate sets, by induction on the relevant Finset
+  have hIfC : IsClosed {q : Concentration S | ∃ s ∈ I, q s = 0} := by
+    refine I.induction_on ?_ ?_
+    · have h0 : {q : Concentration S | ∃ s ∈ (∅ : Finset S), q s = 0} = ∅ := by
+        ext q; simp
+      rw [h0]; exact isClosed_empty
+    · intro a F ha ih
+      have h1 : {q : Concentration S | ∃ s ∈ insert a F, q s = 0} =
+          {q | q a = 0} ∪ {q | ∃ s ∈ F, q s = 0} := by
+        ext q; simp [Finset.mem_insert]
+      rw [h1]
+      exact IsClosed.union (isClosed_eq (continuous_apply a) continuous_const) ih
+  have hJfC : IsClosed {q : Concentration S | ∃ t ∈ J, q t = 0} := by
+    refine J.induction_on ?_ ?_
+    · have h0 : {q : Concentration S | ∃ t ∈ (∅ : Finset S), q t = 0} = ∅ := by
+        ext q; simp
+      rw [h0]; exact isClosed_empty
+    · intro a F ha ih
+      have h1 : {q : Concentration S | ∃ t ∈ insert a F, q t = 0} =
+          {q | q a = 0} ∪ {q | ∃ t ∈ F, q t = 0} := by
+        ext q; simp [Finset.mem_insert]
+      rw [h1]
+      exact IsClosed.union (isClosed_eq (continuous_apply a) continuous_const) ih
+  -- the two candidate subsets of ω
+  set A : Set (Concentration S) :=
+    omegaLimit atTop ϕ {x₀} ∩ {q | ∃ s ∈ I, q s = 0} with hAdef
+  set T : Set (Concentration S) :=
+    omegaLimit atTop ϕ {x₀} ∩ {q | ∃ t ∈ J, q t = 0} with hTdef
+  have hAc : IsClosed A := by
+    rw [hAdef]; exact IsClosed.inter (isClosed_omegaLimit atTop ϕ {x₀}) hIfC
+  have hTc : IsClosed T := by
+    rw [hTdef]; exact IsClosed.inter (isClosed_omegaLimit atTop ϕ {x₀}) hJfC
+  have hAs : A ⊆ omegaLimit atTop ϕ {x₀} := by
+    rw [hAdef]; exact Set.inter_subset_left
+  have hTs : T ⊆ omegaLimit atTop ϕ {x₀} := by
+    rw [hTdef]; exact Set.inter_subset_left
+  have hdisj : A ∩ T = ∅ := by
+    by_contra hne
+    obtain ⟨q, hq⟩ := Set.nonempty_iff_ne_empty.mpr hne
+    rw [hAdef] at hq
+    rw [hTdef] at hq
+    obtain ⟨hqω, ⟨s, hsI, hqs⟩⟩ := hq.1
+    obtain ⟨_, ⟨t, htJ, hqt⟩⟩ := hq.2
+    exact hnoCross q hqω s hsI t htJ ⟨hqs, hqt⟩
+  have hcov : omegaLimit atTop ϕ {x₀} ⊆ A ∪ T := by
+    intro z hz
+    have hznpos : ¬ z.Positive := fun h => hnoG ⟨z, hz, h⟩
+    obtain ⟨s, hs⟩ : ∃ s, ¬ 0 < z s := not_forall.mp hznpos
+    have hz0 : z s = 0 := le_antisymm (not_lt.mp hs) (hωnn z hz s)
+    have hsu : s ∈ I ∪ J := by rw [hIJ]; exact Finset.mem_univ s
+    rcases Finset.mem_union.mp hsu with hI' | hJ'
+    · refine Or.inl ?_
+      rw [hAdef]; exact ⟨hz, s, hI', hz0⟩
+    · refine Or.inr ?_
+      rw [hTdef]; exact ⟨hz, s, hJ', hz0⟩
+  have hAne : A.Nonempty := by
+    obtain ⟨z, hz, s, hsI, hz0⟩ := hI
+    refine ⟨z, ?_⟩
+    rw [hAdef]; exact ⟨hz, s, hsI, hz0⟩
+  have hTne : T.Nonempty := by
+    obtain ⟨z, hz, t, htJ, hz0⟩ := hJ
+    refine ⟨z, ?_⟩
+    rw [hTdef]; exact ⟨hz, t, htJ, hz0⟩
+  -- the orbit is a continuous map on time
+  have hcont : Continuous fun t : ℝ≥0 => ϕ t x₀ := by
+    have heq : (fun t : ℝ≥0 => ϕ t x₀) = fun t : ℝ≥0 => γ x₀ t := by
+      funext t; exact hϕγ x₀ t
+    rw [heq]
+    exact continuous_iff_continuousAt.mpr fun t =>
+      (hsol t t.coe_nonneg).continuousAt.comp NNReal.continuous_coe.continuousAt
+  exact not_disjoint_closed_cover_omegaLimit hcont hK hmaps hAc hTc hAs hTs hdisj hcov
+    hAne hTne
+
+/-- **A carried siphon whose complement still holds an ω-point zero is straddled by an
+ω-point.**  Specialization of `exists_omegaPoint_vanishing_on_both_sides` to the face split
+`I = P`, `J = Pᶜ`: some ω-point vanishes at a species of the carried siphon `P` and at a species
+outside it. -/
+theorem exists_omegaPoint_vanishing_across_siphon
+    (N : Network S) (κ : N.RateConstants)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    {K : Set (Concentration S)} (hK : IsCompact K) (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    (hnoG : ¬ ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive)
+    {P : Finset S} (hPne : P.Nonempty)
+    (hcarr : N.SiphonCarried ϕ x₀ P)
+    (hout : ∃ w ∈ omegaLimit atTop ϕ {x₀}, ∃ t ∉ P, w t = 0) :
+    ∃ z ∈ omegaLimit atTop ϕ {x₀}, ∃ s ∈ P, ∃ t ∉ P, z s = 0 ∧ z t = 0 := by
+  obtain ⟨w, hw, hPw⟩ := hcarr
+  obtain ⟨s, hsP⟩ := hPne
+  have hI : ∃ z ∈ omegaLimit atTop ϕ {x₀}, ∃ s ∈ P, z s = 0 :=
+    ⟨w, hw, s, hsP, (hPw s).mp hsP⟩
+  obtain ⟨u, hu, t, htn, hu0⟩ := hout
+  have hJ : ∃ z ∈ omegaLimit atTop ϕ {x₀}, ∃ t ∈ (Pᶜ : Finset S), z t = 0 :=
+    ⟨u, hu, t, Finset.mem_compl.mpr htn, hu0⟩
+  have hIJ : P ∪ (Pᶜ : Finset S) = Finset.univ := by
+    ext x
+    simp
+  obtain ⟨z, hz, s', hs', t', ht', hz0s, hz0t⟩ :=
+    N.exists_omegaPoint_vanishing_on_both_sides κ hϕγ hsol hK hmaps hωnn hnoG hIJ hI hJ
+  exact ⟨z, hz, s', hs', t', Finset.mem_compl.mp ht', hz0s, hz0t⟩
+
 end Network
 end CRNT
