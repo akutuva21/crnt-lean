@@ -1,0 +1,147 @@
+# CRNT-Lean proof swarm — charter
+
+**Branch of record:** `holes` (the swarm branches from `research/swarm`, itself a child of `holes`).
+**Objective (single scalar, lexicographic):** drive `research/scripts/measure.py` to `holes = 0`.
+
+There are exactly **two** executable `sorry`s left in the whole `CRNT/` tree:
+
+| id | site | theorem | mathematical content |
+| --- | --- | --- | --- |
+| **A** | `CRNT/Dynamics/HighCodimensionSiphonFace.lean:135` | `Network.exists_positive_omegaPoint_of_highCodimension_siphonFace` | Craciun v3, Theorem B: a toric differential inclusion over a complete pointed fan admits an exhaustive family of zero-separating hypersurfaces. Blocks the Global Attractor Conjecture. |
+| **B** | `CRNT/Multistationarity/TrueChemistrySRCriterion.lean:8607` | `Network.stronglyConcordant_fullyOpen_of_trueSRCriterion` | Classical SR graph criterion: reactant/product-separated + every e-cycle an s-cycle + no two e-cycles share an S-to-R intersection ⟹ the fully open extension is strongly concordant. Blocks the multistationarity package. |
+
+Everything else in the tree is `sorry`-free and audits to `[propext, Classical.choice, Quot.sound]`.
+
+---
+
+## 1. The autoresearch formulation
+
+This swarm is modelled on Karpathy's *autoresearch* loop, transplanted to Lean.
+
+1. **One frozen metric.** `research/scripts/measure.py`. Nobody argues about whether progress was
+   made; they move the number or they did not.
+2. **Many independent trials.** 30 researchers, each owning a disjoint slice of the search space,
+   each free to attack it however they judge best.
+3. **Keep the improvements, kill the rest.** Every round the orchestrator scores all
+   researchers, culls the bottom 30%, and re-seeds with fresh ones. Dead ends are not failures of
+   effort; they are the measurement working.
+4. **Persistent individuals.** A researcher that finds something real keeps its identity, its
+   branch, its worktree, and its accumulated notes across rounds. Continuity beats amnesia.
+5. **No self-congratulation.** A lemma that compiles is worth less than a lemma that *closes a
+   route step*. A route document nobody can act on is worth nothing. Scoring is done by the
+   orchestrator from the tree, not by the researcher from its own optimism.
+
+## 2. Tier hierarchy
+
+The swarm is organised as four tiers with a strict information flow downward. Every tier exists
+because a lower tier cannot be done well without it.
+
+### Tier A — Route Architects (`arch-*`)
+
+Own **the mathematics**. Read Craciun v3 / Shinar–Feinberg / Craciun–Fiebig–Singleton / the SR-graph
+literature and the existing Lean modules, and decide *what is actually true and sufficient* to
+close A or B. Their output is a **route document** in `research/routes/<name>.md` containing:
+
+* a numbered list of the exact intermediate statements, in Lean signature form;
+* for each, the mathematical proof sketch with the citation it comes from;
+* the dependency order (what must be proved before what);
+* an explicit statement of what is *false* or dead, so nobody re-walks it.
+
+Tier A may write Lean, but only to test whether a signature elaborates. Their score is dominated by
+whether Tier B can actually execute their route.
+
+### Tier B — Formalization Engineers (`form-*`)
+
+Own **the proofs**. Given a Tier A route, they machine-check the individual steps, one to a few
+per researcher, in their own worktree. They may also originate small lemmas and promote them into
+routes. Output is committed Lean that elaborates.
+
+### Tier C — Infrastructure & Scaffolding (`infra-*`)
+
+Own **the ground floor**: Mathlib API gaps (there is no polytope/face-lattice/normal-fan API in
+Mathlib — this is the single largest infrastructural blocker for Hole A), the `Scaffold/` CRNT
+expansion, build/audit tooling, and paper transcription into `research/papers/`. Tier B depends on
+Tier C existing; Tier A depends on Tier C for references.
+
+### Tier D — Adversaries & Verifiers (`adv-*`)
+
+Own **honesty**. This is frontier mathematics that has never been formalized, and the dominant
+failure mode of an LLM swarm is to produce a beautiful, elaborating, meaningless proof of something
+false, or to quietly weaken a hypothesis to make a goal reachable. Adversaries:
+
+* try to **refute** each hole statement and each intermediate lemma, with exact computations and
+  small models where possible;
+* audit every merged PR for statement-faithfulness (does the proved statement still mean the
+  intended one?), for hypothesis-weakening, and for `axiom`/`admit`/`native_decide` abuse;
+* verify `#print axioms` on the real declarations;
+* maintain the negative-results ledger so dead routes are not re-tried.
+
+A swarm without adversaries converges on self-deception within two rounds.
+
+## 3. Hard rules
+
+* **Never** introduce `axiom`, `admit`, `@[implemented_by]`, `native_decide` over non-`Decidable`
+  data, or `sorry` anywhere in `CRNT/` or `Scaffold/`. Two exceptions only, both pre-existing and
+  both tracked: the two holes themselves, and `test/` probes.
+* **Never** change a theorem's *statement* to make it provable without writing, in the same commit
+  message, a mathematical justification and a check that the change is faithful. This happened
+  before in this repo (`stronglyConcordant_of_fullyOpen_of_weaklyNormal` was **false as stated**
+  and was repaired by adding `hsep`); it is acceptable when documented, and unacceptable when silent.
+* **Never** weaken a hypothesis of a hole statement. The two hole statements are fixed. If you
+  believe a hole statement is false, that is a Tier D finding, and it must be *proved* (a Lean
+  counterexample or exact-rational computation), not argued.
+* **Never** run a full `lake build`. Use `research/scripts/checkmod.sh`. The shared build cache
+  belongs to the orchestrator; a full build from a researcher destroys the round for everyone.
+* **Never** touch another researcher's worktree or branch.
+* **Never** merge a PR. Opening and force-pushing is allowed; merging is the human's.
+
+## 4. Work protocol
+
+Each researcher owns:
+
+* a **branch** `research/<agent-name>` off `research/swarm`,
+* a **worktree** at `/Users/akutuva/Documents/Proofs/crnt-wt/<agent-name>`,
+* at most **one PR** into `akutuva21/crnt-lean`, force-pushed as it accumulates.
+
+Setup (orchestrator does this once; agents do not re-create worktrees):
+
+```sh
+research/scripts/newagent.sh <agent-name>     # branch + worktree + .lake/packages symlink
+```
+
+Checking your work:
+
+```sh
+cd /Users/akutuva/Documents/Proofs/crnt-wt/<agent-name>
+research/scripts/checkmod.sh CRNT/Geometry/YourModule.lean
+```
+
+Committing and publishing:
+
+```sh
+git add -A && git commit -m "..." 
+git push -f origin research/<agent-name>
+gh pr create --fill --base holes --head research/<agent-name> || gh pr edit --head research/<agent-name>
+```
+
+## 5. Scoring
+
+The orchestrator computes each researcher's round score from the tree, not from their report.
+
+| event | points |
+| --- | --- |
+| a `sorry` in `CRNT/` eliminated and the enclosing module still elaborates | **+100** |
+| the whole tree reaches `holes = 0` | **+1000** (split across contributors) |
+| a new machine-checked lemma on an identified route, elaborating, used downstream | **+25** |
+| a new machine-checked lemma on an identified route, elaborating | **+10** |
+| a new `Scaffold/`/`CRNT/` module that others can consume, elaborating | **+8** |
+| a route document with signatures + citations + dead-end list that survives adversary review | **+12** |
+| a machine-checked **refutation** that kills a route or a statement | **+30** |
+| a proved lemma that another researcher's PR builds on | **+15** |
+| no commit this round | **0** |
+| introduced `sorry`/`axiom`/`admit` outside the two holes | **−60** |
+| broke a static gate | **−60** |
+| weakened a hole statement's hypotheses silently | **−200** |
+| statement provable only via a false step / vacuous hypothesis (caught by audit) | **−200** |
+
+Bottom 30% of the field is retired at the end of each round and re-seeded.
