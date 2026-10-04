@@ -124,6 +124,36 @@ import closure that nothing in that file mentions**, including `ComplexBalanceSt
 machinery — it is short of a statement that the machinery can prove.** That is the round's real
 finding and the right thing to hand round 2.
 
+### Hole A — FINAL STATE (round 1 close)
+
+**One theorem retires the family (A-28, ledger H-4).**
+`Network.universalPositive_omegaLimit_of_closedPositiveConfine (hKc : IsClosed K)
+(hKpos : ∀ y ∈ K, y.Positive) (hv : v ∈ atTop) (hvK : closure (Set.image2 ϕ v {x₀}) ⊆ K) :
+∀ y ∈ omegaLimit atTop ϕ {x₀}, y.Positive` — `sorryAx`-free, **no floor, no `ε`, no CRNT
+structure**. It yields the **universal** form, which is exactly the negation of the permission the
+hole's hypotheses grant (a boundary ω-point).
+
+**Citation rule: cite `A-28`, not `Permanent`.** `Permanent` is a hypothesis the hole never
+assumes, so it cannot be what refutes it; it is merely one way of discharging the template's
+hypotheses. My §3h and `H-3` used `Permanent`-centric phrasing — **conclusions stand, framing
+superseded.**
+
+| route | verdict |
+| --- | --- |
+| `hm`, `hstart`, `hface`, `hcore` | **DEAD TWICE** — refuted by the family (**H-4**), **and vacuous anyway: `m := 0` satisfies `hm`**, since `faceRelevantCore` is a closed submodule containing `0` (**A-25** / **H-5**) |
+| every packaged criterion (`_of_upperRegion`, `_of_blueprintData`, `_selfConsistent_normals`, `_of_convex_tiles`, `_of_tiled_faceCores`, `_of_faceRelevantCore`, `_of_toric_blueprint`, `_of_toric_halfspace`, anything through `PersistentFrom`) | **DEAD**, one structural reason |
+| the fan (`ComplexBalanceStoichFan`, 20 decls) and its inclusion (38 decls) | **real infrastructure, no live consumer** — in the transitive closure, unused in the file body, and `A-28` makes any module discharging orbit-confinement via a closed positive set unreachable here (**H-6**) |
+| `hm` as "the substantive lemma" — **as this checklist and the ledger said for three rounds of edits** | **withdrawn.** It was the substantive lemma *if the route worked*; it does not, and it was vacuous. |
+
+**The residue is one unproved dynamical estimate:** `ComparableGrowthDescent.descend`
+(`SiphonDimensionDescent.lean:125-132`) — the right disjunct is the analytic estimate the file
+flags as blocked at `:531-534`, with `eq_zero_on_pmax_of_conservation_eq` (`:569`) the missing half.
+Hole A is a **three-line wrapper** over it via `omegaLimit_positive_of_boundary_point` (`:159`),
+which takes the hole's hypotheses *minus* all the `Pmax` data. Note `comparableGrowthDescent_iff_omegaPointPositive`
+(`:368`) makes the structure **the goal renamed**, so the descent must be *entered*, not assumed.
+
+**Hole B is the only live hole.**
+
 **Scoring warning for round 2 (`A-18`).** The danger now is landing a **goal-equivalent** theorem
 and the metric reading it as progress. `measure.py` counts `sorry`s and is honest, but the round
 score must apply the **−200 "provable only via a vacuous or goal-equivalent step"** penalty

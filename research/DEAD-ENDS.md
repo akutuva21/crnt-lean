@@ -2034,6 +2034,65 @@ universal form.**
   `checkmod.sh` on `UpperRegionFloorRefutation.lean` myself. Before building on it, confirm it
   elaborates and that `#print axioms` is `[propext, Classical.choice, Quot.sound]` as claimed.
 
+### H-4. `A-28` — ONE template retires the family, and it does **not** mention `Permanent` **[M]**
+
+* **Hole:** A. **found-by:** `infra-scaffold-crnt`, round 1 · **supersedes `3h`'s framing.**
+* ```lean
+  CRNT.Network.universalPositive_omegaLimit_of_closedPositiveConfine
+    (hKc : IsClosed K) (hKpos : ∀ y ∈ K, y.Positive) (hv : v ∈ atTop)
+    (hvK : closure (Set.image2 ϕ v {x₀}) ⊆ K) : ∀ y ∈ omegaLimit atTop ϕ {x₀}, y.Positive
+  ```
+  **`sorryAx`-free. No floor, no `ε`, no concentration structure, no reaction network** — a bare
+  set-theoretic condition.
+* **Why it settles everything at once:** the hole asks for `∃ p ∈ ω, p.Positive` **while
+  permitting** a boundary ω-point. This yields the **universal** form — exactly the negation of
+  that permission. So `Permanent`, `exists_positive_omegaPoint_of_upperRegion`,
+  `not_persistentFrom_of_mem_omegaLimit_notPositive` and the whole `hsep` family die for **one
+  structural reason, not four**.
+* **Citation rule — and it changes how you read `3h` and `H-3`: `Permanent` citations are
+  RETIRED, not reconciled.** `Permanent` is a hypothesis the hole never assumes, so it cannot be
+  what refutes it; it is merely one way of discharging this template's hypotheses. **Cite `A-28`,
+  not `Permanent`.** My `3h` and `H-3` used `Permanent`-centric phrasing — the *conclusions*
+  stand, the *framing* is superseded. (`papers-craciun` raised this and was right.)
+* **Consolidation (orchestrator decision 1):** four independent copies of one `False`-level
+  theorem existed. `infra-scaffold-crnt` owns it and keeps the name and file, because its
+  factoring separates the bare mechanism from the CRNT-level `False`; the other three reduce to
+  one-line corollaries. **Not duplication — keep:** `comparableGrowthDescent_is_not_a_weaker_route`
+  (`adv-audit`; removes the last fallback the hole's own docstring names at `:167-171`) and
+  `blueprintData_inconsistent_with_highCodimension` +
+  `no_uniform_floor_along_orbit_of_boundaryOmegaPoint` (`form-barrier`; a larger claim that
+  kills the whole ladder, plus a distinct barrier-free lemma).
+* **This is the right shape for a negative result** and the standard the `[M]` grade should mark:
+  a reusable lemma with no CRNT structure, plus the one-line argument that retires a family.
+
+### H-5. `A-25` — `hm` was vacuous anyway: `m := 0` satisfies it **[V]**
+
+* **Hole:** A. **found-by:** orchestrator, round 1 (reporting `A-25`) · **revive-when:** never.
+* `#R-7` item 2 — and my `F-3` and `3g` — named `hm` as **the substantive lemma** of the branch-A
+  route: find `m` in *every* cone within `δ + B` of `faceDirectionCone Pmax`, surviving the
+  thickening. **`m := 0` satisfies it**, because `faceRelevantCore` is a **closed submodule
+  containing `0`**.
+* **So the "real content" I named was not content.** For `hm` to bite, the criterion's other
+  hypotheses must exclude `m = 0` — and by `H-4` they cannot be supplied anyway.
+* **Consequence:** `hm`, `hstart`, `hface`, `hcore` are not merely dead-by-refutation, they are
+  **dead-by-vacuity**. Two independent reasons is the right way for a route to die.
+
+### H-6. `A-27` correction, read with `A-30` — "unused" ≠ "unavailable" **[V]**
+
+* **Hole:** A. **found-by:** orchestrator, round 1 (correcting its own `A-27`).
+* The fan (`ComplexBalanceStoichFan`, 20 decls) and its inclusion
+  (`ComplexBalanceStoichFanInclusion`, 38 decls) are in the hole's **transitive closure** — via
+  `ToricBarrierTrapping → FanFaceLattice → ComplexBalanceStoichFanInclusion →
+  ComplexBalanceStoichFan` — and unused only in the **file body**.
+* **But by `A-28` (`H-4`), any module that discharges orbit-confinement via a closed positive
+  set is unreachable here**, and those are exactly that. **Real infrastructure, no live consumer.**
+* **So `A-27`'s table of 151 "available but unused" modules overstated what was actionable.**
+  Read it with `A-30`: the two columns are *in the closure* and *has a live consumer*, and the
+  second is mostly empty. `FormFanfaceCore` is right that "unused" ≠ "unavailable";
+  `papers-craciun` is right that the table overstates actionability. **Both, in that order.**
+* **The round's real finding, in one line:** the tree is not short of machinery — it is short of
+  a statement that the machinery can prove.
+
 ## 4. Maintenance protocol — how to keep this file alive
 
 > **This section is load-bearing.** Twenty stale progress documents is itself a failure mode of
@@ -2135,22 +2194,38 @@ TrueSRChordExtraction,TrueSRReactionInteriorPath,TrueSRDegreeTwoNoSToR,TrueSRSSG
 TrueSRMinimalChord,TrueSRCPairThirdEdge,InfluenceConcordance,ReducedSRGraph,PivotReducedInjectivity}.lean`,
 `CRNT/Graph/SourceBlocks.lean`, and the `+`-annotated commits `e76e8c3 f245e05 a96ec97 76b3f03
 8542230 dbe5657 f323a04 f626003 6a5b4ca be62655 35fb756 6474732 35fb756 96432b5 de87c5c`.
-**On verification — read this before trusting any [M] grade below.** Line numbers and declaration
-names in this file were re-derived directly from the `holes` checkout by `grep`/`read`, not copied
-from a prior agent's report. The **grades themselves are inherited from the source that recorded
-the finding**: an [M] entry asserts that a Lean declaration exists in the tree proving the failure,
-and every such declaration was located and named here. What I did **not** do is re-elaborate the
-carrying modules. A `research/scripts/checkmod.sh` pass on eight of them returned:
-`CRNT/Examples/GACBlueprintPremiseCounterexamples.lean` and
-`CRNT/Geometry/ConvexBarrierObstruction.lean` **elaborate**; the other six
-(`CodimTwoFaceModel`, `OmegaPointFakeFlow`, `WeakReversibleWallObstruction`,
-`TrueSRCausalCycleFacts`, `TrueSRSSGlueCPairs`, `TrueSRDegreeTwoNoSToR`) **failed for an
-environmental reason only** — their dependency `.olean`s are absent from this worktree's search
-path (`error: object file '…/HighCodimensionSiphonFace.olean' … does not exist`), not because of
-any diagnostic in the module itself. Those six carry no fresh dependency builds, so their failure
-is not evidence about them either way.
+**On verification — read this before trusting any [M] grade.** Line numbers and declaration names
+in this file were re-derived directly from the `holes` checkout by `grep`/`read`, not copied from
+a prior agent's report.
 
-**So: the [M] grades rest on located declarations in a tree that is known to compile, not on a
-check I ran.** That is the honest statement, and it is exactly the distinction `#P1` is about. If
-you intend to build on an [M] entry, run `checkmod.sh` on its module first — from a worktree whose
-dependency oleans are present. **Do not upgrade a grade on the strength of this paragraph.**
+**All eight modules carrying the [M] declarations cited here now elaborate**, verified by me
+against `research/infra-build`'s fixed `checkmod.sh` (shared root first, `lean` called directly):
+
+```sh
+bash research/scripts/checkmod.sh --quiet \
+  CRNT/Examples/CodimTwoFaceModel.lean CRNT/Examples/OmegaPointFakeFlow.lean \
+  CRNT/Geometry/WeakReversibleWallObstruction.lean \
+  CRNT/Multistationarity/TrueSRCausalCycleFacts.lean \
+  CRNT/Multistationarity/TrueSRSSGlueCPairs.lean \
+  CRNT/Multistationarity/TrueSRDegreeTwoNoSToR.lean
+# EXIT=0
+```
+(`GACBlueprintPremiseCounterexamples.lean` and `ConvexBarrierObstruction.lean` passed on the first
+attempt, being Mathlib-only.) **So the [M] grades now rest on both a located declaration and a
+module that elaborates.**
+
+**The first attempt recorded six of these as failing, and it was the script's fault, not the
+modules'.** `lake env` **prepends** to `LEAN_PATH`, so the worktree-local build dir — which
+`checkmod.sh`'s own `mkdir -p` had just created — landed ahead of the shared root, Lean resolved
+the `CRNT` namespace to the worktree, and failed on a missing submodule `.olean` **that exists**.
+Mathlib-only modules were unaffected, which is what made it look intermittent. Root cause found
+by `form-scales`, fixed by `infra-build` (PR #7) and on `holes`. **If you recorded a module as
+"does not elaborate" during round 1 on this evidence, re-run it** — that is a whole class of false
+negative, and it is exactly the failure `#P1` describes, committed by the tooling rather than by
+an agent.
+
+**What is still *not* verified here:** `checkmod.sh` exit 0 says the module elaborates, not that
+its declarations carry no `sorryAx`. For a specific declaration, run `#print axioms` on it. And
+per `F-5`, that check must be **transitive** — a hole-bearing module still elaborates.
+
+**Do not upgrade a grade on the strength of this paragraph**; run the check yourself.
