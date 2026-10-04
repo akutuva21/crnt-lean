@@ -1,17 +1,26 @@
-import CRNT.Dynamics.UpperRegionAdjudication
+import CRNT.Dynamics.HighCodimensionSiphonFace
+import CRNT.Dynamics.FaceDirectionCone
+import CRNT.Dynamics.SiphonDimensionDescent
+import CRNT.Dynamics.ComplexBalanceStoichFanInclusion
 
 /-!
-# Pins for the Hole-A fork adjudication
+# Pins for the Hole-A audit
 
-`CRNT/Dynamics/UpperRegionAdjudication.lean` decides the contest between `form-barrier` (the
-`upperRegion` branch lives) and `papers-craciun` (it dies).  These pins make the verdict a permanent,
-regression-checked fact rather than a claim in a message.
+The fork adjudication is consolidated by `infra-scaffold-crnt` in
+`CRNT/Dynamics/UpperRegionFloorRefutation.lean`; this audit's copy was reduced to a corollary and
+then dropped as a duplicate. The pinned facts below are the ones this audit verified directly and
+that no other branch claims.
+
+`Network.comparableGrowthDescent_iff_omegaPointPositive` (SiphonDimensionDescent.lean:368) is the
+route-selection fact -- the descent fallback the hole's docstring names is the goal itself. It is
+already in the tree and needs no pin of its own; the pin exists so a regression in it is caught.
 -/
 
-/-- info: 'CRNT.UpperRegionAdjudication.upperRegion_criterion_inconsistent_with_boundaryOmegaPoint' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs (whitespace := lax) in
-#print axioms CRNT.UpperRegionAdjudication.upperRegion_criterion_inconsistent_with_boundaryOmegaPoint
-
-/-- info: 'CRNT.UpperRegionAdjudication.comparableGrowthDescent_is_not_a_weaker_route' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs (whitespace := lax) in
-#print axioms CRNT.UpperRegionAdjudication.comparableGrowthDescent_is_not_a_weaker_route
+#print axioms CRNT.Network.comparableGrowthDescent_iff_omegaPointPositive
+#print axioms CRNT.Network.descendStep_iff_omegaPointPositive_of_cardMinimal
+#print axioms CRNT.Network.hsep_fails_of_boundaryPoint_mem_sublevel
+#print axioms CRNT.Network.barrier_le_of_mem_omegaLimit
+#print axioms CRNT.Network.not_persistentFrom_of_mem_omegaLimit_notPositive
+#print axioms CRNT.Network.exists_positive_omegaPoint_of_upperRegion
+#print axioms CRNT.Network.exists_positive_omegaPoint_of_faceRelevantCore
+#print axioms CRNT.Network.isInclusionSolutionOn_massAction_relativeSourceOrder

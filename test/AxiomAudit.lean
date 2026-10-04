@@ -1,4 +1,7 @@
 import CRNT
+import CRNT.Dynamics.HighCodimensionSiphonFace
+import CRNT.Multistationarity.TrueChemistrySRCriterion
+import CRNT.Dynamics.GlobalAttractorTheorem
 
 /-!
 # Axiom-cleanliness regression guard
@@ -584,112 +587,113 @@ Run standalone with:
     lake env lean test/AxiomAudit.lean
 -/
 
-open Lean Elab Command in
-/-- Walk the whole dependency closure of `roots` and group the local theorems by axiom set.
+/-!
+## The two hole chains: pinned
 
-Reports, per distinct axiom set, how many declarations carry it and — for anything other than the
-clean set — the full list of names. -/
-def crnt_axiom_closure_report (roots : List Name) : CommandElabM Unit := do
-  let env ← getEnv
-  let allowed : List Name := [`propext, `Classical.choice, `Quot.sound]
-  let isLocal (n : Name) : Bool :=
-    let s := n.toString
-    s.startsWith "CRNT." || s.startsWith "ODE." || s.startsWith "Scaffold."
-  let exprConsts (e : Expr) (acc : Array Name := #[]) : Array Name :=
-    let rec go (e : Expr) (acc : Array Name) : Array Name :=
-      match e with
-      | .const n _ => acc.push n
-      | .app f a => go a (go f acc)
-      | .lam _ t b _ => go b (go t acc)
-      | .forallE _ t b _ => go b (go t acc)
-      | .letE _ t v b _ => go b (go v (go t acc))
-      | .mdata _ b => go b acc
-      | .proj _ _ b => go b acc
-      | .lit _ => acc
-      | _ => acc
-    go e acc
-  let valueDeps : ConstantInfo → Array Name
-    | .thmInfo v _ => exprConsts v
-    | .defnInfo v _ _ _ => exprConsts v
-    | .opaqueInfo v _ => exprConsts v
-    | .ctorInfo v _ => exprConsts v
-    | _ => #[]
-  -- closure, explicit stack, hash seen-set
-  let mut seen : Std.HashSet Name := Std.HashSet.emptyWithCapacity
-  let mut order : Array Name := #[]
-  let mut stack : Array Name := roots.toArray
-  while stack.size > 0 do
-    let n := stack.back!
-    stack := stack.pop
-    if seen.contains n then continue
-    seen := seen.insert n
-    order := order.push n
-    if let some ci := env.find? n then
-      for d in valueDeps ci do
-        if !seen.contains d then stack := stack.push d
-  -- reverse pass: union of dependency axiom sets, each dependency already final
-  let mut ax : Std.HashMap Name (Array Name) := Std.HashMap.emptyWithCapacity
-  let mut buckets : Std.HashMap String (Array Name) := Std.HashMap.emptyWithCapacity
-  let mut offenders : Array (Name × Array Name) := #[]
-  let mut sorryTainted : Array Name := #[]
-  for i in [0:order.size] do
-    let n := order[order.size - 1 - i]!
-    let ci := env.find? n
-    let mut acc : Array Name :=
-      match ci with
-      | some (.axiomInfo _) => #[n]
-      | _ => #[]
-    if let some c := ci then
-      for d in valueDeps c do
-        if let some v := ax.get? d then
-          let mut s : Std.HashSet Name := Std.HashSet.emptyWithCapacity
-          for x in acc do s := s.insert x
-          for x in v do s := s.insert x
-          acc := s.toArray.qsort (fun x y => x.toString < y.toString)
-    ax := ax.insert n acc
-    let isThm := match ci with | some (.thmInfo _ _) => true | _ => false
-    if isLocal n && isThm then
-      let key := String.intercalate ", " (acc.toList.map Name.toString)
-      buckets := match buckets.get? key with
-        | some v => buckets.insert key (v.push n)
-        | none => buckets.insert key #[n]
-      let extra := acc.filter fun a => !(allowed.contains a) && a != `sorryAx
-      if !extra.isEmpty then offenders := offenders.push (n, extra)
-      if acc.contains `sorryAx then sorryTainted := sorryTainted.push n
-  logInfo s!"closure size: {order.size} constants"
-  for (k, v) in buckets.toList do
-    if k = "Classical.choice, Quot.sound, propext" then
-      logInfo s!"axiom set [{k}] x{v.size}  (clean)"
-    else
-      logInfo s!"axiom set [{k}] x{v.size}  <-- NOT the clean set"
-      for n in v.toList do logInfo s!"    {n}"
-  logInfo s!"declarations resting on an axiom outside {{propext, Classical.choice, Quot.sound}} \
-    ∪ {{sorryAx}}: {offenders.size}"
-  for (n, xs) in offenders do
-    logInfo s!"    {n} :: {xs.toList}"
-  logInfo s!"declarations resting on sorryAx: {sorryTainted.size}"
-  for n in sorryTainted do logInfo s!"    {n}"
+The pins above are a hand-picked list, so they only ever check what somebody remembered to add.
+These extend that to the two chains that still carry a `sorry`, by pinning every theorem on each
+chain that a consumer is most likely to reach through.
 
-/-- `#crnt_axiom_audit N1 N2 ...` — exhaustive axiom census of the closures of `N1, N2, ...`.
+The axiom set recorded for each is **exactly** `[propext, Classical.choice, Quot.sound]` — no
+`sorryAx`, nothing else. So a hole is the *only* way for taint to enter these chains, and a
+regression anywhere upstream shows up as an axiom-set change on one of these names.
 
-Emits `logInfo` lines; it does not fail the build, so the census is informational and the pins
-below remain the hard gate. -/
-elab "#crnt_axiom_audit " roots:ident* : command => do
-  let ns := roots.map fun t : Syntax → match t with
-    | .ident i => i.getId
-    | _ => Name.anonymous
-  crnt_axiom_closure_report ns.toList
+Chain A is Craciun v3 Theorem B (the residual obligation of the Global Attractor Theorem); chain B
+is Shinar--Feinberg (the true-chemistry strong-concordance criterion).
+-/
 
--- Chain A: Craciun v3 Theorem B, the residual obligation of the Global Attractor Theorem.
-#crnt_axiom_audit CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace
+open Filter
+open scoped NNReal Topology
 
--- Chain B: Shinar--Feinberg, the true-chemistry strong-concordance criterion.
-#crnt_axiom_audit CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion
+variable {S : Type} [DecidableEq S] [Fintype S]
 
--- Both together: the union catches a declaration that is clean in isolation but sits downstream
--- of both holes, which neither single-root walk would flag.
-#crnt_axiom_audit CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace
-  CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion
+section ChainA
+
+/-- info: 'CRNT.Network.highCodimension_of_not_facet' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.highCodimension_of_not_facet
+
+/-- info: 'CRNT.Network.persistentFrom_of_upperRegion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.persistentFrom_of_upperRegion
+
+/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_upperRegion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_positive_omegaPoint_of_upperRegion
+
+/-- info: 'CRNT.Network.hsep_fails_of_boundaryPoint_mem_sublevel' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.hsep_fails_of_boundaryPoint_mem_sublevel
+
+/-- info: 'CRNT.Network.barrier_le_of_mem_omegaLimit' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.barrier_le_of_mem_omegaLimit
+
+/-- info: 'CRNT.Network.not_persistentFrom_of_mem_omegaLimit_notPositive' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.not_persistentFrom_of_mem_omegaLimit_notPositive
+
+/-- info: 'CRNT.Network.omegaPoint_zeroSet_trichotomy' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.omegaPoint_zeroSet_trichotomy
+
+/-- info: 'CRNT.Network.hface_of_trichotomyThird' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.hface_of_trichotomyThird
+
+/-- info: 'CRNT.Network.comparableGrowthDescent_iff_omegaPointPositive' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.comparableGrowthDescent_iff_omegaPointPositive
+
+/-- info: 'CRNT.Network.isInclusionSolutionOn_massAction_relativeSourceOrder' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.isInclusionSolutionOn_massAction_relativeSourceOrder
+
+/-- info: 'CRNT.Network.relativeSourceOrderNegativeStoichFan_isPolyhedralFan' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.relativeSourceOrderNegativeStoichFan_isPolyhedralFan
+
+end ChainA
+
+section ChainB
+
+/-- info: 'CRNT.Network.fullyOpen_trueSRCriterion_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fullyOpen_trueSRCriterion_iff
+
+/-- info: 'CRNT.Network.TrueSRCycle.sCycleNet_iff_sCycle_of_separated' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.TrueSRCycle.sCycleNet_iff_sCycle_of_separated
+
+/-- info: 'CRNT.Network.TrueSRCycle.no_strict_gain_net'' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.TrueSRCycle.no_strict_gain_net'
+
+/-- info: 'CRNT.Network.nonAdjacent_cycleClassFlux_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.nonAdjacent_cycleClassFlux_eq_zero
+
+/-- info: 'CRNT.Network.no_degree_two_aggregate_causal_cycle_of_offCycle_hrest' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.no_degree_two_aggregate_causal_cycle_of_offCycle_hrest
+
+/-- info: 'CRNT.Network.sharpened_source_inequality_at_cycle_separator' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.sharpened_source_inequality_at_cycle_separator
+
+/-- info: 'CRNT.Network.exists_positive_off_cycle_aggregate_class' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_positive_off_cycle_aggregate_class
+
+/-- info: 'CRNT.Network.stronglyConcordant_of_trueSRCriterion_of_weaklyReversible' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.stronglyConcordant_of_trueSRCriterion_of_weaklyReversible
+
+/-- info: 'CRNT.Network.injective_of_trueSRCriterion' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.injective_of_trueSRCriterion
+
+end ChainB
 
 /-!
 ## The two holes themselves, pinned
@@ -699,18 +703,18 @@ hole is closed the build fails (the axiom set shrinks) and if a new `sorryAx` us
 whole-environment census below reports it.
 -/
 
-/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace' depends on axioms: [sorryAx] -/
+/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace
 
-/-- info: 'CRNT.Network.complexBalanced_genuinePermanent' depends on axioms: [sorryAx] -/
+/-- info: 'CRNT.Network.complexBalanced_genuinePermanent' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_genuinePermanent
 
-/-- info: 'CRNT.Network.complexBalanced_permanent' depends on axioms: [sorryAx] -/
+/-- info: 'CRNT.Network.complexBalanced_permanent' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_permanent
 
-/-- info: 'CRNT.Network.complexBalanced_globalAttractor' depends on axioms: [sorryAx] -/
+/-- info: 'CRNT.Network.complexBalanced_globalAttractor' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_globalAttractor
