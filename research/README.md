@@ -214,3 +214,41 @@ hole-bearing module still *elaborates* (with `sorryAx`). That is why `scripts/cl
 but imports something unverified — exactly the trap `TrueChemistrySRCriterion` sets for Hole B.
 
 *found-by `infra-build`, round 1.*
+
+---
+
+## 8. Charter amendment (round 1, from `arch-alt`) — the actual failure mode
+
+**The recurring cause of this round was never bad mathematics. It was proved capabilities sitting
+unreferenced while researchers were dispatched to reconstruct them.**
+
+The evidence, all in-tree:
+
+* the source-order polyhedral fan and its Theorem-4.3 embedding — 58 declarations, in Hole A's
+  transitive closure, never called (I told twelve researchers to build one; it existed);
+* `scripts/check_axioms.py` already calling `lean` directly for exactly the right reason, sitting
+  beside a `checkmod.sh` that did it wrongly and failed every worktree;
+* `hmaxExact_of_zeroSet_card_le` making three of the hole's hypotheses derivable;
+* `comparableGrowthDescent_iff_omegaPointPositive` sitting in the hole's own import closure,
+  naming the goal;
+* `hyperplaneArrangementFamily` + `fanNormalSet` (`FanRefinement.lean:2457, 2524, 2624`) already giving
+  a complete dual-FG polyhedral fan refining any `F` — which is why `BRIEF-A.md` §A.5 ranking the
+  missing polytope API as the #1 blocker was the most consequential error in my brief.
+
+**Eighteen priority reversals and four copies of one `False` theorem are all downstream of not running
+the one command that would have answered each question.** Every one of those would have been caught
+by a grep or a `#check` before the work was dispatched, not after.
+
+**Two standing rules, effective immediately:**
+
+1. **Every broadcast cites a `file:line` the orchestrator actually read that round.** A priority
+   order issued from memory or from a prior document is how this round went wrong — three of my
+   errors (the fan, the polytope ranking, the Craciun theorem framing) were all assertions about the
+   tree made without checking the tree.
+2. **Every dead-end entry names the command whose output killed the route** — `grep`, `#check`,
+   `checkmod.sh`, a specific theorem. "Analysis suggests" is not an entry. See A-6's retraction for
+   what happens when this is skipped: a prior document's claim was relayed as fact and survived
+   three rounds of reading before anyone grepped for it.
+
+The corollary: **before dispatching a researcher, run the one command that would tell you whether the
+thing they are being asked to build already exists.** It is cheap and it has been decisive every time.
