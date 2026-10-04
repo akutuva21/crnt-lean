@@ -63,16 +63,91 @@ Format: one block per entry. `found-by` / `round` / `revive-when` are mandatory.
 - **found-by:** `arch-fanfill` · **round 1** · **revive-when:** a refinement predicate carrying the
   projection equality as a field exists.
 - **Why it fails:** `Refines` (`FanRefinement.lean:94`) is set containment, and that module's own
+- **Evidence:** the definition at `FanRefinement.lean:94` is `⊆`, not equality; the module's own
   comment at :3675 says the raw image family "need not satisfy the fan intersection axioms itself".
   So `π_n(B^ff_n) = B^ff_{n-1}` cannot be extracted from it.
 
-## A-6. `IsCompletePointedPolyhedralFan` does not exist **[V]**
+## A-6. ~~"IsCompletePointedPolyhedralFan does not exist"~~ — **RETRACTED, the entry was WRONG** **[V]**
 
-- **found-by:** `arch-fanfill` · **round 1** · **revive-when:** `infra-mathlib-fan` lands one.
-- **Evidence:** `docs/gac-v3-face-fill-plan.md` records it missing; `ToricFan.lean:47-51` defines a fan
-  type omitting the face-lattice and covering axioms entirely.
-- **Consequence:** every consumer needing completeness/pointedness has nothing to consume. Tier C
-  prerequisite, not Tier B.
+- **found-by:** `arch-fanfill` · **round 1** · **RETRACTED in round 1; orchestrator verified against
+  the tree.**
+- **The claim was false.** `IsPolyhedralFan` **does exist**, at
+  `CRNT/Geometry/ConeFace.lean:196`, as a structure over `Fan E` carrying exactly the three clauses
+  the plan said were missing: `faces_mem` (closure under exposed faces), `inter_common` (pairwise
+  intersections coincide with a common cone), `covers` (the cones cover the ambient space).
+  `CRNT/Geometry/PolyhedralFan.lean` exists and is already imported by `ToricInclusion.lean`;
+  `IsPolyhedralFan.negated` is proved at :242.
+- **Where the real gap is, corrected:** not the *predicate* but the **witness**. Nothing constructs
+  a `Fan E` satisfying `IsPolyhedralFan` from CRNT data. That is task P1 in
+  `research/HOLEA-FRAMING.md`.
+- **Lesson recorded.** This entry was an inference from `docs/gac-v3-face-fill-plan.md`, not a
+  check against the tree — a prior document's claim relayed as fact. **Grep the tree before
+  recording an absence.** The retraction is kept, not deleted: the history of the error is part of
+  the record.
+## A-11. `CraciunZSH.hinterior` is **not** the paper's hypothesis, and the difference is fatal **[V]**
+
+- **found-by:** `arch-delta` · **round 1** · **revive-when:** never.
+- The repo packages the hypothesis as `C ⊆ interior K_C`. Craciun's actual hypothesis is
+  **`C ⊆ relint_Ω K_C`**. Deriving the packaged version from the paper's version is **false** for
+  every cone lying in a symmetry hyperplane `x_i = x_j` — which is the normal case for the
+  `x₁–x₃`-symmetric arrangement fan the paper assumes (its own footnote 127).
+- **Action:** attempt the **relint-chamber variant**, not the interior variant. Add a
+  `chamber : Set E` hypothesis with `C ⊆ chamber` and `chamber ⊆ K`, replace `C ⊆ interior K` by
+  `∀ x ∈ C ∩ sphere 0 1, ∃ ρ > 0, ball x ρ x ⊆ K ∩ (affine span of chamber)`, and conclude
+  `∃ M, ∀ x, infDist x C < δ → M < ‖x‖ → x ∈ K`. That is exactly Lemma 9.7's hypothesis and it
+  unblocks every real application.
+
+## A-12. Lemma 9.7 has **no** quantitative bound on normal straying **[V]**
+
+- **found-by:** `arch-delta` · **round 1** · **revive-when:** never.
+- `BRIEF-A.md` §A.5 item 3 asked for "how far a normal may stray". That premise was wrong: the
+  lemma's normal-membership conclusion is **non-strict** (`n ∈ C`, a closed cone), and the only
+  quantification is an existential threshold "ε̂ small enough", realised in the proof as
+  `‖log P‖ ≥ max_C M_C`. **Any Lean statement putting a slack `ε(δ)` on the normal would be an
+  unproved strengthening nobody has made.** Do not attempt it.
+
+## A-13. The n-dimensional upgrade of Lemma 9.7 is **not in the paper** **[V]**
+
+- **found-by:** `arch-delta` · **round 1** · **revive-when:** only by proving it from scratch.
+- Lemma 9.5/9.7 are stated only for `ℝ³` / `(0,1)³`, yet §8 Step 2 invokes 9.7 in `n` dimensions.
+  The upgrade is not written down in v3 and is not derivable from the printed statements.
+  **Record it as an independent, unwritten generalization** rather than assuming it.
+
+## A-14. The width-≥δ flatness claim needs a qualification the repo omits **[V]**
+
+- **found-by:** `arch-delta` · **round 1** · **revive-when:** never as stated.
+- As written in `HANDOFF_gac_hole.md` §4 and the `HighCodimensionSiphonFace.lean` header, the
+  argument fails at vertices (dimension 0) and on 1-dimensional pieces, where the cone has empty
+  interior. The **polyhedrality conclusion survives** via the weaker dimension-free and δ-free
+  statement; the intermediate claim does not hold everywhere.
+
+## A-15. Craciun v3 §7/§9 is reachable only via alphaxiv **[V]**
+
+- **found-by:** `arch-delta` · **round 1** · **revive-when:** never.
+- `arxiv.org/html/1501.02860v3` silently truncates at §6.1.2 with **no error**; `#S9` anchors return
+  the same truncated prefix. `arxiv.org/e-print/…` returns an archive listing, not the `.tex` body.
+  ar5iv times out. The working route is `https://www.alphaxiv.org/abs/1501.02860v3`; the PDF is
+  complete. **A researcher who fetches the HTML concludes §7–§9 do not exist.**
+
+## B-11. The `TrueSREarCase2.lean` port cannot be a file copy **[V]**
+
+- **found-by:** `arch-sr-case2` · **round 1** · **revive-when:** never.
+- Line 1 of that file is `import CRNT.Multistationarity.TrueSREarCase1`, and
+ **`TrueSREarCase1.lean` does not exist on `holes`**. The port must be re-authored from the import
+  line up.
+- Similarly `TrueSRCycle.even_of_signChange` appears nowhere in `CRNT/`; the base has only
+  `private theorem N.trueSRCycle_even_of_signChange` (`TrueChemistrySRCriterion.lean:6885`). A
+  public version must be proved.
+- **Do not** let the ported file import `TrueChemistrySRCriterion` — it would drag `sorryAx` into
+  the port's axiom footprint and couple it to the file we are trying to close. The branch file's
+  comment at line 190 deliberately avoids this; **preserve that isolation**.
+
+## B-12. The ear route must terminate in `hSR.2`, not in `hnd` **[V]**
+
+- **found-by:** `arch-sr-case2` · **round 1** · **revive-when:** never.
+- By B-1, every cycle-species-to-cycle-reaction SR edge is itself a cycle edge, so an ear glued to
+  `C` reintroduces cycle edges at its endpoints and `hnd` can never hold. The ear must close via
+  `hSR.2` using `lemmaA6_case2_*` / `sToRIntersectionOfTwoPaths`.
 
 ## A-7. The Anderson–Shiu route is correctly cited and must not be "corrected" **[V]**
 
