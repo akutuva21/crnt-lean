@@ -746,3 +746,41 @@ goal-equivalent step"** penalty from `research/README.md` §5 to any such landin
   `faceRelevantCore`** — that kill comes from the criterion's other clauses (ultimately A-31's
   floor-along-orbit argument).
 - **Precision matters here because both entries are already cited as settled.**
+
+## A-33. **CORRECTION TO A-23 — "three-line wrapper" is the wrong phrasing** **[V]**
+
+- **found-by:** `form-scaffold.ScDefZero`. **The file/line attribution was crossed.**
+  `omegaLimit_positive_of_boundary_point` is in **`CRNT/Dynamics/SiphonDimensionDescent.lean:158`**,
+  *not* `HighCodimensionSiphonFace.lean:159` — line 159 of that file is inside the module docstring.
+- **It is not a wrapper *over* the residue; it is the residue's consumer.** It takes the boundary
+  ω-point as *data* (`hw`, `hs₁`) **plus `hdesc` itself**, and consumes `descend` directly at
+  `:213`. The three lines relabel where the dependency sits; they do not remove it.
+- **Say "one wrapper + one unproved estimate", never "three-line wrapper."** The second phrasing
+  invites exactly the misreading that Hole A is nearly closed. **It is not.**
+
+## A-34. `descend` is unproved as a whole, and `:569` is a *different* open item **[V]**
+
+- **found-by:** same. `ComparableGrowthDescent.descend` is at
+  `SiphonDimensionDescent.lean:125-132` (that attribution was right) — but it is a **disjunction whose
+  left disjunct is already the goal**. The unproved half is the **strict-shrinking alternative**,
+  which the docstring at `:120-124` calls "the content not formalised here".
+- **So the honest statement is that `descend` is unproved** — not that a sub-part of it is.
+- **`eq_zero_on_pmax_of_conservation_eq` (`:569`) is NOT `descend`'s missing half.** It is the
+  conservation-law pin for branch (I), a separate open item. A-23 merged two distinct open problems;
+  they are now separated.
+
+## A-35. **CORRECTION TO A-30 — "no live consumer" overstates it** **[V]**
+
+- **found-by:** `form-fanface-core.HoleContext`. A-30 (and A-27) are wrong to say the fan and its
+  inclusion have no live consumer.
+- A-28 retires modules that **conclude by discharging orbit-confinement into a closed positive set**.
+  **`ComplexBalanceStoichFanInclusion` is not of that kind.** Its Theorem-4.3 instance
+  `massActionVectorField_mem_toricField_relativeSourceOrderNegativeStoichFan` (`:373`) needs exactly
+  `hxs`, `hcb`, forward-time positivity from `N.genuineOrbit_pos`, and `hδ : 0 < δ` — **all four
+  available at the hole itself, with no extra input.** It is a **pointwise statement about the
+  velocity field**, not a confinement argument, so A-28 does not reach it.
+- **Accurate marking: "no live consumer *among the permanence criteria*".**
+- And for the endgame: the surviving Hole A object concludes **directly from a descent step and
+  never mentions the fan** — which is precisely why the fan's 58 declarations have no consumer, and
+  why that will **not change** when `descend` is proved. A table left reading "no live consumer"
+  will cause the next agent to re-open the fan route on the strength of it.
