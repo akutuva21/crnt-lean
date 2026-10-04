@@ -988,3 +988,51 @@ goal-equivalent step"** penalty from `research/README.md` §5 to any such landin
   load-bearing** (it kills the self hop). So `hopp` earns its keep in the *backward* direction only.
 - **`CRNT.shortest_hop_is_leftEdge`:** at every cycle species `s_j` the on-cycle causal out-neighbours
   form exactly the singleton `{C.reaction j}`, attained in one hop.
+
+## A-40. **Hole A's statement is NOT refutable — the search failed, and that is the finding** **[V]**
+
+- **found-by:** `adv-refute`, PR #6. **This is the first positive result about Hole A in the whole
+  round: the statement survived. It is not broken, only open.**
+- **Search performed:** exhaustive over all **first-order** networks on **2–4 species** with **≤ 4
+  ordered reactions**, with exact `Fraction` certification via SVD nullspace. Result:
+  `nets=852, rank_ok=822, cb=31, traj=62, hits=0`. **Zero counterexamples.**
+- **Statement audit:** no exploitable formulation gap found. `Concentration S = S → ℝ`, the linear
+  `Submodule` formulation of `StoichCompatible`, and the coordinate-only `projOn` are each guarded
+  downstream — and **`projOn`'s weakness makes `hcodim` _stricter_, not looser.** The hole's Lean
+  statement is not a weaker-than-intended shadow of the classical GAC statement.
+- **Combined with A-23/A-37**, Hole A stands as: statement not refuted, search to first order
+  exhausted with no hit, residue is one unproved dynamical estimate the tree proves equivalent to the
+  goal, and every packaged criterion machine-checked dead. **That is a coherent, honest picture,
+  not a dead end.**
+
+## A-41. **Two of `adv-refute`'s own "no counterexample" results were ARTEFACTS — read this before trusting any of them** **[V]**
+
+- **Artefact 1.** Phase 1 reported `cb = 0` on **every** network, and nearly filed "no counterexample
+  found". The cause: the test searched for a positive kernel vector in the **range of `Mᵀ`** instead
+  of in **`ker M`**. Complex balance for a first-order network is exactly `M x = 0` with `x > 0`.
+- **Artefact 2.** An earlier loose run produced a **hit** on a 4-species network. It was a
+  **float-precision false positive** of the complex-balance test; exact re-verification killed it.
+- **The honest limit, stated without spin:** in phase 2 every certified network was **weakly
+  reversible** (`cb_certified == cb_wr` on all four seeds, 6000 networks, `hits=0`). The
+  **non-weakly-reversible complex-balanced case is essentially UNSEARCHED** — and that is precisely
+  where an exotic counterexample would most plausibly live. A phase 3 with exact symbolic (`sympy`)
+  certification on structured non-WR families is the obvious next step and **was not done.**
+
+## RULE (tier-wide, from A-41) — a negative result ships with its certification method **[V]**
+
+> **A "no counterexample" claim is only as trustworthy as the method that produced it.** Any
+> adversarial claim about Hole A or Hole B must ship, in the same commit: the search space
+> (species count, reaction bound, class of networks), the exactness of the arithmetic
+> (`Fraction`/`sympy`/formal — never floats), and **what was left unsearched**.
+
+Two of `adv-refute`'s own results failed this and were caught only by re-checking. A float-precision
+test is not a refutation engine. **This rule extends to every `[V]` grade in this file whose
+evidence is computational rather than source-read** — those are the ones a later reader cannot
+re-derive by reading the code.
+
+## OPS-1. `reset --hard` on an unpushed branch is unrecoverable-in-principle **[V]**
+
+- **found-by:** `adv-refute`, which destroyed its own branch pointer mid-rebase and recovered from
+  reflog. **Recovered clean, but that was luck.**
+- **Push before rebasing.** A `git reset --hard origin/<base>` on a branch whose commits exist only
+  locally can lose them outright. Round 2 rule for every researcher with write access.
