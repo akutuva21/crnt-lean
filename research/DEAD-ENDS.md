@@ -1346,3 +1346,57 @@ reversed cycle with `rfl` edge lemmas — the `reactionArcBwd` round-trip costs 
   control proves *the tree* is unmodified; a `file:line` the agent opened itself proves *the claim*
   about that file. **Both are valid; they answer different questions, and conflating them is how an
   audit becomes unfalsifiable.**
+
+## B-29. **The four `TrueSRReactionArc.lean` files are NOT identical — my broadcast was WRONG** **[M — two independent methods]**
+
+- **Refuted by two agents independently**, using different instruments: `form-sr-only` (MD5 +
+  pairwise `diff`, with `wc -l`), and `form-sr-route` (`git rev-parse <branch>:<path>` blob hashes,
+  with a control proving the command evaluates). **I relayed `ArcBuilderFix`'s claim without
+  verifying it — the same mistake I have now made three times.**
+- **Four distinct blobs, four distinct line counts, 174–396 differing lines on every one of the six
+  pairs.** Public APIs are **disjoint**:
+
+  | PR | lines | public API |
+  | --- | --- | --- |
+  | #19 `form-sr-route` | 305 | `reactionArc (C)(m)(hm)(hmpos)`, `_startReaction`, `_endReaction`, `_tail_startSpecies`, `_length`; `rarcEdge`/`rarcVertex` are `rfl`-transferable |
+  | #10 `form-sr-case2` | 157 | `lastIdx`, `reactionArcFrom (C)(r k)(hk : k+1 < n)`, `_startReaction`, `_endReaction` — **arbitrary start `r`** |
+  | #9 `form-sr-deg2b` | 127 | **no arc at all.** Index arithmetic only: `zero_lt_of_nontrivial`, `arc_len_lt`, `rev_len_lt`, `fwd_idx_lt`, `fwd_idx_le`, `bwd_idx_lt`, `bwd_idx_ge`, `fwd_bwd_index_split` |
+  | #17 `form-sr-parity` | 111 | **ZERO public declarations.** `one_lt_n`, `rotate_speciesAt`, `rotate1_reaction` are all `private`; `section ReactionArc` is empty. **Disposable** |
+
+- **Correction to B-28 and to my broadcast:** PR #17's `reactionArcFwd` with "2 of 5 obligations open"
+  **does not exist in the file at all**. My table asserted it.
+- **Correction to B-24:** "index-range arithmetic is done" is true only of **#9's**
+  `(C.rotate 1).initialArcPath (m-1)` parameterisation — which is **#10's at `r = 1`, not #19's
+  `m-1`**. **#9's lemmas may not survive re-indexing onto #19 unchanged. Check before reusing.**
+
+**THE RECOMMENDED RECONCILIATION** (`form-sr-route`'s, and it is the right shape): verify that
+#10's `reactionArcFrom` elaborates; if it does, **it subsumes `reactionArc`** — `reactionArc (C)(m)`
+is `reactionArcFrom C 0 m` — so take it as the definition and reduce #19 to a one-line specialisation
+at `r = 0`. **Then union #9's index lemmas**, which `rr_gluable_arcs` needs and which are in no other
+file. **Drop #17.** Settle this **before** `form-sr-glue` builds, since `rr_gluable_arcs` for
+arbitrary `r` is the more useful statement.
+
+## OPS-5. `checkmod.sh` has a SECOND bug — a stale shared-cache `.olean` shadows the file you built **[M]**
+
+- **found-by:** `form-sr-only`, which caught its own first run being **invalid**.
+- `$SHARED` is first on `LEAN_PATH`, and the shared cache contains a **stale
+  `TrueSRReactionArc.olean`**, so `TrueSREarCase2` resolved its import against *that* rather than
+  against the file just compiled. **The build "passed" against an artifact of an older version.**
+- **This is a false-PASS, which is strictly worse than the false-FAIL bug we fixed earlier
+  (OPS-4/pre-fix `checkmod.sh`).** Anyone auditing a stacked PR in this repo must know it.
+- **Mitigation until fixed: build into an isolated olean directory first**, so nothing stale in the
+  shared cache can satisfy an import. `infra-build` owns `checkmod.sh` and must treat this as
+  higher priority than the remaining `close_hole.sh` work.
+
+## B-30. The `k < n` failure is stronger than "the proof breaks" **[M]**
+
+- **found-by:** `form-sr-only`, machine-checked. Not merely that PR #10's proof fails at `k = n-1`:
+  **no value of the structure `TrueSRPathRR (n-1)` has those `first`/`tail` fields at all.**
+
+  ```lean
+  ¬ ∃ A : TrueSRPathRR (n-1),
+      A.first = (C.rotate r).rightEdge (lastIdx C) ∧ A.tail = (C.rotate r).initialArcPath (n-1) _
+  ```
+
+  **Any natural `k < n` version of the definition fails to type-check at `k = n-1`, whatever proof
+  you give for the offending field.** This justifies the `k + 1 < n` bound as necessary, not stylistic.
