@@ -487,3 +487,28 @@ goal-equivalent step"** penalty from `research/README.md` §5 to any such landin
 - So Hole B is **not a repair** — it is authoring five declarations from scratch (four ported items
   plus the target). The missing prerequisite is `SignDirected` (the sign condition that is
   B-12's `hSR.2`) together with the `RRGluable`/`Gluable` instances.
+
+## A-21. "Frontier membership ⇒ sorry-bearing" is **FALSE**, and it was my error **[V]**
+
+- **found-by:** `infra-build` (correction), attributed correctly by `FormScaffold.ScDefZero` to an
+  **orchestrator assertion**, not to the agents.
+- I asserted in a broadcast: "`HighCodimensionSiphonFace` is on the frontier (line 2), which is
+  consistent with it carrying the tree's one executable `sorry` at :135." **That inference is
+  wrong.** The frontier set is the set of modules Lean has *ever failed* to elaborate. A
+  hole-bearing module still **elaborates** — with `sorryAx`. So frontier membership carries **no**
+  information about holes, and "consistent with" was doing dishonest work.
+- **How it propagated:** three agents treated my assertion as corroboration for their own
+  independent claim, which laundered a bad orchestrator premise into an apparently-triangulated fact.
+  **Record this because it is the swarm's characteristic failure mode in miniature: a confident
+  orchestrator premise, accepted by three careful agents, is more dangerous than an agent's own
+  error, because nobody re-derives it.**
+- **What it licensed:** the claim "closing Hole A closes the GAC chain, one edge wide." On the
+  correct method — `form-barrier`'s **transitive-import closure computation** from
+  `GlobalAttractorTheorem` (326 modules) finding **exactly one** executable `sorry` at
+  `HighCodimensionSiphonFace.lean:135` — that claim **stands**. It was derived from the right
+  method. The frontier-membership remark was decoration on top of it, not its basis. But it must be
+  **re-derived from `scripts/dump_sorries.py`**, never from frontier membership, whenever it is
+  repeated.
+- **Standing rule added to `research/README.md` §7:** a green `lake build` carries no information
+  about holes, and neither does frontier membership. **Only `scripts/dump_sorries.py` and a
+  transitive `#print axioms` carry information about holes.**
