@@ -1545,3 +1545,57 @@ arbitrary `r` is the more useful statement.
   researcher whose slice stalls on elaboration friction should land the API facts in the ledger
   FIRST, then keep building** — the next agent will otherwise pay the same budget. Their branch is
   pushed as WIP with the full list in its `dead_ends`; **read it before reviving that slice.**
+
+## A-53. ⚠️ **`IsCriticalSiphon Pmax` is FULLY DISCHARGED by the hole's own hypotheses** **[M]**
+
+- **found-by:** `form-crit-supply` (PR #21), `CRNT/Scaffold/CriticalityDischarge.lean`,
+  `checkmod.sh → OK (sorry-warnings: 0)`. **No conjunct of `IsCriticalSiphon Pmax` is open.**
+- **It also corrects the brief's premise**, which said "`SiphonCarried` requires actual dynamics and
+  is likely the hard one". It is not. `Network.SiphonCarried`
+  (`SiphonDimensionDescent.lean:61-63`) is *literally*
+  `∃ w ∈ omegaLimit atTop ϕ {x₀}, ∀ s, s ∈ P ↔ w s = 0`, and the hole's own `hwmax`
+  (`HighCodimensionSiphonFace.lean:125`) and `hzeroMax` (`:126`) **are** that statement at
+  `w = wmax`. Machine-checked as `siphonCarried_Pmax`, with `siphonCarried_iff_omegaWitness`
+  giving the **iff**, so it is not merely sufficient but literally the statement. **No flow
+  hypothesis, no κ, no orbit hypothesis, no dynamics.**
+- `holeA_isCriticalSiphon_Pmax` derives `N.IsCriticalSiphon Pmax ∧ N.SiphonCarried ϕ x₀ Pmax` from
+  exactly `hϕγ hK hmaps hωnn hgenω hωaff hx₀ hPmaxne hwmax hzeroMax`, via the existing
+  `isCriticalSiphon_of_siphonCarried` (`:68-80`) → `isCriticalSiphon_zeroSet_of_mem_omegaLimit`
+  (`CriticalSiphonOmega.lean:45-79`). Each of the three conjuncts is supplied:
+  * **(i) nonemptiness** from `hPmaxne`;
+  * **(ii) the siphon clause** from `isSiphon_zeroSet_of_mem_omegaLimit` at `Z(wmax)`;
+  * **(iii) the conservation clause** from mass conservation — a `v` supported on `Z(wmax)` has
+    `Σ v s · wmax s = 0`, while `hωaff` pins that to `Σ v s · x₀ s > 0` via `hx₀` and `hPmaxne`.
+
+### The full definition chain, machine-checked as `Iff.rfl` **[M]**
+
+`Network.IsCriticalSiphon` (`CRNT/Dynamics/Siphon.lean:84-87`) unfolds — through `IsSiphon` (:54-55),
+`IsProduct` (:39), `IsReactant` (:43) — to exactly **three** conjuncts:
+
+1. `P.Nonempty`;
+2. `∀ r, (∃ s ∈ P, (r.target) s ≠ 0) → (∃ s ∈ P, (r.source) s ≠ 0)`;
+3. `¬ ∃ v : S → ℝ, (∀ s, 0 ≤ v s) ∧ (∀ s, 0 < v s ↔ s ∈ P) ∧ (∀ r, Σ s, v s * reactionVector r s = 0)`.
+
+**Precision on the orthSum rewrites:** both existing reformulations —
+`isCriticalSiphon_iff_mem_orthSum` (`SiphonConservation.lean:55`) and
+`isCriticalSiphon_iff_not_carriesPositiveConservationLaw` (`CompatibilityFaces.lean:70`) — rewrite
+**conjunct (iii) ONLY**; (i) and (ii) pass through verbatim in both
+(`isCriticalSiphon_iff_mem_orthSum_shape`). **The orthSum form must not be mistaken for a stronger
+predicate than `IsCriticalSiphon`.**
+
+### The residue is now exactly ONE thing, machine-checked **[M]**
+
+`holeA_goal_iff_comparableGrowthDescent` establishes that under the hole's hypotheses the conclusion
+is **equivalent** to `N.ComparableGrowthDescent ϕ x₀`, by applying the **existing**
+`comparableGrowthDescent_iff_omegaPointPositive` (`SiphonDimensionDescent.lean:368-377`) — cited, not
+re-proved.
+
+**So there is no formulation gap anywhere in the `IsCriticalSiphon` supply, and the entire residue of
+Hole A is the analytic comparable-growth Lyapunov estimate, `descend`
+(`SiphonDimensionDescent.lean:128-131`). NOTHING ELSE.**
+
+**⚠️ SCORING NOTE, volunteered by the agent and correct:** *this is a reduction of the hole, **not**
+progress toward closing it, and must not be reported as such.* Per `research/README.md` §9, a
+reduction to a goal-equivalent predicate scores **0**, not the +25 for a route lemma. The genuine
+result here is the **negative** one — that the `IsCriticalSiphon`/`SiphonCarried` side has no gap
+left — which **removes a slice from the search space** rather than advancing it.
