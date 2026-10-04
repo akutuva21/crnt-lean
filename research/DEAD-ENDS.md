@@ -948,3 +948,43 @@ goal-equivalent step"** penalty from `research/README.md` §5 to any such landin
 - `Mathlib.Tactic.Omega` and `Mathlib.Data.Fin.Tuple.FinOps` have **no `.olean`** in the local
   build, while the umbrella `Mathlib.Tactic` does. **New modules should import the umbrella**, or
   they will fail for an environmental reason that looks like a missing dependency.
+
+## B-22. The `hopp_alone_insufficient` counterexample, explicit **[V, compiled]**
+
+- **found-by:** `form-sr-hopp`, PR #11. Reproduce rather than re-derive this; it is exact.
+- On `Fin 3` with `σs ≡ 1`, flux matrix `φ a j`:
+
+  ```
+          b=0   b=1   b=2
+    a=0    -1    0    0
+    a=1     0   -1   -1
+    a=2     0    0   -1
+  ```
+
+  Every diagonal term is `-1 < 0`, so `hopp` holds **in its literal `:8039` form**. Yet
+  `φ 1 2 = -1 < 0` with `1 ≠ 2` — i.e. the target is **not** uniquely forced by `hopp` alone.
+- **Origin and sign convention of `hopp`, for anyone continuing:**
+  * it descends from `hneg` in `trueSRCycle_of_simple_aggregate_cycle` (`:8023`);
+  * its only use at the residue is `:8497` (`hopp ((finRotate n).symm k)`), closing one case of the
+    final edge of a reversed path;
+  * the same binder also appears in `no_degree_two_aggregate_causal_cycle` (`:4534`) and
+    `sharpened_source_inequality_at_cycle_separator` (`:7114`);
+  * sign convention (`TrueInternalAggregateCausalEdge`, `:4691`):
+    `Sum.inl s → Sum.inr ρ` ⟺ `flux * σ < 0`, and `Sum.inr ρ → Sum.inl s` ⟺ `0 < flux * σ`;
+  * since `C.leftEdge j` has species `C.species j` and reaction `C.reaction j`
+    (`TrueChemistrySRGraph.lean:141-144`), **`hopp` re-indexed by `(finRotate n).symm` says exactly
+    that the cycle's leftEdge at `j` is a species-to-reaction causal edge.**
+
+## B-23. `firstHop_forced_leftEdge` **deliberately omits `hopp`** — note the asymmetry **[V, compiled]**
+
+- `CRNT.firstHop_forced_leftEdge` takes `hz` (non-neighbour vanishing), `hcausal`, and
+  `h : φ a j * σs j < 0`, and concludes `a = j`. **`hopp` is not a hypothesis and the proof term
+  does not mention it.** That is the cleanest possible statement that the residue comment's stated
+  reason is wrong.
+- Proof shape: `a ≠ j` forces `j.1 = (a.1+1) % n` (else `hz` gives `0`), whence `finRotate n a = j`,
+  and `hcausal a` gives `0 < φ a j σs j` — contradiction.
+- **The mirror result `CRNT.hop_backward_forced` shows the asymmetry is real:** a hop from a cycle
+  reaction into `C.species j` comes from `C.reaction ((finRotate n).symm j`, and **there `hopp` IS
+  load-bearing** (it kills the self hop). So `hopp` earns its keep in the *backward* direction only.
+- **`CRNT.shortest_hop_is_leftEdge`:** at every cycle species `s_j` the on-cycle causal out-neighbours
+  form exactly the singleton `{C.reaction j}`, attained in one hop.
