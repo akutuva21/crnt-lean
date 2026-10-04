@@ -272,14 +272,8 @@ structure RRGluable {a b : ℕ} (A : N.TrueSRPathRR a) (B : N.TrueSRPathRR b) : 
     ¬ (A.edgeAt i).SameIncidence (B.edgeAt k)
 
 /-- Prepend an edge to a reaction-to-reaction path: the resulting species-to-reaction path
-starts at the edge's species, crosses the edge, and then runs along all of `A`'s edges.
-
-This was `private` until the reaction-to-reaction **arc builder** (`TrueSRReactionArc.lean`)
-needed it: building the arc from `C.speciesArc … .toPath` requires exactly this operation, and a
-private definition is unreachable from another module.  Making it public is the minimal change
-that unblocks the arc; its statement and proof are unchanged, and `glueArc` below is still its
-only internal consumer. -/
-noncomputable def prepend {j : ℕ} (e : N.TrueSREdge) (A : N.TrueSRPathRR j)
+starts at the edge's species, crosses the edge, and then runs along all of `A`'s edges. -/
+private noncomputable def prepend {j : ℕ} (e : N.TrueSREdge) (A : N.TrueSRPathRR j)
     (hstart : A.startReaction = ⟨e.reaction, e.internal⟩)
     (hne : ∀ k : Fin (2 * j + 2), ¬ e.SameIncidence (A.edgeAt k))
     (hsp : ∀ k : Fin (2 * j + 3), A.vertexAt k ≠ Sum.inl e.species) :
