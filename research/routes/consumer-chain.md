@@ -330,6 +330,29 @@ same obstruction as `Network.not_persistentFrom_of_mem_omegaLimit_notPositive`
 
 ### The general principle, now machine-checked
 
+**Canonical statement (consolidated by `infra-scaffold-crnt`, branch `research/infrascaffold`):**
+
+```lean
+CRNT.Network.universalPositive_omegaLimit_of_closedPositiveConfine
+  (hKc : IsClosed K) (hKpos : ∀ y ∈ K, y.Positive) (hv : v ∈ atTop)
+  (hvK : closure (Set.image2 ϕ v {x₀}) ⊆ K) : ∀ y ∈ omegaLimit atTop ϕ {x₀}, y.Positive
+```
+
+`sorryAx`-free, and stated with no floor, no `ε`, no concentration structure and no reaction
+network — a bare set-theoretic condition. This is the template that retires the family at once.
+`floor_on_omegaLimit_of_floor_along_orbit` and `floor_on_omegaLimit_of_floor_on_region` in my
+module are the floor-shaped instances of it; **`infra-scaffold-crnt`'s statement is the one to
+cite**, and mine should be read as corollaries.
+
+Note that `upperRegion_criterion_inconsistent_with_boundaryOmegaPoint` is *not* a corollary of
+the template and does not reduce to it: the template takes the closed confinement as a hypothesis,
+whereas this one takes `_of_upperRegion`'s actual hypothesis set (`hsplit`, `hopenLow`,
+`hopenUp`, `hdisj`, `hx₀Z`, `hfloor`) and *derives* the confinement via
+`Network.orbit_stays_in_upperRegion`. That is the statement that answers "are the packaged
+criterion's own hypotheses satisfiable under the hole's?", which is what retires the criterion.
+
+In words:
+
 > Any certificate that traps the orbit image in a set floored away from the coordinate boundary
 > also traps the **whole ω-limit set** there, hence is incompatible with a boundary ω-point.
 
