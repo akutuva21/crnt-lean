@@ -360,3 +360,57 @@ Step 2 is worth more than steps 1 and 3 combined. It is the single theorem Hole 
   refutation needs `wmax` in the sublevel, and **`wmax` is not `Positive`, so `hsep`'s hypothesis
   `x.Positive` excludes it. The refutation does not transfer.**
 - **This is the crack, and it is the entire reason the landing site is real.**
+
+## A-18. **Every terminal criterion for Hole A is refuted or goal-equivalent** — VERDICT **[V]**
+
+- **found-by:** `papers-cracuin` (analysis), verified by the orchestrator against the source.
+- **Claim 1 — the `PersistentFrom` / `upperRegion` family is goal-equivalent, not weaker.**
+  `PersistentOrbit.omegaLimit_positive` (`CRNT/Dynamics/GlobalPersistence.lean:159-162`) is
+
+  ```lean
+  theorem PersistentOrbit.omegaLimit_positive (hpers : PersistentOrbit ϕ x₀) :
+      ∀ w ∈ omegaLimit atTop ϕ {x₀}, w.Positive
+  ```
+
+  **Universally** quantified over ω — not `∃`. Since `hwmax : wmax ∈ ω` and `hzeroMax` +
+  `hPmaxne` give `¬ wmax.Positive`, **`PersistentOrbit` is refuted by the hole's own hypotheses.**
+  `exists_positive_omegaPoint_of_upperRegion` composes precisely this theorem (`:1534-1536`), and
+  `wmax` enters its `K` through `subset_closure (hstay t ht)` — by limits of `γ x₀ t`, forced by
+  `hmaps` + `hK`, not by any membership test a supplied region can avoid. **No choice of `Zupper`
+  avoids it.** Independently corroborated by `not_persistentFrom_of_mem_omegaLimit_notPositive`
+  (`HighCodimensionSiphonFace.lean:407`).
+
+- **Claim 2 — `ComparableGrowthDescent` is the goal renamed.**
+  `CRNT/Dynamics/SiphonDimensionDescent.lean:368-377`:
+
+  ```lean
+  theorem comparableGrowthDescent_iff_omegaPointPositive
+      (hP₀crit : N.IsCriticalSiphon P₀) (hP₀carr : N.SiphonCarried ϕ x₀ P₀) :
+      N.ComparableGrowthDescent ϕ x₀ ↔ (∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive)
+  ```
+
+  with `←` filled by `⟨fun _P _hne _hcrit _hcarr => Or.inl h⟩`. The module's own header at
+  `:360-367` says it: "**no proof can assemble the structure** ... as a strictly weaker stepping
+  stone to the goal."
+
+- **Claim 3 — the `hsep` / `hfloor` family is refuted outright.** `form-barrier`'s compiled
+  `CRNT/Dynamics/BlueprintRouteRefutation.lean` takes the hypotheses of
+  `exists_positive_omegaPoint_of_blueprintData` plus hole A's ω-limit hypotheses and concludes
+  `False`. Every rung — `blueprintData`, `selfConsistent_normals`, `convex_tiles`,
+  `tiled_faceCores`, `faceRelevantCore`, `toric_blueprint`, `toric_halfspace` — routes through
+  `exists_positive_omegaPoint_of_coordinate_floors` with `T = S`.
+
+**WHAT THIS MEANS.** The fan exists and the embedding exists, and they are genuine assets. But
+**"wire up the existing pieces" cannot close Hole A**: every terminal criterion in the tree is
+either refuted or equivalent in difficulty to the hole's own conclusion. A researcher landing
+`hm`, `hstart`, `hface`, `hcore`, or a `ComparableGrowthDescent` instance would be landing a
+theorem equivalent to Hole A under another name, and reporting it as progress.
+
+Hole A needs a genuinely new idea. That is a negative result about round 1's plan, **not** about
+the hole. The hole may still be open and closable; what is closed is the family of routes this
+round spent its budget exploring.
+
+**Adversary note (carried to round 2):** the danger now is precisely that someone lands a
+goal-equivalent theorem and the metric reads it as progress. `measure.py` counts `sorry`s, which
+is honest, but the *round score* must apply the **−200 "provable only via a vacuous or
+goal-equivalent step"** penalty from `research/README.md` §5 to any such landing.
