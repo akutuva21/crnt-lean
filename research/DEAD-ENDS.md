@@ -784,3 +784,31 @@ goal-equivalent step"** penalty from `research/README.md` §5 to any such landin
   never mentions the fan** — which is precisely why the fan's 58 declarations have no consumer, and
   why that will **not change** when `descend` is proved. A table left reading "no live consumer"
   will cause the next agent to re-open the fan route on the strength of it.
+
+## A-36. Do **not** re-land `comparableGrowthDescent_is_not_a_weaker_route` — it is already in-tree **[V]**
+
+- **found-by:** `arch-alt`. It is the same statement, same hypotheses, as
+  `comparableGrowthDescent_iff_omegaPointPositive` (`SiphonDimensionDescent.lean:368-377`), and
+  `SiphonDimensionDescent` is **already in Hole A's import closure**.
+- DECISION 1 listed it as work to keep. It is **not new work.** The *decision* it supports is
+  correct and load-bearing — it removes the fallback named at the hole's `:167-171` — but landing a
+  copy would be the fifth instance of this round's recurring failure, **created rather than
+  inherited**. Cite the in-tree theorem.
+
+## A-37. A-36's deeper point: the descent route is **circular, and the tree says so** **[V]**
+
+- Anyone told "three-line wrapper" will spend an hour rediscovering that
+  `comparableGrowthDescent_iff_omegaPointPositive` (`:368`) and
+  `descendStep_iff_omegaPointPositive_of_cardMinimal` (`:344`, the cardinality-minimal case, which is
+  precisely `Pmax`'s situation) make "assemble the descent structure" **equivalent to the goal**.
+- **Say: "the estimate *is* hole A, not a lemma hole A consumes."** `eq_zero_on_pmax_of_conservation_eq`
+  (`:569`) is not "the missing half" of something otherwise provable — its own docstring records that
+  the obstruction is that `IsCriticalSiphon Pmax` forbids the invariant it needs.
+
+## A-38. Precision on A-28: closed-positive confinement is **not** impossible in general **[V]**
+
+- **found-by:** `arch-fanface`. `universalPositive_omegaLimit_of_closedPositiveConfine` yields the
+  universal form. **The contradiction is not that closed-positive confinement is impossible — it is
+  that the hole *simultaneously* supplies `hwmax`, `hzeroMax` and `hPmaxne`.** A network with no
+  boundary ω-point satisfies the template's hypotheses happily. One sentence of this, so A-28 cannot
+  be misread as a general impossibility claim.
