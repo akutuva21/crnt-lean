@@ -812,3 +812,35 @@ goal-equivalent step"** penalty from `research/README.md` §5 to any such landin
   that the hole *simultaneously* supplies `hwmax`, `hzeroMax` and `hPmaxne`.** A network with no
   boundary ω-point satisfies the template's hypotheses happily. One sentence of this, so A-28 cannot
   be misread as a general impossibility claim.
+
+## A-39. **MY CITED LINE NUMBERS WERE FABRICATED — `SiphonDimensionDescent.lean` IS 382 LINES** **[V]**
+
+- **found-by:** `form-fanface-core.EmbeddingAudit`, and it is a direct hit on the charter amendment
+  I had just written.
+- I cited **`SiphonDimensionDescent.lean:531-534`** (the "blocked" flag) and **`:569`**
+  (`eq_zero_on_pmax_of_conservation_eq`) in A-23, A-28 broadcasts, and the closing summary.
+  **The file is 382 lines. Those line numbers are beyond EOF and cannot exist.**
+- I took them from `form-fanface-core.HoleContext`'s report and propagated them through several
+  entries and multiple broadcasts **without checking them against the file** — which is precisely the
+  failure mode `research/README.md` §8 was written to forbid, committed in the same session that
+  wrote it.
+- **Consequence:** every ledger entry citing `:531-534` or `:569` in that file is suspect and must be
+  re-derived. **A-23's "the missing half is `eq_zero_on_pmax_of_conservation_eq` (`:569`)" is
+  unsupported** and should not be relied on. The *structure* of the claim — that the residue is
+  `ComparableGrowthDescent.descend`, whose analytic content is unformalised — is independently
+  supported by `SiphonDimensionDescent.lean:116-123` and `:25-27`, which I have now read:
+  > `:116-123` "In the analytic proof the strict shrinking is forced by comparing the growth of the
+  > relative-entropy Lyapunov family across an escape from the face `SiphonFace P`; that estimate is
+  > **the content not formalised here**."
+  > `:25-27` "The single genuinely analytic ingredient — Anderson's comparable-growth Lyapunov-family
+  > estimate … is isolated as the predicate `Network.ComparableGrowthDescent`."
+- **Verified line numbers in that file, for anyone continuing:** the `descend` field at `:124-133`;
+  `omegaLimit_positive_of_boundary_point` at `:158-178`; `isCriticalSiphon_of_siphonCarried` at `:68`
+  (used at `:177`); `descendStep_of_carried_card_lt` at `:288`;
+  `exists_cardMinimal_carried_siphon_lt` at `:324`;
+  `descendStep_iff_omegaPointPositive_of_cardMinimal` at `:347`;
+  `comparableGrowthDescent_iff_omegaPointPositive` at `:369-377`;
+  `siphonCarried_of_escape` at `:39-42`.
+- **Rule, now enforced on myself:** *never* cite a `file:line` I have not read in this session, even
+  when a peer supplies one. §8 says broadcasts must cite a line actually read; that applies to
+  relayed citations too, and I violated it four times in one round.
