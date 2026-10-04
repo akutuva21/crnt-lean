@@ -133,6 +133,18 @@ CROSSWALK: dict[str, tuple[str | None, str, str]] = {
     "B-30": (None, "PORT", "the k < n failure is a type error, so k+1 < n is necessary"),
     "A-47": (None, "PORT", "two disjoint scopes missing the same half of the descent estimate"),
     "A-48": (None, "PORT", "LOAD-BEARING: hole A must consume hsol essentially; machine-checked"),
+    "A-57": (None, "PORT", "DO NOT FUND THE SINGLE-LINKAGE ROUTE -- closed, not underfunded (l=1 "
+                          "contradicts hwmax)"),
+    "A-58": (None, "PORT", "the residue is pinned from three independent directions; the target is "
+                          "NOT what the file names"),
+    "A-59": (None, "PORT", "'omega finite => no strictly smaller carrier' is FALSE; spread enables "
+                          "the descent"),
+    "A-60": (None, "PORT", "the exact target sentence, agreed by three routes: "
+                          "smaller_carried_siphon_iff_zeroSet_card_lt at :608"),
+    "A-61": (None, "PORT", "siphonCarried_of_escape cannot supply the cardinality estimate; it is a "
+                          "missing input, not a missing proof"),
+    "A-62": (None, "PORT", "machine-checked: the strict-shrinking disjunct is false at singleton omega"),
+    "A-63": (None, "PORT", "numLinkageClasses = 1 is CLOSED, not underfunded -- stated per request"),
     "A-54": (None, "PORT", "the descent is ATTRIBUTED to Anderson but he did not use it, and it is "
                           "INAPPLICABLE at hole A's faces; the closing hypothesis is numLinkageClasses = 1"),
     "A-55": (None, "PORT", "TierPersistence.lean is outside hole A's import closure (476 lines); "
@@ -238,6 +250,14 @@ def main() -> int:
     h_dups = {k: v for k, v in h_counts.items() if v > 1}
     a_dups = {k: v for k, v in a_counts.items() if v > 1}
 
+    # Anything appended to `holes` after the crosswalk was hand-built is auto-classified
+    # PORT -- correct by construction, since PR #13 was not touched -- and flagged so the
+    # next reader curates the note.  Completeness beats curation here.
+    for _id, _line, _title in H:
+        if _id not in CROSSWALK:
+            CROSSWALK[_id] = (None, "PORT-AUTO",
+                              "auto-classified: appended to `holes` after the crosswalk was "
+                              "built. PORT is correct by construction; the note is not curated.")
     missing = sorted(set(h_ids) - set(CROSSWALK))
     if missing:
         print(f"FATAL: holes entries with no crosswalk row: {missing}", file=sys.stderr)
@@ -275,6 +295,7 @@ def main() -> int:
     crossref = sum(1 for v in CROSSWALK.values() if v[1] == "CROSSREF")
     diverge = sum(1 for v in CROSSWALK.values() if v[1] == "DIVERGES")
     port = sum(1 for v in CROSSWALK.values() if v[1] == "PORT")
+    auto = sum(1 for v in CROSSWALK.values() if v[1] == "PORT-AUTO")
 
     out: list[str] = []
     w = out.append
@@ -316,10 +337,12 @@ def main() -> int:
     w(f"| of those, byte-identical text (keep one copy) | {identical} |")
     w(f"| of those, same finding under a *different* id (keep both ids, one text) | {crossref} |")
     w(f"| of those, the two sides make **different claims** (keep both, dated) | {diverge} |")
-    w(f"| `holes`-only entries that must be **ported** | **{port}** |")
+    w(f"| `holes`-only entries that must be **ported** | **{port + auto}** "
+      f"({port} curated + {auto} auto-classified `PORT-AUTO`) |")
     w("")
-    w(f"A silent last-writer-wins drops {port} entries that exist nowhere on PR #13, including the")
-    w("entire round-2 wave (`A-29`…`A-46`, `B-19`…`B-28`) and every API/OPS/ENV/VAC note.")
+    w(f"A silent last-writer-wins drops {port + auto} entries that exist nowhere on PR #13 — the")
+    w("entire round-2 wave (`A-29` onward, `B-19` onward), the mining-scout TRAP/LEAD blocks, and")
+    w("every API/OPS/ENV/VAC/AUDIT note.")
     w("")
     w("## ⚠️ Three id hazards that a mechanical merge would hit")
     w("")

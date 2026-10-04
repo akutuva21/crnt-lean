@@ -15,7 +15,7 @@ Choosing which file is canonical is the human's merge (nobody may merge a PR; se
 
 | | branch | entries parsed | grading | character |
 | --- | --- | --- | --- | --- |
-| **H** | `origin/holes` | 103 heading-entries (102 distinct ids) | `[V]` / `[H]` | orchestrator ledger, appended as broadcasts landed; chronological, uncorrected |
+| **H** | `origin/holes` | 121 heading-entries (120 distinct ids) | `[V]` / `[H]` | orchestrator ledger, appended as broadcasts landed; chronological, uncorrected |
 | **P** | `origin/research/adv-negative` (PR #13) | 105 heading-entries (105 distinct ids) | `[M]` / `[S]` / `[N]` | deduplicated across five prior handoff documents; has §0 grading, §4 maintenance protocol and `research/routes/negative-checklist.md` |
 
 Line numbers below are **1-based line numbers in the file at that ref**, not in any working
@@ -25,18 +25,19 @@ tree, so they stay checkable after either branch moves.
 
 | | count |
 | --- | --- |
-| entries parsed on `holes` only | **75** |
+| entries parsed on `holes` only | **93** |
 | entries parsed on PR #13 only | **78** |
 | entries whose id appears on **both** sides | 27 |
 | of those, byte-identical text (keep one copy) | 26 |
 | of those, same finding under a *different* id (keep both ids, one text) | 11 |
 | of those, the two sides make **different claims** (keep both, dated) | 1 |
-| `holes`-only entries that must be **ported** | **64** |
+| `holes`-only entries that must be **ported** | **82** (74 curated + 8 auto-classified `PORT-AUTO`) |
 
-A silent last-writer-wins drops 64 entries that exist nowhere on PR #13, including the
-entire round-2 wave (`A-29`…`A-46`, `B-19`…`B-28`) and every API/OPS/ENV/VAC note.
+A silent last-writer-wins drops 82 entries that exist nowhere on PR #13 — the
+entire round-2 wave (`A-29` onward, `B-19` onward), the mining-scout TRAP/LEAD blocks, and
+every API/OPS/ENV/VAC/AUDIT note.
 
-## ⚠️ Two id hazards that a mechanical merge would hit
+## ⚠️ Three id hazards that a mechanical merge would hit
 
 **Hazard 1 — the two schemes use the same numerals for different entries.** PR #13 §1/§2
 number `A1`…`A30` and `B1`…`B18` *without* a hyphen, while §3b–§3d import the round-1
@@ -138,53 +139,71 @@ Duplicate ids on `holes`: `A-40` ×2.
 | 56 | `A-51` | 1514 | — | — | **PORT** | exists_maximal_zeroSetOf_card_le duplicates hmaxExact_of_zeroSet_card_le; cut it, keep exists_maximalCard_zeroSet |
 | 57 | `A-52` | 1529 | — | — | **PORT** | SiphonCarried is discharged by the hole's own hwmax/hzeroMax [S] |
 | 58 | `A-53` | 1549 | — | — | **PORT** | IsCriticalSiphon Pmax is FULLY discharged [M]; residue is exactly descend |
-| 59 | `B-1` | 199 | `B-1` | 1164 | **IDENTICAL** | the hspan witness is refuted |
-| 60 | `B-2` | 215 | `B-2` | 1182 | **IDENTICAL** | degree splitting at the residue is degenerate |
-| 61 | `B-3` | 224 | `B-3` | 1193 | **IDENTICAL** | hrest is not in scope at the residue |
-| 62 | `B-4` | 233 | `B-4` | 1205 | **IDENTICAL** | no_sToRIntersection_of_degree_two unusable as a closer |
-| 63 | `B-5` | 239 | `B-5` | 1214 | **IDENTICAL** | hopp/hcausal/hnc are already sharp |
-| 64 | `B-6` | 246 | `B-6` | 1224 | **IDENTICAL** | species-interior analogue does not apply |
-| 65 | `B-7` | 253 | `B-7` | 1233 | **IDENTICAL** | no_spanning_path_of_trueSRCriterion cannot apply to Q0 |
-| 66 | `B-8` | 261 | `B-8` | 1242 | **IDENTICAL** | hopp does not force k=1 |
-| 67 | `B-9` | 270 | `B-9` | 1254 | **IDENTICAL** | the residue's source comment is wrong about the tree |
-| 68 | `B-10` | 281 | `B-10` | 1268 | **IDENTICAL** | no upstream case analysis to thread a datum from |
-| 69 | `B-11` | 132 | `B-11` | 1464 | **IDENTICAL** | TrueSREarCase2.lean cannot be a file copy |
-| 70 | `B-12` | 145 | `B-12` | 1479 | **IDENTICAL** | the ear closes in hSR.2, not hnd |
-| 71 | `B-13` | 330 | `F-4` | 1870 | **CROSSREF** | PR #13 F-4: the RR arc builder is NOT needed |
-| 72 | `B-14` | 468 | `H-2` | 1974 | **CROSSREF** | PR #13 H-2 repeats B-14 verbatim |
-| 73 | `B-15` | 481 | `H-2` | 1974 | **CROSSREF** | PR #13 H-2 repeats B-15 verbatim |
-| 74 | `B-16` | 571 | — | — | **PORT** | no privacy lift and no bespoke builder; TrueSRGlueInterface has no hole import |
-| 75 | `B-17` | 598 | — | — | **PORT** | glueArc is NOT the RR arc builder; it takes both inputs |
-| 76 | `B-18` | 899 | — | — | **PORT** | hopp is a sign condition with no path content |
-| 77 | `B-19` | 912 | `B-9` | 1254 | **CROSSREF** | PR #13 B-9 (round-1) is the comment-is-wrong entry; holes B-19 is the machine-checked one-rotation correction. Both concern the residue's comment; different findings. |
-| 78 | `B-20` | 921 | — | — | **PORT** | the on-cycle route has length 2n-1; module that imports the hole file and is still sorryAx-free |
-| 79 | `B-21` | 937 | — | — | **PORT** | m=1 is excluded by hQ0late; the m=1 split is redundant |
-| 80 | `B-22` | 952 | — | — | **PORT** | the hopp_alone_insufficient counterexample, explicit 3x3 flux matrix |
-| 81 | `B-23` | 978 | — | — | **PORT** | firstHop_forced_leftEdge omits hopp; hopp is load-bearing backwards only |
-| 82 | `B-24` | 1110 | — | — | **PORT** | the RRGluable INSTANCE is the blocker (rr_gluable_arcs) |
-| 83 | `B-25` | 1127 | `B7` | 749 | **CROSSREF** | PR #13 B7 proves degree-two makes an S-to-R intersection impossible; holes B-25 adds that the shipped lemma takes NO hypotheses, so hSR.2 is vacuous there |
-| 84 | `B-26` | 1149 | — | — | **PORT** | hole B has no witness: no network satisfies hsep and hflow and hSR |
-| 85 | `B-27` | 1162 | — | — | **PORT** | rr_three_glued_even_of_two already exists at TrueSRParityRR.lean:775 |
-| 86 | `B-28` | 1171 | — | — | **PORT** | the RR arc builder was written four times; reconcile before building |
-| 87 | `B-29` | 1350 | — | — | **PORT** | the four TrueSRReactionArc.lean files are NOT identical; four disjoint APIs |
-| 88 | `B-30` | 1391 | — | — | **PORT** | the k < n failure is a type error, so k+1 < n is necessary |
-| 89 | `ENV-1` | 946 | — | — | **PORT** | Mathlib submodule imports have no local .olean; import umbrellas |
-| 90 | `LEAD-1` | 1255 | — | — | **PORT** | KurtzScaling.lean touches the deterministic field; unassigned |
-| 91 | `LEAD-2` | 1327 | — | — | **PORT** | the projOn / ProjectedFaceDimensionCode bridge does not exist |
-| 92 | `OPS-1` | 1033 | — | — | **PORT** | push before `git reset --hard` on an unpushed branch |
-| 93 | `OPS-2` | 1103 | — | — | **PORT** | root Scaffold/ is gitignored; use CRNT/Scaffold/ |
-| 94 | `OPS-3` | 1269 | — | — | **PORT** | the prepend privacy lift is settled; audit by diff, never by message |
-| 95 | `OPS-4` | 1314 | — | — | **PORT** | the four-way union risks namespace collision; elaborate to settle it |
-| 96 | `OPS-5` | 1379 | — | — | **PORT** | checkmod.sh second bug: a stale shared-cache .olean causes a FALSE PASS |
-| 97 | `OPS-6` | 1538 | — | — | **PORT** | land elaboration-friction API facts in the ledger BEFORE stalling on them |
-| 98 | `SEQ-1` | 1223 | — | — | **PORT** | Hole B's safe dependency order: arc and glue are vacuity-safe, the ear is not |
-| 99 | `TRAP-1` | 1199 | — | — | **PORT** | eight kernel modules are about ComplexIdx, not Concentration: the worst mis-citable surface in the tree for hmaxExact/Pmax |
-| 100 | `TRAP-1b` | 1294 | — | — | **PORT** | concrete citations for TRAP-1 from a second disjoint scout; also the negative that the descent estimate is absent at that layer |
-| 101 | `TRAP-2` | 1212 | — | — | **PORT** | kineticMap_complexMonomial_mem_deficiencySubspace assumes IsMassActionSteadyState, which the hole lacks for wmax |
-| 102 | `TRAP-3` | 1234 | — | — | **PORT** | in CRNT/Stochastic the confused axis is count lattice vs concentration |
-| 103 | `VAC-1` | 1136 | — | — | **PORT** | DifferentialInclusion.Field is vacuous when empty; blast radius = 4 PolyhedralBarrier ForwardInvariant conclusions |
+| 59 | `A-54` | 1603 | — | — | **PORT** | the descent is ATTRIBUTED to Anderson but he did not use it, and it is INAPPLICABLE at hole A's faces; the closing hypothesis is numLinkageClasses = 1 |
+| 60 | `A-55` | 1643 | — | — | **PORT** | TierPersistence.lean is outside hole A's import closure (476 lines); TierStrictBelow has the OPPOSITE sign convention to Anderson Def 4.1(ii) |
+| 61 | `A-56` | 1664 | — | — | **PORT** | two points that REDUCE the apparent residue: Anderson's condition 2 is one by_case here, and the projected time-dependent network is absent |
+| 62 | `A-57` | 1674 | — | — | **PORT** | DO NOT FUND THE SINGLE-LINKAGE ROUTE -- closed, not underfunded (l=1 contradicts hwmax) |
+| 63 | `A-58` | 1684 | — | — | **PORT** | the residue is pinned from three independent directions; the target is NOT what the file names |
+| 64 | `A-59` | 1712 | — | — | **PORT** | 'omega finite => no strictly smaller carrier' is FALSE; spread enables the descent |
+| 65 | `A-60` | 1720 | — | — | **PORT** | the exact target sentence, agreed by three routes: smaller_carried_siphon_iff_zeroSet_card_lt at :608 |
+| 66 | `A-61` | 1737 | — | — | **PORT** | siphonCarried_of_escape cannot supply the cardinality estimate; it is a missing input, not a missing proof |
+| 67 | `A-62` | 1748 | — | — | **PORT** | machine-checked: the strict-shrinking disjunct is false at singleton omega |
+| 68 | `A-63` | 1756 | — | — | **PORT** | numLinkageClasses = 1 is CLOSED, not underfunded -- stated per request |
+| 69 | `A-64` | 1765 | — | — | **PORT-AUTO** | auto-classified: appended to `holes` after the crosswalk was built. PORT is correct by construction; the note is not curated. |
+| 70 | `A-65` | 1781 | — | — | **PORT-AUTO** | auto-classified: appended to `holes` after the crosswalk was built. PORT is correct by construction; the note is not curated. |
+| 71 | `A-66` | 1794 | — | — | **PORT-AUTO** | auto-classified: appended to `holes` after the crosswalk was built. PORT is correct by construction; the note is not curated. |
+| 72 | `A-67` | 1801 | — | — | **PORT-AUTO** | auto-classified: appended to `holes` after the crosswalk was built. PORT is correct by construction; the note is not curated. |
+| 73 | `A-68` | 1819 | — | — | **PORT-AUTO** | auto-classified: appended to `holes` after the crosswalk was built. PORT is correct by construction; the note is not curated. |
+| 74 | `A-69` | 1836 | — | — | **PORT-AUTO** | auto-classified: appended to `holes` after the crosswalk was built. PORT is correct by construction; the note is not curated. |
+| 75 | `A-70` | 1847 | — | — | **PORT-AUTO** | auto-classified: appended to `holes` after the crosswalk was built. PORT is correct by construction; the note is not curated. |
+| 76 | `B-1` | 199 | `B-1` | 1164 | **IDENTICAL** | the hspan witness is refuted |
+| 77 | `B-2` | 215 | `B-2` | 1182 | **IDENTICAL** | degree splitting at the residue is degenerate |
+| 78 | `B-3` | 224 | `B-3` | 1193 | **IDENTICAL** | hrest is not in scope at the residue |
+| 79 | `B-4` | 233 | `B-4` | 1205 | **IDENTICAL** | no_sToRIntersection_of_degree_two unusable as a closer |
+| 80 | `B-5` | 239 | `B-5` | 1214 | **IDENTICAL** | hopp/hcausal/hnc are already sharp |
+| 81 | `B-6` | 246 | `B-6` | 1224 | **IDENTICAL** | species-interior analogue does not apply |
+| 82 | `B-7` | 253 | `B-7` | 1233 | **IDENTICAL** | no_spanning_path_of_trueSRCriterion cannot apply to Q0 |
+| 83 | `B-8` | 261 | `B-8` | 1242 | **IDENTICAL** | hopp does not force k=1 |
+| 84 | `B-9` | 270 | `B-9` | 1254 | **IDENTICAL** | the residue's source comment is wrong about the tree |
+| 85 | `B-10` | 281 | `B-10` | 1268 | **IDENTICAL** | no upstream case analysis to thread a datum from |
+| 86 | `B-11` | 132 | `B-11` | 1464 | **IDENTICAL** | TrueSREarCase2.lean cannot be a file copy |
+| 87 | `B-12` | 145 | `B-12` | 1479 | **IDENTICAL** | the ear closes in hSR.2, not hnd |
+| 88 | `B-13` | 330 | `F-4` | 1870 | **CROSSREF** | PR #13 F-4: the RR arc builder is NOT needed |
+| 89 | `B-14` | 468 | `H-2` | 1974 | **CROSSREF** | PR #13 H-2 repeats B-14 verbatim |
+| 90 | `B-15` | 481 | `H-2` | 1974 | **CROSSREF** | PR #13 H-2 repeats B-15 verbatim |
+| 91 | `B-16` | 571 | — | — | **PORT** | no privacy lift and no bespoke builder; TrueSRGlueInterface has no hole import |
+| 92 | `B-17` | 598 | — | — | **PORT** | glueArc is NOT the RR arc builder; it takes both inputs |
+| 93 | `B-18` | 899 | — | — | **PORT** | hopp is a sign condition with no path content |
+| 94 | `B-19` | 912 | `B-9` | 1254 | **CROSSREF** | PR #13 B-9 (round-1) is the comment-is-wrong entry; holes B-19 is the machine-checked one-rotation correction. Both concern the residue's comment; different findings. |
+| 95 | `B-20` | 921 | — | — | **PORT** | the on-cycle route has length 2n-1; module that imports the hole file and is still sorryAx-free |
+| 96 | `B-21` | 937 | — | — | **PORT** | m=1 is excluded by hQ0late; the m=1 split is redundant |
+| 97 | `B-22` | 952 | — | — | **PORT** | the hopp_alone_insufficient counterexample, explicit 3x3 flux matrix |
+| 98 | `B-23` | 978 | — | — | **PORT** | firstHop_forced_leftEdge omits hopp; hopp is load-bearing backwards only |
+| 99 | `B-24` | 1110 | — | — | **PORT** | the RRGluable INSTANCE is the blocker (rr_gluable_arcs) |
+| 100 | `B-25` | 1127 | `B7` | 749 | **CROSSREF** | PR #13 B7 proves degree-two makes an S-to-R intersection impossible; holes B-25 adds that the shipped lemma takes NO hypotheses, so hSR.2 is vacuous there |
+| 101 | `B-26` | 1149 | — | — | **PORT** | hole B has no witness: no network satisfies hsep and hflow and hSR |
+| 102 | `B-27` | 1162 | — | — | **PORT** | rr_three_glued_even_of_two already exists at TrueSRParityRR.lean:775 |
+| 103 | `B-28` | 1171 | — | — | **PORT** | the RR arc builder was written four times; reconcile before building |
+| 104 | `B-29` | 1350 | — | — | **PORT** | the four TrueSRReactionArc.lean files are NOT identical; four disjoint APIs |
+| 105 | `B-30` | 1391 | — | — | **PORT** | the k < n failure is a type error, so k+1 < n is necessary |
+| 106 | `ENV-1` | 946 | — | — | **PORT** | Mathlib submodule imports have no local .olean; import umbrellas |
+| 107 | `LEAD-1` | 1255 | — | — | **PORT** | KurtzScaling.lean touches the deterministic field; unassigned |
+| 108 | `LEAD-2` | 1327 | — | — | **PORT** | the projOn / ProjectedFaceDimensionCode bridge does not exist |
+| 109 | `OPS-1` | 1033 | — | — | **PORT** | push before `git reset --hard` on an unpushed branch |
+| 110 | `OPS-2` | 1103 | — | — | **PORT** | root Scaffold/ is gitignored; use CRNT/Scaffold/ |
+| 111 | `OPS-3` | 1269 | — | — | **PORT** | the prepend privacy lift is settled; audit by diff, never by message |
+| 112 | `OPS-3b` | 1813 | — | — | **PORT-AUTO** | auto-classified: appended to `holes` after the crosswalk was built. PORT is correct by construction; the note is not curated. |
+| 113 | `OPS-4` | 1314 | — | — | **PORT** | the four-way union risks namespace collision; elaborate to settle it |
+| 114 | `OPS-5` | 1379 | — | — | **PORT** | checkmod.sh second bug: a stale shared-cache .olean causes a FALSE PASS |
+| 115 | `OPS-6` | 1538 | — | — | **PORT** | land elaboration-friction API facts in the ledger BEFORE stalling on them |
+| 116 | `SEQ-1` | 1223 | — | — | **PORT** | Hole B's safe dependency order: arc and glue are vacuity-safe, the ear is not |
+| 117 | `TRAP-1` | 1199 | — | — | **PORT** | eight kernel modules are about ComplexIdx, not Concentration: the worst mis-citable surface in the tree for hmaxExact/Pmax |
+| 118 | `TRAP-1b` | 1294 | — | — | **PORT** | concrete citations for TRAP-1 from a second disjoint scout; also the negative that the descent estimate is absent at that layer |
+| 119 | `TRAP-2` | 1212 | — | — | **PORT** | kineticMap_complexMonomial_mem_deficiencySubspace assumes IsMassActionSteadyState, which the hole lacks for wmax |
+| 120 | `TRAP-3` | 1234 | — | — | **PORT** | in CRNT/Stochastic the confused axis is count lattice vs concentration |
+| 121 | `VAC-1` | 1136 | — | — | **PORT** | DifferentialInclusion.Field is vacuous when empty; blast radius = 4 PolyhedralBarrier ForwardInvariant conclusions |
 
-**103 rows — every entry parsed on `origin/holes`.**
+**121 rows — every entry parsed on `origin/holes`.**
 
 ## PR #13-only entries
 
@@ -306,7 +325,7 @@ file rather than only in `research/AUDIT.md`. All three re-verified here this se
 | --- | --- | --- |
 | three docstrings cite `SrBlocks` / `SrProp510`, which exist nowhere | `grep -rn 'SrBlocks\|SrProp510' --include='*.lean' CRNT` → **3 hits, all prose**, at `TrueChemistrySRCriterion.lean:4016, 4069, 7093`; `grep -E '(theorem|lemma|def|structure|abbrev) (SrBlocks|SrProp510)'` → **0**. Matches PR #13 entry B18 verbatim. | merge with B18; the ledger entry is already right, the *docstrings* are what is broken |
 | the Hole B flagship carries an undisclosed third hypothesis `hflow` | `stronglyConcordant_fullyOpen_of_trueSRCriterion` at `TrueChemistrySRCriterion.lean:8003-8006` takes `(hsep) (hflow : N.ZeroComplexReactionsAreFlows) (hSR)`; its docstring at `:7998-8002` names only reactant/product separation. | **this is the merge's most important single fact** — see below |
-| `HighCodimensionSiphonFace.lean:73-76` makes a false axiom-hygiene claim | the block at `:73-77` asserts "No other declaration in the tree does"; `grep -rn '^\s*sorry\b' CRNT/` → **2 executable sites** per `measure.py`, one of which is the Hole B file. False. | identical to `holes` **A-24**; port A-24 and let it carry the fix |
+| `HighCodimensionSiphonFace.lean:73-76` makes a false axiom-hygiene claim | the block at `:73-77` asserts "No other declaration in the tree does"; `measure.py --no-gates` reports **2 executable `sorry`s** under `CRNT/`, one of them in the Hole B file, and `grep -rn '^\s*sorry\b' CRNT/` returns exactly those two `.lean` sites plus one hit in a non-Lean backup file (`CRNT/Equilibria/TreeConstants.lean.pre_matrix_tree_backup:140`, not a build target). The claim as written is false. | identical to `holes` **A-24**; port A-24 and let it carry the fix |
 
 ### Why `hflow` is the merge's load-bearing fact
 
