@@ -26,10 +26,14 @@
 #                from a researcher's worktree destroys the round for everyone.  A run with
 #                --no-build does NOT certify the full build and says so in its summary.
 #   --all-deps   re-elaborate the whole transitive CRNT import closure, not just the parts
-#                of it whose sources are newer than their oleans.
+#                of it that are not already built.
+#
+# Environment
+#   MAX_REBUILD (default 32)  cap on step 1.  When more modules than this need
+#     elaborating the shared build cache has fallen behind the branch, and rebuilding
+#     is a full build -- the orchestrator's job, not this command's.
 #
 # Exit 0 = every step passed.  Exit 1 = something failed and the tree was restored.
-set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT" || exit 1
@@ -38,6 +42,8 @@ PY="${PYTHON:-python3}"
 CHECKMOD="$ROOT/research/scripts/checkmod.sh"
 SKIP_BUILD=0
 ALL_DEPS=0
+
+MAX_REBUILD="${MAX_REBUILD:-32}"
 POSITIONAL=""
 
 for arg in "$@"; do
@@ -177,6 +183,11 @@ def stale(m):
     return newest == 0.0 or os.path.getmtime(src) > newest
 
 
+def has_olean(m):
+    return any(os.path.exists(os.path.join(b, m.replace(".", os.sep) + ".olean"))
+               for b in builds)
+
+
 order, seen = [], set()
 
 
@@ -190,8 +201,24 @@ def visit(m):
 
 
 visit(mod)
+
+# A module cannot be elaborated if anything below it has no olean anywhere.  The
+# shared cache lags `holes` whenever the branch has moved since the last full build,
+# and then what is missing is a *dependency*, not the target -- without this the
+# failure surfaces as a bare "object file ... does not exist" for an unrelated module
+# several steps down the import graph.  `order` is post-order, so one forward sweep
+# propagates availability upwards.
+ok = {}
 for m in order:
-    if all_deps or stale(m):
+    ok[m] = has_olean(m) and all(ok.get(d, False) for d in deps(m))
+
+# The module under certification is always re-elaborated, even when git reports it
+# pristine and some olean for it exists: step 2 has to *import the current source*, and
+# a shared-cache olean built from an older revision would certify a theorem that is not
+# the one on disk.
+todo = list(dict.fromkeys(order if all_deps else order + [mod]))
+for m in todo:
+    if m == mod or all_deps or not ok.get(m, False) or stale(m):
         print(m)
 PYEOF
 )"
@@ -204,12 +231,24 @@ STALE=""
 for m in $ORDER; do STALE="$STALE $m"; done
 NSTALE=$(printf '%s\n' $STALE | grep -c . || true)
 NTOTAL=$(printf '%s\n' "$ORDER" | grep -c . || true)
-printf '  %s module(s) in the transitive closure, %s stale\n' "$NTOTAL" "$NSTALE"
+printf '  %s module(s) in the transitive closure, %s need elaborating\n' "$NTOTAL" "$NSTALE"
 
 RC=0
 if [ "$NSTALE" -eq 0 ]; then
-  printf '  nothing to elaborate: every olean is newer than its source\n'
-  record "rebuild (0 stale)" "PASS"
+  printf '  nothing to elaborate: every module already has a usable olean\n'
+  record "rebuild (0 needed)" "PASS"
+elif [ "$NSTALE" -gt "$MAX_REBUILD" ]; then
+  # The shared cache has fallen behind the branch.  Rebuilding the closure is then a
+  # full build, which is the orchestrator's job and not this command's -- and running
+  # it from a researcher's worktree would destroy the round for everyone.  Saying so
+  # is the useful output; silently elaborating 162 modules is not.
+  printf '  REFUSING: %s modules need elaborating, more than MAX_REBUILD=%s.\n' \
+    "$NSTALE" "$MAX_REBUILD"
+  printf '  This is what a stale build cache looks like: modules added to the branch\n'
+  printf '  since the last `lake build` have no .olean anywhere.  Run `lake build` once\n'
+  printf '  (or `lake build %s`) from the integration repo, or raise MAX_REBUILD.\n' "$MODULE"
+  fail "shared build cache is behind the branch" "rebuild"
+  set -- "$MODULE_PATH" "$THEOREM"
 else
   for m in $STALE; do printf '%s\n' "$m"; done > "$TMP/stale"
   set --
@@ -230,8 +269,11 @@ step "2. #print axioms on $THEOREM"
 if "$PY" scripts/check_axioms.py "$MODULE_PATH" "$THEOREM"; then
   record "axioms" "PASS"
 else
-  fail "axiom set outside {propext, Classical.choice, Quot.sound}" "axioms"
+  # Surface the tool's own diagnosis rather than asserting a cause it may not have:
+  # "no olean" and "axiom outside the allowed set" are different failures.
+  fail "see the check_axioms.py diagnostic above" "axioms"
 fi
+
 
 # ---------------------------------------------------------- 3. sorry inventory
 
