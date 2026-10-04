@@ -140,6 +140,23 @@ by `infra-build`). It set `LEAN_PATH` to the shared root and then called `lake e
 worked around it by hard-linking the shared oleans into the worktree. Several of my early
 "this module does not elaborate" readings were this bug, not my Lean.
 
+## 2b. What already exists downstream (verified by grep, not assumed)
+
+These are present on `holes` and consume exactly what `reactionArc` produces:
+
+* `TrueSRPathRR.RRGluable` (`TrueSRParityRR.lean:256`) — the reaction-flavoured counterpart of
+  `TrueSRPath.Gluable` and `TrueSRSSPath.SSGluable`.
+* `TrueSRPathRR.glueArc` (`:388`) — **public**, and already the arc builder for gluing purposes.
+* `TrueSRPathRR.rrGluedCycle_numCPairs` (`:702`) — the c-pair counting identity
+  `c(A ∪ B) = c(A) + s**(A,B) + s*(A,B) + c(B)`.
+* **`TrueSRPathRR.rr_three_glued_even_of_two` (`:775`)** — the reaction-flavoured analogue of
+  `ss_three_glued_even_of_two`, i.e. Shinar–Feinberg Lemma A.4 for paths `R*AR**`. This is the
+  parity engine the ear needs, and it is **already proved**.
+
+So the parity half of `exists_second_evenCycle_of_offCycle_escape` needs nothing new. What is
+missing is purely the *geometric* half: producing `RRGluable` instances whose members are the
+cycle's own two arcs.
+
 ## 3. Residual — `RRGluable` between two reaction arcs
 
 With `reactionArc` built, the next step is the reaction-flavoured analogue of `ss_gluable_arcs`
@@ -244,6 +261,46 @@ the shape the residue at `TrueChemistrySRCriterion.lean:8607` needs.
   `ShortestSSPath.prefix_minimal` / `suffix_minimal`), but it is **not landed**: the
   orchestrator's later messages redirected this slice to the RR arc builder, which is the actual
   blocking prerequisite. The module as written should compile; it is unverified.
+
+## 5b. `rr_gluable_arcs` — full statement, ready to implement
+
+The one remaining gap, with its exact signature:
+
+```lean
+namespace CRNT.Network.TrueSRCycle
+
+/-- The complementary reaction arc: from `R_0` the other way round, to `R_m`.  The `n - m - 1`
+parameter mirrors `speciesArcBwd`'s `n - m`. -/
+noncomputable def reactionArcBwd (C : TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < m) :
+    N.TrueSRPathRR (n - m - 1)
+
+/-- **The two reaction arcs of a cycle glue back to it.**  Between reactions `R_0` and `R_m`
+a cycle is two reaction-to-reaction paths with those endpoints whose species vertices and
+interior reaction vertices are disjoint and which share no edge. -/
+theorem rr_gluable_arcs (C : TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < m) :
+    TrueSRPathRR.RRGluable (C.reactionArc m hm hmpos) (C.reactionArcBwd m hm hmpos) where
+  same_start := ⟨C.reaction ⟨0, _⟩, _⟩ = ⟨C.reaction ⟨0, _⟩, _⟩   -- rfl
+  same_end   := ...                                                 -- by `reverse`'s index map
+  species_disjoint := fun s hs hB => ...   -- interiors of the two arcs are the two disjoint
+                                              -- index ranges [1,m-1] and [m+1,n-1] of the cycle
+  reaction_disjoint := fun ρ hA hB =>
+    ρ = (C.reactionArc m hm hmpos).startReaction ∨ ρ = (C.reactionArc m hm hmpos).endReaction
+  edge_disjoint := fun i k h => ...       -- left/right edge index ranges are disjoint
+
+end CRNT.Network.TrueSRCycle
+```
+
+Construction of `reactionArcBwd`: `speciesArcBwd` is `(C.reverse).speciesArc (n - m) _ _`, and
+`TrueSRCycle.reverse` (`TrueSRCycleReverse.lean:59`) has `@[simp]` characterisations
+`reverse_leftEdge` / `reverse_rightEdge` (`:105`, `:108`) plus `reverse_species'`. If those
+characterisations lift `reactionArc`'s equations to the reversed cycle, `reactionArcBwd` is a
+one-line definition; if they do not, that edge round-trip must be proved first and is the real
+content of this residual. **That is the open question**, and it is the first thing to check.
+
+Then the ear itself, in the shape `rr_three_glued_even_of_two` wants: three edge-disjoint
+reaction-to-reaction paths between the two cycle reactions, obtained from
+`reactionArc`/`reactionArcBwd` plus the escape path, with two of the three glued cycles known
+even. That closes in `hSR.2` (B-12), never in `hnd` (B-1 kills `hnd`).
 
 ## 6. What I did NOT establish
 
