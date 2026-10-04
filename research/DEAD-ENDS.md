@@ -1290,3 +1290,23 @@ reversed cycle with `rfl` edge lemmas — the `reactionArcBwd` round-trip costs 
   would conclude the revert happened. **Audit by diff, never by commit message.**
 - The lift was introduced on the orchestrator's instruction and by one agent; nobody else could have
   inherited it unless they branched from `8ce0f2e`, and none of #9/#10/#17 do.
+
+## TRAP-1b. Concrete citations for TRAP-1, verified by a second independent scout **[V]**
+
+- **found-by:** `form-barrier-2.EquilMinescout`, who did **not** author TRAP-1 but confirmed the
+  distinction from a different module set. **Two scouts, disjoint scopes, same ruling** — which is
+  the strongest form of that evidence available here.
+- Three in-scope citations, each a statement that reads like what Hole A's `hmaxExact`/`Pmax`
+  package needs and is not:
+  * `PositiveKernel.weaklyReversible_exists_positive_kernelVector` —
+    `CRNT/Theorems/DeficiencyZero/PositiveKernel.lean:199`, concluding
+    `∃ b : N.ComplexIdx → ℝ, (∀ c, 0 < b c) ∧ N.kineticMap κ b = 0`.
+    **Positivity is coordinatewise on complexes; there is no species zero set.**
+  * `Network.treeConstantVector : ComplexIdx → ℝ` and `treeConstantVector_positive_kernel` —
+    `CRNT/Equilibria/TreeConstants.lean:100` and `:1161`.
+  * `PositiveKernel.fluxSupport : Finset N.R` and `IsElementaryFluxMode` —
+    `CRNT/Flux/Elementary.lean:37`: support on **reactions**, not on species.
+- **Also worth recording as a negative:** across its whole assigned module set, **no module supplies
+  the strict-shrinking descent step, and no module contains a growth comparison across face
+  dimensions.** That is direct evidence about Hole A's residue: the descent estimate's combinatorial
+  half and its analytic half are **both absent** from the layer this scout swept.
