@@ -1761,3 +1761,57 @@ contradicting `hwmax` outright: **unsatisfiability, not difficulty.**
 
 **Knock-on:** A-3's "§7.3 is not open" and the single-linkage framing in
 `GlobalAttractorTheorem.lean` **must not be read as an open persistence route.**
+
+## A-64. 🔴 **The descent's ANALYTIC VEHICLE is COMPLETE and in the closure — only the COMPARISON is missing** **[S]**
+
+- **found-by:** `form-barrier-2` (PR #23). **This is worth more than the fan answer**, because it
+  says exactly what to build and where to start.
+- **Three pieces already exist, in Hole A's closure:**
+  * `faceSum_field_le` (`PersistenceConfined.lean:78-81`);
+  * `siphonFace_forwardInvariant` (`PersistenceTheorem.lean:137-143`) — whose `hdiss` clause is
+    literally `deriv (faceSum P (γ u)) t ≤ L · faceSum P (γ t)`;
+  * `le_mul_exp_of_forward_deriv_le` (`ComplexBalanceLinearStability.lean:821-824`),
+    **hypothesis-free in `V, V'`**.
+- **Only the comparison is missing** — and the constant in `faceSum_field_le`,
+  `∑ r κ k r (max 1 B)^(deg r) |∑_{s∈P} ν_r s|`, is monotone **INCREASING** in `|P|`: **the wrong
+  direction.** A smaller face grows *slower*. **That single missing comparison between `C_Q` and `C_P`
+  IS the content of `SiphonDimensionDescent.lean:116-123`.**
+- **Anyone building a comparable-growth estimate should start there, not at the fan.**
+
+## A-65. 🔴 **The fan CANNOT be used for the descent — do not open that route a fourth time** **[S]**
+
+- **Definitive answer to A-35.** Two reasons, both about conclusions rather than inputs:
+  1. `grep -in "siphon\|omega\|ZeroSet"` over **both** fan files returns **zero matches**. No siphon,
+     no ω-limit set, no zero set, no cardinality anywhere — these are **velocity-field theorems**.
+  2. The fan's only live consumer (`ToricBarrierTrapping.lean:137,184,237,288,331,448,487`, reached
+     from the hole file at `:3`) converts to an ω-limit statement only via the three packaged
+     criteria carrying `hsep` (`:334,451,490`) — **the A-26/A-31 family.**
+- **A-35 is CORRECT and should not be re-litigated:** `Network.genuineOrbit_pos`
+  (`GenuineConfinement.lean:53-56`) does supply forward positivity, and the hole file **already
+  instantiates it at `HighCodimensionSiphonFace.lean:761, 972, 1568, 1618`.** The four inputs to `:373`
+  really are available. **The route fails on what it concludes.**
+
+## A-66. Correction: **δ does not bite at the selector theorem** **[S]**
+
+An earlier entry of mine (F-5's δ claim) is wrong for the selector theorem. Its proof discharges
+`hnear` from `infDist_zero_of_mem` + `hδ` (`ComplexBalanceStoichFanInclusion.lean:345-349`) — **any
+`δ > 0` instantiates it.** **δ bites downstream** (larger `δ` = larger = weaker field,
+`ToricFan.lean:86-88`), not at `:373`.
+
+## A-67. **Conservation laws cannot distinguish `Pmax`** — dead, with a proof **[M]**
+
+- `research/routes/unused-mining.md` (PR #23): conservation laws are **constant across the
+  compatibility class**, so they cannot distinguish `Pmax` from other faces. **Dead, with a proof.**
+
+## TRAP-4 / TRAP-5 **[S]**
+
+* **TRAP-4:** the 13 kinetic-kernel modules are **complex-space**, not `Concentration S`. **Two
+  scouts, disjoint scopes, same ruling** — the strongest form available.
+* **TRAP-5:** **no `CRNT/Geometry` module mentions `omegaLimit` at all.** The 18 geometry modules are
+  the *least* likely band to bear on either residue.
+
+## OPS-3b. A self-inflicted false-negative grep, caught and recorded **[S]**
+
+`form-barrier-2` filed its own missed grep rather than hiding it — consistent with `research/README.md`
+§8's rule that a dead-end entry names the command whose output killed the route, and with the
+episode in OPS-3 where a commit **message** claimed a revert its tree did not perform.
