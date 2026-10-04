@@ -1,76 +1,96 @@
-# Hole A, reframed (round 1)
+# Hole A, reframed (round 1 — with the P1 correction)
 
-**This document supersedes the framing in `BRIEF-A.md` §A.3 and §A.5.** Everything the round-1
-Tier A and papers researchers were chasing turns out to be the wrong target.
+> **SUPERSEDED IN PART.** F-1/F-2/F-4 stand. **F-3 is FALSE and is retracted below.**
+> The fan exists. Theorem 4.3 is proved. The wiring is the gap.
 
-## F-1. Hole A is **not** Craciun's Theorem B
+**Read this file, not `BRIEF-A.md`, when planning Hole A work.**
 
-`BRIEF-A.md` says hole A is "exactly this paper's Theorem B". It is not.
+## F-1. Hole A is **not** Craciun's Theorem B — STANDS
 
-Craciun's Theorem B is a statement about an **exhaustive family of zero-separating hypersurfaces**
-(ZSH) for a toric differential inclusion — and it has **no proof anywhere in the paper**. It is
-one sentence on p. 8, discharged by the Step 0–4 programme in §4 and executed in §5 (2D), §6 (3D),
-§7 (nD blueprints) and §8 (nD assembly).
+Craciun's Theorem B concerns an **exhaustive family of zero-separating hypersurfaces** (ZSH) and
+has **no proof anywhere in the paper** — one sentence on p. 8, discharged by a *plan* in §4
+(p. 17: "Steps 2 and 3 are very much interconnected, and most of our effort will focus on these two
+steps"). The only place exhaustiveness is argued is §8 Step 2, and there it is
+"we just choose eps_0 < x_0^i … **it is easy to see** that …". Step 4 is called "a relatively quick
+corollary" and was never written. The exhaustive half of Theorem B is itself a hand-wave.
 
-By contrast `exists_positive_omegaPoint_of_highCodimension_siphonFace` carries a
-critical-siphon-face apparatus — `hcodim`, `hmaxExact`, `hzcard`, `hrank` — that Craciun never
-mentions. He has no siphons, no zero sets, no ω-points, no codimension. Theorem B is **a sufficient
-means** for the hole's conclusion, not its statement.
+The hole's statement carries a critical-siphon-face apparatus — `hcodim`, `hmaxExact`, `hzcard`,
+`hrank` — that Craciun never mentions: no siphons, no zero sets, no ω-points, no codimension.
+Theorem B is **a sufficient means**, not the statement.
 
-## F-2. The hole's conclusion is strictly **weaker** than a ZSH — attack far less
+## F-2. The hole's conclusion is strictly **weaker** than a ZSH — STANDS
 
-The hole wants **one interior ω-point**. A ZSH (Definition 4.6) is much more: an exhaustive family
-of surfaces with η-separation and ray-meeting properties. In particular clauses **4.6(i)**
-(η-separation) and **4.6(ii)** (meeting every toric ray exactly once) can both be **dropped**.
+The hole wants **one interior ω-point**. ZSH Definition 4.6 clauses **4.6(i)** (η-separation) and
+**4.6(ii)** (meeting every toric ray exactly once) can both be **dropped**.
 
-**Consequence:** any researcher attempting the full faithful-blueprint induction is attempting far
-more than the hole needs. That is why this route has been failing for months — it is over-attempted,
-not under-attempted. Note this compounds entry **A-1**: the `oneBit*` recursors prove the wrong
-statement *and* the right statement is weaker than what they target.
+This is why the route has failed for months: it is **over-attempted, not under-attempted**. It
+compounds entry **A-1** — the `oneBit*` recursors prove a *different* statement *and* the right
+statement is weaker than their target.
 
-## F-3. **The hole's hypotheses do not supply the fan — and never will**
+A transcriber's further point, which strengthens this: the weakest sufficient hypothesis may be
+reachable **directly in stoichiometric coordinates without a fan ever being named**. That is a live
+route, not a fallback.
 
-This is the real blocker.
+## ~~F-3. The hole's hypotheses do not supply the fan~~ — **RETRACTED, IT WAS FALSE**
 
-Theorem B is about a toric differential inclusion `T_{F,δ}`, which requires a **polyhedral fan
-`F` and a δ**. The hole's hypotheses contain **neither**. Bridging genuine trajectories to the
-inclusion is **Theorem 4.3**, and Craciun *defers it entirely to [2]* (Anderson, arXiv:0903.0901).
+I told twelve researchers in round 1 that the fan had to be built from scratch and that
+`ToricEmbeddingWR.lean` was the highest-value asset in the tree. **Both were wrong.**
 
-So the gap is **not** "prove the blueprint induction". It is **"the hole has no fan, and no
-plausible restatement gives it one"**. Any route that needs a fan must first build the fan from the
-stoichiometric data — and that construction is precisely what nobody has done.
+**The fan exists, unconditionally.**
+`CRNT/Dynamics/ComplexBalanceStoichFan.lean`:
 
-**Where the embedding machinery already lives:** `CRNT/Dynamics/ToricEmbeddingWR.lean` and
-`CRNT/Dynamics/ToricInclusion.lean` already carry the embedding at the polar-cone level, via
-`multiCycle_velocity_mem_polarCone` and `NetworkCycleDecomposition.velocity_mem_polarCone`. This is
-the highest-value existing asset for F-3 and nobody was looking at it in round 1.
+* `relativeSourceOrderStoichFan` (:98) is built from `N.stoichSubspace` and `N.R` alone — **no δ,
+  no extra hypothesis, not one reference to `hxs`/`hcb`**;
+* `relativeSourceOrderStoichFan_isPolyhedralFan` (:330) proves `CRNT.IsPolyhedralFan`;
+* `exists_relativeSourceOrderConeInStoich_mem` (:305) proves covering;
+* `relativeSourceOrderStoichFan_inter_mem` (:140) and `_faces_mem` (:250) give intersection and
+  face closure;
+* `relativeSourceOrderNegativeStoichFan` (:357) is likewise complete (:362, :377);
+* `relativeSourceOrderNegativeStoichFan_hasDualFGCells` (`ComplexBalanceStoichFanInclusion.lean`:33)
+  and `relativeSourceOrderNegativeConeFamily_hasExposedCommonFaces` (:802) supply the dual-FG-cell
+  and exposed-common-face axioms.
 
-## F-4. δ-uniformity machinery is unnecessary
+**Theorem 4.3 is already proved.**
+`CRNT/Dynamics/ComplexBalanceStoichFanInclusion.lean`:
 
-Per Craciun's **Remark 9.8**, **one blueprint at one δ suffices**. The "works for any fixed δ"
-flexibility means a researcher needs the *existence* of a blueprint at some δ, not uniformity over
-δ. That collapses a large part of the apparent obligation — and it retires the entire `arch-delta`
-and `form-scales` premise that δ-propagation is the hard part.
+* `isInclusionSolution_massAction_relativeSourceOrder` (:539) and
+  `isInclusionSolutionOn_massAction_relativeSourceOrder` (:560) take **exactly the hole's
+  hypotheses** — `hxs : xstar.Positive`, `hcb : N.IsComplexBalanced κ xstar`, `hδ : 0 < δ`, orbit
+  positivity, and the genuine-derivative clause `hderiv`/`hsol` — and conclude the trajectory solves
+  the toric differential inclusion `relativeSourceOrderToricInclusionField xstar δ`.
+* Supporting layer complete: `massActionVectorField_mem_relativeSourceOrderToricInclusionField`
+  (:492), `velocity_mem_stoichSubspace_of_mem_…` (:520),
+  `exists_coordinate_refinement_of_relativeSourceOrderNegativeStoichFan` (:51),
+  `toricField_relativeSourceOrderNegativeStoichFan_subset_commonRefinement` (:206),
+  `massActionVectorField_inner_pos_of_mem_interior_sourceOrderNegativeCone` (:419).
 
-## What to attempt instead, in priority order
+**The wiring is the gap.** `CRNT/Dynamics/GlobalAttractorTheorem.lean` imports
+`CRNT.Dynamics.ComplexBalanceStoichFan` at line 2 — and a grep for
+`relativeSourceOrderStoichFan|stoichFan|_isPolyhedralFan` over all 1789 lines returns **ZERO
+matches**. The complete fan is compiled into the hole's dependency cone and **never used**.
 
-1. **Supply a fan from the stoichiometric data.** Construct, from the hypotheses actually present
-   (stoichiometric subspace, complex-balanced equilibrium `hcb`, the critical siphon, `Pmax`), a
-   complete pointed polyhedral fan `F` in the relevant coordinates. Read `ToricEmbeddingWR.lean` and
-   `ToricInclusion.lean` first — the polar-cone-level embedding may already give `F` implicitly.
-   **This is the top priority.**
-2. **Weaken the target to what the hole actually needs** (F-2) and find the cheapest surface-like
-   or point-like certificate that satisfies the *weakened* conclusion. A ZSH is not required.
-3. Only then, and only if 1 and 2 fail, attack the blueprint induction — and then only with an
-   **ambient-rank-decreasing** recursor (entry A-1 says the existing projected-rank recursors prove
-   a different theorem).
+**And `ToricEmbeddingWR.lean` is the weaker path, partially dead.**
+`multiCycle_velocity_mem_polarCone` (:136) and `NetworkCycleDecomposition.velocity_mem_polarCone`
+(:232) are real, but both take a `CycleDecomposition` structure (:93, :160) that **nothing in the
+tree builds**; the `mono` field is refuted by `CRNT/Examples/CycleRateNonMonotone.lean`
+(`tri_no_monotone_rotation`, :89), and `cmin` has no supplier
+(`Graph/CycleCover.lean:35-38`: "Not constructed here"). **Use the StoichFan path.**
 
-**Do not** spend another round on §7.4.3 faithful blueprints at full strength, on δ-uniformity, or
-on the `oneBit*` recursors.
+## What to attempt now, in priority order
+
+1. **Wire the fan in.** `form-barrier` is the natural owner. The gap is concrete and small: the
+   hole's context has a genuine mass-action trajectory with a complex-balanced positive equilibrium;
+   `isInclusionSolution_massAction_relativeSourceOrder` consumes exactly that. Determine the precise
+   statement that fails to close — the trajectory in the hole is an ω-limit-set one with extra
+   properties (`hmaps`, `hK`, `hωnn`, `hgenω`, `hωaff`), so establish what *additional* hypothesis
+   the inclusion theorem needs and whether it is derivable.
+2. **Attack the weakened target** (F-2), now with a real fan and a real embedding behind it. One
+   interior ω-point, not a ZSH.
+3. Only then the blueprint induction, and only with an **ambient-rank-decreasing** recursor.
 
 ## Evidence grades
 
-All of the above is `[V]` as to the paper's contents — the transcriber read the complete 91-page
-PDF. F-2 and F-3 are **inferences** about the hole's minimal requirement drawn from those contents
-plus the hole's statement; they have not been machine-checked, and `adv-refute` / `adv-audit` are
-asked to confirm or refute them in round 2.
+F-1, F-2, and the F-3 retraction are all `[V]`: the transcriber read the complete 91-page PDF, and
+the F-3 retraction was verified by the orchestrator against the tree (`grep` returns zero uses in
+`GlobalAttractorTheorem.lean`; both modules elaborate). The priority ordering above is an
+inference; `adv-refute` and `adv-audit` are asked to attack it in round 2.
