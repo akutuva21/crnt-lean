@@ -209,6 +209,18 @@ theorem two_hop_onCycle {φ : Fin n → Fin n → ℝ} {σs : Fin n → ℝ}
   have hj : j = (finRotate n).symm b := hop_backward_forced hz hopp b j h2
   exact rot_of_symm_apply hj.symm
 
+
+/-- The forward double hop of an on-cycle walk is forced: a species→reaction hop followed by a
+reaction→species hop at the same reaction class advances the cycle index by exactly one.  This
+is the stepping rule `onCycle_walk_index` iterates. -/
+theorem onCycle_double_step {φ : Fin n → Fin n → ℝ} {σs : Fin n → ℝ}
+    (hz : ∀ a b : Fin n, a.1 ≠ b.1 → b.1 ≠ (a.1 + 1) % n → φ a b * σs b = 0)
+    (hcausal : ∀ i : Fin n, 0 < φ i (finRotate n i) * σs (finRotate n i))
+    (hopp : ∀ i : Fin n, φ (finRotate n i) (finRotate n i) * σs (finRotate n i) < 0)
+    (j a b : Fin n) (h1 : φ a j * σs j < 0) (h2 : 0 < φ a b * σs b) :
+    a = j ∧ b = finRotate n j :=
+  two_hop_onCycle hz hcausal hopp j a b h1 h2
+
 /-- **Refutation of the residue comment as literally worded.**
 
 `TrueChemistrySRCriterion.lean:8603` asserts that the first hop of a shortest species-to-reaction
