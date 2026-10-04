@@ -1158,3 +1158,125 @@ re-derive by reading the code.
   member.** Candidate worked out in `research/routes/vacuity-report.md` §R4: the directed 3-cycle
   `A → B → C → A` over `S = Fin 3`. **Build the witness before finishing the ear** — otherwise the
   theorem is about the empty class.
+## A-47. **THE FAN ROUTE IS CLOSED. Do not re-open it a fourth time.** **[V, source-read]**
+
+- **found-by:** `FormBarrier-2` · **round 2** · **revive-when:** never for the descent; the fan is
+  real, proved, correctly instantiable, and simply concludes the wrong kind of statement.
+- **Question asked:** A-35 left open — *can the descent use `ComplexBalanceStoichFan` (20 decls) and
+  `ComplexBalanceStoichFanInclusion` (38 decls)?* **Answer: no.** Full report, with all 151 unused
+  modules tabulated, in `research/routes/unused-mining.md` on `research/FormBarrier-2`.
+- **Reason 1 — wrong conclusion shape.** `grep -in "siphon\|omega\|ZeroSet"` over **both** fan files
+  returns **zero matches**. Neither file mentions a siphon, an ω-limit set, a zero set, or a
+  cardinality. `ComparableGrowthDescent.descend`'s right disjunct is
+  `∃ Q : Finset S, Q.Nonempty ∧ N.IsCriticalSiphon Q ∧ Q.card < P.card ∧ N.SiphonCarried ϕ x₀ Q`
+  (`CRNT/Dynamics/SiphonDimensionDescent.lean:128-131`). These are velocity-field theorems.
+- **Reason 2 — the live consumer ends in a dead criterion.** The fan is *not* unused in the tree
+  (A-30 confirmed by my own reading): `HighCodimensionSiphonFace.lean:3` imports
+  `ToricBarrierTrapping`, which uses `N.relativeSourceOrderNegativeStoichFan` at `:137, 184, 237,
+  288, 331, 448, 487`. But every ω-limit conclusion in that module is one of three packaged criteria
+  carrying `hsep` (`:334, :451, :490`) — the family killed by A-26/A-31.
+- **A-35 is CORRECT and should not be re-litigated:** `genuineOrbit_pos`
+  (`CRNT/Dynamics/GenuineConfinement.lean:53-56`) plus `hxs`, `hcb`, `0 < δ` supplies everything
+  `massActionVectorField_mem_toricField_relativeSourceOrderNegativeStoichFan`
+  (`ComplexBalanceStoichFanInclusion.lean:373`) needs, **and the hole file already writes that
+  instantiation at `HighCodimensionSiphonFace.lean:761, 972, 1568, 1618`.** The fan route fails on
+  *conclusions*, not on inputs.
+- **Correction to F-5, for that theorem only:** the selector's `δ` is **not** a blocker. Its proof
+  discharges `hnear` from `Metric.infDist_zero_of_mem` plus `hδ`
+  (`ComplexBalanceStoichFanInclusion.lean:345-349`), so **any** `δ > 0` instantiates it. `δ` bites
+  *downstream* — `toricField_mono_delta` (`CRNT/Geometry/ToricFan.lean:86-88`) makes a large `δ` give
+  a larger, weaker field, so a vacuous `δ` yields a vacuous inclusion (cf. VAC-1).
+- **Why this matters:** a table reading "58 declarations, no consumer" caused twelve round-1
+  researchers to be dispatched to rebuild the fan. The accurate statement is the reverse: **the fan
+  is fully wired and fully supplied, and is still the wrong tool.**
+
+## A-48. **THE DESCENT'S ANALYTIC VEHICLE EXISTS AND IS COMPLETE — ONLY THE COMPARISON IS MISSING** **[V, source-read]**
+
+- **found-by:** `FormBarrier-2` · **round 2** · **revive-when:** someone finds a face-indexed Lyapunov
+  family whose growth constants are ordered *in the direction the descent needs*.
+- `Network.faceSum_field_le` (`CRNT/Dynamics/PersistenceConfined.lean:78-81`) gives, for **any**
+  siphon `P` and on any box, `∑_{s∈P} ẋ s ≤ C_P · faceSum P x` with an explicit `C_P`. Feed `V =
+  faceSum Pmax`, `L = C_Pmax` into `siphonFace_forwardInvariant`
+  (`CRNT/Dynamics/PersistenceTheorem.lean:137-143`, whose `hdiss` clause is exactly
+  `deriv (faceSum P (γ u)) t ≤ L · faceSum P (γ t)`), then close the scalar comparison with
+  `le_mul_exp_of_forward_deriv_le` (`CRNT/Equilibria/ComplexBalanceLinearStability.lean:821-824`).
+  All three are in Hole A's closure. The Grönwall lemmas are hypothesis-free in `V, V'` and accept
+  any Lyapunov family. **The analytic vehicle is complete.**
+- **The exact gap, visible in the constant:** `C_P = ∑ r κ.k r · (max 1 B)^(deg r) · |∑_{s∈P} ν_r s|`
+  is **monotone increasing in `|P|`**. So for `Q ⊊ P` one gets `C_Q ≤ C_P` — the *wrong* direction: a
+  smaller face grows **slower**. **No theorem in the tree relates `C_Q` to `C_P`, and none compares
+  `faceSum Pmax` with `faceSum Q` across faces.** That single missing comparison is the content of
+  `SiphonDimensionDescent.lean:116-123` ("comparing the growth of the relative-entropy Lyapunov
+  family across an escape from the face"). `faceSum_field_le` is an **upper** bound; the descent
+  needs a **sign**.
+- The box bound `(∀ s, x s ≤ B)` is **not** an extra input at the hole: it comes from `hK`/`hmaps`
+  by the argument `genuineOrbit_pos` already runs (`GenuineConfinement.lean:63-76`).
+- Related: `exists_minimalCriticalSiphon_subset` (`CRNT/Dynamics/SiphonAutocatalysis.lean:599-601`,
+  the `R.card < Q.card` step at `:626`) is the **only** cardinality-decreasing critical-siphon
+  statement in the tree. It misses `descend` by **exactly one field**: it gives
+  `IsMinimalCriticalSiphon Q`, which carries no `SiphonCarried ϕ x₀ Q`. Do not re-derive the finite
+  combinatorics; producing the carrier witness is the whole problem.
+
+## A-49. **CONSERVATION LAWS CANNOT DISTINGUISH `Pmax` — the route is dead with a proof** **[V, source-read]**
+
+- **found-by:** `FormBarrier-2` · **round 2** · **revive-when:** never.
+- `Network.not_critical_conserved_along_solution` (`CRNT/Dynamics/ConservationLaw.lean:78-85`) is
+  attractive — "a conserved quantity pins the siphon" — and it is **unusable at Hole A** because its
+  premise is `¬ N.IsCriticalSiphon P`, while the hole's `Pmax` **is** critical
+  (`isCriticalSiphon_zeroSet_of_mem_omegaLimit`, `CRNT/Dynamics/CriticalSiphonOmega.lean:45`).
+- Sharper, and the reason it is not merely "premise unsatisfied": at Hole A the conservation laws live
+  in `orthSum N.stoichSubspace` and are constant across the compatibility class, so they are **equal on
+  every ω-point**. They therefore carry **zero** information distinguishing `Pmax` from any other
+  ω-point's zero set. This is A-40 in structural form, with the sign made explicit.
+- Do not reach for `ConservationLaw.lean` or `SiphonConservation.lean` on the strength of their
+  statement. `eq_zero_on_pmax_of_conservation_eq` (`HighCodimensionSiphonFace.lean:569`) is the
+  in-tree formalisation of why this fails, and its own docstring (`:529-534`) records the obstruction.
+
+## TRAP-4. **THE KINETIC-KERNEL MODULES ARE ABOUT THE COMPLEX SPACE, NOT `Concentration S`** **[V, two sources, disjoint scopes]**
+
+- **found-by:** `FormBarrier-2.LinearMinescout` and `FormBarrier-2.EquilMinescout`, independently,
+  on disjoint module sets. **Two scouts, disjoint scopes, same ruling.**
+- `CRNT/Deficiency/{ClosedSetKernel, Consistent, ConsistentWR, Drainage, KineticBlock, PerClassKernel,
+  SignedDrainage, SteadyStateKernel, TerminalKernelBound, TerminalKernelDimension, TerminalReachable,
+  TerminalSLC, TerminalSLCKernel}` state their "support is contained in a set" conclusions about
+  `b : N.ComplexIdx → ℝ` **on the complex space**. The concentration space is `Concentration S = S → ℝ`
+  (A-45). **These statements do not fit `hmaxExact` / `Pmax`, however much the wording resembles it.**
+  All thirteen are in Hole A's closure and all thirteen are among the 151 "unused" modules.
+
+## TRAP-5. **`CRNT.Geometry` NEVER QUANTIFIES OVER `omegaLimit`** **[V, source-read]**
+
+- **found-by:** `FormBarrier-2.GeoMinescout`; confirmed by my own read of `FanFaceLattice.lean`,
+  `ToricFan.lean`, `PolyhedralFan.lean`, `FanRefinement.lean`, `ZeroSeparatingInduction.lean`.
+- A grep for `omegaLimit` over the entire `CRNT/Geometry/` directory returns **no matches**. No
+  geometry module can produce a carried siphon, so **no amount of fan, tiling, δ-core or
+  zero-separating machinery closes the descent on its own.** The descent's right disjunct is a
+  statement about `Finset S` cardinality, which lives entirely in `CRNT/Dynamics`.
+- Corollary for anyone budgeting: the 18 geometry modules in the 151 are the *least* likely of any
+  band to bear on Hole A's residue, notwithstanding that they are the largest.
+
+## A-50. **CORRECTION TO MY OWN BROADCAST ITEM 3 — the `projOn` / `forgetLastCoordinate` bridge does not bind** **[V, source-read]**
+
+- **found-by:** `FormBarrier-2` · **round 2** · **revive-when:** someone chooses an ordering of `S`.
+- I broadcast (as `[H]`) that nothing bridges the hole's `projOn Pmax` to
+  `ProjectedFaceDimensionCode`'s coordinate-deletion projections. **The bridge cannot exist as
+  stated.** `projOn` is an **endomorphism** on a fixed species space; `forgetLastCoordinate` maps
+  `(Fin (n+1) → ℝ) →ₗ[ℝ] (Fin n → ℝ)` — **two different ambient dimensions**. Matching them needs an
+  isomorphism `S ≃ Fin (n+1)`, i.e. an ordering of the species, and `Pmax : Finset S` is unordered.
+  Its working theorem `finrank_map_forgetLastCoordinate_bounds` is a two-sided *inequality*, so even
+  with an ordering it would not transfer `hcodim` exactly.
+- **Moot in any case:** `hcodim`'s entire documented use is `hcodim → {hcard, hrank}`, discharged
+  inside the hole file. **Do not build anything that assumes the two projections are connected.**
+
+## OPS-3. **A GREP THAT FINDS NOTHING CAN BE A FALSE NEGATIVE — verify the lemma's actual name** **[V, self-inflicted, corrected in the same session]**
+
+- **found-by:** `FormBarrier-2` · **round 2** · **revive-when:** never.
+- Mid-analysis I ran `grep -rn "pos_of_massAction\|forward_positivity\|positivity_of_massAction" CRNT/`,
+  got nothing, and was about to report "**no theorem in `CRNT/` proves forward positivity of a
+  mass-action solution**" as a third independent killer of the fan route. **The theorem exists**, named
+  `Network.genuineOrbit_pos` (`CRNT/Dynamics/GenuineConfinement.lean:53-56`) — a name my pattern
+  could not match, and one I had already seen cited elsewhere in the tree without connecting it.
+- **The rule:** a negative grep result is evidence about *the pattern you searched*, never about the
+  *property*. Before filing any "no such theorem exists" claim, search the **property** by a second
+  route — the module's docstring, `grep` on the conclusion's head symbol, or the declaration list.
+  A-6 is the same failure at document scale; this is the same failure at grep scale, and it nearly
+  produced a false headline in a route document.
