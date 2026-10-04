@@ -288,6 +288,69 @@ which is a strictly stronger statement than the GAC needs and is refuted by
 
 ---
 
+## 3b. THE FORK IS SETTLED BY COMPILATION — every pre-packaged criterion is refuted
+
+`CRNT/Dynamics/BlueprintRouteRefutation.lean`, all eight theorems auditing to
+`[propext, Classical.choice, Quot.sound]` (no `sorryAx`), `checkmod.sh` = `OK`, 0 sorry-warnings.
+
+| criterion | refuted by | mechanism |
+| --- | --- | --- |
+| `…_of_blueprintData` | `blueprintData_inconsistent_with_highCodimension` (`:False`) | full hypothesis set + hole A's ω-hypotheses ⟹ `False` |
+| `…_of_selfConsistent_normals`, `…_of_convex_tiles` | `not_separationClause_of_boundaryOmegaPoint` | same `hsep` shape |
+| `…_of_tiled_faceCores`, `…_of_faceRelevantCore` | `no_uniform_floor_along_orbit_of_boundaryOmegaPoint` | barrier-free; covers the `minMaxBarrier` rungs too |
+| `…_of_toric_blueprint`, `…_of_toric_halfspace` | same | they route through `exists_positive_omegaPoint_of_coordinate_floors` with `T = S` |
+| `…_of_upperRegion` (:1596) | `upperRegion_criterion_inconsistent_with_boundaryOmegaPoint` (`:False`) | see below |
+
+### Why `_of_upperRegion` dies — the disputed point, resolved
+
+The objection was: the criterion builds `K := closure Zupper ∩ {relEntropy ≤ relEntropy x₀}`, a
+**closed** set containing the whole orbit image (`himgs`, :1655), so `ω ⊆ K` is forced; `hKpos`
+(:1629) is **universal** (`∀ y ∈ K, y.Positive`); hence `wmax ∈ ω ⊆ K` is forced strictly positive,
+contradicting `hzeroMax` + `hPmaxne`.
+
+**That is correct, and it is now compiled.** The exact argument:
+
+```
+hstay      : ∀ t ≥ 0, γ x₀ t ∈ Zupper        -- orbit_stays_in_upperRegion, from hsplit + hx₀Z
+hfloorC    : closure Zupper ⊆ {y | ∀ s, ε ≤ y s}
+⇒ orbit ⊆ closure Zupper
+⇒ orbit image ⊆ K
+⇒ ω ⊆ K                                   -- omegaLimit_subset_closure_image2, K closed
+⇒ wmax ∈ K ⟹ ∀ s, ε ≤ wmax s             -- hKpos
+⇒ ε ≤ wmax s₀ = 0                         -- hzeroMax, hPmaxne
+```
+
+Convexity of the barrier sublevel is **irrelevant** here, which is why the convexity-based
+argument of §3 does not cover this criterion and why the region-vs-orbit distinction does not save
+it: the containment `orbit image ⊆ closure Zupper` is direct.
+
+So `hfloor` is not an unbuilt input to that criterion; it is an *inconsistent* one. This is the
+same obstruction as `Network.not_persistentFrom_of_mem_omegaLimit_notPositive`
+(`HighCodimensionSiphonFace.lean:407`).
+
+### The general principle, now machine-checked
+
+> Any certificate that traps the orbit image in a set floored away from the coordinate boundary
+> also traps the **whole ω-limit set** there, hence is incompatible with a boundary ω-point.
+
+This is a statement about the proof architecture of the whole tree, not about one criterion: every
+`PersistentFrom` certificate, every `barrier` sublevel criterion, and every `Zupper` region
+criterion falls under it. A proof of hole A cannot be a *confinement* argument. This is why
+`CodimTwoFaceModel` shows the hypotheses are satisfiable with a false conclusion.
+
+### What remains
+
+`Network.omegaLimit_positive_of_descend` / `Network.ComparableGrowthDescent`
+(`CRNT/Dynamics/SiphonDimensionDescent.lean:124`, `:137`) — the Anderson-style descent named in the
+hole's own docstring at :167–175. It is the only packaged route not of the confinement shape. Its
+residual is branch (I): a carried critical siphon `Q` with `Q.card < Pmax.card`, which `hzcard` does
+not refute. `descendStep_iff_omegaPointPositive_of_cardMinimal` shows the iteration bottoms out at
+the goal itself, so the descent hypothesis is equivalent to hole A's conclusion, not weaker.
+
+The weakened, satisfiable statement proved here as a starting point for any future route is
+`exists_positive_omegaPoint_of_relInteriorFace`: floors off `P` give an ω-limit point in the
+relative interior of the `P`-face.
+
 ## 4. Does closing hole A close the GAC chain?
 
 **Yes — unconditionally, with no other unproven branch.**
