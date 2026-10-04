@@ -1072,3 +1072,30 @@ re-derive by reading the code.
   load-bearing file propagates exactly like a false broadcast, and neither is caught by any gate.
   `research/README.md` §8 covers broadcasts; **comments in `CRNT/` deserve the same scrutiny**, and
   in particular a comment that *justifies* an omission is the highest-risk text in the tree.
+
+## A-45. `Concentration S` is `S → ℝ` — **plain reals, not `ℝ≥0`** **[V, verified]**
+
+- **found-by:** `adv-refute`, PR #6; verified by the orchestrator at
+  `CRNT/Kinetics/Concentration.lean:19` — `abbrev Concentration (S : Type) := S → ℝ`.
+  `Nonnegative` is `∀ s, 0 ≤ x s` (:23) and `Positive` is `∀ s, 0 < x s` (:26), both pointwise.
+- **I had assumed `ℝ≥0`.** It matters: the ambient type is unconstrained reals, so the
+  nonnegativity hypothesis is a *separate, real* condition (`hωnn`, `hΓpos`, `hx₀`), not baked into
+  the type. Anyone reasoning about where a nonnegativity constraint comes from must not assume the
+  ambient type supplies it.
+
+## A-46. **Hole A is not vacuous — it is genuinely the GAC** **[V]**
+
+- **found-by:** `adv-refute`, from the pre-existing `CRNT/Examples/CodimTwoFaceModel.lean`.
+- The hypothesis set is **satisfiable**: every hypothesis except `hsol` holds with a **false
+  conclusion**. So the hole is not vacuously true, not trivially dischargeable, and not malformed.
+- **It is a faithful statement of the Global Attractor Conjecture in the boundary case.** Combined
+  with **A-40** (not refutable; exhaustive first-order search finds nothing), the verdict on Hole A
+  is now complete and positive:
+  * **not vacuous** (A-46) — the hypotheses are jointly satisfiable;
+  * **not refutable** (A-40) — exhaustive search over first-order networks, 2–4 species,
+    ≤ 4 ordered reactions, exact arithmetic: `hits=0`;
+  * **no formulation gap** — `projOn`'s weakness makes `hcodim` *stricter* than classical;
+  * **genuinely open**, and its residue is one unproved dynamical estimate the tree proves equivalent
+    to the goal (A-23, A-37).
+- **This is a better position than round 1 started from.** The round proved the *packaging* dead and
+  the *statement* alive, which is the correct split and is now recorded on both sides.
