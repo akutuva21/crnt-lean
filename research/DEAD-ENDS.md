@@ -663,3 +663,55 @@ goal-equivalent step"** penalty from `research/README.md` §5 to any such landin
 - **This is the durable Tier C payoff and it survives every refutation above.** The fan and the
   embedding are real, proved, and compiled into Hole A's dependency cone without being called.
   Whatever replaces the dead criteria will need them.
+
+## A-28. **THE GENERAL TEMPLATE — one theorem retires the whole family** **[V, compiled]**
+
+- **found-by:** `infra-scaffold-crnt`, `Network.universalPositive_omegaLimit_of_closedPositiveConfine`.
+- `sorryAx`-free, and containing **no** floor, no `ε`, no concentration structure, and no reaction
+  network — a bare set-theoretic condition:
+
+  ```lean
+  theorem universalPositive_omegaLimit_of_closedPositiveConfine
+      (hKc : IsClosed K) (hKpos : ∀ y ∈ K, y.Positive) (hv : v ∈ atTop)
+      (hvK : closure (Set.image2 ϕ v {x₀}) ⊆ K) : ∀ y ∈ omegaLimit atTop ϕ {x₀}, y.Positive
+  ```
+
+- **The hole asks for `∃ p ∈ ω, p.Positive` while *permitting* a boundary ω-point. This yields the
+  *universal* form, which is exactly the negation of that permission.** So `Permanent`,
+  `exists_positive_omegaPoint_of_upperRegion`,
+  `not_persistentFrom_of_mem_omegaLimit_notPositive` and the entire `hsep` family die for **one
+  structural reason**, not four.
+- **Retire the `Permanent` citations.** `papers-cracuin` was right that `Permanent` is a hypothesis
+  the hole never assumes, so it cannot be what refutes it. `Permanent` is merely one way of
+  discharging this template's hypotheses. **Cite `universalPositive_omegaLimit_of_closedPositiveConfine`,
+  not `Permanent`.**
+
+## A-29. **Four agents landed the same `False`-level theorem — consolidation required** **[V]**
+
+- Compilations of the same verdict: `UpperRegionFloorRefutation.lean` (`infra-scaffold-crnt`, 3
+  theorems), `UpperRegionObstruction.lean` (`adv-refute`), `UpperRegionAdjudication.lean`
+  (`adv-audit`), `BlueprintRouteRefutation.lean` (`form-barrier`, 8 theorems).
+- **Consolidation agreed, with `infra-scaffold-crnt` as owner** — its factoring separates the bare
+  mechanism from the CRNT-level `False`, which is the right factoring.
+- **What is a duplicate and should reduce to a one-line corollary:** `false_of_upperRegion…` (×3)
+  and `positive_omegaLimit_of_confinedToFlooredRegion` (now strictly subsumed by A-28).
+- **What is NOT duplication and must be kept:**
+  * `adv-audit`'s `comparableGrowthDescent_is_not_a_weaker_route` — orthogonal to all of the above,
+    and load-bearing, because it removes the last fallback the hole's own docstring names at
+    `:167-171`.
+  * `form-barrier`'s `blueprintData_inconsistent_with_highCodimension` — a *different and larger*
+    claim (kills the whole ladder), plus `no_uniform_floor_along_orbit_of_boundaryOmegaPoint`
+    (barrier-free).
+- **Four copies of one theorem is worse than one:** a reviewer has to check four.
+
+## A-30. "Unused" ≠ "unavailable", and much of the unused capability is now unreachable **[V]**
+
+- `docs/hole-reachability.md`'s capability table overstates what is actionable. The fan
+  (`ComplexBalanceStoichFan`, 20 decls) and its inclusion (`ComplexBalanceStoichFanInclusion`,
+  38 decls) are in the **transitive closure** — via
+  `ToricBarrierTrapping → FanFaceLattice → ComplexBalanceStoichFanInclusion → ComplexBalanceStoichFan` —
+  unused only in the *file body*. Both facts are now separate columns in the generated doc.
+- **But by A-28, any module in the closure that discharges orbit-confinement via a closed positive
+  set is unreachable here.** The fan and its inclusion are exactly that: real infrastructure, no
+  live consumer. The `∀`-form rows will be marked rather than left looking like missed
+  opportunities. **A-27 must be read with this caveat.**
