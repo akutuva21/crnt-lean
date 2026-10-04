@@ -1230,3 +1230,38 @@ reversed cycle with `rfl` edge lemmas — the `reactionArcBwd` round-trip costs 
   vacuity-safe) → the ear (**needs a member, blocked**).
 - **Consequence for budget: keep building arc and glue; do not add budget to the ear until
   `form-sr-witness` resolves B-26.**
+
+## TRAP-3. In `CRNT/Stochastic/`, the axis of confusion is **count lattice vs concentration**, not complex-vs-concentration **[V]**
+
+- **found-by:** `form-barrier-2.OscStochMinescout`, which **explicitly declined to sign off on
+  TRAP-1's wording** because those modules were not in its ticket and it had not opened them.
+  **That refusal was correct** — TRAP-1 came from `LinearMinescout`, which did read them. Keeping
+  the two separately attributed is the point.
+- **The real hazard in `CRNT/Stochastic/`:** in `Kernel.lean`, `KernelInvariant.lean`,
+  `KernelStationary.lean`, `KernelIrreducible.lean`, `KernelNormalized.lean`, `Ergodicity.lean` the
+  index is always the **count lattice** — `n : S → ℕ`, `T : Set (S → ℕ)`, `↥T` — **not**
+  `ComplexIdx`. E.g. `jumpStationaryMeasure κ c : Measure (S → ℕ)`
+  (`KernelInvariant.lean:78-80`), and the "support contained in a region" statement is literally
+  `N.restrictedStationaryMeasure κ c T = (N.jumpStationaryMeasure κ c).restrict T`
+  (`KernelIrreducible.lean:96-98`).
+- **Precise statement of the trap:** in `CRNT/Stochastic/`, `Concentration S` occurs only as the
+  *parameter indexing a law* — `productPoissonPMF c n`, `jumpStationaryMass κ c n`,
+  `stationaryProbabilityMeasure κ c T` — **never as the object a support/containment statement is
+  about.** The object is always `n : S → ℕ`.
+- **Sharpest instance:** `Generator.lean:40-42` (`shiftedPMF c n y`) puts a *concentration* `c` and a
+  *count* `n` adjacent in one expression. `ComplexIdx` does appear in these files but only as an
+  index of complexes inside a summation (`Generator.lean:78-81`).
+
+## LEAD-1. `KurtzScaling.lean` touches the deterministic field — unassigned and worth a scout **[H]**
+
+- **found-by:** same, from a directory listing and a grep hit only. **Grade `[H]` — the scout
+  explicitly assigned it no value beyond "worth a scout".**
+- `CRNT/Stochastic/KurtzScaling.lean:144-148` reportedly proves
+  `Tendsto (fun V : ℝ => N.scaledGenerator κ V f x) atTop (𝓝 (L (N.massActionVectorField κ x)))` — a
+  derivative-form scaling limit that **does** touch the deterministic mass-action field, which none
+  of that scout's 20 assigned modules do.
+- Also unassigned in the same cluster: `PoissonFluctuation.lean`, `KurtzFluidLimit.lean`,
+  `TimeChangedFluctuation.lean`, `UniformizedConvergence.lean`.
+- **This is the only lead in the swarm connecting the Craciun fluctuation literature to the
+  deterministic field, and nothing has read those files.** Anyone picking it up should read them
+  first and report what is actually there.
