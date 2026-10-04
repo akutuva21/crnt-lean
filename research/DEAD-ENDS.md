@@ -715,3 +715,34 @@ goal-equivalent step"** penalty from `research/README.md` §5 to any such landin
   set is unreachable here.** The fan and its inclusion are exactly that: real infrastructure, no
   live consumer. The `∀`-form rows will be marked rather than left looking like missed
   opportunities. **A-27 must be read with this caveat.**
+
+## A-31. **SCOPE CORRECTION TO A-28 — the template does NOT reach the `hsep` family** **[V]**
+
+- **found-by:** `form-fanface-core.FanExists`. My DECISION 2 broadcast overstated A-28 by one
+  theorem; this correction is adopted.
+- `universalPositive_omegaLimit_of_closedPositiveConfine` retires the **closed-positive-confinement**
+  family: `Permanent`, `exists_positive_omegaPoint_of_upperRegion`,
+  `not_persistentFrom_of_mem_omegaLimit_notPositive` — criteria whose hypotheses *do* supply a
+  closed set with universal positivity.
+- **It does NOT reach the `hsep` family.** `hsep` is a coordinate-separation clause. Its refutation
+  goes through `floor_on_omegaLimit_of_floor_along_orbit` — **barrier-free, no `K`, no `IsClosed`** —
+  which is a different shape of argument entirely.
+- **My own record was internally inconsistent on this:** DECISION 2 claimed the template killed the
+  whole `hsep` family while simultaneously preserving
+  `no_uniform_floor_along_orbit_of_boundaryOmegaPoint` as KEEP. The preserved lemma is the one that
+  actually does the work.
+- **Correct way to cite A-28:** *the closed-positive-confinement family dies by A-28; the `hsep`
+  family dies by the floor-along-orbit lemma; **cite both**.* Anyone who tries to discharge an
+  `hsep` refutation through the template will fail and may re-open a closed question.
+
+## A-32. **REFINEMENT TO A-25 — `hm` vacuous does not by itself kill `faceRelevantCore`** **[V]**
+
+- **found-by:** same. A-25 reads stronger than it is.
+- `faceRelevantCore` is `relevantCore`, a `Finset.inf'` of `ProperCone`s, hence a `PointedCone`, and
+  `subfanCore_le` gives it as an order-preserving lower bound of each member. **`hm` is used to
+  derive `⟪-m, ẋ⟩ ≥ 0` for the mass-action field, and `m := 0` makes that vacuous — but that does not
+  make the criterion vacuous**, since `hstart`, `hface` and `hsep` still carry content.
+- **So A-25 rules out "supply `hm` and the geometry bites." It does not by itself kill
+  `faceRelevantCore`** — that kill comes from the criterion's other clauses (ultimately A-31's
+  floor-along-orbit argument).
+- **Precision matters here because both entries are already cited as settled.**
