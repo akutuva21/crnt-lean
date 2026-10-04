@@ -1599,3 +1599,74 @@ progress toward closing it, and must not be reported as such.* Per `research/REA
 reduction to a goal-equivalent predicate scores **0**, not the +25 for a route lemma. The genuine
 result here is the **negative** one — that the `IsCriticalSiphon`/`SiphonCarried` side has no gap
 left — which **removes a slice from the search space** rather than advancing it.
+
+## A-54. ⚠️⚠️ **The descent mechanism is ATTRIBUTED to Anderson but he did not use it — and it is INAPPLICABLE at Hole A's faces** **[S, from the full 23pp of arXiv:1101.0761]**
+
+- **found-by:** `arch-sr-descent` (PR #22). **No `CRNT/` file touched** — additions only under
+  `research/`. Control: `git diff --name-only origin/holes HEAD -- CRNT/ | wc -l` → **0**. Nothing
+  here can break a build.
+- **The attribution is wrong.** arXiv:1101.0761, fetched and read in full, contains **no
+  siphon-dimension descent**: no cardinality descent, no iteration over faces, no use of
+  `SiphonFace`. The word "siphon" appears **once**, in the historical background. **The docstrings at
+  `SiphonDimensionDescent.lean:25-27` and `:120-122` attribute to Anderson a mechanism he did not
+  use.** His actual mechanism is a single global dichotomy (Lemma 4.7, C1-or-C2); the conjunction of
+  the tier partition (Def 4.1) with the Lyapunov family (C1) yields "**ω is a single point**"
+  (Lemma 4.9) — **not a shrink**. `SingleLinkageGAC.lean:24-25` cites the paper **correctly**; keep it.
+
+### The decisive structural result — `IsCriticalSiphon` and the named mechanism are MUTUALLY EXCLUSIVE at the same face **[S]**
+
+Three steps, each provable:
+
+1. **If the escape face `U` is a siphon that is NOT critical**, the conservation relation that
+   `IsCriticalSiphon` negates (`CRNT/Dynamics/Siphon.lean:84-87`) **exists**, making `w·φ(t)`
+   constant while `w·φ(t_n) → 0` — a contradiction **with no tiers at all**. So the only case that
+   reaches the tier machinery is `U` **critical**.
+2. **For critical `U`**, Anderson's Thm 4.6 gives `w` only with **clause 2 of Def 4.5** (same-tier
+   differences), **not** all reaction vectors — so step (1) is unavailable.
+3. **Lemma 4.8's** contradiction needs `T₁ ≡ C` to upgrade clause 2 to all reactions, and Anderson
+   gets `T₁ ≡ C` **only from `numLinkageClasses = 1`**.
+
+**Therefore: `IsCriticalSiphon` and "escape `SiphonFace P` and shrink it" are mutually exclusive at
+the same face.** **Hole A's `Pmax` is exactly such a critical face, and `hcodim` is exactly the
+codimension range where the `ℓ = 1` collapse is unavailable. Hole A is the case Anderson's method
+cannot see.**
+
+### The hypothesis that would close the hole is `N.numLinkageClasses = 1` — and for `ℓ = 1` the hole is INCONSISTENT **[S]**
+
+- `numLinkageClasses := Nat.card (Quotient N.linkedSetoid)` (`CRNT/Graph/LinkageClass.lean:93-94`).
+  **Nothing in the hole's 20 hypotheses** (`HighCodimensionSiphonFace.lean:111-133`) constrains it, and
+  it is neither supplied nor derivable.
+- **Stronger:** under `ℓ = 1`, Anderson's Thm 4.10 gives "every ω-point is positive", which
+  **CONTRADICTS `hwmax`**. So for `ℓ = 1` the hole's hypotheses are **themselves inconsistent** —
+  a different situation from "needs more work", and worth knowing before anyone tries that route.
+
+## A-55. `TierPersistence.lean` is **outside** Hole A's import closure **[S, computed]**
+
+- `CRNT/Dynamics/TierPersistence.lean`, **476 lines**, in `CRNT.lean:512`, is **outside** Hole A's
+  import closure — computed at **179 modules**. Round 1's failure was capability *inside* the closure
+  going unreferenced; **here it is capability *outside* it.**
+- `TierStrictBelow` (:34-35) is `ratio → 0`, the **opposite sign convention** to Anderson Def 4.1(ii)
+  — **the same direction hazard as A-2, on the same primitive.** Whoever builds on this must check
+  the convention before assuming a match.
+- Its own open flag `EveryTransversalTierSequenceHasDirectionWitness` (:191-192) is **stronger** than
+  Anderson's Lemma 4.2.
+
+## Two points that REDUCE the apparent residue **[S]**
+
+1. **Anderson's condition 2** ("ω all-boundary or all-interior") is **not** part of the residue: it is
+   one `by_cases` in Hole A's setting, since either a positive ω-point exists (the goal) or, via
+   `hωnn`, every ω-point has a zero coordinate.
+2. **The projected/reduced reaction network with time-dependent kinetics** (Anderson §3.1, Def 3.1,
+   eq. 3.7) is **absent from ALL of `CRNT/`** — grep for `reducedNetwork|projectedDynam|ProjOn|
+   boundedMassAction` returns exactly one hit, the plain linear `projOn` at
+   `FacetRepulsionAndersonShiu.lean:315-317`. **That is the true floor of any route built this way.**
+
+## A-56. What is NOT refuted, stated plainly **[S]**
+
+**`ComparableGrowthDescent.descend` is NOT false.** It is equivalent to the goal
+(`SiphonDimensionDescent.lean:368-377`, re-read this session), so **there is nothing false in it to
+find.** Independently confirmed by `arch-sr-escape`, which showed the strict-shrinking disjunct is
+false on the singleton-ω model and that **no weaker analytic estimate can be landed first**.
+**What is refuted is the ATTRIBUTION and the STATED MECHANISM** — which means the reduction recorded
+in A-53 points at a route that provably does not apply here, and **the docstrings at
+`SiphonDimensionDescent.lean:25-27` and `:120-122` should be corrected as part of any eventual PR.**
