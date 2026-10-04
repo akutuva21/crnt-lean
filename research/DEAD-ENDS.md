@@ -1708,3 +1708,56 @@ zero set has a critical-siphon zero set. Meanwhile the descent is *enabled* by *
 * **The only unexamined sources that might carry a different mechanism:** Anderson 2008 (SIAM J. Appl.
   Math. **68**, 1464–1476) — whose full text has still never been obtained — and the
   weak-dynamic-non-emptiability line (Sontag arXiv:1009.0720). **Neither was read.**
+
+## A-59. **"ω finite ⟹ no strictly smaller carrier" is FALSE — do not fund it** **[M]**
+
+- **found-by:** `arch-sr-escape`, who **caught and corrected it in their own module header.**
+- The natural generalisation fails at `|ω| = 2`: `zeroSet(w₁) = {s₁}`, `zeroSet(w₂) = {s₁,s₂}` are
+  **both** carried, and `1 < 2`. **So the strict-shrinking disjunct IS satisfiable at finite ω.**
+- **Finiteness does not block the descent; SPREAD in `{zeroSet(w) : w ∈ ω}` enables it.** This is the
+  correct statement of what A-58 says, and the falsified one must not reappear in any brief.
+
+## A-60. The exact target sentence, agreed independently by three routes **[S]**
+
+Three researchers reached it without coordinating — `arch-sr-descent` from the paper (PR #22),
+`form-a-lyapunov` from the analytic side, `arch-sr-escape` from the signature:
+
+> **`smaller_carried_siphon_iff_zeroSet_card_lt`** (`HighCodimensionSiphonFace.lean:608`)
+
+Force an ω-point `z` with `(univ.filter (· = 0) z).card < Pmax.card` under `hnoG`.
+`exists_smaller_carried_siphon_of_zeroSet_inside` (`:470`) **already covers** the sub-case where `z`
+is positive off `Pmax` and positive on `Pmax`.
+
+**This is the first thing three independent routes agree Hole A actually needs.** Note it is
+*not* the sentence the file names (`ComparableGrowthDescent.descend`), and A-60 and A-54 are in
+tension: the file's named mechanism is inapplicable, while this target is a `card` statement about
+zero sets rather than a comparable-growth statement. **Which of the two is the right formalisation
+is open and is the next decision for anyone funded on Hole A.**
+
+## A-61. `siphonCarried_of_escape` **cannot** supply the cardinality estimate — it is a missing input, not a missing proof **[M]**
+
+- `SiphonDimensionDescent.lean:89` is **already fully proved** (body :105-114, zero sorries across all
+  four modules). Its conclusion is `∃ P, P.Nonempty ∧ IsCriticalSiphon P ∧ SiphonCarried ϕ x₀ P`,
+  and **no hypothesis mentions an input siphon.** So `Q.card < P.card` is **not well-typed**
+  against it. **Do not describe it in a brief as an estimate awaiting proof.**
+- **The invariance step is complete in the tree.** `IsCriticalSiphon` needs three things
+  `SiphonCarried` supplies none of, all discharged by `isCriticalSiphon_of_siphonCarried` (`:68`) —
+  which **mentions `card` not once**. **The cardinality step is absent from the signature**, not
+  from the theory.
+
+## A-62. Machine-checked: the strict-shrinking disjunct is false at singleton ω **[M]**
+
+`SiphonCarried` (:61) is witness-determined, so `P = univ.filter (w s = 0)` and at a singleton
+ω-limit set the carrier is unique: `Q = P`, so `Q.card < P.card` reduces to `P.card < P.card`.
+Proved as `not_exists_smaller_carried_siphon_of_unique_omegaLimit`. **This formalises, as a theorem,
+the degenerate model `ω = {wmax}` that `HighCodimensionSiphonFace.lean:457-459` already names in
+prose.**
+
+## A-63. 🔴 **`numLinkageClasses = 1` is CLOSED, not underfunded — stated per request** **[S]**
+
+`arch-sr-escape` asked me to state this unambiguously because anyone told the route is "underfunded"
+**will fund it.** **It is closed.** Under `ℓ = 1`, Anderson Thm 4.10 gives "every ω-point positive",
+contradicting `hwmax` outright: **unsatisfiability, not difficulty.**
+
+**Knock-on:** A-3's "§7.3 is not open" and the single-linkage framing in
+`GlobalAttractorTheorem.lean` **must not be read as an open persistence route.**
