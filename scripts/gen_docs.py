@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+
 import difflib
 import json
 import os
@@ -89,6 +90,31 @@ def measure() -> dict:
 
 
 # ---------------------------------------------------------------------------
+
+
+def cross_check_holes(s: "Surface", meas: dict) -> None:
+    """Assert our computed `sorry` sites agree with `research/scripts/measure.py`.
+
+    This is a hard check, not a warning.  The point of these documents is that a reader
+    can act on them, and a wrong line number sends a researcher to the wrong place.
+    `measure.py` is the frozen objective's own definition of a hole, so if the two
+    disagree the documents are wrong and must not be written.
+    """
+    theirs = {str(p): sorted(int(n) for n in [n]) for p, n in meas["metrics"]["hole_sites"]}
+    ours: dict[str, list[int]] = {}
+    for m in s.mods:
+        if not m.name.startswith("CRNT"):
+            continue          # the objective counts CRNT/ only
+        for d in m.decls:
+            for ln in d.sorry_lines:
+                ours.setdefault(str(m.path), []).append(ln)
+    mine = {k: sorted(v) for k, v in ours.items()}
+    if mine != theirs:
+        raise SystemExit(
+            "gen_docs: `sorry` sites disagree with measure.py -- refusing to write.\n"
+            f"  measure.py: {theirs}\n"
+            f"  computed:   {mine}"
+        )
 
 
 class Surface:
@@ -156,19 +182,6 @@ class Surface:
             if not used:
                 out.append((m, len(self.by_mod[m].decls)))
         return out
-
-    def hole_sorry_line(self, d: si.Decl) -> int:
-        """The line the `sorry` actually sits on, relative to the declaration's start.
-
-        `body_norm` has its newlines collapsed, so the offset has to be recomputed
-        against the raw body — and the raw body is not comment-free, so we strip
-        comments again before scanning.
-        """
-        clean = si.strip_comments_keep_lines(d.body).split("\n")
-        for off, ln in enumerate(clean):
-            if re.search(r"(?<![A-Za-z_.'\"])\bsorry\b(?![A-Za-z_])", ln):
-                return d.line + off
-        return d.line
 
     def hole_decl(self, h: dict) -> si.Decl:
         m = self.by_mod[h["module"]]
@@ -356,7 +369,7 @@ def gen_holes(s: Surface, meas: dict) -> str:
         un = s.unused_dependencies(h)
         data[h["id"]] = {"h": h, "src": src, "direct": direct, "rmods": rmods,
                          "down": down, "unused": un}
-        sorry_line = s.hole_sorry_line(src)
+        sorry_line = src.sorry_lines[0] if src.sorry_lines else src.line
         o.append(f"| **{h['id']}** | `{rel(src.path)}:{sorry_line}` "
                  f"(decl at :{src.line}) | {len(direct)} | "
                  f"{len(rmods)} | {len(down) - 1} | {len(un)} |\n")
@@ -366,7 +379,8 @@ def gen_holes(s: Surface, meas: dict) -> str:
         src = d["src"]
         o.append(f"\n## Hole {h['id']} — `{src.name}`\n\n")
         o.append(f"*{h['short']}*\n\n")
-        o.append(f"- **`sorry` site**: `{rel(src.path)}:{s.hole_sorry_line(src)}` "
+        o.append(f"- **`sorry` site**: `{rel(src.path)}:"
+                 f"{src.sorry_lines[0] if src.sorry_lines else src.line}` "
                  f"(declaration begins at line {src.line})\n")
         o.append(f"- **module**: `{src.module}`\n")
         o.append(f"- **signature**: `{_fmt_decl(src, 300)}`\n")
@@ -660,6 +674,7 @@ def main() -> int:
 
     meas = measure()
     s = Surface()
+    cross_check_holes(s, meas)
     th = [d for d in s.decls if d.kind in ("theorem", "lemma")]
     stats = {
         "crnt_modules": len(s.crnt_mods),

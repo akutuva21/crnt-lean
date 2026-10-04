@@ -30,7 +30,7 @@ are reported:
 | identical statements | 20 | 47 |
 | … of which cross-module | 20 | 47 |
 | identical statements *and* identical proofs | 10 | 21 |
-| near-duplicate signature pairs (≥85%) in `Multistationarity/`+`Dynamics/` | 567 |
+| near-duplicate signature pairs (≥85%) in `Multistationarity/`+`Dynamics/` | 568 |
 
 ## Per-area duplication density
 
@@ -45,7 +45,7 @@ are reported:
 | `CRNT/Decomposition` | 32 | 32 | 0.0% |
 | `CRNT/Deficiency` | 379 | 379 | 0.0% |
 | `CRNT/Design` | 157 | 157 | 0.0% |
-| `CRNT/Dynamics` | 1450 | 1445 | 0.2% |
+| `CRNT/Dynamics` | 1455 | 1450 | 0.2% |
 | `CRNT/Equilibria` | 293 | 293 | 0.0% |
 | `CRNT/Examples` | 348 | 324 | 5.5% |
 | `CRNT/Flux` | 51 | 51 | 0.0% |

@@ -16,14 +16,14 @@ uses that Lean resolves to a different namespace).
 
 | hole | `sorry` site | direct consumers | dependent modules | dependent declarations | **available but unused** |
 |---|---|---|---|---|---|
-| **A** | `CRNT/Dynamics/HighCodimensionSiphonFace.lean:116` (decl at :115) | 3 | 5 | 4 | 151 |
-| **B** | `CRNT/Multistationarity/TrueChemistrySRCriterion.lean:8603` (decl at :8003) | 4 | 4 | 3 | 137 |
+| **A** | `CRNT/Dynamics/HighCodimensionSiphonFace.lean:139` (decl at :115) | 3 | 5 | 4 | 151 |
+| **B** | `CRNT/Multistationarity/TrueChemistrySRCriterion.lean:8607` (decl at :8003) | 4 | 4 | 3 | 137 |
 
 ## Hole A — `exists_positive_omegaPoint_of_highCodimension_siphonFace`
 
 *Craciun v3 Theorem B / Global Attractor Conjecture*
 
-- **`sorry` site**: `CRNT/Dynamics/HighCodimensionSiphonFace.lean:116` (declaration begins at line 115)
+- **`sorry` site**: `CRNT/Dynamics/HighCodimensionSiphonFace.lean:139` (declaration begins at line 115)
 - **module**: `CRNT.Dynamics.HighCodimensionSiphonFace`
 - **signature**: `theorem exists_positive_omegaPoint_of_highCodimension_siphonFace (N : Network S) (κ : N.RateConstants) {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar) {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S} {x₀ : Concentration S} (hϕγ : ∀ x (`
 - **`sorry` count in the module**: 1
@@ -78,8 +78,8 @@ Every declaration that transitively mentions the hole, in breadth-first order
 | `CRNT.Basic` | 3 |
 | `CRNT.Stoich` | 2 |
 | `CRNT.Subnetwork` | 1 |
-| `CRNT.Multistationarity` | 1 |
 | `CRNT.Combinatorics` | 1 |
+| `CRNT.Multistationarity` | 1 |
 
 <details><summary>full prerequisite list</summary>
 
@@ -1120,7 +1120,7 @@ set, so nothing about them has to change to close the hole:
 
 *Shinar–Feinberg strong concordance*
 
-- **`sorry` site**: `CRNT/Multistationarity/TrueChemistrySRCriterion.lean:8603` (declaration begins at line 8003)
+- **`sorry` site**: `CRNT/Multistationarity/TrueChemistrySRCriterion.lean:8607` (declaration begins at line 8003)
 - **module**: `CRNT.Multistationarity.TrueChemistrySRCriterion`
 - **signature**: `theorem stronglyConcordant_fullyOpen_of_trueSRCriterion (N : Network S) (hsep : N.ReactantProductSeparated) (hflow : N.ZeroComplexReactionsAreFlows) (hSR : N.TrueSRStrongCriterion) : N.fullyOpen.StronglyConcordant`
 - **`sorry` count in the module**: 1
@@ -1167,14 +1167,14 @@ Every declaration that transitively mentions the hole, in breadth-first order
 | `CRNT.Graph` | 7 |
 | `CRNT.Oscillation` | 6 |
 | `CRNT.LinearAlgebra` | 5 |
-| `CRNT.Kinetics` | 4 |
 | `CRNT.Equilibria` | 4 |
+| `CRNT.Kinetics` | 4 |
 | `CRNT.Decision` | 3 |
 | `CRNT.Basic` | 3 |
-| `CRNT.Geometry` | 2 |
 | `CRNT.Stoich` | 2 |
-| `CRNT.Subnetwork` | 1 |
+| `CRNT.Geometry` | 2 |
 | `CRNT.Flux` | 1 |
+| `CRNT.Subnetwork` | 1 |
 | `CRNT.Combinatorics` | 1 |
 | `CRNT.Open` | 1 |
 

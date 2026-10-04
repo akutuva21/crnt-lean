@@ -161,6 +161,7 @@ class Decl:
     doc: str                       # docstring text (newlines collapsed)
     has_sorry: bool = False
     sorry_count: int = 0
+    sorry_lines: tuple[int, ...] = ()   # absolute 1-based lines the `sorry`s sit on
     locals_: tuple[str, ...] = ()  # `variable` binders in scope
     section: str = ""
     # filled in from the Lean environment dump when available
@@ -318,6 +319,13 @@ def parse_module(path: str) -> Module:
         sig, body = split_signature(block)
         norm_body = normalize_body(body)
         ns_count = len(re.findall(r"(?<![A-Za-z_.'\"])\bsorry\b(?![A-Za-z_])", norm_body))
+        # Absolute line numbers of the `sorry`s, scanned over the comment-free block so a
+        # `sorry` mentioned in a docstring is not counted.  `i` is 0-based, hence +1.
+        sorry_lines = tuple(
+            i + 1 + off
+            for off, ln in enumerate(lines[i:nxt])
+            if re.search(r"(?<![A-Za-z_.'\"])\bsorry\b(?![A-Za-z_])", ln)
+        )
         short = m.group("name")
         full = ".".join(ns + [short]) if ns else short
         doc, doc_line = "", -1
@@ -328,7 +336,7 @@ def parse_module(path: str) -> Module:
             module=name, path=rel, line=i + 1, kind=m.group("kind"),
             name=short, fullname=full, signature=sig, body=body,
             body_norm=norm_body, doc=re.sub(r"\s+", " ", doc).strip(),
-            has_sorry=ns_count > 0, sorry_count=ns_count,
+            has_sorry=ns_count > 0, sorry_count=ns_count, sorry_lines=sorry_lines,
             locals_=tuple(locals_),
             section=sections[-1] if sections else "",
         ))
