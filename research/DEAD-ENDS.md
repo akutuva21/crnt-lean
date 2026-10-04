@@ -1510,3 +1510,38 @@ arbitrary `r` is the more useful statement.
   `GlobalAttractorTheorem.lean:13` — **the consumer of Hole A, not Hole A itself.**
 - **Verdict: the `ProjectedFaceDimensionCode` apparatus is Craciun's Section-7 machinery, orthogonal
   to the hole's codimension package.** A-49's "not needed" is now "not expressible."
+
+## A-51. `exists_maximal_zeroSetOf_card_le` is a **DUPLICATE** — `hmaxExact_of_zeroSet_card_le` already exists **[S]**
+
+- **found-by:** `form-scaffold`, relayed from `form-crit-supply`. **Both are correct; the drafted
+  one is redundant and should be cut, not finished.**
+- `hmaxExact_of_zeroSet_card_le` (**`CRNT/Dynamics/HighCodimensionSiphonFace.lean:1038-1053`**) already
+  proves Hole A's `hmaxExact` from `hzcard` **alone** — no ω-limit structure, and it takes **neither**
+  the nonnegative-class membership clause nor anything else.
+- `form-scaffold`'s drafted `exists_maximal_zeroSetOf_card_le` therefore duplicated existing
+  content, and its `hΞ` was **strictly stronger than needed**. **Module 1's section C should be
+  dropped in round 2, not finished.**
+- **The non-duplicative half is worth keeping:** `exists_maximalCard_zeroSet` /
+  `exists_maximal_zeroSet_package`, which constructively supply `wmax` and `Pmax := zeroSet wmax`
+  for an arbitrary nonempty family — i.e. the `hwmax` / `hzeroMax` the hole **assumes**. That is
+  genuinely new and reusable.
+
+## A-52. `SiphonCarried` is discharged by the hole's own data — the reduction is confirmed **[S]**
+
+- `Network.SiphonCarried` (`SiphonDimensionDescent.lean:61-63`) is
+  `∃ w ∈ omegaLimit, ∀ s, s ∈ P ↔ w s = 0`. **The hole's `hwmax` + `hzeroMax` discharge it at
+  `w = wmax`**, and criticality then follows from `isCriticalSiphon_of_siphonCarried` (`:68`).
+- **This independently confirms the round's central claim about Hole A:** the hole reduces to
+  `ComparableGrowthDescent.descend` — the `wmax`/`Pmax` package is not additional burden, it is
+  already carried. Third confirmation after A-23 and A-37.
+
+## OPS-6. A slice was spent rediscovering Lean API facts — record the list, read it first **[S]**
+
+- **found-by:** `form-scaffold`, reporting **zero verified lemmas** against three drafted modules,
+  with most of the round spent rediscovering API facts: dot-notation on a **Pi-typed** value
+  resolving in `namespace Function` rather than the value's own namespace; `noncomputable`
+  requirements on `Finset.filter`-bodied definitions; `Convex` / `StarConvex` binder shapes.
+- Those three are already in `DEAD-ENDS.md` as API-1, API-2, API-3. **The generalisable lesson: a
+  researcher whose slice stalls on elaboration friction should land the API facts in the ledger
+  FIRST, then keep building** — the next agent will otherwise pay the same budget. Their branch is
+  pushed as WIP with the full list in its `dead_ends`; **read it before reviving that slice.**
