@@ -71,9 +71,21 @@ currently has no polytope, face-lattice, or normal-fan API to build it on.
 ## Trust status
 
 `#print axioms CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace` reports
-`sorryAx`, and so do exactly its downstream consumers
+`sorryAx`, and so do its three downstream consumers
 `Network.complexBalanced_genuinePermanent`, `Network.complexBalanced_permanent`, and
-`Network.complexBalanced_globalAttractor`.  No other declaration in the tree does.
+`Network.complexBalanced_globalAttractor`.  Nothing else *on this chain* does: the transitive
+constant closure of `GlobalAttractorTheorem` (326 modules) contains exactly one executable `sorry`,
+the one at line 135 of this file.
+
+**This does not extend to the whole tree.**  `CRNT.Multistationarity.TrueChemistrySRCriterion`
+carries a second, unrelated `sorry` at line 8607, so `CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion`
+and its consumers also report `sorryAx`.  The two holes are independent: closing this one closes
+the entire Global Attractor Conjecture chain, and nothing else.
+
+Because a `sorry`-bearing module still elaborates, it is *off* `scripts/unverified_modules.txt` by
+construction, so a green build certifies nothing here.  The sound signals are
+`scripts/dump_sorries.py` and a transitive `#print axioms` census — see
+`research/Audit/AxiomSweep.lean`, which computes the latter over the whole environment.
 
 Depends on: `CRNT.Dynamics.FaceCodimension`, `CRNT.Dynamics.SiphonDimensionDescent`,
 `CRNT.Dynamics.ToricBarrierTrapping`.
