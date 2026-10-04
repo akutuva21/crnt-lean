@@ -214,13 +214,43 @@ no reaction network at all.
 `∃ p ∈ omegaLimit, p.Positive` **while permitting** a boundary ω-point (`hwmax`,
 `hzeroMax`, `hPmaxne`). This lemma yields the *universal* form `∀ w ∈ omegaLimit, w.Positive`,
 which is exactly the negation of that permission. So **every** criterion in the tree whose
-orbit-confinement is discharged by a closed pointwise-positive set — `Permanent`
-(`EndotacticPermanence.lean:58`), `exists_positive_omegaPoint_of_upperRegion`,
+orbit-confinement is discharged by a closed pointwise-positive set is unusable here for one
+structural reason, not for a reason particular to any of them — among them
+`PersistentOrbit.omegaLimit_positive` (`GlobalPersistence.lean:161`),
+`exists_positive_omegaPoint_of_upperRegion`,
 `not_persistentFrom_of_mem_omegaLimit_notPositive`
-(`HighCodimensionSiphonFace.lean:407`), and the `hsep`-family of the packaged barrier criteria
-— is unusable here for one structural reason, not for a reason particular to any of them.
+(`HighCodimensionSiphonFace.lean:407`) and `NoCriticalSiphonPersistence`.
 
-The practical rule this yields: *a permanence criterion must not confine the orbit to a
+**Provenance — this is not a new obstruction, it is an existing one shown to be uniform.**
+`PersistentOrbit.omegaLimit_positive` (`CRNT/Dynamics/GlobalPersistence.lean:161`) already
+proved the ∀-form before this module existed, by the same argument: a per-coordinate floor
+along the orbit, transported to the closure of the orbit image, reaching `ω`. What is new
+here is that the *floor is not needed* — an arbitrary closed, everywhere-positive set
+suffices. `PersistentOrbit`'s confine is an intersection of coordinate half-spaces, which is
+precisely the `hfloor`/`hsep` shape the hole cannot supply, so this generalization widens the
+template without changing which callers are affected. Related instances already in the tree:
+`NoCriticalSiphonPersistence.lean:45` and `NoDrainableSiphonPersistence.lean:40`.
+
+**Scope, stated precisely so the entry cannot be over-read.** This lemma is *not* an
+impossibility result: closed, everywhere-positive confining sets exist and plenty of
+theorems build them (`isCompact_relEntropy_sublevel`, `persistentFrom_of_upperRegion`, and
+the GAC chain itself at `GACNoCriticalSiphon.lean:158`, which *derives* `hωpos :
+∀ y ∈ omegaLimit, y.Positive` and feeds it onward). What the lemma says is that such a set
+**discharges**: it converts the existential conclusion into the universal one. The
+contradiction is not intrinsic to the template; it arises when the caller *also* supplies a
+boundary ω-point, as Hole A does via `hwmax`, `hzeroMax` and `hPmaxne`. Read it as "no
+criterion *for this hole* may discharge through a closed positive confine", not as "closed
+positive confines are impossible".
+
+**What the template does *not* reach.** It does not by itself retire the `hsep`-family of
+the packaged barrier criteria: `hsep` bounds coordinates away from the coordinate
+hyperplanes, which is a different shape of hypothesis from "the orbit is confined to a
+closed positive set". Those are refuted by the barrier-free lemma that a uniform coordinate
+floor along the forward orbit forces the same floor on every ω-limit point — a separate
+argument on a separate shape. The two obstructions are independent, and the `hsep` one does
+not go away just because this template is available.
+
+The practical rule this yields: *a criterion for this hole must not confine the orbit to a
 closed, everywhere-positive set.* Whatever the geometry, that converts an existential
 conclusion into a universal one and negates the hole's hypothesis. -/
 theorem universalPositive_omegaLimit_of_closedPositiveConfine
@@ -232,6 +262,51 @@ theorem universalPositive_omegaLimit_of_closedPositiveConfine
   intro y hy
   exact hKpos y (hvK ((omegaLimit_subset_closure_image2 (f := atTop) (ϕ := ϕ) (s := {x₀})
     hv) hy))
+
+omit [DecidableEq S] [Fintype S] in
+/-- **The `False`-form: a route that exhibits a single closed positive confine produces a
+contradiction, not the conclusion.**
+
+This is the corollary to reach for when you try to close Hole A by exhibiting one floored,
+closed trapping region and handing it to a packaged criterion. Doing so does not fail to
+suffice — it *yields `False`*, and Lean will point you here rather than leaving you with a
+`sorry` and no diagnosis.
+
+It is deliberately stated in the shape a caller would supply, so the failing attempt matches
+a hypothesis rather than a pattern: `hwmax`, `hPmaxne`, `hzeroMax` are exactly the hole's. -/
+theorem false_of_closedPositiveConfine_and_boundaryOmegaPoint
+    {ϕ : Flow ℝ≥0 (Concentration S)} {x₀ wmax : Concentration S} {K : Set (Concentration S)}
+    (hKc : IsClosed K) (hKpos : ∀ y ∈ K, y.Positive)
+    {v : Set ℝ≥0} (hv : v ∈ (atTop : Filter ℝ≥0))
+    (hvK : closure (Set.image2 ϕ v {x₀}) ⊆ K)
+    (hwmax : wmax ∈ omegaLimit atTop ϕ {x₀})
+    {Pmax : Finset S} (hPmaxne : Pmax.Nonempty)
+    (hzeroMax : ∀ (s : S), s ∈ Pmax ↔ wmax s = 0) :
+    False := by
+  have hall := universalPositive_omegaLimit_of_closedPositiveConfine
+    (ϕ := ϕ) (x₀ := x₀) (K := K) hKc hKpos hv hvK wmax hwmax
+  obtain ⟨s₀, hs₀⟩ := hPmaxne
+  exact (hall s₀).ne' ((hzeroMax s₀).mp hs₀)
+
+omit [DecidableEq S] in
+/-- **Closedness of the Horn–Jackson sublevel set on the nonnegative orthant.**
+
+`isClosed_le (relEntropy_continuous hxs) _` closes the *bare* level set
+`{y | relEntropy xstar y ≤ C}`; the confining set a criterion actually builds is
+`{y | y.Nonnegative ∧ relEntropy xstar y ≤ C}`, which needs the nonnegative conjunct closed as
+well. `isCompact_relEntropy_sublevel` (`CRNT/Theorems/DeficiencyZero/AsymptoticStability.lean:142`)
+proves the compactness of that intersection inline and does not expose this step, so every
+caller that wants to apply `universalPositive_omegaLimit_of_closedPositiveConfine` to it has
+to re-derive it. Naming it here removes that repetition. -/
+theorem isClosed_relEntropy_sublevel_nonneg {xstar : Concentration S} (hxs : xstar.Positive)
+    (C : ℝ) :
+    IsClosed {y : Concentration S | y.Nonnegative ∧ relEntropy xstar y ≤ C} := by
+  have hnn : IsClosed {y : Concentration S | y.Nonnegative} := by
+    have heq : {y : Concentration S | y.Nonnegative} = ⋂ s, {y : Concentration S | 0 ≤ y s} := by
+      ext y; simp only [Set.mem_setOf_eq, Set.mem_iInter]; rfl
+    rw [heq]
+    exact isClosed_iInter fun s => isClosed_le continuous_const (continuous_apply s)
+  exact hnn.inter (isClosed_le (relEntropy_continuous hxs) continuous_const)
 
 end Network
 end CRNT
