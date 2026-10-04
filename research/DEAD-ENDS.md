@@ -1099,3 +1099,62 @@ re-derive by reading the code.
     to the goal (A-23, A-37).
 - **This is a better position than round 1 started from.** The round proved the *packaging* dead and
   the *statement* alive, which is the correct split and is now recorded on both sides.
+
+## OPS-2. **`Scaffold/` is GITIGNORED — modules must go under `CRNT/Scaffold/`** **[V]**
+
+- **found-by:** `form-tiles` (PR #15). Several round-1 researchers were told to put modules "under
+  `Scaffold/Geometry/`". **A file there is in no build target at all** and does not reach any PR
+  reviewer's compiler. `Scaffold/` at the repository root is ignored by `.gitignore`.
+- **`CRNT/Scaffold/` is the correct location.** Added to the round-2 brief for every researcher.
+
+## B-24. **The `RRGluable` INSTANCE is the blocker — no privacy lift is needed** **[V, three sources agree]**
+
+- **found-by:** `form-sr-parity` (PR #17), `form-sr-deg2b` (PR #9), `form-sr-case2` (PR #10),
+  independently and consistently. **I had this wrong twice in briefs** (B-14 said `glueArc` *was*
+  the arc builder; B-16 said the blocker was `prepend` being private). Both wrong.
+- **Correct:** `glueArc` (`TrueSRParityRR.lean:388`), `gluable_of_RRGluable` (`:442`) and
+  `rrGluedCycle` (`:518`) are **all public and already exported**. `glueArc X Y h` takes
+  `h : RRGluable X Y` **as an input**, so the terminal artefact
+  `exists_second_evenCycle_of_offCycle_escape` needs **`rr_gluable_arcs`** — the `TrueSRPathRR`
+  counterpart of `ss_gluable_arcs` (`TrueSRSpeciesPath.lean:902`) — **not the path data.**
+- **`prepend`'s `private` is irrelevant.** It is called internally by `glueArc`, which is legal.
+  **No privacy change should be made.**
+- Round 1's real primitive blocker — **nothing in the tree had ever built a `TrueSRPathRR`** — is
+  fixed by `TrueSRCycle.reactionArcFrom` (PR #10), bounded `k + 1 < n` because the natural `k < n`
+  statement is **FALSE** at `k = n−1`.
+- **Index-range arithmetic is done**: `fwd_idx_le`, `bwd_idx_ge`, `fwd_bwd_index_split` (PR #9).
+
+## B-25. **`hSR.2` is VACUOUS on a degree-two cycle** **[V, compiled]**
+
+- **found-by:** `form-sr-deg2b` (PR #9). `TrueSRCycle.no_sToRIntersection_of_degree_two'` takes
+  **no hypotheses at all** — it is never invoked and cannot be the step producing a contradiction.
+- **Consequence:** **degree-two isolation CANNOT be discharged by `hSR.2`**; it must go through
+  `hSR.1` plus the strict-gain argument. This is a stronger statement than B-4.
+- Their `false_of_shared_sToR_of_trueSRCriterion` is the **only** place `hSR.2` appears in the whole
+  development.
+
+## VAC-1. **`DifferentialInclusion.Field` is vacuous when empty — all four barrier conclusions are free** **[V, compiled]**
+
+- **found-by:** `adv-vacuity` (PR #16). `DifferentialInclusion.Field E := E → Set E`
+  (`CRNT/Dynamics/DifferentialInclusion.lean:43`) carries **no nonemptiness requirement**.
+  `forwardInvariant_vacuous_for_empty_field` proves `ForwardInvariant (fun _ => ∅) R` for every `R`.
+- **Blast radius:** all four `ForwardInvariant` conclusions of `PolyhedralBarrier`
+  (`forwardInvariant_barrierSublevel` :317, `forwardInvariant_of_cone_descent` :341,
+  `forwardInvariant_of_polar_descent` :364, `forwardInvariant_minMaxSublevel` :491).
+  **A blueprint that builds a toric field without proving `∀ y, (F y).Nonempty` proves nothing.**
+  Not guarded anywhere downstream.
+- Related: `hpolar` in `forwardInvariant_of_cone_descent` is vacuous for an empty cone family —
+  `hmem`, not `hpolar`, carries the geometry. Same shape as A-25 (`hm` satisfied by `m := 0`).
+
+## B-26. **HOLE B HAS NO WITNESS** **[V]**
+
+- **found-by:** `adv-vacuity` (PR #16). No network in the tree satisfies all three of
+  `stronglyConcordant_fullyOpen_of_trueSRCriterion`'s hypotheses (`hsep ∧ hflow ∧ hSR`).
+  Repo-wide there are exactly two `TrueSRStrongCriterion` witnesses: `flowN`
+  (`CRNT/Examples/TrueSRCounterexample.lean:5`) satisfies `hSR` only **vacuously** (its true-SR graph
+  has no edges; `flowN_no_cycle : ∀ C, False`) and fails `hflow`; `netN`
+  (`CRNT/Examples/TrueSRNetCoeffCounterexample.lean:33`) has real content but fails `hsep`.
+- **So the ear, which must close in `hSR.2`, is currently being built for a class with no known
+  member.** Candidate worked out in `research/routes/vacuity-report.md` §R4: the directed 3-cycle
+  `A → B → C → A` over `S = Fin 3`. **Build the witness before finishing the ear** — otherwise the
+  theorem is about the empty class.
