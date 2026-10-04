@@ -38,7 +38,8 @@ globs = [
   "test.Oscillation",
   "test.Smoke",
   "test.StochasticBirthDeathCounterexample",
-  "test.ToricBarrierAudit"
+  "test.ToricBarrierAudit",
+  "test.VacuityAudit"
 ]
 
 [[lean_exe]]

@@ -25,8 +25,21 @@ for f in "$@"; do
   out="$PWD/.lake/build/lib/lean/${mod}.olean"
   mkdir -p "$(dirname "$out")"
   log=$(mktemp)
-  # shellcheck disable=SC2086
-  LEAN_PATH="$CRNT_ROOT/.lake/build/lib/lean" lake env lean -o "$out" "$f" >"$log" 2>&1
+  # LEAN_PATH order is load-bearing, and `lake env` breaks it.
+  #
+  # `lake env` PREPENDS its own entries, so a preset LEAN_PATH ends up *after* the
+  # workspace's.  This script's own `mkdir -p` above has just created a worktree-local
+  # .lake/build/lib/lean/CRNT/, so Lean resolves the CRNT namespace to the worktree root,
+  # fails on the missing submodule .olean, and never reaches the shared cache that has
+  # it.  Every module importing a CRNT.* module therefore failed, silently, with an
+  # error that names a file which really does exist.  (mathlib-only modules were
+  # unaffected, which is what made it look intermittent.)
+  #
+  # The fix is to put the shared root FIRST and call `lean` directly, so nothing
+  # reorders LEAN_PATH behind our back.  `$out` is absolute, so the .olean still lands
+  # in this worktree's tree and never in the shared one.
+  LEAN_PATH="$CRNT_ROOT/.lake/build/lib/lean:$(lake env printenv LEAN_PATH 2>/dev/null)" \
+    lean -o "$out" "$f" >"$log" 2>&1
   status=$?
   if [ $status -ne 0 ]; then
     rc=$status
