@@ -358,79 +358,32 @@ theorem exists_positive_omegaPoint_of_relInteriorFace
     ∃ p ∈ omegaLimit atTop ϕ {x₀}, ∀ (s : S), s ∈ (Finset.univ \ P : Finset S) → 0 < p s := by
   exact exists_omegaPoint_positive_on_of_floors_on (T := (Finset.univ \ P : Finset S)) hϕγ hK hmaps hlower
 
-/-! ### 5. The Step-4 criterion is refuted too — the decisive settlement
+/-! ### 5. The Step-4 criterion: refuted elsewhere, not duplicated here
 
 `Network.exists_positive_omegaPoint_of_upperRegion`
-(`CRNT/Dynamics/HighCodimensionSiphonFace.lean:1596`) is the endgame the packaging audit points
-at, on the reading that its floor hypothesis `hfloor : ∀ y ∈ Zupper, ∀ s, ε ≤ y s` is confined to
-a *region* rather than to the whole orbit, and is therefore untouched by §1–§3.
+(`CRNT/Dynamics/HighCodimensionSiphonFace.lean:1596`) is refuted: the criterion builds a **closed**
+`K := closure Zupper ∩ {relEntropy ≤ relEntropy x₀}` containing the whole orbit image (`himgs`), so
+`omegaLimit ⊆ K` is forced; `hKpos` at `:1629` is **universal** (`∀ y ∈ K, y.Positive`), so
+`wmax ∈ ω ⊆ K` is forced strictly positive, contradicting `hzeroMax` + `hPmaxne`.  Its `hfloor` is
+not an unbuilt input; it is an **inconsistent** one.
 
-**That reading is wrong, and the obstruction is the same closed-set argument.**  The criterion's
-own proof confines the orbit to `Zupper` (`orbit_stays_in_upperRegion`, from `hsplit` and `hx₀Z`),
-transfers the floor through the closure of `Zupper` (`hfloorC`), and assembles
-`K := closure Zupper ∩ {relEntropy ≤ relEntropy x₀}` — a **closed** set containing the whole orbit
-image.  Every ω-limit point lies in the closure of the orbit image and `K` is closed, so
-`omegaLimit ⊆ K` is forced.  `hKpos : ∀ y ∈ K, y.Positive` is then **universal**, and `wmax ∈ ω ⊆ K`
-is forced to be strictly positive, contradicting `hzeroMax` and `hPmaxne`.
+The canonical statement is `CRNT.Network.universalPositive_omegaLimit_of_closedPositiveConfine`
+(branch `research/infrascaffold`), and the criterion-level `False` is
+`false_of_upperRegion_and_boundaryOmegaPoint` in
+`CRNT/Dynamics/UpperRegionFloorRefutation.lean` on the same branch.  Both are deliberately **not
+duplicated here**: four copies of one `False`-level theorem is worse than one, because a reviewer
+has to check four.
 
-So `hfloor` is not an unbuilt input to that criterion; it is an inconsistent one, and the
-contradiction is exactly §1 applied with the orbit replaced by `Zupper`.  This is the same
-obstruction that `not_persistentFrom_of_mem_omegaLimit_notPositive`
-(`CRNT/Dynamics/HighCodimensionSiphonFace.lean:407`) records for `PersistentFrom` certificates. -/
-
-/-- **Every ω-limit point inherits a floor that holds on a region containing the orbit.**  The
-same argument as `floor_on_omegaLimit_of_floor_along_orbit`, with the floor read off `Zupper`
-instead of stated along the orbit. -/
-theorem floor_on_omegaLimit_of_floor_on_region
-    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
-    {x₀ : Concentration S}
-    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
-    {K : Set (Concentration S)} (hK : IsCompact K) (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
-    {Zupper : Set (Concentration S)} {ε : ℝ} (hε : 0 < ε)
-    (horbitZ : ∀ t : ℝ, 0 ≤ t → γ x₀ t ∈ Zupper)
-    (hfloor : ∀ y ∈ Zupper, ∀ s, ε ≤ y s)
-    (z : Concentration S) (hz : z ∈ omegaLimit atTop ϕ {x₀}) : ∀ s, ε ≤ z s :=
-  fun s => floor_on_omegaLimit_of_floor_along_orbit hϕγ hK hmaps hε
-    (fun t ht => hfloor (γ x₀ t) (horbitZ t ht) s) z hz
-
-/-- **The Step-4 criterion `exists_positive_omegaPoint_of_upperRegion` is refuted by a boundary
-ω-point.**  This takes *exactly* the hypotheses of that criterion — the orbit, a compact absorbing
-set, the two-region split `hsplit`, the start side `hx₀Z`, and the floor `hfloor` — together with
-hole A's `hwmax`, `hzeroMax` and `hPmaxne`, and concludes `False`.
-
-The proof is `orbit_stays_in_upperRegion` (forcing the orbit into `Zupper`), then the closed-set
-transport of §1 (forcing every ω-limit point, `wmax` included, above the floor), then `hzeroMax`.
-No hypothesis of the criterion is dropped or weakened.  `hcont` is what
-`exists_positive_omegaPoint_of_upperRegion` discharges from its own `hsol`. -/
-theorem upperRegion_criterion_inconsistent_with_boundaryOmegaPoint
-    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
-    {x₀ : Concentration S}
-    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
-    {Kc : Set (Concentration S)} (hKc : IsCompact Kc) (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ Kc)
-    (hcont : ContinuousOn (γ x₀) (Set.Ici 0))
-    {Zlow Zupper : Set (Concentration S)} {ε : ℝ} (hε : 0 < ε)
-    (hopenLow : IsOpen Zlow) (hopenUp : IsOpen Zupper) (hdisj : Disjoint Zlow Zupper)
-    (hsplit : ∀ t : ℝ, 0 ≤ t → γ x₀ t ∈ Zlow ∪ Zupper)
-    (hx₀Z : x₀ ∈ Zupper)
-    (hfloor : ∀ y ∈ Zupper, ∀ s, ε ≤ y s)
-    {wmax : Concentration S} (hwmax : wmax ∈ omegaLimit atTop ϕ {x₀})
-    {Pmax : Finset S} (hPmaxne : Pmax.Nonempty)
-    (hzeroMax : ∀ s, s ∈ Pmax ↔ wmax s = 0) :
-    False := by
-  have hγ0 : γ x₀ 0 = x₀ := by
-    have h := hϕγ x₀ 0
-    simpa using h.symm
-  -- the two-region split confines the orbit to the upper side
-  have horbitZ : ∀ t : ℝ, 0 ≤ t → γ x₀ t ∈ Zupper :=
-    orbit_stays_in_upperRegion hcont hopenLow hopenUp hdisj hsplit (by rw [hγ0]; exact hx₀Z)
-  -- so every ω-limit point, `wmax` included, is above the floor
-  have hz : ∀ s, ε ≤ wmax s :=
-    floor_on_omegaLimit_of_floor_on_region hϕγ hKc hmaps hε horbitZ hfloor wmax hwmax
-  obtain ⟨s₀, hs₀⟩ := hPmaxne
-  have hsw : wmax s₀ = 0 := (hzeroMax s₀).mp hs₀
-  have hle : ε ≤ wmax s₀ := hz s₀
-  rw [hsw] at hle
-  exact lt_irrefl 0 (lt_of_lt_of_le hε hle)
+**Known gap in the canonical statement, for whoever consolidates.**  It takes the closed
+confinement as a *hypothesis* (`hvK : closure (Set.image2 ϕ v {x₀}) ⊆ K`).  Retiring the *packaged
+criterion* additionally needs the confinement **derived from the criterion's own hypotheses**,
+i.e. `Network.orbit_stays_in_upperRegion` (`HighCodimensionSiphonFace.lean:1508`) applied to
+`hsplit`, `hopenLow`, `hopenUp`, `hdisj`, `hx₀Z` — connectivity of `γ '' Ici 0` plus the disjoint
+open split — to obtain `γ x₀ t ∈ Zupper`, whence the orbit image lies in `closure Zupper ⊆ K`.  I
+had that as `upperRegion_criterion_inconsistent_with_boundaryOmegaPoint` and have removed it here
+per the consolidation decision; the derivation is a three-line corollary to restore on top of the
+canonical theorem.  It is the statement that actually answers "are `_of_upperRegion`'s own
+hypotheses satisfiable under the hole's?". -/
 
 end Network
 end CRNT
