@@ -57,40 +57,74 @@ hole-B slice.**
    elaborating untouched: do not move `by_cases hv0r` (`:8371`), `exfalso` (`:8355`), or the `hvr`
    split (`:8301`).
 
-**CORRECTED — the RR reaction-arc builder is NOT needed** (**B-13**, `arch-sr-case2`). The earlier
-claim that the theorem "cannot even be typed" was **an over-read of a grep** and is retracted
-(ledger **R-5** → **F-4**). The RR arc is available as **`C.speciesArc … .toPath.prepend (…)`**,
-with the `RRGluable` witnesses following from cycle-edge injectivity; the species arc is already
-proved (`TrueSRSpeciesPath.lean:645`, `:755`).
+**Hole B is AUTHORING, NOT REPAIR** (**B-15**). Repo-wide grep for
+`lemmaA6_case2|offCycle_escape|SignDirected|sToRIntersectionOfTwoPaths` over `CRNT/` returns **no
+matches**, and `exists_second_evenCycle_of_offCycle_escape` does not exist anywhere in the tree.
+Five declarations are being written from scratch.
 
-**The live blocker is a privacy modifier, not mathematics:** `TrueSRPath.prepend` is
-`private noncomputable def` at `TrueSRParityRR.lean:276` and is **unreachable from a new module**;
-only `TrueSRSSPath.toPath` is public. So:
+**Use the public `glueArc` — do NOT lift the `private` modifier** (**B-14**). `TrueSRPath.prepend`
+is `private noncomputable def` at `TrueSRParityRR.lean:276` and is unreachable, but it is
+consumed internally by the **public**
+`glueArc {x y} (X : TrueSRPathRR x) (Y : TrueSRPathRR y) (h : RRGluable X Y) : TrueSRPath
+(2 * (y + 1) + 1)` (`:388`), which also carries the edge- and species-disjointness side conditions
+a hand-rolled builder would have to re-establish. Species-flavour public entry points: `glueWalk`
+(`TrueSRGlueMaps.lean:233`), `glueCycle` (`:245`). **The work is constructing `RRGluable`/`Gluable`
+instances, not building paths.**
 
-0. **Check whether `prepend`'s privacy blocks the `toPath`-based derivation.** If it does, that is
-   the finding: lift the modifier — a minimal, legitimate, documented change. **Do not** write
-   `reactionArc`/`reactionArcBwd` from scratch with hand-rolled index arithmetic.
-1. Build `exists_second_evenCycle_of_offCycle_escape`.
-2. Close it in **`hSR.2`**, **never** `hnd` (**B-12**, from **B-1**).
-3. Port the four A.6 Case-2 items per **B-11** — **re-authored, not copied**, and **not**
-   importing `TrueChemistrySRCriterion` (it would drag `sorryAx` into the ported file's own
-   footprint and couple it to the file we are closing).
+**The order, in dependency sequence:**
 
-### Hole A — priority order (post-adjudication, ledger §3g)
+1. Construct the `RRGluable` / `Gluable` instances via the public `glueArc`.
+2. Author `SignDirected` — the sign condition that **is** B-12's `hSR.2`, and the missing
+   prerequisite.
+3. Author `sToRIntersectionOfTwoPaths`, `lemmaA6_case2_twoComponents`,
+   `lemmaA6_case2_oneComponent` into a new `CRNT/Multistationarity/TrueSREarCase2.lean`,
+   **imported from `CRNT.lean`**.
+4. Build `exists_second_evenCycle_of_offCycle_escape` (start from `relPathToTrueSRSSPath`,
+   `TrueChemistrySRCriterion.lean:5475`; parity via `ss_three_glued_even_of_two`, `:7976`).
+5. Close it in **`hSR.2`**, **never** `hnd` (**B-12**, from **B-1**).
+6. **Never** import `TrueChemistrySRCriterion` into the new file — it drags `sorryAx` into the
+   ported file's own axiom footprint and couples it to the file we are closing (**B-11**). Note
+   that a hole-bearing module still *elaborates* (**F-5**), so only a transitive `#print axioms`
+   catches this.
+7. Only then edit `:8601–8607`. The 170-line positive branch at `:8376–8546` must keep
+   elaborating untouched: do not move `by_cases hv0r` (`:8371`), `exfalso` (`:8355`), or the `hvr`
+   split (`:8301`).
 
-**Three earlier priority orders are superseded.** `§3c`'s P1 ("supply a fan from scratch") was
-**wrong and is retracted** — the fan already exists (**R-1**). The fork proposed in `§3e` **R-8** was
-**decided against `R-8`**: `papers-craciun` / `adv-audit.DriftA` settled it (**F-1**, **F-2**).
-**The freeze imposed in §3f C-4 is LIFTED.** Read `§3e` R-1…R-7 and `§3g` before picking a slice.
+**If the full statement of `exists_second_evenCycle_of_offCycle_escape` turns out to be false, that
+is a +30 result — find the counterexample.**
 
-| priority | route | owner | ledger ref |
-| --- | --- | --- | --- |
-| **P1 — the live target** | **`exists_positive_omegaPoint_of_faceRelevantCore` (`FaceDirectionCone.lean:417`).** `hsep` **survives** here: its quantifier ranges over `x.Positive`, and `wmax` is not `Positive`, so the segment refutation **does not transfer**. Supply: `hcore` (trivial, ~3 lines), **`hm`** (the substantive lemma — `m` in *every* cone within `δ+B` of `faceDirectionCone Pmax`, must survive the thickening), `hstart`/`hface` (one-sided, **not** a level set), `hsep` (**now chargeable**). | `form-tiles`, `form-domination`, `arch-fanface` | **F-2**, **F-3**, **R-7**, **R-4**, **R-6** |
-| **P2 — cleanup** | relint-chamber fix to `CraciunZSH.hinterior`. **Released** — `FaceDirectionCone.lean` never imports `CraciunZSH`; none of the five sites is reachable. Do **not** use `⊆ affine span`; state `infDist x C < δ ∧ M < ‖x‖ → x ∈ K^sym`, apply symmetry after. | `form-tiles`, `form-domination` | **R-3**, **R-6**, **A-11** |
-| **P3 — deliverable split** | n-dimensional upgrade of Lemma 9.7. Dimension-agnostic except **Lemma 9.9's diffeomorphism** and **Lemma 9.10's four angle clauses**. The escape step `B(C,δ) \ B(0,M) ⊂ K^sym` is **short** — proving that half alone is a self-contained win. | unassigned | **R-3**, **A-13** |
-| **P4 — weakest hypothesis, no fan named** | The weakest sufficient hypothesis may be reachable **directly in stoichiometric coordinates with no fan ever named**. Live, not a fallback. | `arch-delta` | **#F-2** |
-| **P5 — the full ZSH is not needed** | ZSH clauses 4.6(i) η-separation and 4.6(ii) ray-meeting **need not be established** — the hole wants one interior ω-point. Attack the weakened target. | `arch-alt` | **#F-2** |
-| **✗ — dead** | `exists_positive_omegaPoint_of_upperRegion` (`:1596`). **Dead target**: its entire burden is `hfloor`, and `hfloor` **cannot** be established for any convex region containing both `x₀` and `wmax` — exactly what the hole's hypotheses give. | — | **F-1** |
+### Hole A — **STOP. Every route in this tree is dead.** (ledger §3h)
+
+**Four earlier priority orders are superseded and all four are now void.** Do not start a hole-A
+slice from any of them.
+
+**The unifying fact (`3h`, `A-19`, compiled).** `def Permanent`
+(`EndotacticPermanence.lean:58`) is
+`∃ K, IsCompact K ∧ (∀ y ∈ K, y.Positive) ∧ ∃ v ∈ atTop, closure (image2 ϕ v {x₀}) ⊆ K`.
+`omegaLimit_meets_positive_of_permanent` (`:79`) gets `p ∈ K` via
+`omegaLimit_subset_closure_image2`, and `hKpos` is **universal over `K`**. So every such
+certificate yields **`∀ w ∈ ω, w.Positive`**, while the hole asks only **`∃ p ∈ ω, p.Positive`**
+*while permitting* boundary ω-points (`hwmax`, `hzeroMax`, `hPmaxne`). **The hole's hypotheses
+assert the negation of the universal form.** No choice of region, barrier or tile data avoids it.
+
+| route | verdict | ledger ref |
+| --- | --- | --- |
+| `exists_positive_omegaPoint_of_faceRelevantCore` / `_of_tiled_faceCores` | **DEAD** — routes through `exists_positive_omegaPoint_of_coordinate_floors` with `T = S`, and composes `Permanent`. **This kills my own §3g F-3 "branch 1 is live"; recorded, not dropped.** | **3h**, **C-1**, **F-3** |
+| `exists_positive_omegaPoint_of_upperRegion` | **DEAD** — `hfloor` cannot hold for a convex region containing both `x₀` and `wmax` | **F-1** |
+| `_of_blueprintData` / `_selfConsistent_normals` / `_convex_tiles` / `_of_toric_blueprint` / `_of_toric_halfspace` | **DEAD** — compiled `False` (`BlueprintRouteRefutation`) | **C-1** |
+| anything concluding through a `PersistentFrom` certificate | **DEAD** — same fact | **3h** |
+| `hm` / `hstart` / `hface` / `hcore` as inputs to any of the above | **WORTHLESS** — they build a goal-equivalent or refuted criterion | **3h**, **#A27** |
+| `N.ComparableGrowthDescent` as the surviving target | **DEAD as a stepping stone** — `comparableGrowthDescent_iff_omegaPointPositive` (`:368`) is an `⟨Or.inl h⟩` equivalence. The hole's own header (`:360–367`) admits it. | **3h** |
+| **the hole itself** | **NOT refuted.** Craciun's Theorem D (`∀` convergence) is consistent with `wmax`; `wmax` is a transient ω-orbit point. **Craciun delivers `∀`; the hole needs `∃`.** `CodimTwoFaceModel` shows every hypothesis but `hsol` is satisfiable with a false conclusion, so **no static argument of any kind closes hole A.** It needs a genuinely new idea — one that lands in the gap between "positive enough" and "positive universally". | **3h**, **#A16** |
+
+**Scoring warning for round 2 (`A-18`).** The danger now is landing a **goal-equivalent** theorem
+and the metric reading it as progress. `measure.py` counts `sorry`s and is honest, but the round
+score must apply the **−200 "provable only via a vacuous or goal-equivalent step"** penalty
+(`research/README.md` §5) to any such landing.
+
+| priority | route | ledger ref |
+| --- | --- | --- |
+| — | **Hole A: nothing in this tree works. Assign it only as "find a genuinely new idea".** | **3h** |
 
 **Dropped outright — do not re-seed on any of these:**
 
