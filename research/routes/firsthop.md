@@ -108,12 +108,67 @@ theorem hopp_alone_insufficient :
         ¬ (∀ a j : Fin 3, φ a j * σs j < 0 → a = j)
 ```
 
-A CRNT-level restatement (`oneStep_fromCycleSpecies_eq_leftEdge`, `leftEdge_step_exists`,
-`onCycle_out_neighbour_leftEdge`, `no_oneStep_to_pos_of_cycleSpecies`) is drafted in
-`CRNT/Multistationarity/TrueSRFirstHopCycle.lean`; **it cannot be elaborated in this worktree**
-because `checkmod.sh` cannot resolve `CRNT.Multistationarity.TrueChemistrySRCriterion.olean`
-(the shared-cache `LEAN_PATH` does not contain the CRNT build root in this environment — see §7).
-It is committed as a *draft* and is NOT claimed to elaborate.
+### 3b. CRNT-level restatement — `CRNT/Multistationarity/TrueSRFirstHopCycle.lean`
+
+A CRNT-level restatement is in `CRNT/Multistationarity/TrueSRFirstHopCycle.lean`, elaborating and
+`sorryAx`-free (`#print axioms` on all six declarations reports exactly
+`[propext, Classical.choice, Quot.sound]`):
+
+```lean
+theorem Network.nonneighbour_cycleClassFlux_eq_zero (N : Network S)
+    (hsep : N.ReactantProductSeparated) (hSR : N.TrueSRStrongCriterion)
+    {n : ℕ} {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (C : N.TrueSRCycle n) (hC : C.Even)
+    (a b : Fin n) (h1 : a.1 ≠ b.1) (h2 : b.1 ≠ (a.1 + 1) % n) :
+    N.trueInternalClassFlux α (C.reaction a) (C.species b) * σ (C.species b) = 0
+
+theorem Network.cycleReaction_active_at_cycleSpecies (N : Network S)
+    {n : ℕ} {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} (C : N.TrueSRCycle n)
+    (hopp : ∀ i : Fin n, N.trueInternalClassFlux α (C.reaction (finRotate n i))
+      (C.species (finRotate n i)) * σ (C.species (finRotate n i)) < 0)
+    (j : Fin n) (hσ : σ (C.species j) ≠ 0) :
+    ∃ s : S, σ s ≠ 0 ∧ N.trueInternalClassFlux α (C.reaction j) s ≠ 0
+
+-- THE residue-level statement.
+theorem Network.oneStep_fromCycleSpecies_eq_leftEdge (N : Network S)
+    {n : ℕ} {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} (C : N.TrueSRCycle n)
+    (hzero : ∀ a b : Fin n, a.1 ≠ b.1 → b.1 ≠ (a.1 + 1) % n →
+      N.trueInternalClassFlux α (C.reaction a) (C.species b) * σ (C.species b) = 0)
+    (hcausal : ∀ i : Fin n, 0 < N.trueInternalClassFlux α (C.reaction i)
+      (C.species (finRotate n i)) * σ (C.species (finRotate n i)))
+    (j : Fin n) {s : AggregateActiveSpecies σ} (hs : s.1 = C.species j)
+    {ρ : N.ActiveAggregateTrueReaction α σ} (hρC : C.HasReaction ρ.1)
+    (h : N.TrueInternalAggregateCausalEdge (Sum.inl s) (Sum.inr ρ)) :
+    ρ.1 = C.reaction j
+
+theorem Network.leftEdge_step_exists (N : Network S)
+    {n : ℕ} {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} (C : N.TrueSRCycle n)
+    (hopp : …) (j : Fin n) (hσ : σ (C.species j) ≠ 0) :
+    N.TrueInternalAggregateCausalEdge
+      (Sum.inl (⟨C.species j, hσ⟩ : AggregateActiveSpecies σ))
+      (Sum.inr ⟨C.reaction j, cycleReaction_active_at_cycleSpecies N C hopp j hσ⟩)
+
+theorem Network.onCycle_out_neighbour_leftEdge (N : Network S) … :
+    (∀ {ρ : N.ActiveAggregateTrueReaction α σ}, C.HasReaction ρ.1 →
+        N.TrueInternalAggregateCausalEdge
+          (Sum.inl (⟨C.species j, hσ⟩ : AggregateActiveSpecies σ)) (Sum.inr ρ) →
+        ρ.1 = C.reaction j) ∧
+      N.TrueInternalAggregateCausalEdge
+        (Sum.inl (⟨C.species j, hσ⟩ : AggregateActiveSpecies σ))
+        (Sum.inr ⟨C.reaction j, …⟩)
+
+theorem Network.no_oneStep_to_pos_of_cycleSpecies (N : Network S)
+    {n : ℕ} {α} {σ} (C : N.TrueSRCycle n) (hn2 : 2 ≤ n) (hzero) (hcausal)
+    (j : Fin n) {ρ : N.ActiveAggregateTrueReaction α σ}
+    (hρpos : ρ.1 = C.reaction ((finRotate n).symm j))
+    (hρC : C.HasReaction ρ.1) {s : AggregateActiveSpecies σ} (hs : s.1 = C.species j)
+    (h : N.TrueInternalAggregateCausalEdge (Sum.inl s) (Sum.inr ρ)) : False
+```
+
+This module **does** import `TrueChemistrySRCriterion` (necessarily: the statements are in its
+vocabulary). It nonetheless audits to `[propext, Classical.choice, Quot.sound]` — the criterion's
+`sorry` is not on the path of any of these six declarations. The axiom-clean core is the separate
+CRNT-free `TrueSRFirstHop.lean`.
 
 ## 4. Proof sketches
 
@@ -192,8 +247,10 @@ Three findings, two of them machine-checked:
 
 ## 6. Dependency order for consuming these lemmas at the residue
 
-1. `firstHopZero_of_hnc` — convert the negated `hnc` (line 8537) to the `= 0` form.
-2. `shortest_hop_is_leftEdge` with `φ`, `σs` as in §2, `j` the index with `C.species j = s₀.1`.
+1. `nonneighbour_cycleClassFlux_eq_zero` — turn the negated `hnc` (line 8537) into the
+   flux-times-`σ` vanishing form `hzero` (via `nonAdjacent_cycleClassFlux_eq_zero`, line 6979).
+2. `Network.oneStep_fromCycleSpecies_eq_leftEdge` with `j` the index with `C.species j = s₀.1`,
+   applied to the first hop of `Q0` out of `s₀`.
 3. Combine with `hQ0late` to obtain: `Q0.vertex ⟨1⟩` is an off-cycle class.
 4. Then the ported A.6 datum is required to finish. `hopp` cannot help beyond step 2.
 
@@ -207,13 +264,16 @@ Three findings, two of them machine-checked:
   the on-cycle route has length `2n − 1` (all hops forward), consistent with `two_hop_onCycle`.
 * **The residue's `m = 1 ∧ s0 = s` case (lines 8587-8599).** Redundant: `hQ0late` already
   excludes `m = 1` for every `s₀`.
-* **Environment.** In this worktree `checkmod.sh` resolves `Mathlib.*` oleans but *not*
-  `CRNT.*` oleans: the shared-cache `LEAN_PATH` lacks `/Users/akutuva/Documents/Proofs/crnt-lean/
-  .lake/build/lib/lean`, so any module importing a CRNT module fails with
-  "object file … does not exist". Hence `TrueSRFirstHop.lean` is deliberately CRNT-free and
-  checkable, and `TrueSRFirstHopCycle.lean` (which does import CRNT) is unverified here.
-  The fix is infrastructural — prepend the CRNT build root to `LEAN_PATH` in
-  `research/scripts/checkmod.sh`. `infra-build` owns this.
-* **Import availability.** `Mathlib.Tactic.Omega`, `Mathlib.Tactic.NormNum` (as a top-level
-  module name) and `Mathlib.Data.Fin.Tuple.FinOps` have no `.olean` in the local Mathlib build;
-  the umbrella `Mathlib.Tactic` does. Modules in this tree should import `Mathlib.Tactic`.
+* **Environment — RESOLVED.** `checkmod.sh` originally failed on any `CRNT.*` import because
+  `lake env` prepends to `LEAN_PATH` and put the worktree-local build dir ahead of the shared
+  cache. `infra-build` fixed this (PR #7 on `research/infra-build`): shared root first, `lean`
+  called directly. Until that merges I worked around it by rsyncing the shared `CRNT` oleans
+  into this worktree's `.lake/build/lib/lean/CRNT`. Both my modules were re-verified after the
+  workaround, so neither "does not elaborate" claim I made mid-round stands.
+* **Import availability.** `Mathlib.Tactic.Omega` and `Mathlib.Data.Fin.Tuple.FinOps` have no
+  `.olean` in the local Mathlib build; the umbrella `Mathlib.Tactic` does. `TrueSRFirstHop.lean`
+  imports the umbrella.
+* **Axiom footprint of `TrueSRFirstHopCycle.lean`.** It imports `TrueChemistrySRCriterion`, so it
+  was a fair candidate for the `sorryAx` trap. It is clean: the criterion's `sorry` lies on no
+  dependency path of any of the six declarations. Anyone re-checking should re-run
+  `#print axioms` rather than assume.
