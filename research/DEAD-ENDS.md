@@ -895,3 +895,56 @@ goal-equivalent step"** penalty from `research/README.md` §5 to any such landin
   `CompatibilityClassGeometry.lean`'s section C — `exists_maximal_zeroSetOf_card_le`, aimed at
   Hole A's `hmaxExact` with the ω-limit quantifier replaced by an arbitrary family of class points —
   is the most valuable and the closest to done.
+
+## B-18. `hopp` is a **sign condition with no path content**; the forcing comes from elsewhere **[V, compiled]**
+
+- **found-by:** `form-sr-hopp`, PR #11. **What `hopp` is:** binder at
+  `TrueChemistrySRCriterion.lean:8039` —
+  `∀ i, (trueInternalClassFlux α (C.reaction (finRotate n i)) (C.species (finRotate n i))) * σ (C.species (finRotate n i)) < 0`.
+  It is pointwise, with **no path content at all**. Its only use at the residue is line 8497.
+- `CRNT.hopp_alone_insufficient` is an **exact counterexample on `Fin 3`** satisfying `hopp` in the
+  literal :8039 form and failing uniqueness. The forcing comes from `hcausal` (:8036) together with
+  non-neighbour cycle-class flux vanishing (negated `hnc` at :8537) — **neither is named in the
+  residue's comment.**
+- Sharpens **B-8**: on *cycle* classes those three hypotheses **do** force the target uniquely, and
+  `hopp` is **not** among the two load-bearing ones for the forward direction.
+
+## B-19. The residue comment's target is **wrong by one rotation** — machine-checked **[V, compiled]**
+
+- `Network.no_oneStep_to_pos_of_cycleSpecies : False`. There is no aggregate causal hop
+  `C.species j → C.reaction ((finRotate n).symm j)`, which is exactly what `C.reaction (pos s₀)`
+  denotes under the residue's own convention (`s₀ = C.species (finRotate n i)` at :8052; endpoint
+  `qC.1 = C.reaction i` at :8219). The genuine one-hop target is **`C.reaction j = C.leftEdge j`**.
+- Under the other reading of `pos` the step is right but is **still not the path's endpoint for
+  `n ≥ 2`**. **The comment misidentifies the endpoint under either reading.**
+
+## B-20. The correct statement is proved, and the on-cycle route has length **2n−1** **[V, compiled]**
+
+- `Network.oneStep_fromCycleSpecies_eq_leftEdge` (residue's vocabulary) and
+  `CRNT.firstHop_forced_leftEdge` (**CRNT-free core**), plus `Network.leftEdge_step_exists` and
+  `Network.onCycle_out_neighbour_leftEdge`.
+- **The structural fact: the aggregate causal graph induced on cycle vertices is the directed cycle
+  `s_j → r_j → s_{j+1} → r_{j+1} → …`.** So an on-cycle route from `C.species (finRotate n i)` to
+  `C.reaction i` has length **2n−1, never 1.** This is the real shape the residue's comment should
+  have described.
+- Axiom audit: all 19 declarations report exactly `[propext, Classical.choice, Quot.sound]`.
+  `TrueSRFirstHopCycle.lean` **does** import `TrueChemistrySRCriterion` — necessarily, since the
+  statements are in its vocabulary — and is **still `sorryAx`-free**: the criterion's `sorry` is on
+  no dependency path of these declarations. Checked, not assumed.
+- **This is the B-11 constraint satisfied in the hardest possible way**: a module that imports the
+  hole-bearing file and is nonetheless axiom-clean. Worth citing as the template for the A.6 port.
+
+## B-21. Two free byproducts for the residue **[V, compiled]**
+
+- **`m = 1` is already excluded outright by `hQ0late` (:8359).** The `m = 1 ∧ s₀ = s` split at
+  :8587-8599 is therefore **redundant**, and `m` is odd with `m ≥ 3`. That is a cleanup in an
+  8641-line file for free.
+- Combined with **B-19**: `Q0`'s first hop out of `s₀` must land on an **off-cycle** class, and
+  **where it lands is not determined by `hopp`.** That is the precise remaining freedom, and it is
+  what the A.6 Case-2 port (B-9, absent from `holes`) has to close.
+
+## ENV-1. Mathlib submodule imports have no local `.olean` **[V]**
+
+- `Mathlib.Tactic.Omega` and `Mathlib.Data.Fin.Tuple.FinOps` have **no `.olean`** in the local
+  build, while the umbrella `Mathlib.Tactic` does. **New modules should import the umbrella**, or
+  they will fail for an environmental reason that looks like a missing dependency.
