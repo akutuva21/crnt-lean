@@ -179,3 +179,38 @@ arXiv:1101.0761 (SIAM J. Appl. Math. 71 (2011), 1487–1508), whose mechanism is
 along a subsequence — also not an entry-loss function. The repository's existing provenance notes
 (`CRNT/Dynamics/KnownGlobalPersistenceClasses.lean:16-17`, `CRNT/Dynamics/EndotacticPermanence.lean:9`)
 were correct; the brief was not.
+---
+
+## 7. The ledger trap — read before you touch `scripts/unverified_modules.txt`
+
+**`scripts/unverified_modules.txt` is a list of modules Lean has never successfully elaborated. It
+is not a registry of interesting modules, of frontier candidates, or of things you want built.**
+
+It becomes `excludeGlobs` of the `CRNT` lean library. **Listing a hole-free module there removes it
+from `lake build CRNT`**, and it stops being elaborated by `CRNTFrontier` too. You would be taking a
+working module out of every build target in the tree, silently, and everything downstream of it
+would stop being checked.
+
+What happens for free, with no ledger edit and no generator run:
+
+* A new file under `CRNT/` is picked up automatically. The verified library's globs are
+  `["CRNT", "CRNT.+"]` — pattern-based — so a new module is in `lake build CRNT` the moment it
+  exists.
+* Not appearing in `CRNTFrontier.lean` is not lost coverage. That target is the set of modules that
+  have **ever failed** to elaborate; it is a diagnostic, not a build.
+* To get a module into the verified *umbrella*, give it an `import` line in `CRNT.lean`. That is an
+  import, not a ledger line — and it is what `scripts/promote.py` and `scripts/close_hole.sh` do.
+* `python3 scripts/gen_lakefile.py --add M` is correct in exactly one situation: you added a module
+  and `lake build` genuinely cannot elaborate it yet (a stub, or it depends on an unproved hole).
+  It refuses to write if the entry would transitively hide anything.
+
+**Never hand-edit `lakefile.toml` or `CRNTFrontier.lean`.** Both are generator-owned. Run
+`python3 scripts/gen_lakefile.py` and commit the result; `--check` is a CI step.
+
+**The ledger cannot detect holes — by construction.** Every hole is off-ledger, because a
+hole-bearing module still *elaborates* (with `sorryAx`). That is why `scripts/close_hole.sh` treats
+`scripts/dump_sorries.py` as the primary signal and the ledger step as the follow-up, and why its
+`#print axioms` check is the **transitive** version: it catches a module that is clean in isolation
+but imports something unverified — exactly the trap `TrueChemistrySRCriterion` sets for Hole B.
+
+*found-by `infra-build`, round 1.*
