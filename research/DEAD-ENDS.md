@@ -1815,3 +1815,38 @@ An earlier entry of mine (F-5's δ claim) is wrong for the selector theorem. Its
 `form-barrier-2` filed its own missed grep rather than hiding it — consistent with `research/README.md`
 §8's rule that a dead-end entry names the command whose output killed the route, and with the
 episode in OPS-3 where a commit **message** claimed a revert its tree did not perform.
+
+## A-68. ⚠️ **`faceSum_field_le` is an UPPER bound; the descent needs a SIGN — that is why it cannot close** **[S]**
+
+- **found-by:** `form-barrier-2` (PR #23), sharpening A-64. **This is the precise obstruction.**
+- `Network.faceSum_field_le` (`CRNT/Dynamics/PersistenceConfined.lean:78-81`) gives, for **ANY**
+  siphon `P` and on any box, `∑_{s∈P} xdot s ≤ C_P * faceSum P x` with
+  `C_P = ∑_r κ.k r * (max 1 B)^(deg r) * |∑_{s∈P} ν_r s|`.
+- **It is an UPPER bound. The descent needs a SIGN.** Those are different shapes of statement, and no
+  amount of sharpening an upper bound produces one.
+- `C_P` is monotone **increasing** in `|P|`, so for `Q ⊊ P` one gets `C_Q ≤ C_P` — **the wrong
+  direction: a smaller face grows SLOWER.** **No theorem in the tree relates `C_Q` to `C_P`, or
+  compares `faceSum Pmax` with `faceSum Q` across faces.**
+- **That single missing comparison is precisely the content of `SiphonDimensionDescent.lean:116-123`.**
+- **Good news on inputs:** the box hypothesis is **not** an extra input — it comes from `hK`/`hmaps`
+  by the argument `Network.genuineOrbit_pos` already runs (`GenuineConfinement.lean:63-76`).
+- `faceSum_field_le` is the **closest formalisation of "the growth" that exists**, and it is on the
+  right primitive with the right sign convention in every respect except the one that matters.
+
+## A-69. **The ONE cardinality-decreasing critical-siphon theorem in the tree misses `descend` by ONE FIELD** **[S]**
+
+- **`exists_minimalCriticalSiphon_subset`** — `CRNT/Dynamics/SiphonAutocatalysis.lean:599-601`, with
+  the `'R.card < Q.card'` step at `:626`. **It IS in Hole A's 179-module closure**, verified by the
+  agent's own BFS over import lines (consistent with the doc's 178).
+- **It misses `descend` by exactly one field:** `IsMinimalCriticalSiphon Q` gives
+  `IsCriticalSiphon Q` and inclusion-minimality, **but NOT `N.SiphonCarried Q`** — which needs an
+  ω-point vanishing exactly on `Q`.
+- **Recorded so nobody re-derives the finite combinatorics.** The gap is the *analytic* half of
+  `SiphonCarried` at a minimal face, not the cardinal arithmetic.
+
+## A-70. `toricField_mono_delta`: a vacuous δ yields a vacuous inclusion **[S]**
+
+`toricField_mono_delta` (`ToricFan.lean:86-88`) makes larger `δ` give a larger, hence **weaker**, field.
+So a vacuous `δ` yields a vacuous inclusion — **the same shape as VAC-1** (the empty
+`DifferentialInclusion.Field`). Recorded as the reason δ "biting downstream" is not merely a
+quantitative nuisance.
