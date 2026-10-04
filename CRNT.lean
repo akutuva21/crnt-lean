@@ -69,6 +69,7 @@ import CRNT.Geometry.PolyhedralFan
 import CRNT.Geometry.PolyhedralBarrier
 import CRNT.Geometry.ConvexBarrierObstruction
 import CRNT.Geometry.FanFaceLattice
+import CRNT.Geometry.ConeFaceIncidence
 import CRNT.Geometry.Endotactic
 import CRNT.Geometry.ToricFan
 import CRNT.Geometry.CraciunZSH
