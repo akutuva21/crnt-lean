@@ -88,7 +88,7 @@ chain, one edge wide*; and the claim does not extend tree-wide.
 ## 2. Statement-drift audit ✅ — 54 theorems
 
 Full tables with exact file:line for every theorem, the docstring quote, the statement shape, and
-the verdict: `research/AUDIT/drift-A.md` and `research/AUDIT/drift-B.md`.
+the verdict: `research/Audit/drift-A.md` and `research/AUDIT/drift-B.md`.
 
 **No theorem was found whose statement is weaker than its docstring claims in the load-bearing sense
 — "proved something weaker and named it the theorem".** Specifically:
