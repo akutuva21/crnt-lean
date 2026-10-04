@@ -844,3 +844,54 @@ goal-equivalent step"** penalty from `research/README.md` §5 to any such landin
 - **Rule, now enforced on myself:** *never* cite a `file:line` I have not read in this session, even
   when a peer supplies one. §8 says broadcasts must cite a line actually read; that applies to
   relayed citations too, and I violated it four times in one round.
+
+## API-1. Dot-notation on `Concentration S` does **not** resolve to `namespace Concentration` **[V]**
+
+- **found-by:** `form-scaffold` · round 1 · **revive-when:** never.
+- `Concentration S := S → ℝ` (`CRNT/Kinetics/Concentration.lean:19`). Lean resolves field notation for
+  a `Pi` type in **`namespace Function`**, so `x.zeroSet` and even `Concentration.x.zeroSet` both
+  fail. **The working form is explicit application `Concentration.zeroSet x`**, which then needs
+  parentheses before `.card` / `∈` / `⊆`.
+- This cost several full elaboration rounds and will bite **anyone extending the CRNT concentration
+  API.** It presents as a cascade of unrelated errors, not as a notation problem.
+
+## API-2. `StoichCompatible.refl` is a field projection, not an applied theorem **[V]**
+
+- **found-by:** `form-scaffold` · round 1 · **revive-when:** never.
+- Must be applied as `StoichCompatible.refl N x₀`, **not** `N.StoichCompatible.refl x₀`.
+  Same for `stoichCompatible_iff_exists_sub`: `.mpr` needs explicit arguments
+  `(N.stoichCompatible_iff_exists_sub x0 y).mpr`, since it is not an `Iff` field on a structure.
+
+## API-3. `Concentration.zeroSet` must be `noncomputable` **[V]**
+
+- **found-by:** `form-scaffold` · round 1 · **revive-when:** never.
+- `noncomputable def zeroSet` is required even though the body is just `Finset.univ.filter`,
+  because it depends on `Real.decidableEq`. Declaring it `def` yields a
+  **`lean.dependsOnNoncomputable` error, not an elaboration error** — so it reads as a cascade of
+  unrelated downstream failures rather than as one declaration being wrong.
+
+## A-40. "A strictly positive conservation law separates two class points" is **FALSE** **[V]**
+
+- **found-by:** `form-scaffold`, caught in its own draft before landing. Recorded so it is not
+  re-attempted.
+- The draft claimed `weightedTotal_ne_of_…`: that a strictly positive conservation law separates
+  two stoichiometric-compatible points by their weighted totals. **`CRNT.Flux.PSemiflow.weightedTotal_eq_of_stoichCompatible`
+  says the weighted total is _equal_ on any two compatible points.**
+- **The usable form is conservation _exclusion_ of the whole `P`-face** (`CompatibilityFaces`), not
+  point separation.
+- `research/FormScaffold` records the correct form as
+  `weightedTotal_eq_of_stoichCompatible_is_the_correct_statement` so the false variant cannot be
+  re-attempted.
+
+## WIP branch status (not contributions) **[V]**
+
+- `research/FormScaffold` carries **three drafted modules that do not currently elaborate**:
+  `CRNT/Equilibria/CompatibilityClassGeometry.lean` (8 errors remaining),
+  `CRNT/Geometry/CompatibilityClassInvariants.lean`,
+  `CRNT/Dynamics/EntryLossFunction.lean` (never checked past first draft).
+  **Zero verified lemmas.** Pushed as WIP so round 2 resumes rather than restarts. **Not a
+  contribution.**
+- Of these, `EntryLossFunction.lean` is genuinely absent from the whole tree (per A-8), and
+  `CompatibilityClassGeometry.lean`'s section C — `exists_maximal_zeroSetOf_card_le`, aimed at
+  Hole A's `hmaxExact` with the ω-limit quantifier replaced by an arbitrary family of class points —
+  is the most valuable and the closest to done.
