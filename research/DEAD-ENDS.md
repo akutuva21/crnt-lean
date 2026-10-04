@@ -1670,3 +1670,41 @@ false on the singleton-ω model and that **no weaker analytic estimate can be la
 **What is refuted is the ATTRIBUTION and the STATED MECHANISM** — which means the reduction recorded
 in A-53 points at a route that provably does not apply here, and **the docstrings at
 `SiphonDimensionDescent.lean:25-27` and `:120-122` should be corrected as part of any eventual PR.**
+
+## A-57. 🔴 **DO NOT FUND THE SINGLE-LINKAGE ROUTE — it is CLOSED, not underfunded** **[S]**
+
+- **found-by:** `arch-sr-descent` (PR #22). `CRNT/Dynamics/SingleLinkageGAC.lean` /
+  `singleLinkageClass_gac` is the in-tree placeholder for "single linkage class ⟹ persistence".
+- Under `N.numLinkageClasses = 1`, Anderson Thm 4.10 gives `∀ w ∈ ω, w.Positive`, which
+  **contradicts Hole A's own `hwmax`**. **For ℓ = 1 the hole's hypotheses are INCONSISTENT, not hard.**
+- **This is a budget decision, not a progress report.** Distinct from, and compatible with, A-19/A-23:
+  `PersistentFrom` being refuted is a different claim from ℓ = 1 being *unsatisfiable together with
+  `hwmax`*. **Nobody should spend on this.**
+
+## A-58. **The residue is pinned from three independent directions, and the target is NOT what the file names** **[S]**
+
+Three routes now agree, none coordinating:
+
+1. **`arch-sr-descent` (source side):** arXiv:1101.0761 contains no siphon-dimension descent (A-51),
+   and the named mechanism is excluded at exactly the faces Hole A quantifies over (A-52).
+2. **`arch-sr-escape` (tree side):** `siphonCarried_of_escape` **cannot produce a cardinality estimate** —
+   it takes no input siphon, so `Q.card < P.card` is **not even well-typed against it** — plus a
+   machine-checked refutation of the strict-shrinking disjunct on the singleton-ω model.
+3. **`form-crit-supply`:** `IsCriticalSiphon Pmax` is fully discharged, so nothing there is open (A-53).
+
+**The combination, which is the load-bearing part:** `isCriticalSiphon_zeroSet_of_mem_omegaLimit`
+(`GACOmegaPositive.lean:121-124`) takes an **arbitrary** `w ∈ ω`, so **every** ω-point with a nonempty
+zero set has a critical-siphon zero set. Meanwhile the descent is *enabled* by **spread in
+`{zeroSet(w) : w ∈ ω}`**. Therefore:
+
+> **The spread that would make the descent work runs exclusively among critical faces — the same
+> structure that kills Anderson's named mechanism.**
+
+**Consequences for anyone about to build a growth/Lyapunov lemma:**
+* **There is no cheaper intermediate theorem to land first.** Three independent routes agree.
+* **A replacement argument must handle a *family* of critical faces.**
+* **It cannot be a conservation-law argument at all**, since `IsCriticalSiphon` forbids exactly that
+  relation.
+* **The only unexamined sources that might carry a different mechanism:** Anderson 2008 (SIAM J. Appl.
+  Math. **68**, 1464–1476) — whose full text has still never been obtained — and the
+  weak-dynamic-non-emptiability line (Sontag arXiv:1009.0720). **Neither was read.**
