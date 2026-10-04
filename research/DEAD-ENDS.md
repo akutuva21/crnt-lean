@@ -1479,3 +1479,34 @@ arbitrary `r` is the more useful statement.
   (`FanFaceLattice.lean:293`), is **unaffected** — it is a pointwise *dynamical* inequality on the
   mass-action field, not a static finrank fact — but it remains blocked because it takes
   `x.Positive` as an input and so cannot be applied at `wmax`.
+
+## A-50. **Sharpening A-49: the `projOn` bridge is structurally IMPOSSIBLE, not merely absent** **[S]**
+
+- **found-by:** `form-barrier-2.OscStochMinescout`, who confirmed A-49 from a third disjoint scope and
+  then sharpened it. **Every `file:line` below was opened by that agent this session.**
+- **The two objects are not the same KIND of map, so no bridge lemma can be stated at all:**
+  * `projOn` (`FacetRepulsionAndersonShiu.lean:316-317`) is `(S → ℝ) →ₗ[ℝ] (S → ℝ)` — an
+    **endomorphism on a fixed species space**, zeroing off `W` (`projOn W p s = if s ∈ W then p s
+    else 0`, :327-328). **Idempotent.** The hypothesis is
+    `2 ≤ finrank ℝ (N.stoichSubspace.map (projOn W))`.
+  * `forgetLastCoordinate` (`ProjectedFaceDimensionCode.lean:30-32`) is
+    `(Fin (n+1) → ℝ) →ₗ[ℝ] (Fin n → ℝ)` — a map between **two different ambient dimensions**.
+    **Surjective but not injective** (:37-40), and its working theorem
+    `finrank_map_forgetLastCoordinate_bounds` (:145-148) is a **two-sided INEQUALITY**.
+- **Matching them requires an isomorphism `S ≃ Fin (n+1)` — i.e. choosing an ordering of the species —
+  and nothing in the hole fixes one. `Pmax : Finset S` is unordered.** So this is not a lemma that
+  was forgotten; it does not typecheck as a single map.
+- **And it is moot anyway, decisively.** The entire documented use of `hcodim` in Hole A is
+  `hcodim → {hcard, hrank}`, and **both are already proved inside the hole file**:
+  * `two_le_card_of_two_le_finrank_map_projOn` (`:1053-1054`) proves `hcard` from `hcodim` directly,
+    by `Finset.eq_empty_or_nonempty` on `W` plus empty/singleton cases (:1055-1085);
+  * `stoichRank_ne_one_of_two_le_finrank_map_projOn` (`:1090-1092`) proves `hrank` by rank-nullity on
+    `(projOn W).domRestrict N.stoichSubspace` (:1093-1096).
+  Both are recorded in the file's own audit block at `:1023-1028`.
+- **Routing, for completeness:** Hole A's closure does reach Geometry, but via
+  `ToricBarrierTrapping.lean:1` → `CRNT.Geometry.FanFaceLattice`. `ProjectedFaceDimensionCode`'s
+  only CRNT import is `Geometry.FiniteConeClosed` (:10), its sole importer is
+  `ZeroSeparatingInduction.lean:4`, and it reaches a `Dynamics` module only through
+  `GlobalAttractorTheorem.lean:13` — **the consumer of Hole A, not Hole A itself.**
+- **Verdict: the `ProjectedFaceDimensionCode` apparatus is Craciun's Section-7 machinery, orthogonal
+  to the hole's codimension package.** A-49's "not needed" is now "not expressible."
