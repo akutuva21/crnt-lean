@@ -730,6 +730,12 @@ import CRNT.Translation.LinearConjugacySpectral
 import CRNT.Oscillation.FiedlerGlobalHopf
 import CRNT.Oscillation.GlobalHopfContinuation
 
+-- PR #10 (research/form-sr-case2): A.6 Case-2 core, and the first `TrueSRPathRR` in the tree.
+-- Independently verified by research/FormSrOnly; see research/routes/pr10-verification.md.
+import CRNT.Multistationarity.TrueSREarCase2
+import CRNT.Multistationarity.TrueSRReactionArc
+import CRNT.Multistationarity.TrueSRArcNaturalBound
+
 -- Promoted from the frontier ledger (elaborated, closure sorry-free).
 import CRNT.Oscillation.PlanarFloquetAttraction
 import CRNT.Oscillation.ScalarReturnMapFamilyPersistence
