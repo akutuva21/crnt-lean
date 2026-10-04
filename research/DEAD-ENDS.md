@@ -1158,3 +1158,40 @@ re-derive by reading the code.
   member.** Candidate worked out in `research/routes/vacuity-report.md` §R4: the directed 3-cycle
   `A → B → C → A` over `S = Fin 3`. **Build the witness before finishing the ear** — otherwise the
   theorem is about the empty class.
+
+## B-27. `rr_three_glued_even_of_two` ALREADY EXISTS — the parity half of the ear is done **[V, compiled]**
+
+- **found-by:** `form-sr-route` (PR #19). The reaction-flavoured Shinar–Feinberg Lemma A.4 three-path
+  parity lemma is **already proved at `CRNT/Multistationarity/TrueSRParityRR.lean:775`**.
+- **So `exists_second_evenCycle_of_offCycle_escape` needs nothing new for parity.** Round 1's
+  `ss_three_glued_even_of_two` was the *wrong* lemma to point at; the RR analogue already existed
+  and nobody grepped for it. Another instance of §8 — check before assuming.
+- **The entire missing half was the geometric construction of `TrueSRPathRR` objects.**
+
+## B-28. The RR reaction-arc builder, FOUR TIMES OVER — reconcile before building on it **[V, compiled]**
+
+Four branches independently created `CRNT/Multistationarity/TrueSRReactionArc.lean`:
+
+| PR | agent | API |
+| --- | --- | --- |
+| #10 | `form-sr-case2` | `TrueSRCycle.reactionArcFrom (C) (r k) (hk : k+1 < n)` |
+| #17 | `form-sr-parity` | `TrueSRCycle.reactionArcFwd` (**2 of 5 obligations OPEN**) |
+| #19 | `form-sr-route` | `TrueSRCycle.reactionArc (C) (m) (hm) (hmpos)` — **complete, all obligations proved** |
+| #9 | `form-sr-deg2b` | index-range arithmetic only (`fwd_idx_le`, `bwd_idx_ge`, `fwd_bwd_index_split`) |
+
+**PR #19's is the most complete**: all structure obligations proved, with
+`reactionArc_startReaction`, `reactionArc_endReaction`, `reactionArc_tail_startSpecies`,
+`reactionArc_length : 2 * (m-1) + 2 = 2 * m`.
+
+**The mathematical content**, worth keeping: a `TrueSRCycle n` carries `leftEdge i : S_i — R_i` and
+`rightEdge i : R_i — S_{i+1 mod n}`, so the graph is the chain `R_0 — S_1 — R_1 — … — S_m — R_m`. From
+`R_0` there is **exactly one** simple forward route to `R_m`, namely
+`rightEdge 0, leftEdge 1, rightEdge 1, …, rightEdge (m-1), leftEdge m`, of length `2m`. The true-SR
+graph is **bipartite** (`TrueSREdge.Connects` pairs only `Sum.inl` with `Sum.inr`), so every
+reaction-to-reaction path has even length. `TrueSRPathRR j` encodes `2j+2` edges as a first edge plus
+a `TrueSRPath (2j+1)` tail, so splitting off `rightEdge 0` gives `j = m-1`.
+
+**Also free, verified:** `TrueSRCycle.reverse`'s edge characterisations lift `reactionArc` to the
+reversed cycle with `rfl` edge lemmas — the `reactionArcBwd` round-trip costs nothing.
+
+`form-sr-cycle` owns the reconciliation. **Nobody should build on any of these four until it lands.**
