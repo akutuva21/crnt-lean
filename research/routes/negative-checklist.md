@@ -14,7 +14,7 @@ route that quietly dies is not re-walked next round.
 | `killed` | dead — see the `DEAD-ENDS #` reference |
 | `open` | nobody is on it; **these are the openings** |
 
-**Last refreshed:** round 1, 2026-10-03, `adv-negative`.
+**Last refreshed:** round 1, late (post-reframe), 2026-10-03, `adv-negative`. Re-read §1b before taking a slice: the priority order changed three times this round.
 
 > **Round-1 revision (2026-10-03).** Two orchestrator directives landed after this file was first
 > written and changed the priority order materially. Both are folded in below:
@@ -57,17 +57,43 @@ hole-B slice.**
    elaborating untouched: do not move `by_cases hv0r` (`:8371`), `exfalso` (`:8355`), or the `hvr`
    split (`:8301`).
 
-### Hole A — priority order after the re-read (ledger §3c)
+**Typing prerequisite (added late in round 1):** `exists_second_evenCycle_of_offCycle_escape`
+**cannot even be stated yet**. `holes` has `C.speciesArc` / `C.speciesArcBwd`
+(`TrueSRSpeciesPath.lean:645`, `:755`) giving `TrueSRSSPath`s of a cycle's arcs with `SSGluable`
+essentially free, but `arcFwd` / `arcBwd` exist **only in the species flavour**
+(`TrueSRCycleSplit.lean:85`, `:88`). **The reaction-arc (RR) builder is the missing prerequisite —
+build it before the ear.** If you report "I could not find a way to state it", you have hit this,
+not an obstruction. **Ledger R-5.** And the ear must close in `hSR.2`, **never** in `hnd`
+(**B-12**, from **B-1**).
 
-| priority | route | status change | ledger ref |
+### Hole A — priority order (FINAL for round 1, ledger §3e)
+
+**Two earlier priority orders are superseded.** `§3c`'s P1 ("supply a fan from scratch") was
+**wrong and is retracted** — the fan already exists. Read `§3e` R-1 … R-8 before picking a slice.
+
+| priority | route | owner | ledger ref |
 | --- | --- | --- | --- |
-| **P1** | **Supply a fan `F` from the stoichiometric data** (stoichiometric subspace, `hcb`, the critical siphon, `Pmax`). **Read `ToricEmbeddingWR.lean` and `ToricInclusion.lean` first** — `multiCycle_velocity_mem_polarCone` / `NetworkCycleDecomposition.velocity_mem_polarCone` may already give `F` implicitly. | **new top priority**; absorbs `infra-mathlib-fan`, `form-fanface-core`, `form-fan-incidence` | **F-3**, P4 |
-| **P2** | **Weaken the target**: find the weakest *satisfiable* certificate for "one interior ω-point". A ZSH is not required; 4.6(i) and 4.6(ii) can be dropped. Absorbs `arch-fanface`, `form-barrier`, `arch-alt`. | **new** | **F-2** |
-| **P3** | Blueprint induction — only if P1 and P2 fail, and only with an **ambient-rank-decreasing** recursor. | **demoted**; do not use the projected-rank `oneBit*` recursors | **F-2**, **A-1**, A-2 |
-| ✗ | δ-uniformity / δ-propagation | **retired by premise** | **F-4**, A-4 |
-| ✗ | re-attacking §7.3 | **retired — already closed** | **A-3** |
-| ✗ | full-strength faithful blueprints | **retired — over-attempted** | **F-2** |
+| **P0 — the fork** | **Decide whether `hsep` is refutable under the hole's hypotheses.** The ledger says **yes** (`#A1`, `hsep_fails_of_boundaryPoint_mem_sublevel` at `HighCodimensionSiphonFace.lean:184`, `barrier_le_of_mem_omegaLimit` at `:272`), which sends you to the `_of_upperRegion` branch. **But the chain from "that sublevel is refutable" to "this criterion's `hsep` is undischargeable" is still prose.** Making it a Lean theorem is worth more than any individual lemma in the residual. | `arch-alt`, `adv-refute`, `adv-audit`, `form-barrier`, `arch-fanface` | **R-8**, **#A1** |
+| **P1 — branch A** | `exists_positive_omegaPoint_of_faceRelevantCore` (`FaceDirectionCone.lean:417`) — residual is four hypotheses: `hcore` (trivial, 3 lines), **`hm`** (the real content — `m` in *every* cone within `δ+B` of `faceDirectionCone Pmax`, which must survive the thickening), `hstart`/`hface` (one-sided, **not** a level set), `hsep` (**disputed — see P0**). | `form-tiles`, `form-domination` | **R-7**, **R-4** |
+| **P1′ — branch B** | `exists_positive_omegaPoint_of_upperRegion` (`HighCodimensionSiphonFace.lean:1596`) — the hole's own Step-4 criterion; **only two unbuilt inputs: `hfloor` (uniform coordinate floor) and the non-crossing `hsplit`.** Needs no `hMclass`, no convex barrier, no `hsep`. | `form-barrier`, `arch-fanface` | **R-8**, **#A2** |
+| **P2 — now cleanup** | The relint-chamber fix to `CraciunZSH.hinterior`. **Released — `FaceDirectionCone.lean` never imports `CraciunZSH` and none of the five sites is reachable from it. Do for faithfulness; it blocks nothing.** Do **not** use `⊆ affine span`; state `infDist x C < δ ∧ M < ‖x‖ → x ∈ K^sym` and apply symmetry after. | `form-tiles`, `form-domination` | **R-3**, **R-6**, **A-11** |
+| **P3 — deliverable split** | n-dimensional upgrade of Lemma 9.7. The *proof* is dimension-agnostic: only **Lemma 9.9's diffeomorphism** and **Lemma 9.10's four angle clauses** are 3-dimensional. The escape step `B(C,δ) \ B(0,M) ⊂ K^sym` is a **short** lemma — proving that half alone is a self-contained win. | unassigned | **R-3**, **A-13** |
+| **P4 — weakest hypothesis, no fan named** | The weakest sufficient hypothesis may be reachable **directly in stoichiometric coordinates with no fan ever named**. A live route, not a fallback. | `arch-delta` (post-vacation) | **#F-2** |
 
+**Dropped outright — do not re-seed on any of these:**
+
+| route | why | ledger ref |
+| --- | --- | --- |
+| build a fan from the stoichiometric data | **RETRACTED — the fan already exists** (`ComplexBalanceStoichFan.lean:98`, `:330`, `:305`, `:140`, `:250`) | **R-1** |
+| `ToricEmbeddingWR.lean` | weaker path, `CycleDecomposition` is built by nothing, `mono` refuted (`CycleRateNonMonotone.lean:89`) | **R-2** |
+| δ-uniformity / δ-propagation | Remark 9.8 kills it; one blueprint at one δ suffices | **F-4**, A-4 |
+| §7.3, and the ε̃ scale system | already proved (five times over) | **A-3**, **A-4** |
+| `oneBit*` recursors | prove the wrong theorem (projected, not ambient, rank) | **A-1**, **A-2** |
+| deriving `hinterior` from Craciun's hypothesis | `C ⊆ interior K` is **false** on symmetry hyperplanes (`x_i = x_j`) — the normal case | **A-11** |
+| a slack `ε(δ)` on the normal | Lemma 9.7's normal conclusion is **non-strict**; any such statement is an unproved strengthening | **A-12** |
+| quoting the width-≥δ flatness claim | fails at vertices and 1-dimensional pieces (empty cone interior) | **A-14** |
+| consulting `arxiv.org/html/1501.02860v3` | truncates silently at §6.1.2; **no §7, §8, §9**, and `#S9` anchors return the same prefix | **A-10**, **A-15** |
+| full-strength faithful blueprints | over-attempted — 4.6(i) and 4.6(ii) need not be established | **#F-2** |
 
 ---
 

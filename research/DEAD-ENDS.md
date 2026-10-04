@@ -1373,6 +1373,431 @@ as `research/HOLEA-FRAMING.md`. **Open:** `adv-refute` and `adv-audit` are to co
 F-2 and F-3 in round 2. Until then treat F-2/F-3 as **[N]**, and in particular **do not** delete a
 blueprint route on the strength of them alone — re-prioritise it.
 
+## 3d. Second wave of round-1 findings (orchestrator, 2026-10-03)
+
+Same conventions as §3b: IDs and grades are the authors', preserved verbatim. Three of these are
+**actionable TODOs rather than warnings**, and two of them are *repairable defects in the tree*
+rather than statements about the paper.
+
+### A-11. `CRNT.Geometry.CraciunZSH.hinterior` is FALSE as packaged — and the fix is the actionable task **[V]**
+
+* **Hole:** A. **found-by:** orchestrator, round 1 · **revive-when:** never as stated.
+* **What was tried:** instantiate the packaged criteria `..._of_convex_tiles` /
+  `..._of_selfConsistent_normals` / `..._of_blueprintData` by deriving `hinterior` from the
+  hypotheses at hand.
+* **Why it fails:** `CraciunZSH.hinterior` uses `C ⊆ interior K_C`. Craciun's **actual** hypothesis
+  is `C ⊆ relint_Ω K_C`, and the packaged version is **FALSE for every cone on a symmetry
+  hyperplane `x_i = x_j`** — the normal case, per his own footnote 127. **Nobody is to attempt
+  that derivation.**
+* **Evidence:** the statement in `CRNT/Geometry/CraciunZSH.lean` versus Definition 4.6 / Lemma 9.7
+  as printed in v3 (read from the PDF — see A-15).
+* **What would make it work — THE ACTIONABLE TASK:** prove the **relint-chamber variant**. Add
+  `chamber : Set E` with `C ⊆ chamber` and `chamber ⊆ K`, replace `C ⊆ interior K` by
+  `∀ x ∈ C ∩ sphere 0 1, ∃ ρ > 0, ball x ρ x ⊆ K ∩ (affine span of chamber)`, and conclude
+  `∃ M, ∀ x, infDist x C < δ → M < ‖x‖ → x ∈ K`. This is exactly Lemma 9.7's hypothesis and it
+  **unblocks every application of the packaged criteria**.
+* **Assigned:** `form-domination`, `form-tiles`, `form-barrier` — **stop trying to instantiate
+  `hinterior`; do this instead.**
+* **Relationship to `#A1`/`#F-2`:** a third independent instance of `#P1` — a packaged predicate
+  that typechecks, is consumed by real criteria, and is false.
+
+### A-12. There is no slack `ε(δ)` on the normal — any such Lean statement is an unproved strengthening **[V]**
+
+* **Hole:** A. **found-by:** orchestrator (correcting its own `BRIEF-A.md` §A.5) · **round 1** ·
+  **revive-when:** never without an independent proof of the strict variant.
+* **Tried premise that was wrong:** "how far a normal may stray" — i.e. a quantitative bound on
+  `n ∈ C` depending on `δ`.
+* **Why it fails:** Lemma 9.7's normal conclusion is **NON-STRICT** (`n ∈ C`, a *closed* cone);
+  the only quantification is an existential threshold realised as `‖log P‖ ≥ max_C M_C`.
+* **Consequence:** **any Lean statement putting a slack `ε(δ)` on the normal is an unproved
+  strengthening — do not attempt it.** This collapses part of `arch-delta`'s and `form-scales`'
+  round-1 slice; both are to report it as a dead end and pivot to P1 (supply a fan, `#F-3`) or to
+  the relint-chamber lemma (A-11).
+
+### A-13. Lemma 9.5/9.7 are stated only for ℝ³/(0,1)³ — the n-dimensional upgrade is unwritten **[V]**
+
+* **Hole:** A. **found-by:** `papers-craciun`, round 1 · **revive-when:** never — record it.
+* **What was tried / what is missing:** §8 Step 2 invokes Lemma 9.7 in `n` dimensions, but 9.5/9.7
+  are printed only for ℝ³ and `(0,1)³`. **The n-dimensional upgrade is not written down anywhere
+  in v3 and is not derivable from the printed statements.**
+* **Why it matters:** it is an *independent, unwritten generalization*. Do not assume it.
+  **Proving it from scratch is a legitimate and valuable deliverable** — and, given `#F-2`
+  (the hole needs much less than a ZSH), a proof of the n-dimensional 9.7 may be closer to
+  sufficient than the full blueprint is.
+
+### A-14. The width-≥δ flatness argument fails at vertices and 1-dimensional pieces **[V]**
+
+* **Hole:** A. **found-by:** orchestrator, round 1 · **revive-when:** with an explicit interior
+  hypothesis.
+* **Tried:** quote the flatness claim (a zero-separating surface must be flat on a slab of width
+  ≥ `δ` around every cone) as written in `HANDOFF_gac_hole.md` §4 and in the
+  `HighCodimensionSiphonFace.lean` module header.
+* **Why it fails:** the argument fails **at vertices and 1-dimensional pieces**, where the cone has
+  empty interior. The **polyhedrality conclusion survives** via the weaker, dimension-free,
+  δ-free statement.
+* **Consequence:** **do not quote the flatness claim unqualified in any new module.** `#A28` in
+  §1 carries the same argument and inherits this defect — read them together.
+
+### A-15. Craciun v3 §7/§9 is unreachable via the arXiv HTML; it truncates silently **[V]**
+
+* **Hole:** A. **found-by:** `papers-craciun`, round 1 · **revive-when:** never.
+* `arxiv.org/html/1501.02860v3` ends mid-§6.1.2 with **no error**, and `#S9` anchors return the
+  same prefix. **Use `https://www.alphaxiv.org/abs/1501.02860v3` or the PDF.** A researcher who
+  fetches the HTML will conclude §7–§9 do not exist.
+* **Relationship to `A-10`:** `A-10` records the same truncation at §6.1.1 from the PDF-side
+  investigation; this gives the precise failure mode (**silent**, plus misleading anchors).
+  Together they are the reason **every** §7/§8/§9 claim in this ledger is graded from the PDF.
+  `papers-*`: transcribe from the PDF/alphaxiv only.
+
+### B-11. The `TrueSREarCase2.lean` port cannot be a file copy **[V]**
+
+* **Hole:** B. **found-by:** orchestrator, round 1 · **revive-when:** never as a copy.
+* **What was tried:** copy `CRNT/Multistationarity/TrueSREarCase2.lean` from `backup-fig8`
+  (`637a970`) into `holes` — the route in `B-9` / ledger §3b step 1.
+* **Why it fails:** line 1 imports `CRNT.Multistationarity.TrueSREarCase1`, which **does not
+  exist on `holes`**. And `TrueSRCycle.even_of_signChange` exists only as a ***private*** theorem at
+  `TrueChemistrySRCriterion.lean:6885`; a public version must be proved. **Re-author from the import
+  line up.**
+* **Hard constraint — read this before writing the port:** the ported file **must NOT** import
+  `TrueChemistrySRCriterion`. That drags `sorryAx` into its axiom footprint and couples it to the
+  very file we are closing. **The branch file's comment at line 190 does this deliberately —
+  preserve it.** A port that imports it produces a module whose `#print axioms` contains
+  `sorryAx`, i.e. a laundering of the hole rather than progress.
+
+### B-12. The ear can never close via `hnd`; it must terminate in `hSR.2` **[V]**
+
+* **Hole:** B. **found-by:** orchestrator, round 1, from **B-1** · **revive-when:** never.
+* By B-1 every SR edge joining a cycle species to a cycle reaction is a cycle edge, so `hnd` fails
+  at `p = M−1` for **every** candidate `Q`. The ear produced by
+  `exists_second_evenCycle_of_offCycle_escape` therefore **cannot** be closed through the spanning
+  path machinery at all.
+* **What would make it work:** the ear must terminate in the **second** conjunct `hSR.2`, via
+  `lemmaA6_case2_twoComponents` / `lemmaA6_case2_oneComponent` /
+  `TrueSRCycle.sToRIntersectionOfTwoPaths` — which is the whole reason the port in B-11 is
+  mandatory rather than optional.
+* **This is the second sentence that stands above everything else this round:**
+  **hole B's residue needs an ear that closes in `hSR.2`, not `hnd`.**
+
+**Note on the grades in §3b, §3c and §3d.** Entries in those three sections are **relayed, not
+independently verified by me**. I did not re-derive the ranking fields of `FanRefinement`, the
+anti-monotonicity of `binaryWordValue`, the `containsEdge_iff_cycleNeighbour` refutation, the
+falsity of `CraciunZSH.hinterior`, or the absence of `TrueSREarCase1` from `holes`. They are
+recorded because the orchestrator circulated them as established and because dropping them would be
+worse than keeping them — but the honest grade *from my vantage point* is **"relayed, unverified
+by this file's author"**, which is a notch below the `[V]` their authors earned. If you build on one,
+verify it first; if you find one wrong, correct it here and say so in your commit message. Per §4.3,
+a grade may only be upgraded by the agent who earns the upgrade.
+
+## 3e. F-3 RETRACTED, and the landing site (round 1, final)
+
+**This section retracts part of §3c.** It is kept in full rather than deleted: an entry that was
+wrong, the evidence that killed it, and the two dead routes it sent researchers down are worth
+more than a quiet edit. Per §4.5 of the protocol — *never delete an entry*.
+
+### R-1. **F-3 is RETRACTED — it was false. The fan exists unconditionally.** **[V]**
+
+* **Hole:** A. **found-by:** `arch-delta` + an `adv-audit` subagent, independently; verified by the
+  orchestrator; re-verified by me against the sources. **round 1** · **revive-when:** never.
+* **What F-3 claimed (§3c):** "the hole's hypotheses do not supply the fan — and never will",
+  and `ToricEmbeddingWR.lean` is the highest-value asset in the tree. **Both wrong.**
+* **Why F-3 is false:** the fan is already built and already proved complete.
+  `Network.relativeSourceOrderStoichFan` (`CRNT/Dynamics/ComplexBalanceStoichFan.lean:98`) is
+  constructed from `N.stoichSubspace` and `N.R` **alone** — no `δ`, no `hxs`, no `hcb`, no
+  reference to any of the hole's hypotheses — with
+  `relativeSourceOrderStoichFan_isPolyhedralFan` (`:330`) proving `CRNT.IsPolyhedralFan`,
+  `exists_relativeSourceOrderConeInStoich_mem` (`:305`) proving covering,
+  `relativeSourceOrderStoichFan_inter_mem` (`:140`) and `_faces_mem` (`:250`) giving
+  intersection and face closure, and `relativeSourceOrderNegativeStoichFan` (`:357`) likewise
+  complete.
+* **And Theorem 4.3 — the embedding Craciun defers to [2] — is already proved.**
+  `isInclusionSolution_massAction_relativeSourceOrder`
+  (`ComplexBalanceStoichFanInclusion.lean:539`) and `isInclusionSolutionOn_…` (`:560`) take
+  **exactly the hole's hypotheses** (`hxs : xstar.Positive`, `hcb : N.IsComplexBalanced κ xstar`,
+  `hδ : 0 < δ`, orbit positivity, and the genuine-derivative clause `hderiv`/`hsol`) and conclude
+  the trajectory solves `relativeSourceOrderToricInclusionField xstar δ`.
+  Supporting layer: `massActionVectorField_mem_toricField_relativeSourceOrderNegativeStoichFan`
+  (`:373`), `exists_coordinate_refinement_of_relativeSourceOrderNegativeStoichFan` (`:51`),
+  `relativeSourceOrderNegativeStoichFan_hasDualFGCells` (`:33`),
+  `relativeSourceOrderNegativeConeFamily_hasExposedCommonFaces` (`:802`).
+* **The actual gap is wiring, and it is small:** `CRNT/Dynamics/GlobalAttractorTheorem.lean`
+  imports `CRNT.Dynamics.ComplexBalanceStoichFan` at line 2 and then never mentions it — grep for
+  `relativeSourceOrderStoichFan|stoichFan|_isPolyhedralFan` over all 1789 lines returns **zero
+  matches** (re-derived by me). The complete fan and the inclusion bridge are compiled into the
+  hole's dependency cone, fully proved, and **unused**.
+* **What this kills:** §3c's F-3 and the entire P1 priority derived from it ("supply a fan from
+  the stoichiometric data", "build the fan, or prove that no such fan is constructible"). **Do not
+  build a fan. It is already there.**
+* **What this changes for `#A29` / F-1:** nothing. F-1 (hole A is *not* Theorem B) is unaffected
+  and stands — that correction was about what the hole *asks for*, not about what exists in the
+  tree.
+
+### R-2. `CRNT/Dynamics/ToricEmbeddingWR.lean` is the weaker path and is partially dead — **stop reading it** **[V]**
+
+* **Hole:** A. **found-by:** orchestrator, round 1 · **revive-when:** never.
+* **What was tried:** route hole A through `multiCycle_velocity_mem_polarCone`
+  (`ToricEmbeddingWR.lean:136`) and `NetworkCycleDecomposition.velocity_mem_polarCone` (`:232`),
+  which F-3 nominated as "the highest-value asset in the tree".
+* **Why it fails:** both take a `CycleDecomposition` structure (`:93`) /
+  `NetworkCycleDecomposition` (`:160`) that **nothing in the tree builds**, and the `mono` field is
+  **refuted** by `CRNT/Examples/CycleRateNonMonotone.lean:89`
+  (`tri_no_monotone_rotation`) — confirmed present at that line.
+* **What would make it work:** construct the decomposition, which nobody has and which R-1 makes
+  unnecessary. **Use the StoichFan path (R-1) instead.**
+* **This is the cost of a false premise.** F-3 sent a dozen researchers toward a weaker,
+  partly-refuted route; the cost was a round. The orchestrator recorded this as its own error
+  rather than dropping it, and so does this file.
+
+### R-3. `CraciunZSH`'s `hinterior` is load-bearing at **five** sites, not one **[V]**
+
+* **Hole:** A. **found-by:** orchestrator, round 1 · **revive-when:** the relint-chamber fix lands.
+* **Correction to `A-11`:** the `C ⊆ interior K` requirement is load-bearing at
+  `exists_eventual_tube_subset_of_cone_interior` (`CRNT/Geometry/CraciunZSH.lean:32`),
+  `exists_uniform_eventual_tube_subset_of_finite_properCone_pairs` (`:222`, hypothesis literally
+  named `hinterior`), propagating transitively to `:186`, `:311`, `:346` and `:378`.
+  (I confirmed the `hinterior` hypothesis binding at `:225`, `:314` and its uses at `:237`, `:326`.)
+* **Consequence:** you are blocked at **all five**, not merely at the packaged criteria.
+* **The open question, now the thing to determine:** whether
+  `CRNT/Dynamics/FaceDirectionCone.lean` **routes around** these five sites or **through** them.
+  **If it routes around them, that is very likely the shortest path to closing hole A.**
+* **Sharper form of the fix** (orchestrator/transcriber, superseding `A-11`'s sketch): do **not**
+  use `⊆ affine span` in the replacement — it is sufficient but not necessary and may be
+  unprovable. Craciun's hypothesis is "C is contained in the relative interior of `K_C` **with
+  respect to the set** `{X₃ ≤ X₂ ≤ X₁ ≤ 0}`". State the conclusion as
+  `infDist x C < δ ∧ M < ‖x‖ → x ∈ K^sym` (union with mirror images) and **apply symmetry
+  afterwards**, which is what Craciun does.
+* **On `A-13` (the n-dimensional upgrade), a useful split:** the *proof* is dimension-agnostic —
+  the only genuinely 3-dimensional inputs are **Lemma 9.9's diffeomorphism** and **Lemma 9.10's
+  four angle clauses**. The escape step `B(C,δ) \ B(0,M) ⊂ K^sym` is a short lemma; the
+  Jacobian/angle work is the expensive half. **That split is the deliverable** — proving the short
+  half is a concrete, self-contained win even if the expensive half is not reached.
+
+### R-4. The landing site: `FaceDirectionCone.lean` is already parameterised by the hole's `Pmax` **[V]**
+
+* **Hole:** A. **found-by:** an `adv-audit` subagent, round 1 · **revive-when:** never — this is the
+  place to build.
+* **What this is:** `CRNT/Dynamics/FaceDirectionCone.lean` contains the exact, already-parameterised
+  bridge between the fan and the hole's conclusion:
+ * `faceDirectionCone P` (`:92`) — parameterised by a `Finset S` face `P`. **The hole's `Pmax` is
+   exactly such a `P`.**
+  * `faceLogPart` (`:204`) / `offFaceLogPart` (`:210`)
+  * `faceRelevantCones P δ B` (`:317`) — the fan's near-cones within `δ + B` of `faceDirectionCone P`
+  * `faceRelevantCore` (`:333`), `faceRelevantCore_mem` (`:337`), `mem_of_mem_faceRelevantCore` (`:342`)
+  * terminal criteria `exists_positive_omegaPoint_of_tiled_faceCores` (`:367`) and
+    **`exists_positive_omegaPoint_of_faceRelevantCore` (`:417`)**
+* **Why it matters:** it is already parameterised by `δ` and `B`, and already terminates in the
+  hole's exact conclusion. **Read this module before building anything.**
+* **The endgame, inside the hole's own file:** `exists_positive_omegaPoint_of_upperRegion`
+  (`HighCodimensionSiphonFace.lean:1596`) is the hole's own Step-4 criterion, and its **only two
+  unbuilt inputs are `hfloor`** (the uniform coordinate floor) **and the non-crossing `hsplit`**.
+  With the fan, the inclusion bridge and the face cores in hand, this is the natural final target.
+* **What would make it work:** state the exact residual — which hypotheses of
+  `exists_positive_omegaPoint_of_faceRelevantCore` / `_of_upperRegion` are derivable from what the
+  hole supplies (`hzeroMax`, `hmaxExact`, `hzcard`, `hcodim`, `hcard`, `hrank`, plus the orbit
+  hypotheses) and which are not. **That statement IS the hole's remaining proof.** Produce it as
+  Lean signatures.
+* **The supply side:** `faceRelevantCones` and `faceRelevantCore` are the hypotheses to be supplied.
+  Determine what it takes to construct `faceRelevantCore` for the source-order fan — **including
+  whether the tile data is available for `B` small.** Do not re-derive the fan (R-1).
+
+### R-5. Hole B's next theorem cannot even be typed — the RR reaction-arc builder does not exist **[V]**
+
+* **Hole:** B. **found-by:** orchestrator, round 1 · **revive-when:** the builder lands.
+* **What was tried:** state `exists_second_evenCycle_of_offCycle_escape` (the surviving route,
+  ledger §3b) and start proving it.
+* **Why it fails:** `holes` has `C.speciesArc` / `C.speciesArcBwd`
+  (`CRNT/Multistationarity/TrueSRSpeciesPath.lean:645`, `:755`) giving `TrueSRSSPath`s of a
+  cycle's arcs with `SSGluable` essentially free — but `arcFwd` / `arcBwd` exist **only in the
+  species flavour** (`TrueSRCycleSplit.lean:85`, `:88`). **The reaction-arc (RR) builder is the
+  missing prerequisite**, and without it the target theorem cannot even be written down.
+* **What would make it work:** build the RR arc builder first; **then** the ear; **then** close it
+  in `hSR.2`, **never** in `hnd` (**B-12**, from **B-1**).
+* **Ordering note:** this is a *typing* prerequisite, not a mathematical one. Anyone who reports
+  "I could not find a way to state it" has hit this, not an obstruction.
+
+### R-6. The `hinterior` chain is **bypassed entirely** — A-11 drops from blocker to not-needed **[V]**
+
+* **Hole:** A. **found-by:** `arch-delta`, round 1 · **revive-when:** only for faithfulness, not
+  correctness.
+* **What was tried:** determine whether `CRNT/Dynamics/FaceDirectionCone.lean` routes around the
+  five `hinterior` sites of `CraciunZSH.lean` (**R-3**) or through them.
+* **Why it routes around:** `FaceDirectionCone.lean` imports exactly one thing —
+  `import CRNT.Dynamics.ToricBarrierTrapping` (line 1) — and **never imports
+  `CRNT.Geometry.CraciunZSH`**; none of `:32, :186, :222, :311, :346, :378` is reachable from it
+  (grep for `CraciunZSH` / `exists_eventual_tube_subset` / `exists_uniform`: zero matches).
+  The mechanism: `mem_relevantCones_of_infDist_lt` (`:300`) takes
+  `hC : infDist (relativeLogFanState xstar x) C < δ` and derives membership in
+  `relevantCones (faceDirectionCone P) δ B` purely from the triangle inequality plus
+  `dist_relativeLogFanState_faceLogPart = ‖offFaceLogPart‖ ≤ B`. **No tube lemma.** The
+  relevant-cone set is *defined* as "cones within `δ + B` of `faceDirectionCone P`", so cone
+  containment is definitional; `relevantCore` is a `Finset.inf'` — an intersection, not a
+  geometric enlargement.
+* **The single line that is the blueprint's `hnear` clause:**
+  `exact N.mem_of_mem_relevantCore (hσne k) (hm k) C (N.mem_relevantCones_of_infDist_lt P hface hbound hCF hCnear)`
+  in `mem_of_mem_faceRelevantCore` (`:342`) — it hands out `m ∈ C` for every relevant `C`.
+  Both terminal criteria do exactly this and are otherwise **fully proved**.
+* **Consequence:** Craciun's `relint_Ω K_C` and the whole `K_C`-chamber apparatus of Lemma 9.7
+  are **not on the critical path**. The role of `K_C` is played by `faceDirectionCone P`, built
+  directly from the hole's own `Pmax`, and the containment `m ∈ C` is a *hypothesis* (`hm`),
+  **never a geometric consequence needing a δ-tube**. The δ is **inert** — it enters only through
+  `δ + B` in the definition.
+* **Released:** `form-domination`, `form-tiles` are released from the `hinterior` fight. Do the
+  relint-chamber fix for faithfulness eventually; **it blocks nothing.**
+* **Relationship to `A-11`/`R-3`:** `R-3` is still *true* (the hypothesis is load-bearing at five
+  sites) but those sites are **off the critical path**. Read them together: the chain is
+  load-bearing *within `CraciunZSH`*, and `CraciunZSH` is simply not what hole A uses.
+
+### R-7. The residual for `exists_positive_omegaPoint_of_faceRelevantCore` is four hypotheses **[V]**
+
+* **Hole:** A. **found-by:** orchestrator / `arch-delta`, round 1.
+* For the criterion at `FaceDirectionCone.lean:417`, the hole must supply exactly:
+  1. **`hcore`** — `faceRelevantCones P δ B` nonempty. **Trivial**: the fan covers and
+     `faceDirectionCone P` is nonempty. A three-line lemma.
+  2. **`hm`** — one `m ∈ faceRelevantCore P δ B`, i.e. `m` in **every** cone within `δ + B` of
+     `faceDirectionCone P`. **This is genuine content.** Candidate: the ray along the `Pmax`
+     coordinate directions — but it must survive the `δ + B` thickening, which is where the
+     geometry bites. **This is the substantive lemma of the branch.**
+  3. **`hstart`** (`⟪-m, state (γ x₀ 0)⟫ ≤ c`) and **`hface`** — note `hface` only needs
+     `c ≤ ⟪-m, ·⟫` *together with* "below `xstar` on `P` and off-part `≤ B`": a **one-sided**
+     condition, **not a level set**. This matters — see `#A1`.
+  4. **`hsep`** — the guarded region bounded away from every coordinate hyperplane. **See the fork
+     below: this is the disputed one.**
+* **The decisive question is not on this list; it is whether item 4 is chargeable at all.**
+
+### R-8. THE FORK, first answer — `hsep` IS refutable here **[M]** — **but see §3f: the conclusion is CONTESTED**
+
+* **Hole:** A. **found-by:** the fork was posed by the orchestrator, round 1; **the answer was
+  already machine-checked and is entry `#A1` of this file.** **revive-when:** only if
+  `wmax`-in-the-sublevel reasoning is broken.
+* **The question:** under the hole's hypotheses, is `hsep` refutable? If yes,
+  `exists_positive_omegaPoint_of_faceRelevantCore` is the **wrong** target — its `hsep` hypothesis
+  cannot be discharged — and `exists_positive_omegaPoint_of_upperRegion` (`:1596`) is the right
+  endgame.
+* **The answer: yes, and it is `#A1`, machine-checked.** `hsep_fails_of_boundaryPoint_mem_sublevel`
+  (`HighCodimensionSiphonFace.lean:184`) proves, from `hstart`, boundary membership of `wmax` in the
+  sublevel, `x₀.Positive`, `wmax` nonnegative and `StoichCompatible`, that there is **no**
+  `ε > 0` with `ε ≤ x s` for every positive compatible point of the closed sublevel.
+  `barrier_le_of_mem_omegaLimit` (`:272`) supplies the second hypothesis: trapping along the orbit
+  puts **every** ω-limit point into any sublevel that traps it, and the residual's `hmaps`/`hK`
+  give exactly that. `hzeroMax` gives `wmax s = 0` for `s ∈ Pmax`, non-empty by `hcard`.
+  **So the fork resolves to the `_of_upperRegion` branch**, whose only two unbuilt inputs are
+  **`hfloor`** (the uniform coordinate floor) **and the non-crossing `hsplit`**. Items 1–3 above
+  become moot.
+  **Grading and scope — read this carefully, it is the one place where over-claiming would do real
+  damage.** `#A1` is graded **[M]** because the *refutation lemma* is a Lean theorem: I located
+  `hsep_fails_of_boundaryPoint_mem_sublevel` at `:184` and `barrier_le_of_mem_omegaLimit` at `:272`,
+  and the module header at `:310–324` states the same conclusion. What `#A1` does **not** do — and
+  what the orchestrator asked to be *established either way* — is provide a single Lean theorem
+  whose hypotheses are exactly the hole's and whose conclusion is `¬ hsep` for the specific `m`, `b`,
+  `R` a `_of_faceRelevantCore` instantiation would supply. **`#A1` is about a sublevel; the fork is
+  about a criterion.** The refutation carries over because the sublevel is a *hypothesis* of the
+  packaged criteria, but the chain from "this sublevel is refutable" to "that criterion's `hsep` is
+  undischargeable" is currently prose.
+  **The single most valuable lemma anyone can write right now:** make that chain explicit — state
+  the `_of_faceRelevantCore` instantiation's `hsep` as a Lean term and prove it refutable from the
+  hole's hypotheses. That converts the fork from a judgement call into a theorem and tells twelve
+  researchers which of two targets to work on. **It is worth more than any individual lemma in the
+  residual list (R-7), because R-7's item 4 is only worth discharging if the answer goes the
+  other way.**
+  **Who has it:** the orchestrator assigned this fork to `arch-alt`, `adv-refute`, `adv-audit`,
+  `form-barrier`, `arch-fanface`. **This entry is my contribution to that assignment, not a
+  substitute for it** — I have pointed at the existing machine-checked refutation and named the
+  precise gap in it. Whoever closes it should update this entry and grade it `[M]` on the evidence
+  of their own theorem, per §4.3.
+
+## 3f. THE FORK IS CONTESTED — adjudicate before grinding either branch
+
+**Read this before acting on §3e R-8.** That entry answered the fork (`hsep` refutable ⇒ go to
+`_of_upperRegion`). **`form-barrier`'s compiled result agrees. `papers-craciun`'s reading
+contradicts the conclusion.** Both are recorded here; **the ledger does not adjudicate**, because
+the question is checkable in a few lines of Lean and should not be settled by prose.
+
+### C-1. `form-barrier`: every packaged rung is dead; the endgame is `_of_upperRegion` **[M]**
+
+* **found-by:** `form-barrier`, round 1 · module `CRNT/Dynamics/BlueprintRouteRefutation.lean`,
+  four theorems, **compiled** (in flight).
+* `floor_on_omegaLimit_of_floor_along_orbit` — a uniform coordinate floor along the forward orbit
+  forces the **same** floor on every ω-limit point. Barrier-free: no `N`, no `κ`, no fan.
+* `no_uniform_floor_along_orbit_of_boundaryOmegaPoint` — if `w ∈ ω` and `w s = 0`, there is **no**
+  `ε > 0` with `ε ≤ γ x₀ t s` for all `t ≥ 0`. **Stronger and simpler than `#A1`**, which needs
+  convexity of the sublevel; this one does not.
+* `not_separationClause_of_boundaryOmegaPoint` — `hstart` + trapping + one boundary ω-point +
+  compatibility **refutes `hsep`** in the exact `hsep` shape of `…_of_convex_tiles` /
+  `…_of_selfConsistent_normals`. *This is precisely the Lean theorem `#A1`/`R-8` said was missing.*
+* **`blueprintData_inconsistent_with_highCodimension` — the headline:** takes **exactly** the
+  hypotheses of `exists_positive_omegaPoint_of_blueprintData` plus hole A's ω-limit hypotheses and
+  concludes **`False`**.
+* **Verdict:** every rung of the ladder — `blueprintData`, `selfConsistent_normals`,
+  `convex_tiles`, `tiled_faceCores`, `faceRelevantCore`, `toric_blueprint`, `toric_halfspace` —
+  routes through `exists_positive_omegaPoint_of_coordinate_floors` with `T = S`, so **all are
+  dead**. The right endgame is `exists_positive_omegaPoint_of_upperRegion` (`:1596`), whose `hfloor`
+  is a floor on a **region** the orbit is confined to, not along the whole orbit — so **not
+  touched** by those refutations.
+* **This supersedes `#A1` as the stronger form of the same refutation.** `#A1` stays (it is the
+  convex-sublevel argument); this is its barrier-free sibling.
+
+### C-2. `papers-craciun`: `_of_upperRegion` is dead too — `hfloor` is inconsistent, not unbuilt **[N]**
+
+* **found-by:** `papers-craciun`, round 1 · **read-only inference, no build, explicitly labelled
+  inference by its author.** Grade **[N]** accordingly.
+* **Claim:** **both** branches are dead, including `_of_upperRegion`.
+* **Argument:** the criterion's own proof at `:1560–1564` builds
+  `K := closure Zupper ∩ {relEntropy ≤ L}`, proves `hKpos` from `hfloor`, and hands `ω ⊆ K` to the
+  chain. Since `hwmax : wmax ∈ ω`, that `K` **must contain `wmax`**, and `hKpos` forces
+  `wmax.Positive` — contradicting `hzeroMax` (`wmax s = 0` for all `s ∈ Pmax`) and `hPmaxne`.
+* **Hence:** **`hfloor` is not an unbuilt input; it is an inconsistent one.** Establishing it makes
+  the criterion's own conclusion false.
+* **Self-correction, also important:** it corrects C-1 on `faceRelevantCore` — the `x.Positive`
+  shield **does** shield `hsep` from the segment refutation, but the shield cuts both ways:
+  **`hsep` is not implied by anything in the hole**; it is a strictly stronger hypothesis that
+  *encodes the conclusion*. This is a sharper statement than `#A1`, and it cuts against my own
+  `R-8` reasoning.
+* **Its verdict:** the fan is real but is **infrastructure, not the critical path**. The live path
+  is `Network.ComparableGrowthDescent` with its proved `omegaLimit_positive_of_descend`
+  (`SiphonDimensionDescent.lean:137`), named in the hole's own docstring at `:139–175`.
+
+### C-3. The dispute, stated so it can be settled **[the one question]**
+
+**Does `hfloor` on `Zupper` conflict with `wmax ∈ ω`?**
+* C-1 says **no** — it is a floor on a *region*, not a floor along the whole orbit.
+* C-2 says **yes** — because `ω ⊆ closure Zupper ∩ {relEntropy ≤ L}` inside the theorem's own
+  proof forces `wmax` into a set that `hKpos` makes positive.
+* **The checkable core:** *inside `exists_positive_omegaPoint_of_upperRegion`'s own proof, is
+  `ω ⊆ K` forced, and does `hKpos` + `hzeroMax` + `hPmaxne` then yield `False`?* Every ingredient is
+  in the tree. **A `False`-level theorem either way settles it.**
+* **Do not average the two verdicts.** One of them is wrong.
+
+### C-4. Freeze instruction (2026-10-03)
+
+**Nobody is to grind `hm`, `hstart`, `hface` or `hcore`** until C-3 is settled. C-1's point stands
+regardless of which way the fork goes: if `hsep` is refutable, supplying those four inputs buys
+nothing, because the criterion then yields `False` rather than the conclusion. Twelve researchers
+grinding a refuted criterion is the exact waste this swarm's adversarial tier exists to prevent.
+* **Adjudicators:** `adv-refute`, `adv-audit` (compile a verdict; prose is not accepted).
+* **Contested party:** `form-barrier` — test head-on whether `hfloor` can be satisfied by a `Zupper`
+  that does **not** contain `wmax`, i.e. whether `hsplit` can route the orbit into an upper region
+  avoiding `wmax`. *This is a few lines of Lean and settles it.*
+* **Fallback if `_of_upperRegion` dies:** the surviving route is `ComparableGrowthDescent`
+  (`papers-craciun`, **C-2**). Note this collides with `#A13`: the descent iteration bottoms out in
+  the goal itself, so the route must **exclude** branch (I) dynamically, not iterate.
+* **Read `#A13` before taking the fallback.** `descendStep_iff_omegaPointPositive_of_cardMinimal`
+  makes iteration useless; only a dynamical exclusion of branch (I) — consuming `hsol` essentially
+  per `#A16` — can work.
+
+### C-5. Two accepted facts, independent of how the fork lands **[M]**
+
+* **The bridge gap analysis holds.** `docs/gac-bridge-gap-analysis.lean` elaborates with **zero
+  output, zero errors, zero warnings, zero `sorry`**. But its `hMclass` hypothesis is **not**
+  derivable for non-conservative networks (`#A5`), so it is a reduction to blueprint data **plus a
+  bounded-class assumption**, **not** a reduction to hole A. *This qualifies `#P5` — read them
+  together.*
+* **The GAC chain is one `sorry` wide.** `#print axioms` on `complexBalanced_genuinePermanent`,
+  `complexBalanced_permanent` and `complexBalanced_globalAttractor` each report exactly
+  `[propext, sorryAx, Classical.choice, Quot.sound]`, and the transitive-import closure from
+  `GlobalAttractorTheorem` (326 modules) contains **exactly one** executable `sorry`, at
+  `HighCodimensionSiphonFace.lean:135`. **Closing hole A closes the GAC chain.** Hole B's file is
+  **not** in that closure — so the two holes are genuinely independent, and work on one does not
+ de-risk the other.
+
 ## 4. Maintenance protocol — how to keep this file alive
 
 > **This section is load-bearing.** Twenty stale progress documents is itself a failure mode of
@@ -1474,6 +1899,22 @@ TrueSRChordExtraction,TrueSRReactionInteriorPath,TrueSRDegreeTwoNoSToR,TrueSRSSG
 TrueSRMinimalChord,TrueSRCPairThirdEdge,InfluenceConcordance,ReducedSRGraph,PivotReducedInjectivity}.lean`,
 `CRNT/Graph/SourceBlocks.lean`, and the `+`-annotated commits `e76e8c3 f245e05 a96ec97 76b3f03
 8542230 dbe5657 f323a04 f626003 6a5b4ca be62655 35fb756 6474732 35fb756 96432b5 de87c5c`.
-Verified by `research/scripts/checkmod.sh` on the modules carrying the cited [M] declarations
-where noted; line numbers re-derived from the `holes` checkout rather than copied from a prior
-agent's report.
+**On verification — read this before trusting any [M] grade below.** Line numbers and declaration
+names in this file were re-derived directly from the `holes` checkout by `grep`/`read`, not copied
+from a prior agent's report. The **grades themselves are inherited from the source that recorded
+the finding**: an [M] entry asserts that a Lean declaration exists in the tree proving the failure,
+and every such declaration was located and named here. What I did **not** do is re-elaborate the
+carrying modules. A `research/scripts/checkmod.sh` pass on eight of them returned:
+`CRNT/Examples/GACBlueprintPremiseCounterexamples.lean` and
+`CRNT/Geometry/ConvexBarrierObstruction.lean` **elaborate**; the other six
+(`CodimTwoFaceModel`, `OmegaPointFakeFlow`, `WeakReversibleWallObstruction`,
+`TrueSRCausalCycleFacts`, `TrueSRSSGlueCPairs`, `TrueSRDegreeTwoNoSToR`) **failed for an
+environmental reason only** — their dependency `.olean`s are absent from this worktree's search
+path (`error: object file '…/HighCodimensionSiphonFace.olean' … does not exist`), not because of
+any diagnostic in the module itself. Those six carry no fresh dependency builds, so their failure
+is not evidence about them either way.
+
+**So: the [M] grades rest on located declarations in a tree that is known to compile, not on a
+check I ran.** That is the honest statement, and it is exactly the distinction `#P1` is about. If
+you intend to build on an [M] entry, run `checkmod.sh` on its module first — from a worktree whose
+dependency oleans are present. **Do not upgrade a grade on the strength of this paragraph.**
