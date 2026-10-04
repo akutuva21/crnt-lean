@@ -292,3 +292,59 @@ lemma. It is self-contained, needs only the existing private
 `TrueChemistrySRCriterion.lean`, and it is a strict prerequisite for every remaining Case-2 item.
 Once it exists, items 2–5 become reachable and the five `lemmaA6_case2_arrangement*` can be
 lifted verbatim.
+---
+
+## 8. UPDATE (end of round 1) — items 1 of §5 is now LANDED
+
+`CRNT/Multistationarity/TrueSRReactionArc.lean` (new, sorry-free, elaborates, no `sorryAx`)
+supplies the **first `TrueSRPathRR` value that has ever existed in this repository**, which is
+the primitive blocker identified in §4(a).
+
+```lean
+def TrueSRCycle.lastIdx (C : N.TrueSRCycle n) : Fin n
+
+noncomputable def TrueSRCycle.reactionArcFrom (C : N.TrueSRCycle n) (r k : ℕ) (hk : k + 1 < n) :
+    N.TrueSRPathRR k
+
+theorem TrueSRCycle.reactionArcFrom_startReaction (C : N.TrueSRCycle n) (r k : ℕ)
+    (hk : k + 1 < n) : (C.reactionArcFrom r k hk).startReaction.1 = (C.rotate r).reaction (lastIdx C)
+
+theorem TrueSRCycle.reactionArcFrom_endReaction (C : N.TrueSRCycle n) (r k : ℕ)
+    (hk : k + 1 < n) : (C.reactionArcFrom r k hk).endReaction.1 =
+      (C.rotate r).reaction ⟨k, by have := C.nontrivial; omega⟩
+```
+
+Construction: `first := (C.rotate r).rightEdge ⟨n - 1⟩` (the cycle edge that *enters* the arc),
+`tail := (C.rotate r).initialArcPath k hk` (the existing species-to-reaction arc). Total
+`2k + 2` edges, as `TrueSRPathRR k` requires.
+
+### A mathematical finding: `k < n` is NOT enough, and `k + 1 < n` is
+
+`TrueSRPathRR` demands `first_ne_tail_vertex`. At `k = n - 1` the construction walks the entire
+cycle, and the tail's last vertex `(C.rotate r).initialArcPath (n-1) _ .vertex ⟨2n-1⟩` is
+`Sum.inr ⟨reaction ⟨n-1⟩⟩` — *exactly* the start reaction of `first`. So the naive statement
+with `k < n` is **false**, not merely unproved: no `TrueSRPathRR (n-1)` of this shape exists. With
+`k + 1 < n` every reaction position of the tail is `≤ n - 2`, hence differs from `n - 1` by
+`reaction_injective`. This is also the right arithmetical restriction — a *proper* arc must not
+be the whole cycle.
+
+The three side conditions are discharged purely from `reaction_injective` / `species_injective`
+plus `i.1 / 2 ≤ k ≤ n - 2` for every tail position `i < 2k + 1`; no `hSR` and no cycle
+evenness is needed.
+
+### §5 items now reduced
+
+* item 1 (`RelPath → TrueSRPathRR` **and** the aggregate alternation/parity lemma) — **partly
+  done**: the *cycle-arc* RR builder exists. The *aggregate `RelPath` → `TrueSRPathRR`* lift
+  (needed for the ear extracted from the source block) is still open and still needs the
+  alternation/parity lemma `∀ i, (∃ ρ, P.vertex i = Sum.inr ρ) ↔ i.1 % 2 = 0`, which also does
+  not exist in the tree.
+* item 2 (`RRGluable` instances) — now the **top** open item. `RRGluable` (`TrueSRParityRR.lean:260`)
+  is a structure with five fields: `same_start`, `same_end`, `species_disjoint`,
+  `reaction_disjoint`, `edge_disjoint`. `same_start`/`same_end` are now *dischargeable* from the
+  two accessors above; the three disjointness clauses are what remains, and they reduce to the
+  modular separation of the two arcs' position ranges plus `species_injective`/`reaction_injective`.
+* item 3 (`IsDirectedCycleOn`/`DirectedEarDecomposition` instances for the aggregate source) —
+  still open.
+* item 4 (`SignDirected σ` bridge for glued cycles) — still open.
+* item 5 (the five `lemmaA6_case2_arrangement*`) — becomes reachable once 2–4 land; port verbatim.

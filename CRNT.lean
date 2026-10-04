@@ -723,6 +723,7 @@ import CRNT.Dynamics.TierStrictUpwardPartner
 -- Promoted from the frontier ledger (elaborated, closure sorry-free).
 import CRNT.Multistationarity.TrueChemistrySRGraph
 import CRNT.Multistationarity.TrueSREarCase2
+import CRNT.Multistationarity.TrueSRReactionArc
 import CRNT.Translation.ImproperComplexBalance
 import CRNT.Translation.LinearConjugacy
 import CRNT.Translation.LinearConjugacySpectral
