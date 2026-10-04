@@ -1195,3 +1195,38 @@ a `TrueSRPath (2j+1)` tail, so splitting off `rightEdge 0` gives `j = m-1`.
 reversed cycle with `rfl` edge lemmas — the `reactionArcBwd` round-trip costs nothing.
 
 `form-sr-cycle` owns the reconciliation. **Nobody should build on any of these four until it lands.**
+
+## TRAP-1. Eight kernel modules are **complex-space**, not concentration-space **[V]**
+
+- **found-by:** `form-barrier-2.LinearMinescout` (read-only ticket).
+- `ClosedSetKernel`, `PerClassKernel`, `TerminalSLCKernel`, `TerminalKernelDimension`, `Drainage`,
+  `SignedDrainage`, `KernelDimensionBound`, `TerminalKernelBound` all contain statements of the shape
+  "a nonnegative / strictly positive vector is supported on a set, or vanishes off a set".
+  **All eight are about `b : N.ComplexIdx → ℝ` on the COMPLEX space** (linkage classes, terminal
+  strong linkage classes, `dim (ker A_k) = t`). **None is about `x : Concentration S`, and none
+  mentions a species zero set.** They feed only `dim (ker A_k) = t` and the weak-reversibility
+  characterisation.
+- **They are the most mis-citables in the tree for Hole A's `hmaxExact`/`Pmax` package.** The surface
+  syntax is nearly identical to what `hmaxExact` needs and the semantics are unrelated.
+
+## TRAP-2. `kineticMap_complexMonomial_mem_deficiencySubspace` has a hypothesis the hole does NOT have **[V]**
+
+- **found-by:** same. `CRNT/Deficiency/SteadyStateKernel.lean:57`. Its **only** analytic hypothesis is
+  `IsMassActionSteadyState κ x`. **The hole does not have that for `wmax`** — `hgenω` gives genuine
+  **orbits**, not equilibria. **Treating the hypothesis as free silently breaks the proof.**
+- Same for `isComplexBalanced_of_steadyState_of_deficiencyZero` (`:66`), whose conclusion
+  `IsComplexBalanced κ wmax` is **the same object as the hole's already-assumed `hcb`** — so citing it
+  is circular, not merely unfounded.
+- **This is the sharper of the two traps** because it is a single mis-citation with silent
+  unsoundness rather than an obvious type mismatch.
+
+## SEQ-1. Hole B's safe dependency order — build arc and glue freely, the ear is blocked **[V]**
+
+- **found-by:** `form-barrier-2.LinearMinescout`, strengthening the observation from PR #19.
+- PR #19's `reactionArc` is **cycle-internal**: it is a theorem about the graph combinatorics of
+  `TrueSRCycle n`, **quantifier-free in the network**. `exists_second_evenCycle_of_offCycle_escape`
+  is where the network re-enters — and that is exactly the theorem with **no member** (B-26).
+- **Therefore:** `reactionArc` (vacuity-safe) → `rr_gluable_arcs` (index-range arithmetic,
+  vacuity-safe) → the ear (**needs a member, blocked**).
+- **Consequence for budget: keep building arc and glue; do not add budget to the ear until
+  `form-sr-witness` resolves B-26.**
