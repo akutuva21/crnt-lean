@@ -970,9 +970,21 @@ form and both sources are cited.
     — equivalently the face points of a polytope whose normal fan refines the fan — and there is
     nothing in Mathlib to build it on. (`HighCodimensionSiphonFace.lean:62–69`,
     `docs/gac-v3-face-fill-plan.md`.)
-  * **`IsCompletePointedPolyhedralFan` is not defined.** `Fan` is only a `Finset` of proper cones,
-    with the face-lattice and covering axioms explicitly omitted at `ToricFan.lean:47–51`
-    (`docs/gac-v3-face-fill-plan.md:161–162`).
+  * **~~`IsCompletePointedPolyhedralFan` is not defined~~ — RETRACTED, THIS WAS WRONG.**
+    `IsPolyhedralFan` **does exist**, at `CRNT/Geometry/ConeFace.lean:196`, as a structure over
+    `Fan E` carrying exactly the three clauses the plan said were missing: `faces_mem` (closure
+    under exposed faces), `inter_common` (pairwise intersections coincide with a common cone),
+    `covers` (the cones cover the ambient space). `CRNT/Geometry/PolyhedralFan.lean` exists and is
+    already imported by `ToricInclusion.lean`; `IsPolyhedralFan.negated` is proved at `:242`.
+    (Verified here by grep, not relayed.)
+    **The corrected gap is the *witness*, not the predicate** — and after R-1 that gap is closed
+    too: `relativeSourceOrderStoichFan_isPolyhedralFan` (`ComplexBalanceStoichFan.lean:330`) proves
+    exactly this predicate for the source-order fan, built from `N.stoichSubspace` and `N.R` alone.
+    **So this bullet is dead twice over.**
+    **The lesson, which is the point of this entry:** this was an inference from
+    `docs/gac-v3-face-fill-plan.md:161–162`, not a check against the tree — a prior document's claim
+    relayed as fact, and I relayed it a second time in the first version of this file. **Grep the
+    tree before recording an absence.** This is `#P1` biting the ledger itself.
   * **The `oneBitFanFaceDependency` recursor has no caller producing geometric data.** Local atlas,
     seam certificates, common-face incidence and a well-founded recursor all exist in
     `CRNT/Geometry/FanRefinement.lean` and `ToricUniformWallMargin.lean` and audit clean — but
@@ -1797,6 +1809,104 @@ grinding a refuted criterion is the exact waste this swarm's adversarial tier ex
   `HighCodimensionSiphonFace.lean:135`. **Closing hole A closes the GAC chain.** Hole B's file is
   **not** in that closure — so the two holes are genuinely independent, and work on one does not
  de-risk the other.
+
+## 3g. FORK RESOLVED — and **my §3e R-8 answer was wrong**. Branch 1 is live after all.
+
+**This is the most important correction in the file, and it is a correction of *this file*.**
+`papers-craciun` and `adv-audit.DriftA` settled C-3, and the answer goes the opposite way from
+`R-8`, from `C-1`'s verdict, and from my own reasoning in the first version of this ledger.
+Recorded in full per §4.5.
+
+### F-1. `exists_positive_omegaPoint_of_upperRegion` is a **dead target** **[V]**
+
+* **Hole:** A. **found-by:** `papers-craciun` / `adv-audit.DriftA`, round 1 · **revive-when:** never.
+* Its two nominal unbuilt inputs are **not equally hard**. `hsplit` and
+  `hopenLow`/`hopenUp`/`hdisj` are **discharged by construction** — you supply the region
+  decomposition. **The entire burden is `hfloor : ∀ y ∈ Zupper, ∀ s, ε ≤ y s`**, a uniform
+  coordinate floor.
+* `hsep_fails_of_boundaryPoint_mem_sublevel` (`:184`, my `#A1`) proves that once `x₀` and the
+  boundary ω-point `wmax` are both in a convex sublevel, the segment between them takes the value
+  `(x₀ s)/n → 0` at any `s ∈ Pmax`. **So `hfloor` cannot be established for any convex region
+  containing both endpoints** — which is exactly what the hole's hypotheses give.
+* **So `papers-craciun`'s reading in C-2 was right and `form-barrier`'s was wrong, on this branch.**
+  `hfloor` is not an unbuilt input; on this target it is an **inconsistent** one.
+
+### F-2. BUT the refutation does **not** transfer to the live target — `hsep` survives **[V]**
+
+* **Hole:** A. **found-by:** `papers-craciun`, round 1 · **revive-when:** never.
+* In `exists_positive_omegaPoint_of_faceRelevantCore` (`FaceDirectionCone.lean:417`; the `hsep`
+  clause is at `:433`, mirrored at `:399` for `..._of_tiled_faceCores` — both re-derived here by
+  grep) the clause is
+  `hsep : ∀ s : S, ∃ ε : ℝ, 0 < ε ∧ ∀ x : Concentration S, x.Positive →
+        N.StoichCompatible (γ x₀ 0) x →
+        ⟪-m, N.euclideanStoichState x⟫ ≤ c → ε ≤ x s`.
+* **The quantifier ranges over positive, compatible `x` on one side of a single affine hyperplane**
+  — **not** over an ω-limit set containing a boundary point. The segment-to-`wmax` refutation needs
+  `wmax` in the sublevel, and **`wmax` is not `Positive`, so `hsep`'s hypothesis `x.Positive`
+  excludes it. The refutation does not transfer.**
+* **This is the crack, and it is the entire reason the landing site (`#R-4`) is real.**
+* **This settles C-2's self-correction, and it cuts against my `R-8`.** I wrote in `R-8` that "the
+  fork resolves to the `_of_upperRegion` branch". **It does not.** The `x.Positive` shield is
+  exactly what `#A1`'s segment argument cannot cross, and I had not checked for it. `#A1` remains
+  **true and useful** — it refutes `hsep` in the *sublevel-shaped* clauses of
+  `..._of_convex_tiles` / `..._of_selfConsistent_normals` / `..._of_blueprintData` (`C-1`) — but it
+  does **not** refute `hsep` in the `_of_faceRelevantCore` shape. **The distinction is the
+  quantifier over `x.Positive`, and it is the single most consequential distinction in the ledger.**
+
+### F-3. Net effect: the freeze lifts, and the live target is branch 1 **[V]**
+
+* `#R-4` (`FaceDirectionCone.lean`, already parameterised by the hole's `Pmax`) is the landing site
+  and is **live**. Its residual is the four hypotheses of `#R-7` — of which `hsep` (item 4) is now
+  **chargeable**, and `hm` (item 2) is the substantive lemma.
+  * `_of_upperRegion` is **dead** (F-1). **The C-4 freeze is lifted.**
+  * ZSH clauses 4.6(i)/(ii) still need not be established (**F-2** of §3c); δ-uniformity is still
+    unnecessary (**F-4**); the `hinterior` chain is still bypassed (**R-6**); the fan is still
+    already built (**R-1**).
+* **Read `#R-7` and `R-6` again; discard `R-8`'s conclusion and `C-4`'s freeze.**
+* **Grade note, per §4.3:** `R-8` is left in place with this pointer rather than edited into
+  agreement. A reader who finds a ledger entry that contradicts itself should be able to see *that
+  it happened* — that is the signal that prompts a check instead of a trust.
+
+### F-4. `B-13` — the RR reaction-arc builder is NOT needed **[V]**
+
+* **Hole:** B. **found-by:** `arch-sr-case2`, round 1 · **corrects `R-5`**, which relayed the
+  orchestrator's over-read of a grep.
+* The claim that "`exists_second_evenCycle_of_offCycle_escape` cannot even be typed" was **an
+  over-read**. Building `reactionArc`/`reactionArcBwd` as `TrueSRPathRR` values from scratch, with
+  hand-rolled index arithmetic and hand-proved `RRGluable` witnesses, would waste a round.
+* The RR arc is available as **`C.speciesArc … .toPath.prepend (…)`**, and the `RRGluable`
+  witnesses follow from cycle-edge injectivity — the species arc is already proved
+  (`TrueSRSpeciesPath.lean:645`, `:755`).
+* **The live blocker is a privacy modifier, not mathematics:** `TrueSRPath.prepend` is
+  `private noncomputable def` at `TrueSRParityRR.lean:276` and is **unreachable from a new
+  module**; only `TrueSRSSPath.toPath` is public. The derivation must go through `toPath`, and if
+  `prepend`'s privacy genuinely blocks it, **that is the finding**: the modifier needs lifting, and
+  lifting it is a legitimate, minimal, documented change.
+* **So the hole-B order is:** (i) check whether `prepend`'s privacy blocks `toPath`-based
+  derivation; (ii) if it does, lift it minimally and record why; (iii) build
+  `exists_second_evenCycle_of_offCycle_escape`; (iv) close it in `hSR.2`, **never** `hnd`
+  (**B-12** from **B-1**); (v) port the four A.6 Case-2 items per **B-11** — re-authored, not
+  copied, and **not** importing `TrueChemistrySRCriterion`.
+
+### F-5. Process: a hole-bearing module still elaborates, so the build cannot detect holes **[M]**
+
+* **found-by:** `infra-build`, round 1.
+* **The trap:** by construction every `sorry` is off-ledger, because a hole-bearing module
+  **elaborates fine** — it just acquires `sorryAx`. So neither `lake build` nor any elaborating
+  check distinguishes a clean module from a sorry-bearing one. `scripts/dump_sorries.py` is the
+  primary signal; a ledger step is only the follow-up.
+* **The strong version is transitive `#print axioms`**, and the reason is specific: it catches a
+  module that is **clean in isolation but imports something unverified** — which is exactly the
+  trap `TrueChemistrySRCriterion` sets for hole B.
+* **Consequence for this file:** a `sorry` can hide *behind* any lemma I record here. **When you
+  build on an [M] entry, check its axiom footprint transitively, not locally.** This is the same
+  discipline as `#P2` (a scope disclaimer is not a proof) and `#P1` (elaborated is not correct) —
+  a third instance, and the one that bites hardest.
+* **Related:** `scripts/unverified_modules.txt` becomes `excludeGlobs` of the `CRNT` library, so
+  listing a *hole-free* module there **removes it from every build target**. A new `CRNT/` module is
+  picked up automatically by the pattern-based globs; promotion into the umbrella is an `import`
+  line in `CRNT.lean`, not a ledger line. Never hand-edit `lakefile.toml` or `CRNTFrontier.lean` —
+  run `python3 scripts/gen_lakefile.py` and commit the result (`infra-build`).
 
 ## 4. Maintenance protocol — how to keep this file alive
 

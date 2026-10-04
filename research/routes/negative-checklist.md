@@ -57,28 +57,40 @@ hole-B slice.**
    elaborating untouched: do not move `by_cases hv0r` (`:8371`), `exfalso` (`:8355`), or the `hvr`
    split (`:8301`).
 
-**Typing prerequisite (added late in round 1):** `exists_second_evenCycle_of_offCycle_escape`
-**cannot even be stated yet**. `holes` has `C.speciesArc` / `C.speciesArcBwd`
-(`TrueSRSpeciesPath.lean:645`, `:755`) giving `TrueSRSSPath`s of a cycle's arcs with `SSGluable`
-essentially free, but `arcFwd` / `arcBwd` exist **only in the species flavour**
-(`TrueSRCycleSplit.lean:85`, `:88`). **The reaction-arc (RR) builder is the missing prerequisite —
-build it before the ear.** If you report "I could not find a way to state it", you have hit this,
-not an obstruction. **Ledger R-5.** And the ear must close in `hSR.2`, **never** in `hnd`
-(**B-12**, from **B-1**).
+**CORRECTED — the RR reaction-arc builder is NOT needed** (**B-13**, `arch-sr-case2`). The earlier
+claim that the theorem "cannot even be typed" was **an over-read of a grep** and is retracted
+(ledger **R-5** → **F-4**). The RR arc is available as **`C.speciesArc … .toPath.prepend (…)`**,
+with the `RRGluable` witnesses following from cycle-edge injectivity; the species arc is already
+proved (`TrueSRSpeciesPath.lean:645`, `:755`).
 
-### Hole A — priority order (FINAL for round 1, ledger §3e)
+**The live blocker is a privacy modifier, not mathematics:** `TrueSRPath.prepend` is
+`private noncomputable def` at `TrueSRParityRR.lean:276` and is **unreachable from a new module**;
+only `TrueSRSSPath.toPath` is public. So:
 
-**Two earlier priority orders are superseded.** `§3c`'s P1 ("supply a fan from scratch") was
-**wrong and is retracted** — the fan already exists. Read `§3e` R-1 … R-8 before picking a slice.
+0. **Check whether `prepend`'s privacy blocks the `toPath`-based derivation.** If it does, that is
+   the finding: lift the modifier — a minimal, legitimate, documented change. **Do not** write
+   `reactionArc`/`reactionArcBwd` from scratch with hand-rolled index arithmetic.
+1. Build `exists_second_evenCycle_of_offCycle_escape`.
+2. Close it in **`hSR.2`**, **never** `hnd` (**B-12**, from **B-1**).
+3. Port the four A.6 Case-2 items per **B-11** — **re-authored, not copied**, and **not**
+   importing `TrueChemistrySRCriterion` (it would drag `sorryAx` into the ported file's own
+   footprint and couple it to the file we are closing).
+
+### Hole A — priority order (post-adjudication, ledger §3g)
+
+**Three earlier priority orders are superseded.** `§3c`'s P1 ("supply a fan from scratch") was
+**wrong and is retracted** — the fan already exists (**R-1**). The fork proposed in `§3e` **R-8** was
+**decided against `R-8`**: `papers-craciun` / `adv-audit.DriftA` settled it (**F-1**, **F-2**).
+**The freeze imposed in §3f C-4 is LIFTED.** Read `§3e` R-1…R-7 and `§3g` before picking a slice.
 
 | priority | route | owner | ledger ref |
 | --- | --- | --- | --- |
-| **P0 — the fork** | **Decide whether `hsep` is refutable under the hole's hypotheses.** The ledger says **yes** (`#A1`, `hsep_fails_of_boundaryPoint_mem_sublevel` at `HighCodimensionSiphonFace.lean:184`, `barrier_le_of_mem_omegaLimit` at `:272`), which sends you to the `_of_upperRegion` branch. **But the chain from "that sublevel is refutable" to "this criterion's `hsep` is undischargeable" is still prose.** Making it a Lean theorem is worth more than any individual lemma in the residual. | `arch-alt`, `adv-refute`, `adv-audit`, `form-barrier`, `arch-fanface` | **R-8**, **#A1** |
-| **P1 — branch A** | `exists_positive_omegaPoint_of_faceRelevantCore` (`FaceDirectionCone.lean:417`) — residual is four hypotheses: `hcore` (trivial, 3 lines), **`hm`** (the real content — `m` in *every* cone within `δ+B` of `faceDirectionCone Pmax`, which must survive the thickening), `hstart`/`hface` (one-sided, **not** a level set), `hsep` (**disputed — see P0**). | `form-tiles`, `form-domination` | **R-7**, **R-4** |
-| **P1′ — branch B** | `exists_positive_omegaPoint_of_upperRegion` (`HighCodimensionSiphonFace.lean:1596`) — the hole's own Step-4 criterion; **only two unbuilt inputs: `hfloor` (uniform coordinate floor) and the non-crossing `hsplit`.** Needs no `hMclass`, no convex barrier, no `hsep`. | `form-barrier`, `arch-fanface` | **R-8**, **#A2** |
-| **P2 — now cleanup** | The relint-chamber fix to `CraciunZSH.hinterior`. **Released — `FaceDirectionCone.lean` never imports `CraciunZSH` and none of the five sites is reachable from it. Do for faithfulness; it blocks nothing.** Do **not** use `⊆ affine span`; state `infDist x C < δ ∧ M < ‖x‖ → x ∈ K^sym` and apply symmetry after. | `form-tiles`, `form-domination` | **R-3**, **R-6**, **A-11** |
-| **P3 — deliverable split** | n-dimensional upgrade of Lemma 9.7. The *proof* is dimension-agnostic: only **Lemma 9.9's diffeomorphism** and **Lemma 9.10's four angle clauses** are 3-dimensional. The escape step `B(C,δ) \ B(0,M) ⊂ K^sym` is a **short** lemma — proving that half alone is a self-contained win. | unassigned | **R-3**, **A-13** |
-| **P4 — weakest hypothesis, no fan named** | The weakest sufficient hypothesis may be reachable **directly in stoichiometric coordinates with no fan ever named**. A live route, not a fallback. | `arch-delta` (post-vacation) | **#F-2** |
+| **P1 — the live target** | **`exists_positive_omegaPoint_of_faceRelevantCore` (`FaceDirectionCone.lean:417`).** `hsep` **survives** here: its quantifier ranges over `x.Positive`, and `wmax` is not `Positive`, so the segment refutation **does not transfer**. Supply: `hcore` (trivial, ~3 lines), **`hm`** (the substantive lemma — `m` in *every* cone within `δ+B` of `faceDirectionCone Pmax`, must survive the thickening), `hstart`/`hface` (one-sided, **not** a level set), `hsep` (**now chargeable**). | `form-tiles`, `form-domination`, `arch-fanface` | **F-2**, **F-3**, **R-7**, **R-4**, **R-6** |
+| **P2 — cleanup** | relint-chamber fix to `CraciunZSH.hinterior`. **Released** — `FaceDirectionCone.lean` never imports `CraciunZSH`; none of the five sites is reachable. Do **not** use `⊆ affine span`; state `infDist x C < δ ∧ M < ‖x‖ → x ∈ K^sym`, apply symmetry after. | `form-tiles`, `form-domination` | **R-3**, **R-6**, **A-11** |
+| **P3 — deliverable split** | n-dimensional upgrade of Lemma 9.7. Dimension-agnostic except **Lemma 9.9's diffeomorphism** and **Lemma 9.10's four angle clauses**. The escape step `B(C,δ) \ B(0,M) ⊂ K^sym` is **short** — proving that half alone is a self-contained win. | unassigned | **R-3**, **A-13** |
+| **P4 — weakest hypothesis, no fan named** | The weakest sufficient hypothesis may be reachable **directly in stoichiometric coordinates with no fan ever named**. Live, not a fallback. | `arch-delta` | **#F-2** |
+| **P5 — the full ZSH is not needed** | ZSH clauses 4.6(i) η-separation and 4.6(ii) ray-meeting **need not be established** — the hole wants one interior ω-point. Attack the weakened target. | `arch-alt` | **#F-2** |
+| **✗ — dead** | `exists_positive_omegaPoint_of_upperRegion` (`:1596`). **Dead target**: its entire burden is `hfloor`, and `hfloor` **cannot** be established for any convex region containing both `x₀` and `wmax` — exactly what the hole's hypotheses give. | — | **F-1** |
 
 **Dropped outright — do not re-seed on any of these:**
 
