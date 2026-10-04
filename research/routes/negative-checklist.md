@@ -110,12 +110,19 @@ assert the negation of the universal form.** No choice of region, barrier or til
 | route | verdict | ledger ref |
 | --- | --- | --- |
 | `exists_positive_omegaPoint_of_faceRelevantCore` / `_of_tiled_faceCores` | **DEAD** — routes through `exists_positive_omegaPoint_of_coordinate_floors` with `T = S`, and composes `Permanent`. **This kills my own §3g F-3 "branch 1 is live"; recorded, not dropped.** | **3h**, **C-1**, **F-3** |
-| `exists_positive_omegaPoint_of_upperRegion` | **DEAD** — `hfloor` cannot hold for a convex region containing both `x₀` and `wmax` | **F-1** |
+| `exists_positive_omegaPoint_of_upperRegion` | **DEAD — machine-checked.** `infra-scaffold-crnt`, `CRNT/Dynamics/UpperRegionFloorRefutation.lean` (`ffc02b2`): `false_of_upperRegion_and_boundaryOmegaPoint` — all hypotheses **including `hfloor`**, plus `hwmax`/`hPmaxne`/`hzeroMax`, give `False`. `hfloor` is **unsatisfiable**, not merely undischargeable. The subtlety: the criterion consumes `hfloor` via **`closure_minimal`**, a fact about `closure Zupper`, and ω-points lie in the closure of the orbit image ⊆ `Zupper` — same shape as `Permanent`. Sibling lemma `positive_omegaLimit_of_confinedToFlooredRegion` is the bare mechanism, with **no CRNT structure**. | **H-3**, **F-1**, **3h** |
 | `_of_blueprintData` / `_selfConsistent_normals` / `_convex_tiles` / `_of_toric_blueprint` / `_of_toric_halfspace` | **DEAD** — compiled `False` (`BlueprintRouteRefutation`) | **C-1** |
 | anything concluding through a `PersistentFrom` certificate | **DEAD** — same fact | **3h** |
 | `hm` / `hstart` / `hface` / `hcore` as inputs to any of the above | **WORTHLESS** — they build a goal-equivalent or refuted criterion | **3h**, **#A27** |
 | `N.ComparableGrowthDescent` as the surviving target | **DEAD as a stepping stone** — `comparableGrowthDescent_iff_omegaPointPositive` (`:368`) is an `⟨Or.inl h⟩` equivalence. The hole's own header (`:360–367`) admits it. | **3h** |
 | **the hole itself** | **NOT refuted.** Craciun's Theorem D (`∀` convergence) is consistent with `wmax`; `wmax` is a transient ω-orbit point. **Craciun delivers `∀`; the hole needs `∃`.** `CodimTwoFaceModel` shows every hypothesis but `hsol` is satisfiable with a false conclusion, so **no static argument of any kind closes hole A.** It needs a genuinely new idea — one that lands in the gap between "positive enough" and "positive universally". | **3h**, **#A16** |
+
+**Read `docs/hole-reachability.md` (on `research/infrascaffold`) before picking any module.** Its
+"Available-but-unused capabilities" table lists **151 proved, hole-free modules in hole A's
+import closure that nothing in that file mentions**, including `ComplexBalanceStoichFan` and
+`ComplexBalanceStoichFanInclusion` (the Anderson Theorem-4.3 bridge). **The tree is not short of
+machinery — it is short of a statement that the machinery can prove.** That is the round's real
+finding and the right thing to hand round 2.
 
 **Scoring warning for round 2 (`A-18`).** The danger now is landing a **goal-equivalent** theorem
 and the metric reading it as progress. `measure.py` counts `sorry`s and is honest, but the round

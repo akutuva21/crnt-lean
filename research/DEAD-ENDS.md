@@ -1995,6 +1995,45 @@ universal form.**
   **`hSR.2`**, never `hnd` (**B-12** from **B-1**); (6) keep the ported file free of
   `TrueChemistrySRCriterion` (`B-11`, and `F-5`).
 
+### H-3. `_of_upperRegion` is refuted by a **compiled** theorem, and the subtlety is `closure_minimal` **[M]**
+
+  **Hole:** A. **found-by:** `infra-scaffold-crnt`, round 1 (branch `research/infrascaffold`,
+  commit `ffc02b2`). **This upgrades `F-1` / `A-16` from a relayed claim to a machine-checked one.**
+  New file `CRNT/Dynamics/UpperRegionFloorRefutation.lean` compiles with **two theorems, both
+  `sorryAx`-free**:
+  * **`false_of_upperRegion_and_boundaryOmegaPoint`** — every hypothesis of
+    `exists_positive_omegaPoint_of_upperRegion` **including `hfloor`**, together with the hole's
+    `hwmax` / `hPmaxne` / `hzeroMax`, gives **`False`**. So `hfloor` is not merely undischargeable;
+    it is **unsatisfiable** under the hole's hypotheses. This settles `C-3`'s disputed half on the
+    `_of_upperRegion` side in the only currency that counts, and it means `papers-craciun`'s
+    reading in `C-2` was the correct one.
+  * **`positive_omegaLimit_of_confinedToFlooredRegion`** — the bare mechanism: an orbit confined to
+    a floored region implies **every** ω-point is positive. **No CRNT structure at all**, which is
+    what makes it a reusable lemma rather than a one-off.
+  **The subtlety that resolves the fork, and it is the thing worth remembering.** `hfloor` *looks*
+  like a **region** floor, so it appears to escape the orbit-level obstructions that kill an
+  `hsep`-along-the-orbit — that was `form-barrier`'s position in `C-1`. **It does not escape them.**
+  The criterion consumes `hfloor` via **`closure_minimal`**, i.e. as a fact about
+  `closure Zupper`; and ω-limit points lie in the closure of the orbit image, which lies in
+  `Zupper`. **Same shape as the `Permanent` obstruction (`3h`)** — a "region floor" is a floor on
+  a closure that swallows the ω-limit set, so it delivers `∀` when the hole needs `∃`.
+  **Scope of the kill:** this makes `_of_upperRegion` dead outright, and — together with `3h` and
+  `C-1` — it means `hm` / `hstart` / `hface` / `hcore` for
+  `exists_positive_omegaPoint_of_faceRelevantCore` buy nothing. **Do not spend the budget.**
+  **Why this is a *good* result despite being negative:** a reusable, `sorryAx`-free lemma with
+  **no CRNT structure**, plus a `False`-level theorem naming the exact obstruction. That is the
+  standard the `[M]` grade exists to mark, and it is the right shape for round 2.
+  **Also from `infra-scaffold-crnt`, worth reading before picking any module:**
+  `docs/hole-reachability.md` (on `research/infrascaffold`) has a computed
+  **"Available-but-unused capabilities"** table — **151 proved, hole-free modules in hole A's
+  import closure that nothing in that file mentions**, including `ComplexBalanceStoichFan` and
+  `ComplexBalanceStoichFanInclusion` (the Anderson Theorem-4.3 bridge). **This is the quantified
+  form of the `3h` finding**: the tree is not short of machinery, it is short of a statement that
+  the machinery can prove.
+  **Caveat, per §4.3:** recorded on the author's report plus the commit SHA; I have **not** run
+  `checkmod.sh` on `UpperRegionFloorRefutation.lean` myself. Before building on it, confirm it
+  elaborates and that `#print axioms` is `[propext, Classical.choice, Quot.sound]` as claimed.
+
 ## 4. Maintenance protocol — how to keep this file alive
 
 > **This section is load-bearing.** Twenty stale progress documents is itself a failure mode of
