@@ -6,12 +6,18 @@
 
 Two modules landed, both elaborating:
 
-| module | content |
-| --- | --- |
-| `CRNT/Multistationarity/TrueSRReactionArc.lean` | **the RR reaction-arc builder** — the prerequisite the orchestrator identified as blocking `exists_second_evenCycle_of_offCycle_escape` |
-| `CRNT/Graph/RelPathShortest.lean` | generic `ShortestPath` with `Nat`-minimality + the no-shortcut lemma |
+| module | content | verification |
+| --- | --- | --- |
+| `CRNT/Multistationarity/TrueSRReactionArc.lean` | **the RR reaction-arc builder** — the prerequisite the orchestrator identified as blocking `exists_second_evenCycle_of_offCycle_escape` | `lake env lean` exit 0, 0 errors, 0 warnings; `#print axioms` = `[propext, Classical.choice, Quot.sound]` |
+| `CRNT/Graph/RelPathShortest.lean` | generic `ShortestPath` with `Nat`-minimality + the no-shortcut lemma | `lake env lean` exit 0, 0 errors, 0 warnings |
 
-One minimal change to an existing file: `TrueSRParityRR.prepend` lifted from `private` to public.
+**No existing file was modified.** `CRNT/Multistationarity/TrueSRParityRR.lean` and
+`CRNT/Graph/RelPath.lean` are byte-identical to `holes` (`git diff` empty on both). The
+`prepend` lift was made and then reverted — see §2.
+
+Both modules avoid `import CRNT.Multistationarity.TrueChemistrySRCriterion`, so neither drags
+`sorryAx` into its axiom footprint (B-12). Verified by `#print axioms` on every public
+declaration of both modules.
 
 ## 1. The RR reaction-arc builder — `CRNT/Multistationarity/TrueSRReactionArc.lean`
 
@@ -60,31 +66,39 @@ only ever pairs `Sum.inl` with `Sum.inr`), so every reaction-to-reaction path ha
 * `first = rightEdge 0` (joins `R_0` to `S_1`);
 * `tail : TrueSRPath (2(m-1)+1)` running `S_1 — R_1 — S_2 — … — S_m — R_m`.
 
-### 1.3 Lean signatures
+### 1.3 Lean signatures (VERIFIED — exact text from the compiling file)
 
 ```lean
 namespace CRNT.Network.TrueSRCycle
 
-/-- The forward reaction arc of a cycle, from `R_0` to `R_m`. -/
-noncomputable def reactionArc {n : ℕ} (C : TrueSRCycle n) (m : ℕ)
-    (hm : m < n) (hmpos : 0 < m) : N.TrueSRPathRR (m - 1)
+/-- **The forward reaction arc of a cycle**, from `R_0` to `R_m`. -/
+noncomputable def reactionArc (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < m) :
+    N.TrueSRPathRR (m - 1)
 
-theorem reactionArc_startReaction (C : TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < m) :
-    (C.reactionArc m hm hmpos).startReaction
-      = ⟨C.reaction ⟨0, _⟩, (C.reaction_internal ⟨0, _⟩).internal⟩
+theorem reactionArc_startReaction (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < m) :
+    ((C.reactionArc m hm hmpos).startReaction : N.InternalTrueReaction).1
+      = C.reaction ⟨0, by omega⟩
 
-theorem reactionArc_endReaction (C : TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < m) :
+theorem reactionArc_endReaction (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < m) :
     (C.reactionArc m hm hmpos).endReaction
       = ⟨C.reaction ⟨m, hm⟩, C.reaction_internal ⟨m, hm⟩⟩
 
-theorem reactionArc_tail_startSpecies (C : TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < m) :
-    (C.reactionArc m hm hmpos).tail.startSpecies = C.species ⟨1, _⟩
+theorem reactionArc_tail_startSpecies (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n)
+    (hmpos : 0 < m) :
+    (C.reactionArc m hm hmpos).tail.startSpecies = C.species ⟨1, by omega⟩
 
-theorem reactionArc_length (C : TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < m) :
+theorem reactionArc_length (_C : N.TrueSRCycle n) (m : ℕ) (_hm : m < n) (_hmpos : 0 < m) :
     2 * (m - 1) + 2 = 2 * m
 
 end CRNT.Network.TrueSRCycle
 ```
+
+`reactionArc_startReaction` is stated on `.1` rather than as an `InternalTrueReaction`
+equality. The stronger form is not provable as written because `C.reaction_internal` returns an
+`InternalTrueReaction` (a `Subtype`), not a `TrueSREdge`, so `.internal` cannot be projected
+off it. Since `startReaction` is *definitionally* `⟨A.first.reaction, A.first.internal⟩`, the
+`.1` form plus `C.right_reaction` pins the start reaction exactly; no content is lost. A consumer
+needing the full equality recovers it by `Subtype.ext` with `C.reaction_internal`.
 
 ### 1.4 Internal shape (for downstream reuse)
 
@@ -203,6 +217,8 @@ reaction-to-reaction paths that the parity argument counts over.
 
 ## 4. `CRNT/Graph/RelPathShortest.lean` — generic shortest paths
 
+All verified; `lake env lean` exit 0.
+
 ```lean
 namespace CRNT.RelPath
 
@@ -220,7 +236,7 @@ noncomputable def ShortestPath.of_reflTransGen (hclosed) (hbT : b ∈ T)
     (h : Relation.ReflTransGen E a b) : ShortestPath E T a b
 
 theorem exists_shortestPath (hclosed) (hbT) :
-    (∃ P : ShortestPath E T a b) ↔ Relation.ReflTransGen E a b
+    (∃ _P : ShortestPath E T a b, True) ↔ Relation.ReflTransGen E a b
 
 theorem ShortestPath.injective (P) : Function.Injective P.path.vertex
 theorem ShortestPath.eq_of_vertex_eq (P) {i j} (h : P.path.vertex i = P.path.vertex j) : i = j
