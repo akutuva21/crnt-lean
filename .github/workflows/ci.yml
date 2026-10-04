@@ -61,6 +61,32 @@ jobs:
       - name: Exclusion-ledger audit
         run: python3 scripts/check_exclusions.py
 
+      # --- audit tooling (research/tooling.md) -------------------------------
+      # Self-tests for the Lean parser and the five audit tools.  These exercise
+      # decision logic on synthetic inputs, so they are fast (~0.3s total) and
+      # independent of the repository's contents.
+      - name: Audit-tool self-tests
+        run: python3 scripts/run_selftests.py
+
+      # Vacuity: a hypothesis the proof never mentions, a conclusion that is
+      # `True`, a `sorry`.  Baselined and shrink-only, exactly like the
+      # hollow-definition audit above: it fails only on *new* findings, which
+      # is the direction that matters.
+      - name: Vacuity audit
+        run: python3 scripts/check_vacuity.py
+
+      # Statement drift: report only.  Comparing against the merge base catches
+      # a weakened signature, but the direction of weakening is not decidable
+      # from text, so this is advisory here.  Reviewers should read it; add
+      # `--fail` to make WEAKENED/CHANGED/REMOVED gating in a stricter fork.
+      - name: Statement drift report (advisory)
+        continue-on-error: true
+        run: |
+          git fetch --no-tags --depth=200 origin "${{ github.base_ref || 'master' }}" || true
+          base="origin/${{ github.base_ref || 'master' }}"
+          git rev-parse --verify "$base" >/dev/null 2>&1 || base=HEAD~1
+          python3 scripts/check_statement_drift.py --base "$base" --head HEAD --fail || true
+
   # ---------------------------------------------------------------------------
   # The verified core.  Green here means the non-ledger modules really do
   # elaborate with no `sorry` and no axioms beyond Mathlib's -- the latter
