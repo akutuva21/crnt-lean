@@ -1036,3 +1036,39 @@ re-derive by reading the code.
   reflog. **Recovered clean, but that was luck.**
 - **Push before rebasing.** A `git reset --hard origin/<base>` on a branch whose commits exist only
   locally can lose them outright. Round 2 rule for every researcher with write access.
+
+## A-42. **PROVENANCE CORRECTION TO A-28 — the template is NOT a new obstruction** **[V, compiled]**
+
+- **found-by:** `infra-scaffold-crnt` (PR #12), correcting its own earlier claim after a peer.
+- `PersistentOrbit.omegaLimit_positive` (`GlobalPersistence.lean:161`) **already proved the universal
+  form by the same argument.** `universalPositive_omegaLimit_of_closedPositiveConfine` is not a new
+  obstruction discovered this round; **what is new is only that the floor is not needed.**
+- **Do not cite the template as a fresh result.** Cite `GlobalPersistence.lean:161` for the
+  obstruction, and the template only for the strengthening. This is exactly the A-36 problem — a
+  pre-existing theorem re-authored as new.
+
+## A-43. **SCOPE — closed positive confines EXIST and are built throughout the tree** **[V, compiled]**
+
+- **found-by:** same. The template **discharges**; it is not an impossibility result. Closed positive
+  confines are constructed all over the tree — **including by the GAC chain itself**:
+  `CRNT/Dynamics/GACNoCriticalSiphon.lean:158` **derives the universal form**.
+- **The contradiction requires the caller to ALSO supply a boundary ω-point** (`hwmax`/`hzeroMax`/
+  `hPmaxne`). A network with no boundary ω-point satisfies the template's hypotheses happily.
+- So `complexBalanced_genuinePermanent`'s **no-critical-siphon branch is sound and unaffected**; it
+  is only the *boundary* case — the branch `HighCodimensionSiphonFace` exists for — that is
+  incompatible with a closed positive confine. **This is the sharpest statement of what Hole A
+  needs: not a permanence certificate, but one that tolerates a boundary ω-point while still
+  exhibiting an interior one.**
+- Confines A-31: the template does **not** retire the `hsep` family; that is a different hypothesis
+  shape, killed by `form-barrier`'s separate barrier-free floor-along-orbit lemma. Cite both.
+
+## A-44. The comment at `HighCodimensionSiphonFace.lean:1493` was **false and load-bearing** **[V]**
+
+- **found-by:** `adv-audit.DriftA`, corrected by `infra-scaffold-crnt` (comment-only change).
+- It claimed a **non-convex** upper region escapes the segment argument. **False.** That single
+  sentence split two researchers to opposite verdicts for **two rounds** and cost the swarm real
+  budget. It is now corrected in place.
+- **Lesson, and it is the round's second instance of the same shape as A-39:** a *false comment* in a
+  load-bearing file propagates exactly like a false broadcast, and neither is caught by any gate.
+  `research/README.md` §8 covers broadcasts; **comments in `CRNT/` deserve the same scrutiny**, and
+  in particular a comment that *justifies* an omission is the highest-risk text in the tree.
