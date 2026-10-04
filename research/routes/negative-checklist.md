@@ -146,9 +146,18 @@ superseded.**
 | `hm` as "the substantive lemma" — **as this checklist and the ledger said for three rounds of edits** | **withdrawn.** It was the substantive lemma *if the route worked*; it does not, and it was vacuous. |
 
 **The residue is one unproved dynamical estimate:** `ComparableGrowthDescent.descend`
-(`SiphonDimensionDescent.lean:125-132`) — the right disjunct is the analytic estimate the file
-flags as blocked at `:531-534`, with `eq_zero_on_pmax_of_conservation_eq` (`:569`) the missing half.
-Hole A is a **three-line wrapper** over it via `omegaLimit_positive_of_boundary_point` (`:159`),
+(`SiphonDimensionDescent.lean:124–132`; the structure's right disjunct is the descent step).
+The related open item in the hole's own file is `eq_zero_on_pmax_of_conservation_eq`
+(`HighCodimensionSiphonFace.lean:569`), and the header at `SiphonDimensionDescent.lean:247–284`
+records why the iteration bottoms out.
+**Correction, recorded rather than silently fixed:** an earlier version of this line read "the
+analytic estimate the file flags as blocked at `:531-534`". **`SiphonDimensionDescent.lean` is
+381 lines — that citation is out of range and was relayed from an orchestrator broadcast without
+checking.** This is `A-39`'s failure mode committed by this file, and it is the reason §4.3
+requires a line number to be re-derived from the checkout rather than carried over. **If you
+find a line number here that exceeds its file, treat the whole surrounding claim as unverified
+until re-derived.**
+Hole A is a wrapper over it via `omegaLimit_positive_of_boundary_point` (`:159`),
 which takes the hole's hypotheses *minus* all the `Pmax` data. Note `comparableGrowthDescent_iff_omegaPointPositive`
 (`:368`) makes the structure **the goal renamed**, so the descent must be *entered*, not assumed.
 

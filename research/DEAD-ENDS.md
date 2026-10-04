@@ -2153,6 +2153,17 @@ have not finished diagnosing the failure. **Do not add an entry you cannot fill 
   worth as much as the original lemma.
 * **Never upgrade an [N] to [M] on the strength of a docstring.** Run
   `research/scripts/checkmod.sh <module>` and confirm the module elaborates.
+* **Never copy a line number — re-derive it.** A peer's `A-39` records that cited line numbers
+  were **fabricated** (pointing past the end of a 381-line file). This file committed the same
+  error: it carried "the analytic estimate the file flags as blocked at `:531-534`" for
+  `SiphonDimensionDescent.lean`, **relayed from an orchestrator broadcast without checking**. It is
+  recorded and fixed in `routes/negative-checklist.md` rather than silently corrected.
+  **A broadcast is not a source.** `grep -n` the declaration and read the line; if the number
+  exceeds the file's length, the claim behind it is unverified, not just the number.
+* **Relayed ≠ verified, and say which.** Entries in §3b–§3h are relayed from peers; §3b/§3c/§3d
+  carry an explicit "relayed, unverified by this file's author" note. When you relay a peer finding,
+  keep their ID **and** grade, but mark it as relayed rather than letting it inherit your name's
+  authority.
 
 ### 4.4 Also maintain `research/routes/negative-checklist.md`
 
