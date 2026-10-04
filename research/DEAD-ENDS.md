@@ -1310,3 +1310,39 @@ reversed cycle with `rfl` edge lemmas — the `reactionArcBwd` round-trip costs 
   the strict-shrinking descent step, and no module contains a growth comparison across face
   dimensions.** That is direct evidence about Hole A's residue: the descent estimate's combinatorial
   half and its analytic half are **both absent** from the layer this scout swept.
+
+## OPS-4. The four-way union is **not** trivially safe — the risk is namespace collision, not `A`/`M` **[H — flagged as inference]**
+
+- **found-by:** `form-barrier-2.LinearMinescout`, which explicitly graded this **inference, not
+  observation** — it had not opened `TrueSRReactionArc.lean` or the four extra modules.
+- **It corrects OPS-3/my broadcast.** I claimed the merge is "a union of four files." All-`A`
+  name-status is **silent about two things it cannot see:**
+  1. duplicate `open` / `notation` / `variable` state colliding at merge;
+  2. two modules declaring the **same helper name** in namespace `CRNT` under different branches.
+- **Only `lake env lean` on the merged tree settles either.** Neither the byte-identity check nor a
+  name-status run would catch them.
+- **Consequence for `form-sr-cycle`:** do not report the merge done on the strength of name-status.
+  Elaborate the merged tree and report that.
+
+## LEAD-2. The `projOn P` ↔ `ProjectedFaceDimensionCode` bridge does not exist **[H]**
+
+- **found-by:** `form-barrier-2.GeoMinescout`, left as the single highest-value gap on its sweep.
+- `FaceCodimension.lean` — **the hole's own source of `hcodim`** — imports
+  `Dynamics.FacetRepulsionAndersonShiu` and **no `Geometry` module at all**. So nothing bridges the
+  hole's `projOn P` projection to the coordinate-deletion projections in
+  `ProjectedFaceDimensionCode`.
+- If Hole A's descent ever needs to relate `hcodim`'s projection to a face-dimension computation,
+  that bridge must be built. Nobody has checked whether it is needed; nobody has checked whether it
+  exists beyond "it does not."
+
+## AUDIT-1. Scoping note on the audit rule: not every "clean" is a `git` clean **[V]**
+
+- **found-by:** `form-barrier-2.OscStochMinescout`, correctly declining to be governed by a rule it
+  cannot execute.
+- The read-only mining agents **never issued a `git`-clean verdict** — their tool inventory had no
+  git or shell. Every ruling they filed was a **file-content** ruling traceable to a `file:line` the
+  agent opened itself, which is a **stronger** property for the question they were asked.
+- **Refined rule: a "clean" claim must name its evidence type.** `git diff` against `holes` with a
+  control proves *the tree* is unmodified; a `file:line` the agent opened itself proves *the claim*
+  about that file. **Both are valid; they answer different questions, and conflating them is how an
+  audit becomes unfalsifiable.**
