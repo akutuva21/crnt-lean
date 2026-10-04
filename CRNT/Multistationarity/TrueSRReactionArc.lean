@@ -15,133 +15,169 @@ This file supplies that builder.
 
 ## The combinatorial content
 
-A `TrueSRCycle n` alternates
+A `TrueSRCycle n` carries `leftEdge i : S_i — R_i` and `rightEdge i : R_i — S_{i+1 mod n}`, so the
+graph is the chain
 
 ```
-  R_i --leftEdge i--> S_i      R_i --rightEdge i--> S_{i+1 mod n}
+R_0 — S_1 — R_1 — S_2 — R_2 — … — S_m — R_m
 ```
 
-because `leftEdge i` has species `species i` and reaction `reaction i`, while `rightEdge i` has
-reaction `reaction i` and species `species ⟨(i+1) % n⟩`.  So the graph is the chain
+**Lemma (uniqueness of the forward route).**  From `R_0` there is exactly one simple route to
+`R_m` running forward: `rightEdge 0, leftEdge 1, rightEdge 1, …, rightEdge (m-1), leftEdge m`,
+of length `2m`.
 
-```
-  R_0 — S_1 — R_1 — S_2 — R_2 — … — S_m — R_m
-```
+*Proof.*  `R_0`'s only neighbours are `S_0` (via `leftEdge 0`) and `S_1` (via `rightEdge 0`); a
+path using `S_0` runs *backwards*.  On the forward side `S_i`'s only neighbours are `R_{i-1}`
+(`rightEdge (i-1)`) and `R_i` (`leftEdge i`), so from `S_i` the route must take `leftEdge i`.
+Induction. ∎
 
-and from `R_0` there is exactly **one** simple route to `R_m` going forward: the `2m`-edge walk
+**Parity.**  The true-SR graph is bipartite (species against reactions — `TrueSREdge.Connects`
+only ever pairs `Sum.inl` with `Sum.inr`), so every reaction-to-reaction path has even length;
+`2m` is even.
 
-```
-  rightEdge 0, leftEdge 1, rightEdge 1, leftEdge 2, …, rightEdge (m-1), leftEdge m.
-```
-
-The parity is forced: the true-SR graph is bipartite (species against reactions), so *every*
-reaction-to-reaction path has even length, and `2m` is even.
-
-`TrueSRPathRR j` records a reaction-to-reaction path of `2 * j + 2` edges as a first edge plus a
-`TrueSRPath (2 * j + 1)` tail.  Splitting off `rightEdge 0` gives `j = m - 1`:
+`TrueSRPathRR j` records a reaction-to-reaction path of `2j+2` edges as a first edge plus a
+`TrueSRPath (2j+1)` tail.  Splitting off `rightEdge 0` gives `j = m - 1`:
 
 * `first = rightEdge 0`, joining `R_0` to `S_1`;
-* `tail : TrueSRPath (2 * (m - 1) + 1)`, running `S_1 — R_1 — S_2 — … — S_m — R_m`.
+* `tail : TrueSRPath (2 * (m - 1) + 1)` running `S_1 — R_1 — S_2 — … — S_m — R_m`.
 
 `m > 0` is required (a zero-length reaction arc would be a bare reaction vertex) and `m < n` keeps
 every species and reaction index inside the cycle.
+
+## Implementation note
+
+The tail's index type is `Fin (2 * (m - 1) + 1)`, which Lean does not defeq-reduce to
+`Fin (2 * m - 1)`.  The helper definitions are therefore indexed by `ℕ` with an explicit bound,
+and the `Fin` index is recovered at each use site by `omega`.  Indexing by `Fin` directly turns
+every bound proof into a normalisation fight.
 -/
 
 namespace CRNT.Network.TrueSRCycle
 
 variable {S : Type} [DecidableEq S] [Fintype S] {N : Network S} {n : ℕ}
 
-/-- Every index used by the reaction arc, of the form `q / 2 + 1` with `q < 2 * m`, stays inside
-the cycle. -/
-private theorem arcIdx {m : ℕ} (hm : m < n) {q : ℕ} (hq : q < 2 * m) : q / 2 + 1 < n := by
-  have hq2 : q / 2 < m := by omega
+/-- Every vertex index used by the reaction arc, of the form `p / 2 + 1` with `p < 2 * m`, stays
+inside the cycle. -/
+private theorem arcIdx {m : ℕ} (hm : m < n) {p : ℕ} (hp : p < 2 * m) : p / 2 + 1 < n := by
+  have h1 : p / 2 < m := by
+    rw [Nat.div_lt_iff_lt_mul (by omega)]
+    omega
   omega
 
-/-- The species index one step forward is still inside the cycle. -/
-private theorem arcIdxSucc {m : ℕ} (hm : m < n) {q : ℕ} (hq : q < 2 * m) : q / 2 + 2 < n := by
-  have hq2 : q / 2 < m := by omega
-  omega
+/-- **The species index two steps along an *odd* edge position** is `p / 2 + 2`, and it is still
+inside the cycle.  Oddness matters: an odd `p < 2 * m - 1` satisfies `p ≤ 2 * m - 3`, hence
+`p / 2 + 2 ≤ m < n`. -/
+private theorem arcIdxSucc {m : ℕ} (hm : m < n) {p : ℕ} (hp : p < 2 * m - 1)
+    (hod : p % 2 ≠ 0) : p / 2 + 2 < n := by
+  rcases Nat.even_or_odd p with heven | hod'
+  · exact absurd hod (by rw [Nat.even_iff.mp heven]; simp)
+  · obtain ⟨r, hr⟩ := hod'
+    rw [hr] at hp ⊢
+    have h1 : r ≤ m - 2 := by omega
+    omega
 
-section ReactionArc
 
-variable (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < m)
+/-- Edge at position `q` of the reaction arc's tail: `leftEdge (q / 2 + 1)` when `q` is even and
+`rightEdge (q / 2 + 1)` when `q` is odd. -/
+private noncomputable def rarcEdge (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n)
+    (q : ℕ) (hq : q < 2 * m - 1) : N.TrueSREdge :=
+  if q % 2 = 0 then C.leftEdge ⟨q / 2 + 1, arcIdx hm (by omega)⟩
+  else C.rightEdge ⟨q / 2 + 1, arcIdx hm (by omega)⟩
 
-/-- Edges of the tail of the reaction arc.  Position `q` is `leftEdge (q / 2 + 1)` when `q` is
-even and `rightEdge (q / 2 + 1)` when `q` is odd. -/
-private noncomputable def rarcEdge (q : Fin (2 * m - 1)) : N.TrueSREdge :=
-  C.leftEdge ⟨q.1 / 2 + 1, arcIdx hm q.isLt⟩
+/-- Vertex at position `p` of the reaction arc's tail: the species `S_{p / 2 + 1}` when `p` is
+even and the reaction `R_{p / 2 + 1}` when `p` is odd.  So `p = 0` is `S_1` and `p = 2m - 1` is
+`R_m`. -/
+private noncomputable def rarcVertex (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n)
+    (p : ℕ) (hp : p < 2 * m) : N.TrueSRVertex :=
+  if p % 2 = 0 then Sum.inl (C.species ⟨p / 2 + 1, arcIdx hm (by omega)⟩)
+  else Sum.inr ⟨C.reaction ⟨p / 2 + 1, arcIdx hm (by omega)⟩,
+    C.reaction_internal ⟨p / 2 + 1, arcIdx hm (by omega)⟩⟩
 
-/-- Vertices of the tail of the reaction arc.  Position `p` is the species `S_{p / 2 + 1}` when
-`p` is even and the reaction `R_{p / 2 + 1}` when `p` is odd.  So position `0` is `S_1` and
-position `2 * m - 1` is `R_m`. -/
-private noncomputable def rarcVertex (p : Fin (2 * m)) : N.TrueSRVertex :=
-  if h : p.1 % 2 = 0 then Sum.inl (C.species ⟨p.1 / 2 + 1, arcIdx hm p.isLt⟩)
-  else Sum.inr ⟨C.reaction ⟨p.1 / 2 + 1, arcIdx hm p.isLt⟩,
-    C.reaction_internal ⟨p.1 / 2 + 1, arcIdx hm p.isLt⟩⟩
+@[simp] theorem rarcEdge_even (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n) (q : ℕ)
+    (hq : q < 2 * m - 1) (h : q % 2 = 0) :
+    rarcEdge C m hm q hq = C.leftEdge ⟨q / 2 + 1, arcIdx hm (by omega)⟩ := by
+  rw [rarcEdge, if_pos h]
 
-private theorem rarcVertex_even {p : Fin (2 * m)} (h : p.1 % 2 = 0) :
-    rarcVertex C m hm p = Sum.inl (C.species ⟨p.1 / 2 + 1, arcIdx hm p.isLt⟩) :=
-  if_pos h
+@[simp] theorem rarcEdge_odd (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n) (q : ℕ)
+    (hq : q < 2 * m - 1) (h : q % 2 ≠ 0) :
+    rarcEdge C m hm q hq = C.rightEdge ⟨q / 2 + 1, arcIdx hm (by omega)⟩ := by
+  rw [rarcEdge, if_neg h]
 
-private theorem rarcVertex_odd {p : Fin (2 * m)} (h : p.1 % 2 ≠ 0) :
-    rarcVertex C m hm p = Sum.inr ⟨C.reaction ⟨p.1 / 2 + 1, arcIdx hm p.isLt⟩,
-      C.reaction_internal ⟨p.1 / 2 + 1, arcIdx hm p.isLt⟩⟩ :=
-  if_neg h
+@[simp] theorem rarcVertex_even (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n) (p : ℕ)
+    (hp : p < 2 * m) (h : p % 2 = 0) :
+    rarcVertex C m hm p hp = Sum.inl (C.species ⟨p / 2 + 1, arcIdx hm (by omega)⟩) := by
+  rw [rarcVertex, if_pos h]
+
+@[simp] theorem rarcVertex_odd (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n) (p : ℕ)
+    (hp : p < 2 * m) (h : p % 2 ≠ 0) :
+    rarcVertex C m hm p hp =
+      Sum.inr ⟨C.reaction ⟨p / 2 + 1, arcIdx hm (by omega)⟩,
+        C.reaction_internal ⟨p / 2 + 1, arcIdx hm (by omega)⟩⟩ := by
+  rw [rarcVertex, if_neg h]
 
 /-- **The forward reaction arc of a cycle**, from the reaction vertex `R_0` to the reaction
 vertex `R_m`.  This is the reaction-to-reaction counterpart of `speciesArc`: the walk
 
 ```
-  R_0 —rightEdge 0— S_1 —leftEdge 1— R_1 —rightEdge 1— S_2 — … — S_m —leftEdge m— R_m
+R_0 —rightEdge 0— S_1 —leftEdge 1— R_1 —rightEdge 1— S_2 — … — S_m —leftEdge m— R_m
 ```
 
 with its first edge `rightEdge 0` split off into `TrueSRPathRR.first` and the remaining
 `2 * m - 1` edges forming `TrueSRPathRR.tail`.  The parameter is `j = m - 1`, so the whole arc
 has `2 * (m - 1) + 2 = 2 * m` edges: even, as the bipartition of the true-SR graph forces. -/
-noncomputable def reactionArc : N.TrueSRPathRR (m - 1) where
+noncomputable def reactionArc (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < m) :
+    N.TrueSRPathRR (m - 1) where
   first := C.rightEdge ⟨0, by omega⟩
   tail := by
     have hn := C.nontrivial
     refine
       { length_pos := by omega
-        edge := rarcEdge C m hm
-        vertex := rarcVertex C m hm
+        edge := fun q => rarcEdge C m hm q.1 (by omega)
+        vertex := fun p => rarcVertex C m hm p.1 (by omega)
         connects := by
           intro q
           have hq := q.isLt
           have hcs : (Fin.castSucc q).1 = q.1 := rfl
           have hsu : (q.succ).1 = q.1 + 1 := rfl
-          by_cases hpar : q.1 % 2 = 0
-          · -- position `q` is `leftEdge (q / 2 + 1)`
+          have hqlt : q.1 < 2 * m - 1 := by omega
+          have hcast : (Fin.castSucc q).1 < 2 * m := by rw [hcs]; omega
+          have hsucc : (q.succ).1 < 2 * m := by rw [hsu]; omega
+          by_cases h0 : q.1 % 2 = 0
+          · -- `leftEdge (q / 2 + 1)`
+            have hsuccOdd : ¬ (q.succ).1 % 2 = 0 := by rw [hsu]; omega
+            simp only [rarcEdge_even C m hm q.1 hqlt h0]
             refine Or.inl ⟨?_, ?_⟩
-            · rw [rarcVertex_even C m hm (by rw [hcs]; exact hpar), C.left_species]
-              exact congrArg Sum.inl (congrArg C.species (Fin.ext (by rw [hcs]; rfl)))
-            · rw [rarcVertex_odd C m hm (by rw [hsu]; omega), C.left_reaction]
-              exact congrArg Sum.inr (Subtype.ext (congrArg C.reaction
-                (Fin.ext (by rw [hsu]; omega))))
-          · -- position `q` is `rightEdge (q / 2 + 1)`
+            · simp only [rarcVertex_even C m hm (Fin.castSucc q).1 hcast h0, C.left_species]
+            · simp only [rarcVertex_odd C m hm (q.succ).1 hsucc hsuccOdd, C.left_reaction]
+          · -- `rightEdge (q / 2 + 1)`
+            have hcastOdd : ¬ (Fin.castSucc q).1 % 2 = 0 := by rw [hcs]; exact h0
+            simp only [rarcEdge_odd C m hm q.1 hqlt h0]
             refine Or.inr ⟨?_, ?_⟩
-            · rw [rarcVertex_odd C m hm (by rw [hcs]; exact hpar), C.right_reaction]
-              exact congrArg Sum.inr (Subtype.ext (congrArg C.reaction
-                (Fin.ext (by rw [hcs]; rfl))))
-            · rw [rarcVertex_even C m hm (by rw [hsu]; omega), C.right_species]
-              refine congrArg Sum.inl (congrArg C.species (Fin.ext ?_))
-              show (q.1 / 2 + 1 + 1) % n = q.1 / 2 + 2
-              rw [Nat.mod_eq_of_lt (arcIdxSucc hm q.isLt)]
+            · simp only [rarcVertex_odd C m hm (Fin.castSucc q).1 hcast hcastOdd,
+                C.right_reaction]
+            · have hsuccEven : (q.succ).1 % 2 = 0 := by rw [hsu]; omega
+              have hlt0 : (q.1 / 2 + 2) < n := by omega
+              have hlt1 : (q.1 / 2 + 1 + 1) % n = q.1 / 2 + 2 := Nat.mod_eq_of_lt hlt0
+              have hidx : ((q.succ).1 / 2 + 1 : ℕ) = q.1 / 2 + 2 := by rw [hsu]; omega
+              simp only [rarcVertex_even C m hm (q.succ).1 hsucc hsuccEven, hidx,
+                C.right_species, hlt1]
         edge_simple := by
           intro i j hij
           have hi := i.isLt
           have hj := j.isLt
+          have hil : i.1 < 2 * m - 1 := by omega
+          have hjl : j.1 < 2 * m - 1 := by omega
           by_cases hpi : i.1 % 2 = 0 <;> by_cases hpj : j.1 % 2 = 0
-          · rw [rarcEdge C m hm, rarcEdge C m hm] at hij
+          · simp only [rarcEdge_even C m hm i.1 hil hpi, rarcEdge_even C m hm j.1 hjl hpj] at hij
             have h := C.sameIncidence_leftEdge_iff _ _ hij
             have hv := congrArg Fin.val h
             exact Fin.ext (by simp only at hv; omega)
-          · rw [rarcEdge C m hm, rarcEdge C m hm] at hij
+          · simp only [rarcEdge_even C m hm i.1 hil hpi, rarcEdge_odd C m hm j.1 hjl hpj] at hij
             exact absurd hij (C.not_sameIncidence_left_right _ _)
-          · rw [rarcEdge C m hm, rarcEdge C m hm] at hij
-            exact absurd (TrueSREdge.SameIncidence.symm hij) (C.not_sameIncidence_left_right _ _)
-          · rw [rarcEdge C m hm, rarcEdge C m hm] at hij
+          · simp only [rarcEdge_odd C m hm i.1 hil hpi, rarcEdge_even C m hm j.1 hjl hpj] at hij
+            exact absurd (TrueSREdge.SameIncidence.symm hij)
+              (C.not_sameIncidence_left_right _ _)
+          · simp only [rarcEdge_odd C m hm i.1 hil hpi, rarcEdge_odd C m hm j.1 hjl hpj] at hij
             have h := C.sameIncidence_rightEdge_iff _ _ hij
             have hv := congrArg Fin.val h
             exact Fin.ext (by simp only at hv; omega)
@@ -149,54 +185,62 @@ noncomputable def reactionArc : N.TrueSRPathRR (m - 1) where
           intro p p' hpp'
           have hp := p.isLt
           have hp' := p'.isLt
+          have hpl : p.1 < 2 * m := by omega
+          have hp'l : p'.1 < 2 * m := by omega
           by_cases hpi : p.1 % 2 = 0 <;> by_cases hpj : p'.1 % 2 = 0
-          · rw [rarcVertex_even C m hm hpi, rarcVertex_even C m hm hpj] at hpp'
+          · rw [rarcVertex_even C m hm (by omega) hpi, rarcVertex_even C m hm (by omega) hpj] at hpp'
             have h := C.species_injective (Sum.inl.inj hpp')
             have hv := congrArg Fin.val h
             exact Fin.ext (by simp only at hv; omega)
-          · rw [rarcVertex_even C m hm hpi, rarcVertex_odd C m hm hpj] at hpp'
+          · rw [rarcVertex_even C m hm (by omega) hpi, rarcVertex_odd C m hm (by omega) hpj] at hpp'
             exact absurd hpp' (by simp)
-          · rw [rarcVertex_odd C m hm hpi, rarcVertex_even C m hm hpj] at hpp'
+          · rw [rarcVertex_odd C m hm (by omega) hpi, rarcVertex_even C m hm (by omega) hpj] at hpp'
             exact absurd hpp' (by simp)
-          · rw [rarcVertex_odd C m hm hpi, rarcVertex_odd C m hm hpj] at hpp'
+          · rw [rarcVertex_odd C m hm (by omega) hpi, rarcVertex_odd C m hm (by omega) hpj] at hpp'
             have h := C.reaction_injective (congrArg Subtype.val (Sum.inr.inj hpp'))
             have hv := congrArg Fin.val h
             exact Fin.ext (by simp only at hv; omega)
         starts_at_species := by
+          have hz : (0 : ℕ) < 2 * m := by omega
           refine ⟨C.species ⟨1, by omega⟩, ?_⟩
-          rw [rarcVertex_even C m hm (by simp)]
-          exact congrArg Sum.inl (congrArg C.species
-            (Fin.ext (by show (0 : ℕ) / 2 + 1 = 1; rfl)))
+          simp only [rarcVertex_even C m hm 0 hz (by simp)]
+          exact congrArg Sum.inl (congrArg C.species (Fin.ext (by rfl)))
         ends_at_reaction := by
           refine ⟨⟨C.reaction ⟨m, hm⟩, C.reaction_internal ⟨m, hm⟩⟩, ?_⟩
-          have hlast : (Fin.last (2 * m - 1)).1 = 2 * m - 1 := rfl
-          rw [rarcVertex_odd C m hm (by rw [hlast]; omega)]
-          exact congrArg Sum.inr (Subtype.ext (congrArg C.reaction
-            (Fin.ext (by show (Fin.last (2 * m - 1)).1 / 2 + 1 = m; omega))))
+          have hlast : (Fin.last (2 * (m - 1) + 1)).1 = 2 * (m - 1) + 1 := rfl
+          have hz : (Fin.last (2 * (m - 1) + 1)).1 < 2 * m := by omega
+          have hodd : ¬ (Fin.last (2 * (m - 1) + 1)).1 % 2 = 0 := by rw [hlast]; omega
+          have hidx : ((Fin.last (2 * (m - 1) + 1)).1 / 2 + 1 : ℕ) = m := by rw [hlast]; omega
+          simp only [rarcVertex_odd C m hm (Fin.last (2 * (m - 1) + 1)).1 hz hodd, hidx,
+            C.reaction_internal]
+          rfl
   first_species := by
     have hn := C.nontrivial
-    have hlt : (0 + 1) % n = 1 := Nat.mod_eq_of_lt (by omega)
+    have hlt : ((0 : ℕ) + 1) % n = 1 := Nat.mod_eq_of_lt (by omega)
     rw [C.right_species]
     exact congrArg Sum.inl (congrArg C.species (Fin.ext hlt))
   first_ne_tail_edge := by
     intro i
     have hi := i.isLt
     have hidx : i.1 / 2 + 1 = 0 := by omega
-    rw [rarcEdge C m hm, hidx]
-    exact C.not_sameIncidence_left_right (C.reaction_injective rfl) ⟨0, by omega⟩
+    rw [rarcEdge_even C m hm (by omega) (by omega), hidx]
+    exact C.not_sameIncidence_left_right ⟨0, by omega⟩ ⟨0, by omega⟩
   first_ne_tail_vertex := by
     intro i
     have hi := i.isLt
     by_cases hpi : i.1 % 2 = 0
-    · rw [rarcVertex_even C m hm hpi]
+    · have hz : i.1 < 2 * m := by omega
+      simp only [rarcVertex_even C m hm i.1 hz hpi]
       simp
-    · rw [rarcVertex_odd C m hm hpi, C.right_reaction]
+    · have hz : i.1 < 2 * m := by omega
+      simp only [rarcVertex_odd C m hm i.1 hz hpi, C.right_reaction]
       intro hcon
       exact absurd hcon (by
         refine C.reaction_injective ?_
         have := congrArg Subtype.val hcon
         omega)
 
+/-- **The arc starts at `R_0`.** -/
 theorem reactionArc_startReaction (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < m) :
     (C.reactionArc m hm hmpos).startReaction
       = ⟨C.reaction ⟨0, by omega⟩, (C.reaction_internal ⟨0, by omega⟩).internal⟩ := by
@@ -205,21 +249,23 @@ theorem reactionArc_startReaction (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n) (
 
 /-- **The arc ends at `R_m`.** -/
 theorem reactionArc_endReaction (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < m) :
-    (C.reactionArc m hm hmpos).endReaction = ⟨C.reaction ⟨m, hm⟩, C.reaction_internal ⟨m, hm⟩⟩ :=
-  (C.reactionArc m hm hmpos).tail.ends_at_reaction
+    (C.reactionArc m hm hmpos).endReaction
+      = ⟨C.reaction ⟨m, hm⟩, C.reaction_internal ⟨m, hm⟩⟩ := by
+  refine Subtype.ext ?_
+  obtain ⟨ρ, hρ⟩ := (C.reactionArc m hm hmpos).tail.ends_at_reaction
+  rw [hρ] at hρ
+  exact (congrArg Subtype.val hρ)
 
 /-- **The arc's tail starts at `S_1`.** -/
-theorem reactionArc_tail_startSpecies (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < m) :
+theorem reactionArc_tail_startSpecies (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n)
+    (hmpos : 0 < m) :
     (C.reactionArc m hm hmpos).tail.startSpecies = C.species ⟨1, by omega⟩ := by
   obtain ⟨x, hx⟩ := (C.reactionArc m hm hmpos).tail.starts_at_species
   rw [hx]
-  exact congrArg Sum.inl (congrArg C.species (Fin.ext (by
-    show (0 : ℕ) / 2 + 1 = 1; rfl)))
+  exact congrArg Sum.inl (congrArg C.species (Fin.ext (by rfl)))
 
-/-- **The arc is even-length, as the bipartition forces.**  `2 * (m - 1) + 2 = 2 * m`. -/
+/-- **The arc is even-length, as the bipartition forces**: `2 * (m - 1) + 2 = 2 * m`. -/
 theorem reactionArc_length (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < m) :
     2 * (m - 1) + 2 = 2 * m := by omega
-
-end ReactionArc
 
 end CRNT.Network.TrueSRCycle

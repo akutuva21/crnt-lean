@@ -116,24 +116,29 @@ formalises exactly that and has no way to produce its inputs.
 2. `TrueSRCycle.reactionArc` (**this file**) — construction.
 3. `RRGluable` between `reactionArc`s — **not yet written**, see §3.
 
-## 2. `prepend` lifted to public — `TrueSRParityRR.lean:276`
+## 2. `prepend` — REVERTED, and why
 
-The orchestrator flagged that `TrueSRPathRR.prepend` is `private noncomputable def` and
-therefore unreachable from a new module, and sanctioned lifting it. Verified: it is used at
-exactly one internal site, `glueArc` (`:390`). Changed:
+I initially lifted `TrueSRPathRR.prepend` (`TrueSRParityRR.lean:276`) from `private` to public,
+on the orchestrator's earlier instruction. A later broadcast superseded this: **`glueArc`
+(`TrueSRParityRR.lean:388`) is already public and already is the RR arc builder — do not lift
+`prepend`.**
 
-```lean
--private noncomputable def prepend {j : ℕ} (e : N.TrueSREdge) (A : N.TrueSRPathRR j)
-+noncomputable def prepend {j : ℕ} (e : N.TrueSREdge) (A : N.TrueSRPathRR j)
-```
+I have therefore **reverted the lift**; `TrueSRParityRR.lean` on my branch is byte-identical to
+`holes`. `git diff` on that file is empty.
 
-Statement and proof untouched; a docstring records why. `glueArc` remains its only internal
-consumer. **This is a privacy relaxation, not a change of any proved statement** — no hypothesis
-is weakened and no conclusion altered.
+The correction is right for a second, independent reason I found while working: `reactionArc`
+does not need `prepend` at all — it builds the `TrueSRPath` tail directly rather than by
+prepending an edge to an existing `TrueSRPathRR`. So the lift was never load-bearing for the
+forward arc. It would only be needed for the *backward* arc if that were built by prepending,
+but `speciesArcBwd` shows the intended construction is `C.reverse`-based, which needs no
+prepend either.
 
-Note that `reactionArc` does **not** need `prepend`: it builds the tail directly. `prepend` is
-still needed for the *backward* arc (see §3, step 2), so the lift is load-bearing for the route
-even though this module does not use it.
+**General lesson for this round:** `checkmod.sh` was broken for the whole round (fixed on `holes`
+by `infra-build`). It set `LEAN_PATH` to the shared root and then called `lake env lean`, which
+*prepends* its own entries, so the worktree-local build dir landed ahead of the shared cache and
+`CRNT.*` imports failed with "object file … does not exist" for oleans that exist. I independently
+worked around it by hard-linking the shared oleans into the worktree. Several of my early
+"this module does not elaborate" readings were this bug, not my Lean.
 
 ## 3. Residual — `RRGluable` between two reaction arcs
 

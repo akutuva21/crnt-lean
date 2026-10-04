@@ -43,27 +43,32 @@ variable {E : V → V → Prop} {T : Finset V} {k : ℕ}
 no-shortcut lemmas are stated against: a shortest path whose endpoints are already joined by
 `h` has length one. -/
 def edge (x y : V) (hx : x ∈ T) (hy : y ∈ T) (h : E x y) : RelPath E T 1 where
-  vertex := fun i => Fin.cases x (fun _ => y) i
+  vertex := fun i => if h : i = 0 then x else y
   mem := by
     intro i
-    refine Fin.cases hx ?_
-    intro j
-    exact hy
+    by_cases hc : i = 0
+    · rw [if_pos hc]; exact hx
+    · rw [if_neg hc]; exact hy
   step := by
-    refine Fin.cases ?_ ?_ 0
-    · -- position `0` of `Fin 1`
-      show E (x) (y)
-      exact h
-    · -- unreachable: `Fin 1` has only one element
-      exact absurd rfl (by omega)
+    intro i
+    have hi : i = 0 := Fin.eq_zero_of_le (by omega)
+    subst hi
+    show E ((if h : (⟨0, by omega⟩ : Fin 1) = 0 then x else y))
+      ((if h : (⟨0, by omega⟩ : Fin 1).succ = 0 then x else y))
+    rw [dif_pos rfl, dif_neg (by
+      have := (⟨0, by omega⟩ : Fin 1).isLt
+      omega)]
+    exact h
 
 @[simp] theorem edge_vertex_zero (x y : V) (hx : x ∈ T) (hy : y ∈ T) (h : E x y) :
-    (edge x y hx hy h).vertex ⟨0, by omega⟩ = x :=
-  rfl
+    (edge x y hx hy h).vertex ⟨0, by omega⟩ = x := by
+  show (if h : (⟨0, by omega⟩ : Fin 1) = 0 then x else y) = x
+  rw [dif_pos rfl]
 
 @[simp] theorem edge_vertex_one (x y : V) (hx : x ∈ T) (hy : y ∈ T) (h : E x y) :
-    (edge x y hx hy h).vertex ⟨1, by omega⟩ = y :=
-  rfl
+    (edge x y hx hy h).vertex ⟨1, by omega⟩ = y := by
+  show (if h : (⟨1, by omega⟩ : Fin 2) = 0 then x else y) = y
+  rw [dif_neg (by omega)]
 
 /-- **A shortest directed walk between two fixed vertices.**  `path` stays inside `T`, runs from
 `a` to `b`, and `min_length` says its length is at most the length of *every* directed walk in
