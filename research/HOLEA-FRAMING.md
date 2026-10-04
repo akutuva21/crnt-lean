@@ -76,6 +76,57 @@ tree builds**; the `mono` field is refuted by `CRNT/Examples/CycleRateNonMonoton
 (`tri_no_monotone_rotation`, :89), and `cmin` has no supplier
 (`Graph/CycleCover.lean:35-38`: "Not constructed here"). **Use the StoichFan path.**
 
+
+## F-5. The residual blocker is the absence of any **δ** — STANDS, NEW IN ROUND 1
+
+The fan exists; the embedding exists; the δ does not.
+
+Every selector theorem consumes a δ: `massActionVectorField_mem_toricField_…`
+(`ComplexBalanceStoichFanInclusion.lean:373`) takes `{δ : ℝ} (hδ : 0 < δ)`. The hole's hypothesis
+list supplies `hxs`, `hcb`, `hsol` — matching the selector's complex-balance premises exactly — but
+supplies **no δ** and no interior trajectory point to read the state from.
+
+And per **A-12** a slack δ may **not** be manufactured ad hoc: Lemma 9.7's conclusion is non-strict
+and its only quantification is an existential threshold `‖log P‖ ≥ max_C M_C`. So "just pick a δ" is
+exactly the unproved strengthening A-12 forbids. **Where δ legitimately comes from — `hK`/`hmaps`
+compactness, the `B` in `faceRelevantCones P δ B`, or the track record of the orbit — is the open
+ question and is the sharpest remaining Hole A question.**
+
+Note also (from `FormFanfaceCore.EmbeddingAudit`): `CRNT.Fan E` is an axiom-free `abbrev` for
+`Finset (ProperCone ℝ E)` (`CRNT/Geometry/ToricFan.lean:50`), so `toricField` needs no predicate at
+all; and the ambient cone family is
+`relativeSourceOrderNegativeConeFamily` (`CRNT/Dynamics/ComplexBalanceCycleDecomposition.lean:2311`).
+
+`ToricEmbeddingWR` is dead for a stronger reason than "nothing builds the decomposition":
+`multiCycle_velocity_mem_polarCone` (:136) and `NetworkCycleDecomposition.velocity_mem_polarCone`
+(:232) conclude about `D.totalVelocity`, and **no theorem in the file equates `D.totalVelocity`
+with `N.massActionVectorField κ x`**. That path does not even reach the mass-action field.
+
+## F-6. The landing site — FOUND
+
+`CRNT/Dynamics/FaceDirectionCone.lean` is already parameterised by the hole's own data:
+
+* `faceDirectionCone P` (:92) takes a `Finset S` face `P`; **the hole's `Pmax` is exactly such a `P`**;
+* `faceLogPart` (:204) / `offFaceLogPart` (:210);
+* `faceRelevantCones P δ B` (:317) — near-cones of the fan within `δ + B` of `faceDirectionCone P`;
+* `faceRelevantCore` (:333), `faceRelevantCore_mem` (:337), `mem_of_mem_faceRelevantCore` (:342);
+* terminal criteria `exists_positive_omegaPoint_of_tiled_faceCores` (:367) and
+  **`exists_positive_omegaPoint_of_faceRelevantCore` (:417)**.
+
+And inside the hole's own file, `CRNT/Dynamics/HighCodimensionSiphonFace.lean:1596` holds
+`exists_positive_omegaPoint_of_upperRegion`, whose **only two unbuilt inputs are `hfloor` and the
+non-crossing `hsplit`**.
+
+`GlobalAttractorTheorem.lean` imports `ComplexBalanceStoichFan` (line 2),
+`ComplexBalanceStoichFanInclusion` and `FaceDirectionCone`, and references **none** of them in 1789
+lines. **Hole A is, at this point, a wiring problem.**
+
+Note for the adversary tier: the `C ⊆ interior K` requirement is load-bearing at **five** sites in
+`CRNT/Geometry/CraciunZSH.lean` — `exists_eventual_tube_subset_of_cone_interior` (:32) and
+`exists_uniform_eventual_tube_subset_of_finite_properCone_pairs` (:222, hypothesis literally named
+`hinterior`), propagating transitively to :186, :311, :346, :378. Whether
+`FaceDirectionCone.lean` routes *around* `CraciunZSH` or *through* it determines whether the
+shortest path to closing Hole A avoids A-11 entirely.
 ## What to attempt now, in priority order
 
 1. **Wire the fan in.** `form-barrier` is the natural owner. The gap is concrete and small: the
