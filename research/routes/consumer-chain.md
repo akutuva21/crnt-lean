@@ -422,3 +422,33 @@ it.
   step away from (b); not done.
 * Import `CRNT/Dynamics/BlueprintRouteRefutation` into `CRNT.lean` once the orchestrator's build
   runs (not done here — no `lake build` from a researcher).
+---
+
+## 8. A-11 (relint-chamber fix for `CraciunZSH.hinterior`) — attempted, NOT landed
+
+I wrote `CRNT/Geometry/CraciunRelintChamber.lean` with four theorems
+(`exists_eventual_tube_subset_of_relint_chamber`, `…_closed`, the finite-family form, and
+`exists_uniform_logCube_toricField_support_of_faithful_normals_relint`). **It did not come to
+green within my budget and I deleted it rather than commit non-compiling code.** Two concrete
+blockers, both useful to whoever picks it up:
+
+1. **`Set.affineSpan` does not exist in this Mathlib** (`lean.unknownIdentifier`). The correct
+   name is `Module.affineSpan ℝ s` or `AffineSpan ℝ s`. Consistent with the orchestrator's warning
+   not to use it: the relative hypothesis I finally wanted was just
+   `∀ x ∈ C ∩ sphere 0 1, ∃ ρ > 0, ball x ρ x ⊆ K`, with no `∩ affineSpan` at all, which is both
+   sufficient (the proof only ever consumes the `⊆ K` component) and not stronger.
+2. With that removed, `Metric.ball x ρ x` in a binder type was reported to elaborate as `Prop`
+   rather than `Set E`, in every one of the three places the hypothesis is stated. This is a
+   `variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]` instance-availability question
+   at binder-elaboration time, not a statement problem: the sibling `CraciunZSH.lean` uses the same
+   variables and the same `Metric.ball`, so the fix is to state the hypothesis after a
+   `let _ : PseudoMetricSpace E := inferInstance` or to move `E` out of `variable` into explicit
+   binders with `[ProperSpace E]` / `[PseudoMetricSpace E]`.
+
+A third site, line ~288 of that file, is a plain parse error
+(`by by_cases h : ∃ y ∈ (C i : Set _), y ≠ 0` — `Set _` cannot be inferred there; it needs
+`∃ y ∈ (C i : Set (EuclideanSpace ℝ (Fin n))), y ≠ 0`).
+
+A-11 is a cleanup, not a blocker: `CRNT/Dynamics/FaceDirectionCone.lean` imports only
+`ToricBarrierTrapping` and never reaches `CraciunZSH`, and `hm` in the ladder is a *hypothesis*
+(a `Finset.inf'` intersection), never a geometric consequence needing a δ-tube.
