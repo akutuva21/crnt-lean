@@ -43,32 +43,28 @@ variable {E : V → V → Prop} {T : Finset V} {k : ℕ}
 no-shortcut lemmas are stated against: a shortest path whose endpoints are already joined by
 `h` has length one. -/
 def edge (x y : V) (hx : x ∈ T) (hy : y ∈ T) (h : E x y) : RelPath E T 1 where
-  vertex := fun i => if h : i = 0 then x else y
+  vertex := Fin.cases x (fun _ => y)
   mem := by
     intro i
-    by_cases hc : i = 0
-    · rw [if_pos hc]; exact hx
-    · rw [if_neg hc]; exact hy
+    refine Fin.cases hx ?_ i
+    intro j
+    exact hy
   step := by
     intro i
-    have hi : i = 0 := Fin.eq_zero_of_le (by omega)
+    have hi : i = (⟨0, by omega⟩ : Fin 1) := Fin.ext (by have := i.isLt; omega)
     subst hi
-    show E ((if h : (⟨0, by omega⟩ : Fin 1) = 0 then x else y))
-      ((if h : (⟨0, by omega⟩ : Fin 1).succ = 0 then x else y))
-    rw [dif_pos rfl, dif_neg (by
-      have := (⟨0, by omega⟩ : Fin 1).isLt
-      omega)]
+    show E (Fin.cases x (fun _ => y) (Fin.castSucc (⟨0, by omega⟩ : Fin 1)))
+      (Fin.cases x (fun _ => y) ((⟨0, by omega⟩ : Fin 1).succ))
+    simp only [Fin.cases_succ]
     exact h
 
 @[simp] theorem edge_vertex_zero (x y : V) (hx : x ∈ T) (hy : y ∈ T) (h : E x y) :
-    (edge x y hx hy h).vertex ⟨0, by omega⟩ = x := by
-  show (if h : (⟨0, by omega⟩ : Fin 1) = 0 then x else y) = x
-  rw [dif_pos rfl]
+    (edge x y hx hy h).vertex ⟨0, by omega⟩ = x := rfl
 
 @[simp] theorem edge_vertex_one (x y : V) (hx : x ∈ T) (hy : y ∈ T) (h : E x y) :
     (edge x y hx hy h).vertex ⟨1, by omega⟩ = y := by
-  show (if h : (⟨1, by omega⟩ : Fin 2) = 0 then x else y) = y
-  rw [dif_neg (by omega)]
+  show Fin.cases x (fun _ => y) ((⟨0, by omega⟩ : Fin 1).succ) = y
+  rw [Fin.cases_succ]
 
 /-- **A shortest directed walk between two fixed vertices.**  `path` stays inside `T`, runs from
 `a` to `b`, and `min_length` says its length is at most the length of *every* directed walk in
@@ -87,24 +83,29 @@ structure ShortestPath (E : V → V → Prop) (T : Finset V) (a b : V) where
 noncomputable def ShortestPath.of_reflTransGen (hclosed : ∀ x y, E x y → y ∈ T → x ∈ T)
     {a b : V} (hbT : b ∈ T) (h : Relation.ReflTransGen E a b) : ShortestPath E T a b := by
   classical
+  refine Classical.choice (α := ShortestPath E T a b) ?_
+  show Nonempty (ShortestPath E T a b)
   obtain ⟨k₀, P₀, h₀, h₀last⟩ := exists_relPath_of_reflTransGen hclosed hbT h
   let HasPath : ℕ → Prop := fun l =>
     ∃ Q : RelPath E T l, Q.vertex ⟨0, by omega⟩ = a ∧ Q.vertex ⟨l, by omega⟩ = b
   have hExists : ∃ l, HasPath l := ⟨k₀, P₀, h₀, h₀last⟩
   have hk : HasPath (Nat.find hExists) := Nat.find_spec hExists
   obtain ⟨P, hPstart, hPend⟩ := hk
-  refine
-    { length := Nat.find hExists, path := P, start_eq := hPstart, end_eq := hPend,
-      min_length := ?_ }
+  refine ⟨{ length := Nat.find hExists, path := P, start_eq := hPstart, end_eq := hPend,
+            min_length := ?_ }⟩
   intro l Q hQstart hQlast
   exact Nat.find_min' hExists ⟨Q, hQstart, hQlast⟩
 
 /-- **Reachability is the only hypothesis**: a shortest path from `a` to `b` exists exactly
 when `b` is reachable from `a` along `E`. -/
 theorem exists_shortestPath {a b : V} (hclosed : ∀ x y, E x y → y ∈ T → x ∈ T)
-    (hbT : b ∈ T) : (∃ P : ShortestPath E T a b) ↔ Relation.ReflTransGen E a b :=
-  ⟨fun h => relPath_reflTransGen h.path,
-    fun h => ⟨ShortestPath.of_reflTransGen hclosed hbT h⟩⟩
+    (hbT : b ∈ T) :
+    (∃ _P : ShortestPath E T a b, True) ↔ Relation.ReflTransGen E a b :=
+  ⟨fun h => by
+    have hh := relPath_reflTransGen h.choose.path
+    rw [h.choose.start_eq, h.choose.end_eq] at hh
+    exact hh,
+    fun h => ⟨ShortestPath.of_reflTransGen hclosed hbT h, trivial⟩⟩
 
 /-- A shortest path is a simple path: no vertex repeats. -/
 theorem ShortestPath.injective (P : ShortestPath E T a b) : Function.Injective P.path.vertex := by
