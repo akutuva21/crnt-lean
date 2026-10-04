@@ -584,3 +584,50 @@ goal-equivalent step"** penalty from `research/README.md` §5 to any such landin
 - `TrueSRGlueInterface.lean:55-57` notes the `edge_disjoint` clause is what Banaji–Craciun's
   Lemma 10 supplies directly, and that **interior disjointness for a *simple* cycle is not carried
   out there** — a known residual to flag, not to assume away.
+
+## A-25. **`hm` is VACUOUS — `m := 0` satisfies it** **[V]**
+
+- **found-by:** `arch-fanface` · **round 1** · **revive-when:** never as stated.
+- `hm : m ∈ N.faceRelevantCore P δ B hcore` is the **only** constraint on `m`, and `faceRelevantCore`
+  is a `ProperCone` — a `ClosedSubmodule ℝ≥0 E` (Mathlib `Analysis/Convex/Cone/Basic.lean:61`) —
+  which **always contains `0`**. So `m := 0` satisfies `hm`.
+- **Do not read progress into instantiating `hm`.** It needs strengthening to `m ≠ 0` **plus** the
+  dominance clause. **This trap survives the death of the criteria** and will bite whoever rebuilds
+  them: the input that looks like the geometric content of the blueprint is satisfied by zero.
+
+## B-17. **CORRECTION TO B-14 — `glueArc` is NOT the RR arc builder** **[V]**
+
+- **found-by:** `arch-sr-case2` · **round 1** · **retracts B-14's first claim.**
+- `glueArc {x y} (X : TrueSRPathRR x) (Y : TrueSRPathRR y) (h : RRGluable X Y) : TrueSRPath (…)`
+  (`TrueSRParityRR.lean:388`) takes **two `TrueSRPathRR` values and their `RRGluable` as INPUT** and
+  returns a `TrueSRPath`. **It cannot build either of its own inputs, so it is circular as an arc
+  builder.**
+- **What still stands from B-14/B-16:** the `private` modifier on `prepend` still needs **no** lift —
+  `glueArc` calls it internally at :390, which is legal within the file. And `TrueSRPathRR` is a
+  plain structure whose `tail` is an ordinary `TrueSRPath`, so an arc is a **structure literal**,
+  needing no `prepend` at all. There is no `take`/`init` on `TrueSRPath` (`TrueSRPath.lean:34-37`),
+  so a tail must be a literal of length `2*(m-1)+1`.
+- **The real prerequisite is unchanged:** constructing `RRGluable` (fields at `:262` `same_start`,
+  `:264` `same_end`, `:266` `species_disjoint`, `:268` `reaction_disjoint`, `:270` `edge_disjoint`)
+  and `Gluable` (`TrueSRGlueInterface.lean:59`, plus public `Gluable.symm` at `:69`). **That is
+  authoring, not building.**
+
+## Durable Tier C work, true regardless of any fork **[V]**
+
+- **The min-max analogue of `barrier_le_of_mem_omegaLimit` is absent.** `HighCodimensionSiphonFace.lean:272`
+  has the single-barrier version; grep finds no `minMaxBarrier` there. The union-barrier
+  ω-limit closure step is missing. `isClosed_minMaxSublevel` (`PolyhedralBarrier.lean:444`) already
+  exists, so this should be mechanical. **True regardless of how the criteria fare.**
+- **`(N.faceRelevantCones Pmax δ B).Nonempty` for the source-order fan is not established.** It
+  should follow from `Network.deltaCore_mem` / `nearCones_nonempty` plus `IsPolyhedralFan.covers`,
+  by the same argument as `CRNT.IsPolyhedralFan.nearCones_nonempty` (`FanFaceLattice.lean`). Cheap
+  and mechanical.
+- **`Fan E` is an axiom-free `abbrev`** for `Finset (ProperCone ℝ E)` (`ToricFan.lean:50`), so
+  `toricField` needs no predicate. `IsPolyhedralFan` (`ConeFace.lean:196`) carries `faces_mem`,
+  `inter_common`, `covers`, and `.negated` is proved at `:242`. `Refines` (`FanRefinement.lean:94`)
+  is `⊆`-only (A-5). `HasDualFGCells` at `:981`.
+- **Check whether `docs/gac-bridge-gap-analysis.lean`'s `ContinuousOn` discharge covers
+  `hΓcont : ContinuousOn (γ x₀) (Ici 0)`.** This is a fact about the hole's *own* hypotheses, not a
+  criterion input, so the freeze does not apply. The hole supplies `hsol` (`HasDerivAt` for all
+  `t ≥ 0`) and `hgenω` (ω-points only); if the bridge closes the forward-ray case, one of the three
+  orbit-level gaps is already gone.
