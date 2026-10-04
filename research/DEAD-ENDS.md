@@ -631,3 +631,35 @@ goal-equivalent step"** penalty from `research/README.md` §5 to any such landin
   criterion input, so the freeze does not apply. The hole supplies `hsol` (`HasDerivAt` for all
   `t ≥ 0`) and `hgenω` (ω-points only); if the bridge closes the forward-ray case, one of the three
   orbit-level gaps is already gone.
+
+## A-26. **ADJUDICATED AND MACHINE-CHECKED — the upper-region criterion is inapplicable** **[V, compiled]**
+
+- **found-by:** `infra-scaffold-crnt`, branch `research/infrascaffold`, commit `ffc02b2`.
+  New file `CRNT/Dynamics/UpperRegionFloorRefutation.lean`, imported from `CRNT.lean`.
+- **Independently verified by the orchestrator:** `research/scripts/checkmod.sh` reports
+  `=== OK (sorry-warnings: 0) ===`. No `sorry`, no `axiom`.
+- `false_of_upperRegion_and_boundaryOmegaPoint` (:107) takes **every** hypothesis of
+  `exists_positive_omegaPoint_of_upperRegion` — **including `hfloor`** — plus the hole's `hwmax`,
+  `hPmaxne`, `hzeroMax`, and concludes `False`. **So `hfloor` is not an unbuilt input awaiting
+  discharge; it is unsatisfiable.**
+- `positive_omegaLimit_of_confinedToFlooredRegion` (:171) is the bare mechanism with **no**
+  reaction-network structure: orbit confined to a floored region ⟹ every ω-point is positive.
+- **Why the fork looked contested and was not:** `hfloor` *looks* like a region floor, so it seems to
+  escape orbit-level obstructions — but the criterion consumes it through `closure_minimal`, i.e. as
+  a statement about `closure Zupper`, and ω-limit points lie in the closure of the orbit image
+  (`omegaLimit_subset_closure_image2`), which lies in `Zupper` (`orbit_stays_in_upperRegion`).
+  **Steps 1–3 alone give `∀ s, ε ≤ wmax s`.** Neither the entropy level nor compactness is needed.
+- **This supersedes the contested verdict of A-19/A-22 and is now the settled one.** `hm`,
+  `hstart`, `hface`, `hcore` for `exists_positive_omegaPoint_of_faceRelevantCore` are **known-dead**.
+  Do not spend budget on them. And note **A-25**: even before death, `hm` was vacuous (`m := 0`).
+
+## A-27. **151 proved, hole-free modules sit in Hole A's import closure and are never used** **[V, computed]**
+
+- **found-by:** `infra-scaffold-crnt`, `docs/hole-reachability.md` on `research/infrascaffold`.
+- Computed from `import` lines plus short-name occurrence — **not curated, so it is checkable**.
+  Headline entries: `ComplexBalanceStoichFan` (20 declarations, the source-order polyhedral fan),
+  `ComplexBalanceStoichFanInclusion` (38 declarations, the Theorem 4.3 embedding),
+  `FaceDirectionCone`.
+- **This is the durable Tier C payoff and it survives every refutation above.** The fan and the
+  embedding are real, proved, and compiled into Hole A's dependency cone without being called.
+  Whatever replaces the dead criteria will need them.
