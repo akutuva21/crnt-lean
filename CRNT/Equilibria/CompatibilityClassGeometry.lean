@@ -38,14 +38,14 @@ face. What is missing, and proved here, is the *affine structure* of the class i
 * `zeroSet_antitone_of_le` : `z ≤ w` coordinatewise gives `w.zeroSet ⊆ z.zeroSet`. This single
   lemma is the engine of the whole `Pmax` package.
 * `exists_zeroSet_not_subset_of_lt` : **the strict version.** If `z s < w s` at *some* coordinate
-  `s` with `z s = 0`, then `w.zeroSet ⊂ z.zeroSet`: a strictly dominated coordinate cannot be in
+  `s` with `z s = 0`, then `(Concentration.zeroSet w) ⊂ (Concentration.zeroSet z)`: a strictly dominated coordinate cannot be in
   `w`'s zero set while being in `z`'s.
 
 **C. Maximal zero sets — the finite combinatorics behind `exists_maximal_zeroSet_omegaPoint`.**
 
 * `exists_maximal_zeroSetOf_card_le` : **the maximum-cardinality lemma, in the exact shape of
-  `hmaxExact`.** Given a family `Ξ` of class points, a set `Pmax` with `|Pmax| ≤ |z.zeroSet|` for
-  every `z ∈ Ξ`, and a `z ∈ Ξ` vanishing on all of `Pmax`, then `z.zeroSet = Pmax` — i.e. `z`
+  `hmaxExact`.** Given a family `Ξ` of class points, a set `Pmax` with `|Pmax| ≤ |(Concentration.zeroSet z)|` for
+  every `z ∈ Ξ`, and a `z ∈ Ξ` vanishing on all of `Pmax`, then `(Concentration.zeroSet z) = Pmax` — i.e. `z`
   vanishes exactly on `Pmax`. This is pure `Finset.card` combinatorics on two inclusions; it has
   no ω-limit-set or dynamical hypotheses, so it is reusable by any `Pmax`-packaging route.
 * `card_zeroSet_le_of_card_le` : the `hzcard` clause in isolation.
@@ -73,6 +73,23 @@ Depends on: `CRNT.Equilibria.CompatibilityClass`,
 -/
 
 namespace CRNT
+
+namespace Concentration
+
+/-- The zero set of a concentration: the species whose coordinate vanishes. -/
+noncomputable def zeroSet {S : Type} [DecidableEq S] [Fintype S] (x : Concentration S) :
+    Finset S :=
+  Finset.univ.filter fun s => x s = 0
+
+@[simp] theorem mem_zeroSet_iff {S : Type} [DecidableEq S] [Fintype S]
+    (x : Concentration S) (s : S) :
+    s ∈ x.zeroSet ↔ x s = 0 := by simp [zeroSet]
+
+end Concentration
+
+open Concentration
+
+
 namespace Network
 
 open scoped BigOperators
@@ -113,29 +130,28 @@ theorem mem_compatibilityClass_self (N : Network S) (x₀ : Concentration S) :
 /-- **Rays out of the reference point stay in the class.** For `v ∈ N.stoichSubspace` and any real
 `a`, `x₀ + a • v` is compatible with `x₀`. -/
 theorem stoichCompatible_smul_add (N : Network S) {x₀ : Concentration S} (v : S → ℝ)
-    (hv : v ∈ N.stoichSubspace) (a : ℝ) : N.StoichCompatible x₀ (x₀ + a • v) := by
-  rw [StoichCompatible]
-  exact N.stoichSubspace.smul_mem a hv
+    (hv : v ∈ N.stoichSubspace) (a : ℝ) : N.StoichCompatible x₀ (x₀ + a • v) :=
+  (N.stoichCompatible_iff_exists_sub x₀ (x₀ + a • v)).mpr
+    ⟨a • v, N.stoichSubspace.smul_mem a hv, rfl⟩
 
 /-- **The general two-point combination form.** If `x` and `y` are both compatible with `x₀` then
 so is `a • x + b • y`, for any real `a, b`.  This is what makes the class an *affine* subspace
 rather than merely a translate-invariant set. -/
 theorem stoichCompatible_of_convex_combination (N : Network S) {x₀ x y : Concentration S}
     (hx : N.StoichCompatible x₀ x) (hy : N.StoichCompatible x₀ y) (a b : ℝ) :
-    N.StoichCompatible x₀ (a • x + b • y) := by
-  rw [StoichCompatible]
-  have hvx : x - x₀ ∈ N.stoichSubspace := hx
-  have hvy : y - x₀ ∈ N.stoichSubspace := hy
-  have hmem : a • (x - x₀) + b • (y - x₀) ∈ N.stoichSubspace :=
-    N.stoichSubspace.add_mem (N.stoichSubspace.smul_mem a hvx)
-      (N.stoichSubspace.smul_mem b hvy)
-  rwa [show a • x + b • y - x₀ = a • (x - x₀) + b • (y - x₀) by
-    funext s; simp only [Pi.sub_apply, Pi.add_apply, Pi.smul_apply, smul_eq_mul]; ring]
+    N.StoichCompatible x₀ (a • x + b • y) :=
+  (N.stoichCompatible_iff_exists_sub x₀ (a • x + b • y)).mpr
+    ⟨a • (x - x₀) + b • (y - x₀),
+      N.stoichSubspace.add_mem (N.stoichSubspace.smul_mem a hx)
+        (N.stoichSubspace.smul_mem b hy), by
+      funext s
+      simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul]
+      ring⟩
 
 /-- **Segments inside the class.** For `0 ≤ t ≤ 1` the point `(1-t) • x₀ + t • x` is compatible
 with `x₀` whenever `x` is. -/
 theorem stoichCompatible_segment (N : Network S) {x₀ x : Concentration S}
-    (hx : N.StoichCompatible x₀ x) {t : ℝ} (ht0 : 0 ≤ t) (ht1 : t ≤ 1) :
+    (hx : N.StoichCompatible x₀ x) {t : ℝ} (_ht0 : 0 ≤ t) (_ht1 : t ≤ 1) :
     N.StoichCompatible x₀ ((1 - t) • x₀ + t • x) :=
   N.stoichCompatible_of_convex_combination (StoichCompatible.refl N x₀) hx (1 - t) t
 
@@ -143,11 +159,13 @@ theorem stoichCompatible_segment (N : Network S) {x₀ x : Concentration S}
 theorem compatibilityClass_isConvex (N : Network S) (x₀ : Concentration S) :
     Convex ℝ (N.compatibilityClass x₀) := by
   intro x hx y hy a b ha hb hab
-  rw [mem_compatibilityClass_iff_exists_sub]
-  exact ⟨a • (x - x₀) + b • (y - x₀),
-    N.stoichSubspace.add_mem (N.stoichSubspace.smul_mem a hx)
-      (N.stoichSubspace.smul_mem b hy), by
-      funext s; simp only [Pi.add_apply]; ring_nf; rw [ha, hb]; ring]
+  exact mem_compatibilityClass_iff_exists_sub N x₀ (a • x + b • y) |>.mpr
+    ⟨a • (x - x₀) + b • (y - x₀),
+      N.stoichSubspace.add_mem (N.stoichSubspace.smul_mem a hx)
+        (N.stoichSubspace.smul_mem b hy), by
+      funext s
+      simp only [Pi.add_apply, Pi.smul_apply, smul_eq_mul, Pi.sub_apply]
+      linarith⟩
 
 /-- **Convexity of the nonnegative part of the class.** Pointwise nonnegativity is preserved by
 nonnegative combinations; compatibility is handled by the affine-combination lemma. -/
@@ -165,88 +183,91 @@ theorem positiveCompatibilityClass_isConvex (N : Network S) (x₀ : Concentratio
   intro x hx
   refine fun y hy a b ha hb hab => ⟨N.stoichCompatible_of_convex_combination hx.1 hy.1 a b, ?_⟩
   intro s
-  rcases ha.eq_or_lt' 0 with rfl | ha
-  · have h1 := mul_pos hb (hy.2 s)
-    simpa only [Pi.add_apply, Pi.smul_apply, smul_eq_mul] using h1
-  · have h1 := add_pos_of_pos_of_nonneg (mul_pos ha (hx.2 s)) (mul_nonneg hb (hy.2 s))
+  have hx2 : Concentration.Nonnegative x := hx.2
+  have hy2 : Concentration.Nonnegative y := hy.2
+  rcases ha.eq_or_lt with hzero | ha
+  · subst hzero
+    simpa only [Pi.add_apply, Pi.smul_apply, smul_eq_mul, zero_mul, add_zero] using
+      (mul_pos hb (hy2 s))
+  · have h1 := add_pos_of_pos_of_nonneg (mul_pos ha (hx2 s)) (mul_nonneg hb (hy2 s))
     simpa only [Pi.add_apply, Pi.smul_apply, smul_eq_mul] using h1
 
 /-! ### B. Zero sets and the antitone engine -/
 
-/-- The zero set of a concentration: the species whose coordinate vanishes. -/
-noncomputable def zeroSet (x : Concentration S) : Finset S :=
-  Finset.univ.filter fun s => x s = 0
-
-@[simp] theorem mem_zeroSet_iff (x : Concentration S) (s : S) :
-    s ∈ x.zeroSet ↔ x s = 0 := by simp [zeroSet]
-
 /-- **The `Pmax` antitone engine.** If `z ≤ w` coordinatewise then `w.zeroSet ⊆ z.zeroSet`. -/
 theorem zeroSet_antitone_of_le {z w : Concentration S} (hzw : ∀ s, z s ≤ w s) :
-    w.zeroSet ⊆ z.zeroSet := by
+    (Concentration.zeroSet w) ⊆ (Concentration.zeroSet z) := by
   intro s hs
-  rw [mem_zeroSet_iff] at hs ⊢
-  exact le_antisymm (by simpa [hs] using hzw s) (hs ▸ le_rfl)
+  have hw0 : w s = 0 := (Concentration.mem_zeroSet_iff w s).mp hs
+  rw [Concentration.mem_zeroSet_iff z s]
+  exact le_antisymm (by simpa [hw0] using hzw s) (hw0 ▸ le_rfl)
 
 /-- **Strict domination at one shared zero gives a proper inclusion of zero sets.** If
 `z s₀ = w s₀`... no: if `z s < w s` at some `s₀` with `w s₀ = 0` — impossible. The correct
 statement: if `z s₀ < w s₀` at a coordinate `s₀` where `z s₀ = 0`, then `w s₀ > 0`, so `s₀`
-is in `z.zeroSet` but not in `w.zeroSet`, giving the strict inclusion the other way.
+is in `(Concentration.zeroSet z)` but not in `(Concentration.zeroSet w)`, giving the strict inclusion the other way.
 
-Precisely: `z s₀ = 0` and `z s₀ < w s₀` give `w.zeroSet ⊂ z.zeroSet`. -/
+Precisely: `z s₀ = 0` and `z s₀ < w s₀` give `(Concentration.zeroSet w) ⊂ (Concentration.zeroSet z)`. -/
 theorem zeroSet_ssubset_of_lt_of_zero {z w : Concentration S} {s₀ : S}
     (hz₀ : z s₀ = 0) (hlt : z s₀ < w s₀) :
-    w.zeroSet ⊂ z.zeroSet := by
+    (Concentration.zeroSet w) ⊂ (Concentration.zeroSet z) := by
   refine Finset.ssubset_iff_subset_ne.mpr ⟨?_, ?_⟩
-  · -- `w.zeroSet ⊆ z.zeroSet`: it suffices that `z ≤ w`, which holds off `s₀`
+  · -- `(Concentration.zeroSet w) ⊆ (Concentration.zeroSet z)`: it suffices that `z ≤ w`, which holds off `s₀`
     intro s hs
-    rw [mem_zeroSet_iff] at hs ⊢
+    rw [Concentration.mem_zeroSet_iff] at hs ⊢
     by_cases hs0 : s = s₀
     · rw [hs0]; simpa [hz₀] using hlt.le
     · exact le_rfl
   · intro hEq
     -- `hEq : w.zeroSet = z.zeroSet` forces `w s₀ = 0`, contradicting `z s₀ = 0 < w s₀`
     have hsub := Finset.ext_iff.mp hEq
-    rw [hsub s₀ ((mem_zeroSet_iff z s₀).2 hz₀)] at hlt
+    rw [hsub s₀ ((Concentration.mem_zeroSet_iff z s₀).2 hz₀)] at hlt
     linarith
 
 /-- **A maximal zero set is not strictly dominated.** If `w` lies in the nonnegative compatibility
-class of a positive reference and no class member has a zero set strictly containing `w.zeroSet`,
+class of a positive reference and no class member has a zero set strictly containing `(Concentration.zeroSet w)`,
 then no class member is coordinatewise strictly below `w` at a coordinate where `w` vanishes. -/
-theorem not_zeroSet_ssubset_of_maximal
+theorem not_zeroSet_ssubset_of_maximal (N : Network S)
     {x₀ w z : Concentration S}
     (hw : w ∈ N.nonnegativeCompatibilityClass x₀)
     (hz : z ∈ N.nonnegativeCompatibilityClass x₀)
-    (hmax : ∀ y ∈ N.nonnegativeCompatibilityClass x₀, ¬ w.zeroSet ⊂ y.zeroSet)
+    (hmax : ∀ y ∈ N.nonnegativeCompatibilityClass x₀, ¬ (Concentration.zeroSet w) ⊂ (Concentration.zeroSet y))
     (hdom : ∃ s, z s = 0 ∧ z s < w s) :
-    w.zeroSet ⊄ z.zeroSet := by
+    ¬ ((Concentration.zeroSet w) ⊆ (Concentration.zeroSet z)) := by
   obtain ⟨s₀, hz₀, hlt⟩ := hdom
-  exact fun hsub => hmax z hz (zeroSet_ssubset_of_lt_of_zero hz₀ hlt) hsub
+  intro hsub
+  have hne : (Concentration.zeroSet w) ≠ (Concentration.zeroSet z) := by
+    intro hEq
+    have h := Finset.ext_iff.mp hEq
+    rw [h s₀ ((Concentration.mem_zeroSet_iff z s₀).2 hz₀)] at hlt
+    linarith
+  exact hmax z hz (Finset.ssubset_iff_subset_ne.mpr ⟨hsub, hne⟩)
 
 /-! ### C. Maximal zero sets: the finite combinatorics -/
 
 /-- **The maximum-cardinality lemma — the `hmaxExact` clause of hole A, in card form.**
 
-Let `Ξ` be a family of class points, `Pmax` a species set, and suppose `|Pmax| ≤ |z.zeroSet|` for
-every `z ∈ Ξ`.  Then any `z ∈ Ξ` that vanishes on all of `Pmax` has `z.zeroSet = Pmax`, i.e. it
+Let `Ξ` be a family of class points, `Pmax` a species set, and suppose `|Pmax| ≤ |(Concentration.zeroSet z)|` for
+every `z ∈ Ξ`.  Then any `z ∈ Ξ` that vanishes on all of `Pmax` has `(Concentration.zeroSet z) = Pmax`, i.e. it
 vanishes **exactly** on `Pmax`.
 
 This is precisely the `hmaxExact` clause of
 `Network.exists_positive_omegaPoint_of_highCodimension_siphonFace`, with the ω-limit-set
 quantifier replaced by an arbitrary family of nonnegative class points.  It is pure finite
 combinatorics on `Finset.card`, so any `Pmax`-packaging route can invoke it. -/
-theorem exists_maximal_zeroSetOf_card_le {x₀ : Concentration S}
+theorem exists_maximal_zeroSetOf_card_le (N : Network S) {x₀ : Concentration S}
     {Ξ : Set (Concentration S)} {Pmax : Finset S} {z : Concentration S}
     (hΞ : ∀ u ∈ Ξ, u ∈ N.nonnegativeCompatibilityClass x₀)
-    (hcard_le : ∀ u ∈ Ξ, Pmax.card ≤ u.zeroSet.card)
+    (hcard_le : ∀ u ∈ Ξ, Pmax.card ≤ (Concentration.zeroSet u).card)
     (hzΞ : z ∈ Ξ)
     (hzvanish : ∀ s ∈ Pmax, z s = 0) :
     ∀ s, z s = 0 ↔ s ∈ Pmax := by
-  have hzsub : Pmax ⊆ z.zeroSet := by
+  have hzsub : Pmax ⊆ (Concentration.zeroSet z) := by
     intro s hs
-    rw [mem_zeroSet_iff]
+    rw [Concentration.mem_zeroSet_iff]
     exact hzvanish s hs
-  have hcard : Pmax.card ≤ z.zeroSet.card := hcard_le z hzΞ
-  have heq : z.zeroSet = Pmax := Finset.Subset.antisymm hzsub (Finset.card_le_card hcard)
+  have hcard : Pmax.card ≤ (Concentration.zeroSet z).card := hcard_le z hzΞ
+  have heq : (Concentration.zeroSet z) = Pmax := Finset.Subset.antisymm hzsub (Finset.card_le_card hcard)
   rw [← heq]
   exact fun s => Iff.rfl
 
@@ -254,43 +275,43 @@ theorem exists_maximal_zeroSetOf_card_le {x₀ : Concentration S}
 `|Pmax|`. -/
 theorem card_zeroSet_le_of_card_le {x₀ : Concentration S}
     {Ξ : Set (Concentration S)} {Pmax : Finset S}
-    (hcard_le : ∀ u ∈ Ξ, Pmax.card ≤ u.zeroSet.card) :
-    ∀ u ∈ Ξ, u.zeroSet.card ≤ Pmax.card := fun u hu => (hcard_le u hu).symm
+    (hcard_le : ∀ u ∈ Ξ, Pmax.card ≤ (Concentration.zeroSet u).card) :
+    ∀ u ∈ Ξ, (Concentration.zeroSet u).card ≤ Pmax.card :=
+  fun u hu => (hcard_le u hu)
 
 /-- **Existence of a maximum-cardinality zero set in a nonempty family.** For any nonempty
-family `Ξ` of class points there is `wmax ∈ Ξ` with `|u.zeroSet| ≤ |wmax.zeroSet|` for all
+family `Ξ` of class points there is `wmax ∈ Ξ` with `|(Concentration.zeroSet u)| ≤ |(Concentration.zeroSet wmax)|` for all
 `u ∈ Ξ`.
 
 This supplies the `wmax` / `Pmax` witness pair for a purely set-theoretic family: combine it with
-`exists_maximal_zeroSetOf_card_le` at `Pmax := wmax.zeroSet`. -/
+`exists_maximal_zeroSetOf_card_le` at `Pmax := (Concentration.zeroSet wmax)`. -/
 theorem exists_maximalCard_zeroSet {Ξ : Set (Concentration S)} (hne : Ξ.Nonempty) :
-    ∃ wmax ∈ Ξ, ∀ u ∈ Ξ, u.zeroSet.card ≤ wmax.zeroSet.card := by
+    ∃ wmax ∈ Ξ, ∀ u ∈ Ξ, (Concentration.zeroSet u).card ≤ (Concentration.zeroSet wmax).card := by
   classical
   obtain ⟨z₀, hz₀⟩ := hne
   obtain ⟨wmax, hwmaxΞ, hmax⟩ :=
-    Finset.exists_max_image (Ξ.toFinset) (fun z => z.zeroSet.card)
-      ⟨z₀, hz₀⟩
-  refine ⟨wmax, ?_, fun u hu => hmax u hu⟩
-  exact hwmaxΞ
+    Finset.exists_max_image (Ξ.toFinset) (fun z => (Concentration.zeroSet z).card)
+      (show Ξ.toFinset.Nonempty from ⟨z₀, hz₀⟩)
+  exact ⟨wmax, hwmaxΞ, fun u hu => hmax u hu⟩
 
 /-- **The full maximal-zero-set package for a finite family of class points.** There is
-`wmax ∈ Ξ` and `Pmax := wmax.zeroSet` such that `|u.zeroSet| ≤ |Pmax|` for all `u ∈ Ξ`, and every
-`u ∈ Ξ` vanishing on `Pmax` has `u.zeroSet = Pmax`.
+`wmax ∈ Ξ` and `Pmax := (Concentration.zeroSet wmax)` such that `|(Concentration.zeroSet u)| ≤ |Pmax|` for all `u ∈ Ξ`, and every
+`u ∈ Ξ` vanishing on `Pmax` has `(Concentration.zeroSet u) = Pmax`.
 
 This is the exact shape of the `wmax` / `Pmax` hypotheses of hole A (`hwmax`, `hzeroMax`,
 `hmaxExact`, `hzcard`), with the ω-limit set replaced by an arbitrary family.  Instantiating at
 `Ξ := omegaLimit atTop ϕ {x₀}` with the nonnegative clause supplied by `hωnn` + `hωaff` is
 purely mechanical. -/
-theorem exists_maximal_zeroSet_package {x₀ : Concentration S}
+theorem exists_maximal_zeroSet_package (N : Network S) {x₀ : Concentration S}
     {Ξ : Set (Concentration S)} (hΞ : ∀ z ∈ Ξ, z ∈ N.nonnegativeCompatibilityClass x₀)
     (hne : Ξ.Nonempty) :
     ∃ (wmax : Concentration S) (Pmax : Finset S),
       wmax ∈ Ξ ∧
       (∀ s, s ∈ Pmax ↔ wmax s = 0) ∧
-      (∀ u ∈ Ξ, u.zeroSet.card ≤ Pmax.card) ∧
+      (∀ u ∈ Ξ, (Concentration.zeroSet u).card ≤ Pmax.card) ∧
       (∀ u ∈ Ξ, (∀ s ∈ Pmax, u s = 0) → ∀ s, u s = 0 ↔ s ∈ Pmax) := by
   obtain ⟨wmax, hwmaxΞ, hcard_ge⟩ := exists_maximalCard_zeroSet hne
-  refine ⟨wmax, wmax.zeroSet, hwmaxΞ, mem_zeroSet_iff wmax, hcard_ge, ?_⟩
+  refine ⟨wmax, (Concentration.zeroSet wmax), hwmaxΞ, Concentration.mem_zeroSet_iff wmax, hcard_ge, ?_⟩
   intro u hu hvanish
   exact N.exists_maximal_zeroSetOf_card_le hΞ (fun v hv => hcard_ge v hv) hu hvanish
 
@@ -384,8 +405,8 @@ theorem exampleAtoB_zeroSet :
 contained in the zero set of any `z` with `z 1 = 0` and `z 1 < 2`.  This is the concrete instance
 of `zeroSet_ssubset_of_lt_of_zero` and shows the lemma's hypotheses are satisfiable. -/
 theorem exampleAtoB_zeroSet_ssubset (z : Fin 2 → ℝ) (hz1 : z 1 = 0) (hlt : z 1 < 2) :
-    ({1} : Finset (Fin 2)) ⊂ z.zeroSet := by
-  have hgen : (fun s => if s = (0 : Fin 2) then 0 else 2).zeroSet ⊂ z.zeroSet :=
+    ({1} : Finset (Fin 2)) ⊂ (Concentration.zeroSet z) := by
+  have hgen : (fun s => if s = (0 : Fin 2) then 0 else 2).zeroSet ⊂ (Concentration.zeroSet z) :=
     zeroSet_ssubset_of_lt_of_zero hz1 (by simpa using hlt)
   rwa [exampleAtoB_zeroSet] at hgen
 
