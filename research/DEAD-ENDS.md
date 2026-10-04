@@ -87,6 +87,29 @@ Format: one block per entry. `found-by` / `round` / `revive-when` are mandatory.
 ## A-8. CNP does not contain the entry-loss function or the entry-time matrix **[V]**
 
 - **found-by:** `papers-sf` · **round 1** · **revive-when:** never.
+
+## A-9. Craciun v3 is **arXiv:1501.02860**, not 2306.03055 **[V]**
+
+- **found-by:** `papers-craciun` · **round 1** · **revive-when:** never.
+- arXiv:2306.03055 is "Analyzing Syntactic Generalization Capacity of Pre-trained Language Models
+  on Japanese Honorific Conversion" (Sekizawa & Yanaka, cs.CL). The correct paper is
+  **arXiv:1501.02860**, G. Craciun, *Toric Differential Inclusions and a Proof of the Global
+  Attractor Conjecture*, v3.
+- The repository's own notes were right (`docs/persistence-gac.md:283`, `:300`); the swarm brief
+  was wrong.
+
+## A-10. The arXiv HTML of Craciun v3 is truncated — do not use it **[V]**
+
+- **found-by:** `papers-craciun` · **round 1** · **revive-when:** never.
+- `arxiv.org/html/1501.02860v3` ends mid-sentence in §6.1.1 and contains **no §7, §8 or §9**.
+- Those are exactly the sections hole A needs. **A researcher who consults the HTML will
+  silently conclude §7–§9 do not exist.** Use `arxiv.org/pdf/1501.02860v3` (91 pages, complete).
+- Additionally: figures 1–15 are not machine-extractable and the constructions in §5, §6.1.1 and
+  §6.2.1 are specified largely by figure reference, so their numeric blueprint data (specific ε
+  values, red-dot placements, face enumerations) is **not recoverable from text**. Routes needing
+  those numbers must reconstruct them or route through the textual §7.
+- The LaTeX source tarball exists but the read tool cannot descend into the gzip; statements must
+  be taken from the PDF.
 - Craciun–Nazarov–Pantea (arXiv:1010.3050; **SIAM J. Appl. Math. 73 (2013), 305–329** — the year is
   2013, not 2010) contains no entry-loss function, no entry times, no entry-time matrix. Its
   mechanism is an invariant convex polygon orthogonal to normals of `conv(SC(N))`, in dimension
@@ -151,6 +174,65 @@ Format: one block per entry. `found-by` / `round` / `revive-when` are mandatory.
 - Closing Case B via `no_reaction_species_ear_of_trueSRCriterion`
   (`TrueChemistrySRCriterion.lean:5735`) on `qC ⇝ … ⇝ q → s` fails because `s0` sits *strictly
   inside* every such path as an on-cycle species. That is precisely the S4/S5 obligation.
+
+## B-7. `no_spanning_path_of_trueSRCriterion` cannot be applied to `Q0` **[V]**
+
+- **found-by:** `arch-sr-case2` · **round 1** · **revive-when:** never.
+- Blocked *provably*, not merely missing. Its hypothesis
+  `hlast : C.HasVertex (Q.vertex ⟨M, _⟩)` is unsatisfiable: `hqm` puts `q` at position `m`, and
+  `hQ0late` together with `hmpos : 0 < m` forces every index other than `0` off the cycle.
+  `Q0` is **half-spanning**, never spanning.
+
+## B-8. `hopp` does **not** force `k = 1` here **[V]**
+
+- **found-by:** `arch-sr-case2` · **round 1** · **revive-when:** never.
+- `hopp`, `hcausal` and `¬hnc` together constrain only **cycle** classes at cycle species. The
+  first hop of `Q0` lands on an **off-cycle** class, because
+  `TrueInternalAggregateCausalEdge` has no `inl → inl` case.
+- The source comment's "k = 1 is forced by `hopp`" is therefore **only true for a path that stays
+  on the cycle**, and `Q0` is not such a path. **The comment's stated reason is wrong.**
+
+## B-9. **The residue's source comment is factually wrong about the tree** **[V]**
+
+- **found-by:** `arch-sr-case2` · **round 1** · **revive-when:** the port lands.
+- The comment at `TrueChemistrySRCriterion.lean:8600-8607` says the residue "awaits the A.6 Case-2
+  source-block datum or `hrest` degree-two isolation". **Neither exists in `holes`.**
+- The A.6 Case-2 machinery — `CRNT/Multistationarity/TrueSREarCase2.lean` — was written on
+  `sr-fig8` / `backup-fig8` (commit `637a970`). That branch was **`reset: moving to ef8048c`** and
+  **never merged into `holes`**. The comment describes a proof architecture that is not in this
+  tree.
+- **Do not search `holes` for the datum. It is not there. Port it.**
+
+## B-10. There is no upstream case analysis to thread a datum from **[V]**
+
+- **found-by:** `arch-sr-case2` · **round 1** · **revive-when:** never.
+- `harr`, `hdecX`, `hdecY`, `CE`/`QE`/`PE`/`VE` appear **nowhere above** line 8607, and the whole
+  proof constructs only **one** cycle plus **one** aggregate `RelPath`. A.6 Case-2 is not "one
+  level up"; it is a different proof.
+
+---
+
+## The Hole B route that survives round 1
+
+Every other route is refuted, so this one is forced and narrow. In order:
+
+1. **Port** from branch `backup-fig8` (commit `637a970`,
+   `CRNT/Multistationarity/TrueSREarCase2.lean`) exactly four items:
+   `lemmaA6_case2_twoComponents`, `lemmaA6_case2_oneComponent`,
+   `TrueSRCycle.SignDirected`, `TrueSRCycle.sToRIntersectionOfTwoPaths`.
+   Add a new file and import it from `CRNT.lean`. **Do not cherry-pick the branch wholesale** —
+   its remaining content depends on further unmerged side branches (`sr-blocks` `84e49f2`,
+   `sr-route-ear` `9285de1`).
+2. **Build** `exists_second_evenCycle_of_offCycle_escape` — the ear-extraction producer, which is
+   the actual blocker. Start from `relPathToTrueSRSSPath`
+   (`TrueChemistrySRCriterion.lean:5475`) to lift the species-to-species `RelPath` to a
+   `TrueSRSSPath`, and use the in-tree `ss_three_glued_even_of_two` (:7976) for parity.
+3. **Only then** edit lines 8601–8607 to close the ear with the in-scope `hattachment` and feed
+   the resulting two even cycles to `lemmaA6_case2_*`. The 170-line positive branch at
+   8376–8546 must keep elaborating untouched: do not move the `by_cases hv0r` at :8371, the
+   `exfalso` at :8355, or the `hvr` split at :8301.
+
+Step 2 is worth more than steps 1 and 3 combined. It is the single theorem Hole B waits on.
 
 ---
 

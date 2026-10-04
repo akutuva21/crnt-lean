@@ -29,6 +29,24 @@ theorem Network.exists_positive_omegaPoint_of_highCodimension_siphonFace
     ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive
 ```
 
+> **Correction (round 1).** The Craciun v3 reference above originally read "arXiv:2306.03055".
+> That is wrong — arXiv:2306.03055 is an NLP paper on Japanese honorific conversion. The correct
+> identifier is **arXiv:1501.02860**, G. Craciun, *Toric Differential Inclusions and a Proof of the
+> Global Attractor Conjecture*, v3. The repository was already right:
+> `docs/persistence-gac.md:283` and `:300` cite `arxiv.org/html/1501.02860v3`.
+
+> **Accessibility warning, verified round 1.** The arXiv LaTeXML HTML at
+> `arxiv.org/html/1501.02860v3` is **truncated**: it ends mid-sentence in §6.1.1 and contains
+> **no §7, §8 or §9 at all** — precisely the material hole A needs. Anyone relying on the HTML
+> silently loses the entire construction. The **PDF** (`arxiv.org/pdf/1501.02860v3`, 91 pages) is
+> complete and must be used instead.
+>
+> **Figures are a hard blocker for parts of §5–§6.** The constructions in §5, §6.1.1 and §6.2.1
+> are specified largely *by figure reference*. Figure content is not machine-extractable, so the
+> numeric blueprint data (specific ε values, the red dot placements, face enumerations) is **not
+> recoverable from text alone**. Any route that needs those numbers must either reconstruct them or
+> go through §7, which is textual.
+
 Downstream: `Network.complexBalanced_genuinePermanent` → `complexBalanced_permanent` →
 `complexBalanced_globalAttractor`. `#print axioms` on all four currently reports `sorryAx`.
 This theorem is the **entire** residual content of the Global Attractor Conjecture as formalized here.
