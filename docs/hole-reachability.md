@@ -16,24 +16,25 @@ uses that Lean resolves to a different namespace).
 
 | hole | `sorry` site | direct consumers | dependent modules | dependent declarations | **available but unused** |
 |---|---|---|---|---|---|
-| **A** | `CRNT/Dynamics/HighCodimensionSiphonFace.lean:112` (decl at :111) | 2 | 4 | 4 | 151 |
+| **A** | `CRNT/Dynamics/HighCodimensionSiphonFace.lean:116` (decl at :115) | 3 | 5 | 4 | 151 |
 | **B** | `CRNT/Multistationarity/TrueChemistrySRCriterion.lean:8603` (decl at :8003) | 4 | 4 | 3 | 137 |
 
 ## Hole A — `exists_positive_omegaPoint_of_highCodimension_siphonFace`
 
 *Craciun v3 Theorem B / Global Attractor Conjecture*
 
-- **`sorry` site**: `CRNT/Dynamics/HighCodimensionSiphonFace.lean:112` (declaration begins at line 111)
+- **`sorry` site**: `CRNT/Dynamics/HighCodimensionSiphonFace.lean:116` (declaration begins at line 115)
 - **module**: `CRNT.Dynamics.HighCodimensionSiphonFace`
 - **signature**: `theorem exists_positive_omegaPoint_of_highCodimension_siphonFace (N : Network S) (κ : N.RateConstants) {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar) {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S} {x₀ : Concentration S} (hϕγ : ∀ x (`
 - **`sorry` count in the module**: 1
-- **direct importers** (exact): 2
-- **transitive dependent modules** (exact): 4
+- **direct importers** (exact): 3
+- **transitive dependent modules** (exact): 5
 - **transitive dependent declarations** (conservative): 4
 
 ### Direct importers
 
 - `CRNT.Dynamics.GlobalAttractorTheorem` — `CRNT/Dynamics/GlobalAttractorTheorem.lean`, 40 declarations
+- `CRNT.Dynamics.UpperRegionFloorRefutation` — `CRNT/Dynamics/UpperRegionFloorRefutation.lean`, 5 declarations
 - `CRNT.Examples.CodimTwoFaceModel` — `CRNT/Examples/CodimTwoFaceModel.lean`, 35 declarations
 
 ### Transitive dependents, module by module
@@ -42,6 +43,7 @@ Load-bearing modules — a change to any of these can move the hole:
 
 - `CRNT.Dynamics.GlobalAttractorSpecialCases` (`CRNT/Dynamics/GlobalAttractorSpecialCases.lean`, 1 decls)
 - `CRNT.Dynamics.GlobalAttractorTheorem` (`CRNT/Dynamics/GlobalAttractorTheorem.lean`, 40 decls)
+- `CRNT.Dynamics.UpperRegionFloorRefutation` (`CRNT/Dynamics/UpperRegionFloorRefutation.lean`, 5 decls)
 - `CRNT.Examples.CodimTwoFaceModel` (`CRNT/Examples/CodimTwoFaceModel.lean`, 35 decls)
 - `CRNT.Examples.OmegaPointFakeFlow` (`CRNT/Examples/OmegaPointFakeFlow.lean`, 32 decls)
 
@@ -67,12 +69,12 @@ Every declaration that transitively mentions the hole, in breadth-first order
 | `CRNT.Stochastic` | 15 |
 | `CRNT.Equilibria` | 12 |
 | `CRNT.Theorems` | 11 |
-| `CRNT.Graph` | 7 |
 | `CRNT.LinearAlgebra` | 7 |
+| `CRNT.Graph` | 7 |
 | `CRNT.Oscillation` | 6 |
 | `CRNT.Kinetics` | 5 |
-| `CRNT.Decision` | 3 |
 | `CRNT.Flux` | 3 |
+| `CRNT.Decision` | 3 |
 | `CRNT.Basic` | 3 |
 | `CRNT.Stoich` | 2 |
 | `CRNT.Subnetwork` | 1 |
@@ -267,7 +269,7 @@ Every declaration that transitively mentions the hole, in breadth-first order
 These modules are hole-free and are *not* in the hole's transitive dependent
 set, so nothing about them has to change to close the hole:
 
-840 of 846 hole-free `CRNT/` modules are downstream-free.
+840 of 847 hole-free `CRNT/` modules are downstream-free.
 
 <details><summary>list</summary>
 
@@ -1173,8 +1175,8 @@ Every declaration that transitively mentions the hole, in breadth-first order
 | `CRNT.Stoich` | 2 |
 | `CRNT.Subnetwork` | 1 |
 | `CRNT.Flux` | 1 |
-| `CRNT.Open` | 1 |
 | `CRNT.Combinatorics` | 1 |
+| `CRNT.Open` | 1 |
 
 <details><summary>full prerequisite list</summary>
 
@@ -1358,7 +1360,7 @@ Every declaration that transitively mentions the hole, in breadth-first order
 These modules are hole-free and are *not* in the hole's transitive dependent
 set, so nothing about them has to change to close the hole:
 
-840 of 846 hole-free `CRNT/` modules are downstream-free.
+841 of 847 hole-free `CRNT/` modules are downstream-free.
 
 <details><summary>list</summary>
 
@@ -1727,6 +1729,7 @@ set, so nothing about them has to change to close the hole:
 - `CRNT.Dynamics.ToricInclusion`
 - `CRNT.Dynamics.TransversalCrossingTime`
 - `CRNT.Dynamics.Trap`
+- `CRNT.Dynamics.UpperRegionFloorRefutation`
 - `CRNT.Dynamics.VariableTierLyapunov`
 - `CRNT.Dynamics.VariationalEquation`
 - `CRNT.Dynamics.Viability`
@@ -2660,7 +2663,7 @@ dependency cone is the real size of the remaining work.
 
 ## Why this matters operationally
 
-A researcher closing hole A is touching exactly 4 modules that anything downstream imports. Everything else in
+A researcher closing hole A is touching exactly 5 modules that anything downstream imports. Everything else in
 the tree — 841 modules — is inert with respect
 to that hole: editing it cannot make the hole easier or harder, and a `sorry` there
 would not block the Global Attractor Theorem. The same holds for hole B. So a
