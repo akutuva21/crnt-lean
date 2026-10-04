@@ -17,25 +17,28 @@ throats.**
 
 ### 1.1 The pins
 
-`test/AxiomAudit.lean` is extended with a `#crnt_axiom_audit` command that walks the **entire**
-transitive constant-dependency closure of each hole and groups every local theorem by axiom set. The
-existing pins in that file are a hand-picked list, so they can only check what somebody remembered to
-add; the new command cannot miss anything, because the walk starts from the hole and follows the
-environment.
+`test/AxiomAudit.lean` now imports the two hole modules **and** the GAC consumer chain, and pins
+**20 theorems across both chains**. It elaborates with zero errors (`lake env lean
+test/AxiomAudit.lean`, exit 0). The imports were necessary and are themselves a finding:
+`CRNT.lean`'s closure does *not* reach either hole, so without them these names are unknown.
 
-Run: `lake env lean test/AxiomAudit.lean`.
+### What reading the actual output taught me — two things I had assumed wrong
 
-Two implementation notes, because a walk of this size is easy to get silently wrong:
+**1. The clean axiom set is `[propext, Classical.choice, Quot.sound]`, not the shorter
+`[Classical.choice, Quot.sound]`.** `propext` is genuinely reached. The pins record what Lean reports
+rather than what I expected.
 
-* the closure uses an explicit stack and an `ST`-backed seen set — a `List` walk with
-  `Array.contains` is quadratic and does not terminate in reasonable time over this environment
-  (measured: it exceeded 40 minutes before being replaced);
-* dependencies are pushed *after* a constant is popped, so in the resulting array every dependency
-  appears strictly later than its dependent. One reverse pass therefore suffices to propagate axiom
-  sets — no topological sort, and no per-theorem re-walk of the environment.
+**2. The `sorryAx`-tainted set is larger than the four declarations the hole-A docstring named.**
+`stronglyConcordant_of_trueSRCriterion_of_weaklyNormal`, `_of_weaklyReversible`, and
+`injective_of_trueSRCriterion` **all carry `sorryAx`** — correctly, since they are downstream of hole
+B. So the tainted set is 7, not 4. This is pinned exactly: closing a hole shrinks it, and the build
+then fails, which is the behaviour you want from a regression guard.
 
-The standalone driver is `research/Audit/AxiomSweep.lean`, which additionally runs a
-whole-environment census answering a different question (§1.3).
+A note on what I attempted and abandoned: I first wrote a `#crnt_axiom_audit` *command* that walks
+the whole transitive closure rather than a named list. It works but needs parser metaprogramming I
+could not get to elaborate cleanly, and I judged the pins plus `research/Audit/AdjudicationPins.lean`
+to be the better use of the remaining budget. The tool-level census is genuinely missing from the
+repo and is the most valuable remaining item in this section.
 
 ### 1.2 What the two holes depend on
 
@@ -187,13 +190,21 @@ needs a target; if it is meant to be scratch, its count should not read as verif
 
 ---
 
-## 4. Fork adjudication — `upperRegion` is dead, and this is compiled ✅
+## 4. Fork adjudication — `upperRegion` is dead ✅ (consolidated)
+
+> **Provenance note.** I compiled this refutation independently and it verified; the
+> consolidation is owned by `infra-scaffold-crnt` in
+> `CRNT/Dynamics/UpperRegionFloorRefutation.lean`, which factors the bare mechanism out from the
+> CRNT-level `False`. Four agents landed the same theorem, so my copy was reduced to a corollary and
+> deleted rather than merged. The verdict below is what I verified before the consolidation; the
+> surviving theorem is theirs. I also confirmed the `ComparableGrowthDescent` equivalence was
+> **already** in the tree at `SiphonDimensionDescent.lean:368`, so no new declaration was needed for
+> that either — only a pin.
 
 Two round-1 researchers reached opposite verdicts on whether
 `CRNT.Network.exists_positive_omegaPoint_of_upperRegion` (`HighCodimensionSiphonFace.lean:1596`) is a
-live target for hole A. **`papers-craciun` was right.** New module
-`CRNT/Dynamics/UpperRegionAdjudication.lean`, verified with `research/scripts/checkmod.sh` (exit 0,
-0 sorry-warnings):
+live target for hole A. **`papers-craciun` was right.** The theorem I compiled and verified (now living, in better-factored form, in
+`CRNT/Dynamics/UpperRegionFloorRefutation.lean`) had this signature:
 
 ```lean
 theorem CRNT.UpperRegionAdjudication.upperRegion_criterion_inconsistent_with_boundaryOmegaPoint
@@ -216,8 +227,8 @@ theorem CRNT.UpperRegionAdjudication.upperRegion_criterion_inconsistent_with_bou
 ```
 
 Every hypothesis is one of the two theorems'; nothing extra is assumed. `#print axioms` reports
-exactly `[propext, Classical.choice, Quot.sound]` (pinned in
-`research/Audit/AdjudicationPins.lean`).
+exactly `[propext, Classical.choice, Quot.sound]`, and eight related declarations are pinned in
+`research/Audit/AdjudicationPins.lean` (verified: all eight axiom-clean).
 
 **The mechanism, in five lines.** `orbit_stays_in_upperRegion` forces the whole forward orbit into
 `Zupper`. `hfloorC` transfers `hfloor` to `closure Zupper`. `K := closure Zupper ∩ {relEntropy ≤ L}`
@@ -239,8 +250,11 @@ cannot: a boundary ω-point is in the region.
 
 ### Corollary: there is no sufficiency criterion in the tree strictly weaker than the goal ✅
 
+Already in the tree and **already proved**, at `CRNT/Dynamics/SiphonDimensionDescent.lean:368` — I
+wrote a one-line restatement, then deleted it on discovering it added nothing:
+
 ```lean
-theorem CRNT.UpperRegionAdjudication.comparableGrowthDescent_is_not_a_weaker_route (N : Network S)
+theorem CRNT.Network.comparableGrowthDescent_iff_omegaPointPositive (N : Network S)
     {ϕ : Flow ℝ≥0 (Concentration S)} {x₀ : Concentration S} {P₀ : Finset S}
     (hP₀crit : N.IsCriticalSiphon P₀) (hP₀carr : N.SiphonCarried ϕ x₀ P₀) :
     N.ComparableGrowthDescent ϕ x₀ ↔ (∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive)
@@ -249,7 +263,7 @@ theorem CRNT.UpperRegionAdjudication.comparableGrowthDescent_is_not_a_weaker_rou
 `CRNT.Network.ComparableGrowthDescent`, named at `HighCodimensionSiphonFace.lean:167-171` as the
 live alternative to the barrier route, is **equivalent to the goal**. So: the barrier branch dies on
 `hsep`, the region branch dies above, and the descent branch is the goal in disguise. A genuinely
-weaker route must be built from outside the current criterion set.
+weaker route must be built from outside the current criterion set. Pinned for regression.
 
 ### 4.1 A second false claim, found by the compilation and struck ✅
 
@@ -272,7 +286,8 @@ swarm for two rounds. That is the argument for auditing docstrings as carefully 
 * **A green build certifies nothing about holes.** A `sorry`-bearing module still elaborates, so it
   is off `unverified_modules.txt` by construction and `lake build CRNT` is green on the file carrying
   `sorryAx`. The only sound signals are `scripts/dump_sorries.py` and a **transitive** `#print axioms`
-  census. `research/Audit/AxiomSweep.lean` computes the latter over the whole environment.
+  census over the whole environment — that tool is the most valuable missing item in this repo, and
+  is listed as such in §1.
 * **Never add a hole-free module to `scripts/unverified_modules.txt`.** It is the `excludeGlobs` of the
   `CRNT` library; listing a working module there removes it from every build target, silently. A new
   file under `CRNT/` is picked up automatically by the `CRNT.+` glob.
@@ -295,8 +310,7 @@ swarm for two rounds. That is the argument for auditing docstrings as carefully 
 cd <worktree>
 python3 research/Audit/ledger_integrity.py          # §3, both directions
 export LEAN_PATH="/Users/akutuva/Documents/Proofs/crnt-lean/.lake/build/lib/lean"
-lake env lean research/Audit/AxiomSweep.lean        # §1.1, whole-env sorryAx census
-lake env lean research/Audit/AdjudicationPins.lean   # §4 axiom pins
-lake env lean test/AxiomAudit.lean                   # §1, exhaustive chain audit
-research/scripts/checkmod.sh CRNT/Dynamics/UpperRegionAdjudication.lean   # §4
+lake env lean research/Audit/AdjudicationPins.lean   # §4 axiom pins (8 declarations)
+lake env lean test/AxiomAudit.lean                   # §1, 20 pins over both chains
+research/scripts/checkmod.sh CRNT/Dynamics/HighCodimensionSiphonFace.lean  # §1.3, §4.1
 ```
