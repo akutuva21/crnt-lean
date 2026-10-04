@@ -61,6 +61,13 @@ jobs:
       - name: Exclusion-ledger audit
         run: python3 scripts/check_exclusions.py
 
+      # `lakefile.toml`, `CRNTFrontier.lean` and `scripts/frontier_history.txt` are all
+      # generated from scripts/unverified_modules.txt.  If a PR edits any of them by
+      # hand, the build it describes and the build CI runs are not the same build.
+      # Run before check_exclusions.py so the message names the root cause.
+      - name: Generated files in sync with the ledger
+        run: python3 scripts/gen_lakefile.py --check
+
   # ---------------------------------------------------------------------------
   # The verified core.  Green here means the non-ledger modules really do
   # elaborate with no `sorry` and no axioms beyond Mathlib's -- the latter

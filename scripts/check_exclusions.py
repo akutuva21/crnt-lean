@@ -1,10 +1,11 @@
-#!/usr/bin/env python3
 """Enforce the invariants around the unverified-module ledger.
 
 Four checks:
 
-  1. `lakefile.toml` is exactly what `gen_lakefile.py` would produce from the ledger,
-     so nobody can quietly exclude a module by editing the lakefile.
+  1. `lakefile.toml`, `CRNTFrontier.lean` and `scripts/frontier_history.txt` are
+     exactly what `gen_lakefile.py --check` would produce from the ledger, so
+     nobody can quietly exclude a module by editing a generated file.  This is
+     read-only; it never repairs the tree.
   2. The ledger has not grown past its recorded baseline.  It may shrink freely.
   3. Every ledger entry names a file that exists on disk (a stale entry hides the
      fact that a module was deleted -- the previous lakefile excluded
@@ -24,12 +25,10 @@ import os
 import re
 import subprocess
 import sys
-import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LEDGER = os.path.join(ROOT, "scripts", "unverified_modules.txt")
 BASELINE = os.path.join(ROOT, "scripts", "unverified_baseline.txt")
-LAKEFILE = os.path.join(ROOT, "lakefile.toml")
 GEN = os.path.join(ROOT, "scripts", "gen_lakefile.py")
 
 
@@ -76,25 +75,21 @@ def main() -> int:
 
     failed = False
 
-    # ---- 1. lakefile in sync -------------------------------------------------
-    with open(LAKEFILE, encoding="utf-8") as fh:
-        current = fh.read()
-    with tempfile.TemporaryDirectory() as tmp:
-        shadow = os.path.join(tmp, "lakefile.toml")
-        env = dict(os.environ)
-        proc = subprocess.run([sys.executable, GEN], capture_output=True, text=True, env=env)
-        if proc.returncode != 0:
-            print("::error::gen_lakefile.py failed:\n" + proc.stderr, file=sys.stderr)
-            return 1
-        with open(LAKEFILE, encoding="utf-8") as fh:
-            regenerated = fh.read()
-        del shadow
-    if current != regenerated:
+    # ---- 1. generated files in sync -----------------------------------------
+    # `--check` writes nothing.  The previous version regenerated the lakefile as a
+    # side effect of *testing* it, so a gate could silently repair a hand-edited
+    # lakefile and then report "ok" -- the drift was fixed locally and merged as a
+    # no-op, and the next checkout broke again.
+    proc = subprocess.run([sys.executable, GEN, "--check"], capture_output=True, text=True)
+    if proc.returncode != 0:
         failed = True
-        print("::error::lakefile.toml was out of sync with scripts/unverified_modules.txt "
-              "(it has now been regenerated -- commit the result).", file=sys.stderr)
+        sys.stderr.write(proc.stdout)
+        sys.stderr.write(proc.stderr)
+        print("::error::generated files drifted from scripts/unverified_modules.txt "
+              "(run `python3 scripts/gen_lakefile.py` and commit the result).", file=sys.stderr)
     else:
-        print("ok: lakefile.toml matches the ledger")
+        print(proc.stdout.strip().splitlines()[-1] if proc.stdout.strip() else
+              "ok: lakefile.toml matches the ledger")
 
     # ---- 2. shrink-only -----------------------------------------------------
     if os.path.exists(BASELINE):

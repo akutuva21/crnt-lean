@@ -1,22 +1,33 @@
 #!/usr/bin/env python3
 """Promote ledger modules into the verified core — atomically.
 
-Promotion touches five files that must stay mutually consistent, and `check_exclusions.py`
+Promotion touches files that must stay mutually consistent, and `check_exclusions.py`
 fails loudly if they drift:
 
     scripts/unverified_modules.txt   drop the promoted entries
-    scripts/unverified_baseline.txt  lower the count (shrink-only)
     CRNT.lean                        add imports, BEFORE the module docstring
-    CRNTFrontier.lean                drop the imports
     lakefile.toml                    regenerate from the ledger
+    CRNTFrontier.lean                regenerate from the ledger + frontier history
 
-Doing that by hand is how the five drift. This snapshots every file first, applies the
+Doing that by hand is how they drift. This snapshots every file first, applies the
 change, runs `gen_lakefile.py` and all four gates, and **restores the snapshot if anything
 fails**, so a bad promotion cannot leave the tree half-edited.
 
-Eligibility is not taken on trust: a module may be promoted only if `promotable.py`'s two
-conditions hold — its `.olean` exists (Lean has actually checked it) and its whole transitive
-import closure is `sorry`-free.
+Two things this deliberately does *not* do, because both used to happen here and both
+quietly destroyed the guard rails:
+
+  * It does not lower `scripts/unverified_baseline.txt`.  That file is the high-water
+    mark the growth guard compares against; auto-lowering it on every promotion means
+    a promotion can be undone by re-adding the same number of bad modules.  Only the
+    certified path, `scripts/close_hole.sh`, may lower it.
+  * It does not delete the promoted module's `import` from `CRNTFrontier.lean`.  The
+    frontier target is the thing whose elaboration-error count is the progress metric;
+    dropping a module from it the moment the module is verified is how the metric
+    silently stops measuring it.  `CRNTFrontier.lean` is generated, and a graduating
+    module moves to `scripts/frontier_history.txt` instead of disappearing.
+
+Eligibility is not taken on trust: a module may be promoted only if its `.olean` exists
+(Lean has actually checked it) and its whole transitive import closure is `sorry`-free.
 
 Usage
     python3 scripts/promote.py --dry-run
@@ -35,10 +46,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUILD = os.path.join(ROOT, ".lake", "build", "lib", "lean")
 LEDGER = os.path.join(ROOT, "scripts", "unverified_modules.txt")
 BASELINE = os.path.join(ROOT, "scripts", "unverified_baseline.txt")
+HISTORY = os.path.join(ROOT, "scripts", "frontier_history.txt")
 UMBRELLA = os.path.join(ROOT, "CRNT.lean")
 FRONTIER = os.path.join(ROOT, "CRNTFrontier.lean")
 LAKEFILE = os.path.join(ROOT, "lakefile.toml")
-TOUCHED = [LEDGER, BASELINE, UMBRELLA, FRONTIER, LAKEFILE]
+TOUCHED = [LEDGER, BASELINE, HISTORY, UMBRELLA, FRONTIER, LAKEFILE]
 GATES = ["check_imports", "check_stubs", "check_undefined_names", "check_exclusions"]
 
 IMPORT = re.compile(r"^import\s+(CRNT[\w.]*)\s*$", re.M)
@@ -86,6 +98,23 @@ def scan():
                 imports[m] = IMPORT.findall(t)
                 sorries[m] = len(SORRY.findall(strip_comments(t)))
     return imports, sorries
+
+
+def import_closure(entry, imports=None):
+    """Every `CRNT.*` module transitively imported by `entry` (itself excluded)."""
+    if imports is None:
+        imports, _ = scan()
+    seen, stack = set(), [entry]
+    while stack:
+        m = stack.pop()
+        if m in seen:
+            continue
+        seen.add(m)
+        for d in imports.get(m, ()):
+            if d not in seen:
+                stack.append(d)
+    seen.discard(entry)
+    return seen
 
 
 def closure_clean(m, imports, sorries, memo, stack=frozenset()):
@@ -140,26 +169,30 @@ def apply_promotion(mods):
     kept = [l for l in lines if l.strip() not in mset]
     open(LEDGER, "w", encoding="utf-8").write("\n".join(kept))
 
-    # 2. baseline (shrink-only)
-    remaining = len(read_ledger())
-    open(BASELINE, "w", encoding="utf-8").write(f"{remaining}\n")
-
-    # 3. umbrella — insert after the LAST `import CRNT...`, which keeps the new imports
+    # 2. umbrella — insert after the LAST `import CRNT...`, which keeps the new imports
     #    ahead of the module docstring.  An import after the docstring parses fine in
-    #    isolation and only breaks in the umbrella.
-    ul = open(UMBRELLA, encoding="utf-8").read().split("\n")
-    last = max(i for i, l in enumerate(ul) if l.startswith("import CRNT"))
-    block = ["", "-- Promoted from the frontier ledger (elaborated, closure sorry-free)."]
-    block += [f"import {m}" for m in sorted(mods)]
-    ul[last + 1:last + 1] = block
-    open(UMBRELLA, "w", encoding="utf-8").write("\n".join(ul))
+    #    isolation and only breaks in the umbrella.  Modules already reachable from
+    #    `CRNT.lean` are left alone: re-importing them would duplicate the line.
+    reachable = import_closure("CRNT")
+    fresh = [m for m in sorted(mset) if m not in reachable]
+    if fresh:
+        ul = open(UMBRELLA, encoding="utf-8").read().split("\n")
+        imports_at = [i for i, l in enumerate(ul) if l.startswith("import CRNT")]
+        at = (imports_at[-1] + 1) if imports_at else 0
+        block = ["", "-- Promoted from the frontier ledger (elaborated, closure sorry-free)."]
+        block += [f"import {m}" for m in fresh]
+        ul[at:at] = block
+        open(UMBRELLA, "w", encoding="utf-8").write("\n".join(ul))
 
-    # 4. frontier
-    fl = open(FRONTIER, encoding="utf-8").read().split("\n")
-    fl = [l for l in fl if not (l.startswith("import ") and l[7:].strip() in mset)]
-    open(FRONTIER, "w", encoding="utf-8").write("\n".join(fl))
+    # 3. baseline: deliberately untouched.  See the module docstring — only
+    #    `scripts/close_hole.sh`, which additionally certifies the axioms and the
+    #    build, is allowed to lower the growth guard.
 
-    return remaining
+    # 4. CRNTFrontier.lean is *generated* from the ledger plus
+    #    `scripts/frontier_history.txt`; `gen_lakefile.py` (run by main) rewrites it and
+    #    appends the promoted modules to the history, so the frontier target keeps
+    #    elaborating them and its error count keeps measuring them.
+    return len(read_ledger())
 
 
 def run(cmd):
