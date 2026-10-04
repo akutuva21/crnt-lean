@@ -197,5 +197,41 @@ theorem positive_omegaLimit_of_confinedToFlooredRegion
   intro y hy s
   exact lt_of_lt_of_le hε (hfloorC (hωZ hy) s)
 
+omit [DecidableEq S] [Fintype S] in
+/-- **The universal-positive form: the single template that retires the whole family.**
+
+If the forward orbit of `x₀` under `ϕ` is eventually contained in a set `K` that is *closed*
+and *pointwise strictly positive*, then **every** ω-limit point is strictly positive.
+
+This is strictly more general than `positive_omegaLimit_of_confinedToFlooredRegion`: a uniform
+floor on a set whose closure traps the orbit is one way to produce such a `K`, but any
+closed, pointwise-positive confining set does, however it was obtained — and the hypothesis
+here is a bare set-theoretic condition, with no floor, no `ε`, no concentration structure and
+no reaction network at all.
+
+**Why this is the right thing to state.** The hole
+`exists_positive_omegaPoint_of_highCodimension_siphonFace` asks for
+`∃ p ∈ omegaLimit, p.Positive` **while permitting** a boundary ω-point (`hwmax`,
+`hzeroMax`, `hPmaxne`). This lemma yields the *universal* form `∀ w ∈ omegaLimit, w.Positive`,
+which is exactly the negation of that permission. So **every** criterion in the tree whose
+orbit-confinement is discharged by a closed pointwise-positive set — `Permanent`
+(`EndotacticPermanence.lean:58`), `exists_positive_omegaPoint_of_upperRegion`,
+`not_persistentFrom_of_mem_omegaLimit_notPositive`
+(`HighCodimensionSiphonFace.lean:407`), and the `hsep`-family of the packaged barrier criteria
+— is unusable here for one structural reason, not for a reason particular to any of them.
+
+The practical rule this yields: *a permanence criterion must not confine the orbit to a
+closed, everywhere-positive set.* Whatever the geometry, that converts an existential
+conclusion into a universal one and negates the hole's hypothesis. -/
+theorem universalPositive_omegaLimit_of_closedPositiveConfine
+    {ϕ : Flow ℝ≥0 (Concentration S)} {x₀ : Concentration S} {K : Set (Concentration S)}
+    (hKc : IsClosed K) (hKpos : ∀ y ∈ K, y.Positive)
+    {v : Set ℝ≥0} (hv : v ∈ (atTop : Filter ℝ≥0))
+    (hvK : closure (Set.image2 ϕ v {x₀}) ⊆ K) :
+    ∀ y ∈ omegaLimit atTop ϕ {x₀}, y.Positive := by
+  intro y hy
+  exact hKpos y (hvK ((omegaLimit_subset_closure_image2 (f := atTop) (ϕ := ϕ) (s := {x₀})
+    hv) hy))
+
 end Network
 end CRNT

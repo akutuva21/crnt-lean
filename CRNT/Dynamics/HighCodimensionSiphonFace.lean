@@ -73,7 +73,11 @@ currently has no polytope, face-lattice, or normal-fan API to build it on.
 `#print axioms CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace` reports
 `sorryAx`, and so do exactly its downstream consumers
 `Network.complexBalanced_genuinePermanent`, `Network.complexBalanced_permanent`, and
-`Network.complexBalanced_globalAttractor`.  No other declaration in the tree does.
+`Network.complexBalanced_globalAttractor`.  **Correction:** that last sentence was wrong — there
+is one further `sorryAx` site in the tree, `CRNT/Multistationarity/TrueChemistrySRCriterion.lean:8607`
+(`Network.stronglyConcordant_fullyOpen_of_trueSRCriterion`), which is not in this file's consumer
+set and so does not affect the three names above.  The accurate statement is that **no other
+declaration in Hole A's transitive import closure** reports `sorryAx`.
 
 Depends on: `CRNT.Dynamics.FaceCodimension`, `CRNT.Dynamics.SiphonDimensionDescent`,
 `CRNT.Dynamics.ToricBarrierTrapping`.
@@ -1490,9 +1494,20 @@ lemma assembles Layer A with
 `K := closure Zupper ∩ {y | y.Nonnegative ∧ relEntropy xstar y ≤ relEntropy xstar x₀}`: closed floors
 survive into `closure Zupper`, boundedness and closedness come from `isCompact_relEntropy_sublevel`
 (the Horn–Jackson level through `x₀`, the [INFERENCE] Layer-C factor), invariance from the bridge
-plus Lyapunov descent, and positivity from the floor.  No `hMclass`, no convex barrier, no `hsep`,
-so the packaged criteria's refutable clauses (`hsep_fails_of_boundaryPoint_mem_sublevel`) do not
-touch this shape — a non-convex upper region is exactly what escapes the segment argument.
+so the packaged criteria's *stated* clauses (`hsep_fails_of_boundaryPoint_mem_sublevel`) do not
+touch this shape — a non-convex upper region is what escapes the segment argument.
+
+**Correction (machine-checked).** The non-convexity escape does *not* hold.  This shape is
+refuted too, and by a stronger mechanism than the segment argument: `hfloor` is consumed
+through `closure_minimal`, so it is a statement about `closure Zupper` and not about `Zupper`,
+while ω-limit points lie in the closure of the forward orbit image, which `hstay` puts inside
+`Zupper`.  The floor therefore reaches `ω` whatever the shape of `Zupper`, and the criterion
+yields `∀ w ∈ ω, w.Positive` — the negation of this theorem's own premise.
+`CRNT/Dynamics/UpperRegionFloorRefutation.lean` states both halves:
+`false_of_upperRegion_and_boundaryOmegaPoint` (`False`, sorryAx-free) and
+`positive_omegaLimit_of_confinedToFlooredRegion` (the bare mechanism, with no reaction-network
+structure at all).  Convexity was never the operative hypothesis; *closedness plus
+containment of the orbit image* is.
 -/
 
 /-- **The missing §9.1 bridge: non-crossing ⟹ the orbit stays in the upper region.**
