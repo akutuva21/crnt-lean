@@ -137,20 +137,14 @@ noncomputable section
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
   [T1Space E]
 
-/-- **A complete pointed polyhedral fan, with the fan axioms as proved fields.**
+/-- **A finite family of proper cones that covers the space, is closed under intersection, and
+contains the zero cone** — with the three pieces of evidence as *proved fields*.
 
-A `CompleteFan` is a finite family of proper cones (`ProperCone ℝ E`, i.e. closed and pointed)
-together with the four pieces of evidence that make it a fan:
-
-* `inter_closed` — the meet of two cones of the family is a cone of the family;
-* `covers` — the cones cover the ambient space;
-* `faces_closed` — every exposed face of a cone of the family is a cone of the family;
-* `zero_face_mem` — the zero cone is a cone of the family.
-
-These are *fields*, so an inhabitant carries proofs; they are never asserted without proof.
-`CompleteFan.isPolyhedralFan` converts an inhabitant into the `CRNT.IsPolyhedralFan` predicate
-used elsewhere in the tree.  See `Scaffold.Geometry.FanArrangement` for a construction. -/
-structure CompleteFan (E : Type*) [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+This is what a construction can supply without Farkas' lemma: covering is a matter of letting
+each point choose its own sign pattern, and intersection-closure is a matter of concatenating
+constraints.  `CompleteFan.ofFunctionalSystem` in `Scaffold.Geometry.FanArrangement` builds one
+from a finite separating family of linear functionals. -/
+structure ClosedFan (E : Type*) [NormedAddCommGroup E] [InnerProductSpace ℝ E]
     [CompleteSpace E] where
   /-- The cone family. -/
   toFan : Fan E
@@ -158,24 +152,39 @@ structure CompleteFan (E : Type*) [NormedAddCommGroup E] [InnerProductSpace ℝ 
   inter_closed : ∀ C ∈ toFan, ∀ D ∈ toFan, C ⊓ D ∈ toFan
   /-- **Completeness.** The cones cover the ambient space. -/
   covers : (⋃ C ∈ toFan, (C : Set E)) = Set.univ
-  /-- **Closure under exposed faces.** -/
-  faces_closed : ∀ C ∈ toFan, ∀ D : ProperCone ℝ E, IsExposedFaceOf D C → D ∈ toFan
   /-- **The zero face is a cone of the family.** -/
   zero_face_mem : (⊥ : ProperCone ℝ E) ∈ toFan
 
-namespace CompleteFan
+/-- **A complete pointed polyhedral fan, with the fan axioms as proved fields.**
 
-variable {F : CompleteFan E}
+A `CompleteFan` is a `ClosedFan` — a finite family of proper cones (`ProperCone ℝ E`, i.e.
+closed and pointed) covering the ambient space, closed under intersection and containing the zero
+cone — together with the remaining fan axiom:
 
-/-- **A `CompleteFan` is a `CRNT.IsPolyhedralFan`.** This is the bridge to the rest of the
-tree: `FanFaceLattice`, `ToricFan` and `PolyhedralBarrier` consume `IsPolyhedralFan`. -/
-theorem isPolyhedralFan : IsPolyhedralFan F.toFan := by
-  refine ⟨F.faces_closed, ?_, F.covers⟩
-  intro C hC D hD
-  refine ⟨C ⊓ D, F.inter_closed C hC D hD, ?_⟩
-  show (C ⊓ D : Set E) = (C : Set E) ∩ (D : Set E)
-  ext x
-  simp
+* `faces_closed` — every exposed face of a cone of the family is a cone of the family.
+
+These are *fields*, so an inhabitant carries proofs; they are never asserted without proof.
+`CompleteFan.isPolyhedralFan` converts an inhabitant into the `CRNT.IsPolyhedralFan` predicate
+used elsewhere in the tree.  `CompleteFan.ofClosedFan` upgrades a `ClosedFan` once face-closure
+has been established. -/
+structure CompleteFan (E : Type*) [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] extends ClosedFan E where
+  /-- **Closure under exposed faces.** -/
+  faces_closed : ∀ C ∈ toFan, ∀ D : ProperCone ℝ E, IsExposedFaceOf D C → D ∈ toFan
+
+/-- Upgrade a `ClosedFan` to a `CompleteFan` by supplying the exposed-face axiom. -/
+def CompleteFan.ofClosedFan (F : ClosedFan E)
+    (hfaces : ∀ C ∈ F.toFan, ∀ D : ProperCone ℝ E, IsExposedFaceOf D C → D ∈ F.toFan) :
+    CompleteFan E where
+  toFan := F.toFan
+  inter_closed := F.inter_closed
+  covers := F.covers
+  zero_face_mem := F.zero_face_mem
+  faces_closed := hfaces
+
+namespace ClosedFan
+
+variable {F : ClosedFan E}
 
 /-- **Completeness, pointwise.** Every point of the ambient space lies in a cone of the fan.
 This is the geometric content of a *complete* fan and the first thing any consumer needs. -/
@@ -221,6 +230,41 @@ theorem exists_mem_le_finset (s : Finset (ProperCone ℝ E)) (hs : s.Nonempty)
 /-- The zero face is the least cone of the family: it lies in every cone of the fan. -/
 theorem zero_face_le {C : ProperCone ℝ E} (hC : C ∈ F.toFan) : (⊥ : ProperCone ℝ E) ≤ C :=
   bot_le
+
+end ClosedFan
+
+namespace CompleteFan
+
+variable {F : CompleteFan E}
+
+/-- A `CompleteFan` viewed as the `ClosedFan` it contains. -/
+def forgetFaces (F : CompleteFan E) : ClosedFan E :=
+  ⟨F.toFan, F.inter_closed, F.covers, F.zero_face_mem⟩
+
+/-- **Completeness, pointwise**, restated for a `CompleteFan`.  Every point of the ambient space
+lies in a cone of the fan. -/
+theorem complete (x : E) : ∃ C ∈ F.toFan, x ∈ C := F.forgetFaces.complete x
+
+/-- **The meet of two cones of the fan is a cone of the fan**, restated for a `CompleteFan`. -/
+theorem inter_mem {C D : ProperCone ℝ E} (hC : C ∈ F.toFan) (hD : D ∈ F.toFan) :
+    C ⊓ D ∈ F.toFan :=
+  F.forgetFaces.inter_mem hC hD
+
+/-- **A nonempty finite family of fan cones has a least element inside the fan**, restated for a
+`CompleteFan`. -/
+theorem exists_mem_le_finset (s : Finset (ProperCone ℝ E)) (hs : s.Nonempty)
+    (h : ∀ C ∈ s, C ∈ F.toFan) :
+    ∃ G ∈ F.toFan, ∀ C ∈ s, G ≤ C := F.forgetFaces.exists_mem_le_finset s hs h
+
+/-- **A `CompleteFan` is a `CRNT.IsPolyhedralFan`.** This is the bridge to the rest of the
+tree: `FanFaceLattice`, `ToricFan` and `PolyhedralBarrier` consume `IsPolyhedralFan`. -/
+theorem isPolyhedralFan : IsPolyhedralFan F.toFan := by
+  refine ⟨F.faces_closed, ?_, F.covers⟩
+  intro C hC D hD
+  refine ⟨C ⊓ D, F.inter_closed C hC D hD, ?_⟩
+  show (C ⊓ D : Set E) = (C : Set E) ∩ (D : Set E)
+  ext x
+  simp
 
 /-- An exposed face of a fan cone lies in that cone. -/
 theorem face_le {C D : ProperCone ℝ E} (hD : IsExposedFaceOf D C) : D ≤ C := by
