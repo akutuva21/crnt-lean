@@ -25,6 +25,7 @@ This swarm is modelled on Karpathy's *autoresearch* loop, transplanted to Lean.
 3. **Keep the improvements, kill the rest.** Every round the orchestrator scores all
    researchers, culls the bottom 30%, and re-seeds with fresh ones. Dead ends are not failures of
    effort; they are the measurement working.
+
 4. **Persistent individuals.** A researcher that finds something real keeps its identity, its
    branch, its worktree, and its accumulated notes across rounds. Continuity beats amnesia.
 5. **No self-congratulation.** A lemma that compiles is worth less than a lemma that *closes a
@@ -145,3 +146,36 @@ The orchestrator computes each researcher's round score from the tree, not from 
 | statement provable only via a false step / vacuous hypothesis (caught by audit) | **−200** |
 
 Bottom 30% of the field is retired at the end of each round and re-seeded.
+
+## 6. Provenance corrections
+
+The swarm's own briefs are fallible material and are corrected here as errors are found. These
+entries are part of the record, not an embarrassment to be edited away.
+
+### Round 1 — Anderson–Shiu citation (found by `papers-sf`)
+
+An earlier draft of the papers brief cited "Anderson & Shiu, *A facet-scheme for the global
+attractor conjecture*, arXiv:2006.02483". Wrong on both counts: arXiv:2006.02483 is a dengue
+time-series epidemiology paper, and there is no such facet-scheme paper under that name. The
+correct reference is D. F. Anderson, *The dynamics of weakly reversible population processes near
+facets*, SIAM J. Appl. Math. **70** (2010), 1840–1858, **arXiv:0903.0901**. The repository already
+cites it correctly at `CRNT/Dynamics/FacetRepulsionAndersonShiu.lean:22-24`. Anderson's Theorem 3.2
+is the near-facet estimate that closes hole A's codimension-1 case, and its corollary covers GAC
+where the associated invariant manifolds are two-dimensional — precisely the boundary hole A sits
+on. **Do not "fix" the repository toward the wrong identifier.**
+
+### Round 1 — provenance of the `wmax`/`Pmax` package (found by `papers-sf`)
+
+`BRIEF-B`'s framing attributed the persistence entry-loss function and entry-time matrix to
+Craciun–Nazarov–Pantea and claimed the `wmax`/`Pmax` package "comes from it". Having read CNP in
+full (arXiv:1010.3050; note the publication year is **2013**, SIAM J. Appl. Math. 73(1), 305–329,
+not 2010), that premise is **false**: CNP contains no entry-loss function, no entry times and no
+entry-time matrix. Its mechanism is an invariant convex polygon whose sides are orthogonal to
+normals of `conv(SC(N))`, and it is a two-/three-dimensional theory. The entry-time machinery
+belongs to D. F. Anderson, *Global asymptotic stability for a class of nonlinear chemical
+equations*, SIAM J. Appl. Math. **68** (2008), 1464–1476 (full text not accessed; only the
+bibliographic fact is asserted). Separately, `relEntropy` + tiers + Stiemke is Anderson,
+arXiv:1101.0761 (SIAM J. Appl. Math. 71 (2011), 1487–1508), whose mechanism is monomial tiering
+along a subsequence — also not an entry-loss function. The repository's existing provenance notes
+(`CRNT/Dynamics/KnownGlobalPersistenceClasses.lean:16-17`, `CRNT/Dynamics/EndotacticPermanence.lean:9`)
+were correct; the brief was not.
