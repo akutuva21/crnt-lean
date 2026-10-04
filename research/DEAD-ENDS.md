@@ -1850,3 +1850,56 @@ episode in OPS-3 where a commit **message** claimed a revert its tree did not pe
 So a vacuous `δ` yields a vacuous inclusion — **the same shape as VAC-1** (the empty
 `DifferentialInclusion.Field`). Recorded as the reason δ "biting downstream" is not merely a
 quantitative nuisance.
+
+## B-31. ⭐ **The Hole B residue reduces to ONE named proposition: `no_offCycle_negFlux`** **[M]**
+
+- **found-by:** `form-sr-deg2a` (PR #20), `CRNT/Multistationarity/TrueSRCycleSpeciesDegree.lean`,
+  10 declarations, all hole-free. **This is the most precise reduction of Hole B anyone has produced.**
+- **`classFlux_trichotomy`:** at `C.species b` the aggregate class flux of `C.reaction a` is **positive
+  iff `b` is the successor of `a`, negative iff `a = b`, zero otherwise.** So the aggregate causal
+  degree of a cycle species over the cycle classes is **exactly 1 out and 1 in — no slack.**
+- **Consequence:** the unique out-neighbour of `C.species b` is `C.reaction b`, which is a **cycle
+  vertex**, and `hQ0late` forbids index 1. So **the residue is equivalent to one named proposition**:
+
+  ```lean
+  def no_offCycle_negFlux (α σ C) :=
+    ∀ b ρ, ¬ C.HasReaction ρ → 0 ≤ flux α ρ (C.species b) * σ (C.species b)
+  ```
+
+- **`no_escape_from_cycleSpecies`:** under `no_offCycle_negFlux` the residue branch — a minimal
+  aggregate `RelPath` from an on-cycle species with all later vertices off-cycle — is closed
+  outright, yielding `False`. **A full conditional discharge of Case B.**
+- **`exists_offCycle_negFlux_class`** is the positive form: since the branch is *reached*,
+  `¬ no_offCycle_negFlux` holds, so **there IS a concrete off-cycle class `ρ` with negative flux at a
+  cycle species.** That is the ear's off-cycle endpoint **as data**. Pair it with `hattachment` (class
+  `q` positive at a cycle species) and **both off-cycle ends are in hand.**
+
+### `no_offCycle_negFlux` is the correctly-scoped replacement for `hrest` **[M]**
+
+- It is **not** refuted by `hattachment`, unlike `hrest` — which fails only on its own scope (B-3).
+- It also **mechanically explains B-8**: the in-tree comment at `:8600-8607` says `hopp` forces
+  `k = 1`. It does not, because `hopp`/`hcausal`/`¬hnc` constrain **only cycle classes** while the
+  first hop lands on an **off-cycle** class. `no_offCycle_negFlux` is scoped correctly; `hopp` is not.
+
+## B-32. `rrGluable_reactionArcFwd` — the EAR-EXTRACTION gluability, and it does not collide **[M]**
+
+- **found-by:** same. In the renamed `CRNT/Multistationarity/TrueSREarRRGluable.lean` (9 declarations,
+  hole-free, axioms `[propext, Classical.choice, Quot.sound]`).
+- **`rrGluable_reactionArcFwd`:** an off-cycle RR path `A` whose endpoints are `C.reaction i` and
+  `C.reaction j`, meeting `C` nowhere else, satisfies
+  `RRGluable (reactionArcFwd C i j hij) A`. **This is the ear-extraction gluability.**
+- **It is NOT `rr_gluable_arcs`** (arc vs arc, owned by `form-sr-glue`) **and does not collide with
+  it.** Together they give everything: `rr_gluable_arcs` for the two cycle arcs, this one for the ear.
+
+## B-33. A name collision was caught and self-corrected **[S]**
+
+`form-sr-deg2a` first shipped `CRNT/Multistationarity/TrueSRReactionArc.lean`, **colliding by name**
+with #17's file, then **renamed its own to `TrueSREarRRGluable.lean`** rather than push a conflict.
+Purely additive (control: the `TrueSRParityRR.lean` diff is empty, so no privacy lift rode along).
+**Self-correction reported rather than resolved silently** — consistent with the round's audit rule.
+
+## ⚠️ Vacuity caveat, volunteered **[S]**
+
+**`no_offCycle_negFlux` has NOT been shown satisfiable.** Per B-26 nothing here assumes a witness
+exists; all of it is cycle-internal or conditional. **This is the live dependency for Hole B** —
+`form-sr-witness` owns it.
