@@ -1504,7 +1504,24 @@ survive into `closure Zupper`, boundedness and closedness come from `isCompact_r
 (the Horn–Jackson level through `x₀`, the [INFERENCE] Layer-C factor), invariance from the bridge
 plus Lyapunov descent, and positivity from the floor.  No `hMclass`, no convex barrier, no `hsep`,
 so the packaged criteria's refutable clauses (`hsep_fails_of_boundaryPoint_mem_sublevel`) do not
-touch this shape — a non-convex upper region is exactly what escapes the segment argument.
+touch this shape.
+
+**But the floor clause `hfloor` is refutable here anyway, and non-convexity does not save it.**  An
+earlier version of this paragraph claimed that "a non-convex upper region is exactly what escapes the
+segment argument".  That is **false**, and
+`CRNT.UpperRegionAdjudication.upperRegion_criterion_inconsistent_with_boundaryOmegaPoint` proves it:
+take these lemmas' hypotheses together with `hwmax : wmax ∈ omegaLimit`, `hPmaxne`, and
+`hzeroMax`, and you get `False`.  The floor is consumed at `hfloorC` by `closure_minimal`, i.e. as a
+fact about `closure Zupper`, and ω-limit points lie in `closure (image2 ϕ v {x₀})` — which `hstay`
+puts inside `Zupper`.  So the floor reaches the ω-set through the closure whether or not `Zupper` is
+convex.  The mechanism is the same as `Permanent`: `K` is universally positive and `ω ⊆ K`.
+
+Consequence: **this pair of lemmas is not a route to hole A.**  The criterion is a correct conditional
+— a genuine trajectory whose ω-limit set never meets the boundary does satisfy it — but its surface
+data cannot be built *in the case hole A is about*, because a boundary ω-point is in the region.
+For the same reason `CRNT.Network.ComparableGrowthDescent`, named below as the live alternative, is
+equivalent to the goal rather than weaker than it
+(`CRNT.UpperRegionAdjudication.comparableGrowthDescent_is_not_a_weaker_route`).
 -/
 
 /-- **The missing §9.1 bridge: non-crossing ⟹ the orbit stays in the upper region.**

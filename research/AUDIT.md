@@ -251,6 +251,20 @@ live alternative to the barrier route, is **equivalent to the goal**. So: the ba
 `hsep`, the region branch dies above, and the descent branch is the goal in disguise. A genuinely
 weaker route must be built from outside the current criterion set.
 
+### 4.1 A second false claim, found by the compilation and struck ✅
+
+The same module asserted, at `HighCodimensionSiphonFace.lean:1505-1507`, that the packaged criteria's
+refutable clauses "do not touch this shape — **a non-convex upper region is exactly what escapes the
+segment argument**." That sentence is what split two rounds of this swarm between opposite verdicts
+on the fork: it is the premise that made `hfloor` look like a *region* floor and therefore
+orbit-safe. The theorem above refutes it — `hfloor` is consumed by `closure_minimal`, so it is a fact
+about `closure Zupper`, and ω-points lie in `closure (image2 ϕ v {x₀}) ⊆ closure Zupper` regardless of
+convexity. Struck in place; the module still elaborates (`checkmod` exit 0).
+
+So this audit corrected **two** false claims in the file most likely to be trusted on axiom
+hygiene and on route feasibility — and both were load-bearing enough to misdirect a twelve-agent
+swarm for two rounds. That is the argument for auditing docstrings as carefully as statements.
+
 ---
 
 ## 5. What to check before you trust this repo

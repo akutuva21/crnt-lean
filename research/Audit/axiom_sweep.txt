@@ -1,0 +1,298 @@
+research/Audit/AxiomSweep.lean:17:2: error: Missing cases:
+(Expr.bvar _)
+(Expr.fvar (FVarId.mk _))
+(Expr.mvar (MVarId.mk _))
+(Expr.sort _)
+research/Audit/AxiomSweep.lean:29:4: error: Function expected at
+  ConstantInfo.thmInfo v
+but this term has type
+  ConstantInfo
+
+Note: Expected a function because this term is being applied to the argument
+  .(_)
+research/Audit/AxiomSweep.lean:58:12: error: Function expected at
+  ConstantInfo.thmInfo ?m.5
+but this term has type
+  ConstantInfo
+
+Note: Expected a function because this term is being applied to the argument
+  .(_)
+research/Audit/AxiomSweep.lean:68:69: error: Application type mismatch: The argument
+  acc
+has type
+  Array Name
+but is expected to have type
+  ConstantInfo → Array Name
+in the application
+  if isLocal n = true then ?m.13 else acc
+research/Audit/AxiomSweep.lean:86:5: error: unexpected token 'mut'; expected '(', ':=', 'rec', '|' or term
+research/Audit/AxiomSweep.lean:97:51: error: Function expected at
+  ReportCoreM
+but this term has type
+  ?m.1
+
+Note: Expected a function because this term is being applied to the argument
+  Report
+
+Hint: The identifier `ReportCoreM` is unknown, and Lean's `autoImplicit` option causes an unknown identifier to be treated as an implicitly bound variable with an unknown type. However, the unknown type cannot be a function, and a function is what Lean expects here. This is often the result of a typo or a missing `import` or `open` statement.
+research/Audit/AxiomSweep.lean:148:96: error: unexpected token 'end'; expected 'lemma'
+research/Audit/AxiomSweep.lean:166:16: error: Type mismatch
+  sorryAx
+has type
+  (α : Sort ?u.33) → Bool → α
+but is expected to have type
+  Name
+research/Audit/AxiomSweep.lean:170:15: error(lean.unknownIdentifier): Unknown identifier `valueDeps`
+research/Audit/AxiomSweep.lean:171:11: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  BEq ((α : Sort ?u.38) → Bool → α)
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+research/Audit/AxiomSweep.lean:171:44: error: Application type mismatch: The argument
+  d
+has type
+  (α : Sort ?u.38) → Bool → α
+but is expected to have type
+  Name
+in the application
+  tainted.contains d
+research/Audit/AxiomSweep.lean:158:54: error: stuck at solving universe constraint
+  ?u.37 + 1 =?= imax (?u.38 + 1) ?u.38
+while trying to unify
+  (α : Sort ?u.38) → Bool → α : Sort (imax (?u.38 + 1) ?u.38)
+with
+  (α : Sort ?u.38) → Bool → α : Sort (imax (?u.38 + 1) ?u.38)
+research/Audit/AxiomSweep.lean:158:54: error: stuck at solving universe constraint
+  ?u.35 + 1 =?= imax (?u.38 + 1) ?u.38
+while trying to unify
+  (α : Sort ?u.38) → Bool → α : Sort (imax (?u.38 + 1) ?u.38)
+with
+  (α : Sort ?u.38) → Bool → α : Sort (imax (?u.38 + 1) ?u.38)
+research/Audit/AxiomSweep.lean:179:12: error(lean.synthInstanceFailed): failed to synthesize instance of type class
+  MonadEnv IO
+
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+research/Audit/AxiomSweep.lean:185:55: error(lean.invalidField): Invalid field `kindName`: The environment does not contain `Lean.ConstantInfo.kindName`, so it is not possible to project the field `kindName` from an expression
+  ci
+of type `ConstantInfo`
+research/Audit/AxiomSweep.lean:196:2: error(lean.unknownIdentifier): Unknown constant `IO.flush`
+research/Audit/AxiomSweep.lean:203:4: error(lean.unknownIdentifier): Unknown constant `IO.flush`
+research/Audit/AxiomSweep.lean:213:4: error(lean.unknownIdentifier): Unknown constant `IO.flush`
+research/Audit/AxiomSweep.lean:220:4: error(lean.unknownIdentifier): Unknown constant `IO.flush`
+research/Audit/AxiomSweep.lean:205:46: error(lean.invalidField): Invalid field notation: Type of
+  r
+is not known; cannot resolve field `closureSize`
+
+Hint: Consider replacing the field projection `.closureSize` with a call to the function `Report.closureSize`.
+research/Audit/AxiomSweep.lean:206:48: error(lean.invalidField): Invalid field notation: Type of
+  r
+is not known; cannot resolve field `localTotal`
+
+Hint: Consider replacing the field projection `.localTotal` with a call to the function `Report.localTotal`.
+research/Audit/AxiomSweep.lean:207:49: error(lean.invalidField): Invalid field notation: Type of
+  r
+is not known; cannot resolve field `localTheoremTotal`
+
+Hint: Consider replacing the field projection `.localTheoremTotal` with a call to the function `Report.localTheoremTotal`.
+research/Audit/AxiomSweep.lean:208:48: error(lean.invalidField): Invalid field notation: Type of
+  r
+is not known; cannot resolve field `buckets`
+
+Hint: Consider replacing the field projection with a call to one of the following:
+  • `Report.buckets`
+  • `Std.DHashMap.Raw.buckets`
+research/Audit/AxiomSweep.lean:209:21: error(lean.invalidField): Invalid field notation: Type of
+  r
+is not known; cannot resolve field `buckets`
+
+Hint: Consider replacing the field projection with a call to one of the following:
+  • `Report.buckets`
+  • `Std.DHashMap.Raw.buckets`
+research/Audit/AxiomSweep.lean:210:33: error(lean.invalidField): Invalid field notation: Type of
+  ns
+is not known; cannot resolve field `size`
+
+Hint: Consider replacing the field projection with a call to one of the following:
+  • `Array.size`
+  • `ByteArray.size`
+  • `ByteSlice.size`
+  • `FloatArray.size`
+  • `ISize.size`
+  • `Int16.size`
+  • `Int32.size`
+  • `Int64.size`
+  • `Int8.size`
+  • `Nat.size`
+  • `UInt16.size`
+  • `UInt32.size`
+  • `UInt64.size`
+  • `UInt8.size`
+  • `USize.size`
+  • `Vector.size`
+  • `Aesop.ForwardRuleMatches.size`
+  • `Aesop.UnionFind.size`
+  • `Aesop.UnorderedArraySet.size`
+  • `Batteries.BinomialHeap.size`
+  • `CompactedRegion.size`
+  • `KVMap.size`
+  • `LocalContext.size`
+  • `PersistentArray.size`
+  • `RArray.size`
+  • `Std.DHashMap.size`
+  • `Std.DTreeMap.size`
+  • `Std.ExtDHashMap.size`
+  • `Std.ExtDTreeMap.size`
+  • `Std.ExtHashMap.size`
+  • `Std.ExtHashSet.size`
+  • `Std.ExtTreeMap.size`
+  • `Std.ExtTreeSet.size`
+  • `Std.HashMap.size`
+  • `Std.HashSet.size`
+  • `Std.Iter.size`
+  • `Std.IterM.size`
+  • `Std.Rcc.size`
+  • `Std.Rci.size`
+  • `Std.Rco.size`
+  • `Std.Ric.size`
+  • `Std.Rii.size`
+  • `Std.Rio.size`
+  • `Std.Roc.size`
+  • `Std.Roi.size`
+  • `Std.Roo.size`
+  • `Std.Slice.size`
+  • `Std.TreeMap.size`
+  • `Std.TreeSet.size`
+  • `Elab.HoverableInfoPrio.size`
+  • `Expr.ProdTree.size`
+  • `IR.CtorInfo.size`
+  • `Meta.DiscrTree.size`
+  • `Parser.SyntaxStack.size`
+  • `Mathlib.Explode.Entries.size`
+  • `Std.DHashMap.Raw.size`
+  • `Std.DTreeMap.Raw.size`
+  • `Std.HashMap.Raw.size`
+  • `Std.Iter.Partial.size`
+  • `Std.IterM.Partial.size`
+  • `Std.Legacy.Range.size`
+  • `Std.Rxc.HasSize.size`
+  • `Std.Rxi.HasSize.size`
+  • `Std.Rxo.HasSize.size`
+  • `Std.Slice.SliceSize.size`
+  • `Std.TreeMap.Raw.size`
+  • `Std.TreeSet.Raw.size`
+  • `Batteries.BinomialHeap.Imp.Heap.size`
+  • `Compiler.LCNF.Code.size`
+  • `Compiler.LCNF.CtorInfo.size`
+  • `Compiler.LCNF.Decl.size`
+  • `Compiler.LCNF.DeclValue.size`
+  • `Grind.CommRing.Mon.size`
+  • `Grind.CommRing.Poly.size`
+  • `Meta.DiscrTree.Trie.size`
+  • `Meta.Grind.ENode.size`
+  • `Meta.LazyDiscrTree.MatchResult.size`
+  • `Meta.Match.MatchEqns.size`
+  • `Meta.Simp.UsedSimps.size`
+  • `Meta.SynthInstance.Answer.size`
+  • `Meta.SynthInstance.ConsumerNode.size`
+  • `Std.DTreeMap.Internal.Impl.size`
+  • `Std.DTreeMap.Internal.Impl.containsThenInsert.size`
+  • `Std.DTreeMap.Internal.Impl.containsThenInsert!.size`
+  • `Elab.Tactic.Omega.Problem.FourierMotzkinData.size`
+research/Audit/AxiomSweep.lean:214:67: error(lean.invalidField): Invalid field notation: Type of
+  r
+is not known; cannot resolve field `offenders`
+
+Hint: Consider replacing the field projection `.offenders` with a call to the function `Report.offenders`.
+research/Audit/AxiomSweep.lean:215:19: error(lean.invalidField): Invalid field notation: Type of
+  r
+is not known; cannot resolve field `offenders`
+
+Hint: Consider replacing the field projection `.offenders` with a call to the function `Report.offenders`.
+research/Audit/AxiomSweep.lean:216:30: error(lean.invalidField): Invalid field notation: Type of
+  xs
+is not known; cannot resolve field `toList`
+
+Hint: Consider replacing the field projection with a call to one of the following:
+  • `Array.toList`
+  • `ByteArray.toList`
+  • `Finset.toList`
+  • `FloatArray.toList`
+  • `ForIn.toList`
+  • `FreeAddMonoid.toList`
+  • `FreeMonoid.toList`
+  • `Multiset.toList`
+  • `Nondet.toList`
+  • `Option.toList`
+  • `RelSeries.toList`
+  • `String.toList`
+  • `Vector.toList`
+  • `Aesop.PersistentHashSet.toList`
+  • `Array.Perm.toList`
+  • `Batteries.BinomialHeap.toList`
+  • `AssocList.toList`
+  • `MessageLog.toList`
+  • `PHashSet.toList`
+  • `PersistentArray.toList`
+  • `PersistentHashMap.toList`
+  • `PersistentHashSet.toList`
+  • `SMap.toList`
+  • `SSet.toList`
+  • `List.Vector.toList`
+  • `Quiver.Path.toList`
+  • `Std.DHashMap.toList`
+  • `Std.DTreeMap.toList`
+  • `Std.ExtDTreeMap.toList`
+  • `Std.ExtTreeMap.toList`
+  • `Std.ExtTreeSet.toList`
+  • `Std.HashMap.toList`
+  • `Std.HashSet.toList`
+  • `Std.Iter.toList`
+  • `Std.IterM.toList`
+  • `Std.Rcc.toList`
+  • `Std.Rci.toList`
+  • `Std.Rco.toList`
+  • `Std.Ric.toList`
+  • `Std.Rii.toList`
+  • `Std.Rio.toList`
+  • `Std.Roc.toList`
+  • `Std.Roi.toList`
+  • `Std.Roo.toList`
+  • `Std.Slice.toList`
+  • `Std.TreeMap.toList`
+  • `Std.TreeSet.toList`
+  • `Stream'.Seq.toList`
+  • `Vector.Perm.toList`
+  • `Omega.Coeffs.toList`
+  • `Std.DHashMap.Const.toList`
+  • `Std.DHashMap.Raw.toList`
+  • `Std.DTreeMap.Const.toList`
+  • `Std.DTreeMap.Raw.toList`
+  • `Std.ExtDTreeMap.Const.toList`
+  • `Std.HashMap.Raw.toList`
+  • `Std.Iter.Partial.toList`
+  • `Std.Iter.Total.toList`
+  • `Std.IterM.Partial.toList`
+  • `Std.IterM.Total.toList`
+  • `Std.Legacy.Range.toList`
+  • `Std.TreeMap.Raw.toList`
+  • `Std.TreeSet.Raw.toList`
+  • `Batteries.BinomialHeap.Imp.Heap.toList`
+  • `Data.AC.Expr.toList`
+  • `Meta.RefinedDiscrTree.LazyEntry.toList`
+  • `Mathlib.Tactic.BicategoryLike.Mor₁.toList`
+  • `Mathlib.Tactic.BicategoryLike.NormalExpr.toList`
+  • `Std.DHashMap.Internal.AssocList.toList`
+  • `Std.DHashMap.Raw.Const.toList`
+  • `Std.DTreeMap.Internal.Impl.toList`
+  • `Std.DTreeMap.Raw.Const.toList`
+  • `Std.DTreeMap.Internal.Impl.Const.toList`
+research/Audit/AxiomSweep.lean:217:54: error(lean.invalidField): Invalid field notation: Type of
+  r
+is not known; cannot resolve field `sorryInfected`
+
+Hint: Consider replacing the field projection `.sorryInfected` with a call to the function `Report.sorryInfected`.
+research/Audit/AxiomSweep.lean:218:13: error(lean.invalidField): Invalid field notation: Type of
+  r
+is not known; cannot resolve field `sorryInfected`
+
+Hint: Consider replacing the field projection `.sorryInfected` with a call to the function `Report.sorryInfected`.
+exit=1

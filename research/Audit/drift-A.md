@@ -50,6 +50,14 @@ and the sole call site `GlobalAttractorTheorem.lean:1555`.
    the `Pmax` face and all of its limit points are positive exactly on `Pmaxᶜ`**." Neither convergence
    nor that characterisation is proved or stated anywhere; the clause after "so" is an inference the
    file does not discharge.
+2b. **OVERSTATED — prose at 1505-1507, now struck.** The paragraph introducing the three Step-4
+   lemmas claimed the packaged criteria's refutable clauses "do not touch this shape — **a
+   non-convex upper region is exactly what escapes the segment argument**." **Refuted by
+   compilation:** `CRNT.UpperRegionAdjudication.upperRegion_criterion_inconsistent_with_boundaryOmegaPoint`.
+   `hfloor` is consumed by `closure_minimal` as a fact about `closure Zupper`, and ω-points lie in
+   `closure (image2 ϕ v {x₀}) ⊆ closure Zupper`, so convexity is irrelevant. This one sentence is
+   what split two rounds of the swarm between opposite verdicts on the fork. **Corrected in place on
+   this branch; see `research/AUDIT.md` §4.**
 3. **DRIFT — `uniformLowerBound_offFace_of_zeroSet_eq` (816).** Three hypotheses claimed, five
    present. `hΓpos` is the substantive addition (see table).
 4. **OVERSTATED — `omegaPoint_zeroSet_trichotomy` (658).** See table; the docstring should adopt the
