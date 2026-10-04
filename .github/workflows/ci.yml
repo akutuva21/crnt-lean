@@ -61,6 +61,21 @@ jobs:
       - name: Exclusion-ledger audit
         run: python3 scripts/check_exclusions.py
 
+      # A theorem already in the tree, landed a second time, scores 0 (research/README.md
+      # §9).  `pr_score.py` cannot see this, so it gets its own check.  The self-test is the
+      # gate -- it runs in a second, needs no Lean, no git and no network, and it proves the
+      # checker still fires on a deliberately duplicated declaration.  The whole-tree
+      # census below is reported, not gated: the tree already carries pre-existing
+      # duplicates, and a gate that is red on arrival is a gate nobody reads.
+      - name: Duplicate-declaration checker self-test
+        run: python3 scripts/check_duplicates.py --self-test
+
+      - name: Duplicate-declaration census (informational)
+        run: |
+          set +e
+          python3 scripts/check_duplicates.py --tree --max-report 25 | tee duplicate-census.txt
+          python3 scripts/check_duplicates.py --tree --md >> "$GITHUB_STEP_SUMMARY"
+
   # ---------------------------------------------------------------------------
   # The verified core.  Green here means the non-ledger modules really do
   # elaborate with no `sorry` and no axioms beyond Mathlib's -- the latter

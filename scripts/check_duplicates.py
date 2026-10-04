@@ -455,29 +455,44 @@ def grade(findings: list[Finding], cited: list) -> list[dict]:
 
 
 def tree_census(root: Path) -> dict:
+    """Whole-tree census, reporting each duplicate **pair once**.
+
+    Matching mirrors `classify`: alpha-equality only counts within one name, so the
+    common `f_a` / `f_b` pair in the same file is not mistaken for one declaration.
+    """
     decls = scan_tree(root)
     ix = Index.of(decls)
     found: list[Finding] = []
+    seen: set[tuple] = set()
+
+    def emit(verdict: str, d: Decl, others: list, note: str, scope: str) -> None:
+        for o in sorted(others, key=lambda x: (x.file, x.line)):
+            pair = tuple(sorted(((d.file, d.line), (o.file, o.line))))
+            if pair in seen:
+                return
+            seen.add(pair)
+            found.append(Finding(verdict, d, [o], note, scope))
+
     for d in decls:
         if d.private:
             continue
-        prior = elsewhere(ix.by_name.get(d.name, []), d)
-        exact = [p for p in prior if p.stmt == d.stmt]
+        exact = elsewhere([p for p in ix.by_name.get(d.name, []) if p.stmt == d.stmt], d)
         if exact:
-            found.append(Finding(DUPLICATE, d, exact, "", "census/name+stmt"))
-            continue
-        al = elsewhere([p for p in ix.by_alpha.get(d.alpha, []) if d.alpha], d)
-        if al:
-            found.append(Finding(ALPHA, d, al, "binder-renamed", "census/alpha"))
-            continue
-        if prior:
-            found.append(Finding(SHADOW, d, prior, "same name, different statement",
-                                 "census/name-only"))
+            emit(DUPLICATE, d, exact, "", "census/name+stmt")
             continue
         same = elsewhere(ix.by_stmt.get(d.stmt, []), d)
         if same and d.stmt:
-            found.append(Finding(RENAMED, d, same, "identical statement, other name",
-                                 "census/stmt-only"))
+            emit(RENAMED, d, same, "identical statement, other name", "census/stmt-only")
+            continue
+        al = elsewhere([p for p in ix.by_alpha.get(d.alpha, [])
+                        if d.alpha and p.bare == d.bare], d)
+        if al:
+            emit(ALPHA, d, al, "same name, binder-renamed statement", "census/alpha")
+            continue
+        prior = elsewhere(ix.by_name.get(d.name, []), d)
+        if prior:
+            emit(SHADOW, d, prior, "same name, different statement", "census/name-only")
+
     return {
         "modules": len(module_files(root)),
         "declarations": len(decls),
@@ -806,6 +821,28 @@ end CRNT
     return 0
 
 
+
+def markdown_summary(c: dict, limit: int = 10) -> str:
+    """GitHub step-summary block.
+
+    Informational on purpose: the census counts what is already in the tree, which is not
+    this PR's doing.  The gates are `--self-test` and a diff-scoped run.
+    """
+    out = ["### Duplicate declarations", "",
+           f"- modules scanned: `{c['modules']}`",
+           f"- `theorem`/`lemma` declarations: `{c['declarations']}`",
+           f"- exact re-lands (same name, same statement): `{c['exact_duplicates']}`",
+           f"- same name, binder-renamed statement: `{c['alpha_duplicates']}`",
+           f"- identical statement under another name: `{c['renamed']}`",
+           f"- same qualified name, different statement: `{c['shadows']}`", ""]
+    top = sorted(c["findings"], key=lambda f: -SEVERITY[f.verdict])[:limit]
+    if top:
+        out += ["| verdict | declaration | site | also at |", "| --- | --- | --- | --- |"]
+        for f in top:
+            out.append(f"| {f.verdict} | `{f.head.name}` | `{f.site}` | `{f.cites()}` |")
+    return "\n".join(out)
+
+
 # ------------------------------------------------------------------------- main
 
 
@@ -821,6 +858,8 @@ def main() -> int:
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--self-test", action="store_true")
     ap.add_argument("--max-report", type=int, default=40)
+    ap.add_argument("--md", action="store_true",
+                    help="markdown summary for the CI step summary (implies --tree)")
     args = ap.parse_args()
 
     if args.self_test:
@@ -854,8 +893,11 @@ def main() -> int:
                     print(f"      {s['ref']}  {s['file']}:{s['line']}")
                 print(f"      -> {d['action']}")
         return 1 if dupes else 0
-    if args.tree:
+    if args.tree or args.md:
         c = tree_census(ROOT)
+        if args.md:
+            print(markdown_summary(c))
+            return 0
         payload = {k: v for k, v in c.items() if k != "findings"}
         if args.json:
             print(json.dumps(payload, indent=2))
@@ -865,7 +907,7 @@ def main() -> int:
                   f"binder-renamed {c['alpha_duplicates']}, "
                   f"renamed {c['renamed']}, shadowed names {c['shadows']}")
             for f in sorted(c["findings"], key=lambda t: -SEVERITY[t.verdict])[:args.max_report]:
-                print(f"  {f.verdict:<18}{f.head.name:<42}{f.site}"
+                print(f"  {f.verdict:<18}{f.head.name:<48} {f.site}"
                       f"   also at {f.cites()}")
         return 1 if c["exact_duplicates"] else 0
 
