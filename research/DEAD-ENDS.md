@@ -1265,3 +1265,28 @@ reversed cycle with `rfl` edge lemmas — the `reactionArcBwd` round-trip costs 
 - **This is the only lead in the swarm connecting the Craciun fluctuation literature to the
   deterministic field, and nothing has read those files.** Anyone picking it up should read them
   first and report what is actually there.
+
+## OPS-3. The `prepend` privacy lift is **SETTLED — no live lift in any branch** **[V, with control]**
+
+- **found-by:** `form-sr-route`, which introduced the bug and ran the audit rather than reassigning
+  it. Method, **with a control** — "CLEAN" from an empty diff can also mean a broken command:
+  `git fetch origin <branch>` then `git diff --numstat origin/holes FETCH_HEAD --
+  CRNT/Multistationarity/TrueSRParityRR.lean`, reporting CLEAN only on empty output.
+
+  | branch | sha | `TrueSRParityRR.lean` |
+  | --- | --- | --- |
+  | `research/form-sr-case2` | `d1db040` | CLEAN |
+  | `research/form-sr-parity` | `a62c8cf` | CLEAN |
+  | `research/form-sr-deg2b` | `c3927e8` | CLEAN |
+  | `research/form-sr-route` | `8691dd9` | CLEAN |
+
+  **Control:** the same command on `TrueSRReactionArc.lean` returns `305 0`, so the diff is genuinely
+  evaluating. The four CLEANs are real.
+- **`--no-privacy` is settled, not pending. Nothing is blocked on it; reconciliation is free to
+  proceed.**
+- **The audit lesson, which generalises.** The lift existed only in `8ce0f2e` and was removed in
+  `8691dd9`. **The intermediate commit `2ce8b37` is deceptive: its MESSAGE claims a revert that its
+  TREE does not perform.** An auditor reading commit messages rather than diffing against `holes`
+  would conclude the revert happened. **Audit by diff, never by commit message.**
+- The lift was introduced on the orchestrator's instruction and by one agent; nobody else could have
+  inherited it unless they branched from `8ce0f2e`, and none of #9/#10/#17 do.
