@@ -1510,3 +1510,90 @@ arbitrary `r` is the more useful statement.
   `GlobalAttractorTheorem.lean:13` — **the consumer of Hole A, not Hole A itself.**
 - **Verdict: the `ProjectedFaceDimensionCode` apparatus is Craciun's Section-7 machinery, orthogonal
   to the hole's codimension package.** A-49's "not needed" is now "not expressible."
+
+---
+
+## A-51. Anderson arXiv:1101.0761 contains **no siphon-dimension descent** **[V]**
+
+- **found-by:** `arch-sr-descent` · **round 2** · **revive-when:** a citation to an actual Anderson
+  descent paper is produced (see A-52).
+- **Read the whole source.** `https://arxiv.org/pdf/1101.0761` → 23 pages,
+  `arXiv:1101.0761v6 [math.DS] 17 May 2011`; all pages read, transcribed with page anchors to
+  `research/papers/anderson-1101-0761-transcription.md`.
+- **There is no cardinality descent in it.** No iteration over siphons, no clause of the form "the
+  zero set strictly shrinks", no use of `SiphonFace`. The word *siphon* occurs exactly **once** in
+  the body, in the historical background ("Semi-locking sets were termed siphons in the earlier
+  paper…").
+- **Anderson's actual mechanism is a single global dichotomy**, not a descent: Lemma 4.7
+  (`C1 ∨ C2`) where **C1** is that the *whole family* `V_x̄`, `x̄ ∈ ℝ^N_{>0}` strictly decreases,
+  and **C2** is that along a subsequence the complexes are tier-partitioned with `T_1` a union of
+  linkage classes; Lemma 4.8 kills `C2` **under single linkage class**; Lemma 4.9 gives
+  "ω is a **single point**". Theorem 4.10 then concludes `ω ∩ ∂ = ∅`.
+- **So the docstrings are wrong about provenance.** `CRNT/Dynamics/SiphonDimensionDescent.lean:25-27`
+  ("Anderson's comparable-growth Lyapunov-family estimate, which forbids the trajectory from cycling
+  among boundary faces and forces each boundary excursion to strip away at least one species") and
+  `:120-122` ("the strict shrinking is forced by comparing the growth of the relative-entropy
+  Lyapunov family across an escape from the face `SiphonFace P`") attribute to Anderson a mechanism
+  he did not use. "Comparable growth" in the paper is the **tier partition** (Def 4.1); the
+  "Lyapunov family" is C1; **their conjunction produces a singleton ω-limit set, not a shrink.**
+- **Complements A-47.** A-47 concludes the missing object is "a growth comparison across face
+  dimensions". This entry plus **A-52** say something sharper: that growth comparison is not
+  merely unbuilt, it is **excluded at exactly the faces Hole A quantifies over**. Read the two
+  together before spending budget on a growth lemma.
+- **Do not** "correct" `SingleLinkageGAC.lean:24-25`, which cites this paper correctly; that
+  citation is right and is the one route the source actually supports.
+
+## A-52. `IsCriticalSiphon` and the named descent mechanism are **mutually exclusive at the same
+face** — Hole A is the case Anderson's method cannot see **[V]**
+
+- **found-by:** `arch-sr-descent` · **round 2** · **revive-when:** never as stated.
+- **The argument, in full.** Let `z ∈ ω(φ(·,x₀)) ∩ ∂ℝ^N_{≥0}` with `U :=` zero set of `z` a siphon.
+  1. **Non-critical `U` is excluded with no tiers at all.** Then `∃ w ≥ 0` with `supp w = U` and
+     `w ⊥` **every** reaction vector — exactly the `v` negated by `IsCriticalSiphon`
+     (`CRNT/Dynamics/Siphon.lean:84-87`). Then `w · φ(t)` is constant by the ODE (Anderson eq. 2.2),
+     while `w · φ(t_n) → 0` since `φ_i(t_n) → 0` for `i ∈ U`. Contradiction.
+  2. **So the only case that reaches the tier machinery is `U` critical.** For critical `U`,
+     Anderson's Theorem 4.6 still produces a `w`, but with only **clause 2 of Def 4.5** — `w ⊥`
+     differences **within a tier**, not all reaction vectors. So (1) is unavailable and `w · φ(t)`
+     is constant only along intra-tier reactions.
+  3. Lemma 4.8's contradiction needs `T_1 ≡ C` (one single tier) to upgrade clause 2 to all
+     reactions. Anderson gets `T_1 ≡ C` **only** from `T_1` being a union of linkage classes plus
+     `ℓ = 1`.
+- **Consequence for Hole A.** `Pmax` is exactly such a critical face (criticality from `hwmax` +
+  `hzeroMax` via `isCriticalSiphon_of_siphonCarried`, `SiphonDimensionDescent.lean:68-80`), and
+  `hcodim : 2 ≤ finrank ℝ (stoichSubspace.map (projOn Pmax))` is exactly the codimension range in
+  which the `ℓ = 1` collapse of Lemma 4.8 is unavailable. **The descent estimate the file names is
+  excluded at precisely the faces the hole quantifies over.**
+- **The one hypothesis that would close the hole is `N.numLinkageClasses = 1`**, and it is **not
+  supplied and not derivable**: `numLinkageClasses := Nat.card (Quotient N.linkedSetoid)`
+  (`CRNT/Graph/LinkageClass.lean:93-94`) and nothing in the hole's list
+  (`HighCodimensionSiphonFace.lean:111-133`) constrains it. Under it, Anderson Thm 4.10 gives
+  `∀ w ∈ ω, w.Positive`, which **contradicts `hwmax`** — i.e. for `ℓ = 1` the hole's hypotheses are
+  themselves inconsistent.
+- **Also note:** Anderson's *condition 2* ("ω is all-boundary or all-interior") is **not** part of the
+  residue — it is one `by_cases` in hole A's setting, since either there is a positive ω-point (the
+  goal) or, by `hωnn`, every ω-point has a zero coordinate.
+- **Evidence:** transcription §2.6 (Def 4.5, Thm 4.6) and §2.9 (Lemma 4.8); full argument with page
+  anchors in `research/routes/descent-estimate.md` §4.3.
+
+## A-53. `CRNT/Dynamics/TierPersistence.lean` is **outside Hole A's closure** and has the
+**opposite** tier sign convention **[V, computed]**
+
+- **found-by:** `arch-sr-descent` · **round 2** · **revive-when:** someone proposes reusing it for
+  Anderson Definition 4.1.
+- **Closure.** Hole A's import closure computed from `import` lines = **179** modules.
+  `TierPersistence` is **OUT** (it is in `CRNT.lean:512`, the verified umbrella). Same for
+  `CriticalSiphonDissipationRepulsion`. **Round 1's failure was capability inside the closure going
+  unreferenced; here it is capability outside it.**
+- **Sign hazard.** Its `TierStrictBelow` (`CRNT/Dynamics/TierPersistence.lean:34-35`) is
+  `ratio → 0`, i.e. Anderson's Def 4.1(ii) with the tier names reversed — the same direction hazard
+  as A-2, on the same primitive. Do not reuse it for Definition 4.1 without checking signs.
+- **Its open flag is stronger than Anderson's Lemma 4.2.** `EveryTransversalTierSequenceHasDirectionWitness`
+  (`:191-192`) asks for a *single linear functional* exactly realizing the whole preorder; Anderson's
+  Lemma 4.2 only produces a partition. Also note it is the Anderson–**Cappelletti–Kim–Nguyen** route
+  (its own header, `:10-12`), not Anderson 1101.0761.
+- **What the tree has vs. what Anderson needs:** `tierMonomial` and the exact exponential
+  special case are there (`:295-303`); the projected/reduced reaction network with time-dependent
+  kinetics (Anderson §3.1, Def 3.1, eq. 3.7) is **absent from all of `CRNT/`** — the only hit for
+  `reducedNetwork|projectedDynam|ProjOn|boundedMassAction` is the plain linear `projOn` at
+  `CRNT/Dynamics/FacetRepulsionAndersonShiu.lean:315-317`.
