@@ -1400,3 +1400,37 @@ arbitrary `r` is the more useful statement.
 
   **Any natural `k < n` version of the definition fails to type-check at `k = n-1`, whatever proof
   you give for the offending field.** This justifies the `k + 1 < n` bound as necessary, not stylistic.
+
+## A-47. **Two disjoint scopes are missing the SAME half of the descent estimate — this is a signal** **[S]**
+
+- **found-by:** `form-barrier-2.EquilMinescout` (equilibria/deficiency side) and
+  `form-barrier-2.LinearMinescout` (linear-algebra/graph side), **working disjoint module sets and
+  never coordinating.** Both independently report that **no module in their scope contains a growth
+  comparison across face dimensions**, and neither supplies the strict-shrinking descent step.
+- **Two independent scopes missing the same object is evidence the object is genuinely unbuilt, not
+  merely misplaced.** That is a different and stronger claim than either scout could make alone.
+- **The analytic half of Hole A's residue is therefore unbuilt at every layer swept so far.**
+
+### The `projOn` / face-dimension bridge — refined from `[H]` to `[S]`, still unbridged **[S]**
+
+- **graded `[H]` by `GeoMinescout`** (that the bridge does not exist). Now corroborated from two more
+  disjoint scopes:
+  * `EquilMinescout`: `FaceCodimension.lean` has **exactly one import**, line 1,
+    `import CRNT.Dynamics.FacetRepulsionAndersonShiu`, and that module imports only `Flux.PSemiflow`,
+    `Dynamics.LaSalle`, `Graph.CycleCover`, `Kinetics.Concentration`, `Kinetics.MassAction` plus
+    Mathlib. **The whole chain from the hole's `hcodim` source runs through no `Geometry` module.**
+    `projOn` is *defined* at `FacetRepulsionAndersonShiu.lean:316`. Grepped across its entire assigned
+    set: **zero** occurrences of `projOn`.
+  * `LinearMinescout`: `projOn` **zero hits across all 33 files**; `stoichSubspace.map` **zero hits**.
+    The only `Submodule.map` is `OrthogonalComplement.lean:74` — a *full* coordinate identification,
+    **not** a projection onto a coordinate subset. The only `ContinuousLinearMap.proj` uses
+    (`MassActionJacobian.lean:66, 98, 99, 114`) are **single species coordinates** inside a derivative
+    formula; the nearest thing to a coordinate functional on `stoichSubspace` is `stoichCoord` at
+    `Kinetics/CatalystFace.lean:57`, again one coordinate at a time.
+- **The shape of the gap, precisely:** every layer has single-coordinate functionals and a full
+  Euclidean transfer, but **nothing parameterised by a `Finset S` subset**.
+- **Whether the bridge is even *needed* is still unchecked** — `EquilMinescout`'s caveat is the right
+  one: `FinrankSup.lean:20` (`finrank_sup_le`, `finrank_finset_sup_le`) is the only machinery in that
+  layer "in the same currency" as `hcodim`, and the hole **already assumes** `hcodim`. The descent only
+  has to *use* it, and the use is a growth comparison across face dimensions. **If that comparison is
+  what is missing, the bridge is not the blocker — the growth lemma is.**
