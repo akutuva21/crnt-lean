@@ -414,3 +414,76 @@ round spent its budget exploring.
 goal-equivalent theorem and the metric reads it as progress. `measure.py` counts `sorry`s, which
 is honest, but the *round score* must apply the **−200 "provable only via a vacuous or
 goal-equivalent step"** penalty from `research/README.md` §5 to any such landing.
+
+## A-19. **The unifying structural fact: `Permanent` is refuted, so the whole ladder dies at once** **[V, compiled]**
+
+- **found-by:** `form-barrier` (compiled), `arch-delta` and `papers-craciun` (independent analyses),
+  all converging. **Orchestrator-side correction: the fork was contested and is now settled —
+  `form-barrier` conceded after compiling the `False`-level theorem; its four refutation theorems
+  stand, only its endgame verdict was wrong.**
+
+- `def Permanent` (`CRNT/Dynamics/EndotacticPermanence.lean:58-60`) is
+  `∃ K, IsCompact K ∧ (∀ y ∈ K, y.Positive) ∧ ∃ v ∈ atTop, closure (image2 ϕ v {x₀}) ⊆ K`, and
+  `omegaLimit_meets_positive_of_permanent` derives `hpK : p ∈ K` via
+  `omegaLimit_subset_closure_image2`. Since `v = univ` in `exists_positive_omegaPoint_of_upperRegion`'s
+  call, **`ω ⊆ closure (orbit image) ⊆ K`**, and `hKpos : ∀ y ∈ K, y.Positive` is **universal**.
+  So `Permanent` yields **`∀ w ∈ ω, w.Positive`**, while the hole asks only for
+  `∃ p ∈ ω, p.Positive` *while permitting* boundary ω-points (`hwmax`, `hzeroMax`, `hPmaxne`).
+  **The hole's hypotheses assert the negation of the universal form.**
+
+- This is the same fact as `PersistentOrbit.omegaLimit_positive`
+  (`GlobalPersistence.lean:159-162`, also universal), and it subsumes A-11…A-18 and every individual
+  `hsep` refutation. **The structural statement:** every certificate in this tree that traps the
+  orbit in a region floored away from the boundary *also traps the entire ω-limit set there*, and is
+  therefore incompatible with the existence of a boundary ω-point. No choice of region, barrier or
+  tile data avoids it.
+
+- **Not a defect of Craciun.** Theorem D (every trajectory converges to `x*`) is consistent with `wmax`:
+  `wmax` is a transient point on a ω-orbit. Craciun delivers `∀`; the hole needs `∃`. Different
+  statements — which is why the packaged criteria cannot be instantiated here at all.
+
+- **Every pre-packaged criterion is refuted:** `_of_upperRegion` (:1596),
+  `_of_blueprintData`/`_selfConsistent_normals`/`_convex_tiles`,
+  `_of_tiled_faceCores`/`_of_faceRelevantCore`, `_of_toric_blueprint`/`_of_toric_halfspace`, and
+  anything concluding through a `PersistentFrom` certificate containing the orbit image.
+
+- **The surviving target is `Network.omegaLimit_positive_of_descend`** (`SiphonDimensionDescent.lean:137`),
+  whose single hypothesis `N.ComparableGrowthDescent ϕ x₀` is **not** touched by the above — it never
+  passes through `Permanent`. But its sole field is
+  `(∃ p ∈ ω, p.Positive) ∨ (∃ Q, … Q.card < P.card …)`, i.e. the goal disjoined from a strictly
+  smaller siphon. Discharging it is exactly as hard as the hole, as the module's own header
+  (`SiphonDimensionDescent.lean:360-367`) admits. **Hole A requires a genuinely new idea.**
+
+## A-20. Craciun's Lemma 9.7 does **not** construct the surfaces **[V, transcribed from the PDF]**
+
+- **found-by:** `papers-craciun` · **round 1** · **revive-when:** never.
+- Lemma 9.7 is a **sufficient condition given** a family `{Z_ε̂}` per `ε̂`; it concludes
+  `T₃` *cannot cross within `(0,1)³`*. §8 Step 2 needs it within `[0,M]^{n+1}` and bridges by
+  "reason like in Subsection 6.1.3" — an unquantified proximity argument. So **"supply the blueprint
+  data" was never something Lemma 9.7 did for anyone.**
+- Clause 9.7(ii) is **simultaneous over all cones**: one normal `n_P` must lie in *every* applicable
+  `C`. That is strictly stronger than the repo's `x.Positive`-guarded `hsep`, and it is the source of
+  the `relint`-of-`K_C` condition that `CraciunZSH.hinterior` mistranscribes as `⊆ interior`.
+
+## B-14. The RR arc builder already exists as **public** `glueArc` — do not lift the privacy modifier **[V]**
+
+- **found-by:** `form-fanface-core.EmbeddingAudit` · **round 1** · **revive-when:** never.
+- `arch-sr-case2`'s self-correction is right that `prepend` is `private noncomputable def`
+  (`TrueSRParityRR.lean:276`) and unreachable. **But it is not the only route**: `prepend` is consumed
+  internally by the **public** `glueArc {x y} (X : TrueSRPathRR x) (Y : TrueSRPathRR y)
+  (h : RRGluable X Y) : TrueSRPath (2 * (y + 1) + 1)` at `:388-392`, which also carries the
+  edge-disjointness and species-disjointness side conditions a hand-rolled builder would have to
+  re-establish.
+- Species-flavour public entry points: `glueWalk` (`TrueSRGlueMaps.lean`:233) and `glueCycle` (:245).
+- **The work is constructing `RRGluable`/`Gluable` instances, not building paths. Do not lift the
+  `private` modifier — that is the larger and less clean change.**
+
+## B-15. All four port items are **absent** from `holes`, and so is the target **[V]**
+
+- **found-by:** `form-fanface-core.EmbeddingAudit` · **round 1** · **revive-when:** never.
+- Repo-wide grep for `lemmaA6_case2|offCycle_escape|SignDirected|sToRIntersectionOfTwoPaths` over
+  `CRNT/` returns **no matches**. `exists_second_evenCycle_of_offCycle_escape` itself does not exist
+  anywhere in the tree.
+- So Hole B is **not a repair** — it is authoring five declarations from scratch (four ported items
+  plus the target). The missing prerequisite is `SignDirected` (the sign condition that is
+  B-12's `hSR.2`) together with the `RRGluable`/`Gluable` instances.
