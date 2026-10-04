@@ -1434,3 +1434,48 @@ arbitrary `r` is the more useful statement.
   layer "in the same currency" as `hcodim`, and the hole **already assumes** `hcodim`. The descent only
   has to *use* it, and the use is a growth comparison across face dimensions. **If that comparison is
   what is missing, the bridge is not the blocker — the growth lemma is.**
+
+## A-48. ⚠️ **LOAD-BEARING: Hole A MUST consume `hsol` essentially — machine-checked** **[M]**
+
+- **found-by:** `form-barrier-2.GeoMinescout`, promoted at their suggestion.
+  **`CRNT/Examples/CodimTwoFaceModel.lean:381`** — `codimTwoModel_not_derivable_without_hsol`.
+- **What it says, concretely.** On `CatalyticChain` (`A + C ⇌ 2C ⇌ B + C`, weakly reversible,
+  deficiency zero, `stoichRank = 2`) with `x₀ = x⋆ = (1,1,1)`, `wmax = (3,0,0)`,
+  `Pmax = {B,C}`: **every hypothesis of the hole except `hsol` holds simultaneously, and the
+  conclusion is FALSE** (`goal_false`, wired in at `:370`). The model falsifies `hsol`
+  (`codimTwoModel_not_hsol`), which is why the full list is not refuted.
+- **The consequence is the load-bearing part: any proof of Hole A must consume `hsol` essentially.
+  No argument confined to the static hypotheses — `hcodim`, `hcard`, `hrank`, `hmaxExact`, `hzcard`,
+  `hωaff`, `hK`, all of it — can close it.**
+- This converts "the static hypotheses are insufficient" from a stylistic judgement into a
+  **theorem**, and it **makes any proposed static shortcut falsifiable by instantiating it at that
+  model.** It was previously only prose at `ComplexBalancedBoundaryEquilibrium.lean:23-27`; the
+  `Examples/` version is the machine-checked form.
+- **Practical use: when anyone proposes a Hole A route, ask "does this consume `hsol`?"** If not, it
+  is refuted by one `decide`. This is the cheapest possible filter on the hole's remaining search
+  space, and it should be applied before any further budget goes into a static route.
+
+## A-49. The `projOn` / face-dimension bridge is **NOT NEEDED** — downgraded to non-binding **[S]**
+
+- **Correcting A-47's LEAD-2, at the same scout's own instance.** `GeoMinescout` closed the half they
+  had left open, and the answer is that the bridge **was never required**.
+- **Evidence:** `grep -rn 'projOn' CRNT/Geometry/` → **no matches**; the coordinate-deletion
+  machinery (`forgetLastCoordinate`, `faceProjectionDimension`, `normalizedConeSection`,
+  `dimensionLetter`) has **zero occurrences** anywhere under `Dynamics/`. **The two families are
+  disjoint, sharing no vocabulary.**
+- **Why it is a non-issue:** `hcodim` is *consumed* entirely within the `projOn` world.
+  `FaceCodimension.highCodimension_of_not_facet` (`:174`) produces it,
+  `HighCodimensionSiphonFace:131` takes it, and the companions
+  `two_le_card_of_two_le_finrank_map_projOn` (`:1053`) and
+  `stoichRank_ne_one_of_two_le_finrank_map_projOn` (`:1090`) derive `hcard` and `hrank` from it
+  **without leaving the `projOn` framework**. `ProjectedFaceDimensionCode`'s finrank lemmas being
+  about the same *kind* of object is a coincidence of shape, not a missing connection.
+- **Action: the earlier "check whether it binds" flag is withdrawn — verified not binding.**
+  `arch-alt`, `form-crit-supply` and `arch-sr-escape` are released.
+- **A knock-on that survives:** the same scout's shortlist item 2
+  (`finrank_drop_forgetLastCoordinate_iff_kernel_ne_bot`) is **doubly dead** — the bridge is not
+  needed, and even if it were, a `Geometry`-finrank argument is exactly the static kind that
+  **A-48 forbids**. Their item 1, `Network.inner_euclideanMassActionField_nonneg`
+  (`FanFaceLattice.lean:293`), is **unaffected** — it is a pointwise *dynamical* inequality on the
+  mass-action field, not a static finrank fact — but it remains blocked because it takes
+  `x.Positive` as an input and so cannot be applied at `wmax`.
