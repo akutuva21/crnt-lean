@@ -290,12 +290,44 @@ theorem rr_gluable_arcs (C : TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < 
 end CRNT.Network.TrueSRCycle
 ```
 
-Construction of `reactionArcBwd`: `speciesArcBwd` is `(C.reverse).speciesArc (n - m) _ _`, and
-`TrueSRCycle.reverse` (`TrueSRCycleReverse.lean:59`) has `@[simp]` characterisations
-`reverse_leftEdge` / `reverse_rightEdge` (`:105`, `:108`) plus `reverse_species'`. If those
-characterisations lift `reactionArc`'s equations to the reversed cycle, `reactionArcBwd` is a
-one-line definition; if they do not, that edge round-trip must be proved first and is the real
-content of this residual. **That is the open question**, and it is the first thing to check.
+### RESOLVED: the `reverse` round-trip is free (verified by reading, not assumed)
+
+I checked this directly rather than leaving it open. `TrueSRCycle.reverse`
+(`TrueSRCycleReverse.lean:59`) is defined by
+
+```lean
+species  := fun j => C.species ⟨(n - j.1) % n, _⟩
+reaction := fun j => C.reaction (revPerm n j)
+leftEdge  := fun j => C.rightEdge  (revPerm n j)
+rightEdge := fun j => C.leftEdge   (revPerm n j)
+```
+
+and its two edge characterisations are **`rfl`**:
+
+```lean
+@[simp] theorem reverse_leftEdge  (C) (j) : (C.reverse).leftEdge  j = C.rightEdge  (revPerm n j) := rfl
+@[simp] theorem reverse_rightEdge (C) (j) : (C.reverse).rightEdge j = C.leftEdge   (revPerm n j) := rfl
+```
+
+together with `rev_succ_idx` (`:40`) and `rev_pred_idx` (`:46`) for the species-index arithmetic,
+and `reverse_species'` used by `speciesArcBwd` at `TrueSRSpeciesPath.lean:761`.
+
+Consequence: `rarcEdge` and `rarcVertex` are stated purely in terms of `leftEdge`, `rightEdge`,
+`species`, `reaction` and `reaction_internal`, so `simp only [reverse_leftEdge, reverse_rightEdge]`
+rewrites every occurrence and `(C.reverse).reactionArc` reduces definitionally to a walk on `C`'s
+own edges. **There is no round-trip lemma to prove.** `reactionArcBwd` is therefore a one-line
+definition:
+
+```lean
+noncomputable def reactionArcBwd (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpos : 0 < m) :
+    N.TrueSRPathRR (n - m - 1) :=
+  (C.reverse).reactionArc (n - m) (by omega) (by omega)
+```
+
+exactly mirroring `speciesArcBwd := (C.reverse).speciesArc (n - m) _ _`. The only genuine work in
+`rr_gluable_arcs` is then the disjointness bookkeeping (the two arcs' index ranges are
+`[1, m-1]` and `[m+1, n-1]` of the cycle, disjoint by `omega`), which is exactly the pattern
+`ss_gluable_arcs` (`TrueSRSpeciesPath.lean:902`) already implements for the species flavour.
 
 Then the ear itself, in the shape `rr_three_glued_even_of_two` wants: three edge-disjoint
 reaction-to-reaction paths between the two cycle reactions, obtained from
