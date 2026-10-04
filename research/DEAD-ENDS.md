@@ -327,3 +327,36 @@ Step 2 is worth more than steps 1 and 3 combined. It is the single theorem Hole 
    explaining what changed.
 5. **Do not add a 21st stale progress document.** This file is the index; long form goes in
    `research/routes/`.
+## B-13. ~~A dedicated RR reaction-arc builder must be written from scratch~~ — **CORRECTED, IT IS NOT NEEDED** **[V]**
+
+- **found-by:** `arch-sr-case2` · **round 1** · **correction to an earlier orchestrator claim.**
+- I told the Hole B group that `arcFwd`/`arcBwd` exist only in the species flavour, so
+  `exists_second_evenCycle_of_offCycle_escape` "cannot even be typed" without a new RR
+  builder. **That was an over-read of a grep.** Building `reactionArc`/`reactionArcBwd` as
+  `TrueSRPathRR` values from scratch, with hand-rolled index arithmetic and hand-proved `RRGluable`
+  witnesses, would be a significant waste of round-2 budget.
+- The RR arc is available as **`C.speciesArc … .toPath.prepend (…)`**, and the `RRGluable` witnesses
+  follow from cycle-edge injectivity — the species arc is already proved (`TrueSRSpeciesPath.lean:902-990`).
+
+## A-16. `exists_positive_omegaPoint_of_upperRegion` is a **dead target** **[V]**
+
+- **found-by:** `papers-craciun` / `adv-audit.DriftA` · **round 1** · **revive-when:** never.
+- Its two nominal unbuilt inputs are not equally hard. `hsplit` and `hopenLow`/`hopenUp`/`hdisj`
+  are **discharged by construction** — you supply the region decomposition. The entire burden is
+  `hfloor : ∀ y ∈ Zupper, ∀ s, ε ≤ y s`, a uniform coordinate floor.
+- `hsep_fails_of_boundaryPoint_mem_sublevel` (`:184`) proves that once `x₀` and the boundary
+  ω-point `wmax` are both in a convex sublevel, the segment between them takes value `(x₀ s)/n → 0`
+  at any `s ∈ Pmax`. **So `hfloor` cannot be established for any convex region containing both
+  endpoints** — which is exactly what the hole's hypotheses give.
+
+## A-17. But that refutation does **not** transfer to the live target **[V]**
+
+- **found-by:** `papers-craciun` · **round 1** · **revive-when:** never.
+- In `exists_positive_omegaPoint_of_faceRelevantCore` (`:417`) the clause is
+  `hsep : ∀ s : S, ∃ ε, 0 < ε ∧ ∀ x, x.Positive → StoichCompatible (γ x₀ 0) x →
+  ⟪-m, euclideanStoichState x⟫ ≤ c → ε ≤ x s`.
+- The quantifier ranges over **positive, compatible `x` on one side of a single affine
+  hyperplane** — not over an ω-limit set containing a boundary point. The segment-to-`wmax`
+  refutation needs `wmax` in the sublevel, and **`wmax` is not `Positive`, so `hsep`'s hypothesis
+  `x.Positive` excludes it. The refutation does not transfer.**
+- **This is the crack, and it is the entire reason the landing site is real.**
