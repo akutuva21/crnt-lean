@@ -321,6 +321,32 @@ one is a separate question on a different route. If the answer turns out to be n
 unaffected: I never transport a geometric claim across the two projections — I only observe that
 the hypothesis says "codimension ≥ 2".
 
+### 4.6 Sharpening of A-52 — **every** zero set in the ω-family is critical, not just `Pmax`
+
+`CRNT/Dynamics/GACOmegaPositive.lean:121-124` shows `isCriticalSiphon_zeroSet_of_mem_omegaLimit`
+takes an **arbitrary** `w ∈ omegaLimit atTop ϕ {x₀}` and an **arbitrary** nonempty zero set
+`(hzeroSet : ∀ s, s ∈ P ↔ w s = 0)` — it does not mention `Pmax`, `hzeroMax` or `hmaxExact`. So for
+*every* `w ∈ ω` with a nonempty zero set, that zero set is a critical siphon.
+
+Now apply §4.3 step 1 to an **arbitrary** member `Z = zeroSet(w)` of the family, not just `Pmax`.
+Step 1 needs only `φ(t_n) → w` (which is what `w ∈ ω` gives, with `t_n → ∞`) together with
+`φ_i(t_n) → 0` for `i ∈ Z` — which is exactly `w i = 0`. No maximality, no `hzcard`, no `hmaxExact`.
+Therefore:
+
+> **If hole A's hypotheses are jointly satisfiable, then every ω-limit point with a nonempty zero
+> set has a critical-siphon zero set — so the ω-limit family consists *entirely* of critical siphon
+> faces, with no non-critical member anywhere in it.**
+
+This is where the two findings meet. Per `ArchSrEscape`'s correction (their singleton-ω refutation
+does **not** generalise: at `|ω| = 2`, `zeroSet(w₁) = {s₁}`, `zeroSet(w₂) = {s₁,s₂}` makes the
+strict-shrinking disjunct satisfiable), the descent is *enabled* by spread in
+`{zeroSet(w) : w ∈ ω}`. §4.6 says that spread runs **exclusively among critical siphon faces** —
+which is precisely the configuration A-52 proves Anderson's argument cannot address. So the two
+results are not merely consistent: **the structure that would make the descent work is the same
+structure that kills the named mechanism.** Any replacement argument must handle a *family* of
+critical faces, not a single one, and cannot rely on the conservation relation that
+`IsCriticalSiphon` forbids.
+
 ---
 
 ## 5. Is the estimate FALSE?

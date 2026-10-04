@@ -1573,6 +1573,17 @@ face** — Hole A is the case Anderson's method cannot see **[V]**
 - **Also note:** Anderson's *condition 2* ("ω is all-boundary or all-interior") is **not** part of the
   residue — it is one `by_cases` in hole A's setting, since either there is a positive ω-point (the
   goal) or, by `hωnn`, every ω-point has a zero coordinate.
+- **Sharpening (route doc §4.6).** `isCriticalSiphon_zeroSet_of_mem_omegaLimit`
+  (`GACOmegaPositive.lean:121-124`) takes an **arbitrary** `w ∈ ω` and an arbitrary nonempty
+  zero set — no `Pmax`, no `hzcard`, no `hmaxExact`. Applying step 1 to **every** member of
+  `{zeroSet(w) : w ∈ ω}` therefore shows: **if hole A's hypotheses are jointly satisfiable,
+  every ω-limit point with a nonempty zero set has a critical-siphon zero set.** Combined with
+  `ArchSrEscape`'s finding that the descent is *enabled* by spread in that family (their
+  singleton-ω refutation does **not** generalise: at `|ω| = 2`, `zeroSet(w₁) = {s₁}`,
+  `zeroSet(w₂) = {s₁,s₂}` already makes the disjunct satisfiable), the shape is now pinned:
+  **the spread that would make the descent work runs exclusively among critical faces — the
+  same structure that kills the named mechanism.** A replacement must handle a *family* of
+  critical faces and cannot use the conservation relation `IsCriticalSiphon` forbids.
 - **Evidence:** transcription §2.6 (Def 4.5, Thm 4.6) and §2.9 (Lemma 4.8); full argument with page
   anchors in `research/routes/descent-estimate.md` §4.3.
 
