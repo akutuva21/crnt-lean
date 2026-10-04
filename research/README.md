@@ -293,3 +293,48 @@ rather than guessing, so **the total it prints is a floor.** Any round-end total
 includes those rows came from human judgement, not from the harness. Keep the two distinguishable
 in the final accounting — and note that round 1's headline number (`holes = 2`, `score = −1301`)
 comes from `measure.py` alone and includes no human-judgement rows at all.
+
+---
+
+## 10. Ledger grading — adopt `[M]` / `[S]` / `[N]`, which supersedes `[V]`/`[H]` **[from `adv-negative`, PR #13]**
+
+`adv-negative`'s scheme is better than mine and **round 2 should use it.** My `[V]` graded a
+source-reading and a compiled theorem alike, which is exactly the conflation that let a fabricated
+line citation and a relaying-of-a-prior-document's-absence both pass as `[V]`.
+
+| grade | meaning |
+| --- | --- |
+| **`[M]`** | a **Lean declaration proves the failure** — compiled, axiom-audited |
+| **`[S]`** | a **paper fact checked against the source**, or a source-read structural fact |
+| **`[N]`** | **narrative only** — no machine check, no cited source |
+
+**Roughly 40% of the round's entries are `[N]`. That ratio is itself the finding**, not a defect to
+be edited away: it marks precisely where an LLM swarm's elaborating-but-meaningless failure mode
+lives.
+
+Three traps, now explicit in the protocol:
+
+1. **A scope disclaimer attached to a proved theorem is not a proved negative.**
+2. **A hole-bearing module still elaborates**, so only a *transitive* `#print axioms` catches it.
+3. **Elaborated is not correct** — six of the seven clause defects recorded in
+   `HANDOFF_gac_hole.md` typechecked. Compilation is a syntax certificate, not a truth certificate.
+
+Existing `[V]` grades map as: those citing a compiled theorem → `[M]`; those citing a source read →
+`[S]`; the rest → `[N]`. **Do not upgrade a grade you did not earn.**
+
+## ⚠️ MERGE CONFLICT — `research/DEAD-ENDS.md` exists in two divergent versions
+
+- **`holes`** carries my orchestrator ledger: ~80 entries, appended during the round as broadcasts
+  landed, graded `[V]`/`[H]`, with the charter cross-references.
+- **`research/adv-negative` (PR #13)** carries `adv-negative`'s ledger: ~90 deduplicated entries,
+  graded `[M]`/`[S]`/`[N]`, plus `research/routes/negative-checklist.md` and the maintenance
+  protocol.
+
+**These conflict.** PR #13 is the better-structured artifact — it has the grading scheme, the
+deduplication across all five prior handoff documents, and a protocol a future agent can follow
+without an orchestrator. **Recommendation: take PR #13's `DEAD-ENDS.md` as canonical, then port the
+entries that exist only on `holes`** (chiefly A-30–A-46 and B-17–B-23, all of which were broadcast
+landings not yet in `adv-negative`'s branch).
+
+**This is the human's merge to make — no researcher may merge a PR, and I am not merging either.**
+It is flagged here because a silent last-writer-wins would lose roughly half the round's findings.
