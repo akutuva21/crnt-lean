@@ -252,3 +252,44 @@ by a grep or a `#check` before the work was dispatched, not after.
 
 The corollary: **before dispatching a researcher, run the one command that would tell you whether the
 thing they are being asked to build already exists.** It is cheap and it has been decisive every time.
+
+---
+
+## 9. Scoring rule for round 2 — a new theorem that already exists scores **zero**
+
+Added from `infra-build`'s round-1 close. The scoring harness (`scripts/pr_score.py`, PR #7)
+counts new modules, new holes, gate regressions and forbidden constructs. It **does not detect a
+theorem already in the tree being landed a second time** — and that is precisely this round's
+recurring failure: a proved capability sitting unreferenced, and then re-authored instead of cited.
+
+**Live instances from round 1:**
+* Four copies of one `False`-level theorem (consolidating now; see `DEAD-ENDS.md` A-29).
+* `comparableGrowthDescent_iff_omegaPointPositive`, already proved at
+  `SiphonDimensionDescent.lean:368-377`, in the hole's own import closure, was queued to be
+  re-landed as a fresh theorem (A-36).
+
+**Until the duplicate-detection check lands, the operative rule is:**
+
+> Score "a new machine-checked lemma" at **+10 / +25 only if no pre-existing declaration of the
+> same name with the same normalised statement exists elsewhere in the tree.** Otherwise it scores
+> **0**, and the correct action is **cite the existing `file:line`** — which scores under the
+> "lemma another researcher's PR builds on" row (+15) if it is genuinely load-bearing.
+
+Two additions close this properly, neither yet implemented nor tested:
+* **Duplicate-declaration check.** For each `theorem`/`lemma` in a PR's new modules, look for an
+  identically-named declaration with an identical normalised statement elsewhere, and report it at
+  0 points with the existing `file:line`. `pr_score.py`'s `statements()` normalisation is
+  namespace-qualified and whitespace-normalised; it needs a cross-tree lookup rather than a
+  two-ref comparison.
+* **New-vs-promoted grading.** A declaration that already existed and is merely being *given a
+  citation* is "+15, lemma another researcher's PR builds on" — not a fresh +10 or +25.
+  `form-audit`'s `check_statement_drift.py` (PR #8) is the mechanical complement; run the two
+  together.
+
+**And a standing caveat on totals.** `pr_score.py` deliberately refuses to score three rows of the
+§5 table — "survives adversary review", "used downstream", and "+100 per `sorry` eliminated"
+(which requires the enclosing module to elaborate axiom-cleanly). It prints those as `unscored`
+rather than guessing, so **the total it prints is a floor.** Any round-end total in the ledger that
+includes those rows came from human judgement, not from the harness. Keep the two distinguishable
+in the final accounting — and note that round 1's headline number (`holes = 2`, `score = −1301`)
+comes from `measure.py` alone and includes no human-judgement rows at all.
