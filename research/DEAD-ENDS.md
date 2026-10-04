@@ -512,3 +512,75 @@ goal-equivalent step"** penalty from `research/README.md` §5 to any such landin
 - **Standing rule added to `research/README.md` §7:** a green `lake build` carries no information
   about holes, and neither does frontier membership. **Only `scripts/dump_sorries.py` and a
   transitive `#print axioms` carry information about holes.**
+
+## A-22. **CORRECTION TO A-19 — the obstruction is the ∀/∃ mismatch, not `Permanent`** **[V]**
+
+- **found-by:** `papers-cracuin` (correcting me), verified by the orchestrator.
+- **I misattributed the mechanism.** `Permanent` is a *hypothesis* of the theorems at
+  `EndotacticPermanence.lean:81` and `:116`; the hole never assumes it. Showing `Permanent` is
+  *refutable* under the hole's hypotheses is therefore **not** by itself a refutation of Hole A —
+  to bite, `Permanent` would have to be *derivable*, which it is not.
+- **The obstruction that actually bites** is `PersistentOrbit.omegaLimit_positive`
+  (`GlobalPersistence.lean:159-162`), whose conclusion is **`∀ w ∈ ω, w.Positive`**. The hole's
+  hypotheses (`hwmax`, `hzeroMax`, `hPmaxne`) **assert its negation**. So any criterion concluding
+  the universal form is unsatisfiable here. That — not `Permanent` — is why `_of_upperRegion` and
+  the whole `hsep` family die.
+- **Recording this so round 3 does not chase it:** A-entries citing `Permanent` send the next
+  round after a criterion that was never the problem. The real statement is the `∀`/`∃` mismatch.
+
+## A-23. **Hole A is NOT dead — it reduces to ONE unproved dynamical estimate** **[V, corrected]**
+
+- **found-by:** `form-fanface-core.HoleContext`, verified by the orchestrator against the signature.
+- **I over-stated A-19.** "Hole A needs a genuinely new idea" was wrong. What is dead is *every
+  pre-packaged criterion in the tree*. That is a fact about the criteria, **not** about the hole.
+- `CodimTwoFaceModel.lean` shows the hypotheses are satisfiable-with-false-conclusion **except
+  `hsol`** — so it refutes *static* arguments only. `hsol` is the orbit-ODE premise, which is
+  exactly what an Anderson-style descent consumes and what every refuted criterion ignores.
+- **The reduction, verified:** `Network.omegaLimit_positive_of_boundary_point`
+  (`SiphonDimensionDescent.lean:159`) has signature
+  `hϕγ hK hmaps hωnn hgenω hωaff hx0pos hdesc hw hs₁ → ∃ p ∈ ω, p.Positive`
+  — **the hole's hypotheses minus all the `Pmax` data, plus `hdesc`.** Hence
+
+  ```lean
+  exists_positive_omegaPoint_of_highCodimension_siphonFace
+    = fun … hdesc => omegaLimit_positive_of_boundary_point … hdesc hwmax
+        (hzeroMax ⟨s₀, hPmaxne⟩).2
+  ```
+
+  a three-line wrapper. `hxs`/`hcb` then go unused, and `hcodim`, `hcard`, `hrank`, `hmaxExact`,
+  `hzcard` are derivable or redundant (:1034, :1053, :1090).
+- **The single unformalised object is `ComparableGrowthDescent.descend`**
+  (`SiphonDimensionDescent.lean:125-132`): `∀ P, P.Nonempty → IsCriticalSiphon P → SiphonCarried P →
+  (∃ p ∈ ω, p.Positive) ∨ (∃ Q, … Q.card < P.card …)`. Its **right disjunct is the analytic
+  estimate** the file itself flags as blocked at :531-534; the conservation mechanism
+  `eq_zero_on_pmax_of_conservation_eq` (:569) is the missing half.
+- **So the honest entry is: "Hole A is closed under all packaged criteria; its residue is a single
+  unproved descent estimate, reachable by a three-line wrapper."** That is a *dynamical* estimate,
+  which is why `CodimTwoFaceModel` does not touch it.
+
+## A-24. `HighCodimensionSiphonFace.lean:73-76` makes a **false axiom-hygiene claim** **[V]**
+
+- **found-by:** `adv-audit.DriftA`. The "Trust status" block asserts: *"`#print axioms …` reports
+  `sorryAx`, and so do exactly its downstream consumers … **No other declaration in the tree does.**"*
+- **False.** A tree-wide scan for `^\s*sorry\b` returns exactly two sites —
+  `HighCodimensionSiphonFace.lean:135` **and** `TrueChemistrySRCriterion.lean:8607`. It is false in
+  the one file whose subject matter is axiom hygiene.
+- Docstring-only, cannot break a build, and the cheapest real fix available anywhere. **Round 2
+  should land it regardless of what happens to either hole.**
+
+## B-16. The RR arc needs **no** privacy lift and no bespoke builder **[V]**
+
+- `RRGluable` (`TrueSRParityRR.lean:260`) has fields `same_start` :262, `same_end` :264,
+  `species_disjoint` :266, `reaction_disjoint` :268, `edge_disjoint` :270.
+  `Gluable` (`TrueSRGlueInterface.lean:59`) has `same_start` :60, `same_end` :61,
+  `species_disjoint` :62, `reaction_disjoint` :64, `edge_disjoint` :66, plus **public**
+  `Gluable.symm` :69.
+- `glueArc` (:388) calls the *private* `prepend` internally — legal within the file — so **no
+  privacy lift is needed**. Typing note: `prepend`'s receiver is `TrueSRPathRR`, so the
+  `speciesArc.toPath.prepend` route is **type-invalid**; build `TrueSRPathRR` from public
+  accessors (`vertexAt`/`edgeAt`/`startReaction`/`endReaction`, simp lemmas :99-123), then glue.
+- `TrueSRGlueInterface.lean` does **not** import `TrueChemistrySRCriterion` — so the ported file can
+  avoid the `sorryAx` coupling (B-11).
+- `TrueSRGlueInterface.lean:55-57` notes the `edge_disjoint` clause is what Banaji–Craciun's
+  Lemma 10 supplies directly, and that **interior disjointness for a *simple* cycle is not carried
+  out there** — a known residual to flag, not to assume away.
