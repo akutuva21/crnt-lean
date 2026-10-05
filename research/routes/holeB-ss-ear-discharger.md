@@ -271,3 +271,66 @@ via `hSR.2`. The remaining options are:
 
 Option 1 has not been attempted and does not require the block decomposition. It is the cheapest
 untried route.
+
+## 7. The `hSR.1` route is blocked too — a second, structural obstruction
+
+§6 killed `hSR.2`. The obvious alternative is `hSR.1 : ∀ C, C.Even → C.SCycle`, discharged by a
+strict multiplicative gain on the ear's edge coefficients. **That is blocked as well**, for a
+different reason, and the reason is a mismatch of quantities rather than a missing lemma.
+
+`TrueSRCycle.SCycle` (`TrueChemistrySRCriterion.lean:169`) is
+
+```lean
+def TrueSRCycle.SCycle (C : N.TrueSRCycle n) : Prop :=
+  (∏ i : Fin n, (C.leftEdge i).coeff) = (∏ i : Fin n, (C.rightEdge i).coeff)
+```
+
+and `TrueSREdge.coeff` (`TrueChemistrySRGraph.lean:120-127`) is
+
+```lean
+def TrueSREdge.coeff (e : N.TrueSREdge) : ℕ := e.endpoint e.species
+theorem TrueSREdge.coeff_pos (e : N.TrueSREdge) : 0 < e.coeff := Nat.pos_of_ne_zero e.occurs
+```
+
+with `occurs : endpoint species ≠ 0` a **field of the structure** (`:119`). So every coefficient is
+a **positive natural**, unconditionally. Two consequences:
+
+1. **No factor can vanish or be negative.** The product identity cannot break via a degenerate or
+   sign-changing factor; it requires a genuinely strict comparison between two products.
+2. **No in-scope hypothesis supplies that comparison.** Every strict inequality available at the
+   residue — `hopp`, `hcausal`, `hattachment`, the step-0 negativity on `ρ₁` — is an inequality on
+   `N.trueInternalClassFlux α ρ s * σ s`, i.e. on **monomial ratios of concentrations**. `coeff` is an
+   **integer stoichiometric label**, `endpoint e.species`. These are different quantities.
+   `netCoeff` (`:185`) is `|target s − source s|`, and `edge_coeff_eq_abs_reactionVector` identifies
+   the two labels under `hsep` — but that is an identification of *which* integer, not a bound on
+   its *size*.
+
+Verified by grep, no hits:
+
+```
+grep -rn "trueInternalClassFlux.*coeff|coeff.*trueInternalClassFlux|netCoeff.*[Ff]lux|[Ff]lux.*netCoeff" \
+     CRNT/ --include=*.lean
+→ (no output)
+```
+
+**So there is no bridge in the tree between the flux inequalities the residue has and the integer
+labels `SCycle` constrains.**
+
+### Net status of the residue
+
+Both halves of `hSR` are now closed off at the residue, for *different* structural reasons:
+
+| clause | obstruction | nature |
+|---|---|---|
+| `hSR.2` (no S-to-R intersection) | `no_sToRIntersection_of_speciesSpecies_common` (`TrueSRSSGlueCPairs.lean:233`) — proved: the ear's common subgraphs are species-to-species | proved refutation |
+| `hSR.1` (every even cycle is an s-cycle) | the available inequalities are on `flux·σ`; `SCycle` constrains positive-integer labels; no bridge exists | proved absence |
+
+This is the sharpest available characterisation of what remains, and it is consistent with the
+Shinar–Feinberg reading in `holeB-literature.md` §2: the paper proves Prop. 5.8/5.10 using
+**inequalities on the source's stoichiometric coefficients** (`eq:SourceInequalitySystem`, paper
+§5.4), not on monomial ratios. The in-tree residue has flux inequalities but no coefficient
+inequalities — which is precisely the missing input, and it is an *input*, not a tactic.
+
+**Therefore the residue needs a source-level coefficient inequality system**, the paper's §5.4
+object. That is a substantial new input, related to but distinct from the block decomposition of
+§11. It is not something the six arrangements or the ear machinery can supply.
