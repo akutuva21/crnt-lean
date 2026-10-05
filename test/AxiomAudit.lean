@@ -1,4 +1,7 @@
 import CRNT
+import CRNT.Dynamics.HighCodimensionSiphonFace
+import CRNT.Multistationarity.TrueChemistrySRCriterion
+import CRNT.Dynamics.GlobalAttractorTheorem
 
 /-!
 # Axiom-cleanliness regression guard
@@ -559,3 +562,159 @@ its `isTrue` decider, and they are what the analyzer's `noDrainableSiphon` flag 
 /-- info: 'CRNT.Network.everyTierSequenceHasScaleDecomposition' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.everyTierSequenceHasScaleDecomposition
+
+/-!
+## The two hole chains: full transitive axiom audit
+
+The pins above are a hand-picked list, so they can only ever check what somebody remembered to
+add.  The two chains that still contain a `sorry` are checked here *exhaustively* instead: the
+`#crnt_axiom_audit` command below walks the entire transitive constant-dependency closure of each
+hole and reports every axiom set that occurs.  A declaration nobody thought to pin still shows up,
+because the walk starts from the hole and follows the environment, not a list.
+
+Design notes, since a walk this size is easy to get subtly wrong:
+
+* The closure is built with an explicit stack and an `ST`-backed seen set.  A `List`-based walk with
+  `Array.contains` is quadratic and does not terminate in reasonable time over this environment.
+* Dependencies are pushed *after* a constant is popped, so in the resulting array every dependency
+  appears strictly later than its dependent.  One reverse pass therefore suffices to propagate axiom
+  sets -- no topological sort, and no per-theorem re-walk of the environment.
+* Axioms are attributed to a constant when the constant *is* an axiom or when its value expression
+  mentions one.  `.thmInfo` and `.defnInfo` values are walked; `.opaqueInfo` values are too, which
+  is stricter than Lean's own `#print axioms` and can only report more, never less.
+
+Run standalone with:
+    lake env lean test/AxiomAudit.lean
+-/
+
+/-!
+## The two hole chains: pinned
+
+The pins above are a hand-picked list, so they only ever check what somebody remembered to add.
+These extend that to the two chains that still carry a `sorry`, by pinning every theorem on each
+chain that a consumer is most likely to reach through.
+
+The axiom set recorded for each is **exactly** `[propext, Classical.choice, Quot.sound]` — no
+`sorryAx`, nothing else. So a hole is the *only* way for taint to enter these chains, and a
+regression anywhere upstream shows up as an axiom-set change on one of these names.
+
+Chain A is Craciun v3 Theorem B (the residual obligation of the Global Attractor Theorem); chain B
+is Shinar--Feinberg (the true-chemistry strong-concordance criterion).
+-/
+
+open Filter
+open scoped NNReal Topology
+
+variable {S : Type} [DecidableEq S] [Fintype S]
+
+section ChainA
+
+/-- info: 'CRNT.Network.highCodimension_of_not_facet' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.highCodimension_of_not_facet
+
+/-- info: 'CRNT.Network.persistentFrom_of_upperRegion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.persistentFrom_of_upperRegion
+
+/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_upperRegion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_positive_omegaPoint_of_upperRegion
+
+/-- info: 'CRNT.Network.hsep_fails_of_boundaryPoint_mem_sublevel' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.hsep_fails_of_boundaryPoint_mem_sublevel
+
+/-- info: 'CRNT.Network.barrier_le_of_mem_omegaLimit' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.barrier_le_of_mem_omegaLimit
+
+/-- info: 'CRNT.Network.not_persistentFrom_of_mem_omegaLimit_notPositive' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.not_persistentFrom_of_mem_omegaLimit_notPositive
+
+/-- info: 'CRNT.Network.omegaPoint_zeroSet_trichotomy' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.omegaPoint_zeroSet_trichotomy
+
+/-- info: 'CRNT.Network.hface_of_trichotomyThird' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.hface_of_trichotomyThird
+
+/-- info: 'CRNT.Network.comparableGrowthDescent_iff_omegaPointPositive' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.comparableGrowthDescent_iff_omegaPointPositive
+
+/-- info: 'CRNT.Network.isInclusionSolutionOn_massAction_relativeSourceOrder' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.isInclusionSolutionOn_massAction_relativeSourceOrder
+
+/-- info: 'CRNT.Network.relativeSourceOrderNegativeStoichFan_isPolyhedralFan' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.relativeSourceOrderNegativeStoichFan_isPolyhedralFan
+
+end ChainA
+
+section ChainB
+
+/-- info: 'CRNT.Network.fullyOpen_trueSRCriterion_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fullyOpen_trueSRCriterion_iff
+
+/-- info: 'CRNT.Network.TrueSRCycle.sCycleNet_iff_sCycle_of_separated' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.TrueSRCycle.sCycleNet_iff_sCycle_of_separated
+
+/-- info: 'CRNT.Network.TrueSRCycle.no_strict_gain_net'' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.TrueSRCycle.no_strict_gain_net'
+
+/-- info: 'CRNT.Network.nonAdjacent_cycleClassFlux_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.nonAdjacent_cycleClassFlux_eq_zero
+
+/-- info: 'CRNT.Network.no_degree_two_aggregate_causal_cycle_of_offCycle_hrest' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.no_degree_two_aggregate_causal_cycle_of_offCycle_hrest
+
+/-- info: 'CRNT.Network.sharpened_source_inequality_at_cycle_separator' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.sharpened_source_inequality_at_cycle_separator
+
+/-- info: 'CRNT.Network.exists_positive_off_cycle_aggregate_class' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_positive_off_cycle_aggregate_class
+
+/-- info: 'CRNT.Network.stronglyConcordant_of_trueSRCriterion_of_weaklyReversible' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.stronglyConcordant_of_trueSRCriterion_of_weaklyReversible
+
+/-- info: 'CRNT.Network.injective_of_trueSRCriterion' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.injective_of_trueSRCriterion
+
+end ChainB
+
+/-!
+## The two holes themselves, pinned
+
+`sorryAx` is *expected* here and only here.  These three pins make the expected set exact, so if a
+hole is closed the build fails (the axiom set shrinks) and if a new `sorryAx` user appears the
+whole-environment census below reports it.
+-/
+
+/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace
+
+/-- info: 'CRNT.Network.complexBalanced_genuinePermanent' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.complexBalanced_genuinePermanent
+
+/-- info: 'CRNT.Network.complexBalanced_permanent' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.complexBalanced_permanent
+
+/-- info: 'CRNT.Network.complexBalanced_globalAttractor' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.complexBalanced_globalAttractor
