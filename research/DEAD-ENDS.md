@@ -1903,3 +1903,186 @@ Purely additive (control: the `TrueSRParityRR.lean` diff is empty, so no privacy
 **`no_offCycle_negFlux` has NOT been shown satisfiable.** Per B-26 nothing here assumes a witness
 exists; all of it is cycle-internal or conditional. **This is the live dependency for Hole B** —
 `form-sr-witness` owns it.
+
+## B-34. ⭐ `hSR.1`'s evenness half is REFUTED in-tree: an ear's c-pair parity is free **[V, compiled]**
+
+- **found-by:** `HoleBStrictGain` · **round:** 2 · **revive-when:** a σ-sign characterization of
+  `TrueSRSSPath.ssCPairAt` exists (see below), or the ear is built with *canonically oriented*
+  representatives (B-35).
+- **Claim:** for the residue's ear `P : TrueSRSSPath (m+1)` there is **no** way to prove
+  `(TrueSRSSPath.ssGlueCycle P (Crot.speciesArc k)).Even` from the in-scope hypotheses. Evenness of
+  `hSR.1`'s target is not merely unproved; it is **underdetermined**.
+- **Why, mechanically.** `ssGlueCycle_numCPairs` (`TrueSRSSGlueCPairs.lean:107`) gives, with **no seam
+  term**, `numCPairs(P ∪ Q) = ssNumCPairs P + ssNumCPairs Q`. So the glued cycle is even iff
+  `ssNumCPairs P + ssNumCPairs Q` is even. `ssNumCPairs Q` for an arc is fixed by `C`
+  (proved this round, see below), but **`ssNumCPairs P` — the ear's own c-pair count — is not
+  constrained by anything.**
+- **The missing ingredient, confirmed absent by grep** (`scout`, this round):
+  - No theorem anywhere computes the parity of `ssNumCPairs` for a species-to-species path, or even
+    relates it to `P`'s length. Its two only consumers (`ssGlueCycle_numCPairs`,
+    `ssGlueCycle_even_iff_even`) treat it as an opaque unknown that cancels mod 2.
+  - **No σ-sign characterization of `ssCPairAt` exists for paths.** For *cycles* there is one
+    (`C.isCPair i ↔ σ(C.species i)·σ(C.species (finRotate n i)) < 0`, proved at
+    `TrueChemistrySRCriterion.lean:6736` from the criterion's own canonical construction), and it is
+    that theorem which makes `C.Even` computable. Its path analogue is absent at every level:
+    `ssCPairAt`↔sign (none), `TrueSRPath.CPairAt`↔sign (`TrueSRPathCPairs.lean` is 63 lines of pure
+    edge-index combinatorics, no σ), and edge-`endpoint`↔sign (only
+    `trueInternalCausalEdges_cPair_iff_signChange` at `:2459`, which is about the two *canonically
+    constructed* causal edges of the witness flow, **not** arbitrary path edges).
+  - `TrueSRSSPath` carries no σ data at all.
+- **Consequence.** `TrueSRChordParity.no_edge_disjoint_sToR_chord_of_trueSRCriterion` is S-to-R only
+  and does not apply to the even-length `TrueSRSSPath`; `TrueSREarCase2.ssGlueCycle_even_of_partner`
+  needs *two* of the three glued cycles already even, and `C.Even` supplies exactly one. So
+  **part A of the `hSR.1` route is closed, not merely hard.**
+- **Evidence:** `lake build CRNT.Multistationarity.TrueChemistrySRCriterion` clean; the two landed
+  theorems below are the reusable fragments that survive this negative.
+
+## B-35. The flux↔label bridge for `hSR.1` **DOES** exist — β cancels **[V, compiled]**
+
+- **found-by:** `HoleBStrictGain` · **round:** 2 · **revive-when:** never (it is proved).
+- **This corrects a premise that was circulating**, namely that "no theorem relates
+  `trueInternalClassFlux` to `coeff`/`netCoeff`, so the `SCycle` route is structurally blocked."
+  **That premise is false, and the bridge is short.** No new flux-to-label theorem is needed: the
+  class scalars simply cancel.
+- **Landed:** `sCycleNet_eq_fluxMagnitude_product` in
+  `CRNT/Multistationarity/TrueChemistrySRCriterion.lean` (~:8119). Under the shared-representative
+  (`hrep`) and scalar-vector (`hbeta`) hypotheses every cycle in this file is built with, and
+  `hβne : ∀ i, β i ≠ 0`:
+
+  ```lean
+  C.SCycleNet ↔ (∏ i, |trueInternalClassFlux α (C.reaction i) (C.species i)|)
+             = ∏ i, |trueInternalClassFlux α (C.reaction i) (C.species (finRotate n i))|
+  ```
+
+  Each of the two edge labels at index `i` is `|flux| / |β i|`, and both sides carry the *same*
+  `∏ |β i|⁻¹` factor, so it cancels.
+- **Why it matters.** `SCycleNet` is the quantity `hSR.1`'s product identity actually constrains, and
+  after this rewrite it constrains the products of the magnitudes of **exactly** the fluxes that
+  `hopp`, `hcausal` and `hattachment` give strict inequalities on. So the residue's inequalities and
+  `SCycle` are **the same objects after all** — the mismatch alleged in the premise is an artifact of
+  looking at the *unscaled* label rather than the scaled one.
+- **What it does NOT give.** It gives an identity in |flux|, and a break still needs a **strict**
+  inequality on one factor. `hopp`/`hcausal` pin *signs* (`flux·σ < 0` vs `> 0`) and `hopp` is
+  sign-only with no path content (B-18); no in-scope hypothesis compares the *magnitudes* of two
+  fluxes at two different cycle species. So part B remains open, but for the sharper reason: **the
+  missing datum is a magnitude comparison, not a bridge.**
+- **Evidence:** the file builds clean; the theorem is axiom-clean (`[propext, Classical.choice,
+  Quot.sound]`).
+
+## B-36. The ear's gluability to both species-arcs is LANDED and unconditional **[V, compiled]**
+
+- **found-by:** `HoleBStrictGain` · **round:** 2 · **revive-when:** never (it is proved).
+- **Landed:** `aggregateEar_ssGluable_arcs` in
+  `CRNT/Multistationarity/TrueChemistrySRCriterion.lean` (~:8196). For `C : TrueSRCycle n`,
+  `0 < k < n`, and an off-cycle-interior species-to-species path `P : TrueSRSSPath L` whose endpoint
+  species are `C.species 0` and `C.species k`:
+
+  ```lean
+  TrueSRSSPath.SSGluable P (C.speciesArc k hk hkpos) ∧
+    TrueSRSSPath.SSGluable P (C.speciesArcBwd k hk hkpos)
+  ```
+
+- **Why it is free.** The edge-disjointness hypotheses of `TrueSRCycle.ssGluable_chord_arcFwd` /
+  `_arcBwd` are discharged by `TrueSRSSPath.ss_edges_off_cycle`, which is unconditional for a
+  species-to-species path (an edge with both endpoints on `C` would put cycle vertices at two
+  positions of `P`, and a path of even length ≥ 2 has no position that is neither endpoint nor
+  interior).
+- **So both ear-containing true-SR cycles genuinely EXIST.** The blocker is B-34: they exist but
+  their **evenness** is not determined. Any future revival of the ear route should start here rather
+  than re-deriving gluability.
+
+## B-37b. ⭐ The parity TRANSFER itself is blocked by an arc-length mismatch, not only the datum **[V, compiled]**
+
+- **found-by:** `HoleBStrictGain` · **round:** 2 · **revive-when:** a length-agnostic
+  `ssGlueCycle`/`SSGluable` (i.e. `TrueSRSSPath` reindexed so arc lengths need not be `2*j+2`).
+- **Sharper than B-34.** B-34 says the datum `ssNumCPairs P` is missing. Even *if* it were
+  available, the natural next step — `TrueSRSSPath.ssGlueCycle_even_iff_even` (`TrueSRSSGlueCPairs.lean:200`)
+  with `hQ` := the new partition identity — **does not typecheck**, verified this round:
+
+  ```lean
+  example (C : N.TrueSRCycle n) (k : ℕ) (hk : k + 1 < n) (hC : C.Even)
+      (P : N.TrueSRSSPath (2 * (k + 1)))
+      (h₁ : SSGluable P (C.speciesArc (k + 1) hk _))
+      (h₂ : SSGluable P (C.speciesArcBwd (k + 1) hk _)) :
+      (ssGlueCycle P (C.speciesArc (k + 1) hk _) h₁).Even
+        ↔ (ssGlueCycle P (C.speciesArcBwd (k + 1) hk _) h₂).Even := by
+    -- error: `h₂` has type `P.SSGluable (C.speciesArcBwd (k+1) hk _)`
+    --        but is expected to have type `P.SSGluable ?m`
+  ```
+
+- **Why.** `ssGlueCycle` / `SSGluable` are typed with the partner at length `2 * j + 2`. The forward
+  arc at `m = k+1` has length `2*(k+1)`, which is definitionally `2*k+2`, so it fits. The **backward**
+  arc has length `2*(n-k-1)`, which is **not** syntactically `2*j+2`, and `TrueSRSSPath` is not
+  injectively typed in its length (B-37 trap 1), so the structure cannot be transported. The two
+  arcs therefore **cannot be presented as the two partners of one `ssGlueCycle_even_iff_even` call.**
+- **What DOES typecheck** (verified), so the count identity is available and the residue is exactly
+  one proposition short:
+
+  ```lean
+  (ssGlueCycle P (C.speciesArc (k+1) hk _) h₁).numCPairs
+    = P.ssNumCPairs + (C.speciesArc (k+1) hk _).ssNumCPairs
+  ```
+
+- **Bottom line for the residue.** With the partition identity (B-37/B-38) the evenness of the
+  forward ear-cycle reduces to the **single** proposition `P.ssNumCPairs % 2 = ssNumCPairs arcB % 2`,
+  i.e. to the parity of the ear's own c-pair count — and that is exactly the datum B-34 shows is
+  unavailable. So `hSR.1`'s evenness half is closed for **two independent reasons.**
+
+## B-37. `ssPathCPairAt` for a species-arc is `C.isCPair` — LANDED for the forward arc **[V, compiled]**
+
+- **found-by:** `HoleBStrictGain` · **round:** 2 · **revive-when:** never (it is proved, fwd).
+- **Landed:** `ssPathCPairAt_speciesArc_iff` in
+  `CRNT/Multistationarity/TrueChemistrySRCriterion.lean` (~:8222):
+
+  ```lean
+  ssPathCPairAt (C.speciesArc (k + 1) hk (by omega)) r ↔ C.isCPair ⟨r.1, _⟩
+  ```
+
+  This is the species-path counterpart of `TrueSRCycle.glueCycle_arcs_isCPair`
+  (`TrueSRCycleSplit.lean:328`), which does the same job for the reaction-flavour arcs. **No such
+  statement for `speciesArc`/`speciesArcBwd` existed anywhere in the tree** — the docstring at
+  `TrueSRSpeciesPath.lean:899-901` claims "the two species-arcs of a cycle glue back to it" but only
+  the `Gluable` part was ever formalised. Closing this is a prerequisite for any c-pair **count**
+  over species-arcs (i.e. for B-34's parity question).
+- **Two traps, both cost real budget — record them so the next agent does not repeat them.**
+  1. **Index shape.** `TrueSRSSPath.ssCPairAt` is typed at length `2 * j + 2`, while
+     `speciesArc m` has length `2 * m`. Lean will not unify these at a bare `m`, and `TrueSRSSPath`
+     is **not injectively typed in its length**, so `cast` / `Eq.mp (congrArg …)` / `▸` / `cases`
+     all FAIL on the structure. The fix is to **index the arc as `k + 1`**: `speciesArc (k+1)` has
+     length `2*(k+1)`, which is *definitionally* `2*k+2`, so no transport is needed at all.
+  2. **Name collision.** Inside `TrueChemistrySRCriterion.lean` the name `TrueSRSSPath.ssCPairAt`
+     does not resolve (it reads as `Function.ssCPairAt`). Use the file's **own**
+     `private def ssPathCPairAt` (`:7841`) and `unfold` it — definitionally identical.
+- **Still open:** the **backward** arc (`speciesArcBwd`), and hence the sum identity
+  `ssNumCPairs arcF + ssNumCPairs arcB = C.numCPairs`. `speciesArcBwd m` has length `2*(n-m)`, which
+  is *not* syntactically `2*j+2` even at the `k+1` reindexing, so trap 1 bites harder there.
+
+## B-38. ⭐ The species-arc c-pair PARTITION is LANDED — the cycle's c-pairs split across its arcs **[V, compiled]**
+
+- **found-by:** `HoleBStrictGain.ArcEven` · **round:** 2 · **revive-when:** never (it is proved).
+- **File:** `CRNT/Multistationarity/TrueSRSSArcEven.lean` (new, 297 lines, 18 declarations).
+  `lake env lean` on it is **clean — zero errors, zero warnings**; no `sorry`/`admit`/
+  `native_decide`/`ofReduceBool`/`axiom`; axioms verified `[propext, Classical.choice, Quot.sound]`.
+- **What it proves.** The statement DEAD-ENDS B-10 listed as missing — "is there a theorem that the
+  two species-arcs of a cycle partition its c-pairs?" — **now exists**, in three levels:
+  - `:129` `ssCPairAtH_speciesArc`, `:168` `ssCPairAtH_speciesArcBwd` — the **pointwise** identities
+    (forward `↔ C.isCPair r`; backward `↔ C.isCPair (revPerm n r)`, needing `h.symm` because the
+    backward arc emits right-edge-then-left-edge).
+  - `:216` `ssNumCPairsH_speciesArcs_add` — **general `m`**:
+    `ssNumCPairsH (C.speciesArc m hm _) + ssNumCPairsH (C.speciesArcBwd m hm _) = C.numCPairs`.
+  - `:284` `speciesArcs_sum_even` and `:291` `speciesArcs_sum_evenH` — the **parity** consequence:
+    the arc-sum is `% 2 = 0` under `C.Even`.
+- **The reindexing trick that makes it statable.** `ssNumCPairs` demands length `2*j+2`, which
+  neither arc has for abstract `m`. The fix is a **length-agnostic half-indexed count**
+  `ssNumCPairsH {L} (P : TrueSRSSPath (2*L))` (`:38`), with the bridge
+  `:44 ssNumCPairsH_eq {j} (P : TrueSRSSPath (2*(j+1))) : ssNumCPairsH P = ssNumCPairs P` — valid
+  because `2*(j+1)` is *definitionally* `2*j+2`. This is the same escape as B-37 trap 1, one level up.
+- **Why it is the right artifact.** `C.Even` now propagates to the *arc* parity for free. Combined
+  with `ssGlueCycle_numCPairs`, the ear's evenness reduces to **exactly one** unknown — the parity of
+  `P`'s own c-pair count (B-34) — and the transfer that would have propagated it between the two
+  arcs is itself blocked (B-37b). So this file **closes the arc half of the ear's parity question
+  completely and reduces the residue to a single named gap.**
+- **Collision note.** Its `ssCPairAtH`/`ssNumCPairsH` do **not** collide with
+  `TrueSRSSPath.ssCPairAt`/`ssNumCPairs` or with `TrueChemistrySRCriterion.lean`'s private
+  `ssPathCPairAt`/`ssPathCPairs`; it is purely additive. Not yet imported from `CRNT.lean`, so it
+  does not change the reachable core.

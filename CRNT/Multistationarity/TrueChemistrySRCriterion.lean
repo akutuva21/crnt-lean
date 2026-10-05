@@ -8116,6 +8116,147 @@ private theorem aggregateEar_interior (N : Network S)
   · have him : i.1 = m + 1 := by omega
     exact (hiL him).elim
 
+/-- **The s-cycle identity is a flux-magnitude identity: the class scalars cancel.**
+
+Under the shared-representative and scalar-vector hypotheses that every cycle in this file is
+built with, each of `C`'s two edge labels at index `i` is the corresponding aggregate class-flux
+magnitude divided by the *same* factor `|β i|`.  Since `SCycleNet` compares the two products
+over the same index set, those factors cancel and the identity becomes an equality of products of
+class-flux magnitudes at `C.species i` and at `C.species (finRotate n i)`.
+
+This is the bridge between the two quantities the residue's hypotheses talk about: the strict
+inequalities `hopp`, `hcausal` and `hattachment` constrain
+`(trueInternalClassFlux α ρ s) * σ s`, and after this rewrite the `SCycleNet` identity constrains
+exactly the products of the magnitudes of those very fluxes.  No flux-to-label theorem was needed:
+the cancellation does the work. -/
+private theorem sCycleNet_eq_fluxMagnitude_product (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {n : ℕ} [NeZero n]
+    (C : N.TrueSRCycle n) (β : Fin n → ℝ)
+    (hrep : ∀ i, (C.leftEdge i).representative = (C.rightEdge i).representative)
+    (hbeta : ∀ i t, N.trueInternalClassFlux α (C.reaction i) t =
+      β i * N.reactionVector (C.rightEdge i).representative t)
+    (hβne : ∀ i, β i ≠ 0) :
+    C.SCycleNet ↔
+      (∏ i : Fin n, |N.trueInternalClassFlux α (C.reaction i) (C.species i)|)
+        = ∏ i : Fin n,
+          |N.trueInternalClassFlux α (C.reaction i) (C.species (finRotate n i))| := by
+  classical
+  have hL (i : Fin n) : (C.leftEdge i).netCoeff =
+      |N.trueInternalClassFlux α (C.reaction i) (C.species i)| * (|β i|)⁻¹ := by
+    have hn : (C.leftEdge i).netCoeff =
+        |N.reactionVector (C.rightEdge i).representative (C.species i)| := by
+      rw [TrueSREdge.netCoeff, reactionVector_apply, hrep i, C.left_species i]
+    have hb := hbeta i (C.species i)
+    have heq : N.reactionVector (C.rightEdge i).representative (C.species i)
+        = N.trueInternalClassFlux α (C.reaction i) (C.species i) / β i := by
+      rw [eq_div_iff (hβne i)]
+      exact (mul_comm _ _).symm.trans hb.symm
+    rw [hn, heq, abs_div, div_eq_mul_inv]
+  have hR (i : Fin n) : (C.rightEdge i).netCoeff =
+      |N.trueInternalClassFlux α (C.reaction i) (C.species (finRotate n i))| * (|β i|)⁻¹ := by
+    have hidx0 : (⟨(i.1 + 1) % n,
+        Nat.mod_lt _ (Nat.pos_of_ne_zero (NeZero.ne n))⟩ : Fin n) = finRotate n i := by
+      apply Fin.ext
+      simpa [finRotate_apply, Fin.add_def] using congrArg Fin.val (finRotate_apply i)
+    have hn : (C.rightEdge i).netCoeff =
+        |N.reactionVector (C.rightEdge i).representative (C.species (finRotate n i))| := by
+      rw [TrueSREdge.netCoeff, reactionVector_apply, C.right_species i, hidx0]
+    have hb := hbeta i (C.species (finRotate n i))
+    have heq : N.reactionVector (C.rightEdge i).representative (C.species (finRotate n i))
+        = N.trueInternalClassFlux α (C.reaction i) (C.species (finRotate n i)) / β i := by
+      rw [eq_div_iff (hβne i)]
+      exact (mul_comm _ _).symm.trans hb.symm
+    rw [hn, heq, abs_div, div_eq_mul_inv]
+  have hB : (∏ i : Fin n, (|β i|)⁻¹) ≠ 0 := by
+    rw [Finset.prod_ne_zero_iff]
+    intro i _
+    exact inv_ne_zero (abs_ne_zero.mpr (hβne i))
+  have hprodL : (∏ i : Fin n, (C.leftEdge i).netCoeff) =
+      (∏ i : Fin n, |N.trueInternalClassFlux α (C.reaction i) (C.species i)|) *
+        (∏ i : Fin n, (|β i|)⁻¹) := by
+    rw [Finset.prod_congr rfl (fun i _ => hL i), Finset.prod_mul_distrib]
+  have hprodR : (∏ i : Fin n, (C.rightEdge i).netCoeff) =
+      (∏ i : Fin n,
+        |N.trueInternalClassFlux α (C.reaction i) (C.species (finRotate n i))|) *
+        (∏ i : Fin n, (|β i|)⁻¹) := by
+    rw [Finset.prod_congr rfl (fun i _ => hR i), Finset.prod_mul_distrib]
+  constructor
+  · intro h
+    unfold TrueSRCycle.SCycleNet at h
+    rw [hprodL, hprodR] at h
+    have h3 := mul_right_cancel₀ hB h
+    rw [mul_comm (∏ i : Fin n,
+      |N.trueInternalClassFlux α (C.reaction i) (C.species i)|)
+      (∏ i : Fin n, (|β i|)⁻¹)] at h
+    exact h3
+  · intro h
+    unfold TrueSRCycle.SCycleNet
+    rw [hprodL, hprodR, h, mul_comm]
+
+/-- **An off-cycle-interior species-to-species ear glues to both species-arcs of its cycle.**
+
+Let `C : N.TrueSRCycle n` be a cycle, `0 < m < n`, and let `P : N.TrueSRSSPath L` be a
+species-to-species path whose two endpoint species are `C.species 0` and `C.species m`, with
+every interior vertex off `C`.  Then `P` is gluable to `C.speciesArc m` and to
+`C.speciesArcBwd m`, so both glued cycles `ssGlueCycle P (C.speciesArc m)` and
+`ssGlueCycle P (C.speciesArcBwd m)` are genuine true-SR cycles containing every edge of the ear.
+
+This is the *only* gluability ingredient the residue needs, and it is unconditional: the
+edge-disjointness hypotheses of `TrueSRCycle.ssGluable_chord_arcFwd`/`_arcBwd` are free here,
+because an edge with both endpoints on the cycle would put cycle vertices at two positions of
+`P`, and a path of even length at least two has no position that is neither an endpoint nor
+interior (`TrueSRSSPath.ss_edges_off_cycle`). -/
+private theorem aggregateEar_ssGluable_arcs (N : Network S) {n m : ℕ} (C : N.TrueSRCycle n)
+    (hmn : 0 < m) (hmnlt : m < n) {L : ℕ} (P : N.TrueSRSSPath L)
+    (hstart : P.speciesAt ⟨0, by omega⟩ (by show (0 : ℕ) % 2 = 0; omega)
+      = C.species ⟨0, by omega⟩)
+    (hend : P.speciesAt ⟨L, by omega⟩ P.even_mod = C.species ⟨m, by omega⟩)
+    (hint : ∀ p : Fin (L + 1), p.1 ≠ 0 → p.1 ≠ L → ¬ C.HasVertex (P.vertex p)) :
+    TrueSRSSPath.SSGluable P (C.speciesArc m hmnlt hmn) ∧
+      TrueSRSSPath.SSGluable P (C.speciesArcBwd m hmnlt hmn) :=
+  ⟨TrueSRCycle.ssGluable_chord_arcFwd C m hmnlt hmn P hstart hend hint
+      (P.ss_edges_off_cycle C hint).1 (P.ss_edges_off_cycle C hint).2,
+    TrueSRCycle.ssGluable_chord_arcBwd C m hmnlt hmn P hstart hend hint
+      (P.ss_edges_off_cycle C hint).1 (P.ss_edges_off_cycle C hint).2⟩
+
+/-- **A species-arc's c-pairs are exactly the cycle's c-pairs at the corresponding indices.**
+
+For `r < k + 1`, `ssCPairAt (C.speciesArc (k+1) …) r` compares the arc's `2r`-th edge, which is
+`C.leftEdge r`, with its `2r+1`-st edge, which is `C.rightEdge r`.  So the two are equal exactly
+when `C.isCPair r`.  This is the species-path counterpart of `TrueSRCycle.glueCycle_arcs_isCPair`
+(`TrueSRCycleSplit.lean:328`), which does the same job for the reaction-flavour arcs `arcFwd`
+and `arcBwd`.  There is no such statement for `speciesArc`/`speciesArcBwd` elsewhere in the tree.
+
+The arc index is `k + 1` rather than a bare `m` because `ssCPairAt` is typed at the length
+`2 * j + 2`, and `speciesArc (k+1)` has length `2 * (k+1)`, which is *definitionally* `2 * k + 2`;
+at a bare `m` the length is `2 * m` and Lean will not unify it, and `TrueSRSSPath` is not
+injectively typed in its length so the structure cannot simply be transported. -/
+private theorem ssPathCPairAt_speciesArc_iff {S : Type} [DecidableEq S] [Fintype S]
+    {M : Network S} {n : ℕ} (C : M.TrueSRCycle n) (k : ℕ) (hk : k + 1 < n)
+    (r : Fin (k + 1)) :
+    ssPathCPairAt (C.speciesArc (k + 1) hk (by omega)) r
+      ↔ C.isCPair ⟨r.1, by have := hk; omega⟩ := by
+  unfold ssPathCPairAt
+  have hE := C.speciesArc_edge_even (k + 1) hk (by omega : 0 < k + 1)
+    ⟨2 * r.1, by have := r.isLt; omega⟩ (by show 2 * r.1 % 2 = 0; omega)
+  have hO := C.speciesArc_edge_odd (k + 1) hk (by omega : 0 < k + 1)
+    ⟨2 * r.1 + 1, by have := r.isLt; omega⟩ (by show (2 * r.1 + 1) % 2 ≠ 0; omega)
+  rw [hE, hO]
+  show (C.leftEdge (show Fin n from ⟨(2*r.1)/2, by have := hk; have := r.isLt; omega⟩)).endpoint
+      = (C.rightEdge (show Fin n from ⟨(2*r.1+1)/2, by have := hk; have := r.isLt; omega⟩)).endpoint
+    ↔ _
+  unfold TrueSRCycle.isCPair
+  have hrlt : r.1 < n := by have := hk; omega
+  have hA : (show Fin n from ⟨(2*r.1)/2, by have := hk; have := r.isLt; omega⟩)
+      = (⟨r.1, hrlt⟩ : Fin n) := by
+    apply Fin.eq_of_val_eq
+    simp only [show (2*r.1)/2 = r.1 by omega]
+  have hB : (show Fin n from ⟨(2*r.1+1)/2, by have := hk; have := r.isLt; omega⟩)
+      = (⟨r.1, hrlt⟩ : Fin n) := by
+    apply Fin.eq_of_val_eq
+    simp only [show (2*r.1+1)/2 = r.1 by omega]
+  rw [hA, hB]
+
 /-- **Shinar--Feinberg true-SR strong-concordance theorem.**
 
 Reactant/product separation is required to identify true-SR edge labels with net stoichiometric
