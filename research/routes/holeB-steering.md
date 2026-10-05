@@ -161,3 +161,72 @@ B.2/B.4, and it is **not derivable from the residue's hypotheses** — `hSR.2` i
 the `hSR.2` refutation (§6), the endpoint-forced result above, and the absence of any S→R producer
 for species-to-species overlaps. The residue is not a missing tactic or a missing lemma; it is
 missing a *datum* about the ear's endpoints that the theorem's hypotheses do not contain.
+
+---
+
+## Route E (reaction-side): closed by a dichotomy, reducing to the SAME datum
+
+Complements §"FINAL characterization" above. Commit `59c69d7`.
+
+Since every `False`-producer from `hSR.2` needs an **S-to-R** common component
+(`no_shared_path_of_trueSRCriterion` `TrueSRPath.lean:137` and four siblings), the ear must have a
+**reaction** endpoint, not two species endpoints. `exists_minimal_escape` (`:7585`) takes its good-vertex
+predicate as a **parameter**, so it can be re-run at the residue with
+
+```lean
+OnC := fun x => ∃ ρ', x = Sum.inr ρ' ∧ C.HasReaction ρ'.1
+```
+
+on the already-in-scope `qPath`/`hqPath`. That yields a walk `q ⇝ ρ'` with `ρ'` an on-cycle **reaction**.
+
+**Two caveats, both checked before any Lean was written:**
+
+- `hdir` is **not derivable** (`relPathOfWalk_hdir_not_derivable`, `:7641`): `Adj` supplies
+  `E u v ∨ E v u`, never the direction. *But this is not binding* — the correct mechanism is
+  `aggregateSourcePathToTrueSRPath` (`:5098`), which consumes a `Walk` directly with **no** orientation
+  hypothesis, exactly as the reaction branch already does at `:8855`.
+- The escape's minimality clause excludes on-cycle **reactions** from proper prefixes only; on-cycle
+  **species** are unconstrained. So `hinterior` is **not** dischargeable. Falling back to
+  `no_reaction_interior_path_of_neighbourFree_of_trueSRCriterion` (whose `hint` constrains only the
+  odd/reaction positions, which the escape *does* give) transfers the difficulty to `hnb`,
+  neighbour-freeness of the final edge — impossible.
+
+### The dichotomy that closes the route
+
+`cycleEntry_from_cycleSpecies_is_leftEdge` (`:7717`), under `¬hnc` and `hcausal`:
+
+> if a causal step lands on the on-cycle class `C.reaction t` and its tail is an on-cycle species
+> `C.species j`, then **`j = t`** — the entering edge **is** `C.leftEdge t`.
+
+So any path out of the off-cycle region into `C` at a reaction is either
+
+| case | outcome |
+|---|---|
+| enters from an **off-cycle** species | `hnb` holds and `no_reaction_interior_path_of_neighbourFree_of_trueSRCriterion` refutes everything — **genuine contradiction** |
+| enters from a **cycle** species | it rides `C`'s own left edge, which every discharger tolerates — **consistent** |
+
+Case (b) is not contradictory, so the reaction route closes unless (a) can be forced.
+
+### The one datum
+
+> an **off-cycle** species `u` with `N.trueInternalClassFlux α (C.reaction t) u * σ u < 0`
+
+so that a path out of the off-cycle region can enter `C` at a reaction **from outside**. Nothing in
+scope produces it: `hopp`/`hcausal` pin cycle classes only; `hlocal` is a *total* `0 < ∑_ρ flux·σ`
+and pins no single term; `¬hnc` zeroes only non-neighbouring **cycle-class**/cycle-species pairs.
+
+### Synthesis: both halves reduce to the same absent datum
+
+| residue half | why it dies | machine-checked by |
+|---|---|---|
+| **species** side (ear `s₀ → q → s`, both endpoints on `C`) | `hSR.2` cannot see an S-to-S overlap; parity is determined, not free | `no_sToRIntersection_of_speciesSpecies_common` (`:233`), `aggregateAdj_edge_endpoint_forced` (`:8322`), `ssNumCPairs_eq_of_vertex_eq` (`:8410`) |
+| **reaction** side (escape to an on-cycle class) | entry from a cycle species is tolerated | `cycleEntry_from_cycleSpecies_is_leftEdge` (`:7717`), `relPathOfWalk_hdir_not_derivable` (`:7641`) |
+
+Both reduce to **an off-cycle flux datum that the theorem's hypotheses do not contain** — the A.6
+Case-2 source-block datum of `research/BRIEF-B.md` §B.2/B.4 and DEAD-ENDS B-2/B.4. Note DEAD-ENDS B-2
+already recorded the key half of this: *"deg 3b: the only surviving case, and `hSR` is silent about it."*
+
+**Standing conclusion.** Hole B is not blocked by a missing tactic, lemma, or module. Every route has
+been reduced to an explicit, machine-checked statement of what is absent. Closing it requires adding a
+hypothesis about off-cycle species, i.e. the source-block analysis of Shinar–Feinberg §5.5/§A.3, which
+`CRNT/Graph/SourceBlocks.lean` defers by name.
