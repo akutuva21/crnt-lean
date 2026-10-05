@@ -1,0 +1,15 @@
+# High-water mark for the orphan set: `CRNT/` modules that are neither named in
+# `scripts/unverified_modules.txt` nor reachable from `CRNT.lean`.
+#
+# The set may shrink below this number, never grow above it -- the same discipline as
+# `scripts/unverified_baseline.txt`, and for the same reason.  A module that leaves the
+# umbrella closure without anybody recording the decision is how a hole stops being checked:
+# it still elaborates, still has an `.olean`, and is now reachable from nothing.
+#
+# An orphan is NOT an unverified module.  Unverified modules are on the ledger; orphans are
+# built by the `CRNT.+` glob and simply have no import path from `CRNT.lean`.  Do not "fix" an
+# orphan by adding it to the ledger -- that removes it from every build target.  Add an
+# `import` line to `CRNT.lean` instead, or record why it stays unreferenced.
+#
+# 145 as of `origin/holes` @ 90bddfc.
+145
