@@ -327,3 +327,56 @@ Additionally the naive statement is wrong on two counts, both found by trying:
 So the corrected cost is: one small file plus an explicit orientation hypothesis, not one literal.
 Still separable from the Prop. 5.10 question, still landable, but not free. Both attempts were
 reverted; `git status` is clean and `lake build CRNT.Graph.RelPath` succeeds.
+
+## 11. Correction to §7: `CRNT/Graph/SourceBlocks.lean` exists — vocabulary only
+
+§7 said the block decomposition "needs" §5.5 and implied nothing in-tree carried it. That is
+half wrong: **`CRNT/Graph/SourceBlocks.lean` (106 lines) exists and cites the paper**, but it
+supplies only the *first layer* of vocabulary.
+
+Present (all `def`, no proofs of substance):
+
+| declaration | line | meaning |
+|---|---|---|
+| `ExistsWalkOn E S a b` | 41 | `E`-walk from `a` to `b` staying in `S` |
+| `SeparatesWithin E S v a b` | 50 | `v` separates `a` from `b` inside `S` (path-blocking form) |
+| `IsSeparatingVertexOn E S v` | 58 | separating vertex of the induced graph on `S` |
+| `ConnectedOn E S` | 63 | every pair in `S` joined inside `S` |
+| `IsNonseparableOn E S` | 68 | `ConnectedOn ∧ ¬∃ separating vertex` |
+| `IsEndBlockOn E T S` | 75 | nonseparable ∧ at most one *ambient* separating vertex |
+
+Plus one trivial lemma, `not_isSeparatingVertexOn_of_card_le_two` (`:81`), which is a card
+arithmetic sanity check and carries no content for the residue.
+
+**Absent, and named as deferred in the module's own docstring (`:29-32`, verbatim):**
+
+> "**Deferred (per the session verdict on the block datum):** maximality of blocks, the existence
+> of the block decomposition and its block-tree (including the leaf fact used by §5.9 leaf removal),
+> and directed ear decomposition existence (§A.1, Proposition A.3) are *not* in Mathlib and are not
+> developed here. The repository's `DirectedEar`/`DirectedEarDecomposition` scaffolding
+> (TrueChemistrySRCriterion.lean) covers only the ear side and records the same gap in its docstring."
+
+**And there is no S-block/R-block predicate at all.** `grep -rn "IsSBlock\|IsRBlock\|sourceBlock\|SourceBlock"`
+over `CRNT/` returns only `BorosProjectionDecomposition.lean`'s unrelated `blockOf` (a linkage-class
+map for a projection decomposition). The paper's `def:SBlockRBlock` — "each species node adjacent to
+precisely two reaction nodes" / dual — has **no Lean counterpart in the tree**.
+
+### Revised cost of the Prop. 5.11 port
+
+| piece | status | cost |
+|---|---|---|
+| separation / nonseparability / end-block vocabulary | **done** (`SourceBlocks.lean`) | — |
+| S-block / R-block predicates (`def:SBlockRBlock`) | **absent** | small, but new |
+| Prop. 5.8: block is S-block ∨ R-block | absent | the ear-decomposition induction |
+| Prop. 5.10: every cycle in such a block is even | absent | the real content |
+| Prop. 5.11: every cycle in the source is even | absent | follows from the two |
+| block maximality / existence / block-tree | **absent, deferred by the module itself** | substantial |
+| ear-decomposition existence (App. A.1) | **absent, deferred** | substantial |
+| `DirectedEarDecomposition` (`:183`) | present but **unused** | — |
+
+So the honest estimate is worse than §7 implied: Prop. 5.11 requires three things the tree defers
+by name — block existence, the block-tree, and ear-decomposition existence — and `DirectedEar`/
+`DirectedEarDecomposition` in `TrueChemistrySRCriterion.lean:44-198` is unused scaffolding whose own
+docstring records the same gap. The residue is therefore **not** a one-lemma port; it is the
+heaviest remaining piece of the Hole B proof, and its absence is a known, deliberate, documented
+decision by earlier sessions rather than an oversight.
