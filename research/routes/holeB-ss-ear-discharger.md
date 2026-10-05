@@ -334,3 +334,77 @@ inequalities — which is precisely the missing input, and it is an *input*, not
 **Therefore the residue needs a source-level coefficient inequality system**, the paper's §5.4
 object. That is a substantial new input, related to but distinct from the block decomposition of
 §11. It is not something the six arrangements or the ear machinery can supply.
+
+## 8. RETRACTION of §7 — the flux↔SCycle bridge EXISTS (commit `fbb1361`)
+
+§7 claimed, on the strength of a name-adjacency grep, that no theorem relates `trueInternalClassFlux`
+to `coeff`/`netCoeff`, and that `hSR.1` was therefore structurally blocked by a quantity mismatch.
+**That was wrong.** The grep looked for names next to each other, not for mathematics.
+
+`sCycleNet_eq_fluxMagnitude_product` (`TrueChemistrySRCriterion.lean:8132`, axiom-clean):
+
+```lean
+private theorem sCycleNet_eq_fluxMagnitude_product (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {n : ℕ} [NeZero n]
+    (C : N.TrueSRCycle n) (β : Fin n → ℝ)
+    (hrep : ∀ i, (C.leftEdge i).representative = (C.rightEdge i).representative)
+    (hbeta : ∀ i t, N.trueInternalClassFlux α (C.reaction i) t =
+      β i * N.reactionVector (C.rightEdge i).representative t)
+    (hβne : ∀ i, β i ≠ 0) :
+    C.SCycleNet ↔
+      (∏ i : Fin n, |N.trueInternalClassFlux α (C.reaction i) (C.species i)|)
+        = ∏ i : Fin n,
+          |N.trueInternalClassFlux α (C.reaction i) (C.species (finRotate n i))|
+```
+
+Each edge's `netCoeff` is `|flux| · (|β i|)⁻¹`, and since **both products run over the same index
+set**, the `∏ |β i|⁻¹` factor appears on both sides and cancels. So `SCycle` *does* constrain products
+of the magnitudes of exactly the fluxes that `hopp`/`hcausal`/`hattachment` bound strictly.
+
+**§7's "quantity mismatch" is retracted.** The remaining obstruction in the `hSR.1` route is narrower:
+a magnitude *comparison* between two fluxes at two cycle species — not a bridge.
+
+### The single remaining obligation, stated
+
+Also new in `fbb1361`: `aggregateEar_ssGluable_arcs` (:8196) proves **both** ear-containing true-SR
+cycles genuinely exist (edge-disjointness is free via `TrueSRSSPath.ss_edges_off_cycle`), so existence
+is no longer open. `CRNT/Multistationarity/TrueSRSSArcEven.lean` (297 lines, 18 declarations) proves
+`ssNumCPairsH_speciesArcs_add`: the cycle's c-pairs **partition** across its two species-arcs —
+the statement DEAD-ENDS B-10 listed as missing.
+
+Since `ssGlueCycle_numCPairs` (`TrueSRSSGlueCPairs.lean:107`) has **no seam term**, the obligation
+
+```
+(TrueSRSSPath.ssGlueCycle P (Crot.speciesArc k) h₁).Even
+```
+
+reduces, with the partition identity, to exactly one proposition:
+
+```
+P.ssNumCPairs % 2 = ssNumCPairs (Crot.speciesArcBwd k) % 2
+```
+
+— the **parity of the ear's own c-pair count**. That is the last open datum, confirmed absent by
+exhaustive grep:
+
+- no theorem computes the parity of `ssNumCPairs` for a species-to-species path, nor relates it to
+  the path's length; its only two consumers (`ssGlueCycle_numCPairs`,
+  `ssGlueCycle_even_iff_even`) treat it as an opaque unknown that cancels mod 2;
+- `TrueSRSSPath` carries **no σ data at all**, so no sign characterisation of `ssCPairAt` exists for
+  paths;
+- `TrueSRPathCPairs.lean` is 63 lines of pure edge-index combinatorics with no σ;
+- the only edge-level c-pair↔sign lemma in the tree is
+  `trueInternalCausalEdges_cPair_iff_signChange` (:2459), about the two canonically constructed
+  causal edges of the witness flow, **not** arbitrary path edges.
+
+What makes `C.Even` computable is precisely the **cycle-level** analogue
+`C.isCPair i ↔ σ (C.species i) * σ (C.species (finRotate n i)) < 0`, proved at `:6736`. **That statement
+has no species-path counterpart.** It is the missing input for the residue, and it is an input rather
+than a tactic.
+
+### Corrected standing of the two obstructions
+
+| clause | status |
+|---|---|
+| `hSR.2` | **proved refutation** — `no_sToRIntersection_of_speciesSpecies_common` (§6). Unchanged and final. |
+| `hSR.1` | bridge **found** (`sCycleNet_eq_fluxMagnitude_product`); obstacle narrowed to the ear's c-pair parity |
