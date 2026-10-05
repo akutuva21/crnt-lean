@@ -408,3 +408,81 @@ than a tactic.
 |---|---|
 | `hSR.2` | **proved refutation** — `no_sToRIntersection_of_speciesSpecies_common` (§6). Unchanged and final. |
 | `hSR.1` | bridge **found** (`sCycleNet_eq_fluxMagnitude_product`); obstacle narrowed to the ear's c-pair parity |
+
+## 9. FINAL characterization of the residue (commit `a6b78db`)
+
+Everything below is machine-checked. This supersedes §§6-8 as the standing account.
+
+### The reduction is proved, not asserted
+
+`ssGlueCycle_even_iff_parity_of_cycleEven` (`TrueChemistrySRCriterion.lean:8273`):
+
+```lean
+(ssGlueCycle P (C.speciesArc (k+1) hk _) h₁).Even
+  ↔ ssNumCPairs P % 2 = ssNumCPairsH (C.speciesArcBwd (k+1) hk _) % 2
+```
+
+from `ssGlueCycle_numCPairs` (no seam term), `ssNumCPairs_speciesArc_succ`,
+`ssNumCPairsH_speciesArcBwd_eq_cPairsAbove` (:302), `cPairsBelow_card_add`, and `C.Even`.
+
+### The path-level sign lemma EXISTS
+
+`ear_cPair_iff_signChange` (:8380) — the species-path analogue of the cycle-level `:6736`:
+
+```lean
+ssCPairAt P r ↔ σ (P.speciesAt ⟨2*r⟩) * σ (P.speciesAt ⟨2*r+2⟩) < 0
+```
+
+Its edge-level core is `cPair_of_twoClassEdges_iff_signChange` (:8323). **This contradicts §7's
+claim that "TrueSRSSPath carries no σ data at all"** — the σ *statement* now exists; what is missing
+is the two hypotheses it needs.
+
+### Two blockers, independent of each other
+
+**Blocker 1 — the two missing hypotheses are about representative channels, not σ.**
+
+| hypothesis | content | why unobtainable |
+|---|---|---|
+| `hcommon` | a common non-flow representative at each ear reaction vertex | `relPathToTrueSRSSPath` picks every edge **independently** by `Classical.choose` (`relationGraphOn` adjacency → `aggregateSourceAdj_has_trueSREdge` → `exists_trueSREdge_of_nonzero_trueInternalClassFlux`), so the two edges at one class may carry **different** representative channels; `TrueSRSSPath` has **no field** recording representatives. For a cycle this is free — `leftEdge i` and `rightEdge i` are both `trueSREdgeOfReactionVectorNe (rep i)`. For an ear it is not. |
+| `hβ` | `flux(·,t) = β * reactionVector R t` at that class | `trueInternalClassFlux` is a **sum** over the class's channels, so `hβ` says the sum has a single contributing pattern. |
+
+**The mismatch is structural, not a missing lemma.** A c-pair compares *endpoint complexes*, which is
+a **per-channel** condition (the two species sit on the same side of the representative's
+source/target); `flux·σ < 0` is a **sum** condition on the class flux. With two or more contributing
+channels these are independent, so the equivalence is **genuinely false**. Closing it needs either
+(a) that each ear reaction class has exactly one contributing non-flow channel, or (b) a signed-flux
+decomposition per class rather than the raw class flux. Neither follows from
+`hopp`/`hcausal`/`hlocal`/`¬hnc` — `hlocal` is a total `0 < ∑_ρ flux·σ` and pins no single term.
+
+**Blocker 2 — a proved parity would not close the branch anyway.**
+`ssGlueCycle_even_iff_even` (`TrueSRSSGlueCPairs.lean:200-205`) demands
+
+```lean
+(hQ : (ssNumCPairs Q₁ + ssNumCPairs Q₂) % 2 = 0)
+```
+
+which constrains only the two **arcs** and never mentions `P`. Supplying
+`hQ := (ssNumCPairs P + ssNumCPairs arcB) % 2 = 0` is rejected by the elaborator ("expected
+`(arcF.ssNumCPairs + arcB.ssNumCPairs) % 2 = 0`"). **So that lemma can make the two ear-containing
+cycles agree in parity, never make either even.**
+
+### Also dead, with reason
+
+The route-A length/involution formula is dead: `ssCPairAt P r` compares the `endpoint` complexes of
+two arbitrary edges, and `TrueSREdge.endpoint : Complex S` is a free field constrained only by
+`endpoint_is_source_or_target` and `occurs`. No formula `ssNumCPairs P % 2 = f (P.length)` can hold.
+
+### The one piece of pure bookkeeping left
+
+`signChanges_mod_two` and its corollary `ssNumCPairs P % 2 = (if σ(start)·σ(end) < 0 then 1 else 0)`
+were **not** landed: the XOR algebra was discharged, but the `Finset` plumbing (`card_bij` over
+`Fin (K+1)`) failed repeatedly. Given Blocker 1 this would not close the residue by itself, but it is
+the last purely combinatorial step of the sign route and is worth landing for reuse.
+
+### Bottom line
+
+The residue is not a missing tactic. It is blocked by **(i)** a per-channel vs per-sum information
+loss that no in-scope hypothesis repairs, and **(ii)** a parity-transfer lemma that provably cannot
+force evenness. Both are machine-checked. This is consistent with the paper's own route, which
+supplies evenness *ambiently* through Prop. 5.11 at the level of blocks — a structure
+`CRNT/Graph/SourceBlocks.lean` defers by name (§11).
