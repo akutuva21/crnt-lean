@@ -8297,6 +8297,147 @@ private theorem ssGlueCycle_even_iff_parity_of_cycleEven (N : Network S)
     rw [hsplit, hfwd]
     omega
 
+
+/-- **Any two labelled edges witnessing the same aggregate adjacency carry the *same* endpoint
+complex.  The choice of edge at an ear vertex is therefore not free after all.**
+
+This refutes the parity-steering plan.  `aggregateSourceAdj_has_trueSREdge` (:5022) returns a bare
+existential, and the edge fed to it by `aggregateEar_TrueSRSSPath` is
+`Classical.choose (edgeWitness i)`, so the *proof term* is opaque and the `endpoint` field is not
+syntactically pinned.  But opacity of a choice term is not freedom of the value: for an aggregate
+adjacency `u ~ v`, `TrueSREdge.Connects` forces `e.species` and `e.reaction` from `u.1` and `v.1`
+(that is exactly what `Connects` says, and `aggregateVertexToTrueSRVertex` (:4986) reads its
+argument off the `Sum` summands), and then `trueSREdge_endpoint_eq_of_same_class_and_species`
+(:1808) forces `e.endpoint` from the pair `(reaction, species)` under reactant/product separation.
+
+Hence the c-pair indicator `ssCPairAt P r` — which compares `endpoint`s of the two edges at ear
+vertex `r` — is a function of the *aggregate vertex sequence alone*.  No choice among valid edges
+can flip it, so `ssNumCPairs P % 2` is not a free parameter: it is determined by `Q0` and the
+attachment edge.  Route A of the steering plan is dead, and Route B inherits the same obstruction,
+because reparametrising the builder by an edge sequence only supplies *some* admissible sequence,
+and every admissible sequence yields the same c-pair count.
+
+The residual freedom in the construction is real but is of a different kind: it lies in the
+*representative channel* and in which `Species` a `RelPath` visits, not in the endpoint label. -/
+private theorem aggregateAdj_edge_endpoint_forced (N : Network S)
+    (hsep : N.ReactantProductSeparated)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (u v : N.TrueInternalAggregateVertex α σ) (e f : N.TrueSREdge)
+    (he : e.Connects (N.aggregateVertexToTrueSRVertex u)
+      (N.aggregateVertexToTrueSRVertex v))
+    (hf : f.Connects (N.aggregateVertexToTrueSRVertex u)
+      (N.aggregateVertexToTrueSRVertex v)) :
+    e.endpoint = f.endpoint := by
+  -- `Connects e x y` says `{x, y} = {Sum.inl e.species, Sum.inr ⟨e.reaction, e.internal⟩}`:
+  -- the *unordered pair* of vertices already determines `(species, reaction)`.
+  have key : ∀ (c : N.TrueSREdge) {x y : N.TrueSRVertex},
+      c.Connects x y →
+      (x = Sum.inl c.species ∧ y = Sum.inr ⟨c.reaction, c.internal⟩) ∨
+      (x = Sum.inr ⟨c.reaction, c.internal⟩ ∧ y = Sum.inl c.species) := by
+    intro c x y h
+    exact h
+  -- `Sum.inl_ne_inr` makes the two mixed orientations of `he` and `hf` incompatible, so
+  -- `e` and `f` agree on which slot is the species slot and which the reaction slot.
+  set U := N.aggregateVertexToTrueSRVertex u with hU
+  set V := N.aggregateVertexToTrueSRVertex v with hV
+  have ke := key e (x := U) (y := V) he
+  have kf := key f (x := U) (y := V) hf
+  rcases ke with ⟨hEs, hEr⟩ | ⟨hEr, hEs⟩
+  · rcases kf with ⟨hFs, hFr⟩ | ⟨hFr, hFs⟩
+    · exact trueSREdge_endpoint_eq_of_same_class_and_species N hsep e f
+        (congrArg Subtype.val (Sum.inr.inj (hEr.symm.trans hFr)))
+        (Sum.inl.inj (hEs.symm.trans hFs))
+    · exact absurd (hEs.symm.trans hFr) Sum.inl_ne_inr
+  · rcases kf with ⟨hFs, hFr⟩ | ⟨hFr, hFs⟩
+    · exact absurd (hFs.symm.trans hEr) Sum.inl_ne_inr
+    · exact trueSREdge_endpoint_eq_of_same_class_and_species N hsep e f
+        (congrArg Subtype.val (Sum.inr.inj (hEr.symm.trans hFr)))
+        (Sum.inl.inj (hEs.symm.trans hFs))
+
+/-- **Two edges incident to the same two true-SR vertices carry the same endpoint complex.**
+
+`Connects` reads both `species` and `reaction` off the unordered vertex pair, and
+`trueSREdge_endpoint_eq_of_same_class_and_species` then reads `endpoint` off those.  So an edge
+is determined, as far as its c-pair label is concerned, by its two endpoints. -/
+private theorem trueSREdge_endpoint_eq_of_sameConnects (N : Network S)
+    (hsep : N.ReactantProductSeparated) (e f : N.TrueSREdge)
+    {x y : N.TrueSRVertex}
+    (he : e.Connects x y) (hf : f.Connects x y) :
+    e.endpoint = f.endpoint := by
+  classical
+  -- `Connects c p q` says `{p, q} = {Sum.inl c.species, Sum.inr ⟨c.reaction, c.internal⟩}`.
+  -- Routing both hypotheses through one polymorphic `key` keeps `rcases` from attempting
+  -- dependent substitution into `e` and `f`, which their fields make ill-founded.
+  have key : ∀ (c : N.TrueSREdge) {p q : N.TrueSRVertex},
+      c.Connects p q →
+      (p = Sum.inl c.species ∧ q = Sum.inr ⟨c.reaction, c.internal⟩) ∨
+      (p = Sum.inr ⟨c.reaction, c.internal⟩ ∧ q = Sum.inl c.species) := by
+    intro c p q h
+    exact h
+  set U := x with hU
+  set V := y with hV
+  have ke := key e (p := U) (q := V) he
+  have kf := key f (p := U) (q := V) hf
+  -- `Sum.inl_ne_inr` makes the two mixed orientations of `he` and `hf` incompatible, so
+  -- `e` and `f` agree on which slot is the species slot and which the reaction slot.
+  rcases ke with ⟨hEs, hEr⟩ | ⟨hEr, hEs⟩
+  · rcases kf with ⟨hFs, hFr⟩ | ⟨hFr, hFs⟩
+    · exact trueSREdge_endpoint_eq_of_same_class_and_species N hsep e f
+        (congrArg Subtype.val (Sum.inr.inj (hEr.symm.trans hFr)))
+        (Sum.inl.inj (hEs.symm.trans hFs))
+    · exact absurd (hEs.symm.trans hFr) Sum.inl_ne_inr
+  · rcases kf with ⟨hFs, hFr⟩ | ⟨hFr, hFs⟩
+    · exact absurd (hFs.symm.trans hEr) Sum.inl_ne_inr
+    · exact trueSREdge_endpoint_eq_of_same_class_and_species N hsep e f
+        (congrArg Subtype.val (Sum.inr.inj (hEr.symm.trans hFr)))
+        (Sum.inl.inj (hEs.symm.trans hFs))
+
+/-- **Two species-to-species paths that agree on every vertex have the same c-pair count.**
+
+This is the path-level form of `aggregateAdj_edge_endpoint_forced`, and it is what actually
+disposes of the parity-steering plan.  The proposed manoeuvre was: since the ear's edges come
+from `Classical.choose (edgeWitness i)` and the witnesses are existentials, the c-pair count
+`ssNumCPairs P` should be a free parameter that one could steer by choosing edges differently at
+one vertex.  The above lemma shows the steering has no handle — the vertex sequence of `P`
+already fixes each `P.edge i`'s `endpoint`, hence fixes every `ssCPairAt P r`, hence fixes
+`ssNumCPairs P`.
+
+So `ssGlueCycle_even_iff_parity_of_cycleEven` has no free parameter to be steered: the quantity
+it computes is already determined before the glue.  Recomputing it by any other admissible edge
+choice returns the same value.  This kills Route A (flip one c-pair) and Route B (reparametrise
+the builder by an edge sequence or a parity argument) together, since Route B only supplies a
+different *admissible* edge sequence and all of those give the same count. -/
+private theorem ssNumCPairs_eq_of_vertex_eq (N : Network S)
+    (hsep : N.ReactantProductSeparated) {j : ℕ}
+    (P Q : N.TrueSRSSPath (2 * j + 2))
+    (hv : ∀ m : Fin (2 * j + 2 + 1), P.vertex m = Q.vertex m) :
+    TrueSRSSPath.ssNumCPairs P = TrueSRSSPath.ssNumCPairs Q := by
+  classical
+  -- every edge's `endpoint` is a function of the two vertices it connects
+  have hedge : ∀ i : Fin (2 * j + 2), (P.edge i).endpoint = (Q.edge i).endpoint := by
+    intro i
+    exact trueSREdge_endpoint_eq_of_sameConnects N hsep (P.edge i) (Q.edge i)
+      (P.connects i) (by rw [hv (Fin.castSucc i), hv i.succ]; exact Q.connects i)
+  -- the two counts are counts of the same predicate on the same index type, under a
+  -- pointwise-equal set of predicates
+  have hiff : ∀ r : Fin (j + 1), TrueSRSSPath.ssCPairAt P r ↔ TrueSRSSPath.ssCPairAt Q r := by
+    intro r
+    unfold TrueSRSSPath.ssCPairAt
+    constructor
+    · intro hc
+      rw [← hedge _, ← hedge _]
+      exact hc
+    · intro hc
+      rw [hedge _, hedge _]
+      exact hc
+  have hset : (Finset.univ.filter (TrueSRSSPath.ssCPairAt P))
+      = Finset.univ.filter (TrueSRSSPath.ssCPairAt Q) := by
+    ext r
+    simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+    exact hiff r
+  unfold TrueSRSSPath.ssNumCPairs
+  rw [hset]
+
 /-- **Two labelled edges at one true-reaction class form a c-pair exactly when the two species
 carry opposite `σ` signs — provided the class flux is carried by a single channel.**
 
@@ -9044,7 +9185,6 @@ theorem stronglyConcordant_fullyOpen_of_trueSRCriterion
               -- returned by `exists_minimal_escape` lives in the *unoriented*
               -- `relationGraphOn`, so the orientation `hdir` that `relPathOfWalk` needs is
               -- not derivable for it — see `relPath_append_relPathOfWalk`.
-              --
               -- What is left, precisely.  With `s0 ≠ s` the ear is a chord and gluing it to
               -- the two species-arcs of `C` via `ss_gluable_arcs` does give two glued cycles,
               -- but that route cannot reach `hSR.2`: every pairwise common subgraph of `C`,
@@ -9055,8 +9195,44 @@ theorem stronglyConcordant_fullyOpen_of_trueSRCriterion
               -- that configuration.  With `s0 = s` the composite instead closes up into a
               -- simple even cycle meeting `C` in the single vertex `s0`, which `hSR.1`
               -- (`Even → SCycle`) does not constrain and `hSR.2` cannot see (one shared
-              -- vertex).  Closing either branch needs the block-level evenness of
-              -- Shinar--Feinberg Prop. 5.10/5.11, which is not in this tree.
+              -- vertex).
+              --
+              -- **Two further obstructions, both now machine-checked** (DEAD-ENDS B-39, B-40).
+              -- They close the two routes that looked open from the landed lemmas above.
+              --
+              -- (1) *The ear's parity cannot be steered.*  It was proposed that
+              -- `ssNumCPairs P % 2` is a free parameter, because the edges come from
+              -- `Classical.choose (edgeWitness i)` out of the bare existential
+              -- `aggregateSourceAdj_has_trueSREdge` (:5022).  That is refuted:
+              -- `aggregateAdj_edge_endpoint_forced` proves two edges witnessing the same
+              -- aggregate adjacency carry the *same* `endpoint` (`Connects` pins `species`
+              -- and `reaction` off the vertex pair, then
+              -- `trueSREdge_endpoint_eq_of_same_class_and_species` pins `endpoint`), and
+              -- `ssNumCPairs_eq_of_vertex_eq` concludes that two species-to-species paths
+              -- agreeing on every vertex have the same `ssNumCPairs`.  So the parity is
+              -- *determined* — by `Q0` and the attachment edge — merely not determined by the
+              -- in-scope flux hypotheses.  Opacity of a choice term is not freedom of its
+              -- value.  Hence rechoosing edges at any vertex (Route A) or reparametrising the
+              -- builder by an edge sequence (Route B) cannot change the number.
+              --
+              -- (2) *Evenness is the wrong target.*  An exhaustive search of `CRNT/` shows no
+              -- theorem derives `False` from two even `TrueSRCycle`s whose common part is a
+              -- species-to-species path.  Every `hSR.2` producer
+              -- (`no_shared_path_of_trueSRCriterion` `TrueSRPath.lean:137`,
+              -- `no_single_shared_path_of_trueSRCriterion`, `no_single_shared_edge_of_…`,
+              -- `false_of_single_shared_edge_of_trueSRCriterion`,
+              -- `no_edge_disjoint_sToR_chord_of_trueSRCriterion`) takes an **S-to-R**
+              -- `P : N.TrueSRPath L`.  So even producing an even glued cycle — which
+              -- `ssGlueCycle_even_iff_parity_of_cycleEven` reduces to the ear's parity —
+              -- buys nothing.
+              --
+              -- Consequently the residue needs an **S-to-R** common path between two even
+              -- cycles.  The ear `s₀ → q → s` cannot supply one: both endpoint species are on
+              -- `C`, so gluing meets `C` in an arc, which is S-to-S.  What is required is a
+              -- hypothesis forcing `Q0`'s start species *off* the cycle on one side, so that
+              -- the glued intersection becomes S-to-R.  That is the **A.6 Case-2 source-block
+              -- datum** of `research/BRIEF-B.md` §B.2/§B.4 — a missing input, not a missing
+              -- proof, and not reachable from what is in scope here.
               have hsCs : C.HasSpecies s.1 := by
                 change C.HasSpecies (C.species (finRotate n i))
                 exact ⟨finRotate n i, rfl⟩

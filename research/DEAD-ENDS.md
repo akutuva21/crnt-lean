@@ -2084,3 +2084,83 @@ exists; all of it is cycle-internal or conditional. **This is the live dependenc
   `TrueSRSSPath.ssCPairAt`/`ssNumCPairs` or with `TrueChemistrySRCriterion.lean`'s private
   `ssPathCPairAt`/`ssPathCPairs`; it is purely additive. Not yet imported from `CRNT.lean`, so it
   does not change the reachable core.
+
+## B-39. 🔴⭐ **Parity STEERING is REFUTED: the ear's `endpoint`s are FORCED, not free** **[V, compiled]**
+
+- **found-by:** `HoleBSteer` · **round:** earcase-port · **revive-when:** never. This closes
+  Routes A and B of the steering plan and corrects B-34 (see the correction below).
+- **Claim.** For an aggregate adjacency `u ~ v`, **any two** labelled edges witnessing it carry the
+  **same** `endpoint` complex. Machine-checked as `aggregateAdj_edge_endpoint_forced` in
+  `CRNT/Multistationarity/TrueChemistrySRCriterion.lean`:
+
+  ```lean
+  private theorem aggregateAdj_edge_endpoint_forced (N : Network S)
+      (hsep : N.ReactantProductSeparated) {α σ}
+      (u v : N.TrueInternalAggregateVertex α σ) (e f : N.TrueSREdge)
+      (he : e.Connects (N.aggregateVertexToTrueSRVertex u) (N.aggregateVertexToTrueSRVertex v))
+      (hf : f.Connects (N.aggregateVertexToTrueSRVertex u) (N.aggregateVertexToTrueSRVertex v)) :
+      e.endpoint = f.endpoint
+  ```
+
+  The vertex-level form is `trueSREdge_endpoint_eq_of_sameConnects`, and the path-level form is
+  `ssNumCPairs_eq_of_vertex_eq`: **two species-to-species paths agreeing on every vertex have the
+  same `ssNumCPairs`.**
+- **Why it fails.** `TrueSREdge.Connects` (`TrueChemistrySRGraph.lean:212`) says
+  `{x, y} = {Sum.inl e.species, Sum.inr ⟨e.reaction, e.internal⟩}` — it already reads **both**
+  `species` and `reaction` off the unordered vertex pair, and `Sum.inl_ne_inr` pins the
+  orientation. Then `trueSREdge_endpoint_eq_of_same_class_and_species` (`:1808`) reads `endpoint`
+  off `(reaction, species)` under `hsep`. So `endpoint` is a **function of the vertex pair**.
+- **The trap this exposes.** `aggregateSourceAdj_has_trueSREdge` (`:5022`) returns a bare
+  existential and `relPathToTrueSRSSPath` (`:5492`) instantiates it with
+  `Classical.choose (edgeWitness i)`. That makes the *proof term* opaque — but **opacity of a choice
+  term is not freedom of the value.** There is no `endpoint` freedom at a fixed vertex pair, from
+  *any* source: not a different representative channel (the class already determines the endpoint),
+  not a flipped direction (`aggregateCausalEdge_not_both_directions`, `:4705`, and in any case
+  `Connects` pins orientation), not a different species (that changes the vertex, hence the ear).
+- **Correction to B-34.** B-34 concluded the ear's parity is a **free choice** ("underdetermined")
+  and proposed steering it. That is the wrong diagnosis: the parity is not free, it is
+  **determined** — by the ear's vertex sequence, which `Q0` and the attachment edge already fix.
+  It is merely not determined *by the in-scope flux hypotheses*. So the residue's endgame is not a
+  search over choices; it is a genuine missing hypothesis about the vertex sequence `Q0` itself.
+- **Route consequences.**
+  - **Route A** (flip one c-pair by rechoosing an edge at one vertex) — **dead**, refuted above.
+  - **Route B** (reparametrise `relPathToTrueSRSSPath` by an edge sequence, or take a parity
+    argument) — **dead by the same argument**: it only supplies a *different admissible* edge
+    sequence, and `ssNumCPairs_eq_of_vertex_eq` gives the same count for all of them.
+  - **Route C** (force evenness another way) — **dead independently**, see B-40.
+- **Evidence:** `lake build CRNT.Multistationarity.TrueChemistrySRCriterion` clean apart from the
+  pre-existing `sorry` at the residue.
+
+## B-40. 🔴⭐ **Even BOTH ear-cycles and nothing applies: no `False`-producer in CRNT/ survives a species→species common path** **[V, compiled]**
+
+- **found-by:** `HoleBSteer` (via `SRConsumerScout`) · **round:** earcase-port ·
+  **revive-when:** never, absent a new `hSR.2`-style theorem with an S-to-S common part.
+- **Claim.** `TrueSRStrongCriterion` (`TrueChemistrySRGraph.lean:271`) is contradicted only through
+  `hSR.1` (`Even → SCycle`) or `hSR.2` (no `Nonempty (C.SToRIntersection D)` for two even cycles).
+  **There is no theorem in `CRNT/` deriving `False` from two even `TrueSRCycle`s whose common
+  content is a path with species vertices at both ends.**
+- **Evidence.** Every `False`-producer funnels through three `hSR.2` certifiers, and all three
+  require a common component running **species→reaction**: `TrueSRCycle.sToRIntersectionOfPath`,
+  `sToRIntersectionOfSingleEdge`, `sToRIntersectionOfTwoPaths`. Their public wrappers all take
+  `P : N.TrueSRPath L` (species→reaction by construction, `TrueSRPath.lean:34-43`):
+  `no_shared_path_of_trueSRCriterion` (`TrueSRPath.lean:137`),
+  `no_single_shared_path_of_trueSRCriterion` (`TrueSRSingleSharedEdge.lean:72`),
+  `no_single_shared_edge_of_trueSRCriterion` (`:125`),
+  `false_of_single_shared_edge_of_trueSRCriterion` (`TrueSRCPairThirdEdge.lean:274`),
+  `no_edge_disjoint_sToR_chord_of_trueSRCriterion` (`TrueSRChordParity.lean:30`).
+  The `TrueSRSSPath`/`ssGlueCycle` layer is a **deliberate dead end** for `hSR.2`:
+  `no_sToRIntersection_of_speciesSpecies_common` (`TrueSRSSGlueCPairs.lean:233`) *proves* that an
+  S-to-S common subgraph admits no `SToRIntersection` certificate at all. SS material is used only
+  for **parity transfer** (`ssGlueCycle_even_iff_even`, `ssNumCPairs`), never to reach `hSR.2`.
+- **Consequence for the residue.** `aggregateEar_ssGluable_arcs` (`:8210`) gives both glued cycles
+  unconditionally; `ssGlueCycle_even_iff_parity_of_cycleEven` (`:8273`) reduces evenness to the
+  ear's parity; but **evenness is the wrong target**. Producing an even glued cycle is worthless,
+  because nothing in the tree consumes it. Combined with B-39, *both* halves of the ear endgame fail:
+  the parity cannot be steered, and even if it could, the even cycle would not be usable.
+- **What the residue actually needs.** An **S-to-R** common path between two even cycles. The ear
+  as constructed (`s₀ → q → s`, both endpoint species on `C`) cannot supply it: gluing it to
+  either arc meets `C` in an arc, which is S-to-S. This is exactly the **A.6 Case-2 source-block
+  datum** named in `research/BRIEF-B.md` §B.2/§B.4 — a missing *hypothesis*, not a missing proof.
+- **Evidence:** `lake build CRNT.Multistationarity.TrueChemistrySRCriterion` clean; the search was
+  an exhaustive grep over `CRNT/` for `of_trueSRCriterion`, `hSR.2`, `SToRIntersection`, and
+  conclusion `False`, plus direct reads of all listed statements.
