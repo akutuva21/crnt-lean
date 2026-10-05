@@ -193,3 +193,41 @@ condition; this captures exactly the trajectory-boundedness hypothesis needed �
 strengthening it to permanence"). Whether `∀ κ ∀ x₀` follows is open and is the first thing to
 attack. If it does not, this route dies where A-18/A-19 killed `PersistentFrom` — by making a
 universal claim that the hole's data cannot support.
+
+## 8. The Pantea route is blocked, and now provably so
+
+§7 left the boundedness upgrade open. It is not: the upgrade has **no producer anywhere in the
+tree**.
+
+```
+grep -rn "StructurallyBoundedPositiveTrajectories\|PositiveTrajectoriesBoundedForRates" \
+     CRNT/ --include=*.lean | grep -v KnownGlobalPersistenceClasses
+→ (no output)
+```
+
+Definitions, for the record:
+
+- `PositiveTrajectoriesBoundedForRates` — `KnownGlobalPersistenceClasses.lean:40`
+- `PositiveTrajectoriesBoundedForFlow` — `:36`, whose docstring is explicit: *"The compact set may
+  depend on the initial condition; this captures exactly the trajectory-boundedness hypothesis
+  needed by the two-dimensional persistence theorem **without silently strengthening it to
+  permanence**."*
+- `StructurallyBoundedPositiveTrajectories` — `:46`, `∀ κ, PositiveTrajectoriesBoundedForRates κ`,
+  i.e. **all** rate vectors
+- `StructurallyPersistentStd` — `CRNT/Dynamics/GlobalPersistence.lean:62`
+
+So the three-input requirement of `TwoDimensionalWRBoundedPersistenceClaim` reduces to:
+
+| input | status |
+|---|---|
+| `N.WeaklyReversible` | **available free** (`:39-45`, positive CB ⇒ WR) |
+| `N.stoichRank = 2` | needs an `hrank` refinement; rank ≥ 2 only |
+| `N.StructurallyBoundedPositiveTrajectories` | **no producer; quantified over all `κ` and all positive `x₀`, the hole has one of each** |
+
+The third is not a missing *lemma*; it is a genuinely stronger statement than the hole's data. This
+is structurally the same failure as A-18/A-19's `PersistentFrom`: a universal certificate that the
+single-trajectory hypotheses cannot support. **Route closed, with evidence, not with a guess.**
+
+Note the asymmetry worth recording: §7's correction (CB ⇒ WR, free) was correct and *necessary* — it
+is why the route is not dead on weak reversibility — but the obstacle is the boundedness clause, and
+that one is fatal. Both facts are now machine-checked rather than inferred.
