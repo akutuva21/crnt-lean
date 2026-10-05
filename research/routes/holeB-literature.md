@@ -259,3 +259,28 @@ Only (3) is new mathematics for this tree; (1) is in-file and unused; (2) is a f
 degree-counting argument over a block, which is where `harr` and the six arrangements of
 `SixCases.eps` fit. **This is the first concrete decomposition of the residue that has an external
 justification for every piece.**
+
+## 9. Mechanical inventory at the residue (checked, so a prover need not re-derive it)
+
+The `W` produced by `exists_minimal_escape` (`:7585`) is a
+`(CRNT.relationGraphOn … T).Walk`, **not** a `CRNT.RelPath`. The concatenation `Q0 ++ W` therefore
+needs `W` lifted first.
+
+| step | status | evidence |
+|---|---|---|
+| `RelPath` structure | `vertex`, `mem`, `step` — all three available from `W.getVert`, `W.getVert_mem_support`, `W.connects` | `CRNT/Graph/RelPath.lean` |
+| `Walk → RelPath` helper | **NONE in the tree.** `grep -rn "relPathOf\|ofWalk\|toRelPath"` returns zero | checked |
+| `RelPath → Adj` helper | exists, `N.relPathAdj` at `:5200` — **wrong direction** | `:5200-5213` |
+| `RelPath → Adj` reversed | exists, `N.relPathAdjRev` at `:5554` — also the wrong direction | `:5554` |
+| `RelPath` concatenation | exists, `RelPath.concat`, used at `:8400`-ish in the residue's own branch | in-file |
+| `RelPath` → `TrueSRSSPath` | exists, `N.relPathToTrueSRSSPath` at `:5475`, **species at both ends** | `:5475-5485` |
+| `TrueSRSSPath` ↔ cycle arcs | `ss_gluable_arcs` (`TrueSRSpeciesPath.lean:902`), `ssGlueCycle` (`:548`) | in-tree |
+| evenness transfer | `ssGlueCycle_numCPairs` (`TrueSRSSGlueCPairs.lean:107`), `ssGlueCycle_even_of_partner` (Case-2 port) | in-tree |
+
+**So exactly one new mechanical lemma is needed before any mathematics: a `Walk → RelPath` lift
+for `relationGraphOn`.** It is a ~10-line structure literal (`RelPath.mk`) and is the first thing to
+write. Everything downstream of it is either in-tree or is the Prop. 5.10 port identified in §7-8.
+
+This narrows the residue's *mechanical* cost to one small lemma, and its mathematical cost to the
+Prop. 5.10 port — and it confirms the two are separable, so the mechanical one can be landed and
+machine-checked independently of the open question about evenness.
