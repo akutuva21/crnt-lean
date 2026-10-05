@@ -223,3 +223,51 @@ Corrected dependency order for whoever attempts this next:
 3. **Port the weakest useful form of Prop. 5.11** — see `holeB-literature.md` §7-8 for why the block
    structure may be avoidable, and §11 for the full cost if it is not.
 4. Only then `harr` / the six arrangements of `SixCases.eps` (recoverable — the tarball ships it).
+
+## 6. The S→S `hSR.2` route is REFUTED in-tree (machine-checked, commit `d82ca85`)
+
+This is the most consequential negative result so far, and it is *proved*, not argued.
+
+Glue the residue's ear `P : TrueSRSSPath (m + 1)` to `Crot.speciesArc` and `Crot.speciesArcBwd`
+via `SSGluable.ss_gluable_arcs` (`TrueSRSpeciesPath.lean:902`). That yields three cycles —
+`C`, `P ∪ Q₁`, `P ∪ Q₂`. Every **pairwise** common subgraph is then a single simple path with
+**species at both ends**:
+
+| pair | common path | endpoints |
+|---|---|---|
+| `C`, `P ∪ Q₁` | `Q₁` | species, species |
+| `C`, `P ∪ Q₂` | `Q₂` | species, species |
+| `P ∪ Q₁`, `P ∪ Q₂` | `P` | species, species |
+
+And `CRNT.Network.no_sToRIntersection_of_speciesSpecies_common`
+(`CRNT/Multistationarity/TrueSRSSGlueCPairs.lean:233`) proves that exactly this configuration admits
+no `SToRIntersection`: its hypotheses are a covered, vertex-injective connected common subgraph with
+`hstart : ∃ s, vertex 0 = Sum.inl s` and `hend : ∃ s, vertex (Fin.last K) = Sum.inl s`.
+
+Its docstring states the consequence in plain words:
+
+> "…so `SToRIntersection` is never available. That is why a species-to-species chord is invisible to
+> `TrueSRStrongCriterion`."
+
+**Consequence.** `hSR.2` is not merely hard to apply at the residue — it is *provably inapplicable to
+any species-to-species ear*, whatever its length, parity, signs, or gluability. This confirms
+DEAD-ENDS B-6 and B-10 from a direction the ledger did not record, and it kills §4b's suggestion that
+`harr` plus the Case-2 arrangement machinery could discharge via `hSR.2`. **The six arrangements of
+`SixCases.eps` exist for a stage cycle inside a source block whose cycles are *directed*; the residue's
+ear produces only species-to-species common subgraphs, which is the configuration the packaged
+dischargers explicitly cannot see.**
+
+**What survives.** The ear is still the right object — it is now landed as
+`aggregateEar_TrueSRSSPath` (`TrueChemistrySRCriterion.lean:8041`) with its off-cycle interior proved
+by `aggregateEar_interior` (`:8089`). What is refuted is only the route from that ear to `False`
+via `hSR.2`. The remaining options are:
+
+1. `hSR.1` — show the ear-containing cycle is even and **not** an s-cycle. `SCycle` is
+   `∏ leftEdge coeffs = ∏ rightEdge coeffs` (`TrueChemistrySRCriterion.lean:169`), so a strict
+   gain on the ear's edges would break the product identity. This needs no `SToRIntersection`.
+2. The block-level evenness of Prop. 5.10/5.11 (`holeB-literature.md` §7-8), which then feeds
+   `hSR.2` in the *other* direction — the paper extracts an S-to-R intersection between two cycles
+   that are each **directed** in the stage-block sense, which the residue's cycle is not.
+
+Option 1 has not been attempted and does not require the block decomposition. It is the cheapest
+untried route.
