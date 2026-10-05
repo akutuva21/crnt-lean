@@ -284,3 +284,46 @@ write. Everything downstream of it is either in-tree or is the Prop. 5.10 port i
 This narrows the residue's *mechanical* cost to one small lemma, and its mathematical cost to the
 Prop. 5.10 port — and it confirms the two are separable, so the mechanical one can be landed and
 machine-checked independently of the open question about evenness.
+
+## 10. Why the `Walk → RelPath` lift is not a 10-line job after all (correction to §9)
+
+§9 called the lift "a ~10-line `RelPath.mk` literal". I attempted it and that is wrong in a way
+worth recording, because the obstacle is **layering, not combinatorics**.
+
+`RelPath.lean` cannot host the lemma: `relationGraphOn` is defined in
+`CRNT/Graph/FiniteSource.lean:26`, and `RelPath.lean` does not import it (and must not — `FiniteSource`
+is downstream of nothing here but `RelPath` is imported *by* the Multistationarity layer). Placing it
+there fails with
+
+```
+error: CRNT/Graph/RelPath.lean:317:10: Function expected at
+  relationGraphOn
+but this term has type
+  ?m.1
+Note: The identifier `relationGraphOn` is unknown
+```
+
+Adding `import CRNT.Graph.FiniteSource` to `RelPath.lean` inverts the module layering. The lemma
+belongs in `FiniteSource.lean`, which already has `relationGraphOn` — but that file does not import
+`RelPath` (`grep -c RelPath CRNT/Graph/FiniteSource.lean` → 0), so the same inversion arises there.
+
+Two clean options, both of which I did **not** take, since each is a structural decision for the
+repo owner rather than something to smuggle into a prerequisite PR:
+
+1. **`FiniteSource.lean` imports `CRNT.Graph.RelPath`.** Natural direction (a source is built from
+   paths), but changes the module graph.
+2. **A new `CRNT/Graph/RelPathWalk.lean`** importing both, holding the lift. Zero change to existing
+   module layering; costs one file.
+
+Additionally the naive statement is wrong on two counts, both found by trying:
+
+- the walk lives on **`{v // v ∈ T}`**, not on `V`, so `RelPath E T k` (over `V`) needs the subtypes
+  coerced; and
+- `relationGraphOn`'s `Adj` is `u.1 ≠ v.1 ∧ (E u.1 v.1 ∨ E v.1 u.1)` — **either orientation**. A
+  `RelPath` needs one chosen direction, so the lemma must take the orientation as a hypothesis
+  (`hdir : ∀ i : Fin k, E (W.getVert i.1) (W.getVert i.1.succ)`) and discard the `Or.inr` branch
+  rather than assume it away.
+
+So the corrected cost is: one small file plus an explicit orientation hypothesis, not one literal.
+Still separable from the Prop. 5.10 question, still landable, but not free. Both attempts were
+reverted; `git status` is clean and `lake build CRNT.Graph.RelPath` succeeds.
