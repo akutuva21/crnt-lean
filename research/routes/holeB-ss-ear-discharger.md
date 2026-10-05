@@ -1,7 +1,8 @@
 # The missing discharger at `TrueChemistrySRCriterion.lean:8607`: a species-to-species ear
 
-**Status: precise target statement, established by reading source. The proof is not written.**
-All `file:line` citations were read in the tree at commit `4bb7049` (branch
+**Status: target statement established; the S → S builder obstacle is CLEARED; two obstacles
+remain (`harr`, and evenness of the glued cycle). The proof is not written.**
+All `file:line` citations were read in the tree at commit `5f4160a` (branch
 `research/holeb-earcase-port`, PR #36).
 
 ## 1. Why this is the exact remaining gap
@@ -99,10 +100,27 @@ Convert `P` to a `TrueSRSSPath` (both ends species ⇒ even length), obtain the 
 `TrueSREarCase2.lean`, then feed `lemmaA6_case2_interleaved` / `lemmaA6_case2_twoComponents`.
 Three obstacles, in order of difficulty:
 
-1. **`P` is a `RelPath`, not a `TrueSRSSPath`.** There is `N.relPathToTrueSRPathRev`
-   (`N.relPathToTrueSRPathRev T P hinj hkpos hlast hstart`, used at `:5735`) but that is the
-   **S → R** builder. The S → S builder for a species-terminated `RelPath` must be located or
-   written. **This is the first thing to check** — if it does not exist, the route stops here.
+1. ~~**`P` is a `RelPath`, not a `TrueSRSSPath`.**~~ **CLEARED.** The S → S builder exists:
+   `relPathToTrueSRSSPath` at **`TrueChemistrySRCriterion.lean:5475`**,
+
+   ```lean
+   private noncomputable def relPathToTrueSRSSPath (N : Network S)
+       {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+       (T : Finset (N.TrueInternalAggregateVertex α σ)) {k : ℕ}
+       (P : CRNT.RelPath (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T k)
+       (hinj : Function.Injective P.vertex) (hk : 0 < k)
+       {s s' : AggregateActiveSpecies σ}
+       (h0 : P.vertex ⟨0, by omega⟩ = Sum.inl s)
+       (hlast : P.vertex ⟨k, by omega⟩ = Sum.inl s') : N.TrueSRSSPath k
+   ```
+
+   It is `private`, hence in-file, and takes **species at both ends** — exactly the composite's
+   shape. Every argument is available at the residue: `P` = the concatenation of `Q0` with the
+   `RelPath` form of `W`; `hinj` from `hQ0inj` together with `W.IsPath`; `hk` from the parity
+   argument above (composite length even and `> 0`); `h0 = hv0`; `hlast` from `hvOn` with `v` the
+   species. Sibling builders `relPathToTrueSRPath` (`:5217`, S → R) and `relPathToTrueSRPathRev`
+   (`:5584`, R → S) sit at the same level.
+   **So the route does not stop at step 1.** Two obstacles remain.
 2. **`harr`, the arrangement datum.** `CE/QE/PE/VE` appear nowhere above `:8607`
    (`DEAD-ENDS.md` B-10, confirmed by grep: zero hits for `harr`, `hdecX`, `hdecY` in the file).
    `research/routes/pr10-verification.md` §5 records that `harr` has no producer and that the
