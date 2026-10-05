@@ -56,10 +56,19 @@ jobs:
       - name: Undefined-name audit
         run: python3 scripts/check_undefined_names.py
 
-      # lakefile.toml must be exactly what the ledger generates, the ledger may
-      # not grow, entries must exist on disk, CRNT.lean may not reach frontier.
-      - name: Exclusion-ledger audit
+      # Check 5 here is the one that carries weight: `import CRNT` must not reach any
+      # module with a sorry/axiom/admit, asserted on the import closure itself.  The
+      # ledger-intersection form of that check (check 4) is vacuous while the ledger is
+      # empty, which it has been since c56739b.  See the script's docstring.
+      - name: Exclusion-ledger and umbrella-purity audit
         run: python3 scripts/check_exclusions.py
+
+      # `lakefile.toml`, `CRNTFrontier.lean` and `scripts/frontier_history.txt` are all
+      # generated from scripts/unverified_modules.txt.  If a PR edits any of them by
+      # hand, the build it describes and the build CI runs are not the same build.
+      # Run before check_exclusions.py so the message names the root cause.
+      - name: Generated files in sync with the ledger
+        run: python3 scripts/gen_lakefile.py --check
 
   # ---------------------------------------------------------------------------
   # The verified core.  Green here means the non-ledger modules really do

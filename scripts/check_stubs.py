@@ -45,6 +45,13 @@ PATTERNS = [
     ("trivial-ctor", re.compile(r":=\s*⟨\s*\(\)\s*,\s*trivial\s*⟩\s*$")),
     ("istrue-decider", re.compile(r"Decidable\b.*:=\s*isTrue\b")),
     ("sorry", re.compile(r"(?<!`)\bsorry\b(?!`)")),
+    # An `axiom` is the one escape hatch that makes every gate below meaningless: it
+    # postulates whatever it likes and every theorem downstream inherits it.  Measured
+    # before this pattern existed: `axiom foo : False` added to a module reachable from
+    # `CRNT.lean` passed check_stubs, check_exclusions AND check_undefined_names, all
+    # exit 0.  There are no `axiom` declarations anywhere in the tree, so this pattern
+    # has no false positives to baseline -- and a new one is exactly what should fail.
+    ("axiom", re.compile(r"^[\s]*axiom[\s]+[A-Za-z_]")),
     ("admit", re.compile(r"(?<!`)\badmit\b(?!`)")),
 ]
 
