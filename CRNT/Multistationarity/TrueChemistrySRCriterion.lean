@@ -7638,6 +7638,147 @@ private theorem exists_minimal_escape (N : Network S)
         (W.takeUntil (W.getVert i) hmem) rfl hOn (hWp.takeUntil hmem)
 
 
+/-- **`relationGraphOn` forgets the orientation of a step, and `CRNT.relPathOfWalk`'s `hdir`
+hypothesis is therefore not derivable.**
+
+`relationGraphOn E T` has `Adj u v := u.1 ≠ v.1 ∧ (E u.1 v.1 ∨ E v.1 u.1)`: the adjacency of a
+walk's step says that *some* orientation of that step is an `E`-edge, never which.  The
+`hdir` premise of `CRNT.relPathOfWalk` demands the forward orientation at every step, and the
+statement below shows that for a one-step walk these two demands are outright incompatible as
+soon as `¬ E a b` holds at the endpoints — which is exactly the situation of an escape walk in
+`relationGraphOn` whose steps' flux signs are not known.
+
+So no consumer may obtain a directed `CRNT.RelPath` by lifting a walk produced by
+`exists_minimal_escape`; a directed path has to be *built* with `CRNT.exists_minimal_relPath` or
+`CRNT.exists_shortest_relPath_to_good`, which produce one directly. -/
+private theorem relPathOfWalk_hdir_not_derivable {V : Type} {E : V → V → Prop}
+    {T : Finset V} {a b : {v // v ∈ T}} (W : (CRNT.relationGraphOn E T).Walk a b)
+    (hlen : W.length = 1) (hnodir : ¬ E a.1 b.1) :
+    ¬ (∀ i : Fin W.length, E (W.getVert i.1).1 (W.getVert i.1.succ).1) := by
+  rintro h
+  have h0 := h ⟨0, by omega⟩
+  rw [W.getVert_zero] at h0
+  have h1 : (Nat.succ 0) = W.length := by omega
+  rw [h1, W.getVert_length] at h0
+  exact hnodir h0
+
+/-- **A minimal directed path from an on-cycle species to an on-cycle reaction class.**
+
+This is the object the residue's *second* escape needs, and it is built directly as a
+`CRNT.RelPath` by `CRNT.exists_shortest_relPath_to_good` — no `Walk` is involved, so the
+orientation obstruction of `relPathOfWalk_hdir_not_derivable` does not arise and the path is
+injective for free.
+
+The path runs from the on-cycle species `s` along the attachment edge `q → s` and then on to the
+on-cycle class `qC`.  Its every vertex before the last is **not an on-cycle reaction** — which is
+exactly the interior condition of `no_reaction_interior_path_of_neighbourFree_of_trueSRCriterion`.
+Interior *species* vertices are unconstrained, and that is the whole point: the second escape's
+minimality clause (`exists_minimal_escape` run with "is an on-cycle reaction") says nothing about
+them either. -/
+private theorem exists_minimal_relPath_species_to_reaction (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {n : ℕ} (C : N.TrueSRCycle n)
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    (hsource : ∀ a b : N.TrueInternalAggregateVertex α σ,
+      N.TrueInternalAggregateCausalEdge a b → b ∈ T → a ∈ T)
+    (hscc : ∀ a b : N.TrueInternalAggregateVertex α σ, a ∈ T → b ∈ T →
+      Relation.ReflTransGen (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) a b)
+    {s : AggregateActiveSpecies σ} (hsT : Sum.inl s ∈ T) (hsC : C.HasSpecies s.1)
+    {q qC : N.ActiveAggregateTrueReaction α σ}
+    (hqT : Sum.inr q ∈ T) (hqCT : Sum.inr qC ∈ T) (hqCOn : C.HasReaction qC.1)
+    (hatt : N.TrueInternalAggregateCausalEdge (Sum.inr q) (Sum.inl s)) :
+    ∃ (k : ℕ) (P : CRNT.RelPath (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T k),
+      0 < k ∧ Function.Injective P.vertex ∧ P.vertex ⟨0, by omega⟩ = Sum.inl s ∧
+      (∃ (ρ : N.ActiveAggregateTrueReaction α σ), C.HasReaction ρ.1 ∧
+        P.vertex ⟨k, by omega⟩ = Sum.inr ρ) ∧
+      (∀ i : Fin (k + 1), i.1 ≠ k →
+        ¬ ∃ (ρ : N.ActiveAggregateTrueReaction α σ),
+          P.vertex i = Sum.inr ρ ∧ C.HasReaction ρ.1) := by
+  classical
+  have hreach : Relation.ReflTransGen
+      (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ))
+      (Sum.inl s) (Sum.inr qC) :=
+    (hscc (Sum.inl s) _ hsT hqT).trans (hscc (Sum.inr q) _ hqT hqCT)
+  obtain ⟨k, P, hPstart, hPgood, hinj, hPlate, _hmin⟩ :=
+    CRNT.exists_shortest_relPath_to_good
+      (fun x : N.TrueInternalAggregateVertex α σ =>
+        ∃ (ρ : N.ActiveAggregateTrueReaction α σ), x = Sum.inr ρ ∧ C.HasReaction ρ.1)
+      hsource hqCT hreach ⟨qC, rfl, hqCOn⟩
+  obtain ⟨ρ, hPend, hρC⟩ := hPgood
+  have hkpos : 0 < k := by
+    rcases Nat.eq_zero_or_pos k with h0 | h
+    · exfalso
+      have hidx : (⟨0, by omega⟩ : Fin (k + 1)) = ⟨k, by omega⟩ := Fin.ext (by omega)
+      have heq := congrArg P.vertex hidx
+      rw [hPstart, hPend] at heq
+      exact Sum.inl_ne_inr heq
+    · exact h
+  exact ⟨k, P, hkpos, hinj, hPstart, ⟨ρ, hρC, hPend⟩, hPlate⟩
+
+/-- **Entering the cycle at a reaction class from an on-cycle *species* rides `C`'s own left
+edge.**  This is the sharp obstruction to the second-escape route.
+
+Suppose the off-cycle region is joined to the cycle and the final step of a causal path lands on
+the on-cycle class `ρ = C.reaction t` from the on-cycle species `C.species j`.  The step is a
+*negative* class flux at `C.species j`, and `hopp`/`hcausal` pin the flux of a cycle class at a
+cycle species: negative at `C.species t`, positive at `C.species (t + 1)`, and — under `¬hnc` —
+zero everywhere else.  Hence `j = t`, and the edge *is* `C.leftEdge t`.
+
+Consequently the last edge of the second escape can never be neighbour-free when the escape enters
+the cycle from a cycle species, and `no_reaction_interior_path_of_neighbourFree_of_trueSRCriterion`
+(`hnb`) — equivalently `hRlate` for `no_clean_directed_species_reaction_ear_of_trueSRCriterion` —
+cannot be discharged in that case: such a path is *consistent*, not contradictory.  What the route
+needs is an off-cycle species `u` with `trueInternalClassFlux α (C.reaction t) u * σ u < 0`, so
+that the escape enters the cycle at a reaction from outside.  Nothing in scope produces that. -/
+private theorem cycleEntry_from_cycleSpecies_is_leftEdge (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {n : ℕ} (C : N.TrueSRCycle n)
+    (hnc : ∀ (a b : Fin n), a.1 ≠ b.1 → b.1 ≠ (a.1 + 1) % n →
+      N.trueInternalClassFlux α (C.reaction a) (C.species b) * σ (C.species b) = 0)
+    (hcausal : ∀ i : Fin n,
+      0 < N.trueInternalClassFlux α (C.reaction i) (C.species (finRotate n i)) *
+        σ (C.species (finRotate n i)))
+    {ρ : N.ActiveAggregateTrueReaction α σ} (hρC : C.HasReaction ρ.1)
+    (u : AggregateActiveSpecies σ)
+    (hstep : N.TrueInternalAggregateCausalEdge (Sum.inl u) (Sum.inr ρ))
+    (huC : C.HasSpecies u.1) :
+    ∃ (t : Fin n), u.1 = C.species t ∧ ρ.1 = C.reaction t := by
+  obtain ⟨a, ha⟩ := hρC
+  obtain ⟨b, hb⟩ := huC
+  have hneg : N.trueInternalClassFlux α ρ.1 u.1 * σ u.1 < 0 := hstep
+  have hne : N.trueInternalClassFlux α ρ.1 u.1 ≠ 0 := by
+    intro hz
+    rw [hz, zero_mul] at hneg
+    exact (lt_irrefl 0) hneg
+  have hprod : N.trueInternalClassFlux α ρ.1 u.1 * σ u.1 ≠ 0 := by
+    intro hz
+    rcases mul_eq_zero.mp hz with h1 | h2
+    · exact hne h1
+    · exact absurd h2 u.2
+  have hprod' : N.trueInternalClassFlux α (C.reaction a) (C.species b) *
+      σ (C.species b) ≠ 0 := by
+    rw [← ha, ← hb] at hprod
+    exact hprod
+  have hneg' : N.trueInternalClassFlux α (C.reaction a) (C.species b) *
+      σ (C.species b) < 0 := by
+    rw [← ha, ← hb] at hneg
+    exact hneg
+  have hne1 : a.1 = b.1 ∨ b.1 = (a.1 + 1) % n := by
+    by_contra hcon
+    push_neg at hcon
+    exact absurd (hnc a b hcon.1 hcon.2) hprod'
+  rcases hne1 with heq | hb1
+  · have hba : a = b := Fin.ext heq
+    exact ⟨b, hb.symm, ha.symm.trans (congrArg C.reaction hba)⟩
+  · exfalso
+    let t : Fin n := ⟨(a.1 + 1) % n,
+      Nat.mod_lt _ (by have := C.nontrivial; omega)⟩
+    have hbt : b = t := Fin.ext hb1
+    have hfr : (finRotate n a : Fin n) = t := by
+      simp [t, finRotate_apply, Fin.add_def]
+    have hpos := hcausal a
+    rw [hfr] at hpos
+    rw [hbt] at hneg'
+    linarith
+
 
 /-- **The directed chord into an off-cycle reaction class.**
 
@@ -9233,6 +9374,46 @@ theorem stronglyConcordant_fullyOpen_of_trueSRCriterion
               -- the glued intersection becomes S-to-R.  That is the **A.6 Case-2 source-block
               -- datum** of `research/BRIEF-B.md` §B.2/§B.4 — a missing input, not a missing
               -- proof, and not reachable from what is in scope here.
+              --
+              -- (3) *The second escape is now machine-checked, and it fails for a precise
+              -- reason.*  Re-running `exists_minimal_escape` with `OnC` = "is an on-cycle
+              -- reaction" does produce a `RelPath` from `q` to an on-cycle class — but not one
+              -- that any discharger accepts, and the two reasons are separate.
+              --
+              -- *Orientation.*  `relationGraphOn`'s `Adj` admits either orientation, so
+              -- `relPathOfWalk`'s `hdir` cannot be manufactured from escape-walk data; see
+              -- `relPath_append_relPathOfWalk` and now `relPathOfWalk_hdir_not_derivable`,
+              -- which exhibits a one-step `relationGraphOn` walk whose endpoints satisfy
+              -- `¬ E a b` and for which `hdir` is unsatisfiable.  This is not an obstacle in
+              -- practice: `exists_minimal_relPath_species_to_reaction` builds the directed
+              -- `RelPath` directly, with no walk involved, and `aggregateSourcePathToTrueSRPath`
+              -- consumes a `Walk` with no orientation hypothesis at all.
+              --
+              -- *The interior.*  The escape's minimality clause excludes on-cycle **reactions**
+              -- from every proper prefix; it says nothing about on-cycle **species**, so
+              -- `hRlate` (for `no_clean_directed_species_reaction_ear_of_trueSRCriterion`, which
+              -- asks the interior to avoid `C` outright) cannot be discharged, and neither can
+              -- the `hinterior` of `no_species_reaction_ear_of_trueSRCriterion`.  Passing instead
+              -- to `no_reaction_interior_path_of_neighbourFree_of_trueSRCriterion`, whose `hint`
+              -- only constrains odd (reaction) positions, fixes the interior — but transfers the
+              -- whole difficulty to `hnb`, the neighbour-freeness of the *final* edge, and there
+              -- it is fatal.  `cycleEntry_from_cycleSpecies_is_leftEdge` proves exactly why:
+              -- under `¬hnc`, a causal step into the on-cycle class `C.reaction t` whose tail is
+              -- an on-cycle species `C.species j` forces `j = t`, so the final edge *is*
+              -- `C.leftEdge t`.  Such a path is consistent, not contradictory — it is simply a
+              -- path into the cycle along the cycle.
+              --
+              -- So the residue reduces to one sharply-stated datum.  Take the `RelPath P` of
+              -- `exists_minimal_relPath_species_to_reaction` from the on-cycle species `s` to an
+              -- on-cycle class `ρ'`.  Either `P.vertex (k - 1)` is off the cycle — and then `P` is
+              -- a forbidden S-to-R ear with a neighbour-free final edge, so
+              -- `no_reaction_interior_path_of_neighbourFree_of_trueSRCriterion` refutes
+              -- everything — or it is `C.species t` with `ρ' = C.reaction t`, and `P` rides the
+              -- cycle's own left edge.  The missing input is therefore exactly: **an off-cycle
+              -- species `u` with `trueInternalClassFlux α (C.reaction t) u * σ u < 0`**, so that
+              -- a path out of the off-cycle region can enter `C` at a reaction from outside.
+              -- Nothing in scope produces that; it is the same missing source-block datum as
+              -- above, seen from the reaction side.
               have hsCs : C.HasSpecies s.1 := by
                 change C.HasSpecies (C.species (finRotate n i))
                 exact ⟨finRotate n i, rfl⟩
