@@ -183,3 +183,43 @@ something the hypotheses equally do not give.
   `CRNT/Multistationarity/TrueSREarCase2.lean`.
 - The six arrangements and the `CE/QE/PE/VE` notation: header table of
   `CRNT/Multistationarity/TrueSREarCase2.lean`.
+
+## 5b. SUPERSEDED ordering — read `holeB-literature.md` first
+
+This note's §4 prioritised `harr` as obstacle 2 and named the σ-sign estimate as the true
+blocker (§4b). **Both were superseded** by the primary-source work recorded in
+`research/routes/holeB-literature.md`:
+
+| this note said | the source says | status |
+|---|---|---|
+| blocker is a sum-versus-term σ gap (§4b) | Prop. 5.11 (`:869`) gives evenness of **every cycle in the source** under `hSR.2`, with **no σ-sign hypothesis at all** | §4b **wrong**; the paper never asks for a σ-sign estimate |
+| build `no_species_species_ear_of_trueSRCriterion` | the target is a port of **Prop. 5.11** over the block decomposition | §3 target **mis-aimed** |
+| `harr` is a real obstacle | `harr` is real but **second-order**: it only matters once evenness is in hand, and evenness is free under Prop. 5.11 | §4 ordering **wrong** |
+| "Lemma A.6" | no such lemma; the content is **Prop. 5.8** (App. A.3) + **App. A.2** | citation wrong throughout |
+
+What survives from this note and is still correct:
+
+1. **The residue's ear is species→species.** The three existing dischargers (`:5299`, `:5688`,
+   `:5735`) all need an on-cycle reaction at one end; the in-scope data has an on-cycle species at
+   both ends (`Q0 : s0 ⇝ q`, then `W : q ⇝ v`). Verified, and unchanged by the literature work.
+2. **The parity forcing.** `m` odd, `W.length` odd, composite even and species-terminated, so the
+   applicable glue is `SSGluable`/`ssGlueCycle` rather than `rrGluedCycle`. Verified from the case
+   table at `:4691-4699`.
+3. **`relPathToTrueSRSSPath` exists** at `:5475` and takes species at both ends — obstacle 1
+   cleared. Verified.
+4. **The dead-end list in §5.** All still valid; B-8 in particular is now machine-checked by
+   `classFlux_trichotomy` (landed in PR #36), which confirms the in-file comment at `:8600-8607`
+   is wrong.
+5. **`v ≠ s`** is already proved in the file: the `hsNotIn` argument at `:8306-8316` shows
+   `⟨Sum.inl s, hsT⟩ ∉ W.support`, and it is branch-independent. **`v = s0` is neither forced nor
+   excluded** — nothing in `:8572-8609` relates them, so a `by_cases` on it is required.
+
+Corrected dependency order for whoever attempts this next:
+
+1. `Walk → RelPath` lift + a whole-path `append` (`RelPath.concat` extends by ONE vertex only —
+   verified at `CRNT/Graph/RelPath.lean:189-190`, so `Q0 ++ W` needs a new operation). In progress
+   in `CRNT/Graph/RelPathWalk.lean`.
+2. `relPathToTrueSRSSPath` on the composite; `by_cases` on `v = s0`.
+3. **Port the weakest useful form of Prop. 5.11** — see `holeB-literature.md` §7-8 for why the block
+   structure may be avoidable, and §11 for the full cost if it is not.
+4. Only then `harr` / the six arrangements of `SixCases.eps` (recoverable — the tarball ships it).
