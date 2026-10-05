@@ -113,3 +113,83 @@ descent) stand unrefuted by anything in the primary source.
 - M. Gopalkrishnan, E. Miller, Z. Shiu, strongly endotactic case — **not represented in-tree as a GAC
   interface**; the repo has `StrongEndotacticStd` but not the GAC conclusion. Candidate for the
   frontier ledger.
+
+## 7. CORRECTION to §4 — the hole DOES have weak reversibility; the rank-2 route reopens
+
+§4 asserted the Pantea route "likely dies" because the hole does not assume `N.WeaklyReversible`.
+**That is wrong**, and the correction reopens the route.
+
+`CRNT/Equilibria/ComplexBalanceStructure.lean:39-45`, verbatim:
+
+```lean
+/-- **Positive complex balance forces weak reversibility.** -/
+theorem weaklyReversible_of_positive_complexBalanced
+    (N : Network S) (κ : N.RateConstants) {x : Concentration S}
+    (hx : x.Positive) (hcb : N.IsComplexBalanced κ x) :
+    N.WeaklyReversible := by
+  exact N.weaklyReversible_of_exists_pos_kernelVector κ
+    (N.complexMonomialVector_pos hx)
+    (N.kineticMap_complexMonomial_eq_zero_of_complexBalanced κ hcb)
+```
+
+The hole's hypotheses `hxs : xstar.Positive` and `hcb : N.IsComplexBalanced κ xstar` at
+`HighCodimensionSiphonFace.lean:113` are **exactly** this lemma's two arguments. So
+
+```lean
+have hwr : N.WeaklyReversible :=
+  N.weaklyReversible_of_positive_complexBalanced κ hxs hcb
+```
+
+is available **in the hole, for free**. Verified by reading the source; and
+`no_positive_complexBalanced_of_not_weaklyReversible` (`:50-56`) is the same fact's contrapositive,
+which is why the grep for "CB ⇒ WR" initially returned only reverse-looking hits.
+
+I had this backwards because I assumed, following the general literature convention, that
+complex-balanced and weakly-reversible are independent. **In this library that convention is not
+followed**: here positive complex balance *implies* weak reversibility as a proved theorem.
+
+### Revised status of the Pantea / rank-2 route
+
+`TwoDimensionalWRBoundedPersistenceClaim` (`KnownGlobalPersistenceClasses.lean:52`) is
+
+```lean
+def TwoDimensionalWRBoundedPersistenceClaim (N : Network S) : Prop :=
+  N.WeaklyReversible → N.stoichRank = 2 →
+    N.StructurallyBoundedPositiveTrajectories → N.StructurallyPersistentStd
+```
+
+so its three inputs are now:
+
+| input | available to the hole? | source |
+|---|---|---|
+| `N.WeaklyReversible` | **YES, free** | `weaklyReversible_of_positive_complexBalanced κ hxs hcb`, `:39-45` |
+| `N.stoichRank = 2` | only if `hrank` is refined; `hrank : N.stoichRank ≠ 1` gives rank ≥ 2 | `HighCodimensionSiphonFace.lean:133` |
+| `N.StructurallyBoundedPositiveTrajectories` | **NOT free** — quantifies over all `κ` and all positive `x₀` (`:46-48`); the hole has `hK`/`hmaps` for one `κ` and one `x₀` | `:46-48`, hole `:118` |
+
+Two consequences, and they point in *opposite* directions:
+
+1. **The boundedness upgrade is now the only obstacle** in this route. `hK : IsCompact K` +
+   `hmaps` give boundedness for the given trajectory; the claim needs it for every `κ` and every
+   positive `x₀`. Whether that upgrade is derivable is a real question — `Network.genuineOrbit_pos`
+   and the `hK`/`hmaps` compactness argument at `GenuineConfinement.lean:63-76` (cited by DEAD-ENDS
+   A-68 as already run for the box hypothesis) are the natural starting points, and A-68 records
+   that "the box hypothesis is not an extra input".
+2. **`StructurallyPersistentStd` is universal, so this route closes the hole by REFUTING its
+   hypotheses, not by proving its goal.** Under `hwmax`/`hzeroMax`/`hPmaxne` we have
+   `¬ wmax.Positive`, while `StructurallyPersistentStd` asserts every ω-point is positive. Feeding
+   the hole's ω-limit hypotheses into that theorem yields `False` — i.e. the hole's twenty
+   hypotheses would be **inconsistent**, exactly the ℓ=1 situation of DEAD-ENDS A-57/A-63.
+
+Point 2 is the important structural finding, and it is a *refutation* of the conjunction, not a
+proof of the goal. It would be a legitimate way to discharge the `sorry` **only if** the boundedness
+upgrade genuinely holds — because `exfalso` is already in scope at the `sorry` (`False` is the goal).
+So this is not a dead end: it is a *second, independent* route to `False` that bypasses the blueprint
+ladder entirely, and it is now the cheapest untried one.
+
+**Caveat, stated plainly:** I have NOT proved the boundedness upgrade. `StructurallyBoundedPositiveTrajectories`
+is deliberately *stronger* than what the hole carries (the module docstring of
+`KnownGlobalPersistenceClasses.lean` is explicit that "the compact set may depend on the initial
+condition; this captures exactly the trajectory-boundedness hypothesis needed … without silently
+strengthening it to permanence"). Whether `∀ κ ∀ x₀` follows is open and is the first thing to
+attack. If it does not, this route dies where A-18/A-19 killed `PersistentFrom` — by making a
+universal claim that the hole's data cannot support.
