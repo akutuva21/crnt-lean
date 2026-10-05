@@ -20,6 +20,8 @@ import CRNT.Multistationarity.TrueSRCPairThirdEdge
 import CRNT.Multistationarity.TrueSRDegreeTwoNoSToR
 import CRNT.Multistationarity.TrueSRSSGlueCPairs
 import CRNT.Multistationarity.TrueSRParityRR
+import CRNT.Graph.RelPathWalk
+import CRNT.Multistationarity.TrueSRSSArcEven
 
 /-!
 # True-chemistry SR criteria for concordance and strong concordance
@@ -7636,6 +7638,147 @@ private theorem exists_minimal_escape (N : Network S)
         (W.takeUntil (W.getVert i) hmem) rfl hOn (hWp.takeUntil hmem)
 
 
+/-- **`relationGraphOn` forgets the orientation of a step, and `CRNT.relPathOfWalk`'s `hdir`
+hypothesis is therefore not derivable.**
+
+`relationGraphOn E T` has `Adj u v := u.1 ≠ v.1 ∧ (E u.1 v.1 ∨ E v.1 u.1)`: the adjacency of a
+walk's step says that *some* orientation of that step is an `E`-edge, never which.  The
+`hdir` premise of `CRNT.relPathOfWalk` demands the forward orientation at every step, and the
+statement below shows that for a one-step walk these two demands are outright incompatible as
+soon as `¬ E a b` holds at the endpoints — which is exactly the situation of an escape walk in
+`relationGraphOn` whose steps' flux signs are not known.
+
+So no consumer may obtain a directed `CRNT.RelPath` by lifting a walk produced by
+`exists_minimal_escape`; a directed path has to be *built* with `CRNT.exists_minimal_relPath` or
+`CRNT.exists_shortest_relPath_to_good`, which produce one directly. -/
+private theorem relPathOfWalk_hdir_not_derivable {V : Type} {E : V → V → Prop}
+    {T : Finset V} {a b : {v // v ∈ T}} (W : (CRNT.relationGraphOn E T).Walk a b)
+    (hlen : W.length = 1) (hnodir : ¬ E a.1 b.1) :
+    ¬ (∀ i : Fin W.length, E (W.getVert i.1).1 (W.getVert i.1.succ).1) := by
+  rintro h
+  have h0 := h ⟨0, by omega⟩
+  rw [W.getVert_zero] at h0
+  have h1 : (Nat.succ 0) = W.length := by omega
+  rw [h1, W.getVert_length] at h0
+  exact hnodir h0
+
+/-- **A minimal directed path from an on-cycle species to an on-cycle reaction class.**
+
+This is the object the residue's *second* escape needs, and it is built directly as a
+`CRNT.RelPath` by `CRNT.exists_shortest_relPath_to_good` — no `Walk` is involved, so the
+orientation obstruction of `relPathOfWalk_hdir_not_derivable` does not arise and the path is
+injective for free.
+
+The path runs from the on-cycle species `s` along the attachment edge `q → s` and then on to the
+on-cycle class `qC`.  Its every vertex before the last is **not an on-cycle reaction** — which is
+exactly the interior condition of `no_reaction_interior_path_of_neighbourFree_of_trueSRCriterion`.
+Interior *species* vertices are unconstrained, and that is the whole point: the second escape's
+minimality clause (`exists_minimal_escape` run with "is an on-cycle reaction") says nothing about
+them either. -/
+private theorem exists_minimal_relPath_species_to_reaction (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {n : ℕ} (C : N.TrueSRCycle n)
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    (hsource : ∀ a b : N.TrueInternalAggregateVertex α σ,
+      N.TrueInternalAggregateCausalEdge a b → b ∈ T → a ∈ T)
+    (hscc : ∀ a b : N.TrueInternalAggregateVertex α σ, a ∈ T → b ∈ T →
+      Relation.ReflTransGen (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) a b)
+    {s : AggregateActiveSpecies σ} (hsT : Sum.inl s ∈ T) (hsC : C.HasSpecies s.1)
+    {q qC : N.ActiveAggregateTrueReaction α σ}
+    (hqT : Sum.inr q ∈ T) (hqCT : Sum.inr qC ∈ T) (hqCOn : C.HasReaction qC.1)
+    (hatt : N.TrueInternalAggregateCausalEdge (Sum.inr q) (Sum.inl s)) :
+    ∃ (k : ℕ) (P : CRNT.RelPath (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T k),
+      0 < k ∧ Function.Injective P.vertex ∧ P.vertex ⟨0, by omega⟩ = Sum.inl s ∧
+      (∃ (ρ : N.ActiveAggregateTrueReaction α σ), C.HasReaction ρ.1 ∧
+        P.vertex ⟨k, by omega⟩ = Sum.inr ρ) ∧
+      (∀ i : Fin (k + 1), i.1 ≠ k →
+        ¬ ∃ (ρ : N.ActiveAggregateTrueReaction α σ),
+          P.vertex i = Sum.inr ρ ∧ C.HasReaction ρ.1) := by
+  classical
+  have hreach : Relation.ReflTransGen
+      (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ))
+      (Sum.inl s) (Sum.inr qC) :=
+    (hscc (Sum.inl s) _ hsT hqT).trans (hscc (Sum.inr q) _ hqT hqCT)
+  obtain ⟨k, P, hPstart, hPgood, hinj, hPlate, _hmin⟩ :=
+    CRNT.exists_shortest_relPath_to_good
+      (fun x : N.TrueInternalAggregateVertex α σ =>
+        ∃ (ρ : N.ActiveAggregateTrueReaction α σ), x = Sum.inr ρ ∧ C.HasReaction ρ.1)
+      hsource hqCT hreach ⟨qC, rfl, hqCOn⟩
+  obtain ⟨ρ, hPend, hρC⟩ := hPgood
+  have hkpos : 0 < k := by
+    rcases Nat.eq_zero_or_pos k with h0 | h
+    · exfalso
+      have hidx : (⟨0, by omega⟩ : Fin (k + 1)) = ⟨k, by omega⟩ := Fin.ext (by omega)
+      have heq := congrArg P.vertex hidx
+      rw [hPstart, hPend] at heq
+      exact Sum.inl_ne_inr heq
+    · exact h
+  exact ⟨k, P, hkpos, hinj, hPstart, ⟨ρ, hρC, hPend⟩, hPlate⟩
+
+/-- **Entering the cycle at a reaction class from an on-cycle *species* rides `C`'s own left
+edge.**  This is the sharp obstruction to the second-escape route.
+
+Suppose the off-cycle region is joined to the cycle and the final step of a causal path lands on
+the on-cycle class `ρ = C.reaction t` from the on-cycle species `C.species j`.  The step is a
+*negative* class flux at `C.species j`, and `hopp`/`hcausal` pin the flux of a cycle class at a
+cycle species: negative at `C.species t`, positive at `C.species (t + 1)`, and — under `¬hnc` —
+zero everywhere else.  Hence `j = t`, and the edge *is* `C.leftEdge t`.
+
+Consequently the last edge of the second escape can never be neighbour-free when the escape enters
+the cycle from a cycle species, and `no_reaction_interior_path_of_neighbourFree_of_trueSRCriterion`
+(`hnb`) — equivalently `hRlate` for `no_clean_directed_species_reaction_ear_of_trueSRCriterion` —
+cannot be discharged in that case: such a path is *consistent*, not contradictory.  What the route
+needs is an off-cycle species `u` with `trueInternalClassFlux α (C.reaction t) u * σ u < 0`, so
+that the escape enters the cycle at a reaction from outside.  Nothing in scope produces that. -/
+private theorem cycleEntry_from_cycleSpecies_is_leftEdge (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {n : ℕ} (C : N.TrueSRCycle n)
+    (hnc : ∀ (a b : Fin n), a.1 ≠ b.1 → b.1 ≠ (a.1 + 1) % n →
+      N.trueInternalClassFlux α (C.reaction a) (C.species b) * σ (C.species b) = 0)
+    (hcausal : ∀ i : Fin n,
+      0 < N.trueInternalClassFlux α (C.reaction i) (C.species (finRotate n i)) *
+        σ (C.species (finRotate n i)))
+    {ρ : N.ActiveAggregateTrueReaction α σ} (hρC : C.HasReaction ρ.1)
+    (u : AggregateActiveSpecies σ)
+    (hstep : N.TrueInternalAggregateCausalEdge (Sum.inl u) (Sum.inr ρ))
+    (huC : C.HasSpecies u.1) :
+    ∃ (t : Fin n), u.1 = C.species t ∧ ρ.1 = C.reaction t := by
+  obtain ⟨a, ha⟩ := hρC
+  obtain ⟨b, hb⟩ := huC
+  have hneg : N.trueInternalClassFlux α ρ.1 u.1 * σ u.1 < 0 := hstep
+  have hne : N.trueInternalClassFlux α ρ.1 u.1 ≠ 0 := by
+    intro hz
+    rw [hz, zero_mul] at hneg
+    exact (lt_irrefl 0) hneg
+  have hprod : N.trueInternalClassFlux α ρ.1 u.1 * σ u.1 ≠ 0 := by
+    intro hz
+    rcases mul_eq_zero.mp hz with h1 | h2
+    · exact hne h1
+    · exact absurd h2 u.2
+  have hprod' : N.trueInternalClassFlux α (C.reaction a) (C.species b) *
+      σ (C.species b) ≠ 0 := by
+    rw [← ha, ← hb] at hprod
+    exact hprod
+  have hneg' : N.trueInternalClassFlux α (C.reaction a) (C.species b) *
+      σ (C.species b) < 0 := by
+    rw [← ha, ← hb] at hneg
+    exact hneg
+  have hne1 : a.1 = b.1 ∨ b.1 = (a.1 + 1) % n := by
+    by_contra hcon
+    push_neg at hcon
+    exact absurd (hnc a b hcon.1 hcon.2) hprod'
+  rcases hne1 with heq | hb1
+  · have hba : a = b := Fin.ext heq
+    exact ⟨b, hb.symm, ha.symm.trans (congrArg C.reaction hba)⟩
+  · exfalso
+    let t : Fin n := ⟨(a.1 + 1) % n,
+      Nat.mod_lt _ (by have := C.nontrivial; omega)⟩
+    have hbt : b = t := Fin.ext hb1
+    have hfr : (finRotate n a : Fin n) = t := by
+      simp [t, finRotate_apply, Fin.add_def]
+    have hpos := hcausal a
+    rw [hfr] at hpos
+    rw [hbt] at hneg'
+    linarith
+
 
 /-- **The directed chord into an off-cycle reaction class.**
 
@@ -7994,6 +8137,575 @@ private theorem ss_three_glued_even_of_two {N : Network S} {i j k : ℕ}
   change Even (TrueSRSSPath.ssGlueCycle Q R hQR).numCPairs
   rw [ssGlueCycle_numCPairs Q R hQR]
   exact Nat.even_iff.mpr hqr0
+
+/-- **A directed walk spliced onto a directed path.**
+
+`exists_minimal_escape` (`TrueChemistrySRCriterion.lean:7585`) runs its strong induction on
+`SimpleGraph.Walk`s of the *unoriented* aggregate source graph, so the orientation of each of
+its steps is never recorded: `Adj u v` only says `E u.1 v.1 ∨ E v.1 u.1`, and the walk may run
+either way along a given causal edge.  `CRNT.relPathOfWalk` is the lift that recovers a
+`CRNT.RelPath` once that orientation is supplied as a separate hypothesis, and this lemma
+records what the composite then looks like: a directed path of length `k + W.length` running
+from `P`'s first vertex to `W`'s last one.
+
+The positive length of `W` is a hypothesis rather than a deduction, which is exactly the datum
+a `relationGraphOn` walk does not carry.  At the residue the orientation is unobtainable: the
+only walks available there come from `exists_minimal_escape`, so this lemma is reachable only
+after an orientation has been proved for those steps. -/
+private theorem relPath_append_relPathOfWalk {V : Type*} {E : V → V → Prop}
+    {T : Finset V} {k : ℕ} (P : CRNT.RelPath E T k)
+    {a b : {v // v ∈ T}} (W : (CRNT.relationGraphOn E T).Walk a b)
+    (hdir : ∀ i : Fin W.length, E (W.getVert i.1).1 (W.getVert i.1.succ).1)
+    (hl : 0 < W.length) (hjoin : P.vertex ⟨k, by omega⟩ = a.1) :
+    ∃ (R : CRNT.RelPath E T (k + W.length)),
+      R.vertex ⟨0, by omega⟩ = P.vertex ⟨0, by omega⟩ ∧
+      R.vertex ⟨k + W.length, by omega⟩ = b.1 := by
+  have hjoin' : P.vertex ⟨k, by omega⟩ =
+      (CRNT.relPathOfWalk W hdir).vertex ⟨0, by omega⟩ := by
+    rw [CRNT.relPathOfWalk_vertex_zero]
+    exact hjoin
+  refine ⟨P.append (CRNT.relPathOfWalk W hdir) hl hjoin', ?_, ?_⟩
+  · exact RelPath.append_vertex_le P (CRNT.relPathOfWalk W hdir) hl hjoin'
+      ⟨0, by omega⟩ (by show (0 : ℕ) ≤ k; omega)
+  · rw [RelPath.append_vertex_last]
+    exact CRNT.relPathOfWalk_vertex_length W hdir
+
+/-- **The composite ear: a directed species-to-species path with off-cycle interior.**
+
+Let `P` be a directed aggregate-source path from an on-cycle species `s₀` to an off-cycle class
+`q`, injective, and let `q → s` be a causal edge to a second on-cycle species `s`.  Then `P`
+followed by that edge is a `TrueSRSSPath` of even length `m + 1` whose two endpoints are
+`s₀` and `s`, and whose interior misses the cycle `C` entirely.
+
+This is exactly the object the Shinar–Feinberg ear route consumes: an S-to-S path with off-cycle
+interior.  Its evenness is not an extra datum — it is `TrueSRSSPath.even_length`, which is why
+no flux bookkeeping is needed here. -/
+private noncomputable def aggregateEar_TrueSRSSPath (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    {m : ℕ} (P : CRNT.RelPath (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T m)
+    (hPinj : Function.Injective P.vertex) (hmpos : 0 < m)
+    {n : ℕ} (C : N.TrueSRCycle n)
+    {s₀ s : AggregateActiveSpecies σ} {q : N.ActiveAggregateTrueReaction α σ}
+    (h0 : P.vertex ⟨0, by omega⟩ = Sum.inl s₀)
+    (hm : P.vertex ⟨m, by omega⟩ = Sum.inr q)
+    (hsC : C.HasSpecies s.1) (hqC : ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex (Sum.inr q)))
+    (hclean : ∀ i : Fin (m + 1), i.1 ≠ 0 →
+      ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex (P.vertex i)))
+    (hs₀ne : s₀.1 ≠ s.1)
+    (hsT : Sum.inl s ∈ T) (hqT : Sum.inr q ∈ T)
+    (hstep : N.TrueInternalAggregateCausalEdge (Sum.inr q) (Sum.inl s)) :
+    N.TrueSRSSPath (m + 1) := by
+  have hstep' : N.TrueInternalAggregateCausalEdge (P.vertex ⟨m, by omega⟩) (Sum.inl s) := by
+    rw [hm]
+    exact hstep
+  have hsC' : C.HasVertex (N.aggregateVertexToTrueSRVertex
+      (Sum.inl s : N.TrueInternalAggregateVertex α σ)) := hsC
+  have hnew : ∀ i : Fin (m + 1), P.vertex i ≠ Sum.inl s := by
+    intro i hi
+    by_cases hi0 : i.1 = 0
+    · exfalso
+      have hi' : i = ⟨0, by omega⟩ := Fin.ext hi0
+      rw [hi', h0] at hi
+      exact hs₀ne (congrArg Subtype.val (Sum.inl.inj hi))
+    · by_cases him : i.1 = m
+      · exfalso
+        have hi' : i = ⟨m, by omega⟩ := Fin.ext him
+        rw [hi', hm] at hi
+        exact Sum.inr_ne_inl hi
+      · exfalso
+        refine hclean ⟨i.1, by omega⟩ hi0 ?_
+        have hieq : P.vertex ⟨i.1, by omega⟩ = P.vertex i :=
+          congrArg P.vertex (Fin.ext rfl)
+        rw [hieq, hi]
+        exact hsC'
+  exact N.relPathToTrueSRSSPath T (P.concat (Sum.inl s) hsT hstep')
+    (P.concat_injective (Sum.inl s) hsT hstep' hPinj hnew) (by omega)
+    h0 (P.concat_vertex_last (Sum.inl s) hsT hstep')
+
+/-- **The interior of the composite ear misses the cycle.**
+
+Every vertex of `P.concat (Sum.inl s) hsT hstep` other than its two endpoints is either a
+strictly interior vertex of `P` — off the cycle by `hclean` — or the terminal class `q`, which
+is off the cycle by `hqC`. -/
+private theorem aggregateEar_interior (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    {m : ℕ} (P : CRNT.RelPath (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T m)
+    {s : AggregateActiveSpecies σ} {q : N.ActiveAggregateTrueReaction α σ}
+    {n : ℕ} (C : N.TrueSRCycle n)
+    (hm : P.vertex ⟨m, by omega⟩ = Sum.inr q)
+    (hsT : Sum.inl s ∈ T)
+    (hstep : N.TrueInternalAggregateCausalEdge (P.vertex ⟨m, by omega⟩) (Sum.inl s))
+    (hqC : ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex (Sum.inr q)))
+    (hclean : ∀ i : Fin (m + 1), i.1 ≠ 0 →
+      ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex (P.vertex i))) :
+    ∀ i : Fin (m + 2), i.1 ≠ 0 → i.1 ≠ m + 1 →
+      ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex
+        ((P.concat (Sum.inl s) hsT hstep).vertex i)) := by
+  intro i hi0 hiL hV
+  by_cases hle : i.1 ≤ m
+  · have hV' := hV
+    rw [P.concat_vertex_le (Sum.inl s) hsT hstep i hle] at hV'
+    by_cases him : i.1 = m
+    · have hidx : (⟨i.1, by omega⟩ : Fin (m + 1)) = ⟨m, by omega⟩ := Fin.ext him
+      have hvv : P.vertex ⟨i.1, by omega⟩ = Sum.inr q := (congrArg P.vertex hidx).trans hm
+      have hqV : C.HasVertex (N.aggregateVertexToTrueSRVertex (Sum.inr q)) :=
+        (congrArg (fun z : N.TrueInternalAggregateVertex α σ =>
+          C.HasVertex (N.aggregateVertexToTrueSRVertex z)) hvv).mp hV'
+      exact (hqC hqV).elim
+    · exact (hclean ⟨i.1, by omega⟩ hi0 hV').elim
+  · have him : i.1 = m + 1 := by omega
+    exact (hiL him).elim
+
+/-- **The s-cycle identity is a flux-magnitude identity: the class scalars cancel.**
+
+Under the shared-representative and scalar-vector hypotheses that every cycle in this file is
+built with, each of `C`'s two edge labels at index `i` is the corresponding aggregate class-flux
+magnitude divided by the *same* factor `|β i|`.  Since `SCycleNet` compares the two products
+over the same index set, those factors cancel and the identity becomes an equality of products of
+class-flux magnitudes at `C.species i` and at `C.species (finRotate n i)`.
+
+This is the bridge between the two quantities the residue's hypotheses talk about: the strict
+inequalities `hopp`, `hcausal` and `hattachment` constrain
+`(trueInternalClassFlux α ρ s) * σ s`, and after this rewrite the `SCycleNet` identity constrains
+exactly the products of the magnitudes of those very fluxes.  No flux-to-label theorem was needed:
+the cancellation does the work. -/
+private theorem sCycleNet_eq_fluxMagnitude_product (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {n : ℕ} [NeZero n]
+    (C : N.TrueSRCycle n) (β : Fin n → ℝ)
+    (hrep : ∀ i, (C.leftEdge i).representative = (C.rightEdge i).representative)
+    (hbeta : ∀ i t, N.trueInternalClassFlux α (C.reaction i) t =
+      β i * N.reactionVector (C.rightEdge i).representative t)
+    (hβne : ∀ i, β i ≠ 0) :
+    C.SCycleNet ↔
+      (∏ i : Fin n, |N.trueInternalClassFlux α (C.reaction i) (C.species i)|)
+        = ∏ i : Fin n,
+          |N.trueInternalClassFlux α (C.reaction i) (C.species (finRotate n i))| := by
+  classical
+  have hL (i : Fin n) : (C.leftEdge i).netCoeff =
+      |N.trueInternalClassFlux α (C.reaction i) (C.species i)| * (|β i|)⁻¹ := by
+    have hn : (C.leftEdge i).netCoeff =
+        |N.reactionVector (C.rightEdge i).representative (C.species i)| := by
+      rw [TrueSREdge.netCoeff, reactionVector_apply, hrep i, C.left_species i]
+    have hb := hbeta i (C.species i)
+    have heq : N.reactionVector (C.rightEdge i).representative (C.species i)
+        = N.trueInternalClassFlux α (C.reaction i) (C.species i) / β i := by
+      rw [eq_div_iff (hβne i)]
+      exact (mul_comm _ _).symm.trans hb.symm
+    rw [hn, heq, abs_div, div_eq_mul_inv]
+  have hR (i : Fin n) : (C.rightEdge i).netCoeff =
+      |N.trueInternalClassFlux α (C.reaction i) (C.species (finRotate n i))| * (|β i|)⁻¹ := by
+    have hidx0 : (⟨(i.1 + 1) % n,
+        Nat.mod_lt _ (Nat.pos_of_ne_zero (NeZero.ne n))⟩ : Fin n) = finRotate n i := by
+      apply Fin.ext
+      simpa [finRotate_apply, Fin.add_def] using congrArg Fin.val (finRotate_apply i)
+    have hn : (C.rightEdge i).netCoeff =
+        |N.reactionVector (C.rightEdge i).representative (C.species (finRotate n i))| := by
+      rw [TrueSREdge.netCoeff, reactionVector_apply, C.right_species i, hidx0]
+    have hb := hbeta i (C.species (finRotate n i))
+    have heq : N.reactionVector (C.rightEdge i).representative (C.species (finRotate n i))
+        = N.trueInternalClassFlux α (C.reaction i) (C.species (finRotate n i)) / β i := by
+      rw [eq_div_iff (hβne i)]
+      exact (mul_comm _ _).symm.trans hb.symm
+    rw [hn, heq, abs_div, div_eq_mul_inv]
+  have hB : (∏ i : Fin n, (|β i|)⁻¹) ≠ 0 := by
+    rw [Finset.prod_ne_zero_iff]
+    intro i _
+    exact inv_ne_zero (abs_ne_zero.mpr (hβne i))
+  have hprodL : (∏ i : Fin n, (C.leftEdge i).netCoeff) =
+      (∏ i : Fin n, |N.trueInternalClassFlux α (C.reaction i) (C.species i)|) *
+        (∏ i : Fin n, (|β i|)⁻¹) := by
+    rw [Finset.prod_congr rfl (fun i _ => hL i), Finset.prod_mul_distrib]
+  have hprodR : (∏ i : Fin n, (C.rightEdge i).netCoeff) =
+      (∏ i : Fin n,
+        |N.trueInternalClassFlux α (C.reaction i) (C.species (finRotate n i))|) *
+        (∏ i : Fin n, (|β i|)⁻¹) := by
+    rw [Finset.prod_congr rfl (fun i _ => hR i), Finset.prod_mul_distrib]
+  constructor
+  · intro h
+    unfold TrueSRCycle.SCycleNet at h
+    rw [hprodL, hprodR] at h
+    have h3 := mul_right_cancel₀ hB h
+    rw [mul_comm (∏ i : Fin n,
+      |N.trueInternalClassFlux α (C.reaction i) (C.species i)|)
+      (∏ i : Fin n, (|β i|)⁻¹)] at h
+    exact h3
+  · intro h
+    unfold TrueSRCycle.SCycleNet
+    rw [hprodL, hprodR, h, mul_comm]
+
+/-- **An off-cycle-interior species-to-species ear glues to both species-arcs of its cycle.**
+
+Let `C : N.TrueSRCycle n` be a cycle, `0 < m < n`, and let `P : N.TrueSRSSPath L` be a
+species-to-species path whose two endpoint species are `C.species 0` and `C.species m`, with
+every interior vertex off `C`.  Then `P` is gluable to `C.speciesArc m` and to
+`C.speciesArcBwd m`, so both glued cycles `ssGlueCycle P (C.speciesArc m)` and
+`ssGlueCycle P (C.speciesArcBwd m)` are genuine true-SR cycles containing every edge of the ear.
+
+This is the *only* gluability ingredient the residue needs, and it is unconditional: the
+edge-disjointness hypotheses of `TrueSRCycle.ssGluable_chord_arcFwd`/`_arcBwd` are free here,
+because an edge with both endpoints on the cycle would put cycle vertices at two positions of
+`P`, and a path of even length at least two has no position that is neither an endpoint nor
+interior (`TrueSRSSPath.ss_edges_off_cycle`). -/
+private theorem aggregateEar_ssGluable_arcs (N : Network S) {n m : ℕ} (C : N.TrueSRCycle n)
+    (hmn : 0 < m) (hmnlt : m < n) {L : ℕ} (P : N.TrueSRSSPath L)
+    (hstart : P.speciesAt ⟨0, by omega⟩ (by show (0 : ℕ) % 2 = 0; omega)
+      = C.species ⟨0, by omega⟩)
+    (hend : P.speciesAt ⟨L, by omega⟩ P.even_mod = C.species ⟨m, by omega⟩)
+    (hint : ∀ p : Fin (L + 1), p.1 ≠ 0 → p.1 ≠ L → ¬ C.HasVertex (P.vertex p)) :
+    TrueSRSSPath.SSGluable P (C.speciesArc m hmnlt hmn) ∧
+      TrueSRSSPath.SSGluable P (C.speciesArcBwd m hmnlt hmn) :=
+  ⟨TrueSRCycle.ssGluable_chord_arcFwd C m hmnlt hmn P hstart hend hint
+      (P.ss_edges_off_cycle C hint).1 (P.ss_edges_off_cycle C hint).2,
+    TrueSRCycle.ssGluable_chord_arcBwd C m hmnlt hmn P hstart hend hint
+      (P.ss_edges_off_cycle C hint).1 (P.ss_edges_off_cycle C hint).2⟩
+
+/-- **A species-arc's c-pairs are exactly the cycle's c-pairs at the corresponding indices.**
+
+For `r < k + 1`, `ssCPairAt (C.speciesArc (k+1) …) r` compares the arc's `2r`-th edge, which is
+`C.leftEdge r`, with its `2r+1`-st edge, which is `C.rightEdge r`.  So the two are equal exactly
+when `C.isCPair r`.  This is the species-path counterpart of `TrueSRCycle.glueCycle_arcs_isCPair`
+(`TrueSRCycleSplit.lean:328`), which does the same job for the reaction-flavour arcs `arcFwd`
+and `arcBwd`.  There is no such statement for `speciesArc`/`speciesArcBwd` elsewhere in the tree.
+
+The arc index is `k + 1` rather than a bare `m` because `ssCPairAt` is typed at the length
+`2 * j + 2`, and `speciesArc (k+1)` has length `2 * (k+1)`, which is *definitionally* `2 * k + 2`;
+at a bare `m` the length is `2 * m` and Lean will not unify it, and `TrueSRSSPath` is not
+injectively typed in its length so the structure cannot simply be transported. -/
+private theorem ssPathCPairAt_speciesArc_iff {S : Type} [DecidableEq S] [Fintype S]
+    {M : Network S} {n : ℕ} (C : M.TrueSRCycle n) (k : ℕ) (hk : k + 1 < n)
+    (r : Fin (k + 1)) :
+    ssPathCPairAt (C.speciesArc (k + 1) hk (by omega)) r
+      ↔ C.isCPair ⟨r.1, by have := hk; omega⟩ := by
+  unfold ssPathCPairAt
+  have hE := C.speciesArc_edge_even (k + 1) hk (by omega : 0 < k + 1)
+    ⟨2 * r.1, by have := r.isLt; omega⟩ (by show 2 * r.1 % 2 = 0; omega)
+  have hO := C.speciesArc_edge_odd (k + 1) hk (by omega : 0 < k + 1)
+    ⟨2 * r.1 + 1, by have := r.isLt; omega⟩ (by show (2 * r.1 + 1) % 2 ≠ 0; omega)
+  rw [hE, hO]
+  show (C.leftEdge (show Fin n from ⟨(2*r.1)/2, by have := hk; have := r.isLt; omega⟩)).endpoint
+      = (C.rightEdge (show Fin n from ⟨(2*r.1+1)/2, by have := hk; have := r.isLt; omega⟩)).endpoint
+    ↔ _
+  unfold TrueSRCycle.isCPair
+  have hrlt : r.1 < n := by have := hk; omega
+  have hA : (show Fin n from ⟨(2*r.1)/2, by have := hk; have := r.isLt; omega⟩)
+      = (⟨r.1, hrlt⟩ : Fin n) := by
+    apply Fin.eq_of_val_eq
+    simp only [show (2*r.1)/2 = r.1 by omega]
+  have hB : (show Fin n from ⟨(2*r.1+1)/2, by have := hk; have := r.isLt; omega⟩)
+      = (⟨r.1, hrlt⟩ : Fin n) := by
+    apply Fin.eq_of_val_eq
+    simp only [show (2*r.1+1)/2 = r.1 by omega]
+  rw [hA, hB]
+
+/-- **The species-to-species glue count identity reduces the evenness of an ear-glued cycle to
+the parity of the ear's own c-pair count.**
+
+Let `C` be an e-cycle and `P` a species-to-species path gluable to `C`'s forward species-arc.
+Because `ssGlueCycle_numCPairs` has no seam term, the glued cycle's evenness reads
+`(ssNumCPairs P + ssNumCPairs (C.speciesArc (k+1))) % 2 = 0`.  Substituting the two arc counts
+by `cPairsBelow C (k+1)` and `cPairsAbove C (k+1)`, and using that the two sum to `C.numCPairs`
+which is even, gives the stated equivalence: **the ear's own c-pair count has the same parity as
+the complementary arc's** — and nothing else is left over.
+
+This is the sharp form of the obligation; it says the residue's endgame is exactly
+`ssNumCPairs P % 2 = ssNumCPairsH (C.speciesArcBwd (k+1)) % 2`. -/
+private theorem ssGlueCycle_even_iff_parity_of_cycleEven (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {n k j : ℕ}
+    (C : N.TrueSRCycle n) (hC : C.Even) (hk : k + 1 < n)
+    (P : N.TrueSRSSPath (2 * j + 2))
+    (h₁ : TrueSRSSPath.SSGluable P (C.speciesArc (k + 1) hk (by omega))) :
+    (TrueSRSSPath.ssGlueCycle P (C.speciesArc (k + 1) hk (by omega)) h₁).Even
+      ↔ (TrueSRSSPath.ssNumCPairs P) % 2
+          = (TrueSRSSPath.ssNumCPairsH (C.speciesArcBwd (k + 1) hk (by omega))) % 2 := by
+  have hsplit := TrueSRSSPath.ssGlueCycle_numCPairs P (C.speciesArc (k + 1) hk (by omega)) h₁
+  have hfwd := TrueSRCycle.ssNumCPairs_speciesArc_succ C k hk
+  have hbwd := TrueSRCycle.ssNumCPairsH_speciesArcBwd_eq_cPairsAbove C (k + 1) hk (by omega)
+  have htot := TrueSRCycle.cPairsBelow_card_add C (k + 1)
+  have hCeven : C.numCPairs % 2 = 0 := Nat.even_iff.mp hC
+  have hsumpair : ((TrueSRCycle.cPairsBelow C (k + 1)).card
+      + (TrueSRCycle.cPairsAbove C (k + 1)).card) % 2 = 0 := by rw [htot]; exact hCeven
+  unfold TrueSRCycle.Even
+  rw [Nat.even_iff]
+  constructor
+  · intro h
+    rw [hbwd]
+    rw [hsplit, hfwd] at h
+    omega
+  · intro h
+    rw [hbwd] at h
+    rw [hsplit, hfwd]
+    omega
+
+
+/-- **Any two labelled edges witnessing the same aggregate adjacency carry the *same* endpoint
+complex.  The choice of edge at an ear vertex is therefore not free after all.**
+
+This refutes the parity-steering plan.  `aggregateSourceAdj_has_trueSREdge` (:5022) returns a bare
+existential, and the edge fed to it by `aggregateEar_TrueSRSSPath` is
+`Classical.choose (edgeWitness i)`, so the *proof term* is opaque and the `endpoint` field is not
+syntactically pinned.  But opacity of a choice term is not freedom of the value: for an aggregate
+adjacency `u ~ v`, `TrueSREdge.Connects` forces `e.species` and `e.reaction` from `u.1` and `v.1`
+(that is exactly what `Connects` says, and `aggregateVertexToTrueSRVertex` (:4986) reads its
+argument off the `Sum` summands), and then `trueSREdge_endpoint_eq_of_same_class_and_species`
+(:1808) forces `e.endpoint` from the pair `(reaction, species)` under reactant/product separation.
+
+Hence the c-pair indicator `ssCPairAt P r` — which compares `endpoint`s of the two edges at ear
+vertex `r` — is a function of the *aggregate vertex sequence alone*.  No choice among valid edges
+can flip it, so `ssNumCPairs P % 2` is not a free parameter: it is determined by `Q0` and the
+attachment edge.  Route A of the steering plan is dead, and Route B inherits the same obstruction,
+because reparametrising the builder by an edge sequence only supplies *some* admissible sequence,
+and every admissible sequence yields the same c-pair count.
+
+The residual freedom in the construction is real but is of a different kind: it lies in the
+*representative channel* and in which `Species` a `RelPath` visits, not in the endpoint label. -/
+private theorem aggregateAdj_edge_endpoint_forced (N : Network S)
+    (hsep : N.ReactantProductSeparated)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (u v : N.TrueInternalAggregateVertex α σ) (e f : N.TrueSREdge)
+    (he : e.Connects (N.aggregateVertexToTrueSRVertex u)
+      (N.aggregateVertexToTrueSRVertex v))
+    (hf : f.Connects (N.aggregateVertexToTrueSRVertex u)
+      (N.aggregateVertexToTrueSRVertex v)) :
+    e.endpoint = f.endpoint := by
+  -- `Connects e x y` says `{x, y} = {Sum.inl e.species, Sum.inr ⟨e.reaction, e.internal⟩}`:
+  -- the *unordered pair* of vertices already determines `(species, reaction)`.
+  have key : ∀ (c : N.TrueSREdge) {x y : N.TrueSRVertex},
+      c.Connects x y →
+      (x = Sum.inl c.species ∧ y = Sum.inr ⟨c.reaction, c.internal⟩) ∨
+      (x = Sum.inr ⟨c.reaction, c.internal⟩ ∧ y = Sum.inl c.species) := by
+    intro c x y h
+    exact h
+  -- `Sum.inl_ne_inr` makes the two mixed orientations of `he` and `hf` incompatible, so
+  -- `e` and `f` agree on which slot is the species slot and which the reaction slot.
+  set U := N.aggregateVertexToTrueSRVertex u with hU
+  set V := N.aggregateVertexToTrueSRVertex v with hV
+  have ke := key e (x := U) (y := V) he
+  have kf := key f (x := U) (y := V) hf
+  rcases ke with ⟨hEs, hEr⟩ | ⟨hEr, hEs⟩
+  · rcases kf with ⟨hFs, hFr⟩ | ⟨hFr, hFs⟩
+    · exact trueSREdge_endpoint_eq_of_same_class_and_species N hsep e f
+        (congrArg Subtype.val (Sum.inr.inj (hEr.symm.trans hFr)))
+        (Sum.inl.inj (hEs.symm.trans hFs))
+    · exact absurd (hEs.symm.trans hFr) Sum.inl_ne_inr
+  · rcases kf with ⟨hFs, hFr⟩ | ⟨hFr, hFs⟩
+    · exact absurd (hFs.symm.trans hEr) Sum.inl_ne_inr
+    · exact trueSREdge_endpoint_eq_of_same_class_and_species N hsep e f
+        (congrArg Subtype.val (Sum.inr.inj (hEr.symm.trans hFr)))
+        (Sum.inl.inj (hEs.symm.trans hFs))
+
+/-- **Two edges incident to the same two true-SR vertices carry the same endpoint complex.**
+
+`Connects` reads both `species` and `reaction` off the unordered vertex pair, and
+`trueSREdge_endpoint_eq_of_same_class_and_species` then reads `endpoint` off those.  So an edge
+is determined, as far as its c-pair label is concerned, by its two endpoints. -/
+private theorem trueSREdge_endpoint_eq_of_sameConnects (N : Network S)
+    (hsep : N.ReactantProductSeparated) (e f : N.TrueSREdge)
+    {x y : N.TrueSRVertex}
+    (he : e.Connects x y) (hf : f.Connects x y) :
+    e.endpoint = f.endpoint := by
+  classical
+  -- `Connects c p q` says `{p, q} = {Sum.inl c.species, Sum.inr ⟨c.reaction, c.internal⟩}`.
+  -- Routing both hypotheses through one polymorphic `key` keeps `rcases` from attempting
+  -- dependent substitution into `e` and `f`, which their fields make ill-founded.
+  have key : ∀ (c : N.TrueSREdge) {p q : N.TrueSRVertex},
+      c.Connects p q →
+      (p = Sum.inl c.species ∧ q = Sum.inr ⟨c.reaction, c.internal⟩) ∨
+      (p = Sum.inr ⟨c.reaction, c.internal⟩ ∧ q = Sum.inl c.species) := by
+    intro c p q h
+    exact h
+  set U := x with hU
+  set V := y with hV
+  have ke := key e (p := U) (q := V) he
+  have kf := key f (p := U) (q := V) hf
+  -- `Sum.inl_ne_inr` makes the two mixed orientations of `he` and `hf` incompatible, so
+  -- `e` and `f` agree on which slot is the species slot and which the reaction slot.
+  rcases ke with ⟨hEs, hEr⟩ | ⟨hEr, hEs⟩
+  · rcases kf with ⟨hFs, hFr⟩ | ⟨hFr, hFs⟩
+    · exact trueSREdge_endpoint_eq_of_same_class_and_species N hsep e f
+        (congrArg Subtype.val (Sum.inr.inj (hEr.symm.trans hFr)))
+        (Sum.inl.inj (hEs.symm.trans hFs))
+    · exact absurd (hEs.symm.trans hFr) Sum.inl_ne_inr
+  · rcases kf with ⟨hFs, hFr⟩ | ⟨hFr, hFs⟩
+    · exact absurd (hFs.symm.trans hEr) Sum.inl_ne_inr
+    · exact trueSREdge_endpoint_eq_of_same_class_and_species N hsep e f
+        (congrArg Subtype.val (Sum.inr.inj (hEr.symm.trans hFr)))
+        (Sum.inl.inj (hEs.symm.trans hFs))
+
+/-- **Two species-to-species paths that agree on every vertex have the same c-pair count.**
+
+This is the path-level form of `aggregateAdj_edge_endpoint_forced`, and it is what actually
+disposes of the parity-steering plan.  The proposed manoeuvre was: since the ear's edges come
+from `Classical.choose (edgeWitness i)` and the witnesses are existentials, the c-pair count
+`ssNumCPairs P` should be a free parameter that one could steer by choosing edges differently at
+one vertex.  The above lemma shows the steering has no handle — the vertex sequence of `P`
+already fixes each `P.edge i`'s `endpoint`, hence fixes every `ssCPairAt P r`, hence fixes
+`ssNumCPairs P`.
+
+So `ssGlueCycle_even_iff_parity_of_cycleEven` has no free parameter to be steered: the quantity
+it computes is already determined before the glue.  Recomputing it by any other admissible edge
+choice returns the same value.  This kills Route A (flip one c-pair) and Route B (reparametrise
+the builder by an edge sequence or a parity argument) together, since Route B only supplies a
+different *admissible* edge sequence and all of those give the same count. -/
+private theorem ssNumCPairs_eq_of_vertex_eq (N : Network S)
+    (hsep : N.ReactantProductSeparated) {j : ℕ}
+    (P Q : N.TrueSRSSPath (2 * j + 2))
+    (hv : ∀ m : Fin (2 * j + 2 + 1), P.vertex m = Q.vertex m) :
+    TrueSRSSPath.ssNumCPairs P = TrueSRSSPath.ssNumCPairs Q := by
+  classical
+  -- every edge's `endpoint` is a function of the two vertices it connects
+  have hedge : ∀ i : Fin (2 * j + 2), (P.edge i).endpoint = (Q.edge i).endpoint := by
+    intro i
+    exact trueSREdge_endpoint_eq_of_sameConnects N hsep (P.edge i) (Q.edge i)
+      (P.connects i) (by rw [hv (Fin.castSucc i), hv i.succ]; exact Q.connects i)
+  -- the two counts are counts of the same predicate on the same index type, under a
+  -- pointwise-equal set of predicates
+  have hiff : ∀ r : Fin (j + 1), TrueSRSSPath.ssCPairAt P r ↔ TrueSRSSPath.ssCPairAt Q r := by
+    intro r
+    unfold TrueSRSSPath.ssCPairAt
+    constructor
+    · intro hc
+      rw [← hedge _, ← hedge _]
+      exact hc
+    · intro hc
+      rw [hedge _, hedge _]
+      exact hc
+  have hset : (Finset.univ.filter (TrueSRSSPath.ssCPairAt P))
+      = Finset.univ.filter (TrueSRSSPath.ssCPairAt Q) := by
+    ext r
+    simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+    exact hiff r
+  unfold TrueSRSSPath.ssNumCPairs
+  rw [hset]
+
+/-- **Two labelled edges at one true-reaction class form a c-pair exactly when the two species
+carry opposite `σ` signs — provided the class flux is carried by a single channel.**
+
+This is the edge-level form of the species-path sign characterisation that the residue needs,
+and it isolates exactly which datum the cycle-level statement at `trueSRCycle_of_simple_aggregate_cycle`
+uses and a species-to-species ear cannot supply.
+
+The cycle-level lemma `C.isCPair i ↔ σ (C.species i) * σ (C.species (finRotate n i)) < 0` gets its
+machinery from two facts that are available for a *cycle* and are **not** available for an ear:
+
+* **one common representative.** `C.leftEdge i` and `C.rightEdge i` are both
+  `trueSREdgeOfReactionVectorNe (rep i)`, so `hcommon` is automatic there; a path built by
+  `relPathToTrueSRSSPath` picks its two edges *independently* out of `relationGraphOn`, so nothing
+  forces a common representative;
+* **one common channel carrying the whole class flux**, `hbeta`. `trueInternalClassFlux` is a
+  *sum* over the channels of the class, so `hbeta` says the sum has a single nonzero summand
+  pattern. This is the real content: a c-pair compares endpoint complexes, which is a
+  *per-channel* condition, while `hneg`/`hpos` are *sum* conditions on the class flux. With two
+  or more contributing channels the two can be moved independently, and the equivalence is lost.
+
+`hbeta` is the missing input, not a tactic: nothing in the tree implies it, and
+`exists_finset_term_same_sign` (which only guarantees the *existence* of a same-sign summand) is
+far too weak. -/
+private theorem cPair_of_twoClassEdges_iff_signChange (N : Network S)
+    (hsep : N.ReactantProductSeparated)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {ρ : N.TrueReaction}
+    (e f : N.TrueSREdge)
+    (her : e.reaction = ρ) (hfr : f.reaction = ρ)
+    (hrep : e.representative = f.representative)
+    (hnf : ¬ N.IsFlowChannel e.representative)
+    (β : ℝ) (hbeta : ∀ t : S,
+      N.trueInternalClassFlux α ρ t = β * N.reactionVector e.representative t)
+    (u w : S) (heu : e.species = u) (hfw : f.species = w)
+    (hneg : N.trueInternalClassFlux α ρ u * σ u < 0)
+    (hpos : 0 < N.trueInternalClassFlux α ρ w * σ w) :
+    f.endpoint = e.endpoint ↔ σ u * σ w < 0 := by
+  have hνu : N.reactionVector e.representative u ≠ 0 := by
+    intro hz
+    have h := hneg
+    rw [hbeta u, hz] at h
+    simp at h
+  have hνw : N.reactionVector e.representative w ≠ 0 := by
+    intro hz
+    have h := hpos
+    rw [hbeta w, hz] at h
+    simp at h
+  let R := e.representative
+  let cE : N.TrueSREdge := N.trueSREdgeOfReactionVectorNe R hnf u hνu
+  let cF : N.TrueSREdge := N.trueSREdgeOfReactionVectorNe R hnf w hνw
+  have hrepR : cE.representative = R := by
+    dsimp [cE]; exact N.trueSREdgeOfReactionVectorNe_representative R hnf u hνu
+  have hrepF : cF.representative = R := by
+    dsimp [cF]; exact N.trueSREdgeOfReactionVectorNe_representative R hnf w hνw
+  have hrew : f.representative = R := hrep ▸ rfl
+  have hfrep : f.representative = cF.representative := hrew.trans hrepF.symm
+  have hesp : e.representative = cE.representative := hrepR.symm
+  have hfsp : f.species = cF.species :=
+    hfw.trans (N.trueSREdgeOfReactionVectorNe_species R hnf w hνw).symm
+  have hesp' : e.species = cE.species :=
+    heu.trans (N.trueSREdgeOfReactionVectorNe_species R hnf u hνu).symm
+  have hsplit : f.endpoint = cF.endpoint ∧ e.endpoint = cE.endpoint :=
+    ⟨N.trueSREdge_endpoint_eq_of_same_representative_and_species hsep f cF hfrep hfsp,
+      N.trueSREdge_endpoint_eq_of_same_representative_and_species hsep e cE hesp hesp'⟩
+  have hkey := class_flux_pair_iff_signChange N hsep ρ R hnf β w u hbeta hpos hneg
+  rw [hsplit.1, hsplit.2]
+  dsimp only [cE, cF]
+  rw [eq_comm, hkey]
+
+/-- **Species-path counterpart of the cycle-level c-pair/sign lemma.**  A c-pair of a
+species-to-species path at its `r`-th reaction vertex is exactly a sign change of `σ` between
+the two species flanking that vertex — under the two hypotheses
+`cPair_of_twoClassEdges_iff_signChange` isolates: a common channel representative at that
+vertex, and that channel carrying the entire class flux.
+
+Write `u = P.speciesAt 2r` and `w = P.speciesAt (2r + 2)` for the two flanking species.
+`hneg`/`hpos` are exactly the two rows of the causal-edge table
+(`TrueInternalAggregateCausalEdge`): an `inl → inr` step forces `flux · σ < 0`, an `inr → inl`
+step forces `0 < flux · σ`.  Both are available at the residue for every step of the ear, so
+*nothing* about the off-cycle `σ` signs is missing here — the two hypotheses that remain are
+about the **representative channels**, not about `σ`. -/
+private theorem ear_cPair_iff_signChange (N : Network S) (hsep : N.ReactantProductSeparated)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {j : ℕ} (P : N.TrueSRSSPath (2 * j + 2))
+    (hcommon : ∀ r : Fin (j + 1),
+      (P.edge ⟨2 * r.1, by have := r.isLt; omega⟩).representative
+        = (P.edge ⟨2 * r.1 + 1, by have := r.isLt; omega⟩).representative)
+    (hnf : ∀ r : Fin (j + 1),
+      ¬ N.IsFlowChannel ((P.edge ⟨2 * r.1, by have := r.isLt; omega⟩).representative))
+    (hβ : ∀ r : Fin (j + 1), ∃ β : ℝ, ∀ t : S,
+      N.trueInternalClassFlux α ((P.edge ⟨2 * r.1, by have := r.isLt; omega⟩).reaction) t
+        = β * N.reactionVector ((P.edge ⟨2 * r.1, by have := r.isLt; omega⟩).representative) t)
+    (hneg : ∀ r : Fin (j + 1),
+      N.trueInternalClassFlux α ((P.edge ⟨2 * r.1, by have := r.isLt; omega⟩).reaction)
+          (P.speciesAt ⟨2 * r.1, by have := r.isLt; omega⟩ (by show (2 * r.1) % 2 = 0; omega))
+        * σ (P.speciesAt ⟨2 * r.1, by have := r.isLt; omega⟩ (by show (2 * r.1) % 2 = 0; omega))
+        < 0)
+    (hpos : ∀ r : Fin (j + 1),
+      0 < N.trueInternalClassFlux α ((P.edge ⟨2 * r.1, by have := r.isLt; omega⟩).reaction)
+          (P.speciesAt ⟨2 * r.1 + 2, by have := r.isLt; omega⟩
+            (by show (2 * r.1 + 2) % 2 = 0; omega))
+        * σ (P.speciesAt ⟨2 * r.1 + 2, by have := r.isLt; omega⟩
+            (by show (2 * r.1 + 2) % 2 = 0; omega)))
+    (r : Fin (j + 1)) :
+    TrueSRSSPath.ssCPairAt P r
+      ↔ σ (P.speciesAt ⟨2 * r.1, by have := r.isLt; omega⟩ (by show (2 * r.1) % 2 = 0; omega))
+          * σ (P.speciesAt ⟨2 * r.1 + 2, by have := r.isLt; omega⟩
+            (by show (2 * r.1 + 2) % 2 = 0; omega)) < 0 := by
+  have hrl := r.isLt
+  have hq0 : (2 * r.1) % 2 = 0 := by omega
+  have hq1 : (2 * r.1 + 1) % 2 ≠ 0 := by omega
+  have hq2 : (2 * r.1 + 2) % 2 = 0 := by omega
+  have hq1' : (2 * r.1 + 1) % 2 ≠ 0 := hq1
+  have hes0 : (P.edge ⟨2 * r.1, by omega⟩).species
+      = P.speciesAt ⟨2 * r.1, by omega⟩ hq0 := P.edge_species_of_even _ hq0
+  have hes1 : (P.edge ⟨2 * r.1 + 1, by omega⟩).species
+      = P.speciesAt ⟨2 * r.1 + 2, by omega⟩ hq2 := P.edge_species_of_odd _ hq1'
+  have her0 : (P.edge ⟨2 * r.1, by omega⟩).reaction
+      = (P.reactionAt ⟨2 * r.1 + 1, by omega⟩ hq1').1 := P.edge_reaction_of_even _ hq0
+  have her1 : (P.edge ⟨2 * r.1 + 1, by omega⟩).reaction
+      = (P.reactionAt ⟨2 * r.1 + 1, by omega⟩ hq1').1 := P.edge_reaction_of_odd _ hq1'
+  obtain ⟨β, hβ⟩ := hβ r
+  have her1' : (P.edge ⟨2 * r.1 + 1, by omega⟩).reaction
+      = (P.edge ⟨2 * r.1, by omega⟩).reaction := her1.trans her0.symm
+  have hkey := cPair_of_twoClassEdges_iff_signChange N hsep
+    (P.edge ⟨2 * r.1, by omega⟩) (P.edge ⟨2 * r.1 + 1, by omega⟩)
+    rfl her1' (hcommon r) (hnf r) β hβ _ _ hes0 hes1 (hneg r) (hpos r)
+  unfold TrueSRSSPath.ssCPairAt
+  rw [eq_comm, hkey]
 
 /-- **Shinar--Feinberg true-SR strong-concordance theorem.**
 
@@ -8598,12 +9310,128 @@ theorem stronglyConcordant_fullyOpen_of_trueSRCriterion
                 rw [hv0, hs0s, hqm] at hstep1
                 exact N.aggregateCausalEdge_not_both_directions hstep1 hattachment
               -- Residual: `vertex0 = s0` on the cycle, with no non-neighbor nonzero
-              -- cycle flux and (`m ≠ 1` or `s0 ≠ s`).  A shortest species-to-reaction
-              -- route from `s0` is then the single causal leftEdge step
-              -- `s0 → C.reaction(pos s0)` (k = 1 is forced by `hopp`), the
-              -- `leftEdge-final` residue; it is consistent with every hypothesis in
-              -- scope and awaits the A.6 Case-2 source-block datum or `hrest`
-              -- degree-two isolation.
+              -- cycle flux and (`m ≠ 1` or `s0 ≠ s`).
+              --
+              -- **The composite ear.**  `Q0` runs from the on-cycle species `s0` to the
+              -- off-cycle class `q`; the attachment edge `q → s` then carries it to the
+              -- second on-cycle species `s = C.species (finRotate n i)`.  What results is a
+              -- directed species-to-species path of even length `m + 1` whose interior
+              -- misses `C` entirely — precisely the object the Shinar–Feinberg ear route
+              -- consumes.  Both halves are named, so the endgame is one application away.
+              --
+              -- Correction to the text that stood here.  It claimed that `k = 1` is forced
+              -- by `hopp`.  That is false: `hopp`/`hcausal`/`¬hnc` pin the flux of *cycle*
+              -- classes only, so the first hop out of `s0` lands off the cycle by
+              -- construction (see DEAD-ENDS B-8).  Nor can `W` supply a second ear: the walk
+              -- returned by `exists_minimal_escape` lives in the *unoriented*
+              -- `relationGraphOn`, so the orientation `hdir` that `relPathOfWalk` needs is
+              -- not derivable for it — see `relPath_append_relPathOfWalk`.
+              -- What is left, precisely.  With `s0 ≠ s` the ear is a chord and gluing it to
+              -- the two species-arcs of `C` via `ss_gluable_arcs` does give two glued cycles,
+              -- but that route cannot reach `hSR.2`: every pairwise common subgraph of `C`,
+              -- `P ∪ Q₁` and `P ∪ Q₂` is a single simple path with *species* at both ends
+              -- (`Q₁`, `Q₂`, `P` respectively), and
+              -- `CRNT.Network.no_sToRIntersection_of_speciesSpecies_common`
+              -- (`TrueSRSSGlueCPairs.lean:233`) rules out an `SToRIntersection` for exactly
+              -- that configuration.  With `s0 = s` the composite instead closes up into a
+              -- simple even cycle meeting `C` in the single vertex `s0`, which `hSR.1`
+              -- (`Even → SCycle`) does not constrain and `hSR.2` cannot see (one shared
+              -- vertex).
+              --
+              -- **Two further obstructions, both now machine-checked** (DEAD-ENDS B-39, B-40).
+              -- They close the two routes that looked open from the landed lemmas above.
+              --
+              -- (1) *The ear's parity cannot be steered.*  It was proposed that
+              -- `ssNumCPairs P % 2` is a free parameter, because the edges come from
+              -- `Classical.choose (edgeWitness i)` out of the bare existential
+              -- `aggregateSourceAdj_has_trueSREdge` (:5022).  That is refuted:
+              -- `aggregateAdj_edge_endpoint_forced` proves two edges witnessing the same
+              -- aggregate adjacency carry the *same* `endpoint` (`Connects` pins `species`
+              -- and `reaction` off the vertex pair, then
+              -- `trueSREdge_endpoint_eq_of_same_class_and_species` pins `endpoint`), and
+              -- `ssNumCPairs_eq_of_vertex_eq` concludes that two species-to-species paths
+              -- agreeing on every vertex have the same `ssNumCPairs`.  So the parity is
+              -- *determined* — by `Q0` and the attachment edge — merely not determined by the
+              -- in-scope flux hypotheses.  Opacity of a choice term is not freedom of its
+              -- value.  Hence rechoosing edges at any vertex (Route A) or reparametrising the
+              -- builder by an edge sequence (Route B) cannot change the number.
+              --
+              -- (2) *Evenness is the wrong target.*  An exhaustive search of `CRNT/` shows no
+              -- theorem derives `False` from two even `TrueSRCycle`s whose common part is a
+              -- species-to-species path.  Every `hSR.2` producer
+              -- (`no_shared_path_of_trueSRCriterion` `TrueSRPath.lean:137`,
+              -- `no_single_shared_path_of_trueSRCriterion`, `no_single_shared_edge_of_…`,
+              -- `false_of_single_shared_edge_of_trueSRCriterion`,
+              -- `no_edge_disjoint_sToR_chord_of_trueSRCriterion`) takes an **S-to-R**
+              -- `P : N.TrueSRPath L`.  So even producing an even glued cycle — which
+              -- `ssGlueCycle_even_iff_parity_of_cycleEven` reduces to the ear's parity —
+              -- buys nothing.
+              --
+              -- Consequently the residue needs an **S-to-R** common path between two even
+              -- cycles.  The ear `s₀ → q → s` cannot supply one: both endpoint species are on
+              -- `C`, so gluing meets `C` in an arc, which is S-to-S.  What is required is a
+              -- hypothesis forcing `Q0`'s start species *off* the cycle on one side, so that
+              -- the glued intersection becomes S-to-R.  That is the **A.6 Case-2 source-block
+              -- datum** of `research/BRIEF-B.md` §B.2/§B.4 — a missing input, not a missing
+              -- proof, and not reachable from what is in scope here.
+              --
+              -- (3) *The second escape is now machine-checked, and it fails for a precise
+              -- reason.*  Re-running `exists_minimal_escape` with `OnC` = "is an on-cycle
+              -- reaction" does produce a `RelPath` from `q` to an on-cycle class — but not one
+              -- that any discharger accepts, and the two reasons are separate.
+              --
+              -- *Orientation.*  `relationGraphOn`'s `Adj` admits either orientation, so
+              -- `relPathOfWalk`'s `hdir` cannot be manufactured from escape-walk data; see
+              -- `relPath_append_relPathOfWalk` and now `relPathOfWalk_hdir_not_derivable`,
+              -- which exhibits a one-step `relationGraphOn` walk whose endpoints satisfy
+              -- `¬ E a b` and for which `hdir` is unsatisfiable.  This is not an obstacle in
+              -- practice: `exists_minimal_relPath_species_to_reaction` builds the directed
+              -- `RelPath` directly, with no walk involved, and `aggregateSourcePathToTrueSRPath`
+              -- consumes a `Walk` with no orientation hypothesis at all.
+              --
+              -- *The interior.*  The escape's minimality clause excludes on-cycle **reactions**
+              -- from every proper prefix; it says nothing about on-cycle **species**, so
+              -- `hRlate` (for `no_clean_directed_species_reaction_ear_of_trueSRCriterion`, which
+              -- asks the interior to avoid `C` outright) cannot be discharged, and neither can
+              -- the `hinterior` of `no_species_reaction_ear_of_trueSRCriterion`.  Passing instead
+              -- to `no_reaction_interior_path_of_neighbourFree_of_trueSRCriterion`, whose `hint`
+              -- only constrains odd (reaction) positions, fixes the interior — but transfers the
+              -- whole difficulty to `hnb`, the neighbour-freeness of the *final* edge, and there
+              -- it is fatal.  `cycleEntry_from_cycleSpecies_is_leftEdge` proves exactly why:
+              -- under `¬hnc`, a causal step into the on-cycle class `C.reaction t` whose tail is
+              -- an on-cycle species `C.species j` forces `j = t`, so the final edge *is*
+              -- `C.leftEdge t`.  Such a path is consistent, not contradictory — it is simply a
+              -- path into the cycle along the cycle.
+              --
+              -- So the residue reduces to one sharply-stated datum.  Take the `RelPath P` of
+              -- `exists_minimal_relPath_species_to_reaction` from the on-cycle species `s` to an
+              -- on-cycle class `ρ'`.  Either `P.vertex (k - 1)` is off the cycle — and then `P` is
+              -- a forbidden S-to-R ear with a neighbour-free final edge, so
+              -- `no_reaction_interior_path_of_neighbourFree_of_trueSRCriterion` refutes
+              -- everything — or it is `C.species t` with `ρ' = C.reaction t`, and `P` rides the
+              -- cycle's own left edge.  The missing input is therefore exactly: **an off-cycle
+              -- species `u` with `trueInternalClassFlux α (C.reaction t) u * σ u < 0`**, so that
+              -- a path out of the off-cycle region can enter `C` at a reaction from outside.
+              -- Nothing in scope produces that; it is the same missing source-block datum as
+              -- above, seen from the reaction side.
+              have hsCs : C.HasSpecies s.1 := by
+                change C.HasSpecies (C.species (finRotate n i))
+                exact ⟨finRotate n i, rfl⟩
+              have hstep' : N.TrueInternalAggregateCausalEdge
+                  (Q0.vertex ⟨m, by omega⟩) (Sum.inl s) := by
+                rw [hqm]
+                exact hattachment
+              have hEar : s0.1 ≠ s.1 → N.TrueSRSSPath (m + 1) := fun hne =>
+                N.aggregateEar_TrueSRSSPath T Q0 hQ0inj hmpos C hv0 hqm hsCs hqOff
+                  hQ0late hne hsT hqT hattachment
+              have hEarEven : s0.1 ≠ s.1 → Even (m + 1) :=
+                fun hne => (hEar hne).even_length
+              have hEarLong : s0.1 ≠ s.1 → 2 ≤ m + 1 :=
+                fun hne => (hEar hne).two_le_length
+              have hEarInterior : ∀ i : Fin (m + 2), i.1 ≠ 0 → i.1 ≠ m + 1 →
+                  ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex
+                    ((Q0.concat (Sum.inl s) hsT hstep').vertex i)) :=
+                N.aggregateEar_interior T Q0 C hqm hsT hstep' hqOff hQ0late
               sorry
           | inr ρ0 => exact hv0ne ρ0 hv0
     obtain ⟨M, Q, hQ0, hQlast, hQnd⟩ := hspan
