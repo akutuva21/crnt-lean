@@ -20,6 +20,7 @@ import CRNT.Multistationarity.TrueSRCPairThirdEdge
 import CRNT.Multistationarity.TrueSRDegreeTwoNoSToR
 import CRNT.Multistationarity.TrueSRSSGlueCPairs
 import CRNT.Multistationarity.TrueSRParityRR
+import CRNT.Graph.RelPathWalk
 
 /-!
 # True-chemistry SR criteria for concordance and strong concordance
@@ -7995,6 +7996,126 @@ private theorem ss_three_glued_even_of_two {N : Network S} {i j k : ℕ}
   rw [ssGlueCycle_numCPairs Q R hQR]
   exact Nat.even_iff.mpr hqr0
 
+/-- **A directed walk spliced onto a directed path.**
+
+`exists_minimal_escape` (`TrueChemistrySRCriterion.lean:7585`) runs its strong induction on
+`SimpleGraph.Walk`s of the *unoriented* aggregate source graph, so the orientation of each of
+its steps is never recorded: `Adj u v` only says `E u.1 v.1 ∨ E v.1 u.1`, and the walk may run
+either way along a given causal edge.  `CRNT.relPathOfWalk` is the lift that recovers a
+`CRNT.RelPath` once that orientation is supplied as a separate hypothesis, and this lemma
+records what the composite then looks like: a directed path of length `k + W.length` running
+from `P`'s first vertex to `W`'s last one.
+
+The positive length of `W` is a hypothesis rather than a deduction, which is exactly the datum
+a `relationGraphOn` walk does not carry.  At the residue the orientation is unobtainable: the
+only walks available there come from `exists_minimal_escape`, so this lemma is reachable only
+after an orientation has been proved for those steps. -/
+private theorem relPath_append_relPathOfWalk {V : Type*} {E : V → V → Prop}
+    {T : Finset V} {k : ℕ} (P : CRNT.RelPath E T k)
+    {a b : {v // v ∈ T}} (W : (CRNT.relationGraphOn E T).Walk a b)
+    (hdir : ∀ i : Fin W.length, E (W.getVert i.1).1 (W.getVert i.1.succ).1)
+    (hl : 0 < W.length) (hjoin : P.vertex ⟨k, by omega⟩ = a.1) :
+    ∃ (R : CRNT.RelPath E T (k + W.length)),
+      R.vertex ⟨0, by omega⟩ = P.vertex ⟨0, by omega⟩ ∧
+      R.vertex ⟨k + W.length, by omega⟩ = b.1 := by
+  have hjoin' : P.vertex ⟨k, by omega⟩ =
+      (CRNT.relPathOfWalk W hdir).vertex ⟨0, by omega⟩ := by
+    rw [CRNT.relPathOfWalk_vertex_zero]
+    exact hjoin
+  refine ⟨P.append (CRNT.relPathOfWalk W hdir) hl hjoin', ?_, ?_⟩
+  · exact RelPath.append_vertex_le P (CRNT.relPathOfWalk W hdir) hl hjoin'
+      ⟨0, by omega⟩ (by show (0 : ℕ) ≤ k; omega)
+  · rw [RelPath.append_vertex_last]
+    exact CRNT.relPathOfWalk_vertex_length W hdir
+
+/-- **The composite ear: a directed species-to-species path with off-cycle interior.**
+
+Let `P` be a directed aggregate-source path from an on-cycle species `s₀` to an off-cycle class
+`q`, injective, and let `q → s` be a causal edge to a second on-cycle species `s`.  Then `P`
+followed by that edge is a `TrueSRSSPath` of even length `m + 1` whose two endpoints are
+`s₀` and `s`, and whose interior misses the cycle `C` entirely.
+
+This is exactly the object the Shinar–Feinberg ear route consumes: an S-to-S path with off-cycle
+interior.  Its evenness is not an extra datum — it is `TrueSRSSPath.even_length`, which is why
+no flux bookkeeping is needed here. -/
+private noncomputable def aggregateEar_TrueSRSSPath (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    {m : ℕ} (P : CRNT.RelPath (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T m)
+    (hPinj : Function.Injective P.vertex) (hmpos : 0 < m)
+    {n : ℕ} (C : N.TrueSRCycle n)
+    {s₀ s : AggregateActiveSpecies σ} {q : N.ActiveAggregateTrueReaction α σ}
+    (h0 : P.vertex ⟨0, by omega⟩ = Sum.inl s₀)
+    (hm : P.vertex ⟨m, by omega⟩ = Sum.inr q)
+    (hsC : C.HasSpecies s.1) (hqC : ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex (Sum.inr q)))
+    (hclean : ∀ i : Fin (m + 1), i.1 ≠ 0 →
+      ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex (P.vertex i)))
+    (hs₀ne : s₀.1 ≠ s.1)
+    (hsT : Sum.inl s ∈ T) (hqT : Sum.inr q ∈ T)
+    (hstep : N.TrueInternalAggregateCausalEdge (Sum.inr q) (Sum.inl s)) :
+    N.TrueSRSSPath (m + 1) := by
+  have hstep' : N.TrueInternalAggregateCausalEdge (P.vertex ⟨m, by omega⟩) (Sum.inl s) := by
+    rw [hm]
+    exact hstep
+  have hsC' : C.HasVertex (N.aggregateVertexToTrueSRVertex
+      (Sum.inl s : N.TrueInternalAggregateVertex α σ)) := hsC
+  have hnew : ∀ i : Fin (m + 1), P.vertex i ≠ Sum.inl s := by
+    intro i hi
+    by_cases hi0 : i.1 = 0
+    · exfalso
+      have hi' : i = ⟨0, by omega⟩ := Fin.ext hi0
+      rw [hi', h0] at hi
+      exact hs₀ne (congrArg Subtype.val (Sum.inl.inj hi))
+    · by_cases him : i.1 = m
+      · exfalso
+        have hi' : i = ⟨m, by omega⟩ := Fin.ext him
+        rw [hi', hm] at hi
+        exact Sum.inr_ne_inl hi
+      · exfalso
+        refine hclean ⟨i.1, by omega⟩ hi0 ?_
+        have hieq : P.vertex ⟨i.1, by omega⟩ = P.vertex i :=
+          congrArg P.vertex (Fin.ext rfl)
+        rw [hieq, hi]
+        exact hsC'
+  exact N.relPathToTrueSRSSPath T (P.concat (Sum.inl s) hsT hstep')
+    (P.concat_injective (Sum.inl s) hsT hstep' hPinj hnew) (by omega)
+    h0 (P.concat_vertex_last (Sum.inl s) hsT hstep')
+
+/-- **The interior of the composite ear misses the cycle.**
+
+Every vertex of `P.concat (Sum.inl s) hsT hstep` other than its two endpoints is either a
+strictly interior vertex of `P` — off the cycle by `hclean` — or the terminal class `q`, which
+is off the cycle by `hqC`. -/
+private theorem aggregateEar_interior (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ}
+    (T : Finset (N.TrueInternalAggregateVertex α σ))
+    {m : ℕ} (P : CRNT.RelPath (N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)) T m)
+    {s : AggregateActiveSpecies σ} {q : N.ActiveAggregateTrueReaction α σ}
+    {n : ℕ} (C : N.TrueSRCycle n)
+    (hm : P.vertex ⟨m, by omega⟩ = Sum.inr q)
+    (hsT : Sum.inl s ∈ T)
+    (hstep : N.TrueInternalAggregateCausalEdge (P.vertex ⟨m, by omega⟩) (Sum.inl s))
+    (hqC : ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex (Sum.inr q)))
+    (hclean : ∀ i : Fin (m + 1), i.1 ≠ 0 →
+      ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex (P.vertex i))) :
+    ∀ i : Fin (m + 2), i.1 ≠ 0 → i.1 ≠ m + 1 →
+      ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex
+        ((P.concat (Sum.inl s) hsT hstep).vertex i)) := by
+  intro i hi0 hiL hV
+  by_cases hle : i.1 ≤ m
+  · have hV' := hV
+    rw [P.concat_vertex_le (Sum.inl s) hsT hstep i hle] at hV'
+    by_cases him : i.1 = m
+    · have hidx : (⟨i.1, by omega⟩ : Fin (m + 1)) = ⟨m, by omega⟩ := Fin.ext him
+      have hvv : P.vertex ⟨i.1, by omega⟩ = Sum.inr q := (congrArg P.vertex hidx).trans hm
+      have hqV : C.HasVertex (N.aggregateVertexToTrueSRVertex (Sum.inr q)) :=
+        (congrArg (fun z : N.TrueInternalAggregateVertex α σ =>
+          C.HasVertex (N.aggregateVertexToTrueSRVertex z)) hvv).mp hV'
+      exact (hqC hqV).elim
+    · exact (hclean ⟨i.1, by omega⟩ hi0 hV').elim
+  · have him : i.1 = m + 1 := by omega
+    exact (hiL him).elim
+
 /-- **Shinar--Feinberg true-SR strong-concordance theorem.**
 
 Reactant/product separation is required to identify true-SR edge labels with net stoichiometric
@@ -8598,12 +8719,53 @@ theorem stronglyConcordant_fullyOpen_of_trueSRCriterion
                 rw [hv0, hs0s, hqm] at hstep1
                 exact N.aggregateCausalEdge_not_both_directions hstep1 hattachment
               -- Residual: `vertex0 = s0` on the cycle, with no non-neighbor nonzero
-              -- cycle flux and (`m ≠ 1` or `s0 ≠ s`).  A shortest species-to-reaction
-              -- route from `s0` is then the single causal leftEdge step
-              -- `s0 → C.reaction(pos s0)` (k = 1 is forced by `hopp`), the
-              -- `leftEdge-final` residue; it is consistent with every hypothesis in
-              -- scope and awaits the A.6 Case-2 source-block datum or `hrest`
-              -- degree-two isolation.
+              -- cycle flux and (`m ≠ 1` or `s0 ≠ s`).
+              --
+              -- **The composite ear.**  `Q0` runs from the on-cycle species `s0` to the
+              -- off-cycle class `q`; the attachment edge `q → s` then carries it to the
+              -- second on-cycle species `s = C.species (finRotate n i)`.  What results is a
+              -- directed species-to-species path of even length `m + 1` whose interior
+              -- misses `C` entirely — precisely the object the Shinar–Feinberg ear route
+              -- consumes.  Both halves are named, so the endgame is one application away.
+              --
+              -- Correction to the text that stood here.  It claimed that `k = 1` is forced
+              -- by `hopp`.  That is false: `hopp`/`hcausal`/`¬hnc` pin the flux of *cycle*
+              -- classes only, so the first hop out of `s0` lands off the cycle by
+              -- construction (see DEAD-ENDS B-8).  Nor can `W` supply a second ear: the walk
+              -- returned by `exists_minimal_escape` lives in the *unoriented*
+              -- `relationGraphOn`, so the orientation `hdir` that `relPathOfWalk` needs is
+              -- not derivable for it — see `relPath_append_relPathOfWalk`.
+              --
+              -- What is left, precisely.  With `s0 ≠ s` the ear is a chord and gluing it to
+              -- the two species-arcs of `C` via `ss_gluable_arcs` does give two glued cycles,
+              -- but that route cannot reach `hSR.2`: every pairwise common subgraph of `C`,
+              -- `P ∪ Q₁` and `P ∪ Q₂` is a single simple path with *species* at both ends
+              -- (`Q₁`, `Q₂`, `P` respectively), and
+              -- `CRNT.Network.no_sToRIntersection_of_speciesSpecies_common`
+              -- (`TrueSRSSGlueCPairs.lean:233`) rules out an `SToRIntersection` for exactly
+              -- that configuration.  With `s0 = s` the composite instead closes up into a
+              -- simple even cycle meeting `C` in the single vertex `s0`, which `hSR.1`
+              -- (`Even → SCycle`) does not constrain and `hSR.2` cannot see (one shared
+              -- vertex).  Closing either branch needs the block-level evenness of
+              -- Shinar--Feinberg Prop. 5.10/5.11, which is not in this tree.
+              have hsCs : C.HasSpecies s.1 := by
+                change C.HasSpecies (C.species (finRotate n i))
+                exact ⟨finRotate n i, rfl⟩
+              have hstep' : N.TrueInternalAggregateCausalEdge
+                  (Q0.vertex ⟨m, by omega⟩) (Sum.inl s) := by
+                rw [hqm]
+                exact hattachment
+              have hEar : s0.1 ≠ s.1 → N.TrueSRSSPath (m + 1) := fun hne =>
+                N.aggregateEar_TrueSRSSPath T Q0 hQ0inj hmpos C hv0 hqm hsCs hqOff
+                  hQ0late hne hsT hqT hattachment
+              have hEarEven : s0.1 ≠ s.1 → Even (m + 1) :=
+                fun hne => (hEar hne).even_length
+              have hEarLong : s0.1 ≠ s.1 → 2 ≤ m + 1 :=
+                fun hne => (hEar hne).two_le_length
+              have hEarInterior : ∀ i : Fin (m + 2), i.1 ≠ 0 → i.1 ≠ m + 1 →
+                  ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex
+                    ((Q0.concat (Sum.inl s) hsT hstep').vertex i)) :=
+                N.aggregateEar_interior T Q0 C hqm hsT hstep' hqOff hQ0late
               sorry
           | inr ρ0 => exact hv0ne ρ0 hv0
     obtain ⟨M, Q, hQ0, hQlast, hQnd⟩ := hspan
