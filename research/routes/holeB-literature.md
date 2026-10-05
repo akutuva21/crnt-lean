@@ -214,3 +214,48 @@ dichotomy, not an exclusion of the S-to-S ear; see §2).
 Block decomposition of a source is precisely what DEAD-ENDS B-10 identified as absent from the
 in-tree proof, so this does not make the residue easy — it makes it a *specific, named, external*
 target rather than an open-ended search. No other open PR targets it.
+
+## 8. The definitions a port of Prop. 5.8 / 5.11 needs, verbatim
+
+`Concordant-SRGraph.tex:851-852` (`def:SBlockRBlock`, verbatim):
+
+> A source-block in the sign-causality graph is a **species block (S-block)** if *each species node is
+> adjacent to precisely two reaction nodes*. A source-block in the sign-causality graph is a
+> **reaction block (R-block)** if *each reaction node is adjacent to precisely two species nodes*.
+
+And `:855`:
+
+> Proposition 5.8 tells us that when condition (ii) … is satisfied, every block within the
+> sign-causality graph source is **either an S-block or an R-block** (or both in the case that the
+> source-block is simply a single cycle).
+
+Prop. 5.11 (`:869-871`) is stated to be "a direct consequence of the two preceding ones" — i.e.
+Prop. 5.8 (block is S or R) composed with Prop. 5.10 (every cycle in such a block is even). It is
+**not** independently proved, so a Lean port must supply both halves.
+
+### Why this is the right shape for the residue, stated precisely
+
+Combine the two with the trichotomy already landed in PR #36
+(`TrueSRCycleSpeciesDegree.classFlux_trichotomy`). At a cycle species `C.species b`:
+
+- over **cycle** classes: exactly one out-neighbour and one in-neighbour (the trichotomy), so the
+  cycle contributes degree 1 out / 1 in at `b`;
+- the residue's ear contributes a **second out-neighbour**, which is off-cycle.
+
+So at `b` the block has degree ≥ 2 out — and if the ear's first hop reaches a *third* class,
+degree 3, `b` is not an S-block. Prop. 5.8 says that then the block must be an R-block, i.e. **no
+reaction vertex has more than two adjacent species vertices**. The ear's interior is off-cycle, and
+`hQ0late` forces every interior vertex off-cycle — which is consistent with, not contradictory to,
+the R-block reading. The dichotomy therefore does **not** by itself kill the residue; what kills it
+is Prop. 5.10's evenness applied to the ear cycle, which is exactly the datum that was never ported.
+
+**Concretely, the port is a three-part development:**
+1. `DirectedEarDecomposition`-based decomposition of the block containing `C` (in-file at `:183`,
+   `stronglyConnected_of_directedEarDecomposition` at `:190`, currently unused);
+2. Prop. 5.8 as an `IsSBlock ∨ IsRBlock` disjunction over that block;
+3. Prop. 5.10 as `IsSBlock → (every cycle in the block).Even` and `IsRBlock → (ditto)`.
+
+Only (3) is new mathematics for this tree; (1) is in-file and unused; (2) is a finite
+degree-counting argument over a block, which is where `harr` and the six arrangements of
+`SixCases.eps` fit. **This is the first concrete decomposition of the residue that has an external
+justification for every piece.**
