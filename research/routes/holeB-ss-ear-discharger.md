@@ -1,8 +1,8 @@
 # The missing discharger at `TrueChemistrySRCriterion.lean:8607`: a species-to-species ear
 
-**Status: target statement established; the S → S builder obstacle is CLEARED; two obstacles
-remain (`harr`, and evenness of the glued cycle). The proof is not written.**
-All `file:line` citations were read in the tree at commit `5f4160a` (branch
+**Status: target statement established; the S→S builder obstacle is CLEARED; the true blocker is
+evenness of the glued cycle, which is a sum-versus-term gap in the σ-sign data. The proof is not
+written.** All `file:line` citations were read in the tree at commit `5f4160a` (branch
 `research/holeb-earcase-port`, PR #36).
 
 ## 1. Why this is the exact remaining gap
@@ -126,10 +126,41 @@ Three obstacles, in order of difficulty:
    `research/routes/pr10-verification.md` §5 records that `harr` has no producer and that the
    reason is not merely a missing glue instance. The arrangement is the
    cut-the-cycle-at-four-attachments computation.
-3. **Evenness of the extracted cycles.** `hC : C.Even` is given for `C` only. The glued cycle needs
-   `SignDirected σ`, which requires σ nonzero on the ear's species and the c-pairs to be exactly the
-   σ-sign changes — an estimate about signs that `hopp`/`hcausal` provide for *cycle* classes only
-   (`DEAD-ENDS.md` B-5). **This may be the real blocker**, independent of `harr`.
+3. **Evenness of the glued cycle — THE REAL BLOCKER.** `hC : C.Even` is given for `C` only. The
+   glued cycle's evenness comes from `TrueSRCycle.even_of_signDirected` (Case-2 port `:147`),
+   which needs
+
+   ```lean
+   def TrueSRCycle.SignDirected {n : ℕ} (C : N.TrueSRCycle n) (σ : S → ℝ) : Prop :=
+     (∀ i, σ (C.species i) ≠ 0) ∧
+       (∀ i, C.isCPair i ↔ σ (C.species i) * σ (C.species (finRotate n i)) < 0)
+   ```
+
+   The ear's interior species are **off-cycle**, and the residue's hypotheses pin σ there in no way:
+
+   - `hcausal`/`hopp` pin the class flux at *cycle* classes only (`DEAD-ENDS.md` B-5: "already
+     sharp", no slack).
+   - `hlocal` (`:6077-6080`) is a **sum** positivity,
+     `0 < ∑_ρ (N.trueInternalClassFlux α ρ s.1) * σ s.1` over
+     `N.trueInternalAggregateSourceClasses α σ T`. It bounds the *total* at each species and forces
+     nothing about any individual term, hence nothing about an individual off-cycle σ-sign.
+   - every other `σ s ≠ 0` in the file (`:1272`, `:1408`, `:1957`) occurs as a **precondition**
+     `hs : σ s ≠ 0`, never as something derivable.
+
+   So `SignDirected σ` on any cycle containing ear species is **not provable from the residue's
+   hypotheses**. This is a sum-versus-term gap, the same species of obstruction as Hole A's
+   A-64/A-68 — an analytic estimate nobody has made, not a missing lemma.
+
+**Prioritisation.** Obstacles 1 and 2 are finite combinatorics over `C` and the ear's shape, and both
+are writable now. But even if both succeed, `lemmaA6_case2_*` cannot be applied without evenness. **The
+true target is therefore not `harr` but a new estimate relating the σ-sign pattern to the flux-sign
+pattern on off-cycle species** — of the shape "the aggregate causal degree of an off-cycle species is
+bounded, or its class flux is σ-sign-definite". Nothing in the tree, the 21 landed declarations, or
+the research ledger supplies it. `harr` is the tractable second-order problem.
+
+Corollary: `no_offCycle_negFlux` (landed, PR #20) is **refuted** at the residue, so any strategy
+assuming it is dead; and a strategy needing σ-sign-definiteness for an off-cycle class asks for
+something the hypotheses equally do not give.
 
 ## 5. Dead ends already excluded (do not re-walk)
 
