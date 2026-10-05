@@ -88,3 +88,76 @@ If the steering lemma is **false** — i.e. every class/species pair in the ear 
 channel, so `endpoint` is forced — then the parity is fixed after all, Route D is dead, and §9's
 obstruction stands. Both outcomes are worth machine-checking; the negation is as informative as the
 lemma.
+
+---
+
+## RETRACTED — Route D is false, and machine-checked
+
+An agent refuted the steering lemma above, and the refutation is correct. **The `endpoint` of an
+aggregate SR edge is a FUNCTION OF THE VERTEX PAIR, not a free parameter.**
+
+`TrueSREdge.Connects` (`CRNT/Multistationarity/TrueChemistrySRGraph.lean:211-215`, verbatim):
+
+```lean
+/-- The two vertices are exactly the endpoints of the edge, in either order. -/
+def TrueSREdge.Connects {N : Network S} (e : N.TrueSREdge)
+    (u v : N.TrueSRVertex) : Prop :=
+  (u = Sum.inl e.species ∧ v = Sum.inr ⟨e.reaction, e.internal⟩) ∨
+    (u = Sum.inr ⟨e.reaction, e.internal⟩ ∧ v = Sum.inl e.species)
+```
+
+The vertex pair has *one* species position and *one* reaction position, and `Sum.inl_ne_inr` forces
+`e` and `f` into the *same* orientation. So `e.species` and `e.reaction` are read off the pair; then
+`trueSREdge_endpoint_eq_of_same_class_and_species` (`:1808`) determines `e.endpoint`. Landed as
+
+```lean
+private theorem aggregateAdj_edge_endpoint_forced (N : Network S)
+    (hsep : N.ReactantProductSeparated) {α σ}
+    (u v : N.TrueInternalAggregateVertex α σ) (e f : N.TrueSREdge)
+    (he : e.Connects (N.aggregateVertexToTrueSRVertex u) (N.aggregateVertexToTrueSRVertex v))
+    (hf : f.Connects (N.aggregateVertexToTrueSRVertex u) (N.aggregateVertexToTrueSRVertex v)) :
+    e.endpoint = f.endpoint
+```
+
+(axis `TrueChemistrySRCriterion.lean:8322`, builds clean.)
+
+**`Classical.choose` opacity is not value freedom.** I read the existential at `:5022` as leaving the
+label undetermined; in fact the existential is over *witnesses of a determined property*, so all
+witnesses agree on `endpoint`. Consequently:
+
+- `ssCPairAt P r` is a function of the aggregate vertex sequence alone;
+- `ssNumCPairs P % 2` is **not** a free parameter;
+- Route A is dead, and Route B inherits the same obstruction — every admissible edge sequence gives
+  the same c-pair count;
+- `ssGlueCycle_even_iff_parity_of_cycleEven` has no steering lever.
+
+The failure of `hcommon` in `ear_cPair_iff_signChange` (§9, blocker 1) was already a symptom of this;
+the in-file comment at `:8300-8321` says as much.
+
+## A second, independent blocker: parity is the wrong target
+
+Every producer of `False` from `hSR.2` requires the common component to be species→**reaction**:
+`no_shared_path_of_trueSRCriterion` (`TrueSRPath.lean:137`, `P : N.TrueSRPath L`),
+`no_single_shared_path_of_trueSRCriterion`, `no_single_shared_edge_of_trueSRCriterion`,
+`false_of_single_shared_edge_of_trueSRCriterion`, `no_edge_disjoint_sToR_chord_of_trueSRCriterion`.
+**There is no theorem in `CRNT/` deriving `False` from two even `TrueSRCycle`s sharing only a
+species→species path.** The SS layer is a deliberate dead end — SS material is used only for parity
+transfer (`ssGlueCycle_even_iff_even`, `ssNumCPairs`), never to reach `hSR.2`.
+
+So even if the parity were obtained, it would not close the branch.
+
+## What the residue actually needs
+
+An **S-to-R common path** between two even cycles. Since the ear's two endpoint species are *both on
+`C`* (`s₀` and `s`), every common subgraph of the ear-glue with `C` is species→species, and `hSR.2`
+cannot see it. Closing the residue needs an ear with an endpoint **off** `C` on one side, so that
+gluing it to an arc of `C` yields a cycle meeting `C` in an S-to-R path.
+
+That is exactly the "A.6 Case-2 source-block datum" named by `research/BRIEF-B.md` §B.2 and DEAD-ENDS
+B.2/B.4, and it is **not derivable from the residue's hypotheses** — `hSR.2` is silent about it
+(DEAD-ENDS B-2: "deg 3b: the only surviving case, and `hSR` is silent about it").
+
+**Standing conclusion for Hole B.** Three independent machine-checked obstructions, all now landed:
+the `hSR.2` refutation (§6), the endpoint-forced result above, and the absence of any S→R producer
+for species-to-species overlaps. The residue is not a missing tactic or a missing lemma; it is
+missing a *datum* about the ear's endpoints that the theorem's hypotheses do not contain.
