@@ -21,6 +21,7 @@ import CRNT.Multistationarity.TrueSRDegreeTwoNoSToR
 import CRNT.Multistationarity.TrueSRSSGlueCPairs
 import CRNT.Multistationarity.TrueSRParityRR
 import CRNT.Graph.RelPathWalk
+import CRNT.Multistationarity.TrueSRSSArcEven
 
 /-!
 # True-chemistry SR criteria for concordance and strong concordance
@@ -8256,6 +8257,173 @@ private theorem ssPathCPairAt_speciesArc_iff {S : Type} [DecidableEq S] [Fintype
     apply Fin.eq_of_val_eq
     simp only [show (2*r.1+1)/2 = r.1 by omega]
   rw [hA, hB]
+
+/-- **The species-to-species glue count identity reduces the evenness of an ear-glued cycle to
+the parity of the ear's own c-pair count.**
+
+Let `C` be an e-cycle and `P` a species-to-species path gluable to `C`'s forward species-arc.
+Because `ssGlueCycle_numCPairs` has no seam term, the glued cycle's evenness reads
+`(ssNumCPairs P + ssNumCPairs (C.speciesArc (k+1))) % 2 = 0`.  Substituting the two arc counts
+by `cPairsBelow C (k+1)` and `cPairsAbove C (k+1)`, and using that the two sum to `C.numCPairs`
+which is even, gives the stated equivalence: **the ear's own c-pair count has the same parity as
+the complementary arc's** — and nothing else is left over.
+
+This is the sharp form of the obligation; it says the residue's endgame is exactly
+`ssNumCPairs P % 2 = ssNumCPairsH (C.speciesArcBwd (k+1)) % 2`. -/
+private theorem ssGlueCycle_even_iff_parity_of_cycleEven (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {n k j : ℕ}
+    (C : N.TrueSRCycle n) (hC : C.Even) (hk : k + 1 < n)
+    (P : N.TrueSRSSPath (2 * j + 2))
+    (h₁ : TrueSRSSPath.SSGluable P (C.speciesArc (k + 1) hk (by omega))) :
+    (TrueSRSSPath.ssGlueCycle P (C.speciesArc (k + 1) hk (by omega)) h₁).Even
+      ↔ (TrueSRSSPath.ssNumCPairs P) % 2
+          = (TrueSRSSPath.ssNumCPairsH (C.speciesArcBwd (k + 1) hk (by omega))) % 2 := by
+  have hsplit := TrueSRSSPath.ssGlueCycle_numCPairs P (C.speciesArc (k + 1) hk (by omega)) h₁
+  have hfwd := TrueSRCycle.ssNumCPairs_speciesArc_succ C k hk
+  have hbwd := TrueSRCycle.ssNumCPairsH_speciesArcBwd_eq_cPairsAbove C (k + 1) hk (by omega)
+  have htot := TrueSRCycle.cPairsBelow_card_add C (k + 1)
+  have hCeven : C.numCPairs % 2 = 0 := Nat.even_iff.mp hC
+  have hsumpair : ((TrueSRCycle.cPairsBelow C (k + 1)).card
+      + (TrueSRCycle.cPairsAbove C (k + 1)).card) % 2 = 0 := by rw [htot]; exact hCeven
+  unfold TrueSRCycle.Even
+  rw [Nat.even_iff]
+  constructor
+  · intro h
+    rw [hbwd]
+    rw [hsplit, hfwd] at h
+    omega
+  · intro h
+    rw [hbwd] at h
+    rw [hsplit, hfwd]
+    omega
+
+/-- **Two labelled edges at one true-reaction class form a c-pair exactly when the two species
+carry opposite `σ` signs — provided the class flux is carried by a single channel.**
+
+This is the edge-level form of the species-path sign characterisation that the residue needs,
+and it isolates exactly which datum the cycle-level statement at `trueSRCycle_of_simple_aggregate_cycle`
+uses and a species-to-species ear cannot supply.
+
+The cycle-level lemma `C.isCPair i ↔ σ (C.species i) * σ (C.species (finRotate n i)) < 0` gets its
+machinery from two facts that are available for a *cycle* and are **not** available for an ear:
+
+* **one common representative.** `C.leftEdge i` and `C.rightEdge i` are both
+  `trueSREdgeOfReactionVectorNe (rep i)`, so `hcommon` is automatic there; a path built by
+  `relPathToTrueSRSSPath` picks its two edges *independently* out of `relationGraphOn`, so nothing
+  forces a common representative;
+* **one common channel carrying the whole class flux**, `hbeta`. `trueInternalClassFlux` is a
+  *sum* over the channels of the class, so `hbeta` says the sum has a single nonzero summand
+  pattern. This is the real content: a c-pair compares endpoint complexes, which is a
+  *per-channel* condition, while `hneg`/`hpos` are *sum* conditions on the class flux. With two
+  or more contributing channels the two can be moved independently, and the equivalence is lost.
+
+`hbeta` is the missing input, not a tactic: nothing in the tree implies it, and
+`exists_finset_term_same_sign` (which only guarantees the *existence* of a same-sign summand) is
+far too weak. -/
+private theorem cPair_of_twoClassEdges_iff_signChange (N : Network S)
+    (hsep : N.ReactantProductSeparated)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {ρ : N.TrueReaction}
+    (e f : N.TrueSREdge)
+    (her : e.reaction = ρ) (hfr : f.reaction = ρ)
+    (hrep : e.representative = f.representative)
+    (hnf : ¬ N.IsFlowChannel e.representative)
+    (β : ℝ) (hbeta : ∀ t : S,
+      N.trueInternalClassFlux α ρ t = β * N.reactionVector e.representative t)
+    (u w : S) (heu : e.species = u) (hfw : f.species = w)
+    (hneg : N.trueInternalClassFlux α ρ u * σ u < 0)
+    (hpos : 0 < N.trueInternalClassFlux α ρ w * σ w) :
+    f.endpoint = e.endpoint ↔ σ u * σ w < 0 := by
+  have hνu : N.reactionVector e.representative u ≠ 0 := by
+    intro hz
+    have h := hneg
+    rw [hbeta u, hz] at h
+    simp at h
+  have hνw : N.reactionVector e.representative w ≠ 0 := by
+    intro hz
+    have h := hpos
+    rw [hbeta w, hz] at h
+    simp at h
+  let R := e.representative
+  let cE : N.TrueSREdge := N.trueSREdgeOfReactionVectorNe R hnf u hνu
+  let cF : N.TrueSREdge := N.trueSREdgeOfReactionVectorNe R hnf w hνw
+  have hrepR : cE.representative = R := by
+    dsimp [cE]; exact N.trueSREdgeOfReactionVectorNe_representative R hnf u hνu
+  have hrepF : cF.representative = R := by
+    dsimp [cF]; exact N.trueSREdgeOfReactionVectorNe_representative R hnf w hνw
+  have hrew : f.representative = R := hrep ▸ rfl
+  have hfrep : f.representative = cF.representative := hrew.trans hrepF.symm
+  have hesp : e.representative = cE.representative := hrepR.symm
+  have hfsp : f.species = cF.species :=
+    hfw.trans (N.trueSREdgeOfReactionVectorNe_species R hnf w hνw).symm
+  have hesp' : e.species = cE.species :=
+    heu.trans (N.trueSREdgeOfReactionVectorNe_species R hnf u hνu).symm
+  have hsplit : f.endpoint = cF.endpoint ∧ e.endpoint = cE.endpoint :=
+    ⟨N.trueSREdge_endpoint_eq_of_same_representative_and_species hsep f cF hfrep hfsp,
+      N.trueSREdge_endpoint_eq_of_same_representative_and_species hsep e cE hesp hesp'⟩
+  have hkey := class_flux_pair_iff_signChange N hsep ρ R hnf β w u hbeta hpos hneg
+  rw [hsplit.1, hsplit.2]
+  dsimp only [cE, cF]
+  rw [eq_comm, hkey]
+
+/-- **Species-path counterpart of the cycle-level c-pair/sign lemma.**  A c-pair of a
+species-to-species path at its `r`-th reaction vertex is exactly a sign change of `σ` between
+the two species flanking that vertex — under the two hypotheses
+`cPair_of_twoClassEdges_iff_signChange` isolates: a common channel representative at that
+vertex, and that channel carrying the entire class flux.
+
+Write `u = P.speciesAt 2r` and `w = P.speciesAt (2r + 2)` for the two flanking species.
+`hneg`/`hpos` are exactly the two rows of the causal-edge table
+(`TrueInternalAggregateCausalEdge`): an `inl → inr` step forces `flux · σ < 0`, an `inr → inl`
+step forces `0 < flux · σ`.  Both are available at the residue for every step of the ear, so
+*nothing* about the off-cycle `σ` signs is missing here — the two hypotheses that remain are
+about the **representative channels**, not about `σ`. -/
+private theorem ear_cPair_iff_signChange (N : Network S) (hsep : N.ReactantProductSeparated)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {j : ℕ} (P : N.TrueSRSSPath (2 * j + 2))
+    (hcommon : ∀ r : Fin (j + 1),
+      (P.edge ⟨2 * r.1, by have := r.isLt; omega⟩).representative
+        = (P.edge ⟨2 * r.1 + 1, by have := r.isLt; omega⟩).representative)
+    (hnf : ∀ r : Fin (j + 1),
+      ¬ N.IsFlowChannel ((P.edge ⟨2 * r.1, by have := r.isLt; omega⟩).representative))
+    (hβ : ∀ r : Fin (j + 1), ∃ β : ℝ, ∀ t : S,
+      N.trueInternalClassFlux α ((P.edge ⟨2 * r.1, by have := r.isLt; omega⟩).reaction) t
+        = β * N.reactionVector ((P.edge ⟨2 * r.1, by have := r.isLt; omega⟩).representative) t)
+    (hneg : ∀ r : Fin (j + 1),
+      N.trueInternalClassFlux α ((P.edge ⟨2 * r.1, by have := r.isLt; omega⟩).reaction)
+          (P.speciesAt ⟨2 * r.1, by have := r.isLt; omega⟩ (by show (2 * r.1) % 2 = 0; omega))
+        * σ (P.speciesAt ⟨2 * r.1, by have := r.isLt; omega⟩ (by show (2 * r.1) % 2 = 0; omega))
+        < 0)
+    (hpos : ∀ r : Fin (j + 1),
+      0 < N.trueInternalClassFlux α ((P.edge ⟨2 * r.1, by have := r.isLt; omega⟩).reaction)
+          (P.speciesAt ⟨2 * r.1 + 2, by have := r.isLt; omega⟩
+            (by show (2 * r.1 + 2) % 2 = 0; omega))
+        * σ (P.speciesAt ⟨2 * r.1 + 2, by have := r.isLt; omega⟩
+            (by show (2 * r.1 + 2) % 2 = 0; omega)))
+    (r : Fin (j + 1)) :
+    TrueSRSSPath.ssCPairAt P r
+      ↔ σ (P.speciesAt ⟨2 * r.1, by have := r.isLt; omega⟩ (by show (2 * r.1) % 2 = 0; omega))
+          * σ (P.speciesAt ⟨2 * r.1 + 2, by have := r.isLt; omega⟩
+            (by show (2 * r.1 + 2) % 2 = 0; omega)) < 0 := by
+  have hrl := r.isLt
+  have hq0 : (2 * r.1) % 2 = 0 := by omega
+  have hq1 : (2 * r.1 + 1) % 2 ≠ 0 := by omega
+  have hq2 : (2 * r.1 + 2) % 2 = 0 := by omega
+  have hq1' : (2 * r.1 + 1) % 2 ≠ 0 := hq1
+  have hes0 : (P.edge ⟨2 * r.1, by omega⟩).species
+      = P.speciesAt ⟨2 * r.1, by omega⟩ hq0 := P.edge_species_of_even _ hq0
+  have hes1 : (P.edge ⟨2 * r.1 + 1, by omega⟩).species
+      = P.speciesAt ⟨2 * r.1 + 2, by omega⟩ hq2 := P.edge_species_of_odd _ hq1'
+  have her0 : (P.edge ⟨2 * r.1, by omega⟩).reaction
+      = (P.reactionAt ⟨2 * r.1 + 1, by omega⟩ hq1').1 := P.edge_reaction_of_even _ hq0
+  have her1 : (P.edge ⟨2 * r.1 + 1, by omega⟩).reaction
+      = (P.reactionAt ⟨2 * r.1 + 1, by omega⟩ hq1').1 := P.edge_reaction_of_odd _ hq1'
+  obtain ⟨β, hβ⟩ := hβ r
+  have her1' : (P.edge ⟨2 * r.1 + 1, by omega⟩).reaction
+      = (P.edge ⟨2 * r.1, by omega⟩).reaction := her1.trans her0.symm
+  have hkey := cPair_of_twoClassEdges_iff_signChange N hsep
+    (P.edge ⟨2 * r.1, by omega⟩) (P.edge ⟨2 * r.1 + 1, by omega⟩)
+    rfl her1' (hcommon r) (hnf r) β hβ _ _ hes0 hes1 (hneg r) (hpos r)
+  unfold TrueSRSSPath.ssCPairAt
+  rw [eq_comm, hkey]
 
 /-- **Shinar--Feinberg true-SR strong-concordance theorem.**
 

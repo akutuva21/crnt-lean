@@ -1991,42 +1991,39 @@ exists; all of it is cycle-internal or conditional. **This is the live dependenc
   their **evenness** is not determined. Any future revival of the ear route should start here rather
   than re-deriving gluability.
 
-## B-37b. ⭐ The parity TRANSFER itself is blocked by an arc-length mismatch, not only the datum **[V, compiled]**
+## B-37b. ~~Parity transfer blocked by an arc-length mismatch~~ — **RETRACTED; it is AVAILABLE** **[V, compiled]**
 
-- **found-by:** `HoleBStrictGain` · **round:** 2 · **revive-when:** a length-agnostic
-  `ssGlueCycle`/`SSGluable` (i.e. `TrueSRSSPath` reindexed so arc lengths need not be `2*j+2`).
-- **Sharper than B-34.** B-34 says the datum `ssNumCPairs P` is missing. Even *if* it were
-  available, the natural next step — `TrueSRSSPath.ssGlueCycle_even_iff_even` (`TrueSRSSGlueCPairs.lean:200`)
-  with `hQ` := the new partition identity — **does not typecheck**, verified this round:
-
-  ```lean
-  example (C : N.TrueSRCycle n) (k : ℕ) (hk : k + 1 < n) (hC : C.Even)
-      (P : N.TrueSRSSPath (2 * (k + 1)))
-      (h₁ : SSGluable P (C.speciesArc (k + 1) hk _))
-      (h₂ : SSGluable P (C.speciesArcBwd (k + 1) hk _)) :
-      (ssGlueCycle P (C.speciesArc (k + 1) hk _) h₁).Even
-        ↔ (ssGlueCycle P (C.speciesArcBwd (k + 1) hk _) h₂).Even := by
-    -- error: `h₂` has type `P.SSGluable (C.speciesArcBwd (k+1) hk _)`
-    --        but is expected to have type `P.SSGluable ?m`
-  ```
-
-- **Why.** `ssGlueCycle` / `SSGluable` are typed with the partner at length `2 * j + 2`. The forward
-  arc at `m = k+1` has length `2*(k+1)`, which is definitionally `2*k+2`, so it fits. The **backward**
-  arc has length `2*(n-k-1)`, which is **not** syntactically `2*j+2`, and `TrueSRSSPath` is not
-  injectively typed in its length (B-37 trap 1), so the structure cannot be transported. The two
-  arcs therefore **cannot be presented as the two partners of one `ssGlueCycle_even_iff_even` call.**
-- **What DOES typecheck** (verified), so the count identity is available and the residue is exactly
-  one proposition short:
+- **found-by:** `HoleBStrictGain` · **round:** 2 · **retraction** of my own entry, same round.
+- **The original claim was WRONG.** I reported that `ssGlueCycle_even_iff_even` cannot be applied
+  with the two arcs as partners, because `ssGlueCycle` is typed at length `2*j+2` while
+  `speciesArcBwd (k+1)` has length `2*(n-k-1)`, and `cast`/`Eq.mp`/`cases` all fail. **I drew the
+  wrong conclusion: it is `cast`/`Eq.mp`/`cases` — which rewrite the STRUCTURE — that fail.
+  `▸` on the LENGTH index works.** Passing `hj : n - (k+1) = i₂ + 1` explicitly makes
+  `hj ▸ (C.speciesArcBwd (k+1) hk _)` land at `TrueSRSSPath (2 * (i₂ + 1))`, which is syntactically
+  what `ssGlueCycle` wants. This is the same length-index-vs-structure distinction as B-37 trap 1,
+  and I misread it the first time.
+- **Landed:** `TrueSRSSPath.ssNumCPairsH_cast` (`TrueSRSSArcEven.lean:316`), whose proof is
+  `cases h; rfl`, closing the residual `ssNumCPairs (hj ▸ arcB)` vs `ssNumCPairsH arcB` gap.
+- **And the ear version itself is now proved** (verified by me, compiles clean). For
+  `P : TrueSRSSPath (2*(k+1))` gluable to both arcs and `hC : C.Even`:
 
   ```lean
-  (ssGlueCycle P (C.speciesArc (k+1) hk _) h₁).numCPairs
-    = P.ssNumCPairs + (C.speciesArc (k+1) hk _).ssNumCPairs
+  (ssGlueCycle P (C.speciesArc (k+1) hk _) h₁).Even
+    ↔ (ssGlueCycle P (hj ▸ (C.speciesArcBwd (k+1) hk _) h₂).Even
   ```
 
-- **Bottom line for the residue.** With the partition identity (B-37/B-38) the evenness of the
-  forward ear-cycle reduces to the **single** proposition `P.ssNumCPairs % 2 = ssNumCPairs arcB % 2`,
-  i.e. to the parity of the ear's own c-pair count — and that is exactly the datum B-34 shows is
-  unavailable. So `hSR.1`'s evenness half is closed for **two independent reasons.**
+  via `ssGlueCycle_even_iff_even` with `hQ := speciesArcs_sum_evenH …` transported by
+  `ssNumCPairsH_eq` (×2) and `ssNumCPairsH_cast`.
+- **⚠️ BUT THE CONCLUSION OF B-34 IS UNCHANGED, and this is the load-bearing observation.** The `hQ`
+  that `ssGlueCycle_even_iff_even` demands is
+  `(ssNumCPairs arcF + ssNumCPairs arcB) % 2 = 0` — **it is about the two arcs and never mentions
+  `P`.** Verified by the elaborator: supplying `hQ := (P.ssNumCPairs + arcB.ssNumCPairs) % 2 = 0`
+  is *rejected* ("expected `(arcF.ssNumCPairs + arcB.ssNumCPairs) % 2 = 0`"). So the transfer gives
+  that the two ear-containing cycles have the **same** parity — it does **not** make either even.
+  Evenness still needs the parity of `P`'s own c-pair count, which is B-34's missing datum.
+- **Lesson, recorded because it cost real budget:** when a `TrueSRSSPath` length mismatch blocks a
+  rewrite, distinguish *which* thing is being rewritten. `▸` on the `ℕ` length index works;
+  `cast`/`Eq.mp`/`cases` on the structure do not.
 
 ## B-37. `ssPathCPairAt` for a species-arc is `C.isCPair` — LANDED for the forward arc **[V, compiled]**
 
@@ -2080,8 +2077,9 @@ exists; all of it is cycle-internal or conditional. **This is the live dependenc
 - **Why it is the right artifact.** `C.Even` now propagates to the *arc* parity for free. Combined
   with `ssGlueCycle_numCPairs`, the ear's evenness reduces to **exactly one** unknown — the parity of
   `P`'s own c-pair count (B-34) — and the transfer that would have propagated it between the two
-  arcs is itself blocked (B-37b). So this file **closes the arc half of the ear's parity question
-  completely and reduces the residue to a single named gap.**
+  arcs is available (B-37b, after its initial retraction). So this file **closes the arc half of the
+  ear's parity question completely and reduces the residue to a single named gap:** the parity of
+  the ear's own c-pair count.
 - **Collision note.** Its `ssCPairAtH`/`ssNumCPairsH` do **not** collide with
   `TrueSRSSPath.ssCPairAt`/`ssNumCPairs` or with `TrueChemistrySRCriterion.lean`'s private
   `ssPathCPairAt`/`ssPathCPairs`; it is purely additive. Not yet imported from `CRNT.lean`, so it

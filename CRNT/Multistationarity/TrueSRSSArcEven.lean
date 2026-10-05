@@ -295,4 +295,55 @@ theorem speciesArcs_sum_evenH (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n) (hmpo
   rw [ssNumCPairsH_speciesArcs_add]
   exact Nat.even_iff.mp hC
 
+/-- **The backward species-arc's count is the number of c-pairs of `C` at indices `≥ m`.**
+This is the single place where the `Fin (n - m)` index type of the backward arc is converted
+into `cPairsAbove`'s `Fin n` index type; every downstream statement about the parity of the
+backward arc goes through it. -/
+theorem ssNumCPairsH_speciesArcBwd_eq_cPairsAbove (C : N.TrueSRCycle n) (m : ℕ) (hm : m < n)
+    (hmpos : 0 < m) :
+    TrueSRSSPath.ssNumCPairsH (C.speciesArcBwd m hm hmpos) = (cPairsAbove C m).card := by
+  refine cPairsAbove_short C m hm _ (fun r => ?_)
+  simp only [Finset.mem_filter, Finset.mem_univ, true_and]
+  exact ssCPairAtH_speciesArcBwd C m hm hmpos r
+
+/-! ### The parity transfer
+
+`TrueSRSSPath.ssNumCPairsH_eq ` needs the path at `2 * (j + 1)`, and a transport `L = L'` therefore has to be
+absorbed.  It is absorbed by `cases h; rfl`: the length index is what `▸` rewrites, so after
+the equation is gone the two paths are the same term. -/
+
+/-- `ssNumCPairsH` is invariant under transport of the length index. -/
+theorem TrueSRSSPath.ssNumCPairsH_cast  {L L' : ℕ} (P : N.TrueSRSSPath (2 * L)) (h : L = L') :
+    TrueSRSSPath.ssNumCPairsH (L := L') (h ▸ P) = TrueSRSSPath.ssNumCPairsH (L := L) P := by
+  cases h
+  rfl
+
+/-- **The species-to-species parity transfer.**  Gluing a species-to-species path `P` to the
+two species-arcs of an e-cycle `C` gives two cycles that are either both even or both odd:
+`TrueSRSSPath.ssGlueCycle_even_iff_even` compares them modulo `2`, and the two arcs' c-pair counts sum to
+`C.numCPairs ≡ 0`. -/
+theorem TrueSRSSPath.ssGlueCycle_even_iff_even_arcs {S : Type} [DecidableEq S] [Fintype S]
+    {N : Network S} {n : ℕ} (C : N.TrueSRCycle n) (k i₂ : ℕ) (hk : k + 1 < n)
+    (hj : n - (k + 1) = i₂ + 1)
+    (h₁ : TrueSRSSPath.SSGluable (C.speciesArc (k + 1) hk (by omega)) (C.speciesArc (k + 1) hk (by omega)))
+    (h₂ : TrueSRSSPath.SSGluable (C.speciesArc (k + 1) hk (by omega))
+      (hj ▸ (C.speciesArcBwd (k + 1) hk (by omega))))
+    (hC : C.Even) :
+    (TrueSRSSPath.ssGlueCycle (C.speciesArc (k + 1) hk (by omega))
+        (C.speciesArc (k + 1) hk (by omega)) h₁).Even
+      ↔ (TrueSRSSPath.ssGlueCycle (C.speciesArc (k + 1) hk (by omega))
+        (hj ▸ (C.speciesArcBwd (k + 1) hk (by omega))) h₂).Even := by
+  have hQ : (TrueSRSSPath.ssNumCPairs (C.speciesArc (k + 1) hk (by omega))
+      + TrueSRSSPath.ssNumCPairs (hj ▸ (C.speciesArcBwd (k + 1) hk (by omega)))) % 2 = 0 := by
+    have hH := speciesArcs_sum_evenH C (k + 1) hk (by omega) hC
+    have e1 := (TrueSRSSPath.ssNumCPairsH_eq  (j := k) (C.speciesArc (k + 1) hk (by omega))).symm
+    have e2 := (TrueSRSSPath.ssNumCPairsH_eq  (j := i₂)
+      (hj ▸ (C.speciesArcBwd (k + 1) hk (by omega)))).symm
+    have e3 : TrueSRSSPath.ssNumCPairsH (hj ▸ (C.speciesArcBwd (k + 1) hk (by omega)))
+        = TrueSRSSPath.ssNumCPairsH (C.speciesArcBwd (k + 1) hk (by omega)) :=
+      TrueSRSSPath.ssNumCPairsH_cast  _ hj
+    rw [e1, e2, e3]
+    exact hH
+  exact TrueSRSSPath.ssGlueCycle_even_iff_even _ _ _ h₁ h₂ hQ
+
 end CRNT.Network.TrueSRCycle
