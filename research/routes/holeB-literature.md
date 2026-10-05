@@ -380,3 +380,31 @@ by name — block existence, the block-tree, and ear-decomposition existence —
 docstring records the same gap. The residue is therefore **not** a one-lemma port; it is the
 heaviest remaining piece of the Hole B proof, and its absence is a known, deliberate, documented
 decision by earlier sessions rather than an oversight.
+
+## 12. Status after the mechanical prerequisite landed (commit `655c4d4`)
+
+`CRNT/Graph/RelPathWalk.lean` is landed, axiom-clean, and builds. It supplies the `Walk → RelPath`
+lift (`relPathOfWalk`, with the orientation as an explicit `hdir` hypothesis, discarding the `Or.inr`
+branch of `relationGraphOn`'s `Adj`), the `hinj` needed by `relPathToTrueSRSSPath`
+(`relPathOfWalk_injective_of_isPath`, via `IsPath = support.Nodup` →
+`List.nodup_iff_injective_get` on `W.support.get`), and a whole-path `RelPath.append` (needed because
+`RelPath.concat` at `CRNT/Graph/RelPath.lean:189-190` extends by exactly one vertex).
+
+**`append_injective` was deliberately NOT landed, and the reason is instructive.** With the natural
+hypothesis `hne : ∀ j, Q.vertex j ≠ P.vertex ⟨k⟩` — avoiding only the *join* vertex — injectivity is
+**false**. In the mixed branch (`a.1 ≤ k < b.1`) `hab` reads `P.vertex ⟨a.1⟩ = Q.vertex ⟨b.1 - k⟩`;
+neither `hP` nor `hQ` applies, because the two sides live in different `RelPath`s, and `hne` at index
+`k` does not apply because `a.1 ≠ k`. The correct hypothesis is full cross-avoidance
+`∀ i j, Q.vertex j ≠ P.vertex i`, which **in this application is exactly `hWoff`** — the off-cycle
+interior of `W`. So supply it at the use site; do not prove a general statement that is false.
+
+Corollary: `RelPath.concat` being single-step is not an inconvenience, it is load-bearing for this
+argument, because it is why the cross-avoidance hypothesis is *needed* at the glue rather than being
+automatic.
+
+**Remaining caller-side obligation.** `hdir` must be discharged per step from `exists_minimal_escape`
+(`:7585`): its `Adj` is `E u v ∨ E v u`, so destruct each step and take `Or.inl`.
+
+The mathematics has not been attempted yet in a way that ran to completion — the previous agent spent
+its budget on the mechanical iteration (the lift took ~25 build cycles: `getVert_mem_support`,
+`IsPath = support.Nodup`, and `Fin`-index arithmetic each needed separate unpacking).
