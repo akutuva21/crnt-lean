@@ -29,14 +29,17 @@ No parallel notion is introduced and no existing definition is changed.
 2. `CRNT.IsBlockOn.eq_of_card_inter_ge_two` and
    `CRNT.IsBlockOn.eq_of_nonseparableContaining` — **uniqueness** of the block through a
    nonseparable set of *at least two* vertices.  Uniqueness genuinely fails for a
-   one-vertex set (two triangles sharing one vertex: both are maximal nonseparable and
-   both contain it), so the two-vertex hypothesis is the honest statement; it is
-   automatically satisfied once two blocks are known to share two vertices.
+   one-vertex set (two triangles glued at a single vertex are two distinct maximal
+   nonseparable sets, both containing that vertex), so the two-vertex hypothesis is the
+   honest statement; it is automatically satisfied once two blocks are known to share two
+   vertices.
 3. `CRNT.card_inter_le_one_of_isBlockOn` — **two distinct blocks share at most one
    vertex.**
-4. `CRNT.separatesWithin_of_isBlockOn` — if `B ≠ C` are blocks and `v ∈ B ∩ C`, then `v`
-   separates *every* pair `a ∈ B \ {v}`, `b ∈ C \ {v}` inside `B ∪ C`; in particular `v`
-   is a separating vertex of `B ∪ C` (the hinge of the block-cut tree).
+4. `CRNT.separatesWithin_of_isBlockOn` and
+   `CRNT.isSeparatingVertexOn_union_of_isBlockOn` — if `B ≠ C` are blocks and
+   `v ∈ B ∩ C`, then `v` separates *every* pair `a ∈ B \ {v}`, `b ∈ C \ {v}` inside
+   `B ∪ C`; in particular `v` is a separating vertex of `B ∪ C` (the hinge of the
+   block-cut tree).
 
 The engine behind (2)–(4) is `CRNT.isNonseparableOn_union`: two nonseparable sets whose
 intersection has at least two elements have a nonseparable union, so maximality collapses
@@ -64,66 +67,86 @@ section Basic
 
 variable {E : V → V → Prop}
 
-/-- Three walks spliced together, with the support kept in the union of the three
-vertex sets. -/
-theorem walk_append3_mem {S T U : Finset V} {a b c d : V} (h1 : ExistsWalkOn E S a b)
-    (h2 : ExistsWalkOn E T b c) (h3 : ExistsWalkOn E U c d) :
-    ∃ W : SimpleGraph.Walk (relationGraph E) a d,
-      (∀ x ∈ W.support, x ∈ S ∪ T ∪ U) := by
+/-- Monotonicity of "there is a walk inside `S`" in `S`. -/
+theorem existsWalkOn_mono {S T : Finset V} (hST : S ⊆ T) {a b : V} (h : ExistsWalkOn E S a b) :
+    ExistsWalkOn E T a b := by
+  unfold ExistsWalkOn at *
+  obtain ⟨W, hW⟩ := h
+  exact ⟨W, fun x hx => hST (hW x hx)⟩
+
+/-- Two walks spliced, with the support kept in the union of the two vertex sets. -/
+theorem existsWalkOn_append_mem {S T : Finset V} {a b c : V} (h1 : ExistsWalkOn E S a b)
+    (h2 : ExistsWalkOn E T b c) :
+    ∃ W : SimpleGraph.Walk (relationGraph E) a c, (∀ x ∈ W.support, x ∈ S ∪ T) := by
   unfold ExistsWalkOn at *
   obtain ⟨W₁, hW₁⟩ := h1
   obtain ⟨W₂, hW₂⟩ := h2
-  obtain ⟨W₃, hW₃⟩ := h3
-  refine ⟨W₁.append (W₂.append W₃), ?_⟩
-  intro x hx
+  refine ⟨W₁.append W₂, fun x hx => ?_⟩
   rw [SimpleGraph.Walk.mem_support_append_iff] at hx
   rcases hx with hx | hx
-  · rcases hW₁ x hx with hx | hx
-    · exact Finset.mem_union_left _ hx
-    · exact Finset.mem_union_left _ (Finset.mem_union_right _ hx)
+  · exact Finset.mem_union_left _ (hW₁ x hx)
+  · exact Finset.mem_union_right _ (hW₂ x hx)
+
+/-- Three walks spliced, with the support kept in the union of the three vertex sets and
+the vertex `z` still avoided. -/
+theorem walk_append3_avoid_mem {S T U : Finset V} {a b c d z : V}
+    (h1 : ∃ W : SimpleGraph.Walk (relationGraph E) a b, (∀ x ∈ W.support, x ∈ S) ∧ z ∉ W.support)
+    (h2 : ∃ W : SimpleGraph.Walk (relationGraph E) b c, (∀ x ∈ W.support, x ∈ T) ∧ z ∉ W.support)
+    (h3 : ∃ W : SimpleGraph.Walk (relationGraph E) c d, (∀ x ∈ W.support, x ∈ U) ∧ z ∉ W.support) :
+    ∃ W : SimpleGraph.Walk (relationGraph E) a d,
+      (∀ x ∈ W.support, x ∈ S ∪ T ∪ U) ∧ z ∉ W.support := by
+  obtain ⟨W₁, hW₁, hn₁⟩ := h1
+  obtain ⟨W₂, hW₂, hn₂⟩ := h2
+  obtain ⟨W₃, hW₃, hn₃⟩ := h3
+  refine ⟨W₁.append (W₂.append W₃), fun x hx => ?_, ?_⟩
   · rw [SimpleGraph.Walk.mem_support_append_iff] at hx
     rcases hx with hx | hx
-    · rcases hW₂ x hx with hx | hx
-      · exact Finset.mem_union_left _ (Finset.mem_union_right _ hx)
-      · exact Finset.mem_union_right _ (Finset.mem_union_left _ hx)
-    · rcases hW₃ x hx with hx | hx
-      · exact Finset.mem_union_right _ (Finset.mem_union_right _ hx)
-      · exact Finset.mem_union_right _ (Finset.mem_union_right _ (Finset.mem_union_right _ hx))
+    · rcases hW₁ x hx with hx | hx
+      · exact Or.inl hx
+      · exact Or.inl (Or.inr hx)
+    · rw [SimpleGraph.Walk.mem_support_append_iff] at hx
+      rcases hx with hx | hx
+      · rcases hW₂ x hx with hx | hx
+        · exact Or.inr (Or.inl hx)
+        · exact Or.inr (Or.inr hx)
+      · rcases hW₃ x hx with hx | hx
+        · exact Or.inr (Or.inr hx)
+        · exact Or.inr (Or.inr (Or.inr hx))
+  · rw [SimpleGraph.Walk.mem_support_append_iff]
+    intro hx
+    rcases hx with hx | hx
+    · exact hn₁ hx
+    · rw [SimpleGraph.Walk.mem_support_append_iff] at hx
+      rcases hx with hx | hx
+      · exact hn₂ hx
+      · exact hn₃ hx
 
 /-- Splicing: a walk inside `S` from `a` to `b` followed by a walk inside `T` from `b` to
 `c` is a walk inside `S ∪ T` from `a` to `c`. -/
 theorem existsWalkOn_append {S T : Finset V} {a b c : V} (h1 : ExistsWalkOn E S a b)
     (h2 : ExistsWalkOn E T b c) : ExistsWalkOn E (S ∪ T) a c := by
-  unfold ExistsWalkOn at *
-  obtain ⟨W, hW⟩ := walk_append3_mem h1 h2 ⟨SimpleGraph.Walk.nil, by
-    intro x hx
-    simp only [SimpleGraph.Walk.support_nil, List.mem_singleton] at hx
-    subst hx
-    exact Finset.mem_union_left _ (hW c (by simpa using hW c (SimpleGraph.Walk.end_mem_support W₃)))⟩
-  exact ⟨W, fun x hx => (hW x hx).elim (fun h => Or.inl h) (fun h => Or.inr h)⟩
+  obtain ⟨W, hW⟩ := existsWalkOn_append_mem h1 h2
+  exact ⟨W, fun x hx => hW x hx⟩
 
-/-- **Key avoidance lemma.**  If the induced graph on `P` is nonseparable and `p`, `q`
-belong to `P`, neither of them being `z`, then there is a walk inside `P` from `p` to `q`
-avoiding `z`.  If `z ∉ P` this is vacuous; otherwise it is exactly the content of "no
-vertex of `P` is a separating vertex". -/
-theorem existsWalkOn_avoid {P : Finset V}
-    (hnosep : ∀ z ∈ P, ¬ IsSeparatingVertexOn E P z) {p q z : V} (hp : p ∈ P) (hq : q ∈ P)
-    (hex : ExistsWalkOn E P p q) (hpz : p ≠ z) (hqz : q ≠ z) :
+/-- **Key avoidance lemma.**  If no vertex of `P` is a separating vertex, `p`, `q` lie in
+`P`, there is a walk inside `P` from `p` to `q`, and neither endpoint is `z`, then there
+is a walk inside `P` from `p` to `q` avoiding `z`.  If `z ∉ P` this is vacuous; otherwise
+it is exactly the content of "`z` does not separate `P`". -/
+theorem existsWalkOn_avoid {P : Finset V} (hnosep : ∀ z ∈ P, ¬ IsSeparatingVertexOn E P z)
+    {p q z : V} (hp : p ∈ P) (hq : q ∈ P) (hex : ExistsWalkOn E P p q) (hpz : p ≠ z)
+    (hqz : q ≠ z) :
     ∃ W : SimpleGraph.Walk (relationGraph E) p q,
       (∀ x ∈ W.support, x ∈ P) ∧ z ∉ W.support := by
   classical
   unfold ExistsWalkOn at hex
   obtain ⟨W₀, hW₀⟩ := hex
-  have hall : ∀ W : SimpleGraph.Walk (relationGraph E) p q,
-      (∀ x ∈ W.support, x ∈ P) → z ∈ W.support := by
-    intro W hW
-    by_contra hz
-    exact (show ¬∃ W : SimpleGraph.Walk (relationGraph E) p q,
-        (∀ x ∈ W.support, x ∈ P) ∧ z ∉ W.support from ?_) ⟨W, hW, hz⟩
-  refine ⟨W₀, hW₀, ?_⟩
-  by_contra hcon
-  have hzP : z ∈ P := hW₀ z (hall W₀ hW₀)
-  exact hnosep z hzP ⟨p, hp, q, hq, hpz, hqz, ⟨W₀, hW₀⟩, fun W hW => hall W hW⟩
+  by_cases hex2 : ∃ W : SimpleGraph.Walk (relationGraph E) p q,
+      (∀ x ∈ W.support, x ∈ P) ∧ z ∉ W.support
+  · obtain ⟨W, hW, hnz⟩ := hex2
+    exact ⟨W, hW, hnz⟩
+  · refine ⟨W₀, hW₀, ?_⟩
+    intro hcon
+    exact hex2 ⟨W₀, hW₀, hcon⟩
 
 /-- The avoidance lemma for a nonseparable set. -/
 theorem existsWalkOn_avoid_of_nonseparable {P : Finset V} (hP : IsNonseparableOn E P)
@@ -131,110 +154,6 @@ theorem existsWalkOn_avoid_of_nonseparable {P : Finset V} (hP : IsNonseparableOn
     ∃ W : SimpleGraph.Walk (relationGraph E) p q,
       (∀ x ∈ W.support, x ∈ P) ∧ z ∉ W.support :=
   existsWalkOn_avoid hP.2 hp hq (hP.1 hp hq) hpz hqz
-
-/-- Connectivity of a union along an explicit bridging walk: if `S` and `T` are connected
-vertex sets and a walk inside `S ∪ T` runs from a vertex of `S` to a vertex of `T`, then
-`S ∪ T` is connected. -/
-theorem connectedOn_union_of_walkOn {S T : Finset V} (hS : ConnectedOn E S)
-    (hT : ConnectedOn E T) {a b : V} (W : SimpleGraph.Walk (relationGraph E) a b)
-    (ha : a ∈ S) (hb : b ∈ T) (hW : ∀ x ∈ W.support, x ∈ S ∪ T) : ConnectedOn E (S ∪ T) := by
-  classical
-  have key : ∀ (a b : V) (W : SimpleGraph.Walk (relationGraph E) a b),
-      (∀ x ∈ W.support, x ∈ S ∪ T) → a ∈ S → b ∈ T → ConnectedOn E (S ∪ T) := by
-    intro a b W
-    induction W with
-    | nil =>
-        intro hW ha hb
-        have haT : a ∈ T := hb
-        intro p hp q hq
-        by_cases hpS : p ∈ S
-        · by_cases hqS : q ∈ S
-          · exact hS p hpS q hqS
-          · by_cases hpT : p ∈ T
-            · by_cases hqT : q ∈ T
-              · exact hT p hpT q hqT
-              · exact existsWalkOn_append (hS p hpS a ha) (hT a haT q (by
-                  rcases hq with hq | hq
-                  · exact False.elim (hqS hq)
-                  · exact hq))
-            · exact False.elim (by
-                rcases hp with hp | hp
-                · exact hpS hp
-                · exact hpT hp)
-        · by_cases hpT : p ∈ T
-          · by_cases hqT : q ∈ T
-            · exact hT p hpT q hqT
-            · have hqS : q ∈ S := by
-                rcases hq with hq | hq
-                · exact hq
-                · exact False.elim (hqT hq)
-              exact existsWalkOn_append (hT p hpT a haT) (hS a ha q hqS)
-          · exact False.elim (by
-              rcases hp with hp | hp
-              · exact hpS hp
-              · exact hpT hp)
-    | @cons a' a'' _ hadj W ih =>
-        intro hW ha hb
-        have ha''mem : a'' ∈ S ∪ T := by
-          refine List.mem_cons_of_mem a'' ?_
-          exact hW a'' (by
-            simpa only [SimpleGraph.Walk.support_cons, List.mem_cons] using
-              (Or.inr (by simp)))
-        by_cases ha''S : a'' ∈ S
-        · refine ih (fun x hx => ?_) ha''S hb
-          rw [SimpleGraph.Walk.support_cons, List.mem_cons] at hx
-          rcases hx with rfl | hx
-          · exact ha''
-          · exact hW x (by
-              simp only [SimpleGraph.Walk.support_cons, List.mem_cons]
-              exact Or.inr hx)
-        · have ha''T : a'' ∈ T := by
-            rcases ha''mem with ha''mem | ha''mem
-            · exact False.elim (ha''S ha''mem)
-            · exact ha''mem
-          intro p hp q hq
-          by_cases hpS : p ∈ S
-          · by_cases hqS : q ∈ S
-            · exact hS p hpS q hqS
-            · by_cases hpT : p ∈ T
-              · by_cases hqT : q ∈ T
-                · exact hT p hpT q hqT
-                · exact existsWalkOn_append (hS p hpS a' ha) (by
-                    unfold ExistsWalkOn
-                    refine ⟨SimpleGraph.Walk.cons (SimpleGraph.Adj.symm hadj)
-                      SimpleGraph.Walk.nil, ?_⟩
-                    intro x hx
-                    rcases hx with hx | hx
-                    · exact Finset.mem_union_left _ (by simpa using hx)
-                    · exact Finset.mem_union_right _ (by simpa using hx)) (hT a'' ha''T q (by
-                        rcases hq with hq | hq
-                        · exact False.elim (hqS hq)
-                        · exact hq))
-              · exact False.elim (by
-                  rcases hp with hp | hp
-                  · exact hpS hp
-                  · exact hpT hp)
-          · by_cases hqT : q ∈ T
-            · exact existsWalkOn_append (hT p hpT a'' ha''T) (by
-                unfold ExistsWalkOn
-                refine ⟨SimpleGraph.Walk.cons hadj SimpleGraph.Walk.nil, ?_⟩
-                intro x hx
-                rcases hx with hx | hx
-                · exact Finset.mem_union_left _ (by simpa using hx)
-                · exact Finset.mem_union_right _ (by simpa using hx)) (hS a'' ha''S q (by
-                    rcases hq with hq | hq
-                    · exact False.elim (hqS hq)
-                    · exact hq))
-            · have hqS : q ∈ S := by
-                rcases hq with hq | hq
-                · exact hq
-                · exact False.elim (hqT hq)
-              have hpT : p ∈ T := by
-                rcases hp with hp | hp
-                · exact False.elim (hpS hp)
-                · exact hp
-              exact existsWalkOn_append (hT p hpT a'' ha''T) (hS a'' ha''S q hqS)
-  exact key a b W hW ha hb
 
 /-- Connectivity of a union: two connected vertex sets with a common vertex. -/
 theorem connectedOn_union {S T : Finset V} (hS : ConnectedOn E S) (hT : ConnectedOn E T)
@@ -327,8 +246,9 @@ section Blocks
 variable {E : V → V → Prop}
 
 /-- **Existence of a block through every nonseparable set.**  Induction on
-`#(univ \ S)`: either `S` is already maximal, or a strictly larger nonseparable set `T`
-exists and the ambient complement strictly shrinks, so the induction applies to `T`. -/
+`#(univ \ S)`: either `S` is already maximal among nonseparable supersets, or a strictly
+larger nonseparable set `T` exists, and then the ambient complement strictly shrinks, so
+the induction hypothesis applies to `T`. -/
 theorem exists_isBlockOn_of_isNonseparableOn [Fintype V] [DecidableEq V] {S : Finset V}
     (hS : IsNonseparableOn E S) : ∃ B, IsBlockOn E B ∧ S ⊆ B := by
   classical
@@ -344,11 +264,10 @@ theorem exists_isBlockOn_of_isNonseparableOn [Fintype V] [DecidableEq V] {S : Fi
         · push_neg at hmax
           obtain ⟨T, hT, hST, hne⟩ := hmax
           have hsd : ((Finset.univ : Finset V) \ T) ⊂ ((Finset.univ : Finset V) \ S) := by
-            refine Finset.ssubset_iff_subset_ne.mpr
-              ⟨Finset.sdiff_subset_sdiff hST, ?_⟩
+            refine Finset.ssubset_iff_subset_ne.mpr ⟨Finset.sdiff_subset_sdiff hST, ?_⟩
             intro hsub
             obtain ⟨x, hxT, hxS⟩ := Finset.sdiff_nonempty.mpr (fun h => hne h)
-            exact hsub x hxT hxS
+            exact hsub x (Finset.mem_sdiff.mpr ⟨Finset.mem_univ x, hxS⟩) hxT
           have hlt : ((Finset.univ : Finset V) \ T).card < n :=
             lt_of_lt_of_le (Finset.card_lt_card hsd) hn
           obtain ⟨B, hB, hTB⟩ := ih _ hlt T (le_of_lt hlt) hT
@@ -369,9 +288,9 @@ vertex are two distinct maximal nonseparable sets both containing that vertex. -
 theorem IsBlockOn.eq_of_nonseparableContaining {S B C : Finset V} (hB : IsBlockOn E B)
     (hC : IsBlockOn E C) (hSB : S ⊆ B) (hSC : S ⊆ C) (h2 : 2 ≤ S.card) : B = C :=
   hB.eq_of_card_inter_ge_two hC (by
-    have : S ⊆ B ∩ C := Finset.Subset.inter hSB hSC
+    have hsub : S ⊆ B ∩ C := Finset.Subset.inter hSB hSC
     calc 2 ≤ S.card := h2
-      _ ≤ (B ∩ C).card := Finset.card_le_card this)
+      _ ≤ (B ∩ C).card := Finset.card_le_card hsub)
 
 /-- **The key disjointness theorem: two distinct blocks share at most one vertex.** -/
 theorem card_inter_le_one_of_isBlockOn {B C : Finset V} (hB : IsBlockOn E B)
@@ -381,34 +300,167 @@ theorem card_inter_le_one_of_isBlockOn {B C : Finset V} (hB : IsBlockOn E B)
   exact hne (hB.eq_of_card_inter_ge_two hC h2)
 
 /-- Two distinct blocks meeting in a vertex `v` meet in exactly that vertex. -/
-theorem eq_singleton_inter_of_isBlockOn {B C : Finset V} (hB : IsBlockOn E B)
+theorem inter_eq_singleton_of_isBlockOn {B C : Finset V} (hB : IsBlockOn E B)
     (hC : IsBlockOn E C) {v : V} (hne : B ≠ C) (hv : v ∈ B ∩ C) : B ∩ C = {v} := by
   classical
-  refine Finset.eq_singleton_of_subset (fun x hx => ?_) hv
-  have h1 : (B ∩ C).card ≤ 1 := card_inter_le_one_of_isBlockOn hB hC hne
-  have h2 : x = v := by
+  have hle : (B ∩ C).card ≤ 1 := card_inter_le_one_of_isBlockOn hB hC hne
+  have hne0 : (B ∩ C).card ≠ 0 := by
+    rintro hz
+    rw [Finset.card_eq_zero.mp hz] at hv
+    exact Finset.not_mem_empty v hv
+  obtain ⟨x, hx⟩ := Finset.card_eq_one.mp (by omega)
+  have hvx : v = x := Finset.mem_singleton.mp (hx ▸ hv)
+  rw [hx]
+  exact hvx.symm
+
+/-- A distinct block always has a vertex outside the other one. -/
+theorem exists_notMem_of_isBlockOn {B C : Finset V} (hB : IsBlockOn E B)
+    (hC : IsBlockOn E C) (hne : ¬ C ⊆ B) : ∃ x, x ∈ C ∧ x ∉ B := by
+  by_contra hcon
+  exact hne (fun x hx => by
     by_contra hc
-    have : (B ∩ C).card ≥ 2 := by
-      have hxv : x ≠ v := fun h => hc h.symm
-      have : (B ∩ C) \ {v} ≠ ∅ := by
-        refine fun h => ?_
-        have : B ∩ C = {v} := by
-          ext y
-          constructor
-          · intro hy
-            by_contra hyv
-            have : y = v := by
-              by_contra hc
-              exact h1 (by
-                have : (B ∩ C) \ {v} ≠ ∅ := fun h => ?_
-                sorry)
-            exact False.elim (hyv this.symm)
-          · intro hy; rw [hy]; exact hv
-        exact this ▸ h
-      exact this
-    omega
-  exact h2
+    exact hcon ⟨x, hx, hc⟩)
+
+/-- In particular, two distinct blocks are not comparable. -/
+theorem not_subset_of_isBlockOn {B C : Finset V} (hB : IsBlockOn E B) (hC : IsBlockOn E C)
+    (hne : B ≠ C) : ¬ C ⊆ B := fun h => hne (hB.2 C hC.1 h)
 
 end Blocks
+
+section Bridge
+
+variable {E : V → V → Prop}
+
+/-- **The hinge theorem.**  If `B` and `C` are two distinct blocks and `v` is their common
+vertex, then `v` separates *every* pair `a ∈ B \ {v}`, `b ∈ C \ {v}` inside `B ∪ C`.  In
+particular `v` is a separating vertex of the union `B ∪ C`.
+
+Proof.  Suppose a walk inside `B ∪ C` from `a` to `b` avoids `v`.  Then
+`K := B ∪ (C \ {v})` is nonseparable: it is connected (route through `v`), and for every
+`w ∈ K` there is a walk inside `K` from any `p` to any `q` — both different from `w` —
+avoiding `w`; if `w ≠ v`, join `p` to `v` and `v` to `q` inside whichever of `B`, `C`
+contains them while avoiding `w`, if `w = v`, the two sides are joined by the very walk
+that was assumed to avoid `v`.  Since `K ⊋ B` (it contains `b`), that contradicts the
+maximality of `B`. -/
+theorem separatesWithin_of_isBlockOn {B C : Finset V} (hB : IsBlockOn E B)
+    (hC : IsBlockOn E C) {v : V} (hv : v ∈ B ∩ C) (hne : B ≠ C) {a b : V} (ha : a ∈ B)
+    (hav : a ≠ v) (hb : b ∈ C) (hbv : b ≠ v) : SeparatesWithin E (B ∪ C) v a b := by
+  classical
+  obtain ⟨hvB, hvC⟩ := Finset.mem_inter.mp hv
+  have hBC : B ∩ C = {v} := inter_eq_singleton_of_isBlockOn hB hC hne hv
+  refine ⟨hav, hbv, existsWalkOn_append (hB.1.1 ha hvB) (hC.1.1 hvC hb), ?_⟩
+  intro W hW
+  by_contra hnv
+  -- the walk `W` from `a` to `b` avoids `v`
+  set K : Finset V := B ∪ (C \ {v}) with hKdef
+  have hmem : ∀ x, x ∈ K ↔ x ∈ B ∨ (x ∈ C ∧ x ≠ v) := by
+    intro x
+    rw [hKdef, Finset.mem_union, Finset.mem_sdiff]
+  have hKB : B ⊆ K := fun x hx => (hmem x).mpr (Or.inl hx)
+  have hKC : C ⊆ K := fun x hx => by
+    by_cases hxv : x = v
+    · exact (hmem x).mpr (Or.inl (hxv ▸ hvB))
+    · exact (hmem x).mpr (Or.inr ⟨hx, hxv⟩)
+  have hbK : b ∈ K := (hmem b).mpr (Or.inr ⟨hb, hbv⟩)
+  have hbnotB : b ∉ B := by
+    intro hbB
+    have hbv' : b = v := Finset.mem_singleton.mp (hBC ▸ Finset.mem_inter.mpr ⟨hbB, hb⟩)
+    exact hbv hbv'
+  have hWK : ∀ x ∈ W.support, x ∈ K := fun x hx => (hmem x).mpr (Or.inl (hW x hx))
+  -- `K` is connected: every vertex of `K` is joined to `v` inside `K`.
+  have htoV : ∀ {x : V}, x ∈ K → ExistsWalkOn E K x v := by
+    intro x hx
+    rcases (hmem x).mp hx with hx | hx
+    · exact existsWalkOn_mono hKB (hB.1.1 hx hvB)
+    · obtain ⟨hxc, _⟩ := hx
+      exact existsWalkOn_mono hKC (hC.1.1 hxc hvC)
+  have hfromV : ∀ {x : V}, x ∈ K → ExistsWalkOn E K v x := by
+    intro x hx
+    rcases (hmem x).mp hx with hx | hx
+    · exact existsWalkOn_mono hKB (hB.1.1 hvB hx)
+    · obtain ⟨hxc, _⟩ := hx
+      exact existsWalkOn_mono hKC (hC.1.1 hvC hxc)
+  have hKconn : ConnectedOn E K := by
+    intro p hp q hq
+    obtain ⟨W', hW'⟩ := existsWalkOn_append_mem (htoV hp) (hfromV hq)
+    exact ⟨W', fun x hx => hW' x hx⟩
+  -- concatenation inside `K`
+  have hcatK : ∀ {x y z : V} (S T : Finset V) (hS : S ⊆ K) (hT : T ⊆ K)
+      (h1 : ExistsWalkOn E S x y) (h2 : ExistsWalkOn E T y z) : ExistsWalkOn E K x z := by
+    intro x y z S T hS hT h1 h2
+    obtain ⟨W', hW'⟩ := existsWalkOn_append_mem h1 h2
+    exact ⟨W', fun x hx => by
+      rw [hW' x hx] at *
+      rcases hx with hx | hx
+      · exact hS hx
+      · exact hT hx⟩
+  -- `K` has no separating vertex
+  have hKnosep : ∀ w ∈ K, ¬ IsSeparatingVertexOn E K w := by
+    intro w hw
+    rintro ⟨p, hp, q, hq, hpw, hqw, hwalk, hall⟩
+    have hkill : ∀ (W' : SimpleGraph.Walk (relationGraph E) p q),
+        (∀ z ∈ W'.support, z ∈ K) → w ∉ W'.support → False :=
+      fun W' hW' hnv' => hnv' (hall W' hW')
+    rcases (hmem p).mp hp with hp | hp <;> rcases (hmem q).mp hq with hq | hq
+    · -- both in `B`
+      obtain ⟨W', hW', hnv'⟩ := existsWalkOn_avoid_of_nonseparable hB.1 hp hq hpw hqw
+      exact hkill W' (fun z hz => hKB (hW' z hz)) hnv'
+    · obtain ⟨hqc, hqv⟩ := hq
+      by_cases hpv : p = v
+      · -- then `w ≠ v`, and `p = v` is in `C` too
+        obtain ⟨W', hW', hnv'⟩ := existsWalkOn_avoid_of_nonseparable hC.1 hvC hqc hpw hqw
+        exact hkill W' (fun z hz => hKC (hW' z hz)) hnv'
+      · by_cases hwv : w = v
+        · obtain ⟨W', hW', hnv'⟩ := walk_append3_avoid_mem
+            (existsWalkOn_avoid_of_nonseparable hB.1 hp hvB hpw hwv)
+            ⟨W, fun x hx => hW x hx, hnv⟩
+            (existsWalkOn_avoid_of_nonseparable hC.1 hvC hqc hwv hqw)
+          exact hkill W' (fun z hz => hW' z hz) hnv'
+        · obtain ⟨W', hW', hnv'⟩ := walk_append3_avoid_mem
+            (existsWalkOn_avoid_of_nonseparable hB.1 hp hvB hpw hwv)
+            ⟨SimpleGraph.Walk.nil, fun _ _ => hKV, by simp⟩
+            (existsWalkOn_avoid_of_nonseparable hC.1 hvC hqc hwv hqw)
+          exact hkill W' (fun z hz => hW' z hz) hnv'
+    · obtain ⟨hpc, hpv'⟩ := hp
+      by_cases hqv : q = v
+      · obtain ⟨W', hW', hnv'⟩ := walk_append3_avoid_mem
+          (existsWalkOn_avoid_of_nonseparable hC.1 hpc hvC hpw hwv)
+          ⟨SimpleGraph.Walk.nil, fun _ _ => hKV, by simp⟩
+          (existsWalkOn_avoid_of_nonseparable hB.1 hvB hq hwv hqw)
+        exact hkill W' (fun z hz => hW' z hz) hnv'
+      · by_cases hwv : w = v
+        · obtain ⟨W', hW', hnv'⟩ := walk_append3_avoid_mem
+            ⟨W.reverse, fun x hx => hx, hnv⟩
+            ⟨SimpleGraph.Walk.nil, fun _ _ => hKV, by simp⟩
+            (existsWalkOn_avoid_of_nonseparable hB.1 hvB hq hwv hqw)
+          exact hkill W' (fun z hz => hW' z hz) hnv'
+        · obtain ⟨W', hW', hnv'⟩ := walk_append3_avoid_mem
+            (existsWalkOn_avoid_of_nonseparable hC.1 hpc hvC hpw hwv)
+            ⟨SimpleGraph.Walk.nil, fun _ _ => hKV, by simp⟩
+            (existsWalkOn_avoid_of_nonseparable hB.1 hvB hq hwv hqw)
+        exact hkill W' (fun z hz => hW' z hz) hnv'
+    · obtain ⟨hpc, hpv'⟩ := hp
+      obtain ⟨hqc, hqv'⟩ := hq
+      obtain ⟨W', hW', hnv'⟩ := existsWalkOn_avoid_of_nonseparable hC.1 hpc hqc hpw hqw
+      exact hkill W' (fun z hz => hKC (hW' z hz)) hnv'
+  have hK : IsNonseparableOn E K := ⟨hKconn, hKnosep⟩
+  exact False.elim (hbnotB ((hB.2 K hK hKB) ▸ hbK))
+
+/-- Consequence of the hinge theorem: the common vertex of two distinct blocks is a
+separating vertex of their union. -/
+theorem isSeparatingVertexOn_union_of_isBlockOn {B C : Finset V} (hB : IsBlockOn E B)
+    (hC : IsBlockOn E C) {v : V} (hv : v ∈ B ∩ C) (hne : B ≠ C) :
+    IsSeparatingVertexOn E (B ∪ C) v := by
+  classical
+  obtain ⟨a, ha, haB⟩ := exists_notMem_of_isBlockOn hB.1 hC.1 (not_subset_of_isBlockOn hB hC hne)
+  have hav : a ≠ v := by
+    intro h
+    subst h
+    rw [inter_eq_singleton_of_isBlockOn hB hC hne hv] at haB
+    simp at haB
+  exact ⟨a, Finset.mem_union_left _ ha, a, Finset.mem_union_left _ ha,
+    separatesWithin_of_isBlockOn hB hC hv hne ha hav ha hav⟩
+
+end Bridge
 
 end CRNT

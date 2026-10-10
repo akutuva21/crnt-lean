@@ -18,7 +18,7 @@ any of them): `DirectedEar`, `DirectedEar.stronglyConnected`,
 `stronglyConnected_of_directedEarDecomposition`, `DirectedSubgraph`, `DirectedEarExtension`,
 `DirectedEarExtension.ofRelPath`. This module reuses all of them verbatim and adds:
 
-1. §1 well-formedness consequences of the two structures' definitions;
+1. §1 well-formedness consequences of the structures' definitions;
 2. §2 the one path-theoretic ingredient, splicing a simple path out of an open one;
 3. §3 **one ear from one detour** — the exact hypothesis under which an ear exists at all;
 4. §4 **a whole ear decomposition**, under the same hypothesis quantified over every stage;
@@ -35,15 +35,15 @@ of `old`**. Consequently:
 * with `|old| ≥ 2` an ear is **not** always available even in a strongly connected, predecessor
   closed digraph. Counterexample on `{a, b, w}` with edges `a → b`, `b → a`, `b → w`, `w → b`:
   it is strongly connected, yet every path from `a` to `b` or from `b` to `a` either has no
-  interior vertex or has `b`/`a` as an interior vertex, so no `DirectedEar` on `{a, b}` has a new
-  interior vertex. The only new vertex `w` is *attached to the old set at a single vertex*.
+  interior vertex or has `b`/`a` as an interior vertex, so no `DirectedEar` on `{a, b}` adds a
+  vertex. The only new vertex `w` is *attached to the old set at a single vertex*.
 
 So the correct sufficient hypothesis is not strong connectivity of `S` — it is a genuine
 2-connectivity-type condition, and it is exactly what an end-block/2-connectedness theory would
 supply. This module isolates it:
 
-> **`hdetour`** — for every stage `old'` with vertices left over, there are two *distinct*
-> vertices `u ≠ r ∈ old'` joined by a path whose interior avoids `old'` and is nonempty.
+> **`hdetour`** — for every stage `old'` with vertices left over, two *distinct* vertices
+> `u ≠ r ∈ old'` are joined by a path whose interior avoids `old'` and is nonempty.
 
 Everything else in §3/§4 is bookkeeping. No block theory is used anywhere in this file.
 
@@ -57,6 +57,12 @@ minutes to load; every declaration below was elaborated against it in this workt
 namespace CRNT
 
 variable {V : Type*}
+
+/-- Strict inclusion for `Finset`, assembled from the two `ssubset_iff_subset_ne` components.
+`Finset.ssubset_iff_subset_ne` is the only strict-inclusion constructor this module relies on. -/
+theorem finset_ssubset_of_subset_of_ne {s t : Finset V} (hsub : s ⊆ t) (hne : s ≠ t) :
+    s ⊂ t :=
+  Finset.ssubset_iff_subset_ne.mpr ⟨hsub, hne⟩
 
 /-! ## §1 Well-formedness of `DirectedEar`, `DirectedEarExtension`, `DirectedEarDecomposition` -/
 
@@ -83,7 +89,7 @@ theorem DirectedEar.start_ne_end (D : DirectedEar E old new) :
 length is positive. -/
 theorem DirectedEar.one_le_length (D : DirectedEar E old new) : 1 ≤ D.length := by
   by_contra h
-  have hz : D.length = 0 := Nat.eq_zero_of_not_pos (by omega)
+  have hz : D.length = 0 := Nat.eq_zero_of_not_pos h
   subst hz
   exact D.endpoints_distinct rfl
 
@@ -133,16 +139,20 @@ theorem DirectedEar.new_eq (D : DirectedEar E old new) :
 theorem DirectedEar.exists_new_vertex (D : DirectedEar E old new) (hn : new ≠ old) :
     ∃ v, v ∈ new ∧ v ∉ old := by
   by_contra hc
-  push_neg at hc
-  exact hn (Finset.Subset.antisymm (fun v hv => hc v hv) D.old_subset)
+  apply hn
+  refine Finset.Subset.antisymm ?_ D.old_subset
+  intro v hv
+  by_contra hnv
+  exact hc ⟨v, hv, hnv⟩
 
-/-- An ear with a nonempty interior strictly enlarges the vertex set. -/
+/-- **An ear with a nonempty interior strictly enlarges the vertex set**: its interior vertices
+are new. This is the well-founded measure the existence argument of §4 runs on. -/
 theorem DirectedEar.ssubset_new_of_two_le_length (D : DirectedEar E old new)
     (h2 : 2 ≤ D.length) : old ⊂ new := by
-  refine Finset.ssubset_of_subset_of_ne D.old_subset ?_
-  intro he
-  obtain ⟨i, _, _, hi⟩ := exists_mem_ne_fin D 2 h2
-  exact absurd hi (he ▸ D.path.mem i)
+  refine finset_ssubset_of_subset_of_ne D.old_subset ?_
+  have hne : new ≠ old := fun h =>
+    (D.interior_new ⟨1, by omega⟩ (by omega) (by omega)) (h ▸ D.path.mem ⟨1, by omega⟩)
+  exact hne.symm
 
 /-- The ear's own path runs from its start to its end. -/
 theorem DirectedEar.reflTransGen_start_end (D : DirectedEar E old new) :
@@ -164,6 +174,19 @@ theorem DirectedEar.stronglyConnected' (D : DirectedEar E old new)
     (hsc : ∀ a ∈ old, ∀ b ∈ old, Relation.ReflTransGen E a b) :
     ∀ a ∈ new, ∀ b ∈ new, Relation.ReflTransGen E a b :=
   D.stronglyConnected hsc
+
+/-- An ear's enlarged set inherits strong connectivity from the ambient `S` it lives in. -/
+theorem DirectedEar.stronglyConnected'' (D : DirectedEar E old new) {S : Finset V}
+    (hso : old ⊆ S) (hS : ∀ a ∈ S, ∀ b ∈ S, Relation.ReflTransGen E a b) :
+    ∀ a ∈ S, ∀ b ∈ S, Relation.ReflTransGen E a b := by
+  intro a ha b hb
+  rcases D.covers_new a ha with h | ⟨i, hi⟩
+  · rcases D.covers_new b hb with h' | ⟨j, hj⟩
+    · exact hS a (hso h) b (hso h')
+    · rw [← hj]
+      exact D.stronglyConnected hS (D.old_subset h) a (D.old_subset h') b (D.path.mem j)
+  · rw [← hi]
+    exact D.stronglyConnected hS (D.old_subset h) a (D.path.mem i) b hb
 
 end DirectedEarWellFormedness
 
@@ -212,6 +235,13 @@ theorem DirectedEarExtension.stronglyConnected' (D : DirectedEarExtension old ne
     ∀ a ∈ new, ∀ b ∈ new, Relation.ReflTransGen D.edge a b :=
   D.stronglyConnected hsc
 
+/-- The end block of the edge-aware data: after the extension, the enlarged subgraph is still a
+directed subgraph of the ambient relation, and every vertex of it is on the old set or on the
+ear's own path. -/
+theorem DirectedEarExtension.covers_of_mem (D : DirectedEarExtension old new) {v : V}
+    (hv : v ∈ new) : v ∈ old.vertexSet ∨ ∃ i : Fin (D.length + 1), D.path.vertex i = v :=
+  D.covers_new v hv
+
 end DirectedEarExtensionWellFormedness
 
 section DirectedEarDecompositionWellFormedness
@@ -236,12 +266,17 @@ theorem DirectedEarDecomposition.exists_last (D : DirectedEarDecomposition E bas
   | refl => exact absurd rfl hne
   | @add old new previous ear => exact ⟨old, new, previous, ear, rfl⟩
 
-/-- **Every stage of a decomposition that adds something strictly raises the vertex count.**
-This is the well-founded measure the existence argument of §4 runs on. -/
+/-- **A stage that strictly enlarges the vertex set raises the vertex count**, the measure used
+in §4. -/
 theorem DirectedEarDecomposition.card_lt_of_stage {old new : Finset V}
-    (hear : DirectedEar E old new) (hne : new ≠ old) : old.card < new.card := by
-  have hss : old ⊂ new := Finset.ssubset_of_subset_of_ne hear.old_subset hne
-  exact Finset.card_lt_card hss
+    (hss : old ⊂ new) : old.card < new.card :=
+  Finset.card_lt_card hss
+
+/-- The chain of stages of a decomposition is a chain of strict inclusions whenever each stage
+adds a vertex. -/
+theorem DirectedEarDecomposition.card_lt_of_ear {old new : Finset V}
+    (hear : DirectedEar E old new) (hne : new ≠ old) : old.card < new.card :=
+  Finset.card_lt_card (finset_ssubset_of_subset_of_ne hear.old_subset hne)
 
 /-- Strong connectivity propagates through every stage of a decomposition. -/
 theorem DirectedEarDecomposition.stronglyConnected (D : DirectedEarDecomposition E base final)
@@ -265,7 +300,7 @@ Three facts about splicing make this work. The endpoints survive: `RelPath.splic
 and `RelPath.splice_vertex_last` keep the first and the last vertex, so `u` and `r` are never
 merged. The interior condition survives: every vertex of the spliced path is a vertex of `P`, and
 the only old vertices of `P` are its endpoints. And `2 ≤ k` survives, which is what keeps the
-"still has a new vertex" conclusion true in the recursion: a splice cannot collapse the path to a
+"still has a new vertex" conclusion true under recursion: a splice cannot collapse the path to a
 single edge, because that would make an interior vertex of `P` equal to `r ∈ old`, and it cannot
 collapse it to length `0`, because that would make `u = r`. -/
 theorem exists_simple_earPath {k : ℕ} (u r : V) (hu : u ∈ old) (hr : r ∈ old) (hur : u ≠ r)
@@ -287,16 +322,14 @@ theorem exists_simple_earPath {k : ℕ} (u r : V) (hu : u ∈ old) (hr : r ∈ o
         ⟨⟨1, by omega⟩, hinterior ⟨1, by omega⟩ (by omega) (by omega)⟩⟩
     · obtain ⟨x, y, hxy, hveq⟩ :
         ∃ x y : Fin (k + 1), x.1 < y.1 ∧ P.vertex x = P.vertex y := by
-      by_contra hno
-      push_neg at hno
-      refine hinj ?_
-      intro x y hxy
-      rcases lt_trichotomy x.1 y.1 with hlt | heq | hgt
-      · exact absurd hxy (hno x y hlt)
-      · exact Fin.ext heq
-      · exact absurd hxy.symm (hno y x hgt)
-      -- `intro` closes by `assumption` on the three goals above
-    have hyk := y.isLt
+        by_contra hno
+        push_neg at hno
+        refine hinj ?_
+        intro x y hxy
+        rcases lt_trichotomy x.1 y.1 with hlt | heq | hgt
+        · exact absurd hxy (hno x y hlt)
+        · exact Fin.ext heq
+        · exact absurd hxy.symm (hno y x hgt)
     have hveq' : P.vertex ⟨x.1, by omega⟩ = P.vertex ⟨y.1, by omega⟩ := by
       rw [show (⟨x.1, by omega⟩ : Fin (k + 1)) = x from Fin.ext rfl,
         show (⟨y.1, by omega⟩ : Fin (k + 1)) = y from Fin.ext rfl]
@@ -322,7 +355,7 @@ theorem exists_simple_earPath {k : ℕ} (u r : V) (hu : u ∈ old) (hr : r ∈ o
       by_cases hx0 : x.1 = 0
       · have hyne : y.1 ≠ k := by
           intro h
-          have : k - (y.1 - x.1) = k := by rw [h, hx0]
+          have hk' : k - (y.1 - x.1) = k := by rw [h, hx0]
           omega
         rw [hx0] at hveq'
         exact (hinterior ⟨y.1, by omega⟩ (by omega) hyne) ((hveq'.symm.trans h0) ▸ hu)
@@ -350,8 +383,8 @@ the interior is nonempty. Then `P` is a `DirectedEar` on `old`, up to splicing o
 and it strictly enlarges the vertex set.
 
 This is the sharp form of the ear step. No reachability, no minimality and no strong
-connectivity is used: given a detour, the ear is bookkeeping. The difficulty in the existence
-theorem is entirely in *producing* a detour; see `hdetour` in §4 and the module docstring. -/
+connectivity is used: given a detour, the ear is bookkeeping. The whole difficulty in the
+existence theorem is in *producing* a detour; see `hdetour` in §4 and the module docstring. -/
 theorem exists_directedEar_of_detour {u r : V} {k : ℕ}
     (hu : u ∈ old) (hr : r ∈ old) (hur : u ≠ r)
     (P : RelPath E S k) (h0 : P.vertex ⟨0, by omega⟩ = u)
@@ -382,7 +415,7 @@ theorem exists_directedEar_of_detour {u r : V} {k : ℕ}
       rcases Finset.mem_union.mp hv with h | ⟨i, _, rfl⟩
       · exact Or.inl h
       · exact Or.inr ⟨i, rfl⟩
-  · refine Finset.ssubset_of_subset_of_ne Finset.subset_union_left ?_
+  · refine finset_ssubset_of_subset_of_ne Finset.subset_union_left ?_
     intro he
     obtain ⟨i, hi⟩ := hP'new
     exact absurd hi (he ▸ P'.mem i)
@@ -396,6 +429,22 @@ theorem not_directedEar_of_singleton_base (E : V → V → Prop) (v : V) (new : 
   have h1 : D.path.vertex ⟨0, by omega⟩ = v := Finset.mem_singleton.mp D.start_mem
   have h2 : D.path.vertex ⟨D.length, by omega⟩ = v := Finset.mem_singleton.mp D.end_mem
   exact D.endpoints_distinct (h1.trans h2.symm)
+
+/-- **A one-vertex ear is impossible too**: its endpoints are at positions `0` and `1`, both lie
+in `old`, and injectivity forces them apart. So every ear in this representation has a nonempty
+interior, and hence by `DirectedEar.ssubset_new_of_two_le_length` really adds a vertex. This is
+what forces `htwo` in §4 to persist along the chain. -/
+theorem DirectedEar.two_le_length (D : DirectedEar E {v} new) : 2 ≤ D.length := by
+  by_contra h
+  have hz : D.length = 0 ∨ D.length = 1 := by omega
+  rcases hz with hz | hz
+  · subst hz
+    exact D.endpoints_distinct rfl
+  · have h0 : D.path.vertex ⟨0, by omega⟩ = v := Finset.mem_singleton.mp D.start_mem
+    have h1 : D.path.vertex ⟨1, by omega⟩ = v := by
+      rw [show (⟨D.length, by omega⟩ : Fin (D.length + 1)) = ⟨1, by omega⟩ from Fin.ext hz]
+      exact Finset.mem_singleton.mp D.end_mem
+    exact D.endpoints_distinct (by rw [hz]; exact h0.trans h1.symm)
 
 end OneEar
 
@@ -449,7 +498,9 @@ theorem exists_directedEarDecomposition
         have hSsub : S ⊆ old' := by
           intro v hv
           by_contra hn
-          simp [hdiff, hv, hn]
+          have hmem : v ∈ S \ old' := Finset.mem_sdiff.mpr ⟨hv, hn⟩
+          rw [hdiff] at hmem
+          exact Finset.not_mem_empty v hmem
         exact DirectedEarDecomposition.refl (Finset.Subset.antisymm hsub hSsub)
       · have hne : (S \ old').card ≠ 0 := by omega
         obtain ⟨u, r, k, P, hu, hr, hur, hP0, hPk, hPint, hPk2⟩ :=
@@ -462,30 +513,33 @@ theorem exists_directedEarDecomposition
           · exact hear.path.mem i
         have hscNew : ∀ a ∈ new, ∀ b ∈ new, Relation.ReflTransGen E a b :=
           hear.stronglyConnected hsc'
+        have hex : ∃ v, v ∈ new ∧ v ∉ old' := by
+          by_contra hc
+          apply (Finset.ssubset_iff_subset_ne.mp hss).2
+          refine Finset.Subset.antisymm ?_ (Finset.ssubset_iff_subset_ne.mp hss).1
+          intro v hv
+          by_contra hnv
+          exact hc ⟨v, hv, hnv⟩
         have hlt : (S \ new).card < n := by
-          have hss' : S \ new ⊂ S \ old' := Finset.ssubset_iff_subset_ne.mpr
-            ⟨Finset.diff_subset_diff hsubNew, ?_⟩
+          have hss' : S \ new ⊂ S \ old' := finset_ssubset_of_subset_of_ne
+            (Finset.sdiff_subset_sdiff (fun _ h => h) hsubNew) ?_
           · exact Finset.card_lt_card hss'
           · intro he
-            have hex : ∃ v, v ∈ new ∧ v ∉ old' := by
-              by_contra hc
-              push_neg at hc
-              apply (Finset.ssubset_iff_subset_ne.mp hss).2
-              exact Finset.Subset.antisymm (fun v hv => hc v hv)
-                (Finset.ssubset_iff_subset_ne.mp hss).1
             obtain ⟨v, hv, hve⟩ := hex
-            exact hv (he ▸ hve)
+            have hmem : v ∈ S \ old' := Finset.mem_sdiff.mpr ⟨hsubNew hv, hve⟩
+            rw [he] at hmem
+            exact hmem.2 hv
         have htwoNew : 2 ≤ new.card := by
-          have hlt' := DirectedEarDecomposition.card_lt_of_stage hear hss.ne
+          have hlt' := DirectedEarDecomposition.card_lt_of_ear hear
+            (Finset.ssubset_iff_subset_ne.mp hss).2
           omega
         exact DirectedEarDecomposition.add
           (ih (S \ new).card hlt new (by rw [hcard]; exact rfl) hsubNew hscNew htwoNew) hear
   exact H (S \ old).card old rfl holdS hsc htwo
 
-/-- **Consequence:** under the hypotheses of `exists_directedEarDecomposition` the final set `S`
-is strongly connected in the ambient relation. It is obtained from the decomposition by
-`stronglyConnected_of_directedEarDecomposition`; it is recorded here only so that the §5 gap is
-visible in one place. -/
+/-- **Consequence:** a decomposition built as above carries strong connectivity to its final set,
+by `stronglyConnected_of_directedEarDecomposition`. Recorded here so that the §5 gap is visible
+in one place. -/
 theorem stronglyConnected_of_directedEarDecomposition' {base final : Finset V}
     (D : DirectedEarDecomposition E base final)
     (hbase : ∀ a ∈ base, ∀ b ∈ base, Relation.ReflTransGen E a b) :
@@ -504,7 +558,7 @@ final` records the data a witness has to supply: a chain of `DirectedEar`s takin
 `final`, i.e. exactly the `DirectedEarDecomposition` of `TrueChemistrySRCriterion.lean`.
 
 **EXISTENCE IS UNPROVED in the paper's generality, and the obstruction is the representation,
-not the combinatorics.** Two independent reasons, both machine-checkable above:
+not the combinatorics.** Two independent reasons, both discharged above:
 
 1. `not_directedEar_of_singleton_base`: a one-vertex base admits no ear, because
    `DirectedEar.endpoints_distinct` demands two *distinct* old endpoints. The paper starts from a

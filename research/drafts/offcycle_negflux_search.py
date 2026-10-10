@@ -880,6 +880,93 @@ def phase2(seed, iters, ns_list=(3, 4), nchan=(3, 4, 5), verbose=True):
             print("  iter %d: %s" % (it + 1, stats))
     return hits, stats, None
 
+def exact_box_search(net, C, want_hopp, K=3, dmax=6):
+    """RIGOROUS exact search over the integer box `[-K, K]^d` in exact kernel coordinates.
+
+    Nothing here touches floating point: `y` ranges over a finite integer box, `alpha = B y` is
+    an exact `Fraction` vector with `A . alpha = 0` by construction, and every hypothesis and the
+    target inequality is tested with `Fraction` comparison.
+
+    This is COMPLETE for that box.  It is not a decision procedure for the whole cone: the sign
+    clauses of the witness are not homogeneous-normalizable, so witnesses on steep rays of the
+    feasible cone need not enter any fixed box.  What the box does control is the denominator:
+    every constraint is homogeneous, so any rational witness `alpha` scales (by a positive
+    rational) to another witness, and an integer witness exists iff some `y` in the box does.
+
+    Returns (hit_or_None, n_points_satisfying_hypotheses).
+    """
+    B = ker_basis(net)
+    d = len(B)
+    if d == 0 or d > dmax:
+        return None, 0
+    seen = 0
+    for sigma in sigma_patterns(net.ns):
+        if any(sigma[C.species[k]] == 0 for k in range(C.n)):
+            continue
+        for y in itertools.product(range(-K, K + 1), repeat=d):
+            alpha = matvec(B, [Fraction(v) for v in y])
+            ok, _ = witness_ok(net, alpha, sigma)
+            if not ok:
+                continue
+            if not causal_ok(net, alpha, sigma, C)[0]:
+                continue
+            if want_hopp and not hopp_ok(net, alpha, sigma, C)[0]:
+                continue
+            seen += 1
+            tg = find_target(net, alpha, sigma, C)
+            if tg is not None:
+                return ({"net": net, "C": C, "alpha": alpha, "sigma": sigma,
+                         "target": tg, "hopp": want_hopp}, seen)
+    return None, seen
+
+
+def phase3(ns_list=(2, 3), nchan=(2, 3), K=3, dmax=6, verbose=True):
+    """Exhaustive over the same networks as phase 1, but with the exact integer box search."""
+    hits = []
+    stats = {"nets": 0, "nets_flow": 0, "nets_hSR": 0, "cycles": 0,
+             "even_cycles": 0, "pairs": 0, "hypothesis_points": 0,
+             "certified": 0, "selfint": 0, "skipped_dmax": 0}
+    for ns in ns_list:
+        chans, _ = candidate_channels(ns, 2, 2)
+        sep_chans = [(a, b) for (a, b) in chans
+                     if all(not (a[s] != 0 and b[s] != 0) for s in range(ns))]
+        for k in nchan:
+            for combo in itertools.combinations(sep_chans, k):
+                stats["nets"] += 1
+                net = Net(ns, combo)
+                if not hflow(net):
+                    continue
+                stats["nets_flow"] += 1
+                cycles = list(enumerate_cycles(net))
+                stats["cycles"] += len(cycles)
+                evens = [c for c in cycles if c.is_even()]
+                stats["even_cycles"] += len(evens)
+                if not evens:
+                    continue
+                ok, nself = check_hSR(net, cycles)
+                stats["selfint"] += nself
+                if not ok:
+                    continue
+                stats["nets_hSR"] += 1
+                for C in evens:
+                    if len(ker_basis(net)) > dmax:
+                        stats["skipped_dmax"] += 1
+                        continue
+                    stats["pairs"] += 1
+                    for hopp in (False, True):
+                        hit, seen = exact_box_search(net, C, hopp, K, dmax)
+                        stats["hypothesis_points"] += seen
+                        if hit:
+                            stats["certified"] += 1
+                            hits.append(hit)
+                            print("  *** COUNTEREXAMPLE (exact box, ns=%d, k=%d, hopp=%s)"
+                                  % (ns, k, hopp))
+                            print_report(hit)
+                            return hits, stats
+        if verbose:
+            print("  ns=%d done: %s" % (ns, stats))
+    return hits, stats
+
 
 # --------------------------------------------------------------------------
 
@@ -973,6 +1060,13 @@ def main():
     if which in ("1", "all"):
         print("PHASE 1 — exhaustive: ns in {2,3}, |R| in {2,3}, complexes of size <= 2, coeff <= 2")
         hits, st = phase1()
+        print("  stats: %s" % st)
+        print("  counterexamples: %d" % len(hits))
+        print("-" * 78)
+    if which in ("3", "all"):
+        print("PHASE 3 — exhaustive + RIGOROUS exact integer box [-3,3]^d in exact kernel coords,")
+        print("          ns in {2,3}, |R| in {2,3}, nullity d <= 6")
+        hits, st = phase3()
         print("  stats: %s" % st)
         print("  counterexamples: %d" % len(hits))
         print("-" * 78)
