@@ -47,8 +47,9 @@ theorem isEndBlockOn_iff {E : V → V → Prop} {T S : Finset V} :
       (IsNonseparableOn E S ∧
         ∀ v1 ∈ S, ∀ v2 ∈ S, IsSeparatingVertexOn E T v1 →
           IsSeparatingVertexOn E T v2 → v1 = v2) :=
-  ⟨fun h => h.1,
-   fun h => ⟨h.1, fun v1 hv1 v2 hv2 h1 h2 => h.2 v1 hv1 v2 hv2 h1 h2⟩⟩
+  Iff.intro
+  · intro h; exact h.1
+  · intro h; exact ⟨h.1, fun v1 hv1 v2 hv2 h1 h2 => h.2 v1 hv1 v2 hv2 h1 h2⟩
 
 /-! ### 2. Nonseparability implies connectedness -/
 
@@ -100,15 +101,22 @@ theorem isEndBlockOn_ambientSep_dichotomy {E : V → V → Prop} {T S : Finset V
     (h : IsEndBlockOn E T S) :
     AmbientSepOn E T S = ∅ ∨ (AmbientSepOn E T S).card = 1 := by
   classical
-  by_cases he : AmbientSepOn E T S = ∅
-  · exact Or.inl he
+  have key : ∀ x ∈ AmbientSepOn E T S, ∀ y ∈ AmbientSepOn E T S, x = y := by
+    intro x hx y hy
+    rcases (mem_ambientSepOn E T S x).mp hx with ⟨hxS, hxsep⟩
+    rcases (mem_ambientSepOn E T S y).mp hy with ⟨hyS, hysep⟩
+    exact h.2 x hxS y hyS hxsep hysep
+  by_cases hne : (AmbientSepOn E T S).Nonempty
   · right
-    refine Finset.card_eq_one.mpr ⟨(AmbientSepOn E T S).choose he, ?_⟩
-    ext v
-    rw [Finset.mem_singleton]
-    intro hx
-    rcases hx with rfl
-    exact Finset.mem_choose he
+    obtain ⟨v, hv⟩ := hne
+    refine Finset.card_eq_one.mpr ⟨v, ?_⟩
+    ext w
+    simp only [Finset.mem_singleton]
+    constructor
+    · intro hw; exact key w hw v hv
+    · intro hw; rw [hw]; exact hv
+  · left
+    exact Finset.not_nonempty_iff_eq_empty.mp hne
 
 /-- The leaf dichotomy, phrased directly on vertices of `S`: either no vertex of `S`
 separates the ambient graph on `T`, or there is a unique such vertex.  No `S.Nonempty`
@@ -122,15 +130,20 @@ theorem isEndBlockOn_ambientSep_cases {E : V → V → Prop} {T S : Finset V}
   rcases isEndBlockOn_ambientSep_dichotomy h with he | hc
   · refine Or.inl ?_
     intro v hv hs
-    rw [he] at hs
-    exact (Finset.not_mem_empty v) hs
+    exact absurd ((mem_ambientSepOn E T S v).mpr ⟨hv, hs⟩) (by
+      rw [he]
+      exact Finset.not_mem_empty v)
   · refine Or.inr ?_
     obtain ⟨v, hvs⟩ := Finset.card_eq_one.mp hc
-    refine ⟨v, (mem_ambientSepOn E T S v).mp (hvs ▸ Finset.mem_singleton v) |>.1,
-      (mem_ambientSepOn E T S v).mp (hvs ▸ Finset.mem_singleton v) |>.2, ?_⟩
+    have hvA : v ∈ AmbientSepOn E T S := by
+      rw [hvs]
+      exact Finset.mem_singleton v
+    refine ⟨v, (mem_ambientSepOn E T S v).mp hvA |>.1,
+      (mem_ambientSepOn E T S v).mp hvA |>.2, ?_⟩
     intro w hw hs
-    exact (h.2 v (mem_ambientSepOn E T S v).mp (hvs ▸ Finset.mem_singleton v) |>.1
-      w hw (mem_ambientSepOn E T S v).mp (hvs ▸ Finset.mem_singleton v) |>.2 hs).symm
+    have hwA : w ∈ AmbientSepOn E T S := (mem_ambientSepOn E T S w).mpr ⟨hw, hs⟩
+    rw [hvs] at hwA
+    exact (Finset.mem_singleton.mp hwA).symm
 
 /-- Same dichotomy under the `S`-nonemptiness hypothesis used by §5.5 consumers: with
 `S` nonempty, the ambient separating vertices of `S` are still either absent or unique. -/
