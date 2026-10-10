@@ -8707,6 +8707,23 @@ private theorem ear_cPair_iff_signChange (N : Network S) (hsep : N.ReactantProdu
   unfold TrueSRSSPath.ssCPairAt
   rw [eq_comm, hkey]
 
+/-- **No off-cycle true-reaction class drains any cycle species.**
+
+Restated from `CRNT/Multistationarity/TrueSRCycleSpeciesDegree.lean` (definition
+`TrueSRCycle.no_offCycle_negFlux`).  That module *imports* this one, so its copy cannot be used
+here; the two statements are identical.
+
+This is the single named proposition the residue of
+`stronglyConcordant_fullyOpen_of_trueSRCriterion` below depends on.  Together with `hcausal` and
+`hopp` it forces the first causal hop out of an on-cycle species to land on that species' own
+left-edge partner reaction (`cycleEntry_from_cycleSpecies_is_leftEdge` above), which is why the
+minimal route `Q0` of the proof below cannot *start* at an on-cycle species.  Its failure is the
+A.6 Case-2 source-block datum of `research/BRIEF-B.md` §B.2/§B.4. -/
+private def no_offCycle_negFlux (N : Network S)
+    {α : N.fullyOpen.R → ℝ} {σ : S → ℝ} {n : ℕ} (C : N.TrueSRCycle n) : Prop :=
+  ∀ (b : Fin n) (ρ : N.TrueReaction), ¬ C.HasReaction ρ →
+    0 ≤ N.trueInternalClassFlux α ρ (C.species b) * σ (C.species b)
+
 /-- **Shinar--Feinberg true-SR strong-concordance theorem.**
 
 Reactant/product separation is required to identify true-SR edge labels with net stoichiometric
@@ -9432,7 +9449,62 @@ theorem stronglyConcordant_fullyOpen_of_trueSRCriterion
                   ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex
                     ((Q0.concat (Sum.inl s) hsT hstep').vertex i)) :=
                 N.aggregateEar_interior T Q0 C hqm hsT hstep' hqOff hQ0late
-              sorry
+              -- **The residue is now exactly one named proposition.**
+              --
+              -- `Q0.vertex 0 = Sum.inl s0` on the cycle makes the first hop of the minimal route
+              -- a causal step out of the on-cycle species `s0`, which must land on a reaction
+              -- vertex `Sum.inr ρ₁`.  Two cases:
+              --
+              -- * `ρ₁` is a cycle class.  `cycleEntry_from_cycleSpecies_is_leftEdge` (in this
+              --   module) forces `ρ₁ = C.reaction t` with `s0.1 = C.species t`, so `Q0.vertex 1`
+              --   is an on-cycle vertex — contradicting `hQ0late`.
+              -- * `ρ₁` is off the cycle.  Then `ρ₁` is an off-cycle class with a strictly
+              --   negative class flux at the cycle species `s0.1`, which is exactly the failure
+              --   of `no_offCycle_negFlux α σ C` — no off-cycle true-reaction class drains any
+              --   cycle species.  That is the A.6 Case-2 source-block datum of
+              --   `research/BRIEF-B.md` §B.2/§B.4, and it is the frontier proposition packaged
+              --   in `CRNT/Multistationarity/TrueSRCycleSpeciesDegree.lean`, whose
+              --   `no_escape_from_cycleSpecies` discharges this whole branch from it.  The
+              --   restatement below exists because that module imports this one, so its copy of
+              --   the definition cannot be used here.
+              exfalso
+              have hnc' : ∀ (a b : Fin n), a.1 ≠ b.1 → b.1 ≠ (a.1 + 1) % n →
+                  N.trueInternalClassFlux α (C.reaction a) (C.species b) *
+                    σ (C.species b) = 0 := by
+                intro a b ha hb
+                by_contra hflux
+                exact hnc ⟨a, b, ha, hb, hflux⟩
+              have hstep0 : N.TrueInternalAggregateCausalEdge
+                  (Q0.vertex ⟨0, by omega⟩)
+                  (Q0.vertex (⟨1, by omega⟩ : Fin (m + 1))) :=
+                Q0.step ⟨0, hmpos⟩
+              rw [hv0] at hstep0
+              cases hv1 : Q0.vertex (⟨1, by omega⟩ : Fin (m + 1)) with
+              | inl x =>
+                  have hbad : N.TrueInternalAggregateCausalEdge (α := α) (σ := σ)
+                      (Sum.inl s0) (Sum.inl x) := by
+                    rw [hv1] at hstep0
+                    exact hstep0
+                  exact hbad.elim
+              | inr ρ1 =>
+                  rw [hv1] at hstep0
+                  have hgood : N.trueInternalClassFlux α ρ1.1 s0.1 * σ s0.1 < 0 := by
+                    exact hstep0
+                  by_cases hρ1C : C.HasReaction ρ1.1
+                  · obtain ⟨t, hut, hρt⟩ :=
+                      cycleEntry_from_cycleSpecies_is_leftEdge N C hnc' hcausal hρ1C s0
+                        hstep0 hs0C
+                    refine hQ0late (⟨1, by omega⟩ : Fin (m + 1))
+                      (by show (1:ℕ) ≠ 0; omega) ?_
+                    rw [hv1]
+                    exact ⟨t, hρt.symm⟩
+                  · -- The crux: `no_offCycle_negFlux α σ C` refutes this branch outright.
+                    have hcrux : no_offCycle_negFlux N (α := α) (σ := σ) C := by
+                      intro b ρ hρ
+                      sorry
+                    obtain ⟨b₀, hb₀⟩ := hs0C
+                    exact absurd (hcrux b₀ ρ1 hρ1C)
+                      (not_le.mpr (hb₀ ▸ hgood))
           | inr ρ0 => exact hv0ne ρ0 hv0
     obtain ⟨M, Q, hQ0, hQlast, hQnd⟩ := hspan
     exact no_spanning_path_of_trueSRCriterion hSR C hCeven
