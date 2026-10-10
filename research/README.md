@@ -3,7 +3,8 @@
 **Branch of record:** `holes` (the swarm branches from `research/swarm`, itself a child of `holes`).
 **Objective (single scalar, lexicographic):** drive `research/scripts/measure.py` to `holes = 0`.
 
-There are exactly **two** executable `sorry`s left in the whole `CRNT/` tree:
+There is exactly **one** executable `sorry` left in the whole `CRNT/` tree (A). Hole B was
+closed by the Banaji--Craciun determinant route, `CRNT/Multistationarity/BCFullyOpen.lean`:
 
 | id | site | theorem | mathematical content |
 | --- | --- | --- | --- |

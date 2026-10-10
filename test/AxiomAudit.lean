@@ -591,7 +591,7 @@ Run standalone with:
 ## The two hole chains: pinned
 
 The pins above are a hand-picked list, so they only ever check what somebody remembered to add.
-These extend that to the two chains that still carry a `sorry`, by pinning every theorem on each
+These extend that to the two hole chains (chain B is now closed and pinned clean), by pinning every theorem on each
 chain that a consumer is most likely to reach through.
 
 The axiom set recorded for each is **exactly** `[propext, Classical.choice, Quot.sound]` — no
@@ -685,23 +685,45 @@ section ChainB
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.exists_positive_off_cycle_aggregate_class
 
-/-- info: 'CRNT.Network.stronglyConcordant_of_trueSRCriterion_of_weaklyReversible' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.stronglyConcordant_of_trueSRCriterion_of_weaklyReversible' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.stronglyConcordant_of_trueSRCriterion_of_weaklyReversible
 
-/-- info: 'CRNT.Network.injective_of_trueSRCriterion' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.injective_of_trueSRCriterion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.injective_of_trueSRCriterion
+
+/-- info: 'CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion
+
+/-- info: 'CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion_bc' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion_bc
 
 end ChainB
 
 /-!
-## The two holes themselves, pinned
+## The remaining hole, pinned
 
-`sorryAx` is *expected* here and only here.  These three pins make the expected set exact, so if a
+The true-SR hole (chain B) is closed: `stronglyConcordant_fullyOpen_of_trueSRCriterion` is proved
+by the Banaji--Craciun determinant route (`CRNT/Multistationarity/BCFullyOpen.lean`) and is pinned
+clean above.  `sorryAx` is *expected* here and only here.  These pins make the expected set exact, so if a
 hole is closed the build fails (the axiom set shrinks) and if a new `sorryAx` user appears the
 whole-environment census below reports it.
 -/
+
+/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex
+
+/-- info: 'CRNT.Network.three_le_stoichRank_of_nonVertex' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.three_le_stoichRank_of_nonVertex
+
+/-- info: 'CRNT.Network.false_of_vertex_omegaPoint' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.false_of_vertex_omegaPoint
 
 /-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in

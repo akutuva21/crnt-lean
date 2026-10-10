@@ -2,4 +2,3 @@
 # Regenerate with: python3 scripts/check_stubs.py --write
 # This list must only ever shrink.  See LEDGER.md.
 sorry	CRNT/Dynamics/HighCodimensionSiphonFace.lean	sorry
-sorry	CRNT/Multistationarity/TrueChemistrySRCriterion.lean	sorry

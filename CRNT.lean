@@ -325,6 +325,8 @@ import CRNT.Multistationarity.SRGraph
 import CRNT.Multistationarity.SRGraphCriterion
 import CRNT.Multistationarity.SignedSRGraph
 import CRNT.Multistationarity.SRGraphCycleDict
+-- Shinar--Feinberg true-SR theorem, proved by the Banaji--Craciun determinant route
+import CRNT.Multistationarity.TrueChemistrySRCriterion
 import CRNT.Multistationarity.JacobianDeterminantSign
 import CRNT.Multistationarity.JacobianCycleSign
 import CRNT.Multistationarity.JacobianCycleSelection
@@ -428,6 +430,7 @@ import CRNT.Dynamics.ToricBarrierTrapping
 import CRNT.Dynamics.FaceDirectionCone
 import CRNT.Dynamics.ToricBarrierExplicit
 import CRNT.Dynamics.OrbitRegularity
+import CRNT.Dynamics.VertexOmegaExclusion
 import CRNT.Dynamics.CriticalSiphonNearFacetInflux
 import CRNT.Dynamics.SingletonFacetEscape
 import CRNT.Dynamics.SiphonFacetEscape

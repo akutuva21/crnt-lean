@@ -223,7 +223,6 @@ globs = {toml_list(frontier)}
 # to sit in no lake target at all -- tracked in git but elaborated by nothing, so
 # nothing failed when they drifted out of reach of the pinned Mathlib API.  They now
 # elaborate, and this target is what keeps that a build result rather than a claim.
-# `Scaffold/` is in .gitignore, so a new scaffold file must be force-added to count.
 [[lean_lib]]
 name = "Scaffold"
 globs = ["Scaffold.+"]

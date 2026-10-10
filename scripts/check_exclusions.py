@@ -277,9 +277,9 @@ def main() -> int:
 
     # `Scaffold/` is in no *verified* target (it is not reachable from `import CRNT`,
     # and its modules are not on the ledger), but it does now have a lake target of its
-    # own, so `lake build Scaffold` really does elaborate them.  The check that keeps
-    # that honest is the drift baseline below: a scaffold module that stops
-    # elaborating is caught by the count going the wrong way, not by a grep.
+    # own, so `lake build Scaffold` really does elaborate them.  The drift baseline below
+    # keeps that honest: a scaffold module that stops elaborating, or a scaffold module
+    # that quietly appears, moves the count and this fails.
     scaffold = scaffold_modules()
     if scaffold:
         with open(os.path.join(ROOT, "scripts", "scaffold_baseline.txt"),
@@ -288,11 +288,10 @@ def main() -> int:
         expected = int(nums[0])
         actual = len(scaffold)
         if actual != expected:
-            print(f"error: Scaffold/ holds {actual} module(s), baseline says {expected}. "
-                  f"Either a scaffold module was added -- add it to scripts/scaffold_baseline.txt "
-                  f"AND make `lake build Scaffold` clean -- or one was lost.",
-                  file=sys.stderr)
             failed = True
+            print(f"::error::Scaffold/ holds {actual} module(s), baseline says {expected}. "
+                  f"Either a scaffold module was added -- add it to scripts/scaffold_baseline.txt "
+                  f"AND make `lake build Scaffold` clean -- or one was lost.", file=sys.stderr)
         else:
             print(f"ok: {actual} Scaffold/ module(s), in the Scaffold lake target, pinned by "
                   f"scripts/scaffold_baseline.txt (verified by `lake build Scaffold`)")

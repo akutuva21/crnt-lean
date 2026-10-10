@@ -20,7 +20,7 @@ This file is the gating audit that *does* match the tree.  Both `CRNT` (700 modu
 
 ## Why the incomplete results are pinned too
 
-The two open holes are pinned **with** their `sorryAx`.  That makes them gated rather than merely
+The open hole is pinned **with** its `sorryAx`.  That makes them gated rather than merely
 known: if a third incomplete endpoint appears, or if one of these is closed, this file fails and
 forces the ledger and handoffs to be updated in the same commit.  A test that only pins the clean
 results cannot notice a new hole.
@@ -31,8 +31,18 @@ Regenerate expectations by running the corresponding `#print axioms` and pasting
 /-! ## Open: the Global Attractor Conjecture
 
 The residual case is `exists_positive_omegaPoint_of_highCodimension_siphonFace`
-(`CRNT/Dynamics/HighCodimensionSiphonFace.lean`), the only `sorry` in the GAC chain.  See
+(`CRNT/Dynamics/HighCodimensionSiphonFace.lean`).  Its vertex case is closed
+(`false_of_vertex_omegaPoint`); the only `sorry` in the GAC chain is the non-vertex case
+`exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex`.  See
 `HANDOFF_gac_hole.md` and `docs/gac-bridge-gap-analysis.md`. -/
+
+/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex
+
+/-- info: 'CRNT.Network.false_of_vertex_omegaPoint' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.false_of_vertex_omegaPoint
 
 /-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -50,14 +60,23 @@ The residual case is `exists_positive_omegaPoint_of_highCodimension_siphonFace`
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_globalAttractor
 
-/-! ## Open: the Shinar--Feinberg true-SR criterion
+/-! ## Closed: the Shinar--Feinberg true-SR criterion
 
-The remaining `sorry` is the ear-decomposition argument at
-`CRNT/Multistationarity/TrueChemistrySRCriterion.lean`. -/
+`stronglyConcordant_fullyOpen_of_trueSRCriterion` is now proved by the Banaji--Craciun
+determinant argument (`CRNT/Multistationarity/BCFullyOpen.lean`), so it and its consumers must
+audit clean.  `test/BanajiCraciunAudit.lean` pins the route itself. -/
 
-/-- info: 'CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion
+
+/-- info: 'CRNT.Network.stronglyConcordant_of_trueSRCriterion_of_weaklyNormal' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.stronglyConcordant_of_trueSRCriterion_of_weaklyNormal
+
+/-- info: 'CRNT.Network.injective_of_trueSRCriterion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.injective_of_trueSRCriterion
 
 /-! ## Clean frontier endpoints
 

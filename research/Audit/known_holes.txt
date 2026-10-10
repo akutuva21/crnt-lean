@@ -21,11 +21,12 @@
 # State as of `origin/holes` @ 90bddfc, certified by
 # `python3 research/Audit/ledger_coverage.py --selftest`.
 
-# --- the two holes -------------------------------------------------------------------
+# --- the hole -------------------------------------------------------------------------
+# (The true-SR hole in CRNT.Multistationarity.TrueChemistrySRCriterion was closed by the
+# Banaji--Craciun route, CRNT/Multistationarity/BCFullyOpen.lean.)
 # Each verified independently by comment-stripped scan of the enclosing declaration.
 
 CRNT.Dynamics.HighCodimensionSiphonFace
-CRNT.Multistationarity.TrueChemistrySRCriterion
 
 # --- transitively tainted, hole-free in isolation -------------------------------------
 # These files contain no `sorry` of their own.  They appear here because they import a hole

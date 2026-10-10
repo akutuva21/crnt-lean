@@ -12,4 +12,5 @@
 # `import` line to `CRNT.lean` instead, or record why it stays unreferenced.
 #
 # 145 as of `origin/holes` @ 90bddfc.
-145
+# 126 after the true-SR module graduated into `CRNT.lean` (Banaji--Craciun route).
+126

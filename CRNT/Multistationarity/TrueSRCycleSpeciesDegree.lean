@@ -21,9 +21,7 @@ and one in — degree two, with no slack.  This is the formal content of DEAD-EN
 
 ## Why this matters at the residue
 
-In the residue branch of `stronglyConcordant_fullyOpen_of_trueSRCriterion`, at the point where
-`cases hv0 : Q0.vertex ⟨0, _⟩` lands in the `| inl s0` case, the minimal aggregate causal path
-`Q0` starts at an
+At `TrueChemistrySRCriterion.lean:8579` the minimal aggregate causal path `Q0` starts at an
 **on-cycle species** `s0` and every later vertex is off the cycle (`hQ0late`).  A causal edge out of
 a species vertex requires a strictly negative class flux there, and by the trichotomy below a
 *cycle* class can only provide that if it is `C.reaction b` — which **is** a cycle vertex, forbidden
@@ -196,12 +194,9 @@ theorem classFlux_trichotomy (C : N.TrueSRCycle n) (hsep : N.ReactantProductSepa
 
 /-- **No off-cycle true-reaction class drains any cycle species.**
 
-This is the single named proposition on which the Hole B residue of
-`stronglyConcordant_fullyOpen_of_trueSRCriterion` depends: it is what forbids the first hop of
-the minimal aggregate causal path `Q0` out of the on-cycle species `s0` from landing on an
-off-cycle class.  That residue now reduces to it explicitly -- the branch proves the
-`C.HasReaction ρ₁` case by `cycleEntry_from_cycleSpecies_is_leftEdge` and is left with exactly
-the failure of this definition.
+This is the single named proposition on which the Hole B residue at
+`TrueChemistrySRCriterion.lean:8607` depends: it is what forbids the first hop of the minimal
+aggregate causal path `Q0` out of the on-cycle species `s0` from landing on an off-cycle class.
 DEAD-ENDS B-3 records that `hrest` cannot discharge it (its natural instance is refuted by
 `hattachment`); this `no_offCycle_negFlux` is the correctly-scoped replacement. -/
 def no_offCycle_negFlux (α : N.fullyOpen.R → ℝ) (σ : S → ℝ) (C : N.TrueSRCycle n) : Prop :=
@@ -239,9 +234,8 @@ def aggregateVertexOnCycle (α : N.fullyOpen.R → ℝ) (σ : S → ℝ) (C : N.
 
 A minimal aggregate causal path that starts at a cycle species and whose every other vertex is
 off the cycle cannot exist, provided no off-cycle class drains a cycle species.  At the residue
-(the `| inl s0` branch of `stronglyConcordant_fullyOpen_of_trueSRCriterion`, where
-`Q0.vertex ⟨0, _⟩ = Sum.inl s0` with `C.HasSpecies s0.1`) the situation is exactly this with
-`m > 0`, so the residue follows from `no_offCycle_negFlux` alone. -/
+(`TrueChemistrySRCriterion.lean:8579`–`8607`, `cases hv0 … | inl s0`) the situation is exactly this
+with `m > 0`, so the residue follows from `no_offCycle_negFlux` alone. -/
 theorem no_escape_from_cycleSpecies (C : N.TrueSRCycle n)
     (hsep : N.ReactantProductSeparated) (hSR : N.TrueSRStrongCriterion) (hCeven : C.Even)
     (hcausal : ∀ i : Fin n,

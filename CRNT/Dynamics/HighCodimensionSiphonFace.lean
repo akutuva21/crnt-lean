@@ -4,6 +4,7 @@ import CRNT.Dynamics.ToricBarrierTrapping
 import CRNT.Dynamics.SingleLinkageGAC
 import CRNT.Equilibria.ComplexBalanceStructure
 import CRNT.Equilibria.ComplexBalanced
+import CRNT.Dynamics.VertexOmegaExclusion
 
 /-!
 # The single remaining obligation of the Global Attractor Theorem
@@ -35,6 +36,15 @@ are then already closed in the tree:
 degenerate: `highCodimension_of_not_facet` yields `2 ≤ finrank (stoichSubspace.map (projOn Pmax))`
 and `2 ≤ Pmax.card`.  Those two inequalities are hypotheses below, so the obligation recorded
 here is exactly the **codimension ≥ 2** case.
+
+**Vertex case closed.**  When the `Pmax`-face of the compatibility class is a single point
+(`Network.IsVertexZeroSet Pmax`: no nonzero stoichiometric vector vanishes on `Pmax`), the
+relative entropy has a strict local maximum there along the class, which no ω-point of a
+Lyapunov-decreasing orbit can occupy (`Network.false_of_vertex_omegaPoint`,
+`CRNT.Dynamics.VertexOmegaExclusion`; Craciun–Dickenstein–Shiu–Sturmfels 2009, Proposition 20).
+The `sorry` therefore lives in `exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex`:
+faces of dimension at least one and codimension at least two, which requires
+`3 ≤ N.stoichRank`.  In particular the residual is closed for stoichiometric rank two.
 
 ## Why the existing estimate cannot be pushed further
 
@@ -77,10 +87,10 @@ currently has no polytope, face-lattice, or normal-fan API to build it on.
 constant closure of `GlobalAttractorTheorem` (326 modules) contains exactly one executable `sorry`,
 the one at line 135 of this file.
 
-**This does not extend to the whole tree.**  `CRNT.Multistationarity.TrueChemistrySRCriterion`
-carries a second, unrelated `sorry` at line 8607, so `CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion`
-and its consumers also report `sorryAx`.  The two holes are independent: closing this one closes
-the entire Global Attractor Conjecture chain, and nothing else.
+**This is now the only `sorry` in the tree.**  The second, unrelated hole —
+`CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion` in
+`CRNT.Multistationarity.TrueChemistrySRCriterion` — was closed by the Banaji--Craciun determinant
+route (`CRNT/Multistationarity/BCFullyOpen.lean`) and audits clean.
 
 Because a `sorry`-bearing module still elaborates, it is *off* `scripts/unverified_modules.txt` by
 construction, so a green build certifies nothing here.  The sound signals are
@@ -98,6 +108,69 @@ namespace CRNT
 namespace Network
 
 variable {S : Type} [DecidableEq S] [Fintype S]
+
+/-- A face whose projection keeps the full stoichiometric rank is a vertex. -/
+theorem isVertexZeroSet_of_finrank_map_eq (N : Network S) {P : Finset S}
+    (h : Module.finrank ℝ (N.stoichSubspace.map (projOn P)) = N.stoichRank) :
+    N.IsVertexZeroSet P := by
+  intro u hu hzero
+  set f := (projOn P).domRestrict N.stoichSubspace with hf
+  have hrange : LinearMap.range f = N.stoichSubspace.map (projOn P) := LinearMap.range_domRestrict _ _
+  have hrn := LinearMap.finrank_range_add_finrank_ker f
+  rw [hrange, h] at hrn
+  have hker : Module.finrank ℝ (LinearMap.ker f) = 0 := by
+    unfold stoichRank at hrn; omega
+  have hbot : LinearMap.ker f = ⊥ := Submodule.finrank_eq_zero.mp hker
+  have hmem : (⟨u, hu⟩ : N.stoichSubspace) ∈ LinearMap.ker f := by
+    rw [LinearMap.mem_ker, hf, LinearMap.domRestrict_apply]
+    funext s
+    by_cases hs : s ∈ P <;> simp [projOn_apply, hs, hzero]
+  rw [hbot, Submodule.mem_bot] at hmem
+  exact congrArg Subtype.val hmem
+
+/-- **The non-vertex residual needs stoichiometric rank at least three.** -/
+theorem three_le_stoichRank_of_nonVertex (N : Network S) {P : Finset S}
+    (hcodim : 2 ≤ Module.finrank ℝ (N.stoichSubspace.map (projOn P)))
+    (hnv : ¬ N.IsVertexZeroSet P) : 3 ≤ N.stoichRank := by
+  have hle : Module.finrank ℝ (N.stoichSubspace.map (projOn P)) ≤ N.stoichRank :=
+    Submodule.finrank_map_le _ _
+  have hne : Module.finrank ℝ (N.stoichSubspace.map (projOn P)) ≠ N.stoichRank :=
+    fun h => hnv (N.isVertexZeroSet_of_finrank_map_eq h)
+  omega
+
+/-- **Residual obligation, non-vertex case.**  Exactly the hypotheses of
+`exists_positive_omegaPoint_of_highCodimension_siphonFace`, plus `hnv`: the `Pmax`-face of the
+compatibility class is not a single point, i.e. some nonzero stoichiometric vector vanishes on
+`Pmax`.  The vertex case is closed by `Network.false_of_vertex_omegaPoint`
+(Craciun–Dickenstein–Shiu–Sturmfels 2009, Proposition 20).  Together with `hcodim` this forces
+`3 ≤ N.stoichRank`, so the remaining `sorry` concerns faces of dimension at least one and
+codimension at least two. -/
+theorem exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex
+    (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    {K : Set (Concentration S)} (hK : IsCompact K) (hmaps : ∀ t : ℝ≥0, ϕ t x₀ ∈ K)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    (hgenω : ∀ y ∈ omegaLimit atTop ϕ {x₀}, ∀ t : ℝ, 0 ≤ t →
+      HasDerivAt (γ y) (N.massActionVectorField κ (γ y t)) t)
+    (hωaff : ∀ z ∈ omegaLimit atTop ϕ {x₀}, (z - x₀ : Concentration S) ∈ N.stoichSubspace)
+    (hx₀ : x₀.Positive)
+    {Pmax : Finset S} (hPmaxne : Pmax.Nonempty)
+    {wmax : Concentration S} (hwmax : wmax ∈ omegaLimit atTop ϕ {x₀})
+    (hzeroMax : ∀ s, s ∈ Pmax ↔ wmax s = 0)
+    (hmaxExact : ∀ z ∈ omegaLimit atTop ϕ {x₀}, (∀ s ∈ Pmax, z s = 0) →
+      ∀ s, z s = 0 ↔ s ∈ Pmax)
+    (hzcard : ∀ z ∈ omegaLimit atTop ϕ {x₀},
+      (Finset.univ.filter (fun s => z s = 0)).card ≤ Pmax.card)
+    (hcodim : 2 ≤ Module.finrank ℝ (N.stoichSubspace.map (projOn Pmax)))
+    (hcard : 2 ≤ Pmax.card)
+    (hrank : N.stoichRank ≠ 1)
+    (hnv : ¬ N.IsVertexZeroSet Pmax) :
+    ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive := by
+  sorry
 
 /-- **Residual obligation: the ω-limit set cannot sit on a critical-siphon face of codimension
 at least two.**
@@ -144,7 +217,12 @@ theorem exists_positive_omegaPoint_of_highCodimension_siphonFace
     (hcard : 2 ≤ Pmax.card)
     (hrank : N.stoichRank ≠ 1) :
     ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive := by
-  sorry
+  by_cases hvert : N.IsVertexZeroSet Pmax
+  · exact (N.false_of_vertex_omegaPoint κ hxs hcb hϕγ hsol hx₀ hwmax (hωnn wmax hwmax)
+      (hωaff wmax hwmax) hzeroMax hPmaxne hvert).elim
+  · exact N.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex κ hxs hcb hϕγ
+      hsol hK hmaps hωnn hgenω hωaff hx₀ hPmaxne hwmax hzeroMax hmaxExact hzcard hcodim hcard
+      hrank hvert
 
 /-! ## Why the packaged barrier criteria cannot be instantiated inside this theorem
 
