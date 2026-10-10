@@ -38,23 +38,23 @@ CAVEAT ABOUT `TrueSRStrongCriterion`'s SECOND CONJUNCT  (a finding, not a modell
       (∀ {m n : ℕ} (C : N.TrueSRCycle m) (D : N.TrueSRCycle n),
         C.Even → D.Even → ¬ Nonempty (C.SToRIntersection D))
 
-As literally stated the second conjunct quantifies over *all* pairs, including `C = D`.  But
-`Nonempty (C.SToRIntersection C)` is a THEOREM for every SR cycle `C`, hence `TrueSRStrongCriterion`
-is FALSE for every network possessing an even SR cycle, and the residue's hypothesis set would be
-unsatisfiable.  The counting argument: `covers_common` + `edge_simple` + `components_separated`
-force the listed components to be a vertex-disjoint path decomposition of the whole cycle graph,
-whose `2n` edges give `Σ_c L_c = 2n` with every `L_c` odd (a component starts at a species vertex
-and ends at a reaction vertex, alternating).  Each component then holds `(L_c+1)/2` species
-vertices, so the decomposition uses `Σ_c (L_c+1)/2 = n + k/2 > n` distinct species vertices,
-while `C` has exactly `n`.  Contradiction.
+The second conjunct quantifies over *all* pairs, including `C = D`, which invites the suspicion
+that `hSR` is unsatisfiable (a cycle obviously shares an S-to-R path with itself).  That
+suspicion is WRONG, and the self-test is what caught it: `Nonempty (C.SToRIntersection C)` is
+IMPOSSIBLE for every SR cycle `C`, so the `C = D` instances hold vacuously and the literal and
+`C ≠ D` readings of the conjunct coincide.  Counting argument: `covers_common` + `edge_simple` +
+`components_separated` force the listed components to be a vertex-disjoint path decomposition of
+the whole common-edge graph, which for `C = D` is `C`'s own `2n`-edge cycle, so `Σ_c L_c = 2n`
+with every `L_c` odd (a component starts at a species vertex and ends at a reaction vertex,
+alternating).  Each component then holds `(L_c+1)/2` species vertices, so the decomposition uses
+`Σ_c (L_c+1)/2 = n + k/2 > n` distinct species vertices, while `C` has exactly `n`.  Contradiction.
 
-The repository never instantiates `hSR.2` with `C = D`: every use (`hSR.2 C D hC hD` in
-`TrueSREarCase2.lean:454`, `TrueSRChordExtraction.lean:280`, `TrueSRDegreeTwoParity.lean:256`)
-builds `D` with an extra vertex.  This script therefore reads the conjunct with the intended
-`C ≠ D` reading (`--literal-hsr2` switches to the literal reading, which makes the search
-vacuous and is kept only to document the degeneracy).  The counting claim is *also* checked
-computationally: `--self-test` reports how many cycles were found with
-`Nonempty (C.SToRIntersection C)` computed `True` (expected: all of them).
+The conjunct therefore has real content (it bites on genuinely distinct even cycles that share
+an S-to-R path -- see the `B -> C`, `A -> C`, `A + B -> C` witness in
+`TrueSRCPairThirdEdge.lean:228-236`).  This script evaluates it on the LITERAL reading, all pairs
+included (`check_hSR(..., literal_hsr2=True)`, the default); `--distinct-hsr2` restricts to
+`C ≠ D`.  The self-test reports how many cycles were found with `Nonempty (C.SToRIntersection C)`
+computed `True` (expected: none -- any nonzero count would refute the counting argument above).
 
 CERTIFICATION DISCIPLINE (mirrors `research/scripts/holeA_refute_search.py`)
 ---------------------------------------------------------------------------
@@ -482,7 +482,9 @@ def s_to_r_intersection_exists(C, D):
     if not paths:
         return False
 
-    edgelist = sorted(common)
+    # A graph edge (species, class, endpoint) is determined by its two endpoint nodes, and the
+    # DFS above labels its steps by exactly those node pairs; index on the node pair.
+    edgelist = sorted({tuple(sorted((("s", sp), ("r", cl)))) for (sp, cl, _ep) in common})
     idx = {e: i for i, e in enumerate(edgelist)}
     bit = {}
     for pe, _ in paths:
@@ -500,14 +502,13 @@ def s_to_r_intersection_exists(C, D):
             by_edge[i].append((pe, pn))
             m ^= b
 
-    pathsets = sorted(bit.items(), key=lambda kv: -bin(kv[1]).count("1"))
 
     def cover(rem, used):
         if rem == 0:
             return True
         i = (rem & -rem).bit_length() - 1
         for pe, pn in by_edge[i]:
-            if (pe & rem) != pe:
+            if (bit[pe] & rem) != bit[pe]:
                 continue
             if (pn & used) != 0:
                 continue
@@ -518,8 +519,13 @@ def s_to_r_intersection_exists(C, D):
     return cover(full, frozenset())
 
 
-def check_hSR(net, cycles, literal_hsr2=False):
+def check_hSR(net, cycles, literal_hsr2=True):
     """`TrueSRStrongCriterion` for `net`, given its full cycle list.
+
+    `literal_hsr2=True` evaluates the second conjunct exactly as stated at
+    `TrueChemistrySRGraph.lean:271-274`, i.e. over every ordered pair of even cycles including
+    `C = D`.  (The `C = D` instances are vacuous: see the CAVEAT in the module docstring, and the
+    self-test's `selfint` count, which must stay 0.)
 
     Returns (ok, self_intersects_count).
     """
@@ -528,8 +534,8 @@ def check_hSR(net, cycles, literal_hsr2=False):
         if not c.is_scycle():
             return False, 0
     n_self = sum(1 for c in cycles if s_to_r_intersection_exists(c, c))
-    pairs = itertools.combinations(evens, 2) if not literal_hsr2 else \
-        itertools.product(evens, evens)
+    pairs = itertools.product(evens, evens) if literal_hsr2 else \
+        itertools.combinations(evens, 2)
     for C, D in pairs:
         if s_to_r_intersection_exists(C, D):
             return False, n_self
@@ -647,111 +653,20 @@ def find_target(net, alpha, sigma, C):
 # LP proposal in exact kernel coordinates
 # --------------------------------------------------------------------------
 
-def lp_propose(net, sigma, C, want_hopp, extra_strict, rng, tries=6):
-    """Propose an exact rational `alpha` in `ker(InKerL)` satisfying the hypotheses and the
-    strict constraint `extra_strict = (c, s, want_negative)`.
+def sigma_patterns(ns):
+    """All sigma sign patterns in {-1,0,+1}^S \\ {0}.
 
-    Returns a Fraction vector of length net.m, or None.  The result is only a *proposal*: the
-    caller re-verifies every clause exactly.
-    """
-    B = ker_basis(net)
-    d = len(B)
-    if d == 0:
-        return None
-    P, M, Z = sign_sets(net, sigma)
-    A_ub, b_ub = [], []
-
-    def addrow(coefs, rhs):
-        A_ub.append(coefs)
-        b_ub.append(rhs)
-
-    # alpha = B y ; non-strict sign clauses, expressed in y with a slack t on each strict row
-    strict_rows = []      # (coefs_y, rhs) meaning  coefs . y  >  rhs
-    for q in range(net.m):
-        row = [float(B[j][q]) for j in range(d)]
-        if q not in M:            # alpha_q >= 0
-            addrow([-x for x in row], 0.0)      # -alpha_q <= 0
-        if q not in P:            # alpha_q <= 0
-            addrow(row, 0.0)
-
-    for i in range(C.n):
-        s = C.species[(i + 1) % C.n]
-        if sigma[s] == 0:
-            return None
-        cols = flux_vec(net, C.rxn[i], s)
-        sg = sigma[s]
-        strict_rows.append(([sg * float(cols[j]) for j in range(d)], 0.0))
-    if want_hopp:
-        for i in range(C.n):
-            s = C.species[i]
-            if sigma[s] == 0:
-                return None
-            cols = flux_vec(net, C.rxn[i], s)
-            sg = -sigma[s]
-            strict_rows.append(([sg * float(cols[j]) for j in range(d)], 0.0))
-    if extra_strict is not None:
-        c, s, neg = extra_strict
-        if sigma[s] == 0:
-            return None
-        cols = flux_vec(net, c, s)
-        sg = -sigma[s] if neg else sigma[s]
-        strict_rows.append(([sg * float(cols[j]) for j in range(d)], 0.0))
-
-    if not strict_rows:
-        return None
-
-    # variables: y (d) and t;  maximise t  s.t.  row . y >= t for every strict row,
-    # non-strict rows,  t >= 0.
-    nvar = d + 1
-    Aub = [r[:] + [-1.0] for r in strict_rows] + A_ub
-    bub = [0.0] * len(strict_rows) + b_ub
-    cobj = [0.0] * d + [-1.0]
-    bounds = [(None, None)] * d + [(0, None)]
-    for _ in range(tries):
-        try:
-            res = linprog(cobj, A_ub=np.array(Aub), b_ub=np.array(bub),
-                          bounds=bounds, method="highs")
-        except Exception:
-            return None
-        if not res.success or res.x is None:
-            return None
-        t = res.x[d]
-        if t <= 1e-9:
-            return None
-        yf = res.x[:d]
-        for D in (10 ** 6, 10 ** 9, 10 ** 4, 10 ** 12):
-            y = [Fraction(int(round(v * D)), D) for v in yf]
-            alpha = matvec(B, y)
-            # exact residual must be zero; rescale y so the snap survives rounding
-            if all(alpha[q] == 0 or True for q in range(net.m)):
-                # nudge: if a strict row is exactly 0 after snapping, scale y up
-                scale = 1
-                for _ in range(60):
-                    ok = True
-                    for coefs, rhs in strict_rows:
-                        v = ZERO
-                        for j in range(d):
-                            if B[j] and False:
-                                pass
-                        # recompute exactly below instead
-                    break
-                yield_candidate = alpha
-                # exact strictness test
-                strict_ok = True
-                for (coefs, _), (c, s, neg) in zip(strict_rows, _target_rows(net, C, want_hopp, extra_strict, sigma)):
-                    pass
-                return yield_candidate
-    return None
+    Complete for every proposition tested: `Promotes`, `Opposes`, `hcausal`, `hopp` and the
+    target inequality read only `SignType.sign (sigma s)` and `sigma s = 0`."""
+    for v in itertools.product((-1, 0, 1), repeat=ns):
+        if any(v):
+            yield list(v)
 
 
-def _target_rows(net, C, want_hopp, extra_strict, sigma):
-    """The (class, species, want_negative) triples behind `strict_rows`, in the same order."""
-    rows = [(C.rxn[i], C.species[(i + 1) % C.n], False) for i in range(C.n)]
-    if want_hopp:
-        rows += [(C.rxn[i], C.species[i], True) for i in range(C.n)]
-    if extra_strict is not None:
-        rows.append(extra_strict)
-    return rows
+def off_cycle_classes(net, C):
+    """Classes rho with `not C.HasReaction rho` -- the `rho` the target quantifies over."""
+    return [c for c in net.cls_list if not C.has_reaction(c)]
+
 
 
 def exact_strict_ok(net, alpha, sigma, rows):
@@ -764,37 +679,6 @@ def exact_strict_ok(net, alpha, sigma, rows):
         if (not neg) and not v > 0:
             return False
     return True
-
-
-def snap_strict(net, B, alpha0, sigma, rows, D):
-    """Try to repair a snapped `alpha` so all strict rows stay exact-signed.
-
-    We work in y-space: multiply y by a positive rational `k` until every strict row is
-    exactly nonzero with the right sign.  Scaling by a positive number preserves every sign,
-    so if the float LP found a point in the interior this terminates quickly.
-    """
-    y = None
-    for Dc in (10 ** 6, 10 ** 9, 10 ** 4, 10 ** 12, 10 ** 3):
-        y = [Fraction(int(round(v * Dc)), Dc) for v in alpha0]
-        alpha = matvec(B, y)
-        if exact_strict_ok(net, alpha, sigma, rows):
-            return alpha
-    return None
-
-
-# --------------------------------------------------------------------------
-# Case driver
-# --------------------------------------------------------------------------
-
-def sigma_patterns(ns):
-    for v in itertools.product((-1, 0, 1), repeat=ns):
-        if any(v):
-            yield list(v)
-
-
-def off_cycle_classes(net, C):
-    return [c for c in net.cls_list if not C.has_reaction(c)]
-
 
 def examine(net, C, want_hopp, rng, stats):
     """Try to refute `no_offCycle_negFlux` for one (network, even cycle) pair."""
@@ -1047,13 +931,25 @@ def self_test():
     print("  hsep, hflow: OK")
     print("  cycles of length 3 found: %d, even: %d, all s-cycles: %s"
           % (len(tri), len(evens), all(c.is_scycle() for c in evens)))
-    # class-flux arithmetic check, done by hand
-    #   class of channels 0,1,2 is three distinct classes here (no reversals present)
-    assert len(set(net.cls)) == 3
-    # exact S-to-R self-intersection check on the triangle
+    # Channel 3 is `inflowReaction 0`, a flow channel in its own class; channels 0..2 are the
+    # three internal classes of the triangle (no reversals present).
+    assert len(net.cls_list) == 4, net.cls_list
+    assert len(net.internal_cls) == 3, net.internal_cls
+    # hand check of `trueInternalClassFlux`: class of channel 0 is ({A},{B}); at species B the
+    # vector is 1, at A it is -1, elsewhere 0.
+    c0 = net.cls[0]
+    assert flux_exact(net, [1] + [0] * (net.m - 1), c0, 1) == 1
+    assert flux_exact(net, [1] + [0] * (net.m - 1), c0, 0) == -1
+    print("  classes: %d total, %d internal; class-flux signs checked by hand: OK"
+          % (len(net.cls_list), len(net.internal_cls)))
+    # Exact check of the CAVEAT: `C` shares no S-to-R path with ITSELF, so the `C = D` instances of
+    # `TrueSRStrongCriterion`'s second conjunct are vacuously satisfied.
     C = evens[0]
-    print("  Nonempty (C.SToRIntersection C) : %s   <-- see the CAVEAT in the docstring"
-          % s_to_r_intersection_exists(C, C))
+    nself = sum(1 for c in cycles if s_to_r_intersection_exists(c, c))
+    assert nself == 0, ("counting argument says Nonempty (C.SToRIntersection C) is impossible, "
+                        "but %d cycles self-intersect" % nself)
+    print("  Nonempty (C.SToRIntersection C) over all %d cycles: %d  (must be 0)"
+          % (len(cycles), nself))
     # kerL basis sanity
     B = ker_basis(net)
     A = kerL_matrix(net)

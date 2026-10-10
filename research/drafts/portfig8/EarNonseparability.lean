@@ -210,12 +210,9 @@ private theorem isNonseparableOn_add_ear {V : Type*} {E : V → V → Prop}
     intro haO hbO
     rcases Classical.em (v ∈ old) with hvO | hvN
     · refine h.2 v hvO ⟨a, haO, b, hbO, hav, hbv, h.1 a haO b hbO, ?_⟩
-      intro W0
+      intro W0 _hW0sup
       obtain ⟨W', heqW⟩ := walk_mono hsub W0
-      have h1 := hblk W' (by
-        intro x hx
-        rw [heqW] at hx
-        exact support_subset_restrictRel haO W0 x hx)
+      have h1 := hblk W' (support_subset_restrictRel ha W')
       rw [heqW] at h1
       exact h1
     · obtain ⟨W0, hW0⟩ := h.1 a haO b hbO

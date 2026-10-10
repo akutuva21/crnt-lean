@@ -100,10 +100,28 @@ single machine-checked `Prop` with a proved decomposer rather than prose.
 
 | # | obstacle | nature |
 |---|---|---|
-| **1** | **Import cycle.** `TrueSRCycleSpeciesDegree.lean:1` imports `TrueChemistrySRCriterion`, but the `sorry` is *inside* that file, so the discharger cannot be applied. It needs `trueInternalClassFlux`, `nonAdjacent_cycleClassFlux_eq_zero`, `TrueInternalAggregateCausalEdge`, `ActiveAggregateTrueReaction`, all currently `private` to TSC. | **mechanical Lean work** — lift those into a module TSC itself imports, inverting the cycle |
+| **1** | **Import cycle.** `TrueSRCycleSpeciesDegree.lean:1` imports `TrueChemistrySRCriterion`, but the `sorry` is *inside* that file, so the discharger cannot be applied. | **RESOLVED mechanically — see below.** Verdict **SHALLOW**. |
 | **2** | **Proving `no_offCycle_negFlux`** from `hsep` + `hSR` + `C.Even` + `hcausal`. | **the open mathematics** |
 
 Obstacle 1 alone reduces the hole to a single proposition; it does **not** close it.
+
+**Obstacle 1 is done.** The docstring's guess that the four named declarations
+(`trueInternalClassFlux`, `nonAdjacent_cycleClassFlux_eq_zero`,
+`TrueInternalAggregateCausalEdge`, `ActiveAggregateTrueReaction`) are `private` to TSC is
+**wrong** — none of them is, and three are already consumed by `TrueSRFirstHop.lean` /
+`TrueSRFirstHopCycle.lean`, which import TSC. The real closure is **11 declarations, ~300 lines,
+depth 2**, and only **three** are genuinely `private`
+(`trueSREdge_endpoint_eq_of_same_class_and_species` :1808,
+`exists_nonzero_channel_of_trueInternalClassFlux` :4762,
+`exists_trueSREdge_of_nonzero_trueInternalClassFlux` :4783) — each needing only de-privatisation,
+with **zero new lemmas** required. No private declaration depends on another private one, so the
+closure bottoms out in public leaves.
+
+Delivered and **independently verified**: `research/drafts/CycleSpeciesDegreeInverted.lean`,
+560 lines, `=== OK (sorry-warnings: 0) ===`, no `sorry`/`axiom`/`admit`/`native_decide`.
+
+So the import cycle is breakable and the discharger is reachable. What remains for Hole B is
+**obstacle 2 alone**.
 Obstacle 2 is the genuine frontier: it is the Shinar–Feinberg §5.5/§A.3 source-block analysis.
 `TrueSRCycleSpeciesDegree.lean:200` records that the analogous `hrest` "cannot be discharged (its
 natural instance is refuted by `hattachment`)".
