@@ -88,6 +88,23 @@ jobs:
           use-mathlib-cache: true
 
   # ---------------------------------------------------------------------------
+  # The staged expansion.  `Scaffold/` is deliberately outside the verified core --
+  # it is not reachable from `import CRNT` -- but it is tracked in git, so it has a
+  # lake target of its own and this job is what stops it drifting into modules that
+  # no longer elaborate.  A failure here is a real regression, not a frontier count.
+  # ---------------------------------------------------------------------------
+  scaffold:
+    runs-on: ubuntu-latest
+    needs: static
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          build-args: 'Scaffold'
+          test: false
+          use-mathlib-cache: true
+
+  # ---------------------------------------------------------------------------
   # The frontier.  Expected to fail; the point is the number, not the colour.
   # Every module in scripts/unverified_modules.txt has never been elaborated, so
   # this job reports how many still error and uploads the log.  It cannot gate,

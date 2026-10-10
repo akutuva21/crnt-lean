@@ -275,10 +275,27 @@ def main() -> int:
     else:
         print("ok: every CRNT/ module is either in the ledger or reachable from CRNT.lean")
 
+    # `Scaffold/` is in no *verified* target (it is not reachable from `import CRNT`,
+    # and its modules are not on the ledger), but it does now have a lake target of its
+    # own, so `lake build Scaffold` really does elaborate them.  The check that keeps
+    # that honest is the drift baseline below: a scaffold module that stops
+    # elaborating is caught by the count going the wrong way, not by a grep.
     scaffold = scaffold_modules()
     if scaffold:
-        print(f"note: {len(scaffold)} Scaffold/ module(s) are in NO lake target and are "
-              f"never elaborated; their 'verified' status is a grep, not a build.")
+        with open(os.path.join(ROOT, "scripts", "scaffold_baseline.txt"),
+                  encoding="utf-8") as fh:
+            nums = [ln.strip() for ln in fh if ln.strip() and not ln.startswith("#")]
+        expected = int(nums[0])
+        actual = len(scaffold)
+        if actual != expected:
+            print(f"error: Scaffold/ holds {actual} module(s), baseline says {expected}. "
+                  f"Either a scaffold module was added -- add it to scripts/scaffold_baseline.txt "
+                  f"AND make `lake build Scaffold` clean -- or one was lost.",
+                  file=sys.stderr)
+            failed = True
+        else:
+            print(f"ok: {actual} Scaffold/ module(s), in the Scaffold lake target, pinned by "
+                  f"scripts/scaffold_baseline.txt (verified by `lake build Scaffold`)")
 
     return 1 if failed else 0
 
