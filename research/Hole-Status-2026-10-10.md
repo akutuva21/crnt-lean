@@ -200,6 +200,55 @@ Two cautions:
   even `TrueSRCycle`s sharing only a species→species path; the SS layer never reaches `hSR.2`.
 * **Removing `hsep` from Hole B.** Provably false; `CRNT/Examples/TrueSRNetCoeffCounterexample.lean`.
 
+
+## 4a. Hole A is not a formalization gap — it is an open conjecture, and the source paper does not
+prove it either
+
+This is the most important finding in this document and it changes what is worth attempting.
+
+The `sorry` is discharged, per the file's own analysis at
+`CRNT/Dynamics/HighCodimensionSiphonFace.lean:404-418`, by **any** construction of
+`N.PersistentFrom κ x₀` — a compact forward-invariant region `K_{x₀} ⊂ ℝⁿ_{>0}` containing `x₀` —
+which is verbatim Craciun v3 §4. Conversely `not_persistentFrom_of_mem_omegaLimit_notPositive`
+(:419) shows the residual hypotheses are *inconsistent* with it, since `wmax ∈ ω` would be forced
+into a closed `K₀` lying inside the open orthant, contradicting `hPmaxne`/`hzeroMax`.
+
+So closing Hole A ⟺ constructing that `K_{x₀}` ⟺ proving the Global Attractor Conjecture.
+
+The file's audit then records, at :390-400, verified against the v3 source by `GacLit`:
+
+> the paper does **not** prove that such a `K_{x₀}` exists. The claim appears only as statements —
+> §4 (plan lines 598/637, whose "Step 4" is the assembly), 2D figure captions, §5 LaSalle prose —
+> while §8 carries out Steps 1–2 and then stops; there is no "§8 Step 4".
+
+and concludes:
+
+> The honest accounting of the gap is therefore: **Theorem B (§§5–8) + the Step-4 assembly the
+> paper asserts but does not write down + LaSalle/persistence.** v3 is a preprint (v1 2015,
+> v2 2016, v3 2026-09-23, no journal-ref) treated as open in current literature — Wiuf,
+> arXiv:2609.24553v1, lists the GAC as proved only in special cases and does not cite 1501.02860;
+> no erratum or refutation was found — so speak of the *claimed* proof.
+
+Combined with §1 (the statement is **non-vacuous**: `CRNT/Examples/CodimTwoFaceModel.lean:337`
+satisfies 17 of its 18 hypotheses jointly with the conclusion FALSE), the position is:
+
+| | |
+|---|---|
+| the statement is faithful | ✅ verified by hypothesis pass-through audit |
+| the statement is non-vacuous | ✅ verified by a machine-checked model with a false conclusion |
+| the statement is known-true mathematics | ❌ **it is the Global Attractor Conjecture, open in the literature** |
+| the cited source proves it | ❌ v3 asserts the Step-4 assembly but does not carry it out |
+
+**Therefore Hole A should not be closed by this work, and no legitimate route to closing it is
+available.** The only ways to make `holes` drop from 2 to 1 here would be to weaken the statement,
+add an `axiom`, or assert a claim the literature has not established. All three are forbidden by
+the repo's charter (`research/README.md` §3) and would be worse than the `sorry`, which is honest
+about its own gap.
+
+The correct disposition of Hole A is to leave the `sorry` in place, with this document as the
+record of *why*, and to spend effort on Hole B, whose mathematical content is published and
+
+---
 ## 5. Honest status
 
 Neither hole was closed. Both were **faithful and non-vacuous**, so neither was closable by a tactic
