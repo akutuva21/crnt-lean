@@ -144,6 +144,37 @@ theorem exists_positive_omegaPoint_of_highCodimension_siphonFace
     (hcard : 2 ≤ Pmax.card)
     (hrank : N.stoichRank ≠ 1) :
     ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive := by
+  -- The residual obligation is exactly the construction of the Craciun v3 blueprint data
+  -- (tiles, normals, levels, separation scales, seam agreement, rank-decreasing recursion)
+  -- for the fan `relativeSourceOrderNegativeStoichFan` at the face `Pmax`.
+  --
+  -- This is the content of Theorem B / Lemma 9.5 / Lemma 9.7 of
+  -- Craciun, *Toric Differential Inclusions and a Proof of the Global Attractor Conjecture*
+  -- (arXiv:1501.02860v3), specifically the "exhaustive family of zero-separating hypersurfaces"
+  -- whose outer normal at `X` lies in every cone of the fan within distance `δ` of `X`.
+  --
+  -- The existing packaged criteria (`exists_positive_omegaPoint_of_blueprintData`,
+  -- `exists_positive_omegaPoint_of_tiled_faceCores`, `exists_positive_omegaPoint_of_faceRelevantCore`,
+  -- `exists_positive_omegaPoint_of_upperRegion`) all require a uniform coordinate floor (`hsep` or `hfloor`),
+  -- which is refutable under this theorem's hypotheses because the boundary ω-point `wmax`
+  -- lies in the ω-limit set (see `hsep_fails_of_boundaryPoint_mem_sublevel` and
+  -- `UpperRegionAdjudication.upperRegion_criterion_inconsistent_with_boundaryOmegaPoint`).
+  --
+  -- The `ComparableGrowthDescent` route is circular: the full structure is equivalent to the goal
+  -- (`SiphonDimensionDescent.comparableGrowthDescent_iff_omegaPointPositive`).
+  --
+  -- The sharpest missing lemma is the existence of the blueprint data for the complete pointed
+  -- polyhedral fan `relativeSourceOrderNegativeStoichFan` at the face `Pmax`, which would yield
+  -- a tile-by-tile zero-separating surface without a global uniform floor.
+  -- Mathlib currently lacks the polytope/face-lattice/normal-fan API needed to construct this
+  -- data (the #1 blocker identified in `docs/gac-v3-face-fill-plan.md`).
+  --
+  -- The trichotomy `omegaPoint_zeroSet_trichotomy` shows the residue splits into:
+  -- 1. A positive ω-point (the goal)
+  -- 2. A strictly smaller carried critical siphon (the descent's right disjunct)
+  -- 3. The "exact tie" configurations (zero set = `Pmax`, or positive on `Pmax` and zero off `Pmax`
+  --    with same cardinality), which include the degenerate model `ω = {wmax}`.
+  -- Cases 2 and 3 require the dynamical content of Theorem B and cannot be closed statically.
   sorry
 
 /-! ## Why the packaged barrier criteria cannot be instantiated inside this theorem
