@@ -204,7 +204,7 @@ private theorem isNonseparableOn_add_ear {V : Type*} {E : V → V → Prop}
   -- an avoiding walk immediately contradicts the blocking clause
   have havoid : ∀ W : SimpleGraph.Walk (relationGraph (restrictRel E new)) a b,
       (∀ z ∈ W.support, z ≠ v) → False :=
-    fun W hW => hW v (hblk W) rfl
+    fun W hW => hW v (hblk W (support_subset_restrictRel ha W)) rfl
   -- both endpoints in `old`
   have caseBoth : a ∈ old → b ∈ old → False := by
     intro haO hbO
@@ -212,7 +212,10 @@ private theorem isNonseparableOn_add_ear {V : Type*} {E : V → V → Prop}
     · refine h.2 v hvO ⟨a, haO, b, hbO, hav, hbv, h.1 a haO b hbO, ?_⟩
       intro W0
       obtain ⟨W', heqW⟩ := walk_mono hsub W0
-      have h1 := hblk W'
+      have h1 := hblk W' (by
+        intro x hx
+        rw [heqW] at hx
+        exact support_subset_restrictRel haO W0 x hx)
       rw [heqW] at h1
       exact h1
     · obtain ⟨W0, hW0⟩ := h.1 a haO b hbO
@@ -256,7 +259,7 @@ private theorem isNonseparableOn_add_ear {V : Type*} {E : V → V → Prop}
           fun he => D.endpoints_distinct (h0.trans he.symm)
         refine h.2 v hvO ⟨x, hxO, D.path.vertex ⟨D.length, by omega⟩, D.end_mem,
           xnev, hfin, h.1 x hxO _ D.end_mem, ?_⟩
-        intro W0
+        intro W0 _hW0sup
         by_contra hnv
         obtain ⟨W1, heq1⟩ := walk_mono hsub W0
         obtain ⟨W2, hw2⟩ := exists_walkOn_segment D.path hne k.1 D.length
@@ -288,7 +291,7 @@ private theorem isNonseparableOn_add_ear {V : Type*} {E : V → V → Prop}
       · -- the start differs from `v`: pair `x` with the start
         refine h.2 v hvO ⟨x, hxO, D.path.vertex ⟨0, by omega⟩, D.start_mem, xnev, h0,
           h.1 x hxO _ D.start_mem, ?_⟩
-        intro W0
+        intro W0 _hW0sup
         by_contra hnv
         obtain ⟨W1, heq1⟩ := walk_mono hsub W0
         obtain ⟨W2, hw2⟩ := exists_walkOn_segment D.path hne 0 k.1
@@ -440,7 +443,7 @@ private theorem isNonseparableOn_add_ear {V : Type*} {E : V → V → Prop}
             D.interior_new q (by omega) (by omega)
           have hvo : D.path.vertex q ∈ old := by rw [hqz.trans hzv]; exact hvO
           exact absurd hvo hint
-        exact hblock v (hblk (W2.copy hi hk)) rfl
+        exact hblock v (hblk (W2.copy hi hk) (support_subset_restrictRel ha _)) rfl
       · obtain ⟨W2, hw2⟩ := exists_walkOn_segment D.path hne k.1 i.1
           (by omega) (by omega) (by omega)
         have hblock : ∀ z ∈ (W2.reverse.copy hi hk).support, z ≠ v := by
@@ -454,7 +457,7 @@ private theorem isNonseparableOn_add_ear {V : Type*} {E : V → V → Prop}
             D.interior_new q (by omega) (by omega)
           have hvo : D.path.vertex q ∈ old := by rw [hqz.trans hzv]; exact hvO
           exact absurd hvo hint
-        exact hblock v (hblk (W2.reverse.copy hi hk)) rfl
+        exact hblock v (hblk (W2.reverse.copy hi hk) (support_subset_restrictRel ha _)) rfl
     · -- `v` outside `old`: it sits at an interior path position
       obtain ⟨j, hj⟩ : ∃ q : Fin (D.length + 1), D.path.vertex q = v := by
         rcases D.covers_new v hv with h | h
@@ -520,7 +523,8 @@ private theorem isNonseparableOn_add_ear {V : Type*} {E : V → V → Prop}
               intro hzv
               exact absurd (hvx q (hqz.trans hzv)) (by omega)
           exact hblock v
-            (hblk (((W1.reverse.append W2l).append W3.reverse).copy hi hk)) rfl
+            (hblk (((W1.reverse.append W2l).append W3.reverse).copy hi hk)
+              (support_subset_restrictRel ha _)) rfl
         · -- the direct segment misses `v`
           obtain ⟨W2, hw2⟩ := exists_walkOn_segment D.path hne i.1 k.1
             (by omega) (by omega) (by omega)
@@ -530,7 +534,7 @@ private theorem isNonseparableOn_add_ear {V : Type*} {E : V → V → Prop}
             obtain ⟨q, hq1, hq2, hqz⟩ := hw2 z hz
             intro hzv
             exact absurd (hvx q (hqz.trans hzv)) (by omega)
-          exact hblock v (hblk (W2.copy hi hk)) rfl
+          exact hblock v (hblk (W2.copy hi hk) (support_subset_restrictRel ha _)) rfl
       · by_cases hjl : k.1 < j.1 ∧ j.1 < i.1
         · -- detour through `old` the other way round
           obtain ⟨W1, hw1⟩ := exists_walkOn_segment D.path hne i.1 D.length
@@ -558,7 +562,8 @@ private theorem isNonseparableOn_add_ear {V : Type*} {E : V → V → Prop}
               intro hzv
               exact absurd (hvx q (hqz.trans hzv)) (by omega)
           exact hblock v
-            (hblk (((W1.append W2l).append W3).copy hi hk)) rfl
+            (hblk (((W1.append W2l).append W3).copy hi hk)
+              (support_subset_restrictRel ha _)) rfl
         · -- the reversed direct segment misses `v`
           obtain ⟨W2, hw2⟩ := exists_walkOn_segment D.path hne k.1 i.1
             (by omega) (by omega) (by omega)
@@ -570,14 +575,15 @@ private theorem isNonseparableOn_add_ear {V : Type*} {E : V → V → Prop}
             obtain ⟨q, hq1, hq2, hqz⟩ := hw2 z hz
             intro hzv
             exact absurd (hvx q (hqz.trans hzv)) (by omega)
-          exact hblock v (hblk (W2.reverse.copy hi hk)) rfl
+          exact hblock v (hblk (W2.reverse.copy hi hk) (support_subset_restrictRel ha _)) rfl
   rcases Classical.em (a ∈ old) with haO | haN
   · rcases Classical.em (b ∈ old) with hbO | hbN
     · exact caseBoth haO hbO
-    · exact caseOne a b ha hb haO hbN hav hbv hblk
+    · exact caseOne a b ha hb haO hbN hav hbv
+        (fun W => hblk W (support_subset_restrictRel ha W))
   · rcases Classical.em (b ∈ old) with hbO | hbN
     · exact caseOne b a hb ha hbO haN hbv hav (fun W => by
-        have h1 := hblk W.reverse
+        have h1 := hblk W.reverse (support_subset_restrictRel ha W.reverse)
         rw [SimpleGraph.Walk.support_reverse] at h1
         rwa [List.mem_reverse] at h1)
     · exact caseNone haN hbN
@@ -780,7 +786,8 @@ theorem isNonseparableOn_of_isDirectedCycleOn {V : Type*} {E : V → V → Prop}
             intro hzv
             exact absurd (hvp t (htz.trans hzv)) (by omega)
         exact hblock v
-          (hblk ((W1.reverse.append (W2.reverse.copy hclosed.symm rfl)).copy hq1 hq2))
+          (hblk ((W1.reverse.append (W2.reverse.copy hclosed.symm rfl)).copy hq1 hq2)
+            (support_subset_restrictRel ha _))
           rfl
       · -- the forward arc misses `v`
         obtain ⟨W, hw⟩ := exists_walkOn_segment P hne q1.1 q2.1
@@ -791,7 +798,7 @@ theorem isNonseparableOn_of_isDirectedCycleOn {V : Type*} {E : V → V → Prop}
           obtain ⟨t, ht1, ht2, htz⟩ := hw z hz
           intro hzv
           exact absurd (hvp t (htz.trans hzv)) (by omega)
-        exact hblock v (hblk (W.copy hq1 hq2)) rfl
+        exact hblock v (hblk (W.copy hq1 hq2) (support_subset_restrictRel ha _)) rfl
     · by_cases hF : q3.1 ≥ q1.1 ∨ q3.1 ≤ q2.1
       · -- the wrapping forward arc contains `v`; the direct backward arc avoids it
         obtain ⟨W, hw⟩ := exists_walkOn_segment P hne q2.1 q1.1
@@ -804,7 +811,7 @@ theorem isNonseparableOn_of_isDirectedCycleOn {V : Type*} {E : V → V → Prop}
           obtain ⟨t, ht1, ht2, htz⟩ := hw z hz
           intro hzv
           exact absurd (hvp t (htz.trans hzv)) (by omega)
-        exact hblock v (hblk (W.reverse.copy hq1 hq2)) rfl
+        exact hblock v (hblk (W.reverse.copy hq1 hq2) (support_subset_restrictRel ha _)) rfl
       · -- the wrapping forward arc misses `v`
         obtain ⟨W1, hw1⟩ := exists_walkOn_segment P hne q1.1 n
           (by omega) (by omega) le_rfl
@@ -823,6 +830,7 @@ theorem isNonseparableOn_of_isDirectedCycleOn {V : Type*} {E : V → V → Prop}
             obtain ⟨t, ht1, ht2, htz⟩ := hw2 z hz
             intro hzv
             exact absurd (hvp t (htz.trans hzv)) (by omega)
-        exact hblock v (hblk ((W1.append (W2.copy hclosed rfl)).copy hq1 hq2)) rfl
+        exact hblock v (hblk ((W1.append (W2.copy hclosed rfl)).copy hq1 hq2)
+          (support_subset_restrictRel ha _)) rfl
 
 end CRNT

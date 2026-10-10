@@ -48,8 +48,8 @@ theorem isEndBlockOn_iff {E : V → V → Prop} {T S : Finset V} :
         ∀ v1 ∈ S, ∀ v2 ∈ S, IsSeparatingVertexOn E T v1 →
           IsSeparatingVertexOn E T v2 → v1 = v2) :=
   Iff.intro
-  · intro h; exact h.1
-  · intro h; exact ⟨h.1, fun v1 hv1 v2 hv2 h1 h2 => h.2 v1 hv1 v2 hv2 h1 h2⟩
+    (fun h : IsEndBlockOn E T S => h)
+    (fun h => And.intro h.1 (fun v1 hv1 v2 hv2 h1 h2 => h.2 v1 hv1 v2 hv2 h1 h2))
 
 /-! ### 2. Nonseparability implies connectedness -/
 
@@ -67,15 +67,15 @@ theorem existsWalkOn_of_isNonseparableOn {E : V → V → Prop} {S : Finset V}
 /-! ### The ambient separating vertices carried by `S` -/
 
 /-- The vertices of `S` that separate the *ambient* graph on `T`. -/
-noncomputable def AmbientSepOn (E : V → V → Prop) (T S : Finset V) : Finset V :=
-  S.filter (IsSeparatingVertexOn E T)
+noncomputable def AmbientSepOn (E : V → V → Prop) (T S : Finset V) : Finset V := by
+  classical
+  exact S.filter (IsSeparatingVertexOn E T)
 
 @[simp]
 theorem mem_ambientSepOn (E : V → V → Prop) (T S : Finset V) (v : V) :
     v ∈ AmbientSepOn E T S ↔ v ∈ S ∧ IsSeparatingVertexOn E T v := by
   classical
   rw [AmbientSepOn, Finset.mem_filter]
-  exact ⟨fun hp => hp.1, fun hp => hp⟩
 
 theorem ambientSepOn_subset (E : V → V → Prop) (T S : Finset V) :
     AmbientSepOn E T S ⊆ S := by
@@ -111,7 +111,7 @@ theorem isEndBlockOn_ambientSep_dichotomy {E : V → V → Prop} {T S : Finset V
     obtain ⟨v, hv⟩ := hne
     refine Finset.card_eq_one.mpr ⟨v, ?_⟩
     ext w
-    simp only [Finset.mem_singleton]
+    rw [Finset.mem_singleton]
     constructor
     · intro hw; exact key w hw v hv
     · intro hw; rw [hw]; exact hv
@@ -130,29 +130,18 @@ theorem isEndBlockOn_ambientSep_cases {E : V → V → Prop} {T S : Finset V}
   rcases isEndBlockOn_ambientSep_dichotomy h with he | hc
   · refine Or.inl ?_
     intro v hv hs
-    exact absurd ((mem_ambientSepOn E T S v).mpr ⟨hv, hs⟩) (by
-      rw [he]
-      exact Finset.not_mem_empty v)
+    exact absurd ((mem_ambientSepOn E T S v).mpr ⟨hv, hs⟩) (by rw [he]; simp)
   · refine Or.inr ?_
     obtain ⟨v, hvs⟩ := Finset.card_eq_one.mp hc
     have hvA : v ∈ AmbientSepOn E T S := by
       rw [hvs]
-      exact Finset.mem_singleton v
+      exact Finset.mem_singleton_self v
     refine ⟨v, (mem_ambientSepOn E T S v).mp hvA |>.1,
       (mem_ambientSepOn E T S v).mp hvA |>.2, ?_⟩
     intro w hw hs
     have hwA : w ∈ AmbientSepOn E T S := (mem_ambientSepOn E T S w).mpr ⟨hw, hs⟩
     rw [hvs] at hwA
-    exact (Finset.mem_singleton.mp hwA).symm
-
-/-- Same dichotomy under the `S`-nonemptiness hypothesis used by §5.5 consumers: with
-`S` nonempty, the ambient separating vertices of `S` are still either absent or unique. -/
-theorem isEndBlockOn_ambientSep_cases_of_nonempty {E : V → V → Prop} {T S : Finset V}
-    (h : IsEndBlockOn E T S) :
-    (∀ v ∈ S, ¬ IsSeparatingVertexOn E T v) ∨
-      ∃ v ∈ S, IsSeparatingVertexOn E T v ∧
-        ∀ w ∈ S, IsSeparatingVertexOn E T w → w = v :=
-  isEndBlockOn_ambientSep_cases h
+    exact Finset.mem_singleton.mp hwA
 
 /-! ### 4. What consumers actually apply -/
 
