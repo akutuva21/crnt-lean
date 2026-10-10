@@ -138,6 +138,122 @@ theorem three_le_stoichRank_of_nonVertex (N : Network S) {P : Finset S}
     fun h => hnv (N.isVertexZeroSet_of_finrank_map_eq h)
   omega
 
+/-! ## The descent step at a vertex face is free — and the descent iteration bottoms out at the
+cardinality-minimum
+
+`Network.false_of_vertex_omegaPoint` (`CRNT.Dynamics.VertexOmegaExclusion`, Craciun–Dickenstein–
+Shiu–Sturmfels 2009, Proposition 20) applies at an **arbitrary** ω-point whose zero set is a vertex
+zero set; the residual only ever calls it at `wmax`.  Read through `Network.SiphonCarried`, which is
+a pure *carrier* predicate — `∃ w ∈ ω, ∀ s, s ∈ P ↔ w s = 0` — the exclusion discharges
+`ComparableGrowthDescent.descend` at every nonempty carried critical siphon `P` with
+`N.IsVertexZeroSet P`: the carrier `w` is an ω-point, nonnegative by `hωnn` and compatible by
+`hωaff`, so the vertex hypothesis gives `False`, from which either disjunct follows.  That is the
+lemma `comparableGrowthDescent_descend_of_vertex` below.
+
+Combining it with `Network.exists_cardMinimal_carried_siphon`
+(`CRNT.Dynamics.SiphonDimensionDescent`) fixes the exact shape of the descent iteration from this
+module's viewpoint.  Cardinalities are naturals, so the chain of strictly decreasing cardinalities
+that `omegaLimit_positive_of_descend` walks reaches a cardinality-minimal carried critical siphon
+`Pm`; at that face the vertex lemma is the *only* way `descend` can fire, minimality forbidding the
+shrinking disjunct (`descendStep_iff_omegaPointPositive_of_cardMinimal`).  Two readings, both
+machine-checked below:
+
+* if the minimal face happens to be a vertex, the vertex lemma closes the theorem outright
+  (`exists_positive_omegaPoint_of_vertex_cardMinimal_carried_siphon`);
+* if no positive ω-point exists, then **no** nonempty carried face is a vertex
+  (`not_isVertexZeroSet_of_siphonCarried_of_noPositive_omegaPoint`), so the minimal face is not a
+  vertex either and the vertex route stops dead at it.
+
+So the word "vertex" buys one thing and one thing only: it removes the need for a *smaller* carrier
+at every vertex face.  What it cannot remove is the bottom of the iteration — the cardinality
+minimum of the carried faces does not by itself force vertexhood, which is a fact about the orbit
+and not about the combinatorics. -/
+
+/-- **`ComparableGrowthDescent.descend` holds at every carried vertex face, for free.**
+
+Let `P` be a nonempty species set carried by the trajectory — `N.SiphonCarried ϕ x₀ P`, i.e. some
+ω-limit point `w` vanishes exactly on `P` — and suppose the `P`-face of the compatibility class is
+a single point (`N.IsVertexZeroSet P`).  Then the left disjunct of `descend P` holds: the carrier
+`w` is an ω-point, `hωnn`/`hωaff` make it a nonnegative member of the class of `x₀`, and
+`Network.false_of_vertex_omegaPoint` (CDSS 2009, Proposition 20) turns the vertex hypothesis into
+`False`.  No cardinality bound, no `hmaxExact`, no `hzcard` — the statement is insensitive to the
+maximality data of this module and holds for every carried siphon simultaneously. -/
+theorem comparableGrowthDescent_descend_of_vertex (N : Network S) (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    (hωaff : ∀ z ∈ omegaLimit atTop ϕ {x₀}, (z - x₀ : Concentration S) ∈ N.stoichSubspace)
+    (hx₀ : x₀.Positive)
+    {P : Finset S} (hPne : P.Nonempty) (hcarr : N.SiphonCarried ϕ x₀ P)
+    (hvert : N.IsVertexZeroSet P) :
+    (∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive) ∨
+      (∃ Q : Finset S, Q.Nonempty ∧ N.IsCriticalSiphon Q ∧ Q.card < P.card ∧
+        N.SiphonCarried ϕ x₀ Q) := by
+  obtain ⟨w, hw, hzero⟩ := hcarr
+  exact (N.false_of_vertex_omegaPoint κ hxs hcb hϕγ hsol hx₀ hw (hωnn w hw) (hωaff w hw)
+    hzero hPne hvert).elim
+
+/-- **Under `hnoG` no nonempty face carried by the trajectory is a vertex.**
+
+Contrapositive of the lemma above, with the nonemptiness of the carrier manufactured: if `P` is
+carried and no ω-limit point is strictly positive, then the carrier `w` is not positive, hence `w`
+vanishes at some species `s` (using `hωnn`), hence `s ∈ P`, hence `P` is nonempty, and the vertex
+exclusion applies.  In the residual's language: once the ω-limit set has no interior point, every
+boundary face the orbit can reach is a genuine face of dimension at least one. -/
+theorem not_isVertexZeroSet_of_siphonCarried_of_noPositive_omegaPoint (N : Network S)
+    (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    (hωaff : ∀ z ∈ omegaLimit atTop ϕ {x₀}, (z - x₀ : Concentration S) ∈ N.stoichSubspace)
+    (hx₀ : x₀.Positive)
+    (hnoG : ¬ ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive)
+    {P : Finset S} (hcarr : N.SiphonCarried ϕ x₀ P) :
+    ¬ N.IsVertexZeroSet P := by
+  intro hvert
+  obtain ⟨w, hw, hzero⟩ := hcarr
+  have hwnp : ¬ w.Positive := fun h => hnoG ⟨w, hw, h⟩
+  obtain ⟨s, hs⟩ : ∃ s, ¬ 0 < w s := not_forall.mp hwnp
+  have hs0 : w s = 0 := le_antisymm (not_lt.mp hs) (hωnn w hw s)
+  have hPne : P.Nonempty := ⟨s, (hzero s).mpr hs0⟩
+  exact (N.false_of_vertex_omegaPoint κ hxs hcb hϕγ hsol hx₀ hw (hωnn w hw) (hωaff w hw)
+    hzero hPne hvert).elim
+
+/-- **A cardinality-minimal carried critical siphon that is a vertex closes the theorem.**
+
+The descent iteration of `omegaLimit_positive_of_descend` walks strictly decreasing cardinalities,
+so it bottoms out at a cardinality-minimal carried critical siphon `Pm`; minimality forbids the
+shrinking disjunct there (`descendStep_iff_omegaPointPositive_of_cardMinimal`), so the vertex
+exclusion is then the only available move, and it delivers the positive ω-limit point.  Read with
+`not_isVertexZeroSet_of_siphonCarried_of_noPositive_omegaPoint`, this is the exact boundary of the
+vertex technology in this module: the residue is precisely the assertion that the cardinality-minimum
+of the carried critical faces is *not* a vertex whenever the ω-limit set has no interior point. -/
+theorem exists_positive_omegaPoint_of_vertex_cardMinimal_carried_siphon (N : Network S)
+    (κ : N.RateConstants)
+    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
+    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
+    {x₀ : Concentration S}
+    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
+    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
+    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
+    (hωaff : ∀ z ∈ omegaLimit atTop ϕ {x₀}, (z - x₀ : Concentration S) ∈ N.stoichSubspace)
+    (hx₀ : x₀.Positive)
+    (hex : ∃ Pm : Finset S, Pm.Nonempty ∧ N.IsCriticalSiphon Pm ∧ N.SiphonCarried ϕ x₀ Pm ∧
+      (∀ Q : Finset S, N.IsCriticalSiphon Q → N.SiphonCarried ϕ x₀ Q → Pm.card ≤ Q.card) ∧
+      N.IsVertexZeroSet Pm) :
+    ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive := by
+  obtain ⟨Pm, hPmne, _, hPmcarr, hmin, hPmvert⟩ := hex
+  rcases N.comparableGrowthDescent_descend_of_vertex κ hxs hcb hϕγ hsol hωnn hωaff hx₀
+    hPmne hPmcarr hPmvert with hpos | ⟨Q, _, hQcrit, hQlt, hQcarr⟩
+  · exact hpos
+  · exact absurd hQlt (not_lt.mpr (hmin Q hQcrit hQcarr))
+
 /-- **Residual obligation, non-vertex case.**  Exactly the hypotheses of
 `exists_positive_omegaPoint_of_highCodimension_siphonFace`, plus `hnv`: the `Pmax`-face of the
 compatibility class is not a single point, i.e. some nonzero stoichiometric vector vanishes on
