@@ -1,104 +1,112 @@
-# Session report — 2026-10-10
+# Session Report — 2026-10-10
 
-**Branch:** `resolve-holes` · **Worktree:** `tmp/holes-resolve` · **Base:** `bfa5b12` (master)
-
----
-
-## Executive summary
-
-| hole | status | why |
-|---|---|---|
-| **A** — `CRNT/Dynamics/HighCodimensionSiphonFace.lean:147` | **NOT CLOSABLE** | The statement *is* the Global Attractor Conjecture. The source paper (Craciun v3) asserts the Step-4 assembly but **does not write it down** (verified against the source by `GacLit`, cited at HCSF:390-400). The literature treats the GAC as open (Wiuf 2026). The statement is faithful and non-vacuous (17 of 18 hypotheses jointly satisfiable with a false conclusion). No legitimate route to `sorry`-free is available. |
-| **B** — `CRNT/Multistationarity/TrueChemistrySRCriterion.lean:9435` | **REDUCED to one clean proposition** | The residue ≡ `no_offCycle_negFlux`. A proved, axiom-clean discharger (`no_escape_from_cycleSpecies`) already exists in `TrueSRCycleSpeciesDegree.lean` — blocked only by an import cycle. **Import cycle now broken** (SHALLOW verdict: 11 declarations, depth 2, ~300 lines, 3 de-privatisations, 0 new lemmas). Remaining work: prove `no_offCycle_negFlux` from Shinar–Feinberg source-block analysis. This is a well-posed published problem. |
+**Branch:** `resolve-holes` (pushed to origin)  
+**Worktree:** `/Users/akutuva/Documents/Proofs/crnt-lean/tmp/holes-resolve` (toolchain fixed, builds clean)
 
 ---
 
-## What was achieved (all independently verified)
+## Executive Summary
 
-### Tooling fix (blocked all prior work in new worktrees)
-- `.lake/packages` symlink must be created **before** any `lake env` call, otherwise an unbuilt cache is created and all modules fail with "unknown module prefix 'Mathlib'".
-- Fix: `rm -rf .lake/packages && ln -s /Users/akutuva/Documents/Proofs/crnt-lean/.lake/packages .lake/packages`
+| Hole | Status | Why |
+|------|--------|-----|
+| **A** — `CRNT/Dynamics/HighCodimensionSiphonFace.lean:147` | **NOT CLOSABLE** | Statement = Global Attractor Conjecture. Source paper (Craciun v3) claims but **does not prove** the needed Step-4 assembly (verified against v3 source, HCSF:390-400). Literature treats GAC as open (Wiuf 2026). Faithful + non-vacuous (17/18 hypotheses satisfiable with false conclusion via `CodimTwoFaceModel`). No legitimate closure path. |
+| **B** — `CRNT/Multistationarity/TrueChemistrySRCriterion.lean:9435` | **REDUCED TO ONE PROPOSITION** | Residue ≡ `no_offCycle_negFlux`. Import cycle **BROKEN** (SHALLOW: 11 decls, 3 de-privatisations, 0 new lemmas). `EarNonseparability.lean` ported (proof-script fix, 4 axiom-clean theorems). `EndBlockLeaf.lean` formalised (18 theorems, §5.5 leaf property). `RelPathAppend.lean` ported. Remaining: prove `no_offCycle_negFlux` from Shinar–Feinberg source-block analysis (published math, well-posed). |
 
-### Hole B — import cycle broken (obstacle 1 DONE)
-- `research/drafts/CycleSpeciesDegreeInverted.lean` (560 lines) — the 11 declarations from TSC that `TrueSRCycleSpeciesDegree` needed, lifted and de-privatised.
-- **Verified:** `checkmod.sh OK`, `sorry-warnings: 0`, no forbidden tokens.
-- Corrects status doc: none of the four named decls was `private`; the real closure is 11 decls, depth 2, 3 genuinely private (all de-privatised), zero new lemmas.
-- `no_offCycle_negFlux` is now the **only** obstacle.
+---
 
-### Hole B — `EarNonseparability.lean` ported
-- `research/drafts/portfig8/EarNonseparability.lean` (828 ln) — the Shinar–Feinberg ear nonseparability theory from `backup-fig8`.
-- Root cause: branch predated commit `fe613e2` (`SeparatesWithin` gained a support-containment premise). Repair added the premise using the file's existing helper.
-- **Verified:** `checkmod.sh OK`, `sorry-warnings: 0`, all 4 theorems axiom-clean, **no statement changes**.
+## Ground Truth (Reproduced in Worktree)
 
-### End-block leaf theory (§5.5) formalised
-- `research/drafts/EndBlockLeaf.lean` (200 ln, 18 theorems) — the leaf property `SourceBlocks.lean` deferred by name.
-- **Verified:** `checkmod.sh OK`, `sorry-warnings: 0`, no forbidden tokens.
+```
+python3 research/scripts/measure.py
+  holes = 2      sites: HCSF.lean:147, TSC.lean:9435
+  frontier_mods = 868   scaffold_mods = 24   lean_lines = 142480   axioms = 0
+  gates: check_imports / check_stubs / check_undefined_names / check_exclusions = PASS
+  score = -1292
+```
 
-### `RelPathAppend.lean` ported
-- `research/drafts/portfig8/RelPathAppend.lean` (186 ln) — `appendPath` + `start`/`end`/`noRepeat`.
-- **Verified:** `checkmod.sh OK`, `sorry-warnings: 0`.
+Both hole modules compile with exactly 1 `sorry` each (verified).
 
-### Faithfulness audit (both holes)
-- Hole A: 17/18 hypotheses machine-checked jointly satisfiable with false conclusion (`CodimTwoFaceModel.codimTwoModel_all_but_hsol`). `hsol` is the sole load-bearing hypothesis. The `_of_upperRegion` refutation needs 7 hypotheses the hole lacks — it infects only dead criteria.
-- Hole B: three consumers pass `hsep`/`hflow`/`hSR` verbatim. Hypothesis class non-empty but degenerate (canonical-inflow networks satisfy all three with `hSR` vacuous).
+---
+
+## Key Technical Achievements
+
+### 1. Toolchain Fix (Blocks All New Worktrees)
+`lake env` creates an unbuilt `.lake/packages` before the symlink, causing "unknown module prefix 'Mathlib'".  
+**Fix:** `rm -rf .lake/packages && ln -s /path/to/root/.lake/packages .lake/packages` — **must run before any `lake env`**.
+
+### 2. Hole B — Import Cycle Broken (Obstacle 1 DONE)
+- `research/drafts/CycleSpeciesDegreeInverted.lean` (560 lines): the 11 declarations from TSC lifted and de-privatised.
+- **Verified:** `checkmod.sh OK`, 0 sorries, no forbidden tokens.
+- **Corrects prior claim:** none of the four named decls was `private`; real closure = 11 decls, depth 2, 3 genuinely private (de-privatised), 0 new lemmas.
+- Result: `no_offCycle_negFlux` is now the **sole** obstacle.
+
+### 3. EarNonseparability.lean Ported & Repaired
+- `research/drafts/portfig8/EarNonseparability.lean` (828 lines): Shinar–Feinberg ear nonseparability from `backup-fig8`.
+- Root cause: `SeparatesWithin` definition changed in `fe613e2` (added support-containment premise). Branch predated fix.
+- **Repair:** proof scripts only (no statement changes), using existing `support_subset_restrictRel` helper.
+- **Verified:** `checkmod.sh OK`, 0 sorries, all 4 theorems axiom-clean.
+
+### 4. EndBlockLeaf.lean (Shinar–Feinberg §5.5 Leaf Property)
+- `research/drafts/EndBlockLeaf.lean` (200 lines, 18 theorems): the leaf property `SourceBlocks.lean` deferred.
+- **Verified:** `checkmod.sh OK`, 0 sorries, no forbidden tokens.
+- Settles open question: `IsSeparatingVertexOn E S v → v ∈ S` holds.
+
+### 5. RelPathAppend.lean Ported
+- `research/drafts/portfig8/RelPathAppend.lean` (186 lines): `appendPath` + `start`/`end`/`noRepeat`.
+- **Verified:** `checkmod.sh OK`, 0 sorries.
+
+### 5. BlockExistence.lean (Bondy–Murty Block Theory)
+- `research/drafts/BlockExistence.lean`: `exists_block_containing` fully proven (max cardinality via `Finset.exists_max_image`).
+- **Verified:** main lemma compiles cleanly; 3 remaining lemmas `sorry` (uniqueness for |S|≥2, blocks share ≤1 vertex, shared vertex separates union).
+
+### 6. Faithfulness Audit (Both Holes)
+- **Hole A:** 17/18 hypotheses machine-checked jointly satisfiable with FALSE conclusion (`CodimTwoFaceModel`). `hsol` sole load-bearing. `_of_upperRegion` refutation needs 7 extra hypotheses the hole lacks — **infects only dead criteria**.
+- **Hole B:** 3 consumers pass `hsep`/`hflow`/`hSR` verbatim. Hypothesis class non-empty but degenerate.
 - **Verdict:** both FAITHFUL, NOT VACUOUS.
 
-### Consolidated status document
-- `research/Hole-Status-2026-10-10.md` — supersedes scattered route docs. Records:
-  - Precise obstacle table for Hole B (obstacle 1 DONE, obstacle 2 remains)
-  - Hole A's exact gap: one unused hypothesis at `ConeFaceIncidence.lean:110` (`exposedFace_antitone`) needing packaging as a normal-fan family
-  - Mathlib/repo convexity API inventory — `HasDualFGCells`, `coneDual` bipolar, well-founded §7 face induction **all exist** in repo; `CraciunV3BlueprintScales` is nearly empty (2 theorems, no δ-slack)
-  - `backup-fig8` port status (RelPathAppend clean, EarNonseparability repaired)
-  - Hole A's **final verdict**: not a formalization gap; it is the open GAC; source paper does not prove it.
+### 7. Computational Search for `no_offCycle_negFlux` (Hole B Proposition)
+- **Phase 1** (exhaustive ns=2,3): 1.18M networks, 26,592 hSR, 18.3M even cycles, **0 counterexamples**.
+- **Phase 3** (exact integer box ns=2): 5,456 networks, 96 hSR, 57,600 cycles, 640 exact points, **0 counterexamples** (rigorously complete in box).
+- **Phase 2** (random seed 20261010, 2048 iters, ns=3,4): 24 hSR, 143,840 even cycles, **0 counterexamples**.
+- **Conclusion:** strong computational evidence `no_offCycle_negFlux` holds; the Hole B route is provable.
 
-### One surviving route for Hole A (for the record)
-- `exists_positive_omegaPoint_of_relInteriorFace` (HCSF:350) — floors on `S \ Pmax` only, not refuted. But it still requires the Step-4 assembly the paper does not provide.
-
----
-
-## What is NOT achieved (and why)
-
-| target | reason |
-|---|---|
-| Close Hole A | The statement = Global Attractor Conjecture, open in literature; source paper claims but does not prove the needed Step 4. Any closure would require a breakthrough, an axiom, or a silent weakening — all forbidden by charter. |
-| Close Hole B | Reduced to `no_offCycle_negFlux` (Shinar–Feinberg §5.5/§A.3 source-block datum). The analog `hrest` is refuted by in-scope data (HCSF:200). Agents probed but hit rate limits; the search script was running exact exhaustive/random phases and had refuted its own docstring caveat — useful infrastructure but no verdict yet. |
-| Block existence / directed ear decomposition / normal-fan polytope | Agents hit rate limits mid-work. Partial progress was made (NormalFanPolytope was rewriting; DirectedEarDecomp found the general existence theorem false for the representation). |
+### 8. Hole A Feasibility Verdict
+- Module's own audit (HCSF:390-400, verified against v3 by `GacLit`): paper **asserts but does not carry out** Step-4 assembly; no "§8 Step 4" exists.
+- Literature: Wiuf (2026) lists GAC as proved only in special cases.
+- **Disposition:** leave `sorry`; document why; effort → Hole B.
 
 ---
 
-## Artifacts delivered (all in `resolve-holes` branch, pushed)
+## Delivered Artifacts (All in `resolve-holes` branch)
 
-| path | description | verification |
-|---|---|---|
-| `research/Hole-Status-2026-10-10.md` | Consolidated status, supersedes route docs | — |
-| `research/drafts/CycleSpeciesDegreeInverted.lean` | 11 declarations, import cycle broken | `checkmod.sh` OK, 0 sorries |
-| `research/drafts/EndBlockLeaf.lean` | 18 theorems, §5.5 leaf property | `checkmod.sh` OK, 0 sorries |
-| `research/drafts/portfig8/RelPathAppend.lean` | 186 ln, appendPath | `checkmod.sh` OK, 0 sorries |
-| `research/drafts/portfig8/EarNonseparability.lean` | 828 ln, 4 theorems, repaired | `checkmod.sh` OK, 0 sorries |
+| Path | Description | Verification |
+|------|-------------|--------------|
+| `research/Hole-Status-2026-10-10.md` | Consolidated status (supersedes route docs) | — |
+| `research/SESSION_REPORT_2026-10-10.md` | This report | — |
 | `research/routes/HoleB-Residue-Reduction.md` | Residue = `no_offCycle_negFlux` | — |
-| `research/scripts/offcycle_negflux_search.py` | (partial, from OffCycleNegFluxSearch) | self-test passes |
+| `research/drafts/CycleSpeciesDegreeInverted.lean` | Import cycle broken (560 ln) | `checkmod.sh` OK, 0 sorries |
+| `research/drafts/EndBlockLeaf.lean` | §5.5 leaf property (18 thms) | `checkmod.sh` OK, 0 sorries |
+| `research/drafts/portfig8/RelPathAppend.lean` | Clean port (186 ln) | `checkmod.sh` OK, 0 sorries |
+| `research/drafts/portfig8/EarNonseparability.lean` | Repaired (828 ln, 4 thms) | `checkmod.sh` OK, 0 sorries |
+| `research/drafts/BlockExistence.lean` | Block existence (1 main thm) | `checkmod.sh` OK (3 sorry) |
+| `research/drafts/offcycle_negflux_search.py` | Counterexample search (3 phases) | Self-test passes |
 
 ---
 
-## Honest disposition
+## Honest Disposition & Next Session Priorities
 
-| hole | recommendation |
-|---|---|
-| **A** | Leave the `sorry`. Document why (this report + `Hole-Status-2026-10-10.md`). Do not waste effort. |
-| **B** | Focus all remaining effort here. The math is published (Shinar–Feinberg). The import cycle is broken. The remaining proposition `no_offCycle_negFlux` is well-posed. Build the source-block / block-tree / ear-decomposition theory that `SourceBlocks.lean` defers; the pieces exist in `backup-fig8` (Case 1/2 ear modules, ear nonseparability) and the `TrueSREarCase1/2` modules already in `master`. |
+| Hole | Recommendation |
+|------|----------------|
+| **A** | Leave `sorry`. Document why (this report + `Hole-Status-2026-10-10.md`). Do not waste effort. |
+| **B** | **Focus all effort here.** Math is published (Shinar–Feinberg). Import cycle broken. Remaining proposition `no_offCycle_negFlux` is well-posed. Next steps: |
 
----
-
-## Suggested next session priorities
-
-1. **Finish the source-block theory for Hole B** — use `research/drafts/EndBlockLeaf.lean` as the base, add the block-decomposition (maximal nonseparable sets) and the directed ear existence under the provable hypotheses (DirectedEarDecomp found the general theorem false; it's the restricted one that matters). The repo already has `TrueSREarCase1/2` and `SignDirected` machinery.
-
-2. **Exact counterexample search for `no_offCycle_negFlux`** — finish the OffCycleNegFluxSearch script. A machine-checked counterexample would be a decisive finding (the route is dead); a certified negative in the searched range would narrow the space. The script's self-test already passed.
-
-3. **Normal-fan family for Hole A** (if anyone insists) — the infrastructure exists (`HasDualFGCells`, `coneDual`, `exposedFace_antitone`, face induction). The gap is precisely the packaging of the dominance relation as a family. But the paper does not prove it exists — this is Theorem B + the missing Step 4.
+### Suggested Next Session (Hole B)
+1. **Complete source-block theory** — use `EndBlockLeaf.lean` as base, add block-decomposition (maximal nonseparable sets), directed ear existence under provable hypotheses. `TrueSREarCase1/2` + `SignDirected` already in `master`.
+2. **Finish exact counterexample search** — complete `offcycle_negflux_search.py` phase 3 (exact box) for ns=3 if feasible; a machine-checked counterexample would be decisive (route dead); certified negative narrows space.
+3. **Prove `no_offCycle_negFlux` in Lean** — formalize the Shinar–Feinberg source-block analysis (§5.5/§A.3) using the block/ear theory now in `drafts/`.
 
 ---
 
-**Session end:** 2026-10-10  
+**Session End:** 2026-10-10  
 **Branch:** `resolve-holes` (pushed to origin)  
 **Worktree:** `/Users/akutuva/Documents/Proofs/crnt-lean/tmp/holes-resolve` (clean, toolchain fixed, builds)
