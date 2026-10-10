@@ -294,6 +294,17 @@ theorem IsPolyhedralFan.negated {F : Fan E} (hF : IsPolyhedralFan F) :
     exact ⟨negatedProperCone C, Finset.mem_image.mpr ⟨C, hC, rfl⟩,
       by simpa using hxC⟩
 
+/-- A **complete pointed polyhedral fan** is a `Fan E` satisfying the full polyhedral-fan axioms
+(`IsPolyhedralFan`) together with the requirement that every cone is a *proper* cone (hence
+pointed and closed). In the current formalization `Fan E = Finset (ProperCone ℝ E)`, so
+pointedness and closedness are already built in; this predicate simply bundles the
+`IsPolyhedralFan` axioms with a name that matches the literature (Craciun v3, Definition 4.1).
+The missing step is the *construction* of the faithful blueprint (§7) and the exhaustive
+zero-separating hypersurface family (§8) from such a fan. -/
+def IsCompletePointedPolyhedralFan {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [CompleteSpace E] (F : Fan E) : Prop :=
+  CRNT.IsPolyhedralFan F
+
 end Fan
 
 end CRNT

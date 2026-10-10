@@ -9432,7 +9432,17 @@ theorem stronglyConcordant_fullyOpen_of_trueSRCriterion
                   ¬ C.HasVertex (N.aggregateVertexToTrueSRVertex
                     ((Q0.concat (Sum.inl s) hsT hstep').vertex i)) :=
                 N.aggregateEar_interior T Q0 C hqm hsT hstep' hqOff hQ0late
-              sorry
+              -- The residual case: the ear's first hop is a leftEdge (s₀ → C.reaction(pos s₀)),
+              -- and the rest of the path has length 1 (m ≠ 1 ∨ s₀ ≠ s). The missing datum is the
+              -- A.6 Case-2 source-block hypothesis: an off-cycle species u with
+              -- trueInternalClassFlux α (C.reaction t) u * σ u < 0 for some on-cycle reaction
+              -- C.reaction t, which would allow a path from the off-cycle region to enter C
+              -- from outside. This is the "A.6 Case-2 source-block datum" or "hrest degree-two
+              -- isolation" identified in research/BRIEF-B.md §B.2/§B.4. Nothing in scope produces
+              -- it; it requires the full block decomposition and ear decomposition machinery.
+              have h_missing_source_block_datum : False := by sorry
+              exfalso
+              exact h_missing_source_block_datum
           | inr ρ0 => exact hv0ne ρ0 hv0
     obtain ⟨M, Q, hQ0, hQlast, hQnd⟩ := hspan
     exact no_spanning_path_of_trueSRCriterion hSR C hCeven

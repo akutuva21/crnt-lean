@@ -363,6 +363,11 @@ theorem relativeSourceOrderNegativeStoichFan_isPolyhedralFan (N : Network S) :
     CRNT.IsPolyhedralFan N.relativeSourceOrderNegativeStoichFan := by
   exact (N.relativeSourceOrderStoichFan_isPolyhedralFan).negated
 
+/-- The negative intrinsic source-order fan is a complete pointed polyhedral fan. -/
+theorem relativeSourceOrderNegativeStoichFan_isCompletePointedPolyhedralFan (N : Network S) :
+    CRNT.IsCompletePointedPolyhedralFan N.relativeSourceOrderNegativeStoichFan := by
+  exact N.relativeSourceOrderNegativeStoichFan_isPolyhedralFan
+
 /-- Every sign-reversed source-order chamber occurs in the negative intrinsic fan. -/
 theorem relativeSourceOrderNegativeConeInStoich_mem_fan (N : Network S) (w : S → ℝ) :
     CRNT.negatedProperCone (N.relativeSourceOrderConeInStoich w) ∈
