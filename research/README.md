@@ -8,10 +8,11 @@ closed by the Banaji--Craciun determinant route, `CRNT/Multistationarity/BCFully
 
 | id | site | theorem | mathematical content |
 | --- | --- | --- | --- |
-| **A** | `CRNT/Dynamics/HighCodimensionSiphonFace.lean:135` | `Network.exists_positive_omegaPoint_of_highCodimension_siphonFace` | Craciun v3, Theorem B: a toric differential inclusion over a complete pointed fan admits an exhaustive family of zero-separating hypersurfaces. Blocks the Global Attractor Conjecture. |
-| **B** | `CRNT/Multistationarity/TrueChemistrySRCriterion.lean:8607` | `Network.stronglyConcordant_fullyOpen_of_trueSRCriterion` | Classical SR graph criterion: reactant/product-separated + every e-cycle an s-cycle + no two e-cycles share an S-to-R intersection ⟹ the fully open extension is strongly concordant. Blocks the multistationarity package. |
+| **A** | `CRNT/Dynamics/HighCodimensionSiphonFace.lean` | `Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex` | Craciun v3, Theorem B: a toric differential inclusion over a complete pointed fan admits an exhaustive family of zero-separating hypersurfaces. Blocks the Global Attractor Conjecture. The statement has already been split once: the vertex sub-case is discharged by `CRNT/Dynamics/VertexOmegaExclusion.lean` (CDSS 2009, Prop. 20), and what remains is faces of dimension at least one and codimension at least two. |
 
-Everything else in the tree is `sorry`-free and audits to `[propext, Classical.choice, Quot.sound]`.
+The former hole **B** (`Network.stronglyConcordant_fullyOpen_of_trueSRCriterion`) is closed; see
+`HANDOFF_trueSR_closed.md` for the Banaji--Craciun determinant route.  Everything else in the tree
+is `sorry`-free and audits to `[propext, Classical.choice, Quot.sound]`.
 
 ---
 
@@ -84,12 +85,12 @@ A swarm without adversaries converges on self-deception within two rounds.
 
 * **Never** introduce `axiom`, `admit`, `@[implemented_by]`, `native_decide` over non-`Decidable`
   data, or `sorry` anywhere in `CRNT/` or `Scaffold/`. Two exceptions only, both pre-existing and
-  both tracked: the two holes themselves, and `test/` probes.
+  both tracked: hole A itself, and `test/` probes.
 * **Never** change a theorem's *statement* to make it provable without writing, in the same commit
   message, a mathematical justification and a check that the change is faithful. This happened
   before in this repo (`stronglyConcordant_of_fullyOpen_of_weaklyNormal` was **false as stated**
   and was repaired by adding `hsep`); it is acceptable when documented, and unacceptable when silent.
-* **Never** weaken a hypothesis of a hole statement. The two hole statements are fixed. If you
+* **Never** weaken a hypothesis of the hole statement. It is fixed. If you
   believe a hole statement is false, that is a Tier D finding, and it must be *proved* (a Lean
   counterexample or exact-rational computation), not argued.
 * **Never** run a full `lake build`. Use `research/scripts/checkmod.sh`. The shared build cache
@@ -141,7 +142,7 @@ The orchestrator computes each researcher's round score from the tree, not from 
 | a machine-checked **refutation** that kills a route or a statement | **+30** |
 | a proved lemma that another researcher's PR builds on | **+15** |
 | no commit this round | **0** |
-| introduced `sorry`/`axiom`/`admit` outside the two holes | **−60** |
+| introduced `sorry`/`axiom`/`admit` outside hole A | **−60** |
 | broke a static gate | **−60** |
 | weakened a hole statement's hypotheses silently | **−200** |
 | statement provable only via a false step / vacuous hypothesis (caught by audit) | **−200** |

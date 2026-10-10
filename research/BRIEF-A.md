@@ -1,8 +1,32 @@
 # BRIEF A — Craciun v3 Theorem B: the codimension ≥ 2 zero-separating surface
 
+## A.0. Status of this brief (updated 2026-10-10)
+
+The theorem below still has its statement, but it is now **split**, and the easy half is closed:
+
+* the **vertex** sub-case — the `Pmax`-face of the compatibility class is the single point `wmax` —
+  is proved, by `CRNT/Dynamics/VertexOmegaExclusion.lean`
+  (`Network.false_of_vertex_omegaPoint`; CDSS 2009, Proposition 20).  See
+  `HANDOFF_gac_vertex.md`.
+* the residual is now
+  `Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex`: the same
+  hypotheses plus `hnv : ¬ N.IsVertexZeroSet Pmax`.  `three_le_stoichRank_of_nonVertex`
+  shows that `hcodim` and `hnv` force `3 ≤ N.stoichRank`, so what remains is faces of
+  dimension at least one and codimension at least two.
+* the descent technology has been pushed as far as it goes without new mathematics: a carried
+  **vertex** face cannot exist at all
+  (`not_isVertexZeroSet_of_siphonCarried_of_noPositive_omegaPoint`), the descent step is free
+  at every carried vertex face (`comparableGrowthDescent_descend_of_vertex`), and
+  `exists_positive_omegaPoint_of_vertex_cardMinimal_carried_siphon` records that a
+  cardinality-minimal carried critical siphon that happens to be a vertex closes the theorem.
+  The residue is therefore exactly "the cardinality-minimum of the carried critical faces is not
+  a vertex", which needs the comparable-growth estimate, i.e. new mathematics.
+* line numbers in this file predate those two changes and are stale; use the declaration names.
+
 ## A.1 The target
 
-`CRNT/Dynamics/HighCodimensionSiphonFace.lean:135`
+`CRNT/Dynamics/HighCodimensionSiphonFace.lean` (the parent theorem, now discharged from the
+non-vertex residual below)
 
 ```lean
 theorem Network.exists_positive_omegaPoint_of_highCodimension_siphonFace
