@@ -1,6 +1,6 @@
 # CRNT-Lean proof swarm — charter
 
-**Branch of record:** `holes` (the swarm branches from `research/swarm`, itself a child of `holes`).
+**Branch of record (retired 2026-10-11, both holes closed):** formerly `holes` (swarm base `research/swarm`).
 **Objective (single scalar, lexicographic):** drive `research/scripts/measure.py` to `holes = 0`.
 
 There is **no** executable `sorry` left in the whole `CRNT/` tree (`holes = 0`). Hole B was

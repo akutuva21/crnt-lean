@@ -89,7 +89,9 @@ name = "test"
 globs = [
   "test.AxiomAudit",
   "test.BanajiCraciunAudit",
+  "test.FieldMapAudit",
   "test.FrontierAuditCurrent",
+  "test.NewLeavesAudit",
   "test.NonVacuity",
   "test.Oscillation",
   "test.PersistenceAudit",
