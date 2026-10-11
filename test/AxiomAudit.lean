@@ -2,6 +2,9 @@ import CRNT
 import CRNT.Dynamics.HighCodimensionSiphonFace
 import CRNT.Multistationarity.TrueChemistrySRCriterion
 import CRNT.Dynamics.GlobalAttractorTheorem
+import CRNT.Dynamics.GACLowRank
+import CRNT.Dynamics.GACVertexFacet
+import CRNT.Examples.CatalyticChainGAC
 
 /-!
 # Axiom-cleanliness regression guard
@@ -591,7 +594,7 @@ Run standalone with:
 ## The two hole chains: pinned
 
 The pins above are a hand-picked list, so they only ever check what somebody remembered to add.
-These extend that to the two chains that still carry a `sorry`, by pinning every theorem on each
+These extend that to the two hole chains (chain B is now closed and pinned clean), by pinning every theorem on each
 chain that a consumer is most likely to reach through.
 
 The axiom set recorded for each is **exactly** `[propext, Classical.choice, Quot.sound]` — no
@@ -685,36 +688,295 @@ section ChainB
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.exists_positive_off_cycle_aggregate_class
 
-/-- info: 'CRNT.Network.stronglyConcordant_of_trueSRCriterion_of_weaklyReversible' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.stronglyConcordant_of_trueSRCriterion_of_weaklyReversible' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.stronglyConcordant_of_trueSRCriterion_of_weaklyReversible
 
-/-- info: 'CRNT.Network.injective_of_trueSRCriterion' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.injective_of_trueSRCriterion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.injective_of_trueSRCriterion
+
+/-- info: 'CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion
+
+/-- info: 'CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion_bc' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion_bc
 
 end ChainB
 
 /-!
-## The two holes themselves, pinned
+## The former Global Attractor hole, pinned clean
 
-`sorryAx` is *expected* here and only here.  These three pins make the expected set exact, so if a
-hole is closed the build fails (the axiom set shrinks) and if a new `sorryAx` user appears the
-whole-environment census below reports it.
+Both holes are closed.  The true-SR hole (chain B) by the Banaji--Craciun determinant route
+(`CRNT/Multistationarity/BCFullyOpen.lean`); the GAC residual
+`exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex` by the persistence route
+`CRNT/Persistence/` (`Network.complexBalanced_forward_floor`: bounded complex-balanced
+trajectories have a positive coordinate floor, via a zero-separating polyhedral region).  No
+`sorryAx` is expected anywhere; these pins fail if one reappears.
 -/
 
-/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex
+
+/-- info: 'CRNT.Network.three_le_stoichRank_of_nonVertex' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.three_le_stoichRank_of_nonVertex
+
+/-- info: 'CRNT.Network.false_of_vertex_omegaPoint' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.false_of_vertex_omegaPoint
+
+/-- info: 'CRNT.PlanarZSH.Rays.exists_polygon' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.PlanarZSH.Rays.exists_polygon
+
+/-- info: 'CRNT.PlanarZSH.Rays.exists_trapping_polygon' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.PlanarZSH.Rays.exists_trapping_polygon
+
+/-- info: 'CRNT.PlanarZSH.Rays.pair_ge_of_good' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.PlanarZSH.Rays.pair_ge_of_good
+
+/-- info: 'CRNT.Network.inner_nonneg_of_sourceOrder' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.inner_nonneg_of_sourceOrder
+
+/-- info: 'CRNT.Network.transversal_descent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.transversal_descent
+
+/-- info: 'CRNT.Network.local_codimTwo_trap' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.local_codimTwo_trap
+
+/-- info: 'CRNT.Network.forall_complexBalanced_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.forall_complexBalanced_iff
+
+/-- info: 'CRNT.Network.weaklyReversible_and_deficiencyZero_of_forall_complexBalanced' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.weaklyReversible_and_deficiencyZero_of_forall_complexBalanced
+
+/-- info: 'CRNT.Network.kineticSubspace_eq_stoichSubspace_of_numTerminalSLC' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.kineticSubspace_eq_stoichSubspace_of_numTerminalSLC
+
+/-- info: 'CRNT.Network.kineticSubspace_eq_stoichSubspace_of_weaklyReversible' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.kineticSubspace_eq_stoichSubspace_of_weaklyReversible
+
+/-- info: 'CRNT.Network.span_complexMonomialVector_eq_top' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.span_complexMonomialVector_eq_top
+
+/-- info: 'CRNT.Network.deficiencyZero_not_weaklyReversible_no_positive_steadyState_or_cycle' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.deficiencyZero_not_weaklyReversible_no_positive_steadyState_or_cycle
+
+/-- info: 'CRNT.Network.weaklyReversible_of_deficiencyZero_of_cyclic_trajectory' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.weaklyReversible_of_deficiencyZero_of_cyclic_trajectory
+
+/-- info: 'CRNT.Network.positiveSteadyState_iff_logRatio_mem_orthStoich' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.positiveSteadyState_iff_logRatio_mem_orthStoich
+
+/-- info: 'CRNT.Network.isComplexBalanced_of_positive_steadyState' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.isComplexBalanced_of_positive_steadyState
+
+/-- info: 'CRNT.Network.isSiphon_iff_of_weaklyReversible' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.isSiphon_iff_of_weaklyReversible
+
+/-- info: 'CRNT.Network.meets_iff_of_linked' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.meets_iff_of_linked
+
+/-- info: 'CRNT.Network.eq_of_periodic_solution_of_complexBalanced' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.eq_of_periodic_solution_of_complexBalanced
+
+/-- info: 'CRNT.Network.complexBalanced_genuinePermanent_of_codimTwoCriticalSiphonsAreVertices' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.complexBalanced_genuinePermanent_of_codimTwoCriticalSiphonsAreVertices
+
+/-- info: 'CRNT.Network.complexBalanced_trajectory_converges_of_codimTwoCriticalSiphonsAreVertices' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.complexBalanced_trajectory_converges_of_codimTwoCriticalSiphonsAreVertices
+
+/-- info: 'CRNT.Network.codimTwoCriticalSiphonsAreVertices_of_stoichRank_le_two' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.codimTwoCriticalSiphonsAreVertices_of_stoichRank_le_two
+
+/-- info: 'CRNT.Network.gac_of_firstOrder' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.gac_of_firstOrder
+
+/-- info: 'CRNT.Network.hasNoCriticalSiphon_of_firstOrder' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.hasNoCriticalSiphon_of_firstOrder
+
+/-- info: 'CRNT.Network.complexBalanced_genuinePermanent_of_stoichRank_le_two' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.complexBalanced_genuinePermanent_of_stoichRank_le_two
+
+/-- info: 'CRNT.Network.complexBalanced_trajectory_converges_of_stoichRank_le_two' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.complexBalanced_trajectory_converges_of_stoichRank_le_two
+
+/-- info: 'CRNT.Network.exists_massAction_realization_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_massAction_realization_iff
+
+/-- info: 'CRNT.Network.exists_massAction_realization' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_massAction_realization
+
+/-- info: 'CRNT.Network.negTerm_contains_of_massAction' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.negTerm_contains_of_massAction
+
+/-- info: 'CRNT.Examples.CatalyticChain.globalAttractor' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CatalyticChain.globalAttractor
+
+/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace
 
-/-- info: 'CRNT.Network.complexBalanced_genuinePermanent' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.complexBalanced_genuinePermanent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_genuinePermanent
 
-/-- info: 'CRNT.Network.complexBalanced_permanent' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.complexBalanced_permanent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_permanent
 
-/-- info: 'CRNT.Network.complexBalanced_globalAttractor' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.complexBalanced_globalAttractor' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_globalAttractor
+
+/-! ## Fundamental expansion: inter-block relations and exact deficiency balance -/
+
+/-- info: 'CRNT.Network.ReactionPartition.finrank_stoichRelationSpace_add_stoichRank' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.finrank_stoichRelationSpace_add_stoichRank
+
+/-- info: 'CRNT.Network.ReactionPartition.finrank_incidenceRelationSpace_add_incidenceRank' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.finrank_incidenceRelationSpace_add_incidenceRank
+
+/-- info: 'CRNT.Network.ReactionPartition.stoichIndependent_iff_relationSpace_eq_bot' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.stoichIndependent_iff_relationSpace_eq_bot
+
+/-- info: 'CRNT.Network.ReactionPartition.incidenceIndependent_iff_relationSpace_eq_bot' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.incidenceIndependent_iff_relationSpace_eq_bot
+
+/-- info: 'CRNT.Network.ReactionPartition.deficiencyGap_eq_incidenceRelations_sub_stoichRelations' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.deficiencyGap_eq_incidenceRelations_sub_stoichRelations
+
+/-- info: 'CRNT.Network.ReactionPartition.deficiency_additivity_iff_relationDimensions_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.deficiency_additivity_iff_relationDimensions_eq
+
+/-- info: 'CRNT.Network.ReactionPartition.deficiencyInt_lt_totalBlockDeficiencyInt_of_stoichIndependent_of_not_incidenceIndependent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.deficiencyInt_lt_totalBlockDeficiencyInt_of_stoichIndependent_of_not_incidenceIndependent
+
+/-- info: 'CRNT.Network.ReactionPartition.totalBlockDeficiencyInt_lt_deficiencyInt_of_incidenceIndependent_of_not_stoichIndependent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.totalBlockDeficiencyInt_lt_deficiencyInt_of_incidenceIndependent_of_not_stoichIndependent
+
+/-! ## Fundamental expansion: complete finite realization certificates -/
+
+/-- info: 'CRNT.Network.steadyStatePolynomial_coeff_sourceCoefficient' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.steadyStatePolynomial_coeff_sourceCoefficient
+
+/-- info: 'CRNT.Network.sourceCoefficientEquivalent_of_massActionDynamicallyEquivalent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.sourceCoefficientEquivalent_of_massActionDynamicallyEquivalent
+
+/-- info: 'CRNT.Network.sourceCoefficientEquivalent_of_vectorField_eq_on_positive' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.sourceCoefficientEquivalent_of_vectorField_eq_on_positive
+
+/-- info: 'CRNT.Network.massActionDynamicallyEquivalent_iff_sourceCoefficientEquivalent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDynamicallyEquivalent_iff_sourceCoefficientEquivalent
+
+/-- info: 'CRNT.Network.massActionDynamicallyEquivalent_iff_sourceCoefficientEquivalent_on_union' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDynamicallyEquivalent_iff_sourceCoefficientEquivalent_on_union
+
+/-- info: 'CRNT.Network.exists_sourceCoefficientMismatch_on_union_iff_not_massActionDynamicallyEquivalent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_sourceCoefficientMismatch_on_union_iff_not_massActionDynamicallyEquivalent
+
+/-! ## Fundamental expansion: stochastic detailed-balance energy -/
+
+/-- info: 'CRNT.Network.fireCount_reverse_fireCount' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fireCount_reverse_fireCount
+
+/-- info: 'CRNT.Network.reverseEnabledJump_involutive' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.reverseEnabledJump_involutive
+
+/-- info: 'CRNT.Network.weightedGeneratorPairing_eq_enabledJumpSum' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.weightedGeneratorPairing_eq_enabledJumpSum
+
+/-- info: 'CRNT.Network.weightedGeneratorPairing_eq_neg_dirichletForm' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.weightedGeneratorPairing_eq_neg_dirichletForm
+
+/-- info: 'CRNT.Network.weightedGeneratorPairing_eq_neg_dirichletForm_of_reactionwise' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.weightedGeneratorPairing_eq_neg_dirichletForm_of_reactionwise
+
+/-- info: 'CRNT.Network.weightedGeneratorPairing_symm' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.weightedGeneratorPairing_symm
+
+/-- info: 'CRNT.Network.dirichletForm_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.dirichletForm_nonneg
+
+/-- info: 'CRNT.Network.dirichletForm_linear_eq_zero_of_conserved' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.dirichletForm_linear_eq_zero_of_conserved
+
+/-! ## Fundamental expansion: deficiency assembled from reaction blocks -/
+
+/-- info: 'CRNT.Network.ReactionPartition.blockComplexMap_surjective' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.blockComplexMap_surjective
+
+/-- info: 'CRNT.Network.ReactionPartition.blockComplexMapProduct_comp_incidenceBlockSumMap' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.blockComplexMapProduct_comp_incidenceBlockSumMap
+
+/-- info: 'CRNT.Network.ReactionPartition.blockDeficiencySumSubspace_le_deficiencySubspace' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.blockDeficiencySumSubspace_le_deficiencySubspace
+
+/-- info: 'CRNT.Network.ReactionPartition.deficiencySubspace_eq_blockDeficiencySumSubspace_iff_interblockRelationMap_surjective' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.deficiencySubspace_eq_blockDeficiencySumSubspace_iff_interblockRelationMap_surjective
+
+/-- info: 'CRNT.Network.ReactionPartition.interblockRelationMap_mem_ker_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.interblockRelationMap_mem_ker_iff
+
+/-- info: 'CRNT.Network.ReactionPartition.interblockRelationMap_injective_iff_blockDeficiencyRelations_trivial' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.interblockRelationMap_injective_iff_blockDeficiencyRelations_trivial

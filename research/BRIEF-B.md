@@ -1,3 +1,7 @@
+> **CLOSED.** `stronglyConcordant_fullyOpen_of_trueSRCriterion` is proved, statement unchanged, by
+> the Banaji--Craciun determinant argument in `CRNT/Multistationarity/BC*.lean`; see
+> `HANDOFF_trueSR_closed.md`.  The material below documents the abandoned sign-causality route.
+
 # BRIEF B — Shinar–Feinberg true-SR graph criterion ⟹ strong concordance
 
 ## B.1 The target

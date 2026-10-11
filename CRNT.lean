@@ -76,6 +76,9 @@ import CRNT.Geometry.CraciunZSH
 import CRNT.Geometry.ZeroSeparatingSurface
 import CRNT.Geometry.ConeFace
 import CRNT.Geometry.ZeroSeparatingCurve2D
+import CRNT.Geometry.PlanarZSH
+import CRNT.Geometry.PlanarZSHTrap
+import CRNT.Geometry.PlanarFanSlopes
 import CRNT.Geometry.PolyRegionSeparating
 import CRNT.Geometry.HalfPlaneSeparatingSurface
 import CRNT.Geometry.ToricFieldPolar
@@ -283,6 +286,8 @@ import CRNT.Deficiency.PerClassKernelPos
 import CRNT.Deficiency.PerClassKernelUnique
 import CRNT.Deficiency.KernelDimensionWR
 import CRNT.Deficiency.RangeKineticWR
+import CRNT.Deficiency.KineticSubspace
+import CRNT.Kinetics.HungarianLemma
 import CRNT.Deficiency.ClosedSetKernel
 import CRNT.Deficiency.TerminalSLCKernel
 import CRNT.Deficiency.TerminalKernelBound
@@ -303,6 +308,7 @@ import CRNT.Theorems.DeficiencyZero.Confinement
 import CRNT.Theorems.DeficiencyZero.Lyapunov
 import CRNT.Theorems.DeficiencyZero.AsymptoticStability
 import CRNT.Theorems.DeficiencyZero.NoPeriodicOrbit
+import CRNT.Theorems.DeficiencyZero.NoPeriodicOrbitComplexBalanced
 
 -- Oscillation: periodic-orbit vocabulary, the proved exclusion theorems, matrix criteria,
 -- reaction-restriction/inheritance interfaces, and the planar/Vassena/Floquet routes.
@@ -325,6 +331,8 @@ import CRNT.Multistationarity.SRGraph
 import CRNT.Multistationarity.SRGraphCriterion
 import CRNT.Multistationarity.SignedSRGraph
 import CRNT.Multistationarity.SRGraphCycleDict
+-- Shinar--Feinberg true-SR theorem, proved by the Banaji--Craciun determinant route
+import CRNT.Multistationarity.TrueChemistrySRCriterion
 import CRNT.Multistationarity.JacobianDeterminantSign
 import CRNT.Multistationarity.JacobianCycleSign
 import CRNT.Multistationarity.JacobianCycleSelection
@@ -372,6 +380,8 @@ import CRNT.Design.Adaptation
 
 -- Persistence: Petri-net siphons; siphon-face tangency; single-linkage-class global stability
 import CRNT.Dynamics.Siphon
+import CRNT.Dynamics.SiphonLinkage
+import CRNT.Dynamics.FirstOrderGAC
 import CRNT.Dynamics.SiphonConservation
 import CRNT.Dynamics.ConservationLaw
 import CRNT.Dynamics.Persistence
@@ -428,6 +438,9 @@ import CRNT.Dynamics.ToricBarrierTrapping
 import CRNT.Dynamics.FaceDirectionCone
 import CRNT.Dynamics.ToricBarrierExplicit
 import CRNT.Dynamics.OrbitRegularity
+import CRNT.Dynamics.VertexOmegaExclusion
+import CRNT.Dynamics.SourceOrderDescent
+import CRNT.Dynamics.TransversalPlanarDescent
 import CRNT.Dynamics.CriticalSiphonNearFacetInflux
 import CRNT.Dynamics.SingletonFacetEscape
 import CRNT.Dynamics.SiphonFacetEscape
@@ -624,6 +637,8 @@ import CRNT.Basic.IsomorphismKinetics
 import CRNT.Decomposition.BlockDeficiency
 import CRNT.Decomposition.Deficiency
 import CRNT.Decomposition.Rank
+import CRNT.Decomposition.RelationSpace
+import CRNT.Decomposition.RelationMap
 import CRNT.Deficiency.CycleExactSequence
 import CRNT.Deficiency.LinkageCoupling
 import CRNT.Design.MaxRPA
@@ -671,6 +686,9 @@ import CRNT.Oscillation.ReactivityScaling
 import CRNT.Oscillation.VassenaContinuation
 import CRNT.Stability.RobustLyapunov
 import CRNT.Theorems.DeficiencyZero.Characterization
+import CRNT.Theorems.DeficiencyZero.HornCharacterization
+import CRNT.Theorems.DeficiencyZero.GeneralKinetics
+import CRNT.Equilibria.QuasiThermostatic
 
 -- Promoted from the frontier ledger (elaborated, closure sorry-free).
 import CRNT.Deficiency.CycleSplitting
@@ -685,10 +703,12 @@ import CRNT.Design.StrongBufferingFluxRPA
 import CRNT.Reduction.IntermediateSchurComplement
 import CRNT.Reduction.SingleIntermediateElimination
 import CRNT.Stochastic.DetailedBalance
+import CRNT.Stochastic.DirichletForm
 import CRNT.Stochastic.FirstOrderFoster
 import CRNT.Translation.ParallelAggregation
 import CRNT.Translation.ParallelStructural
 import CRNT.Translation.SourceCoefficientEquivalence
+import CRNT.Realization.SourceCoefficientCompleteness
 
 -- Promoted from the frontier ledger (elaborated, closure sorry-free).
 import CRNT.Equilibria.ComplexBalanceGeometry
@@ -789,6 +809,14 @@ import CRNT.Translation.DeficiencyImprovement
 import CRNT.Oscillation.BanajiDependentReaction
 import CRNT.Oscillation.BanajiEndToEnd
 import CRNT.Oscillation.DependentReactionPersistence
+-- The Global Attractor Theorem in full generality (both former holes closed).
+-- `CRNT.Persistence.*`: bounded complex-balanced trajectories have a positive floor.
+import CRNT.Persistence.ComplexBalancedFloor
+import CRNT.Dynamics.HighCodimensionSiphonFace
+import CRNT.Dynamics.GlobalAttractorTheorem
+import CRNT.Dynamics.GACLowRank
+import CRNT.Dynamics.GACVertexFacet
+import CRNT.Examples.CatalyticChainGAC
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has

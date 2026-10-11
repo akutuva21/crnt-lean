@@ -21,11 +21,13 @@
 # State as of `origin/holes` @ 90bddfc, certified by
 # `python3 research/Audit/ledger_coverage.py --selftest`.
 
-# --- the two holes -------------------------------------------------------------------
+# --- the hole -------------------------------------------------------------------------
+# (The true-SR hole in CRNT.Multistationarity.TrueChemistrySRCriterion was closed by the
+# Banaji--Craciun route, CRNT/Multistationarity/BCFullyOpen.lean.)
 # Each verified independently by comment-stripped scan of the enclosing declaration.
 
-CRNT.Dynamics.HighCodimensionSiphonFace
-CRNT.Multistationarity.TrueChemistrySRCriterion
+# (The GAC residual in CRNT.Dynamics.HighCodimensionSiphonFace was closed by the persistence
+# route, CRNT/Persistence/ComplexBalancedFloor.lean.  No module carries sorryAx.)
 
 # --- transitively tainted, hole-free in isolation -------------------------------------
 # These files contain no `sorry` of their own.  They appear here because they import a hole
@@ -33,4 +35,5 @@ CRNT.Multistationarity.TrueChemistrySRCriterion
 # axiom-contaminated.  `#print axioms` on a theorem that does *not* touch the holed name
 # comes back clean, which is exactly why a per-theorem check is not enough.
 
-CRNT.Dynamics.GlobalAttractorTheorem
+# (none: CRNT.Dynamics.GlobalAttractorTheorem was the only entry and is clean since the GAC
+# residual closed.)

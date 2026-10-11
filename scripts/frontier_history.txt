@@ -6,8 +6,11 @@
 # CRNTFrontier` keeps elaborating it and CI's frontier error count keeps measuring
 # it.  `scripts/gen_lakefile.py` maintains this file; edit the ledger, not this.
 
+CRNT.Dynamics.GACLowRank
+CRNT.Dynamics.GACVertexFacet
 CRNT.Dynamics.GlobalAttractorTheorem
 CRNT.Dynamics.HighCodimensionSiphonFace
+CRNT.Examples.CatalyticChainGAC
 CRNT.Multistationarity.TrueChemistrySRCriterion
 CRNT.Oscillation
 CRNT.Oscillation.CompatibilityAdapters

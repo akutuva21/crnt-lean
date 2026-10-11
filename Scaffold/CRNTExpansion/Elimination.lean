@@ -38,30 +38,33 @@ theorem eliminationIdeal_mono {I J : Ideal (MvPolynomial S ℝ)} (h : I ≤ J) (
   exact h hp
 
 
+
+variable {S : Type} [DecidableEq S] [Fintype S]
+
 /-- Elimination ideal of the mass-action steady-state equations after retaining only species in
 `U`.  This packages the generic `eliminationIdeal` construction at the main CRNT polynomial
 system. -/
 noncomputable def steadyStateEliminationIdeal
-    (N : Network S) [DecidableEq S] [Fintype S] (κ : N.RateConstants) (U : Set S) :
+    (N : Network S) (κ : N.RateConstants) (U : Set S) :
     Ideal (MvPolynomial U ℝ) :=
   eliminationIdeal (N.steadyStateIdeal κ) U
 
 /-- Elimination ideal of the complex-balance equations. -/
 noncomputable def complexBalanceEliminationIdeal
-    (N : Network S) [DecidableEq S] [Fintype S] (κ : N.RateConstants) (U : Set S) :
+    (N : Network S) (κ : N.RateConstants) (U : Set S) :
     Ideal (MvPolynomial U ℝ) :=
   eliminationIdeal (N.complexBalanceIdeal κ) U
 
 /-- Elimination ideal of the tree-constant binomial equations. -/
 noncomputable def treeBinomialEliminationIdeal
-    (N : Network S) [DecidableEq S] [Fintype S] (κ : N.RateConstants) (U : Set S) :
+    (N : Network S) (κ : N.RateConstants) (U : Set S) :
     Ideal (MvPolynomial U ℝ) :=
   eliminationIdeal (N.treeBinomialIdeal κ) U
 
 /-- A retained-species polynomial belongs to the steady-state elimination ideal exactly when its
 ambient renaming belongs to the full steady-state ideal. -/
 theorem mem_steadyStateEliminationIdeal_iff
-    (N : Network S) [DecidableEq S] [Fintype S] (κ : N.RateConstants)
+    (N : Network S) (κ : N.RateConstants)
     (U : Set S) (p : MvPolynomial U ℝ) :
     p ∈ N.steadyStateEliminationIdeal κ U ↔
       MvPolynomial.rename (fun u : U => u.1) p ∈ N.steadyStateIdeal κ :=
@@ -71,13 +74,13 @@ theorem mem_steadyStateEliminationIdeal_iff
 species.  Thus every polynomial consequence visible after elimination from the steady-state ideal
 is also a consequence of the complex-balance ideal. -/
 theorem steadyStateEliminationIdeal_le_complexBalanceEliminationIdeal
-    (N : Network S) [DecidableEq S] [Fintype S] (κ : N.RateConstants) (U : Set S) :
+    (N : Network S) (κ : N.RateConstants) (U : Set S) :
     N.steadyStateEliminationIdeal κ U ≤ N.complexBalanceEliminationIdeal κ U := by
   exact eliminationIdeal_mono (N.steadyStateIdeal_le_complexBalanceIdeal κ) U
 
 /-- Membership in the tree-binomial elimination ideal has the expected ambient interpretation. -/
 theorem mem_treeBinomialEliminationIdeal_iff
-    (N : Network S) [DecidableEq S] [Fintype S] (κ : N.RateConstants)
+    (N : Network S) (κ : N.RateConstants)
     (U : Set S) (p : MvPolynomial U ℝ) :
     p ∈ N.treeBinomialEliminationIdeal κ U ↔
       MvPolynomial.rename (fun u : U => u.1) p ∈ N.treeBinomialIdeal κ :=

@@ -12,4 +12,14 @@
 # `import` line to `CRNT.lean` instead, or record why it stays unreferenced.
 #
 # 145 as of `origin/holes` @ 90bddfc.
-145
+# 126 after the true-SR module graduated into `CRNT.lean` (Banaji--Craciun route).
+# 129: three axiom-clean modules that import the hole-bearing
+# `CRNT.Dynamics.GlobalAttractorTheorem` stay outside `CRNT.lean` so the verified core remains
+# sorryAx-free at module level (C3): `CRNT.Dynamics.GACLowRank`, `CRNT.Dynamics.GACVertexFacet`,
+# `CRNT.Examples.CatalyticChainGAC`.  They are in `scripts/frontier_history.txt` (so
+# `CRNTFrontier.lean` builds them) and their theorems are pinned axiom-clean in
+# `test/AxiomAudit.lean`.  They graduate into `CRNT.lean` once Hole A closes.
+# 93: Hole A closed (CRNT/Persistence/); GlobalAttractorTheorem, HighCodimensionSiphonFace,
+# GACLowRank, GACVertexFacet, CatalyticChainGAC and the twelve CRNT.Persistence modules are
+# imported by CRNT.lean.
+93
