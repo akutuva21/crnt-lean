@@ -161,6 +161,8 @@ import CRNT.Open.Augmentation
 import CRNT.Open.Deficiency
 import CRNT.Open.Boundary
 import CRNT.Open.PartialOpen
+import CRNT.Open.DeficiencyZeroOpen
+import CRNT.Open.DeficiencyOneOpen
 
 -- Equilibria: steady states, compatibility classes, complex balancing
 import CRNT.Equilibria.SteadyState
@@ -781,6 +783,16 @@ import CRNT.Multistationarity.LocalDegreeOn
 import CRNT.Multistationarity.ParametrizedLocalDegree
 import CRNT.Theorems.DeficiencyOne.JacobianKernel
 import CRNT.Basic.IsomorphismStructural
+import CRNT.Computation.StableComputation
+import CRNT.Design.Antithetic
+import CRNT.Dynamics.Contraction
+import CRNT.Equilibria.OneSpeciesDescartes
+import CRNT.Equilibria.ToricSteadyStates
+import CRNT.Extensions.Turing
+import CRNT.Identifiability.RateConstants
+import CRNT.Kinetics.Hill
+import CRNT.Kinetics.SignVectorCriterion
+import CRNT.Translation.LinearConjugacyCharacterization
 import CRNT.Equilibria.ComplexBalanceLinearStability
 import CRNT.Equilibria.ComplexBalanceObstruction
 import CRNT.Equilibria.DirectedMatrixTreeProof
