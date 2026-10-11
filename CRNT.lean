@@ -638,6 +638,7 @@ import CRNT.Decomposition.BlockDeficiency
 import CRNT.Decomposition.Deficiency
 import CRNT.Decomposition.Rank
 import CRNT.Decomposition.RelationSpace
+import CRNT.Decomposition.RelationMap
 import CRNT.Deficiency.CycleExactSequence
 import CRNT.Deficiency.LinkageCoupling
 import CRNT.Design.MaxRPA

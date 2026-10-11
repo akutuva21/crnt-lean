@@ -953,3 +953,29 @@ whole-environment census below reports it.
 /-- info: 'CRNT.Network.dirichletForm_linear_eq_zero_of_conserved' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.dirichletForm_linear_eq_zero_of_conserved
+
+/-! ## Fundamental expansion: deficiency assembled from reaction blocks -/
+
+/-- info: 'CRNT.Network.ReactionPartition.blockComplexMap_surjective' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.blockComplexMap_surjective
+
+/-- info: 'CRNT.Network.ReactionPartition.blockComplexMapProduct_comp_incidenceBlockSumMap' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.blockComplexMapProduct_comp_incidenceBlockSumMap
+
+/-- info: 'CRNT.Network.ReactionPartition.blockDeficiencySumSubspace_le_deficiencySubspace' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.blockDeficiencySumSubspace_le_deficiencySubspace
+
+/-- info: 'CRNT.Network.ReactionPartition.deficiencySubspace_eq_blockDeficiencySumSubspace_iff_interblockRelationMap_surjective' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.deficiencySubspace_eq_blockDeficiencySumSubspace_iff_interblockRelationMap_surjective
+
+/-- info: 'CRNT.Network.ReactionPartition.interblockRelationMap_mem_ker_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.interblockRelationMap_mem_ker_iff
+
+/-- info: 'CRNT.Network.ReactionPartition.interblockRelationMap_injective_iff_blockDeficiencyRelations_trivial' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.interblockRelationMap_injective_iff_blockDeficiencyRelations_trivial

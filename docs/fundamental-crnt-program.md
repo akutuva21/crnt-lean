@@ -113,3 +113,24 @@ public-closure integration `lake build +CRNT test CRNTFrontier Scaffold` passed 
 4,691 jobs and then with 4,692 jobs after this stochastic slice. The one reserved hole remains
 unchanged. Communicating-class/kernel characterizations and the full-library build are subsequent
 gates; this energy identity alone does not construct a continuous-time sample-path process.
+
+## Deficiency assembly and the relation map
+
+`CRNT/Decomposition/RelationMap.lean` applies the complex map separately to each reaction block
+and proves that it commutes with summing block contributions. It therefore induces a linear
+map from incidence interblock relations to stoichiometric interblock relations. Its kernel
+consists precisely of relations whose components are local deficiency vectors.
+
+The local block deficiency kernels define a product space and an independently specified
+sum in the global complex space. This sum always lies in the network deficiency space. The
+new theorem identifies the remaining obstruction exactly:
+
+`global deficiency space = sum of block deficiency spaces`
+iff the induced interblock relation map is surjective.
+
+The proof lifts block stoichiometric vectors, then corrects their sum by local deficiency
+vectors; the reverse direction uses incidence-relation lifts to build those corrections.
+Surjectivity is derived from a structural equality, rather than asserted unconditionally.
+Six further axiom guards are clean, giving 28 newly pinned principal results across the
+expansion so far. Public-closure/test/frontier/scaffold integration passed (4,693 jobs), and
+the reserved hole file is unchanged.

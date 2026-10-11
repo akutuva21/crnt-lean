@@ -21,12 +21,15 @@
 
 ## Broader slices now selected
 
-- [ ] `RelationMap.lean`: construct the canonical complex-map action between the two relation
-  spaces, characterize its kernel, and state faithful injectivity/surjectivity criteria.
+- [x] `RelationMap.lean`: constructs the canonical complex-map action, its kernel, local
+  deficiency products and sum, and proves global deficiency equals that sum iff the relation map
+  is onto. Independent focused check plus six principal guards and integration pass (4,693 jobs).
 - [ ] `FixedComplexRealization.lean`: construct a network on prescribed complexes from positive
   supported channel weights and prove its coefficient formula/realization criterion.
 - [ ] After `DirichletForm.lean`: characterize zero energy by enabled-edge increments and
   communicating-class constancy, with positivity discharged from rates and concentrations.
+- [ ] Next decomposition layer: exact sequence/cokernel identifying deficiency not assembled
+  from blocks; survey for duplicates before implementing.
 
 The partial integration builds the public core import closure. `DirichletForm` is now included;
 the broader in-progress modules remain outside that closure until checked. The full-library
