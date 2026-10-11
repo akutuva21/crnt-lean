@@ -20,23 +20,20 @@ This file is the gating audit that *does* match the tree.  Both `CRNT` (700 modu
 
 ## Why the incomplete results are pinned too
 
-The open hole is pinned **with** its `sorryAx`.  That makes them gated rather than merely
-known: if a third incomplete endpoint appears, or if one of these is closed, this file fails and
-forces the ledger and handoffs to be updated in the same commit.  A test that only pins the clean
-results cannot notice a new hole.
+Both former holes are now pinned **clean**.  If a `sorryAx` reappears in either chain, this file
+fails and forces the ledger and handoffs to be updated in the same commit.
 
 Regenerate expectations by running the corresponding `#print axioms` and pasting the output.
 -/
 
-/-! ## Open: the Global Attractor Conjecture
+/-! ## Closed: the Global Attractor Conjecture
 
-The residual case is `exists_positive_omegaPoint_of_highCodimension_siphonFace`
-(`CRNT/Dynamics/HighCodimensionSiphonFace.lean`).  Its vertex case is closed
-(`false_of_vertex_omegaPoint`); the only `sorry` in the GAC chain is the non-vertex case
-`exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex`.  See
-`HANDOFF_gac_hole.md` and `docs/gac-bridge-gap-analysis.md`. -/
+The former residual `exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex`
+(`CRNT/Dynamics/HighCodimensionSiphonFace.lean`) is proved from
+`Network.complexBalanced_forward_floor` (`CRNT/Persistence/ComplexBalancedFloor.lean`).  The whole
+chain, up to `complexBalanced_globalAttractor`, is pinned clean.  See `HANDOFF_gac_closed.md`. -/
 
-/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex
 
@@ -44,19 +41,19 @@ The residual case is `exists_positive_omegaPoint_of_highCodimension_siphonFace`
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.false_of_vertex_omegaPoint
 
-/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace
 
-/-- info: 'CRNT.Network.complexBalanced_genuinePermanent' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.complexBalanced_genuinePermanent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_genuinePermanent
 
-/-- info: 'CRNT.Network.complexBalanced_permanent' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.complexBalanced_permanent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_permanent
 
-/-- info: 'CRNT.Network.complexBalanced_globalAttractor' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.complexBalanced_globalAttractor' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_globalAttractor
 

@@ -809,6 +809,14 @@ import CRNT.Translation.DeficiencyImprovement
 import CRNT.Oscillation.BanajiDependentReaction
 import CRNT.Oscillation.BanajiEndToEnd
 import CRNT.Oscillation.DependentReactionPersistence
+-- The Global Attractor Theorem in full generality (both former holes closed).
+-- `CRNT.Persistence.*`: bounded complex-balanced trajectories have a positive floor.
+import CRNT.Persistence.ComplexBalancedFloor
+import CRNT.Dynamics.HighCodimensionSiphonFace
+import CRNT.Dynamics.GlobalAttractorTheorem
+import CRNT.Dynamics.GACLowRank
+import CRNT.Dynamics.GACVertexFacet
+import CRNT.Examples.CatalyticChainGAC
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has

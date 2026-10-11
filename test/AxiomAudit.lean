@@ -707,16 +707,17 @@ section ChainB
 end ChainB
 
 /-!
-## The remaining hole, pinned
+## The former Global Attractor hole, pinned clean
 
-The true-SR hole (chain B) is closed: `stronglyConcordant_fullyOpen_of_trueSRCriterion` is proved
-by the Banaji--Craciun determinant route (`CRNT/Multistationarity/BCFullyOpen.lean`) and is pinned
-clean above.  `sorryAx` is *expected* here and only here.  These pins make the expected set exact, so if a
-hole is closed the build fails (the axiom set shrinks) and if a new `sorryAx` user appears the
-whole-environment census below reports it.
+Both holes are closed.  The true-SR hole (chain B) by the Banaji--Craciun determinant route
+(`CRNT/Multistationarity/BCFullyOpen.lean`); the GAC residual
+`exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex` by the persistence route
+`CRNT/Persistence/` (`Network.complexBalanced_forward_floor`: bounded complex-balanced
+trajectories have a positive coordinate floor, via a zero-separating polyhedral region).  No
+`sorryAx` is expected anywhere; these pins fail if one reappears.
 -/
 
-/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex
 
@@ -844,19 +845,19 @@ whole-environment census below reports it.
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Examples.CatalyticChain.globalAttractor
 
-/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace
 
-/-- info: 'CRNT.Network.complexBalanced_genuinePermanent' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.complexBalanced_genuinePermanent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_genuinePermanent
 
-/-- info: 'CRNT.Network.complexBalanced_permanent' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.complexBalanced_permanent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_permanent
 
-/-- info: 'CRNT.Network.complexBalanced_globalAttractor' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
+/-- info: 'CRNT.Network.complexBalanced_globalAttractor' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_globalAttractor
 

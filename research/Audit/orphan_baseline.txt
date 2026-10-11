@@ -19,4 +19,7 @@
 # `CRNT.Examples.CatalyticChainGAC`.  They are in `scripts/frontier_history.txt` (so
 # `CRNTFrontier.lean` builds them) and their theorems are pinned axiom-clean in
 # `test/AxiomAudit.lean`.  They graduate into `CRNT.lean` once Hole A closes.
-129
+# 93: Hole A closed (CRNT/Persistence/); GlobalAttractorTheorem, HighCodimensionSiphonFace,
+# GACLowRank, GACVertexFacet, CatalyticChainGAC and the twelve CRNT.Persistence modules are
+# imported by CRNT.lean.
+93

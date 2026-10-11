@@ -92,6 +92,7 @@ globs = [
   "test.FrontierAuditCurrent",
   "test.NonVacuity",
   "test.Oscillation",
+  "test.PersistenceAudit",
   "test.Smoke",
   "test.StochasticBirthDeathCounterexample",
   "test.ToricBarrierAudit"

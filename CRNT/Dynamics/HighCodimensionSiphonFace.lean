@@ -5,100 +5,42 @@ import CRNT.Dynamics.SingleLinkageGAC
 import CRNT.Equilibria.ComplexBalanceStructure
 import CRNT.Equilibria.ComplexBalanced
 import CRNT.Dynamics.VertexOmegaExclusion
+import CRNT.Persistence.ComplexBalancedFloor
 
 /-!
-# The single remaining obligation of the Global Attractor Theorem
+# The codimension ≥ 2 case of the Global Attractor Theorem (closed)
 
-`CRNT.Dynamics.GlobalAttractorTheorem` reduces `Network.complexBalanced_genuinePermanent` to
-one case, and this module is the only place in the tree where that case is left open.  The
-theorem below is the **entire** residual content; everything else in the chain audits as
-`[propext, Classical.choice, Quot.sound]`.
+`CRNT.Dynamics.GlobalAttractorTheorem` reduces `Network.complexBalanced_genuinePermanent` to the
+case treated here: the ω-limit set of a bounded genuine positive mass-action trajectory of a
+complex-balanced system contains a point `wmax` whose zero set `Pmax` is a maximal critical
+siphon whose face has codimension at least two in the compatibility class.
 
-## What has been carved away
+This case is **closed**, with no axioms beyond `propext`, `Classical.choice`, `Quot.sound`:
 
-Let `Ω` be the ω-limit set of a bounded genuine positive mass-action trajectory of a
-complex-balanced system, and suppose `Ω` meets the boundary.  The dichotomy
-`positiveOmega_or_nonstationary_criticalSiphonFaceEquilibrium` produces a boundary point whose
-zero set is a critical siphon, and `exists_maximal_zeroSet_omegaPoint` upgrades it to a point
-`wmax ∈ Ω` whose zero set `Pmax` is *maximal*: every ω-point vanishing on `Pmax` vanishes
-exactly on `Pmax`, no ω-point has a zero set of larger cardinality, i.e. `wmax` sits in the
-relative interior of the `Pmax`-face.  Four cases
-are then already closed in the tree:
+* the vertex sub-case by `Network.false_of_vertex_omegaPoint`
+  (`CRNT.Dynamics.VertexOmegaExclusion`; Craciun–Dickenstein–Shiu–Sturmfels 2009, Prop. 20);
+* the non-vertex sub-case `exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex`
+  by `Network.complexBalanced_forward_floor` (`CRNT.Persistence.ComplexBalancedFloor`): every
+  bounded forward solution of a complex-balanced system starting at a positive state has a
+  positive lower bound on all coordinates for all `t ≥ 0`, so no ω-point can vanish on `Pmax`.
 
-* no critical siphon at all (`boundaryOmegaExcluded_of_hasNoCriticalSiphon`);
-* `N.stoichSubspace = ⊥` (`positiveOmegaPointForRates_of_trivialStoichSubspace`);
-* `N.stoichRank = 1` (`positiveOmegaPointForRates_of_complexBalanced_of_stoichRank_one`);
-* the `Pmax`-face is a **facet** of the compatibility class, where the Anderson--Shiu
-  near-facet estimate makes the squared face mass `∑_{s ∈ Pmax} x s ^ 2` nondecreasing and
-  `no_omegaLimit_meets_locally_repelling_face` closes the case.
+The floor theorem follows Craciun's toric-differential-inclusion strategy (v3, Theorem B) with
+the following explicit constructions in place of v3 §7–§8.
 
-`CRNT.Dynamics.FaceCodimension` then shows the remaining failure of the facet count is never
-degenerate: `highCodimension_of_not_facet` yields `2 ≤ finrank (stoichSubspace.map (projOn Pmax))`
-and `2 ≤ Pmax.card`.  Those two inequalities are hypotheses below, so the obligation recorded
-here is exactly the **codimension ≥ 2** case.
-
-**Vertex case closed.**  When the `Pmax`-face of the compatibility class is a single point
-(`Network.IsVertexZeroSet Pmax`: no nonzero stoichiometric vector vanishes on `Pmax`), the
-relative entropy has a strict local maximum there along the class, which no ω-point of a
-Lyapunov-decreasing orbit can occupy (`Network.false_of_vertex_omegaPoint`,
-`CRNT.Dynamics.VertexOmegaExclusion`; Craciun–Dickenstein–Shiu–Sturmfels 2009, Proposition 20).
-The `sorry` therefore lives in `exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex`:
-faces of dimension at least one and codimension at least two, which requires
-`3 ≤ N.stoichRank`.  In particular the residual is closed for stoichiometric rank two.
-
-## Why the existing estimate cannot be pushed further
-
-`facet_repelling_near_facet_point` needs every reaction vector restricted to `Pmax` to be a
-multiple of one direction `v`, which is precisely
-`finrank (stoichSubspace.map (projOn Pmax)) = 1`.  Under `hcodim` the restricted reaction
-vectors span at least a plane, and the quadratic `∑_{s ∈ Pmax} x s ^ 2` is then genuinely not
-monotone near `wmax`: writing `x s = ε u s` for `s ∈ Pmax`, the leading term of
-`∑_{s ∈ Pmax} x s * f s x` is a quadratic form in the approach direction `u ≥ 0` whose sign
-varies with `u` — already for a reversible pair inside the face with equal rate constants it is
-a negative multiple of a square.  So no strengthening of the Anderson--Shiu argument covers this
-branch; a surface whose normal turns with the direction of approach is required.
-
-## The mathematical content that is missing
-
-This is Craciun, *Toric differential inclusions and a proof of the global attractor conjecture*
-(v3), Theorem B: a toric differential inclusion admits an exhaustive family of zero-separating
-hypersurfaces.  In logarithmic coordinates the requirement (Lemma 9.5, and Lemma 9.7 with the
-`δ`-slack) is a hypersurface whose outer normal at a point `X` lies in **every** cone of the fan
-within distance `δ` of `X`, hence in low-dimensional cones near the walls.  A smooth surface
-cannot satisfy this — the sphere meets the `δ = 0` condition of Lemma 9.5 and fails Lemma 9.7 —
-so the surface must be polyhedral, with flat pieces of width at least `δ` around every cone,
-arranged by the scale hierarchy of §7.
-
-`CRNT.Geometry.PolyhedralBarrier` formalizes the invariance engine for such a surface:
-for `g X = max i (⟪n i, X⟫ - b i)` the sublevel set `{g ≤ R}` is forward invariant for any
-field lying in the polar cones of the active normals.  What is *not* formalized, and is the
-remaining gap, is the existence of the data feeding that engine for an arbitrary complete
-pointed fan: a family `n C ∈ C` indexed by the cones with `⟪n C, x⟫ ≥ ⟪n C', x⟫` for all
-`x ∈ C`, together with the separation scales.  That family is a finite convex-geometry object —
-equivalently the face points of a polytope whose normal fan refines the fan — and Mathlib
-currently has no polytope, face-lattice, or normal-fan API to build it on.
-
-## Trust status
-
-`#print axioms CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace` reports
-`sorryAx`, and so do its three downstream consumers
-`Network.complexBalanced_genuinePermanent`, `Network.complexBalanced_permanent`, and
-`Network.complexBalanced_globalAttractor`.  Nothing else *on this chain* does: the transitive
-constant closure of `GlobalAttractorTheorem` (326 modules) contains exactly one executable `sorry`,
-the one at line 135 of this file.
-
-**This is now the only `sorry` in the tree.**  The second, unrelated hole —
-`CRNT.Network.stronglyConcordant_fullyOpen_of_trueSRCriterion` in
-`CRNT.Multistationarity.TrueChemistrySRCriterion` — was closed by the Banaji--Craciun determinant
-route (`CRNT/Multistationarity/BCFullyOpen.lean`) and audits clean.
-
-Because a `sorry`-bearing module still elaborates, it is *off* `scripts/unverified_modules.txt` by
-construction, so a green build certifies nothing here.  The sound signals are
-`scripts/dump_sorries.py` and a transitive `#print axioms` census — see
-`research/Audit/AxiomSweep.lean`, which computes the latter over the whole environment.
+* **Field decomposition** (`dot_massActionField_nonneg`): along any inward normal `a` with
+  `⟨a, c − c'⟩ < 0 → δ ≤ ⟨c − c', log x⟩` for all complex pairs, `⟨a, f(x)⟩ ≥ 0`.  The
+  complex-balanced fluxes form a circulation; `circulation_pairing_nonneg` eliminates the
+  complex of largest height.
+* **Region** (`exists_zsh`): an intersection of half-spaces with nonnegative normals, organized
+  by level `m` (acting on the `m + 1` smallest coordinates at scale `ε ^ e_m`) and closed under
+  permutations.  Each level's facets come from a blueprint tree (`build_spec`) whose offsets
+  realize a nested lower envelope; `realized_of_isMin` localizes the active facet, `walk` and
+  `level_validity` turn that into the sign condition, and `sort_reduce` reduces arbitrary
+  points to sorted ones.
+* **Invariance**: `PolyhedralBarrier.barrier_le_of_local_descent_in_band`.
 
 Depends on: `CRNT.Dynamics.FaceCodimension`, `CRNT.Dynamics.SiphonDimensionDescent`,
-`CRNT.Dynamics.ToricBarrierTrapping`.
+`CRNT.Dynamics.ToricBarrierTrapping`, `CRNT.Persistence.ComplexBalancedFloor`.
 -/
 
 open scoped NNReal Topology
@@ -138,129 +80,13 @@ theorem three_le_stoichRank_of_nonVertex (N : Network S) {P : Finset S}
     fun h => hnv (N.isVertexZeroSet_of_finrank_map_eq h)
   omega
 
-/-! ## The descent step at a vertex face is free — and the descent iteration bottoms out at the
-cardinality-minimum
-
-`Network.false_of_vertex_omegaPoint` (`CRNT.Dynamics.VertexOmegaExclusion`, Craciun–Dickenstein–
-Shiu–Sturmfels 2009, Proposition 20) applies at an **arbitrary** ω-point whose zero set is a vertex
-zero set; the residual only ever calls it at `wmax`.  Read through `Network.SiphonCarried`, which is
-a pure *carrier* predicate — `∃ w ∈ ω, ∀ s, s ∈ P ↔ w s = 0` — the exclusion discharges
-`ComparableGrowthDescent.descend` at every nonempty carried critical siphon `P` with
-`N.IsVertexZeroSet P`: the carrier `w` is an ω-point, nonnegative by `hωnn` and compatible by
-`hωaff`, so the vertex hypothesis gives `False`, from which either disjunct follows.  That is the
-lemma `comparableGrowthDescent_descend_of_vertex` below.
-
-Combining it with `Network.exists_cardMinimal_carried_siphon`
-(`CRNT.Dynamics.SiphonDimensionDescent`) fixes the exact shape of the descent iteration from this
-module's viewpoint.  Cardinalities are naturals, so the chain of strictly decreasing cardinalities
-that `omegaLimit_positive_of_descend` walks reaches a cardinality-minimal carried critical siphon
-`Pm`; at that face the vertex lemma is the *only* way `descend` can fire, minimality forbidding the
-shrinking disjunct (`descendStep_iff_omegaPointPositive_of_cardMinimal`).  Two readings, both
-machine-checked below:
-
-* if the minimal face happens to be a vertex, the vertex lemma closes the theorem outright
-  (`exists_positive_omegaPoint_of_vertex_cardMinimal_carried_siphon`);
-* if no positive ω-point exists, then **no** nonempty carried face is a vertex
-  (`not_isVertexZeroSet_of_siphonCarried_of_noPositive_omegaPoint`), so the minimal face is not a
-  vertex either and the vertex route stops dead at it.
-
-So the word "vertex" buys one thing and one thing only: it removes the need for a *smaller* carrier
-at every vertex face.  What it cannot remove is the bottom of the iteration — the cardinality
-minimum of the carried faces does not by itself force vertexhood, which is a fact about the orbit
-and not about the combinatorics. -/
-
-/-- **`ComparableGrowthDescent.descend` holds at every carried vertex face, for free.**
-
-Let `P` be a nonempty species set carried by the trajectory — `N.SiphonCarried ϕ x₀ P`, i.e. some
-ω-limit point `w` vanishes exactly on `P` — and suppose the `P`-face of the compatibility class is
-a single point (`N.IsVertexZeroSet P`).  Then the left disjunct of `descend P` holds: the carrier
-`w` is an ω-point, `hωnn`/`hωaff` make it a nonnegative member of the class of `x₀`, and
-`Network.false_of_vertex_omegaPoint` (CDSS 2009, Proposition 20) turns the vertex hypothesis into
-`False`.  No cardinality bound, no `hmaxExact`, no `hzcard` — the statement is insensitive to the
-maximality data of this module and holds for every carried siphon simultaneously. -/
-theorem comparableGrowthDescent_descend_of_vertex (N : Network S) (κ : N.RateConstants)
-    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
-    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
-    {x₀ : Concentration S}
-    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
-    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
-    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
-    (hωaff : ∀ z ∈ omegaLimit atTop ϕ {x₀}, (z - x₀ : Concentration S) ∈ N.stoichSubspace)
-    (hx₀ : x₀.Positive)
-    {P : Finset S} (hPne : P.Nonempty) (hcarr : N.SiphonCarried ϕ x₀ P)
-    (hvert : N.IsVertexZeroSet P) :
-    (∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive) ∨
-      (∃ Q : Finset S, Q.Nonempty ∧ N.IsCriticalSiphon Q ∧ Q.card < P.card ∧
-        N.SiphonCarried ϕ x₀ Q) := by
-  obtain ⟨w, hw, hzero⟩ := hcarr
-  exact (N.false_of_vertex_omegaPoint κ hxs hcb hϕγ hsol hx₀ hw (hωnn w hw) (hωaff w hw)
-    hzero hPne hvert).elim
-
-/-- **Under `hnoG` no nonempty face carried by the trajectory is a vertex.**
-
-Contrapositive of the lemma above, with the nonemptiness of the carrier manufactured: if `P` is
-carried and no ω-limit point is strictly positive, then the carrier `w` is not positive, hence `w`
-vanishes at some species `s` (using `hωnn`), hence `s ∈ P`, hence `P` is nonempty, and the vertex
-exclusion applies.  In the residual's language: once the ω-limit set has no interior point, every
-boundary face the orbit can reach is a genuine face of dimension at least one. -/
-theorem not_isVertexZeroSet_of_siphonCarried_of_noPositive_omegaPoint (N : Network S)
-    (κ : N.RateConstants)
-    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
-    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
-    {x₀ : Concentration S}
-    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
-    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
-    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
-    (hωaff : ∀ z ∈ omegaLimit atTop ϕ {x₀}, (z - x₀ : Concentration S) ∈ N.stoichSubspace)
-    (hx₀ : x₀.Positive)
-    (hnoG : ¬ ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive)
-    {P : Finset S} (hcarr : N.SiphonCarried ϕ x₀ P) :
-    ¬ N.IsVertexZeroSet P := by
-  intro hvert
-  obtain ⟨w, hw, hzero⟩ := hcarr
-  have hwnp : ¬ w.Positive := fun h => hnoG ⟨w, hw, h⟩
-  obtain ⟨s, hs⟩ : ∃ s, ¬ 0 < w s := not_forall.mp hwnp
-  have hs0 : w s = 0 := le_antisymm (not_lt.mp hs) (hωnn w hw s)
-  have hPne : P.Nonempty := ⟨s, (hzero s).mpr hs0⟩
-  exact (N.false_of_vertex_omegaPoint κ hxs hcb hϕγ hsol hx₀ hw (hωnn w hw) (hωaff w hw)
-    hzero hPne hvert).elim
-
-/-- **A cardinality-minimal carried critical siphon that is a vertex closes the theorem.**
-
-The descent iteration of `omegaLimit_positive_of_descend` walks strictly decreasing cardinalities,
-so it bottoms out at a cardinality-minimal carried critical siphon `Pm`; minimality forbids the
-shrinking disjunct there (`descendStep_iff_omegaPointPositive_of_cardMinimal`), so the vertex
-exclusion is then the only available move, and it delivers the positive ω-limit point.  Read with
-`not_isVertexZeroSet_of_siphonCarried_of_noPositive_omegaPoint`, this is the exact boundary of the
-vertex technology in this module: the residue is precisely the assertion that the cardinality-minimum
-of the carried critical faces is *not* a vertex whenever the ω-limit set has no interior point. -/
-theorem exists_positive_omegaPoint_of_vertex_cardMinimal_carried_siphon (N : Network S)
-    (κ : N.RateConstants)
-    {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
-    {ϕ : Flow ℝ≥0 (Concentration S)} {γ : Concentration S → ℝ → Concentration S}
-    {x₀ : Concentration S}
-    (hϕγ : ∀ x (t : ℝ≥0), ϕ t x = γ x t)
-    (hsol : ∀ t : ℝ, 0 ≤ t → HasDerivAt (γ x₀) (N.massActionVectorField κ (γ x₀ t)) t)
-    (hωnn : ∀ y ∈ omegaLimit atTop ϕ {x₀}, Concentration.Nonnegative y)
-    (hωaff : ∀ z ∈ omegaLimit atTop ϕ {x₀}, (z - x₀ : Concentration S) ∈ N.stoichSubspace)
-    (hx₀ : x₀.Positive)
-    (hex : ∃ Pm : Finset S, Pm.Nonempty ∧ N.IsCriticalSiphon Pm ∧ N.SiphonCarried ϕ x₀ Pm ∧
-      (∀ Q : Finset S, N.IsCriticalSiphon Q → N.SiphonCarried ϕ x₀ Q → Pm.card ≤ Q.card) ∧
-      N.IsVertexZeroSet Pm) :
-    ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive := by
-  obtain ⟨Pm, hPmne, _, hPmcarr, hmin, hPmvert⟩ := hex
-  rcases N.comparableGrowthDescent_descend_of_vertex κ hxs hcb hϕγ hsol hωnn hωaff hx₀
-    hPmne hPmcarr hPmvert with hpos | ⟨Q, _, hQcrit, hQlt, hQcarr⟩
-  · exact hpos
-  · exact absurd hQlt (not_lt.mpr (hmin Q hQcrit hQcarr))
-
 /-- **Residual obligation, non-vertex case.**  Exactly the hypotheses of
 `exists_positive_omegaPoint_of_highCodimension_siphonFace`, plus `hnv`: the `Pmax`-face of the
 compatibility class is not a single point, i.e. some nonzero stoichiometric vector vanishes on
 `Pmax`.  The vertex case is closed by `Network.false_of_vertex_omegaPoint`
 (Craciun–Dickenstein–Shiu–Sturmfels 2009, Proposition 20).  Together with `hcodim` this forces
-`3 ≤ N.stoichRank`, so the remaining `sorry` concerns faces of dimension at least one and
-codimension at least two. -/
+`3 ≤ N.stoichRank`.  Proved by `Network.complexBalanced_forward_floor`: the orbit has a positive
+coordinate floor, so `wmax`, which vanishes on the nonempty `Pmax`, cannot be an ω-point. -/
 theorem exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex
     (N : Network S) (κ : N.RateConstants)
     {xstar : Concentration S} (hxs : xstar.Positive) (hcb : N.IsComplexBalanced κ xstar)
@@ -286,7 +112,41 @@ theorem exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex
     (hrank : N.stoichRank ≠ 1)
     (hnv : ¬ N.IsVertexZeroSet Pmax) :
     ∃ p ∈ omegaLimit atTop ϕ {x₀}, p.Positive := by
-  sorry
+  exfalso
+  -- the orbit is bounded above
+  obtain ⟨C, hC⟩ := hK.isBounded.exists_norm_le
+  have hbdd : ∀ t : ℝ, 0 ≤ t → ∀ s, γ x₀ t s ≤ C := by
+    intro t ht s
+    have hmem : γ x₀ t ∈ K := by
+      have h1 := hmaps ⟨t, ht⟩
+      rw [hϕγ x₀ ⟨t, ht⟩] at h1
+      exact h1
+    have h1 : ‖γ x₀ t s‖ ≤ ‖γ x₀ t‖ := norm_le_pi_norm (γ x₀ t) s
+    rw [Real.norm_eq_abs] at h1
+    exact le_trans (le_abs_self _) (le_trans h1 (hC _ hmem))
+  have hγ0 : (γ x₀ 0).Positive := by
+    have h0 := hϕγ x₀ 0
+    simp only [Flow.map_zero_apply, NNReal.coe_zero] at h0
+    rw [← h0]; exact hx₀
+  -- a positive floor along the whole forward orbit (Persistence route)
+  obtain ⟨η, hη, hfl⟩ := N.complexBalanced_forward_floor κ hxs hcb hγ0 hsol hbdd
+  -- hence every ω-point is above the floor, contradicting `wmax s0 = 0`
+  obtain ⟨s0, hs0⟩ := hPmaxne
+  have hw0 : wmax s0 = 0 := (hzeroMax s0).mp hs0
+  have hclosed : IsClosed {y : Concentration S | η ≤ y s0} :=
+    isClosed_Ici.preimage (continuous_apply s0)
+  have horbit : Set.image2 ϕ (Set.univ : Set ℝ≥0) {x₀} ⊆ {y : Concentration S | η ≤ y s0} := by
+    rintro y ⟨t, -, x, hx, rfl⟩
+    rw [Set.mem_singleton_iff] at hx
+    subst x
+    rw [hϕγ]
+    exact hfl t t.coe_nonneg s0
+  have hω : omegaLimit atTop ϕ {x₀} ⊆ {y : Concentration S | η ≤ y s0} :=
+    (omegaLimit_subset_closure_image2 (f := atTop) (ϕ := ϕ) (s := {x₀}) (u := Set.univ)
+      univ_mem).trans ((IsClosed.closure_subset_iff hclosed).mpr horbit)
+  have := hω hwmax
+  simp only [Set.mem_setOf_eq, hw0] at this
+  linarith
 
 /-- **Residual obligation: the ω-limit set cannot sit on a critical-siphon face of codimension
 at least two.**
@@ -580,7 +440,7 @@ role here (it belongs to the repo's convex max-of-affine packaging, which the pa
 surface is not — see 4); (b) feeding `PersistentFrom` to the chain above under this theorem's
 hypotheses produces a *positive* `wmax` (`wmax ∈ ω ⊆ K₀`, `K₀` closed), contradicting
 `hPmaxne`/`hzeroMax` — i.e. the residual is inconsistent with `PersistentFrom`, which is the
-machine-checkable form of "closing this `sorry` = supplying that compact positive absorbing set
+machine-checkable form of "closing this residual = supplying that compact positive absorbing set
 for the bounded orbit at hand".  *Correction, verified against the v3 source by `GacLit` (shared
 log, `[GacLit] 19:47`): the paper does **not** prove that such a `K_{x₀}` exists.*  The claim
 appears only as statements — §4 (plan lines 598/637, whose "Step 4" is the assembly), 2D figure
@@ -605,7 +465,7 @@ not strictly positive — this theorem has `wmax`, with `wmax s = 0` for the non
 then `PersistentFrom κ x₀` is refutable, because the certificate's compact set would have to
 contain that point while being entirely inside the open orthant.
 
-Consequently the `sorry` above is discharged by *any* construction of `PersistentFrom κ x₀` for
+Consequently the residual above is discharged by *any* construction of `PersistentFrom κ x₀` for
 this orbit — which is what v3 *claims* to obtain from boundedness alone (the residual has
 boundedness: `hK`/`hmaps`; the claim is the "Step 4" of §4's plan, asserted but not carried out —
 see the audit above) — and, read the other way, the residual hypotheses are inconsistent with that

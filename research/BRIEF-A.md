@@ -1,5 +1,31 @@
 # BRIEF A — Craciun v3 Theorem B: the codimension ≥ 2 zero-separating surface
 
+## A.0. Status of this brief (updated 2026-10-11: CLOSED)
+
+This target is **proved**.  Route, in order:
+
+* The parent theorem was split on `IsVertexZeroSet Pmax`.  The vertex sub-case is
+  `CRNT/Dynamics/VertexOmegaExclusion.lean` (`Network.false_of_vertex_omegaPoint`;
+  CDSS 2009, Proposition 20); see `HANDOFF_gac_vertex.md`.
+* The non-vertex residual was pushed as far as it goes without new mathematics in
+  `CRNT/Dynamics/HighCodimensionSiphonFace.lean`: the descent step is free at every carried
+  vertex face (`comparableGrowthDescent_descend_of_vertex`), no nonempty carried face is a
+  vertex once the omega-limit has no interior point
+  (`not_isVertexZeroSet_of_siphonCarried_of_noPositive_omegaPoint`), and the descent
+  iteration bottoms out at the cardinality minimum
+  (`exists_positive_omegaPoint_of_vertex_cardMinimal_carried_siphon`).  The residue was
+  exactly "the cardinality-minimum of the carried critical faces is not a vertex".
+* Closure came from
+  `Network.complexBalanced_forward_floor`
+  (`CRNT/Persistence/ComplexBalancedFloor.lean`, 12 supporting modules under
+  `CRNT/Persistence/`): a uniform coordinate floor along the orbit makes every
+  omega-point positive, contradicting the boundary point.  See `HANDOFF_gac_closed.md`.
+
+`#print axioms` on `Network.exists_positive_omegaPoint_of_highCodimension_siphonFace`,
+its `_nonVertex` form, and the whole GAC chain is now `[propext, Classical.choice,
+Quot.sound]`.  Line numbers in the rest of this file predate the closure; use the
+declaration names.  The file is kept as history of the routes that were tried and ruled out.
+
 ## A.0. Status of this brief (updated 2026-10-10)
 
 The theorem below still has its statement, but it is now **split**, and the easy half is closed:

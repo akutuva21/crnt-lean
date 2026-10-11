@@ -3,16 +3,18 @@
 **Branch of record:** `holes` (the swarm branches from `research/swarm`, itself a child of `holes`).
 **Objective (single scalar, lexicographic):** drive `research/scripts/measure.py` to `holes = 0`.
 
-There is exactly **one** executable `sorry` left in the whole `CRNT/` tree (A). Hole B was
-closed by the Banaji--Craciun determinant route, `CRNT/Multistationarity/BCFullyOpen.lean`:
+There is **no** executable `sorry` left in the whole `CRNT/` tree (`holes = 0`). Hole B was
+closed by the Banaji--Craciun determinant route (`CRNT/Multistationarity/BCFullyOpen.lean`),
+and hole A fell to the uniform-orbit floor (`CRNT/Persistence/ComplexBalancedFloor.lean`):
 
-| id | site | theorem | mathematical content |
-| --- | --- | --- | --- |
-| **A** | `CRNT/Dynamics/HighCodimensionSiphonFace.lean` | `Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex` | Craciun v3, Theorem B: a toric differential inclusion over a complete pointed fan admits an exhaustive family of zero-separating hypersurfaces. Blocks the Global Attractor Conjecture. The statement has already been split once: the vertex sub-case is discharged by `CRNT/Dynamics/VertexOmegaExclusion.lean` (CDSS 2009, Prop. 20), and what remains is faces of dimension at least one and codimension at least two. |
+| former id | theorem | mathematical content |
+| --- | --- | --- |
+| **A** | `Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex` | Craciun v3, Theorem B: closed via the uniform orbit floor.  It was first split on `IsVertexZeroSet Pmax` (vertex sub-case by `CRNT/Dynamics/VertexOmegaExclusion.lean`, CDSS 2009 Prop. 20); the residual fell to `Network.complexBalanced_forward_floor` (`CRNT/Persistence/ComplexBalancedFloor.lean`), which makes every omega-point positive. |
+| **B** | `Network.stronglyConcordant_fullyOpen_of_trueSRCriterion` | Classical SR graph criterion: closed by the Banaji--Craciun determinant route (`CRNT/Multistationarity/BCFullyOpen.lean`). |
 
-The former hole **B** (`Network.stronglyConcordant_fullyOpen_of_trueSRCriterion`) is closed; see
-`HANDOFF_trueSR_closed.md` for the Banaji--Craciun determinant route.  Everything else in the tree
-is `sorry`-free and audits to `[propext, Classical.choice, Quot.sound]`.
+Details in `HANDOFF_gac_vertex.md`, `HANDOFF_codim2.md`, `HANDOFF_gac_closed.md`,
+`HANDOFF_trueSR_closed.md`.  Everything in the tree is `sorry`-free and audits to
+`[propext, Classical.choice, Quot.sound]`.
 
 ---
 
@@ -85,7 +87,7 @@ A swarm without adversaries converges on self-deception within two rounds.
 
 * **Never** introduce `axiom`, `admit`, `@[implemented_by]`, `native_decide` over non-`Decidable`
   data, or `sorry` anywhere in `CRNT/` or `Scaffold/`. Two exceptions only, both pre-existing and
-  both tracked: hole A itself, and `test/` probes.
+  both tracked: there are no holes left; only `test/` probes.
 * **Never** change a theorem's *statement* to make it provable without writing, in the same commit
   message, a mathematical justification and a check that the change is faithful. This happened
   before in this repo (`stronglyConcordant_of_fullyOpen_of_weaklyNormal` was **false as stated**
@@ -142,7 +144,7 @@ The orchestrator computes each researcher's round score from the tree, not from 
 | a machine-checked **refutation** that kills a route or a statement | **+30** |
 | a proved lemma that another researcher's PR builds on | **+15** |
 | no commit this round | **0** |
-| introduced `sorry`/`axiom`/`admit` outside hole A | **−60** |
+| introduced `sorry`/`axiom`/`admit` anywhere outside the reserved slot | **−60** |
 | broke a static gate | **−60** |
 | weakened a hole statement's hypotheses silently | **−200** |
 | statement provable only via a false step / vacuous hypothesis (caught by audit) | **−200** |
