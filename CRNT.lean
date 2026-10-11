@@ -637,6 +637,7 @@ import CRNT.Basic.IsomorphismKinetics
 import CRNT.Decomposition.BlockDeficiency
 import CRNT.Decomposition.Deficiency
 import CRNT.Decomposition.Rank
+import CRNT.Decomposition.RelationSpace
 import CRNT.Deficiency.CycleExactSequence
 import CRNT.Deficiency.LinkageCoupling
 import CRNT.Design.MaxRPA
@@ -705,6 +706,7 @@ import CRNT.Stochastic.FirstOrderFoster
 import CRNT.Translation.ParallelAggregation
 import CRNT.Translation.ParallelStructural
 import CRNT.Translation.SourceCoefficientEquivalence
+import CRNT.Realization.SourceCoefficientCompleteness
 
 -- Promoted from the frontier ledger (elaborated, closure sorry-free).
 import CRNT.Equilibria.ComplexBalanceGeometry

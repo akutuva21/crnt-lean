@@ -68,3 +68,27 @@ also passed. The one reserved hole still appears in the frontier axiom audits.
 Each new batch needs fresh focused checks and a subsequent integration build. The orchestrator
 reviews mathematical hypotheses and audits each principal theorem, rather than inferring
 axiom cleanliness from its import list or accepting an agent's report alone.
+
+## First proved batch
+
+`CRNT/Realization/SourceCoefficientCompleteness.lean` closes the converse of the existing
+source-coefficient certificate. Equality on the positive orthant determines all coefficients;
+checking the finite union of source sets is therefore necessary and sufficient for dynamical
+equivalence. Failure has a finite source/species coefficient witness.
+
+`CRNT/Decomposition/RelationSpace.lean` constructs the incidence and stoichiometric block-relation
+spaces. Their dimensions are the two rank losses under block composition, and
+
+`total block deficiency - network deficiency = incidence relation dimension - stoich relation dimension`.
+
+The signed formula works without either independence assumption. Exact additivity is equality
+of the two relation dimensions; it does not require both dimensions to vanish.
+
+Both modules passed focused elaboration. Fourteen principal theorem audits are pinned with
+`#guard_msgs` in `test/AxiomAudit.lean`, each with only `propext`, `Classical.choice`, and `Quot.sound`.
+The post-change public-core-closure integration
+`lake build +CRNT test.AxiomAudit CRNTFrontier Scaffold` passed (4,660 jobs).
+This deliberately excludes unfinished new modules outside the umbrella's closure; the full
+`CRNT.+` library build is still required after the remaining drafts are complete. Import,
+hollow-definition, exclusion, undefined-name, generated-file sync, and diff-whitespace checks
+pass, and the reserved hole file matches the starting revision byte for byte.

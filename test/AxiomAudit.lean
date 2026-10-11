@@ -859,3 +859,63 @@ whole-environment census below reports it.
 /-- info: 'CRNT.Network.complexBalanced_globalAttractor' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_globalAttractor
+
+/-! ## Fundamental expansion: inter-block relations and exact deficiency balance -/
+
+/-- info: 'CRNT.Network.ReactionPartition.finrank_stoichRelationSpace_add_stoichRank' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.finrank_stoichRelationSpace_add_stoichRank
+
+/-- info: 'CRNT.Network.ReactionPartition.finrank_incidenceRelationSpace_add_incidenceRank' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.finrank_incidenceRelationSpace_add_incidenceRank
+
+/-- info: 'CRNT.Network.ReactionPartition.stoichIndependent_iff_relationSpace_eq_bot' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.stoichIndependent_iff_relationSpace_eq_bot
+
+/-- info: 'CRNT.Network.ReactionPartition.incidenceIndependent_iff_relationSpace_eq_bot' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.incidenceIndependent_iff_relationSpace_eq_bot
+
+/-- info: 'CRNT.Network.ReactionPartition.deficiencyGap_eq_incidenceRelations_sub_stoichRelations' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.deficiencyGap_eq_incidenceRelations_sub_stoichRelations
+
+/-- info: 'CRNT.Network.ReactionPartition.deficiency_additivity_iff_relationDimensions_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.deficiency_additivity_iff_relationDimensions_eq
+
+/-- info: 'CRNT.Network.ReactionPartition.deficiencyInt_lt_totalBlockDeficiencyInt_of_stoichIndependent_of_not_incidenceIndependent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.deficiencyInt_lt_totalBlockDeficiencyInt_of_stoichIndependent_of_not_incidenceIndependent
+
+/-- info: 'CRNT.Network.ReactionPartition.totalBlockDeficiencyInt_lt_deficiencyInt_of_incidenceIndependent_of_not_stoichIndependent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ReactionPartition.totalBlockDeficiencyInt_lt_deficiencyInt_of_incidenceIndependent_of_not_stoichIndependent
+
+/-! ## Fundamental expansion: complete finite realization certificates -/
+
+/-- info: 'CRNT.Network.steadyStatePolynomial_coeff_sourceCoefficient' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.steadyStatePolynomial_coeff_sourceCoefficient
+
+/-- info: 'CRNT.Network.sourceCoefficientEquivalent_of_massActionDynamicallyEquivalent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.sourceCoefficientEquivalent_of_massActionDynamicallyEquivalent
+
+/-- info: 'CRNT.Network.sourceCoefficientEquivalent_of_vectorField_eq_on_positive' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.sourceCoefficientEquivalent_of_vectorField_eq_on_positive
+
+/-- info: 'CRNT.Network.massActionDynamicallyEquivalent_iff_sourceCoefficientEquivalent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDynamicallyEquivalent_iff_sourceCoefficientEquivalent
+
+/-- info: 'CRNT.Network.massActionDynamicallyEquivalent_iff_sourceCoefficientEquivalent_on_union' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDynamicallyEquivalent_iff_sourceCoefficientEquivalent_on_union
+
+/-- info: 'CRNT.Network.exists_sourceCoefficientMismatch_on_union_iff_not_massActionDynamicallyEquivalent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_sourceCoefficientMismatch_on_union_iff_not_massActionDynamicallyEquivalent
