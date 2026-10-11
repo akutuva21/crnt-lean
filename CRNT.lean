@@ -702,6 +702,7 @@ import CRNT.Design.StrongBufferingFluxRPA
 import CRNT.Reduction.IntermediateSchurComplement
 import CRNT.Reduction.SingleIntermediateElimination
 import CRNT.Stochastic.DetailedBalance
+import CRNT.Stochastic.DirichletForm
 import CRNT.Stochastic.FirstOrderFoster
 import CRNT.Translation.ParallelAggregation
 import CRNT.Translation.ParallelStructural

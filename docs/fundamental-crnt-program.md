@@ -92,3 +92,24 @@ This deliberately excludes unfinished new modules outside the umbrella's closure
 `CRNT.+` library build is still required after the remaining drafts are complete. Import,
 hollow-definition, exclusion, undefined-name, generated-file sync, and diff-whitespace checks
 pass, and the reserved hole file matches the starting revision byte for byte.
+
+## Stochastic detailed-balance energy
+
+`CRNT/Stochastic/DirichletForm.lean` retains enabled reaction channels as individual edges.
+Their paired-reaction reversal is an involution on any fire-closed region, so microscopic
+detailed balance permits exact finite-sum reindexing. The result is the bilinear identity
+
+`weighted generator pairing(f,g) = - Dirichlet form(f,g)`.
+
+The product-Poisson weighted generator is symmetric. Positive reactionwise deterministic
+detailed balance supplies the microscopic premise through the existing stochastic lift.
+The quadratic form is nonnegative at nonnegative concentrations on any finite count region;
+no reversibility or closure assumption is needed for that algebraic fact. Conserved linear
+count observables likewise have zero energy on any finite region.
+
+Eight additional axiom guards pin these results with only the standard foundational axioms.
+After preserving the user's concurrent `cb62825` additions by clean rebase, the combined
+public-closure integration `lake build +CRNT test CRNTFrontier Scaffold` passed first with
+4,691 jobs and then with 4,692 jobs after this stochastic slice. The one reserved hole remains
+unchanged. Communicating-class/kernel characterizations and the full-library build are subsequent
+gates; this energy identity alone does not construct a continuous-time sample-path process.

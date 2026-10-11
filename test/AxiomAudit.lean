@@ -919,3 +919,37 @@ whole-environment census below reports it.
 /-- info: 'CRNT.Network.exists_sourceCoefficientMismatch_on_union_iff_not_massActionDynamicallyEquivalent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.exists_sourceCoefficientMismatch_on_union_iff_not_massActionDynamicallyEquivalent
+
+/-! ## Fundamental expansion: stochastic detailed-balance energy -/
+
+/-- info: 'CRNT.Network.fireCount_reverse_fireCount' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fireCount_reverse_fireCount
+
+/-- info: 'CRNT.Network.reverseEnabledJump_involutive' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.reverseEnabledJump_involutive
+
+/-- info: 'CRNT.Network.weightedGeneratorPairing_eq_enabledJumpSum' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.weightedGeneratorPairing_eq_enabledJumpSum
+
+/-- info: 'CRNT.Network.weightedGeneratorPairing_eq_neg_dirichletForm' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.weightedGeneratorPairing_eq_neg_dirichletForm
+
+/-- info: 'CRNT.Network.weightedGeneratorPairing_eq_neg_dirichletForm_of_reactionwise' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.weightedGeneratorPairing_eq_neg_dirichletForm_of_reactionwise
+
+/-- info: 'CRNT.Network.weightedGeneratorPairing_symm' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.weightedGeneratorPairing_symm
+
+/-- info: 'CRNT.Network.dirichletForm_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.dirichletForm_nonneg
+
+/-- info: 'CRNT.Network.dirichletForm_linear_eq_zero_of_conserved' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.dirichletForm_linear_eq_zero_of_conserved
