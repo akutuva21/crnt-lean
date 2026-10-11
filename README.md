@@ -1,6 +1,6 @@
 # Chemical Reaction Network Theory in Lean 4
 
-[![CI](https://github.com/marpaia/crnt-lean/actions/workflows/ci.yml/badge.svg)](https://github.com/marpaia/crnt-lean/actions/workflows/ci.yml)
+[![CI](https://github.com/akutuva21/crnt-lean/actions/workflows/ci.yml/badge.svg)](https://github.com/akutuva21/crnt-lean/actions/workflows/ci.yml)
 ![Lean](https://img.shields.io/badge/Lean-4.34.0-blue)
 ![Mathlib](https://img.shields.io/badge/Mathlib-v4.34.0-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -117,10 +117,11 @@ example : N.WeaklyReversible := by
   equilibria, for any rate constants.
 - Unconditional global convergence for no-critical-siphon networks: a decidable sufficient condition
   for the global attractor property.
-- The global attractor conjecture reduced to a single explicit hypothesis: for weakly-reversible
-  complex-balanced networks, global convergence follows from one geometric predicate (a bounded region
-  that confines the orbit a fixed distance away from every species facet), with every step from that
-  predicate to convergence machine-checked.
+- The global attractor conjecture, proved: every complex-balanced mass-action system is
+  globally attractive in its compatibility class (`Network.complexBalanced_globalAttractor`). The
+  proof goes through a uniform coordinate floor along the orbit
+  (`Network.complexBalanced_forward_floor`), which makes every ω-limit point positive; the vertex
+  case is discharged separately (Craciun–Dickenstein–Shiu–Sturmfels 2009, Proposition 20).
 - The Anderson–Craciun–Kurtz product form: the exact stationary distribution of a complex-balanced
   stochastic network.
 - Concordance forces at most one steady state per class, for every weakly-monotonic kinetics,
@@ -175,13 +176,13 @@ Grouped by area; the precise statements and module names are in each linked doc.
 **[Persistence & global attraction](docs/persistence-gac.md)**
 - The reduction GAC ⟺ persistence, and unconditional convergence for the no-critical-siphon class
 - The sharp "one positive ω-limit point ⇒ convergence" reduction
-- The global attractor conjecture for weakly-reversible complex-balanced networks reduced to a single
-  predicate, `SeparatingConfinement` (a bounded, forward-invariant region holding the orbit off every
-  facet), proven sufficient for global convergence end to end; the affine separating surface is built
-  in every dimension
-- That predicate shown equivalent to persistence and constructed outright on two classes (near
-  equilibrium, and the entire decidable no-critical-siphon class), so it is realized rather than only
-  assumed; the construction supplies the no-critical-siphon persistence certificate as a by-product
+- The global attractor conjecture for complex-balanced networks, proved end to end
+  (`Network.complexBalanced_globalAttractor`): a uniform coordinate floor along the orbit
+  (`Network.complexBalanced_forward_floor`, built by a finite polyhedral-region construction in
+  `CRNT/Persistence/`) forces every ω-limit point to be positive, and the vertex case is closed
+  separately. Unconditional convergence also holds on the no-critical-siphon class, at
+  stoichiometric rank at most two, for first-order networks, and on faces whose critical
+  siphons are vertices or facets
 - A development of the toric-differential-inclusion approach
 
 **[Stochastic CRN](docs/stochastic.md)**
@@ -235,10 +236,9 @@ remains is a specific missing piece.
   correctness equivalences for the higher-deficiency algorithms remain open below.
 - Critical-siphon facet repulsion. The Butler–McGehee lemma and non-siphon (codimension-1) facet
   repulsion are proven, as is the Anderson–Shiu influx estimate for a singleton critical siphon (a
-  linear lower bound on the mass-action field at the facet). From that bound together with a near-facet
-  relative-entropy dissipation bound, a uniform positive facet floor follows. What remains is the
-  dissipation bound itself, carried as a hypothesis, and its assembly into a persistence conclusion;
-  discharging it would extend unconditional global attraction past the no-critical-siphon class
+  linear lower bound on the mass-action field at the facet). A uniform positive facet floor would
+  follow from that bound together with a near-facet relative-entropy dissipation bound; the
+  dissipation bound is still carried as a hypothesis where it appears, rather than derived
 - Fenichel normally-hyperbolic invariant-manifold persistence. The O(ε) quasi-steady-state reduction
   holds on compact time and lifts to the infinite horizon: all-time invariance of the substrate-varying
   slow manifold with an O(ε) ceiling is proven for the closed-form contracting field, and a
@@ -274,28 +274,12 @@ remains is a specific missing piece.
   contracts rather than axioms; see `docs/global-persistence.md`.
 
 **Open research**
-- The global attractor conjecture (Horn's 1974 conjecture, open in general):
-  - Proven unconditionally for the no-critical-siphon class of complex-balanced networks, and reduced
-    to persistence in all cases (GAC ⟺ persistence)
-  - For weakly-reversible complex-balanced networks the persistence requirement is reduced to a single
-    explicit predicate, `SeparatingConfinement`: the genuine mass-action orbit is forward-invariant in
-    a bounded region that stays a fixed positive distance above every species facet. The implication
-    `SeparatingConfinement ⇒ global convergence` is machine-checked end to end, and the affine
-    (half-plane) zero-separating surface that realizes it is constructed in every dimension
-  - `SeparatingConfinement` is proven equivalent to the persistence certificate `PersistentFrom`, and
-    constructed outright on two classes: near equilibrium (relative entropy of the start below every
-    reference coordinate) and the entire decidable no-critical-siphon class (where the orbit may touch
-    a facet at finite times, but its closure stays interior). The no-critical-siphon construction also
-    discharges the `PersistentFrom` certificate that the ω-limit argument leaves implicit. The
-    genuine-orbit inputs (positivity, relative-entropy descent, and box uniqueness for the unclamped
-    field) are proven once and reused
-  - Craciun's toric-differential-inclusion architecture is formalized sorry-free, with the steps it
-    rests on isolated as explicit hypotheses: set-valued viability, the n-dimensional surface
-    construction, the weak-reversibility cycle cover, the polyhedral-fan axioms, and arbitrary-fan
-    faithful-curve existence
-  - Constructing `SeparatingConfinement` for the curved mass-action case is the open content: the
-    toric zero-separating surface, refereed in the literature only for stoichiometric dimension at most
-    three. No theorem constructs it in general
+- The persistence conjecture for weakly reversible networks: every weakly reversible mass-action
+  system is persistent (no ω-limit point on the boundary of any compatibility class). The
+  complex-balanced case is settled — it is the global attractor theorem above. What remains is
+  the non-complex-balanced case. The uniform-floor region construction already handles the
+  downhill half of the toric differential inclusion, so a two-sided validity version of it
+  would extend the argument
 - The correctness of the higher-deficiency (Deficiency One and Advanced Deficiency) algorithms:
   - The apparatus is formalized (network consistency via Stiemke, cut pairs, regularity, confluence
     vectors with their proven antisymmetry, shelves, signatures, colinearity classes), and the
