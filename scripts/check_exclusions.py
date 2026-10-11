@@ -157,7 +157,8 @@ def main() -> int:
                 where = next(k for k, v in buckets.items() if m in v)
                 print(f"  {m}  [{where}]")
         sc = scaffold_modules()
-        print(f"\n  {len(sc):4d}  Scaffold/ modules -- in NO lake target, never elaborated")
+        print(f"\n  {len(sc):4d}  Scaffold/ modules -- in the Scaffold lake target, "
+              f"elaborated by `lake build Scaffold`")
         for m in sorted(sc):
             print(f"          {m}")
         return 0

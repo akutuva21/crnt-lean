@@ -28,8 +28,11 @@ excludeGlobs = []
 name = "CRNTFrontier"
 globs = [
   "CRNTFrontier",
+  "CRNT.Dynamics.GACLowRank",
+  "CRNT.Dynamics.GACVertexFacet",
   "CRNT.Dynamics.GlobalAttractorTheorem",
   "CRNT.Dynamics.HighCodimensionSiphonFace",
+  "CRNT.Examples.CatalyticChainGAC",
   "CRNT.Multistationarity.TrueChemistrySRCriterion",
   "CRNT.Oscillation",
   "CRNT.Oscillation.CompatibilityAdapters",

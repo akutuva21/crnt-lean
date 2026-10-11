@@ -76,6 +76,9 @@ import CRNT.Geometry.CraciunZSH
 import CRNT.Geometry.ZeroSeparatingSurface
 import CRNT.Geometry.ConeFace
 import CRNT.Geometry.ZeroSeparatingCurve2D
+import CRNT.Geometry.PlanarZSH
+import CRNT.Geometry.PlanarZSHTrap
+import CRNT.Geometry.PlanarFanSlopes
 import CRNT.Geometry.PolyRegionSeparating
 import CRNT.Geometry.HalfPlaneSeparatingSurface
 import CRNT.Geometry.ToricFieldPolar
@@ -283,6 +286,8 @@ import CRNT.Deficiency.PerClassKernelPos
 import CRNT.Deficiency.PerClassKernelUnique
 import CRNT.Deficiency.KernelDimensionWR
 import CRNT.Deficiency.RangeKineticWR
+import CRNT.Deficiency.KineticSubspace
+import CRNT.Kinetics.HungarianLemma
 import CRNT.Deficiency.ClosedSetKernel
 import CRNT.Deficiency.TerminalSLCKernel
 import CRNT.Deficiency.TerminalKernelBound
@@ -303,6 +308,7 @@ import CRNT.Theorems.DeficiencyZero.Confinement
 import CRNT.Theorems.DeficiencyZero.Lyapunov
 import CRNT.Theorems.DeficiencyZero.AsymptoticStability
 import CRNT.Theorems.DeficiencyZero.NoPeriodicOrbit
+import CRNT.Theorems.DeficiencyZero.NoPeriodicOrbitComplexBalanced
 
 -- Oscillation: periodic-orbit vocabulary, the proved exclusion theorems, matrix criteria,
 -- reaction-restriction/inheritance interfaces, and the planar/Vassena/Floquet routes.
@@ -374,6 +380,8 @@ import CRNT.Design.Adaptation
 
 -- Persistence: Petri-net siphons; siphon-face tangency; single-linkage-class global stability
 import CRNT.Dynamics.Siphon
+import CRNT.Dynamics.SiphonLinkage
+import CRNT.Dynamics.FirstOrderGAC
 import CRNT.Dynamics.SiphonConservation
 import CRNT.Dynamics.ConservationLaw
 import CRNT.Dynamics.Persistence
@@ -431,6 +439,8 @@ import CRNT.Dynamics.FaceDirectionCone
 import CRNT.Dynamics.ToricBarrierExplicit
 import CRNT.Dynamics.OrbitRegularity
 import CRNT.Dynamics.VertexOmegaExclusion
+import CRNT.Dynamics.SourceOrderDescent
+import CRNT.Dynamics.TransversalPlanarDescent
 import CRNT.Dynamics.CriticalSiphonNearFacetInflux
 import CRNT.Dynamics.SingletonFacetEscape
 import CRNT.Dynamics.SiphonFacetEscape
@@ -674,6 +684,9 @@ import CRNT.Oscillation.ReactivityScaling
 import CRNT.Oscillation.VassenaContinuation
 import CRNT.Stability.RobustLyapunov
 import CRNT.Theorems.DeficiencyZero.Characterization
+import CRNT.Theorems.DeficiencyZero.HornCharacterization
+import CRNT.Theorems.DeficiencyZero.GeneralKinetics
+import CRNT.Equilibria.QuasiThermostatic
 
 -- Promoted from the frontier ledger (elaborated, closure sorry-free).
 import CRNT.Deficiency.CycleSplitting
