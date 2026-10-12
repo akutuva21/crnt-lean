@@ -374,6 +374,46 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.twoRxn_multistationary_iff
 
+-- S18
+/-- info: 'CRNT.Network.twoRxn_nondegenerate_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoRxn_nondegenerate_iff
+
+-- S18
+/-- info: 'CRNT.Network.twoRxn_nondegMultistationary_necessary' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoRxn_nondegMultistationary_necessary
+
+-- S18
+/-- info: 'CRNT.Network.twoRxn_nondegMultistationary_sufficient' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoRxn_nondegMultistationary_sufficient
+
+-- S18
+/-- info: 'CRNT.Network.twoRxn_nondegMultistationary_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoRxn_nondegMultistationary_iff
+
+-- S18
+/-- info: 'CRNT.Network.revIrr_parallel_of_steadyState' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.revIrr_parallel_of_steadyState
+
+-- S18
+/-- info: 'CRNT.Network.revIrr_not_multistationary_of_beta_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.revIrr_not_multistationary_of_beta_nonneg
+
+-- S18
+/-- info: 'CRNT.Network.revIrr_multistationary_of_beta_neg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.revIrr_multistationary_of_beta_neg
+
+-- S18
+/-- info: 'CRNT.Network.revIrr_multistationary_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.revIrr_multistationary_iff
+
 -- M1
 /-- info: 'CRNT.Network.massAction_subsingleton_steadyState_of_injective' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -834,6 +874,21 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Examples.Lotka.not_tendsto_equilibrium
 
+-- D18
+/-- info: 'CRNT.Network.PositivePeriodicOrbit.averageRates_stoich_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.PositivePeriodicOrbit.averageRates_stoich_eq_zero
+
+-- D18
+/-- info: 'CRNT.Examples.Lotka.average_A' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.Lotka.average_A
+
+-- D18
+/-- info: 'CRNT.Examples.Lotka.average_B' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.Lotka.average_B
+
 -- D19
 /-- info: 'ODE.fenichel_persistence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -1163,6 +1218,26 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Groebner.exists_isGroebnerBasis' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Groebner.exists_isGroebnerBasis
+
+-- A2
+/-- info: 'CRNT.Groebner.isGroebnerBasis_of_lcmRepresentation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Groebner.isGroebnerBasis_of_lcmRepresentation
+
+-- A2
+/-- info: 'CRNT.Groebner.sPoly_degree_lt' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Groebner.sPoly_degree_lt
+
+-- A2
+/-- info: 'CRNT.Groebner.isGroebnerBasis_of_reducesToZero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Groebner.isGroebnerBasis_of_reducesToZero
+
+-- A2
+/-- info: 'CRNT.Groebner.isGroebnerBasis_iff_remainders_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Groebner.isGroebnerBasis_iff_remainders_zero
 
 -- A4
 /-- info: 'CRNT.Tropical.eventually_sum_pos_of_minimizers_pos' depends on axioms: [propext, Classical.choice, Quot.sound] -/

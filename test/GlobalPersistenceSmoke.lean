@@ -25,7 +25,7 @@ regressions when the project is compiled in an environment with Lean 4.31 and Ma
 #check CRNT.Network.IsDrainable
 #check CRNT.Network.IsSelfReplicable
 #check CRNT.Network.TierDescending
-#check CRNT.Network.StrongEndotacticTierCharacterizationClaim
+#check CRNT.Network.stronglyEndotacticStd_iff_tierDescending
 #check CRNT.Network.GlobalPersistenceCertificate
 #check CRNT.Network.PersistenceConjectureStrong
 #check CRNT.Network.PersistenceConjectureOmega
@@ -47,7 +47,7 @@ regressions when the project is compiled in an environment with Lean 4.31 and Ma
 #check CRNT.Network.FluxSignRealizable
 #check CRNT.Network.hasNoCriticalSiphon_of_noDrainable_of_minimalCriticalDichotomy
 #check CRNT.Network.MinimalCriticalSiphonFluxDichotomyClaim
-#check CRNT.Network.noDrainableSiphonOmega_of_minimalDichotomy
+#check CRNT.Network.noDrainableSiphonOmegaPersistence
 #check CRNT.Network.TwoDimensionalWRBoundedPersistenceClaim
 #check CRNT.Network.TwoSpeciesEndotacticPermanenceClaim
 #check CRNT.Network.FirstOrderEndotacticPersistenceClaim

@@ -902,6 +902,10 @@ import CRNT.Stochastic.ClosedSetAbsorption
 import CRNT.Stochastic.ACRExtinctionAbsorption
 import CRNT.Dynamics.OrthantMonotone
 import CRNT.Algebra.GroebnerBasis
+import CRNT.Algebra.Buchberger
+import CRNT.Examples.LotkaAverages
+import CRNT.Multistationarity.TwoReactionNondegenerate
+import CRNT.Multistationarity.RevIrrReaction
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
