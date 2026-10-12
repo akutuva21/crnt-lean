@@ -86,7 +86,7 @@ variable {S : Type} [DecidableEq S] [Fintype S]
 noncomputable def sourceWeightedSum (N : Network S) (c : N.R → ℝ) (y : Complex S) : S → ℝ :=
   ∑ r ∈ Finset.univ.filter (fun r => (N.reaction r).source = y), c r • N.reactionVector r
 
-theorem massActionVectorField_eq_sum_apply (N : Network S) (κ : RateConstants N)
+theorem massActionVectorField_apply_eq_sum_monomial (N : Network S) (κ : RateConstants N)
     (x : Concentration S) (s : S) :
     N.massActionVectorField κ x s =
       ∑ r, (κ.k r * N.reactionVector r s) * (N.reaction r).source.massActionMonomial x := by
@@ -107,7 +107,7 @@ theorem massActionVectorField_eqOn_positive_iff (N : Network S) (κ κ' : RateCo
     have hz := Complex.sum_massActionMonomial_eq_zero (fun r => (N.reaction r).source)
       (fun r => (κ.k r - κ'.k r) * N.reactionVector r s) (fun x hx => by
         have := congrFun (h x hx) s
-        rw [massActionVectorField_eq_sum_apply, massActionVectorField_eq_sum_apply] at this
+        rw [massActionVectorField_apply_eq_sum_monomial, massActionVectorField_apply_eq_sum_monomial] at this
         rw [← sub_eq_zero.mpr this, ← Finset.sum_sub_distrib]
         refine Finset.sum_congr rfl fun r _ => ?_
         ring) y
@@ -117,7 +117,7 @@ theorem massActionVectorField_eqOn_positive_iff (N : Network S) (κ κ' : RateCo
     ring
   · intro h x _
     funext s
-    rw [massActionVectorField_eq_sum_apply, massActionVectorField_eq_sum_apply]
+    rw [massActionVectorField_apply_eq_sum_monomial, massActionVectorField_apply_eq_sum_monomial]
     -- regroup both sums by source complex
     have key : ∀ c : N.R → ℝ,
         ∑ r, (c r * N.reactionVector r s) * (N.reaction r).source.massActionMonomial x =

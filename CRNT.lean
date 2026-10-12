@@ -830,6 +830,79 @@ import CRNT.Dynamics.GACLowRank
 import CRNT.Dynamics.GACVertexFacet
 import CRNT.Examples.CatalyticChainGAC
 
+-- Bundle 2026-10-12 (field-map leaves + WR persistence + tropical/stochastic/multistationarity).
+-- Merged on top of master without duplicating the 10/12 leaves already present above.
+import CRNT.Kinetics.GeneralizedSignCriterion
+import CRNT.Multistationarity.InheritanceAddReactions
+import CRNT.Dynamics.MonotoneComparison
+import CRNT.Dynamics.CooperativeNetworks
+import CRNT.Reduction.LinearElimination
+import CRNT.Reduction.DrainedIntermediateBlock
+import CRNT.Equilibria.ToricCriterion
+import CRNT.Thermo.FreeEnergyMinimization
+import CRNT.Stochastic.FiniteAbsorption
+import CRNT.Stochastic.JumpAbsorption
+import CRNT.Stochastic.ACRExtinctionExample
+import CRNT.Stochastic.FosterRecurrence
+import CRNT.Kinetics.HillConcordance
+import CRNT.Dynamics.EnzymeFastContraction
+import CRNT.Examples.LotkaFirstIntegral
+import CRNT.Stochastic.NonExplosion
+import CRNT.Examples.LotkaPeriodic
+import CRNT.Multistationarity.OneSpeciesCapacity
+import CRNT.Multistationarity.CapacityCharacterization
+import CRNT.Extensions.DelayMassAction
+import CRNT.Multistationarity.OneSpeciesNecessity
+import CRNT.Stochastic.NonExplosionAS
+import CRNT.Persistence.WeaklyReversibleField
+import CRNT.Persistence.WeaklyReversibleFloor
+import CRNT.Persistence.ConservativePersistence
+import CRNT.Examples.ConservativeNonPersistent
+import CRNT.Persistence.UniformFieldBound
+import CRNT.Persistence.VariableRateFloor
+import CRNT.Persistence.OrbitClosureSiphon
+import CRNT.Examples.InflowNoDrainable
+import CRNT.Dynamics.GordanAlternative
+import CRNT.Dynamics.CriticalSiphonDichotomy
+import CRNT.Examples.CriticalSiphonDichotomyCounterexample
+import CRNT.Examples.MinimalDGCritical
+import CRNT.Persistence.DGCriticalPersistence
+import CRNT.Persistence.BoundedWRPersistence
+import CRNT.Persistence.FacetRepulsion
+import CRNT.Examples.FacetRepulsionPair
+import CRNT.Dynamics.EnzymeQSSA
+import CRNT.Examples.EnzymeQSSAUnconditional
+import CRNT.Reduction.NetworkDrainage
+import CRNT.Examples.EnzymeIntermediate
+import CRNT.Dynamics.TierDirectionExistence
+import CRNT.Dynamics.StrongEndotacticTier
+import CRNT.Dynamics.TierFixedRateRegion
+import CRNT.Persistence.EndotacticPersistence
+import CRNT.Multistationarity.InheritanceDependent
+import CRNT.Multistationarity.InheritanceAddSpecies
+import CRNT.Examples.OneReactionAtom
+import CRNT.Multistationarity.OneReactionUniqueness
+import CRNT.Multistationarity.OneReactionExistence
+import CRNT.Multistationarity.OneReactionReversible
+import CRNT.Analysis.NegDerivAtZeros
+import CRNT.Multistationarity.OneReactionReversibleUnique
+import CRNT.Algebra.TropicalEquilibration
+import CRNT.Stochastic.DiffusionApproximation
+import CRNT.Multistationarity.RankOneParameterRegion
+import CRNT.Algebra.SteadyStateElimination
+import CRNT.Stochastic.ACRExtinction
+import CRNT.Kinetics.GeneralKineticsComplexBalance
+import CRNT.Dynamics.KineticMapPairing
+import CRNT.Extensions.DelayLyapunov
+import CRNT.Examples.ACRExtinctionInstance
+import CRNT.Stochastic.StationaryIdentity
+import CRNT.Multistationarity.TwoReaction
+import CRNT.Algebra.TropicalExistence
+import CRNT.Stochastic.ClosedSetAbsorption
+import CRNT.Stochastic.ACRExtinctionAbsorption
+import CRNT.Dynamics.OrthantMonotone
+import CRNT.Algebra.GroebnerBasis
+
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
 -- been elaborated; see scripts/unverified_modules.txt.

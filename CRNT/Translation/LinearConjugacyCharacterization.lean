@@ -122,7 +122,7 @@ theorem massActionLinearlyConjugate_iff (N M : Network S) (κN : N.RateConstants
     have hUN : ∀ r, (N.reaction r).source ∈ U := fun r =>
       Finset.mem_union_right _ (Finset.mem_image_of_mem _ (Finset.mem_univ r))
     simp only [PositiveDiagonalChange.map]
-    rw [massActionVectorField_eq_sum_apply, massActionVectorField_eq_sum_apply,
+    rw [massActionVectorField_apply_eq_sum_monomial, massActionVectorField_apply_eq_sum_monomial,
       sum_regroup_by_source M κM.k U hUM, sum_regroup_by_source N κN.k U hUN, Finset.mul_sum]
     refine Finset.sum_congr rfl fun y _ => ?_
     rw [show D.map x = fun s => D.scale s * x s from rfl, massActionMonomial_mul]

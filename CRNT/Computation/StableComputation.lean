@@ -238,6 +238,84 @@ theorem maxCRN_stablyComputes :
     fin_cases s0 <;> simp at hs0 <;> fin_cases s1 <;> simp at hs1 <;>
       fin_cases s2 <;> simp at hs2 <;> fin_cases s3 <;> simp at hs3 <;> omega
 
+/-! ## Output-oblivious networks compute only superadditive functions -/
+
+theorem applicable_add {N : Network S} {r : N.R} {c : Config S} (h : Applicable N r c)
+    (d : Config S) : Applicable N r (c + d) := fun s => le_add_right (h s)
+
+theorem fire_add {N : Network S} {r : N.R} {c : Config S} (h : Applicable N r c)
+    (d : Config S) : fire N r (c + d) = fire N r c + d := by
+  funext s
+  simp only [fire, Pi.add_apply]
+  have := h s
+  omega
+
+theorem step_add {N : Network S} {c c' : Config S} (h : Step N c c') (d : Config S) :
+    Step N (c + d) (c' + d) := by
+  obtain ⟨r, hr, rfl⟩ := h
+  exact ⟨r, applicable_add hr d, (fire_add hr d).symm⟩
+
+/-- Extra molecules never block a run. -/
+theorem reach_add_right {N : Network S} {c c' : Config S} (h : Reach N c c') (d : Config S) :
+    Reach N (c + d) (c' + d) := by
+  induction h with
+  | refl => exact Relation.ReflTransGen.refl
+  | tail _ hstep ih => exact ih.tail (step_add hstep d)
+
+/-- Two runs can be executed side by side. -/
+theorem reach_add {N : Network S} {a a' b b' : Config S} (ha : Reach N a a')
+    (hb : Reach N b b') : Reach N (a + b) (a' + b') := by
+  have h1 := reach_add_right ha b
+  have h2 := reach_add_right hb a'
+  rw [add_comm b a', add_comm b' a'] at h2
+  exact h1.trans h2
+
+/-- A network is **output oblivious** for `o` if no reaction consumes `o`. -/
+def OutputOblivious (N : Network S) (o : S) : Prop := ∀ r, (N.reaction r).source o = 0
+
+theorem output_mono_of_oblivious {N : Network S} {o : S} (hob : OutputOblivious N o)
+    {c c' : Config S} (h : Reach N c c') : c o ≤ c' o := by
+  induction h with
+  | refl => exact le_rfl
+  | tail _ hstep ih =>
+    obtain ⟨r, _, rfl⟩ := hstep
+    simp only [fire, hob r, Nat.sub_zero]
+    omega
+
+/-- **Superadditivity** (Chugg–Condon–Hashemi 2018; Severson–Haley–Doty 2019). An output-
+oblivious network with additive input encoding can only stably compute superadditive
+functions: `f (x + y) ≥ f x + f y`. -/
+theorem superadditive_of_outputOblivious {α : Type*} [Add α] {N : Network S}
+    {init : α → Config S} {o : S} {f : α → ℕ} (hob : OutputOblivious N o)
+    (hinit : ∀ x y, init (x + y) = init x + init y) (hcomp : StablyComputes N init o f)
+    (x y : α) : f x + f y ≤ f (x + y) := by
+  obtain ⟨cx, hx, -, hxo⟩ := hcomp x (init x) Relation.ReflTransGen.refl
+  obtain ⟨cy, hy, -, hyo⟩ := hcomp y (init y) Relation.ReflTransGen.refl
+  have hxy : Reach N (init (x + y)) (cx + cy) := by rw [hinit]; exact reach_add hx hy
+  obtain ⟨c, hc, -, hco⟩ := hcomp (x + y) (cx + cy) hxy
+  have := output_mono_of_oblivious hob hc
+  simp only [Pi.add_apply, hxo, hyo] at this
+  omega
+
+/-- **`max` needs to consume output.** No output-oblivious network with an additive input
+encoding stably computes `max`. -/
+theorem not_stablyComputes_max_of_outputOblivious {N : Network S} {init : ℕ × ℕ → Config S}
+    {o : S} (hob : OutputOblivious N o) (hinit : ∀ x y, init (x + y) = init x + init y) :
+    ¬ StablyComputes N init o (fun x => max x.1 x.2) := by
+  intro hcomp
+  have := superadditive_of_outputOblivious hob hinit hcomp (1, 0) (0, 1)
+  simp at this
+
+/-- The `max` network does consume its output (reaction `K + Y → ∅`). -/
+theorem maxCRN_not_outputOblivious : ¬ OutputOblivious maxCRN 2 := by
+  intro h
+  have := h ((3 : Fin 4) : maxCRN.R)
+  simp [maxCRN, finNetwork] at this
+
+/-- `initMax` is additive. -/
+theorem initMax_add (x y : ℕ × ℕ) : initMax (x + y) = initMax x + initMax y := by
+  funext s; fin_cases s <;> simp [initMax]
+
 end Computation
 
 end CRNT

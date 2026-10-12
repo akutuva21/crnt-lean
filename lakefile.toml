@@ -89,15 +89,30 @@ name = "test"
 globs = [
   "test.AxiomAudit",
   "test.BanajiCraciunAudit",
+  "test.DrainableSiphonAudit",
+  "test.FacetAudit",
   "test.FieldMapAudit",
+  "test.FosterAudit",
   "test.FrontierAuditCurrent",
+  "test.InheritanceAudit",
+  "test.IntermediateAudit",
+  "test.LotkaAudit",
+  "test.MonotoneAudit",
   "test.NewLeavesAudit",
+  "test.NonExplosionAudit",
   "test.NonVacuity",
+  "test.OneSpeciesCapacityAudit",
+  "test.OpenSystemsAudit",
   "test.Oscillation",
   "test.PersistenceAudit",
+  "test.QSSAAudit",
   "test.Smoke",
   "test.StochasticBirthDeathCounterexample",
-  "test.ToricBarrierAudit"
+  "test.ThermoAudit",
+  "test.TierAudit",
+  "test.ToricBarrierAudit",
+  "test.ToricCriterionAudit",
+  "test.WRPersistenceAudit"
 ]
 
 [[lean_exe]]

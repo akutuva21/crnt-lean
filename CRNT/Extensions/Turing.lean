@@ -2,6 +2,8 @@ import CRNT.Dynamics.RouthHurwitz
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Deriv
 import Mathlib.Analysis.SpecialFunctions.Exp
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
+import Mathlib.Data.Matrix.Mul
+import Mathlib.Analysis.Complex.Basic
 
 /-!
 # Turing instability for two-species reaction–diffusion systems
@@ -277,6 +279,24 @@ theorem exists_growing_mode {a b c d d₁ d₂ : ℝ} (hd₁ : 0 < d₁) (hd₂ 
   refine ⟨μ, Real.sqrt q, v₁, v₂, hμ, hv, fun t x => fourierMode_solves ?_ ?_ t x⟩
   · rw [Real.sq_sqrt hq]; exact h₁
   · rw [Real.sq_sqrt hq]; exact h₂
+
+/-! ## Any number of species: equal diffusivities never destabilize -/
+
+/-- **No Turing instability with equal diffusion (`n` species).** If every eigenvalue of the
+reaction Jacobian `J` has negative real part, then with a common diffusion coefficient `δ ≥ 0`
+every eigenvalue of every mode matrix `J - k² δ I` has negative real part: the modes are `J`
+shifted by `-k² δ`. -/
+theorem modes_stable_of_equal_diffusion {n : Type*} [Fintype n] [DecidableEq n]
+    (J : Matrix n n ℂ) (hJ : ∀ (μ : ℂ) (v : n → ℂ), v ≠ 0 → J.mulVec v = μ • v → μ.re < 0)
+    {δ q : ℝ} (hδ : 0 ≤ δ) (hq : 0 ≤ q) (μ : ℂ) (v : n → ℂ) (hv : v ≠ 0)
+    (heig : (J - ((q * δ : ℝ) : ℂ) • (1 : Matrix n n ℂ)).mulVec v = μ • v) : μ.re < 0 := by
+  have hJv : J.mulVec v = (μ + ((q * δ : ℝ) : ℂ)) • v := by
+    rw [Matrix.sub_mulVec, Matrix.smul_mulVec, Matrix.one_mulVec] at heig
+    rw [add_smul, ← heig]
+    abel
+  have := hJ _ v hv hJv
+  simp only [Complex.add_re, Complex.ofReal_re] at this
+  nlinarith [mul_nonneg hq hδ]
 
 end Turing
 

@@ -76,6 +76,10 @@ weak reversibility, and rank `≥ 2` (so neither compiled exclusion route applie
 Not proved: the step from "V is constant along the orbit" to an actual `PositivePeriodicOrbit`
 structure, which needs a period. That is `HasPositivePeriodicOrbitTarget` at the end of the file,
 with the four remaining steps and the core theorems that supply each.
+
+**Update.** All remaining steps are now proved downstream:
+`CRNT/Examples/LotkaFirstIntegral.lean` (`firstIntegralConstant`, `levelSetCompact`) and
+`CRNT/Examples/LotkaPeriodic.lean` (`hasPositivePeriodicOrbit`, `oscillatoryCapacity`).
 -/
 
 namespace CRNT

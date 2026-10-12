@@ -33,7 +33,7 @@ the barrier normals are the negatives: the guarded region is a sublevel set of
 It supplies the descent half of Craciun's Theorem B: *given* one normal per tile with the normal
 lying in every fan cone near that tile, the polyhedral region traps the flow.  It does **not**
 construct those normals and tiles; that is the §7 blueprint, still open.  See
-`HANDOFF_gac_hole.md` §4 for why the tiles cannot be taken to bound a convex region, and
+the tiles cannot be taken to bound a convex region, and
 `CRNT.Geometry.ConvexBarrierObstruction` for the formalized obstruction.
 
 Nothing here is an axiom or a `sorry`.
