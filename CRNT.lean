@@ -906,6 +906,8 @@ import CRNT.Algebra.Buchberger
 import CRNT.Examples.LotkaAverages
 import CRNT.Multistationarity.TwoReactionNondegenerate
 import CRNT.Multistationarity.RevIrrReaction
+import CRNT.Multistationarity.RankOneLifting
+import CRNT.Multistationarity.RevRevReaction
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has

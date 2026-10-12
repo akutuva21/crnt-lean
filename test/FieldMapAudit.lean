@@ -414,6 +414,31 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.revIrr_multistationary_iff
 
+-- S18
+/-- info: 'CRNT.Network.rankOne_multistationary_of_alternating_triple' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.rankOne_multistationary_of_alternating_triple
+
+-- S18
+/-- info: 'CRNT.Network.revRev_multistationary_of_separated' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.revRev_multistationary_of_separated
+
+-- S18
+/-- info: 'CRNT.Network.revRev_not_multistationary_of_not_parallel' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.revRev_not_multistationary_of_not_parallel
+
+-- S18
+/-- info: 'CRNT.Network.revRev_not_multistationary_of_monotone' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.revRev_not_multistationary_of_monotone
+
+-- S18
+/-- info: 'CRNT.Network.revRev_multistationary_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.revRev_multistationary_iff
+
 -- M1
 /-- info: 'CRNT.Network.massAction_subsingleton_steadyState_of_injective' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -533,6 +558,11 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Network.revPair_multistationary_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.revPair_multistationary_iff
+
+-- M11
+/-- info: 'CRNT.Network.rankOne_multistationary_of_embedded_signChanges' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.rankOne_multistationary_of_embedded_signChanges
 
 -- M12
 /-- info: 'CRNT.Network.Kinetics.InjectiveOnClass.sum_subsingleton_steadyState' depends on axioms: [propext, Classical.choice, Quot.sound] -/
