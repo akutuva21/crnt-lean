@@ -1,4 +1,5 @@
 import CRNT.Dynamics.MonotoneComparison
+import CRNT.Dynamics.CooperativeNetworks
 import Mathlib.Analysis.Calculus.Deriv.Prod
 
 /-!
@@ -96,5 +97,125 @@ theorem orthant_comparison {σ : S → ℝ} (hσ : ∀ i, σ i = 1 ∨ σ i = -1
   exact this t ht i
 
 end Monotone
+
+end CRNT
+
+namespace CRNT
+
+namespace Network
+
+open scoped BigOperators NNReal
+
+variable {S : Type} [DecidableEq S] [Fintype S]
+
+/-- **Structural orthant monotonicity.** For a sign vector `σ`, every reaction `r` changing a
+species `i` has all its other reactant species `j` on the side `σ_i σ_j (y'_r − y_r)_i ≥ 0`. For
+`σ ≡ 1` this is the cooperative condition (`IsCooperativeNetwork`). -/
+def IsOrthantCooperative (N : Network S) (σ : S → ℝ) : Prop :=
+  ∀ r i j, j ≠ i → (N.reaction r).source j ≠ 0 → 0 ≤ σ i * σ j * N.reactionVector r i
+
+omit [DecidableEq S] in
+theorem massActionMonomial_mono_on_support {y : Complex S} {a b : Concentration S}
+    (ha : a.Nonnegative) (hab : ∀ j, y j ≠ 0 → a j ≤ b j) :
+    y.massActionMonomial a ≤ y.massActionMonomial b := by
+  refine Finset.prod_le_prod₀ (fun s _ => pow_nonneg (ha s) _) (fun s _ => ?_)
+  by_cases hs : y s = 0
+  · rw [hs, pow_zero, pow_zero]
+  · exact pow_le_pow_left₀ (ha s) (hab s hs) _
+
+/-- **Orthant-cooperative networks satisfy the orthant Kamke condition** on the nonnegative
+orthant. -/
+theorem massAction_kamkeOnSign_of_orthantCooperative (N : Network S) (κ : N.RateConstants)
+    {σ : S → ℝ} (hσ : ∀ i, σ i = 1 ∨ σ i = -1) (hcoop : N.IsOrthantCooperative σ) :
+    Monotone.KamkeOnSign σ (N.massActionVectorField κ) {x | Concentration.Nonnegative x} := by
+  intro a ha b hb hab i hi
+  rw [massActionVectorField_apply, massActionVectorField_apply, Finset.mul_sum, Finset.mul_sum]
+  refine Finset.sum_le_sum fun r _ => ?_
+  simp only [massActionRate]
+  set s := σ i * N.reactionVector r i with hs
+  have hσsq : ∀ j, σ j * σ j = 1 := fun j => by rcases hσ j with h | h <;> rw [h] <;> norm_num
+  -- rewrite both sides as `κ s y^{…}`
+  have hform : ∀ x : Concentration S, σ i * (κ.k r * (N.reaction r).source.massActionMonomial x *
+      N.reactionVector r i) = κ.k r * s * (N.reaction r).source.massActionMonomial x := by
+    intro x; simp only [hs]; ring
+  rw [hform, hform]
+  rcases lt_trichotomy s 0 with hneg | hzero | hpos
+  · -- every other reactant species has `σ_j = −1`, so `b_j ≤ a_j`
+    have hmono : (N.reaction r).source.massActionMonomial b ≤
+        (N.reaction r).source.massActionMonomial a := by
+      refine massActionMonomial_mono_on_support hb fun j hj => ?_
+      by_cases hji : j = i
+      · rw [hji, hi]
+      · have h1 := hcoop r i j hji hj
+        have h2 := hab j
+        have hσj : σ j = -1 := by
+          rcases hσ j with h | h
+          · exfalso; rw [h, mul_one] at h1; simp only [hs] at hneg; linarith
+          · exact h
+        rw [hσj] at h2; linarith
+    exact mul_le_mul_of_nonpos_left hmono (mul_nonpos_of_nonneg_of_nonpos (κ.positive r).le hneg.le)
+  · rw [hzero, mul_zero, zero_mul, zero_mul]
+  · have hmono : (N.reaction r).source.massActionMonomial a ≤
+        (N.reaction r).source.massActionMonomial b := by
+      refine massActionMonomial_mono_on_support ha fun j hj => ?_
+      by_cases hji : j = i
+      · rw [hji, hi]
+      · have h1 := hcoop r i j hji hj
+        have h2 := hab j
+        have hσj : σ j = 1 := by
+          rcases hσ j with h | h
+          · exact h
+          · exfalso; rw [h] at h1; simp only [hs] at hpos; linarith
+        rw [hσj] at h2; linarith
+    exact mul_le_mul_of_nonneg_left hmono (mul_nonneg (κ.positive r).le hpos.le)
+
+/-- **Orthant order preservation for orthant-cooperative mass-action networks.** Two solutions on
+`[0, T]` in a box `[0, M]^S` that start `≤_σ`-ordered stay ordered. -/
+theorem massAction_orthant_preserving (N : Network S) (κ : N.RateConstants)
+    {σ : S → ℝ} (hσ : ∀ i, σ i = 1 ∨ σ i = -1) (hcoop : N.IsOrthantCooperative σ) (M : ℝ)
+    {T : ℝ} {x y : ℝ → Concentration S}
+    (hx : ∀ t ∈ Set.Icc 0 T, HasDerivWithinAt x (N.massActionVectorField κ (x t)) (Set.Icc 0 T) t)
+    (hy : ∀ t ∈ Set.Icc 0 T, HasDerivWithinAt y (N.massActionVectorField κ (y t)) (Set.Icc 0 T) t)
+    (hxK : ∀ t ∈ Set.Icc 0 T, x t ∈ Set.Icc (0 : S → ℝ) (fun _ => M))
+    (hyK : ∀ t ∈ Set.Icc 0 T, y t ∈ Set.Icc (0 : S → ℝ) (fun _ => M))
+    (h0 : Monotone.OrthantLE σ (x 0) (y 0)) :
+    ∀ t ∈ Set.Icc 0 T, Monotone.OrthantLE σ (x t) (y t) := by
+  set K := Set.Icc (0 : S → ℝ) (fun _ => M)
+  obtain ⟨L, hL⟩ := ((N.contDiff_massActionVectorField κ).contDiffOn (s := K)).exists_lipschitzOnWith
+    (by simp) (convex_Icc _ _) isCompact_Icc
+  have hσσ : ∀ j, σ j * σ j = 1 := fun j => by rcases hσ j with h | h <;> rw [h] <;> norm_num
+  have hsup : ∀ a ∈ K, ∀ b ∈ K, σ * ((σ * a) ⊔ (σ * b)) ∈ K := by
+    intro a ha b hb
+    constructor
+    · intro j
+      simp only [Pi.mul_apply, Pi.sup_apply, Pi.zero_apply]
+      rcases hσ j with h | h <;> rw [h]
+      · simp only [one_mul]; exact le_sup_of_le_left (ha.1 j)
+      · have : ((-1) * a j) ⊔ ((-1) * b j) = -(a j ⊓ b j) := by
+          rw [neg_inf]; ring_nf
+        rw [this]; simp only [neg_mul, one_mul, neg_neg]; exact le_inf (ha.1 j) (hb.1 j)
+    · intro j
+      simp only [Pi.mul_apply, Pi.sup_apply]
+      rcases hσ j with h | h <;> rw [h]
+      · simp only [one_mul]; exact sup_le (ha.2 j) (hb.2 j)
+      · have : ((-1) * a j) ⊔ ((-1) * b j) = -(a j ⊓ b j) := by
+          rw [neg_inf]; ring_nf
+        rw [this]; simp only [neg_mul, one_mul, neg_neg]; exact inf_le_left.trans (ha.2 j)
+  have hk : Monotone.KamkeOnSign σ (N.massActionVectorField κ) K := by
+    intro a ha b hb hab i hi
+    exact N.massAction_kamkeOnSign_of_orthantCooperative κ hσ hcoop a (fun s => ha.1 s) b
+      (fun s => hb.1 s) hab i hi
+  exact Monotone.orthant_comparison hσ hL hsup hk hx hy hxK hyK h0
+
+/-- Cooperative networks are orthant-cooperative for `σ ≡ 1`. -/
+theorem isOrthantCooperative_one_of_cooperative (N : Network S) (h : N.IsCooperativeNetwork) :
+    N.IsOrthantCooperative (fun _ => 1) := by
+  intro r i j hji hj
+  simp only [one_mul]
+  by_contra hneg
+  push Not at hneg
+  exact hj (h r i hneg j hji)
+
+end Network
 
 end CRNT

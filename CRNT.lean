@@ -909,6 +909,22 @@ import CRNT.Multistationarity.RevIrrReaction
 import CRNT.Multistationarity.RankOneLifting
 import CRNT.Multistationarity.RevRevReaction
 
+-- Field-map leaves added 2026-10-12 (rank-one lower bound, decorated simplices and their
+-- concrete instances, Sylvester/patchworking tropical lifting, open multistationarity regions,
+-- uniform tier negativity, strong endotactic persistence/permanence).
+import CRNT.Multistationarity.RankOneLowerBound
+import CRNT.Multistationarity.DecoratedSimplices
+import CRNT.Examples.DecoratedCellsInstance
+import CRNT.Algebra.Patchworking
+import CRNT.Multistationarity.DecoratedSimplicesConservation
+import CRNT.Examples.AugmentedCellsInstance
+import CRNT.Algebra.TropicalLifting
+import CRNT.Algebra.TropicalLiftingNetwork
+import CRNT.Multistationarity.MultistationarityRegionOpen
+import CRNT.Dynamics.TierUniformNegativity
+import CRNT.Persistence.StronglyEndotacticPersistence
+import CRNT.Persistence.StronglyEndotacticPermanence
+
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
 -- been elaborated; see scripts/unverified_modules.txt.
