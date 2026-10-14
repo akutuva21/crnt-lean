@@ -8,8 +8,6 @@ import CRNT.Design.Antithetic
 import CRNT.Dynamics.Contraction
 import CRNT.Kinetics.SignVectorCriterion
 import CRNT.Translation.LinearConjugacyCharacterization
-import CRNT.Open.DeficiencyZeroOpen
-import CRNT.Open.DeficiencyOneOpen
 
 #print axioms CRNT.Complex.sum_massActionMonomial_eq_zero
 #print axioms CRNT.Network.massActionVectorField_eqOn_positive_iff
@@ -136,10 +134,3 @@ example (κ : revNet.RateConstants) {x z : Concentration (Fin 2)} (hx : x.Positi
   Network.HasToricSteadyStates.geomMean revNet κ (revNet_toric κ) hx hz hxs hzs _
 
 end NewLeavesAudit
-#print axioms CRNT.Network.fullyOpen_positiveCompatibilityClass_eq
-#print axioms CRNT.Network.openDeficiencyZero_existsUnique_positive
-#print axioms CRNT.Network.openDeficiencyZero_positiveSteadyState_complexBalanced
-#print axioms CRNT.Network.openDeficiencyZero_existsUnique_nonneg
-#print axioms CRNT.Network.openDeficiencyOne_atMostOne_positive
-#print axioms CRNT.Network.openDeficiencyOne_atMostOne_nonneg
-#print axioms CRNT.Network.openDeficiencyOne_existsUnique_positive

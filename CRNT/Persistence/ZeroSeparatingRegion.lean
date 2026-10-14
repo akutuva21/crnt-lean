@@ -391,70 +391,80 @@ theorem facetN_monotone (H : Finset (Fin n → ℝ)) (m : ℕ) (P : List ℕ)
     | (exact hge1 _ (by omega))
     | (exact hle _ _ (by omega) (by omega))
 
-theorem exists_zsh (hn : 1 ≤ n) (H : Finset (Fin n → ℝ))
-    (hsym : ∀ h ∈ H, ∀ ρ : Equiv.Perm (Fin n), h ∘ ρ ∈ H)
-    (δ M : ℝ) (hM : 1 ≤ M) (x₀ : Fin n → ℝ) (hx₀ : ∀ q, 0 < x₀ q) :
-    ∃ (ι : Type) (_ : Fintype ι) (_ : Nonempty ι) (a : ι → Fin n → ℝ) (b : ι → ℝ) (R' η : ℝ),
-      0 < R' ∧ 0 < η ∧
-      (∀ i, b i ≤ fdot (a i) x₀) ∧
-      (∀ x, (∀ i, b i ≤ fdot (a i) x) → ∀ q, η ≤ x q) ∧
-      (∀ σ, 0 ≤ σ → σ ≤ R' → ∀ x : Fin n → ℝ, (∀ q, 0 < x q) → (∀ q, x q ≤ M) →
-        (∀ i, b i - σ ≤ fdot (a i) x) → ∀ i, fdot (a i) x = b i - σ →
+theorem pathD_antitone : ∀ {d : ℕ} (t : BTree d) (βp ρp B : ℝ), WF t βp ρp → GapsPos B t →
+    ∀ P, IsPath t P → ∀ s₁ s₂ : ℝ, 0 < s₁ → s₁ ≤ s₂ → pathD s₂ t P ≤ pathD s₁ t P
+  | _, .leaf, _, _, _, _, _, _, _, _, _, _, _ => by simp [pathD]
+  | _, .node n β lo hi sub, βp, ρp, B, hWF, hGP, P, hP, s₁, s₂, h1, h12 => by
+    obtain ⟨i, rest, rfl, hin, hrest⟩ := hP
+    simp only [pathD]
+    have hcol : colD s₂ β hi i ≤ colD s₁ β hi i := by
+      simp only [colD, neg_le_neg_iff]
+      apply sum_le_sum
+      intro i' hi'
+      have hi'n : i' + 1 < n := by simp at hi'; omega
+      have hgap := hGP.2.1 i' hi'n
+      have hh := (hWF.2.2.1 i' hi'n).1
+      have hb0 := (hGP.1 i' (by omega)).1
+      exact mul_le_mul_of_nonneg_left (rpow_le_rpow h1.le h12 (by linarith)) (by linarith)
+    have := pathD_antitone (sub i) (β i) (nodeRad ρp n β hi i) B (hWF.2.2.2.2 i hin)
+      (hGP.2.2 i hin) rest hrest s₁ s₂ h1 h12
+    linarith
+
+theorem pathD_continuousOn : ∀ {d : ℕ} (t : BTree d) (P : List ℕ),
+    ContinuousOn (fun s => pathD s t P) (Set.Ioi 0)
+  | _, .leaf, _ => by simp only [pathD]; exact continuousOn_const
+  | _, .node _ _ _ _ _, [] => by simp only [pathD]; exact continuousOn_const
+  | _, .node n β lo hi sub, i :: rest => by
+    simp only [pathD]
+    refine ContinuousOn.add ?_ (pathD_continuousOn (sub i) rest)
+    simp only [colD]
+    refine ContinuousOn.neg (continuousOn_finset_sum _ fun i' _ => ?_)
+    exact continuousOn_const.mul
+      (ContinuousOn.rpow_const continuousOn_id fun x hx => Or.inl (ne_of_gt hx))
+
+theorem facetB_monotoneOn (H : Finset (Fin n → ℝ)) (m : ℕ) (P : List ℕ)
+    (hP : IsPath (pk H m).t P) : MonotoneOn (fun ε => facetB H ε m P) (Set.Ioi 0) := by
+  intro ε₁ h1 ε₂ h2 h12
+  simp only [facetB]
+  have he := eexp_pos H m
+  have hle : ε₁ ^ eexp H m ≤ ε₂ ^ eexp H m := rpow_le_rpow (le_of_lt h1) h12 he.le
+  have := pathD_antitone (pk H m).t 1 (pk H m).ρ0 _ (pk H m).hWF (pk H m).hGP P hP
+    (ε₁ ^ eexp H m) (ε₂ ^ eexp H m) (rpow_pos_of_pos h1 _) hle
+  linarith
+
+theorem facetB_continuousOn (H : Finset (Fin n → ℝ)) (m : ℕ) (P : List ℕ) :
+    ContinuousOn (fun ε => facetB H ε m P) (Set.Ioi 0) := by
+  simp only [facetB]
+  have hc : ContinuousOn (fun ε : ℝ => ε ^ eexp H m) (Set.Ioi 0) :=
+    ContinuousOn.rpow_const continuousOn_id fun x hx => Or.inl (ne_of_gt hx)
+  refine hc.sub ((pathD_continuousOn (pk H m).t P).comp hc ?_)
+  intro x hx
+  exact rpow_pos_of_pos hx _
+
+/-- **The zero-separating regions as a family in the scale `ε`.** The facet normals `a` depend
+only on `H`; the offsets are explicit functions `bf ε` of the scale, monotone and continuous in
+`ε > 0`.  For every slack `δ`, box `M` and lower bound `μ` on the start point, every scale `ε` in
+an interval `(0, ε₁)` gives a valid region: it contains every point with all coordinates `≥ μ`,
+its points have all coordinates `≥ ε ^ e₀`, its enlargements by `σ ≤ ε ^ e₀ / 2` stay positive,
+and the validity condition holds on every facet of every such enlargement inside the box. -/
+theorem exists_zsh_family (hn : 1 ≤ n) (H : Finset (Fin n → ℝ))
+    (hsym : ∀ h ∈ H, ∀ ρ : Equiv.Perm (Fin n), h ∘ ρ ∈ H) :
+    ∃ (ι : Type) (_ : Fintype ι) (_ : Nonempty ι) (a : ι → Fin n → ℝ) (bf : ℝ → ι → ℝ),
+    (∀ i, MonotoneOn (fun ε => bf ε i) (Set.Ioi 0)) ∧
+    (∀ i, ContinuousOn (fun ε => bf ε i) (Set.Ioi 0)) ∧
+    (∀ i (x : Fin n → ℝ), (∀ q, 0 < x q) → 0 < fdot (a i) x) ∧
+    ∀ (δ M : ℝ), 1 ≤ M → ∃ ε₁ : ℝ, 0 < ε₁ ∧ ∀ ε, 0 < ε → ε < ε₁ →
+      (∀ μ : ℝ, 0 < μ → (∀ m, m < n → ε ^ eexp H m < μ / 2) →
+        ∀ x₀ : Fin n → ℝ, (∀ q, μ ≤ x₀ q) → ∀ i, bf ε i ≤ fdot (a i) x₀) ∧
+      (∀ x, (∀ i, bf ε i ≤ fdot (a i) x) → ∀ q, ε ^ eexp H 0 ≤ x q) ∧
+      (∀ x, (∀ i, bf ε i - ε ^ eexp H 0 / 2 ≤ fdot (a i) x) → ∀ q, ε ^ eexp H 0 / 2 ≤ x q) ∧
+      (∀ σ, 0 ≤ σ → σ ≤ ε ^ eexp H 0 / 2 → ∀ x : Fin n → ℝ, (∀ q, 0 < x q) → (∀ q, x q ≤ M) →
+        (∀ i, bf ε i - σ ≤ fdot (a i) x) → ∀ i, fdot (a i) x = bf ε i - σ →
         ∀ h ∈ H, fdot (a i) h < 0 → δ ≤ ∑ q, h q * log (x q)) := by
-  -- a lower bound for `x₀`
-  obtain ⟨μ, hμ, _, hμle⟩ := exists_pos_le_of_forall_pos (List.finRange n) x₀
-    (fun q _ => hx₀ q)
-  have hμ' : ∀ q, μ ≤ x₀ q := fun q => hμle q (List.mem_finRange q)
-  -- the scale
-  have hev : ∀ᶠ ε in 𝓝[>] (0:ℝ), ε < 1 ∧ log 2 + δ / (pk H (n - 1)).κ ≤ -log ε ∧
-      ∀ m ∈ range n, ε ^ eexp H m < (pk H m).s₀ ∧
-        ε ^ eexp H m < 1 / (2:ℝ) ^ (Pr H m + 2) ∧
-        ε ^ eexp H m < μ / 2 ∧
-        (m + 1 < n → ε ^ (eexp H m - eexp H (m + 1)) < 1 / (8 * ((m:ℝ) + 1))) ∧
-        (δ + (pk H m).κ * log 2 + hmaxH H * (log 4 + log M)) /
-          ((hmaxH H + 1) * eexp H (m + 1)) ≤ -log ε := by
-    have h1 : ∀ᶠ ε in 𝓝[>] (0:ℝ), ε < 1 := by
-      filter_upwards [Ioo_mem_nhdsGT (show (0:ℝ) < 1 by norm_num)] with ε hε using hε.2
-    refine h1.and ((eventually_neglog_ge _).and ?_)
-    rw [Filter.eventually_all_finset]
-    intro m _
-    refine (eventually_small (eexp_pos H m) (pk H m).hs₀).and ?_
-    refine (eventually_small (eexp_pos H m) (by positivity)).and ?_
-    refine (eventually_small (eexp_pos H m) (by positivity)).and ?_
-    refine Filter.Eventually.and ?_ (eventually_neglog_ge _)
-    by_cases hm1 : m + 1 < n
-    · exact (eventually_small (by linarith [eexp_succ_lt H m]) (by positivity)).mono
-        fun ε hε _ => hε
-    · exact Filter.Eventually.of_forall fun ε h => absurd h hm1
-  obtain ⟨ε₁, hε₁, hε₁P⟩ := (nhdsGT_basis (0:ℝ)).eventually_iff.mp hev
-  set ε := ε₁ / 2 with hεdef
-  have hε0 : 0 < ε := by positivity
-  obtain ⟨hε1, hc4', hall⟩ := hε₁P ⟨hε0, by linarith⟩
-  have hcm := fun m (hm : m < n) => hall m (by simpa using hm)
-  -- the conditions of `sorted_valid`
-  have hc1 : ∀ m, m < n → ε ^ eexp H m < (pk H m).s₀ := fun m hm => (hcm m hm).1
-  have hc2 : ∀ m, m < n → (2:ℝ) ^ (Pr H m + 2) * ε ^ eexp H m ≤ 1 := by
-    intro m hm
-    have h := (hcm m hm).2.1
-    have hp : 0 < (2:ℝ) ^ (Pr H m + 2) := by positivity
-    rw [lt_div_iff₀ hp] at h; linarith
-  have hc3 : ∀ m, m + 1 < n → 8 * ((m:ℝ) + 1) * ε ^ eexp H m ≤ ε ^ eexp H (m + 1) := by
-    intro m hm
-    have h := (hcm m (by omega)).2.2.2.1 hm
-    have hsplit : ε ^ eexp H m = ε ^ eexp H (m + 1) * ε ^ (eexp H m - eexp H (m + 1)) := by
-      rw [← rpow_add hε0]; ring_nf
-    have hp : 0 < 8 * ((m:ℝ) + 1) := by positivity
-    rw [lt_div_iff₀ hp] at h
-    rw [hsplit]
-    have h1 : 0 < ε ^ eexp H (m + 1) := rpow_pos_of_pos hε0 _
-    nlinarith
-  have hc4 : ∀ m, m + 1 < n → (δ + (pk H m).κ * log 2 + hmaxH H * (log 4 + log M)) /
-      ((hmaxH H + 1) * eexp H (m + 1)) ≤ -log ε := fun m hm => (hcm m (by omega)).2.2.2.2
   -- the facets
   let ι := Σ m : Fin n, Fin (paths (pk H m).t).length × Equiv.Perm (Fin n)
   let Pof : ι → List ℕ := fun i => (paths (pk H i.1).t).get i.2.1
   let a : ι → Fin n → ℝ := fun i => facetN H i.1 (Pof i) ∘ i.2.2
-  let b : ι → ℝ := fun i => facetB H ε i.1 (Pof i)
   have hPof : ∀ i : ι, IsPath (pk H i.1).t (Pof i) := fun i =>
     (mem_paths_iff _ _).mp (List.get_mem _ _)
   have hidx : ∀ (m : Fin n) (P : List ℕ), IsPath (pk H m).t P →
@@ -465,10 +475,77 @@ theorem exists_zsh (hn : 1 ≤ n) (H : Finset (Fin n → ℝ))
     intro i x; rw [fdot_comp_perm]; simp [a]
   have hlevel0 : ∀ t : BTree 0, paths t = [[]] := fun t => by rw [btree_zero_eq_leaf t]; rfl
   have hnon : Nonempty ι := ⟨⟨⟨0, hn⟩, ⟨0, by rw [hlevel0]; simp⟩, 1⟩⟩
-  refine ⟨ι, inferInstance, hnon, a, b, ε ^ eexp H 0 / 2, ε ^ eexp H 0,
-    by have := rpow_pos_of_pos hε0 (eexp H 0); positivity, rpow_pos_of_pos hε0 _, ?_, ?_, ?_⟩
+  refine ⟨ι, inferInstance, hnon, a, fun ε i => facetB H ε i.1 (Pof i),
+    fun i => facetB_monotoneOn H _ _ (hPof i), fun i => facetB_continuousOn H _ _, ?_,
+    fun δ M hM => ?_⟩
+  · -- the normals are positive on the positive orthant
+    intro i x hx
+    obtain ⟨m, k, pm⟩ := i
+    rw [hadot]
+    have hm := m.isLt
+    have hP := hPof ⟨m, k, pm⟩
+    simp only at hP ⊢
+    rw [facetN, fdot_levelNormal m hm _ rfl]
+    have hz0 : 0 < tailZ n m (x ∘ pm.symm) 0 := tailZ_pos (fun q => hx _) _ _
+    have hsum : 0 ≤ ∑ l ∈ range m, leafB (pk H m).t 0 (fun _ => 1) (Pof ⟨m, k, pm⟩) l *
+        tailZ n m (x ∘ pm.symm) (l + 1) := by
+      refine sum_nonneg fun l hl => mul_nonneg ?_ (tailZ_pos (fun q => hx _) _ _).le
+      exact (leafB_mem _ _ 0 _ (pk H m).hGP _ hP l (by omega) (by simp at hl; omega)).1
+    linarith
+  -- the scale
+  have hev : ∀ᶠ ε in 𝓝[>] (0:ℝ), ε < 1 ∧ log 2 + δ / (pk H (n - 1)).κ ≤ -log ε ∧
+      ∀ m ∈ range n, ε ^ eexp H m < (pk H m).s₀ ∧
+        ε ^ eexp H m < 1 / (2:ℝ) ^ (Pr H m + 2) ∧
+        (m + 1 < n → ε ^ (eexp H m - eexp H (m + 1)) < 1 / (8 * ((m:ℝ) + 1))) ∧
+        (δ + (pk H m).κ * log 2 + hmaxH H * (log 4 + log M)) /
+          ((hmaxH H + 1) * eexp H (m + 1)) ≤ -log ε := by
+    have h1 : ∀ᶠ ε in 𝓝[>] (0:ℝ), ε < 1 := by
+      filter_upwards [Ioo_mem_nhdsGT (show (0:ℝ) < 1 by norm_num)] with ε hε using hε.2
+    refine h1.and ((eventually_neglog_ge _).and ?_)
+    rw [Filter.eventually_all_finset]
+    intro m _
+    refine (eventually_small (eexp_pos H m) (pk H m).hs₀).and ?_
+    refine (eventually_small (eexp_pos H m) (by positivity)).and ?_
+    refine Filter.Eventually.and ?_ (eventually_neglog_ge _)
+    by_cases hm1 : m + 1 < n
+    · exact (eventually_small (by linarith [eexp_succ_lt H m]) (by positivity)).mono
+        fun ε hε _ => hε
+    · exact Filter.Eventually.of_forall fun ε h => absurd h hm1
+  obtain ⟨ε₁, hε₁, hε₁P⟩ := (nhdsGT_basis (0:ℝ)).eventually_iff.mp hev
+  refine ⟨ε₁, hε₁, fun ε hε0 hεlt => ?_⟩
+  obtain ⟨hε1, hc4', hall⟩ := hε₁P ⟨hε0, hεlt⟩
+  have hcm := fun m (hm : m < n) => hall m (by simpa using hm)
+  -- the conditions of `sorted_valid`
+  have hc1 : ∀ m, m < n → ε ^ eexp H m < (pk H m).s₀ := fun m hm => (hcm m hm).1
+  have hc2 : ∀ m, m < n → (2:ℝ) ^ (Pr H m + 2) * ε ^ eexp H m ≤ 1 := by
+    intro m hm
+    have h := (hcm m hm).2.1
+    have hp : 0 < (2:ℝ) ^ (Pr H m + 2) := by positivity
+    rw [lt_div_iff₀ hp] at h; linarith
+  have hc3 : ∀ m, m + 1 < n → 8 * ((m:ℝ) + 1) * ε ^ eexp H m ≤ ε ^ eexp H (m + 1) := by
+    intro m hm
+    have h := (hcm m (by omega)).2.2.1 hm
+    have hsplit : ε ^ eexp H m = ε ^ eexp H (m + 1) * ε ^ (eexp H m - eexp H (m + 1)) := by
+      rw [← rpow_add hε0]; ring_nf
+    have hp : 0 < 8 * ((m:ℝ) + 1) := by positivity
+    rw [lt_div_iff₀ hp] at h
+    rw [hsplit]
+    have h1 : 0 < ε ^ eexp H (m + 1) := rpow_pos_of_pos hε0 _
+    nlinarith
+  have hc4 : ∀ m, m + 1 < n → (δ + (pk H m).κ * log 2 + hmaxH H * (log 4 + log M)) /
+      ((hmaxH H + 1) * eexp H (m + 1)) ≤ -log ε := fun m hm => (hcm m (by omega)).2.2.2
+  let b : ι → ℝ := fun i => facetB H ε i.1 (Pof i)
+  show (∀ μ : ℝ, 0 < μ → (∀ m, m < n → ε ^ eexp H m < μ / 2) →
+        ∀ x₀ : Fin n → ℝ, (∀ q, μ ≤ x₀ q) → ∀ i, b i ≤ fdot (a i) x₀) ∧
+      (∀ x, (∀ i, b i ≤ fdot (a i) x) → ∀ q, ε ^ eexp H 0 ≤ x q) ∧
+      (∀ x, (∀ i, b i - ε ^ eexp H 0 / 2 ≤ fdot (a i) x) → ∀ q, ε ^ eexp H 0 / 2 ≤ x q) ∧
+      (∀ σ, 0 ≤ σ → σ ≤ ε ^ eexp H 0 / 2 → ∀ x : Fin n → ℝ, (∀ q, 0 < x q) → (∀ q, x q ≤ M) →
+        (∀ i, b i - σ ≤ fdot (a i) x) → ∀ i, fdot (a i) x = b i - σ →
+        ∀ h ∈ H, fdot (a i) h < 0 → δ ≤ ∑ q, h q * log (x q))
+  refine ⟨?_, ?_, ?_, ?_⟩
   · -- the start point
-    intro i
+    intro μ hμ hsmallμ x₀ hμ' i
+    have hx₀ : ∀ q, 0 < x₀ q := fun q => lt_of_lt_of_le hμ (hμ' q)
     obtain ⟨m, k, pm⟩ := i
     rw [hadot]
     have hm := m.isLt
@@ -482,7 +559,7 @@ theorem exists_zsh (hn : 1 ≤ n) (H : Finset (Fin n → ℝ))
       refine sum_nonneg fun l hl => mul_nonneg ?_ (tailZ_pos (fun q => hx₀ _) _ _).le
       exact (leafB_mem _ _ 0 _ (pk H m).hGP _ hP l (by omega) (by simp at hl; omega)).1
     have hpD := (pk H m).hpD _ (rpow_pos_of_pos hε0 _) (hc1 m hm) _ hP
-    have hsmall := (hcm m hm).2.2.1
+    have hsmall := hsmallμ m hm
     simp only [b, facetB]
     linarith
   · -- the floor
@@ -505,6 +582,26 @@ theorem exists_zsh (hn : 1 ≤ n) (H : Finset (Fin n → ℝ))
       have : (⟨n - 1 - 0 + 0, by omega⟩ : Fin n) = ⟨n - 1, hnq⟩ := Fin.ext (by simp)
       rw [this, Equiv.symm_swap, Equiv.swap_apply_right]
     rw [htz] at this; exact this
+  · -- the floor in the band
+    intro x hx q
+    have hnq : n - 1 < n := by omega
+    set τ := Equiv.swap q ⟨n - 1, hnq⟩
+    have hk : 0 < (paths (pk H 0).t).length := by rw [hlevel0]; simp
+    have := hx ⟨⟨0, hn⟩, ⟨0, hk⟩, τ⟩
+    rw [hadot] at this
+    have hP0 : Pof ⟨⟨0, hn⟩, ⟨0, hk⟩, τ⟩ = [] := by
+      simp only [Pof]; simp [hlevel0]
+    simp only [b, hP0] at this
+    rw [facetN, fdot_levelNormal 0 (by omega) _ rfl, range_zero, sum_empty, add_zero] at this
+    have ht0 : (pk H 0).t = BTree.leaf := btree_zero_eq_leaf _
+    have hB : facetB H ε 0 [] = ε ^ eexp H 0 := by
+      simp only [facetB]; rw [ht0]; simp [pathD]
+    rw [hB] at this
+    have htz : tailZ n 0 (x ∘ τ.symm) 0 = x q := by
+      simp only [tailZ, dif_pos (show n - 1 - 0 + 0 < n by omega), Function.comp_apply]
+      have : (⟨n - 1 - 0 + 0, by omega⟩ : Fin n) = ⟨n - 1, hnq⟩ := Fin.ext (by simp)
+      rw [this, Equiv.symm_swap, Equiv.swap_apply_right]
+    rw [htz] at this; linarith
   · -- validity
     intro σ hσ0 hσ x hxpos hxM hxfac i hact h hh hneg
     obtain ⟨m, k, pm⟩ := i
@@ -574,6 +671,56 @@ theorem exists_zsh (hn : 1 ≤ n) (H : Finset (Fin n → ℝ))
     have hre : ∑ q, (h ∘ pm.symm) q * log (y q) = ∑ q, h q * log (x q) :=
       Equiv.sum_comp pm.symm (fun q => h q * log (x q))
     linarith [hre]
+
+
+
+/-- **Zero-separating region with normals independent of the slack.** The finite family of facet
+normals `a` depends only on `H` (and the dimension); the slack `δ`, the box size `M` and the start
+point `x₀` only move the offsets `b`.  This is the form needed when the field condition requires
+the slack to dominate a constant computed from the normals themselves (endotactic networks). -/
+theorem exists_zsh_uniform (hn : 1 ≤ n) (H : Finset (Fin n → ℝ))
+    (hsym : ∀ h ∈ H, ∀ ρ : Equiv.Perm (Fin n), h ∘ ρ ∈ H) :
+    ∃ (ι : Type) (_ : Fintype ι) (_ : Nonempty ι) (a : ι → Fin n → ℝ),
+    ∀ (δ M : ℝ), 1 ≤ M → ∀ (x₀ : Fin n → ℝ), (∀ q, 0 < x₀ q) →
+    ∃ (b : ι → ℝ) (R' η : ℝ),
+      0 < R' ∧ 0 < η ∧
+      (∀ i, b i ≤ fdot (a i) x₀) ∧
+      (∀ x, (∀ i, b i ≤ fdot (a i) x) → ∀ q, η ≤ x q) ∧
+      (∀ x, (∀ i, b i - R' ≤ fdot (a i) x) → ∀ q, R' ≤ x q) ∧
+      (∀ σ, 0 ≤ σ → σ ≤ R' → ∀ x : Fin n → ℝ, (∀ q, 0 < x q) → (∀ q, x q ≤ M) →
+        (∀ i, b i - σ ≤ fdot (a i) x) → ∀ i, fdot (a i) x = b i - σ →
+        ∀ h ∈ H, fdot (a i) h < 0 → δ ≤ ∑ q, h q * log (x q)) := by
+  obtain ⟨ι, hF, hN, a, bf, -, -, -, h⟩ := exists_zsh_family hn H hsym
+  refine ⟨ι, hF, hN, a, fun δ M hM x₀ hx₀ => ?_⟩
+  obtain ⟨μ, hμ, _, hμle⟩ := exists_pos_le_of_forall_pos (List.finRange n) x₀
+    (fun q _ => hx₀ q)
+  have hμ' : ∀ q, μ ≤ x₀ q := fun q => hμle q (List.mem_finRange q)
+  obtain ⟨ε₁, hε₁, hP⟩ := h δ M hM
+  have hsm : ∀ᶠ ε in 𝓝[>] (0:ℝ), (0 < ε ∧ ε < ε₁) ∧ ∀ m ∈ range n, ε ^ eexp H m < μ / 2 := by
+    have h1 : ∀ᶠ ε in 𝓝[>] (0:ℝ), 0 < ε ∧ ε < ε₁ := by
+      filter_upwards [Ioo_mem_nhdsGT hε₁] with ε hε using hε
+    refine h1.and ?_
+    rw [Filter.eventually_all_finset]
+    exact fun m _ => eventually_small (eexp_pos H m) (by positivity)
+  obtain ⟨ε, ⟨hε0, hεlt⟩, hεP⟩ := hsm.exists
+  obtain ⟨hs, hfl, hb, hv⟩ := hP ε hε0 hεlt
+  have hη := rpow_pos_of_pos hε0 (eexp H 0)
+  exact ⟨bf ε, ε ^ eexp H 0 / 2, ε ^ eexp H 0, by positivity, hη,
+    hs μ hμ (fun m hm => hεP m (mem_range.mpr hm)) x₀ hμ', hfl, hb, hv⟩
+
+theorem exists_zsh (hn : 1 ≤ n) (H : Finset (Fin n → ℝ))
+    (hsym : ∀ h ∈ H, ∀ ρ : Equiv.Perm (Fin n), h ∘ ρ ∈ H)
+    (δ M : ℝ) (hM : 1 ≤ M) (x₀ : Fin n → ℝ) (hx₀ : ∀ q, 0 < x₀ q) :
+    ∃ (ι : Type) (_ : Fintype ι) (_ : Nonempty ι) (a : ι → Fin n → ℝ) (b : ι → ℝ) (R' η : ℝ),
+      0 < R' ∧ 0 < η ∧
+      (∀ i, b i ≤ fdot (a i) x₀) ∧
+      (∀ x, (∀ i, b i ≤ fdot (a i) x) → ∀ q, η ≤ x q) ∧
+      (∀ σ, 0 ≤ σ → σ ≤ R' → ∀ x : Fin n → ℝ, (∀ q, 0 < x q) → (∀ q, x q ≤ M) →
+        (∀ i, b i - σ ≤ fdot (a i) x) → ∀ i, fdot (a i) x = b i - σ →
+        ∀ h ∈ H, fdot (a i) h < 0 → δ ≤ ∑ q, h q * log (x q)) := by
+  obtain ⟨ι, hF, hN, a, h⟩ := exists_zsh_uniform hn H hsym
+  obtain ⟨b, R', η, h1, h2, h3, h4, -, h5⟩ := h δ M hM x₀ hx₀
+  exact ⟨ι, hF, hN, a, b, R', η, h1, h2, h3, h4, h5⟩
 
 end Persistence
 end CRNT

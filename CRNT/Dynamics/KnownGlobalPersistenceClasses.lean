@@ -1,5 +1,6 @@
 import CRNT.Dynamics.GlobalPersistenceCertificates
 import CRNT.Geometry.EndotacticGlobal
+import CRNT.Geometry.EndotacticStandard
 import CRNT.Stoich.Subspace
 
 /-!
@@ -54,9 +55,13 @@ def TwoDimensionalWRBoundedPersistenceClaim (N : Network S) : Prop :=
     N.StructurallyBoundedPositiveTrajectories → N.StructurallyPersistentStd
 
 /-- Craciun--Nazarov--Pantea two-species endotactic permanence theorem.  `Fintype.card S = 2`
-means ambient species dimension two, which is intentionally distinct from stoichiometric rank two. -/
+means ambient species dimension two, which is intentionally distinct from stoichiometric rank two.
+
+The hypothesis is the standard (`w`-essential) notion `EndotacticStd`. An earlier version used the
+library's weaker `Endotactic` and was false: `0 ⇌ X₀`, `X₁ → 0` satisfies `Endotactic` but
+`x₁ → 0` (`CRNT.Examples.WeakEndotactic.weakTwoSpeciesEndotacticPermanence_false`). -/
 def TwoSpeciesEndotacticPermanenceClaim (N : Network S) : Prop :=
-  Fintype.card S = 2 → N.Endotactic → N.StructurallyPermanent
+  Fintype.card S = 2 → N.EndotacticStd → N.StructurallyPermanent
 
 /-- Two-species weakly-reversible permanence, stated independently for convenient downstream use. -/
 def TwoSpeciesWRPermanenceClaim (N : Network S) : Prop :=
@@ -67,7 +72,7 @@ permanence theorem because weak reversibility implies endotacticity in the libra
 theorem twoSpeciesWRPermanence_of_endotacticPermanence (N : Network S)
     (h : N.TwoSpeciesEndotacticPermanenceClaim) : N.TwoSpeciesWRPermanenceClaim := by
   intro hcard hwr
-  exact h hcard hwr.endotactic
+  exact h hcard hwr.endotacticStd
 
 /-- Two-species weakly-reversible permanence implies ordinary structural persistence. -/
 theorem twoSpeciesWRPersistence_of_permanence (N : Network S)
@@ -88,7 +93,7 @@ attracting equilibrium in each positive class); the current library lacks a gene
 realization API, so this interface records only the global persistence consequence that composes
 with the present persistence framework. -/
 def FirstOrderEndotacticPersistenceClaim (N : Network S) : Prop :=
-  N.IsFirstOrder → N.Endotactic → N.StructurallyPersistentStd
+  N.IsFirstOrder → N.EndotacticStd → N.StructurallyPersistentStd
 
 end Network
 end CRNT

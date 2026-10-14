@@ -8,7 +8,7 @@ import CRNT.Dynamics.GlobalPersistenceFrontier
 `StronglyEndotacticStd.structurallyPermanent`: for a strongly endotactic network, every positive
 rate vector and every genuine mass-action flow, each positive stoichiometric class contains one
 compact set that absorbs a tail of every positive orbit in the class (Gopalkrishnan–Miller–Shiu
-2014, Theorem 1.2; Anderson–Cappelletti–Kim–Nguyen 2020, Theorem 5.5). This discharges
+2014, Theorem 1.1 for fixed rates; Anderson–Cappelletti–Kim–Nguyen 2020, Theorem 5.5). This discharges
 `TierDescendingPermanenceClaim`.
 
 The proof feeds `permanentForFlow_of_entry_and_uniform_bounds` with
@@ -214,7 +214,7 @@ theorem StronglyEndotacticStd.permanent_trajectories {N : Network S}
   rw [heq]
   exact ⟨hmle δ hδ (t - t₀) (by linarith) s, hM δ hδ.1 hδ.2 (t - t₀) (by linarith) s⟩
 
-/-- **Permanence of strongly endotactic networks** (Gopalkrishnan–Miller–Shiu 2014, Theorem 1.2;
+/-- **Permanence of strongly endotactic networks** (Gopalkrishnan–Miller–Shiu 2014, Theorem 1.1 for fixed rates;
 Anderson–Cappelletti–Kim–Nguyen 2020, Theorem 5.5). For every positive rate vector and every
 genuine mass-action flow, each positive stoichiometric class has one compact subset that absorbs a
 tail of every positive orbit in the class. -/

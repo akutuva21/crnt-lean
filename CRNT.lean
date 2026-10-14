@@ -161,8 +161,6 @@ import CRNT.Open.Augmentation
 import CRNT.Open.Deficiency
 import CRNT.Open.Boundary
 import CRNT.Open.PartialOpen
-import CRNT.Open.DeficiencyZeroOpen
-import CRNT.Open.DeficiencyOneOpen
 
 -- Equilibria: steady states, compatibility classes, complex balancing
 import CRNT.Equilibria.SteadyState
@@ -639,8 +637,6 @@ import CRNT.Basic.IsomorphismKinetics
 import CRNT.Decomposition.BlockDeficiency
 import CRNT.Decomposition.Deficiency
 import CRNT.Decomposition.Rank
-import CRNT.Decomposition.RelationSpace
-import CRNT.Decomposition.RelationMap
 import CRNT.Deficiency.CycleExactSequence
 import CRNT.Deficiency.LinkageCoupling
 import CRNT.Design.MaxRPA
@@ -705,12 +701,10 @@ import CRNT.Design.StrongBufferingFluxRPA
 import CRNT.Reduction.IntermediateSchurComplement
 import CRNT.Reduction.SingleIntermediateElimination
 import CRNT.Stochastic.DetailedBalance
-import CRNT.Stochastic.DirichletForm
 import CRNT.Stochastic.FirstOrderFoster
 import CRNT.Translation.ParallelAggregation
 import CRNT.Translation.ParallelStructural
 import CRNT.Translation.SourceCoefficientEquivalence
-import CRNT.Realization.SourceCoefficientCompleteness
 
 -- Promoted from the frontier ledger (elaborated, closure sorry-free).
 import CRNT.Equilibria.ComplexBalanceGeometry
@@ -783,16 +777,6 @@ import CRNT.Multistationarity.LocalDegreeOn
 import CRNT.Multistationarity.ParametrizedLocalDegree
 import CRNT.Theorems.DeficiencyOne.JacobianKernel
 import CRNT.Basic.IsomorphismStructural
-import CRNT.Computation.StableComputation
-import CRNT.Design.Antithetic
-import CRNT.Dynamics.Contraction
-import CRNT.Equilibria.OneSpeciesDescartes
-import CRNT.Equilibria.ToricSteadyStates
-import CRNT.Extensions.Turing
-import CRNT.Identifiability.RateConstants
-import CRNT.Kinetics.Hill
-import CRNT.Kinetics.SignVectorCriterion
-import CRNT.Translation.LinearConjugacyCharacterization
 import CRNT.Equilibria.ComplexBalanceLinearStability
 import CRNT.Equilibria.ComplexBalanceObstruction
 import CRNT.Equilibria.DirectedMatrixTreeProof
@@ -830,8 +814,20 @@ import CRNT.Dynamics.GACLowRank
 import CRNT.Dynamics.GACVertexFacet
 import CRNT.Examples.CatalyticChainGAC
 
--- Bundle 2026-10-12 (field-map leaves + WR persistence + tropical/stochastic/multistationarity).
--- Merged on top of master without duplicating the 10/12 leaves already present above.
+-- Field-map leaves added 2026-10-11c (identifiability, Hill kinetics, Turing, Descartes,
+-- toric steady states, chemical computation, antithetic feedback, contraction)
+import CRNT.Identifiability.RateConstants
+import CRNT.Kinetics.Hill
+import CRNT.Extensions.Turing
+import CRNT.Equilibria.OneSpeciesDescartes
+import CRNT.Equilibria.ToricSteadyStates
+import CRNT.Computation.StableComputation
+import CRNT.Design.Antithetic
+import CRNT.Dynamics.Contraction
+import CRNT.Kinetics.SignVectorCriterion
+import CRNT.Translation.LinearConjugacyCharacterization
+import CRNT.Open.DeficiencyZeroOpen
+import CRNT.Open.DeficiencyOneOpen
 import CRNT.Kinetics.GeneralizedSignCriterion
 import CRNT.Multistationarity.InheritanceAddReactions
 import CRNT.Dynamics.MonotoneComparison
@@ -854,6 +850,8 @@ import CRNT.Multistationarity.CapacityCharacterization
 import CRNT.Extensions.DelayMassAction
 import CRNT.Multistationarity.OneSpeciesNecessity
 import CRNT.Stochastic.NonExplosionAS
+-- Weakly reversible persistence (2026-10-11d): bounded weakly reversible trajectories have a
+-- positive floor; conservative weakly reversible networks are persistent.
 import CRNT.Persistence.WeaklyReversibleField
 import CRNT.Persistence.WeaklyReversibleFloor
 import CRNT.Persistence.ConservativePersistence
@@ -886,6 +884,9 @@ import CRNT.Multistationarity.OneReactionExistence
 import CRNT.Multistationarity.OneReactionReversible
 import CRNT.Analysis.NegDerivAtZeros
 import CRNT.Multistationarity.OneReactionReversibleUnique
+
+-- Field-map leaves added 2026-10-12 (formerly missing: A4 tropical equilibration, P9 diffusion and
+-- linear noise generators, M13 rank-one parameter regions, A2 elimination).
 import CRNT.Algebra.TropicalEquilibration
 import CRNT.Stochastic.DiffusionApproximation
 import CRNT.Multistationarity.RankOneParameterRegion
@@ -908,10 +909,6 @@ import CRNT.Multistationarity.TwoReactionNondegenerate
 import CRNT.Multistationarity.RevIrrReaction
 import CRNT.Multistationarity.RankOneLifting
 import CRNT.Multistationarity.RevRevReaction
-
--- Field-map leaves added 2026-10-12 (rank-one lower bound, decorated simplices and their
--- concrete instances, Sylvester/patchworking tropical lifting, open multistationarity regions,
--- uniform tier negativity, strong endotactic persistence/permanence).
 import CRNT.Multistationarity.RankOneLowerBound
 import CRNT.Multistationarity.DecoratedSimplices
 import CRNT.Examples.DecoratedCellsInstance
@@ -924,6 +921,80 @@ import CRNT.Multistationarity.MultistationarityRegionOpen
 import CRNT.Dynamics.TierUniformNegativity
 import CRNT.Persistence.StronglyEndotacticPersistence
 import CRNT.Persistence.StronglyEndotacticPermanence
+import CRNT.Persistence.StronglyEndotacticConsequences
+import CRNT.Geometry.EndotacticStandard
+import CRNT.Examples.WeakEndotactic
+import CRNT.Persistence.FirstOrderEndotacticPersistence
+import CRNT.Examples.FlowVacuity
+import CRNT.Examples.NoDrainableUnbounded
+import CRNT.Persistence.StronglyEndotacticVarK
+import CRNT.Persistence.LinkageSpanPermanence
+import CRNT.Examples.TwoLinkageSpan
+import CRNT.Dynamics.SignedGraphMonotone
+import CRNT.Dynamics.EuclideanContraction
+import CRNT.Examples.ContractionInstance
+import CRNT.Stochastic.MinimalSemigroup
+import CRNT.Stochastic.MinimalSemigroupStochastic
+import CRNT.Stochastic.MinimalSemigroupNetwork
+-- Field-map leaves added 2026-10-13
+import CRNT.Stochastic.MinimalSemigroupChapmanKolmogorov
+import CRNT.Stochastic.MinimalSemigroupNonExplosion
+import CRNT.Stochastic.MinimalSemigroupFoster
+import CRNT.Examples.StochasticFosterInstances
+import CRNT.Stochastic.MinimalSemigroupMinimality
+import CRNT.Stochastic.MinimalSemigroupStationary
+import CRNT.Stochastic.ProductFormInvariance
+import CRNT.Stochastic.MinimalSemigroupErgodic
+import CRNT.Stochastic.ProductFormErgodic
+import CRNT.Examples.ProductFormErgodicInstance
+import CRNT.Stochastic.ComplexBalancedNonExplosion
+import CRNT.Stochastic.DeficiencyZeroStochastic
+import CRNT.Stochastic.MinimalSemigroupErgodicInfinite
+import CRNT.Stochastic.ProductFormConvergence
+import CRNT.Stochastic.MinimalSemigroupDynkin
+import CRNT.Stochastic.MinimalSemigroupKrylovBogoliubov
+import CRNT.Stochastic.NetworkFosterErgodic
+import CRNT.Stochastic.FullyOpenErgodic
+import CRNT.Stochastic.ForwardCME
+import CRNT.Stochastic.JahnkeHuisinga
+import CRNT.Stochastic.RecurrenceDichotomy
+import CRNT.Stochastic.MinimalSemigroupForward
+import CRNT.Stochastic.NetworkForwardEquation
+import CRNT.Stochastic.MonomolecularLLN
+import CRNT.Stochastic.MinimalSemigroupMoments
+import CRNT.Stochastic.FullyOpenMoments
+import CRNT.Stochastic.HarrisTheorem
+import CRNT.Stochastic.FullyOpenGeometric
+import CRNT.Stochastic.FullyOpenPoisson
+import CRNT.Dynamics.SimplicialConeMonotone
+import CRNT.Stochastic.PoissonCLT
+import CRNT.Stochastic.MonomolecularCLT
+import CRNT.Stochastic.MinimalSemigroupExpect
+import CRNT.Stochastic.MonomolecularMeans
+import CRNT.Stochastic.ConservativeLLN
+import CRNT.Stochastic.InvariantMoments
+import CRNT.Design.AntitheticErgodic
+-- Field-map leaves added 2026-10-14
+import CRNT.Persistence.EndotacticFloor
+import CRNT.Examples.EndotacticConservative
+import CRNT.Persistence.PlanarRegion
+import CRNT.Persistence.TwoSpeciesEndotactic
+import CRNT.Examples.TwoSpeciesEndotactic
+import CRNT.Persistence.EndotacticConsequences
+import CRNT.Dynamics.FamilyAbsorption
+import CRNT.Persistence.TwoSpeciesPermanence
+import CRNT.Persistence.ConservativeEndotacticPermanence
+import CRNT.Dynamics.WeightedL1Contraction
+import CRNT.Examples.L1Contraction
+import CRNT.Stochastic.SubconservativeLLN
+import CRNT.Multistationarity.DSRCriterion
+import CRNT.Examples.DSRStrict
+import CRNT.Stochastic.OpenLLN
+import CRNT.Stochastic.KurtzLLN
+import CRNT.Stochastic.KurtzPathwise
+import CRNT.Stochastic.KacFormula
+import CRNT.Stochastic.NonlinearCLT
+import CRNT.Examples.DimerCLT
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has

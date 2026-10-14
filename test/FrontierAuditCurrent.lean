@@ -31,7 +31,7 @@ Regenerate expectations by running the corresponding `#print axioms` and pasting
 The former residual `exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex`
 (`CRNT/Dynamics/HighCodimensionSiphonFace.lean`) is proved from
 `Network.complexBalanced_forward_floor` (`CRNT/Persistence/ComplexBalancedFloor.lean`).  The whole
-chain, up to `complexBalanced_globalAttractor`, is pinned clean. -/
+chain, up to `complexBalanced_globalAttractor`, is pinned clean.  See `HANDOFF_gac_closed.md`. -/
 
 /-- info: 'CRNT.Network.exists_positive_omegaPoint_of_highCodimension_siphonFace_nonVertex' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in

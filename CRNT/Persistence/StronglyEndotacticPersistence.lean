@@ -407,7 +407,7 @@ theorem StronglyEndotacticStd.persistent_uniform {N : Network S} (hse : N.Strong
   · exact ⟨1, one_pos, fun _ _ t _ s => absurd ⟨s⟩ hS⟩
 
 /-- **Persistence of strongly endotactic mass-action systems** (Gopalkrishnan–Miller–Shiu 2014,
-Theorem 1.2; Anderson–Cappelletti–Kim–Nguyen 2020, Theorem 5.4). Every forward solution from a
+Theorem 8.5; Anderson–Cappelletti–Kim–Nguyen 2020, Theorem 5.4). Every forward solution from a
 positive initial state of a strongly endotactic network with positive rate constants is bounded
 below by a positive constant in every coordinate. -/
 theorem StronglyEndotacticStd.persistent {N : Network S} (hse : N.StronglyEndotacticStd)

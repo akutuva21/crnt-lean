@@ -95,8 +95,11 @@ abbrev MinimalCriticalSiphonDichotomyClaim (N : Network S) : Prop :=
   N.MinimalCriticalSiphonDichotomy
 
 /-- Stronger, unbounded-orbit coordinate-lower-bound version of the no-drainable theorem.  The
-direct theorem proved in the stable library establishes bounded-orbit omega persistence; this
-uniform version remains separate until an appropriate boundedness/global-existence bridge is proved. -/
+direct theorem proved in the stable library establishes bounded-orbit omega persistence.
+
+This proposition is **false** in general: `X → 2X`, `X + Y → X`, `0 → Y` has no drainable siphon
+and an explicit global mass-action flow, along which `y` is not bounded below by a positive
+constant (`CRNT.Examples.NoDrainableUnbounded.claim_false`). -/
 def NoDrainableSiphonUniformPersistenceClaim (N : Network S) : Prop :=
   N.HasNoDrainableSiphon → N.StructurallyUniformlyPersistent
 
