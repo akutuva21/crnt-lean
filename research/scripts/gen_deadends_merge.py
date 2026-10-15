@@ -2,9 +2,9 @@
 """Generate `research/DEAD-ENDS-merge.md` — the three-column crosswalk between the two
 divergent versions of `research/DEAD-ENDS.md`.
 
-Sources (never edited, only read; branch pointers retired 2026-10-11, both holes closed):
-  * `origin/master:research/DEAD-ENDS.md`              -- orchestrator ledger, `[V]`/`[H]`, ~82 entries
-  * (was `origin/research/adv-negative:research/DEAD-ENDS.md` -- PR #13, `[M]`/`[S]`/`[N]`, ~105 entries; branch deleted)
+Sources (never edited, only read):
+  * `origin/holes:research/DEAD-ENDS.md`              -- orchestrator ledger, `[V]`/`[H]`, ~82 entries
+  * `origin/research/adv-negative:research/DEAD-ENDS.md` -- PR #13, `[M]`/`[S]`/`[N]`, ~105 entries
 
 Every entry on either side appears exactly once in the generated table; the script asserts
 that.  The *action* column is a human judgement recorded in `CROSSWALK` below; the counts are
@@ -26,7 +26,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 OUT = REPO / "research" / "DEAD-ENDS-merge.md"
 
-HOLES_REF = "origin/master"
+HOLES_REF = "origin/holes"
 ADV_REF = "origin/research/adv-negative"
 
 ENTRY_RE = re.compile(

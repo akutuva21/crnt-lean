@@ -995,6 +995,19 @@ import CRNT.Stochastic.KurtzPathwise
 import CRNT.Stochastic.KacFormula
 import CRNT.Stochastic.NonlinearCLT
 import CRNT.Examples.DimerCLT
+import CRNT.Stochastic.NonlinearCLTTraj
+import CRNT.Examples.IsomerCLT
+import CRNT.Stochastic.NonlinearCLTOpen
+import CRNT.Stochastic.MultivariateCLT
+import CRNT.Stochastic.MultivariateCLTOpen
+import CRNT.Analysis.LinearODE
+import CRNT.Stochastic.MultivariateCLTTraj
+import CRNT.Design.AntitheticMeanOutput
+import CRNT.Multistationarity.OneReactionNondegenerate
+import CRNT.Multistationarity.OneReactionReversibleNondegenerate
+import CRNT.Algebra.CircuitBound
+import CRNT.Dynamics.StrongMonotone
+import CRNT.Dynamics.SlowFast
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
