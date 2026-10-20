@@ -824,6 +824,36 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.DegreeExample.exists_positive_steady_state
 
+-- M9
+/-- info: 'CRNT.Network.nonnegativeClassDegree_eq_sign_reducedDet_of_unique_preimage' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.nonnegativeClassDegree_eq_sign_reducedDet_of_unique_preimage
+
+-- M9
+/-- info: 'CRNT.Network.nonnegativeClassDegree_eq_one_of_unique_preimage_of_det_pos' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.nonnegativeClassDegree_eq_one_of_unique_preimage_of_det_pos
+
+-- M9
+/-- info: 'CRNT.Network.exists_positiveSteadyState_of_positive_reducedDet' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_positiveSteadyState_of_positive_reducedDet
+
+-- M9
+/-- info: 'CRNT.Network.nonnegativeClassDegree_eq_card_of_reducedDet_pos' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.nonnegativeClassDegree_eq_card_of_reducedDet_pos
+
+-- M9
+/-- info: 'CRNT.Network.exists_two_positiveSteadyStates_of_classDegree_neg_localDegree' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_two_positiveSteadyStates_of_classDegree_neg_localDegree
+
+-- M9
+/-- info: 'CRNT.Network.exists_two_positiveSteadyStates_of_classDegree_eq_pow_neg_one' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_two_positiveSteadyStates_of_classDegree_eq_pow_neg_one
+
 -- M10
 /-- info: 'CRNT.Network.hasMultistationarityCapacity_of_two_positive_zeros' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -1849,6 +1879,21 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Examples.HirschInstance.stronglyMonotone
 
+-- D14
+/-- info: 'CRNT.omegaLimit_orderConvex_of_stronglyMonotone' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.omegaLimit_orderConvex_of_stronglyMonotone
+
+-- D14
+/-- info: 'CRNT.hirsch_generic_convergence_of_monotone' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.hirsch_generic_convergence_of_monotone
+
+-- D14
+/-- info: 'CRNT.massAction_hirsch_convergence_of_cooperative' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.massAction_hirsch_convergence_of_cooperative
+
 -- D15
 /-- info: 'CRNT.hurwitz_quadratic_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -2053,6 +2098,16 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Oscillation.lotka_hasPositivePeriodicOrbit_of_poincareBendixson' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Oscillation.lotka_hasPositivePeriodicOrbit_of_poincareBendixson
+
+-- D18
+/-- info: 'CRNT.Oscillation.lotka_hasPositivePeriodicOrbit_of_trappingRegion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Oscillation.lotka_hasPositivePeriodicOrbit_of_trappingRegion
+
+-- D18
+/-- info: 'CRNT.Oscillation.lotka_oscillatoryCapacity_of_trappingRegion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Oscillation.lotka_oscillatoryCapacity_of_trappingRegion
 
 -- D19
 /-- info: 'ODE.fenichel_persistence' depends on axioms: [propext, Classical.choice, Quot.sound] -/

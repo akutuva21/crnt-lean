@@ -1032,6 +1032,10 @@ import CRNT.Multistationarity.AdvancedDeficiencyAlgorithm
 import CRNT.Equilibria.ToricParametrization
 import CRNT.Dynamics.TikhonovLocal
 import CRNT.Stochastic.CLTWeak
+import CRNT.Multistationarity.DegreeStructural
+import CRNT.Oscillation.TrappingRegion
+import CRNT.Multistationarity.DegreeMultistationarity
+import CRNT.Dynamics.OmegaLimitOrderConvex
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has

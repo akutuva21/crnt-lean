@@ -95,6 +95,9 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.massAction_stronglyMonotone_of_jacobian",
             "CRNT.massAction_hirsch_convergence",
             "CRNT.Examples.HirschInstance.stronglyMonotone",
+            "CRNT.omegaLimit_orderConvex_of_stronglyMonotone",
+            "CRNT.hirsch_generic_convergence_of_monotone",
+            "CRNT.massAction_hirsch_convergence_of_cooperative",
         ],
         " Hirsch's generic convergence is now formalized: a strongly monotone `C¹` field has at "
         "most one equilibrium and an order-convex equilibrium set "
@@ -106,7 +109,15 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "criterion for strong monotonicity (`massAction_stronglyMonotone_of_jacobian`, "
         "`massAction_hirsch_convergence`); instance `X → 2X` "
         "(`CRNT.Examples.HirschInstance`). The order-convexity of the ω-limit set is taken as a "
-        "hypothesis (`hωoc`), not derived from the order machinery.",
+        "hypothesis (`hωoc`), not derived from the order machinery. The order-convexity is now "
+        "**derived**: for a strongly monotone field the ω-limit set is a singleton and hence "
+        "order-convex (`CRNT.omegaLimit_orderConvex_of_stronglyMonotone`), and the generic "
+        "convergence theorem follows without the extra hypothesis "
+        "(`CRNT.hirsch_generic_convergence_of_monotone`, "
+        "`CRNT.massAction_hirsch_convergence_of_cooperative`). For a merely order-preserving "
+        "field the order-convexity of the ω-limit set is proved under an explicit "
+        "comparability hypothesis (`omegaLimit_orderConvex_of_monotone_flow`); the remaining "
+        "gap is the incomparable-orbit case, which needs the strong order `≪`.",
     ),
     "D16": (
         [
@@ -198,6 +209,12 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.Network.nonnegativeClassDegree_rate_independent",
             "CRNT.Network.positiveClassDegree_rate_independent",
             "CRNT.Network.DegreeExample.exists_positive_steady_state",
+            "CRNT.Network.nonnegativeClassDegree_eq_sign_reducedDet_of_unique_preimage",
+            "CRNT.Network.nonnegativeClassDegree_eq_one_of_unique_preimage_of_det_pos",
+            "CRNT.Network.exists_positiveSteadyState_of_positive_reducedDet",
+            "CRNT.Network.nonnegativeClassDegree_eq_card_of_reducedDet_pos",
+            "CRNT.Network.exists_two_positiveSteadyStates_of_classDegree_neg_localDegree",
+            "CRNT.Network.exists_two_positiveSteadyStates_of_classDegree_eq_pow_neg_one",
         ],
         " The degree-theoretic existence argument in dimension `s ≥ 2` is now formalized: the "
         "**relative Brouwer degree** of the steady-state map on the class is defined "
@@ -212,7 +229,17 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "fully open two-species network `0 → A → 0`, `0 → B → 0` with degree `1` "
         "(`CRNT.Network.DegreeExample`). The remaining gap is a *structural* criterion for a "
         "nonzero degree (the sign of the reduced determinant at a steady state), and the "
-        "nonvanishing-on-the-boundary hypothesis is still an explicit assumption.",
+        "nonvanishing-on-the-boundary hypothesis is still an explicit assumption. "
+        "**The structural criterion is now supplied**: the degree of the steady-state map at a "
+        "unique steady state is the sign of the reduced Jacobian determinant there "
+        "(`CRNT.Network.nonnegativeClassDegree_eq_sign_reducedDet_of_unique_preimage`), so a "
+        "positive reduced determinant gives degree `+1` and hence a positive steady state "
+        "(`exists_positiveSteadyState_of_positive_reducedDet`), and the Conradi–Feliu–"
+        "Mincheva–Wiuf conclusion (a *second* positive steady state) is proved by the "
+        "perturbation argument `exists_two_positiveSteadyStates_of_classDegree_neg_localDegree`. "
+        "Still missing: the total-degree theorem (the class degree is `(−1)^s` under "
+        "dissipativity), which needs a semiflow and a bump function, and the parity "
+        "refinement (an odd number of equilibria).",
     ),
     "D18": (
         [
@@ -222,6 +249,8 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.Oscillation.Network.neverPositivePeriodic_of_cooperative",
             "CRNT.Oscillation.Example.neverPositivePeriodic",
             "CRNT.Oscillation.lotka_hasPositivePeriodicOrbit_of_poincareBendixson",
+            "CRNT.Oscillation.lotka_hasPositivePeriodicOrbit_of_trappingRegion",
+            "CRNT.Oscillation.lotka_oscillatoryCapacity_of_trappingRegion",
         ],
         " A **structural criterion for the absence of oscillations** is now formalized: an "
         "order-preserving (or Kamke) planar field has no nonconstant periodic orbit "
@@ -234,7 +263,15 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "criterion) is reduced to the repository's Poincaré–Bendixson bundle "
         "(`lotka_hasPositivePeriodicOrbit_of_poincareBendixson`); the bundle's universal "
         "hypotheses (flow regularity, Jordan separation) are still unproved, so the general "
-        "existence of oscillations is still missing.",
+        "existence of oscillations is still missing. The **network-specific half of the "
+        "Poincaré–Bendixson route is now discharged** for a concrete planar mass-action "
+        "network: a compact, positively invariant, equilibrium-free trapping region built "
+        "from a first integral, a `C¹` cut-off keeping the field regular, the confinement of "
+        "the orbit, and the conclusion that the network has a positive periodic orbit "
+        "(`CRNT.Oscillation.lotka_hasPositivePeriodicOrbit_of_trappingRegion`, "
+        "`lotka_oscillatoryCapacity_of_trappingRegion`). The two *universal* inputs (the `C¹` "
+        "dependence of the flow on the initial point and the Jordan separation theorem) "
+        "remain hypotheses.",
     ),
     "C3": (
         [
