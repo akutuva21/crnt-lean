@@ -676,8 +676,12 @@ def main() -> int:
             frags[lean_idx] = frags[lean_idx].rstrip() + ", " + ", ".join(f"`{n}`" for n in added)
             print(f"{leaf}: +{len(added)} declarations")
         note = note.strip()
-        # Strip a previously inserted (mis-placed) copy of the note.
-        frags = [f.replace(note, "") for f in frags]
+        # Strip a previously inserted (mis-placed) copy of the note.  The note is keyed on
+        # its first 60 characters, so that a later, longer version of the same note
+        # replaces the earlier one instead of being appended to it.
+        key = note[:60]
+        frags = [f.replace(key, "") for f in frags]
+        note = key + note[len(key):]
         row = "|".join(frags)
         row = row.rstrip()
         if not row.endswith("|"):

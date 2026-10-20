@@ -429,6 +429,16 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.messi_generalInvariant_iff_valueAtOrigin
 
+-- S17
+/-- info: 'CRNT.Network.toric_steadyStates_eq_exp_ker' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.toric_steadyStates_eq_exp_ker
+
+-- S17
+/-- info: 'CRNT.Network.messi_variety_eq_linearParametrization' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.messi_variety_eq_linearParametrization
+
 -- S18
 /-- info: 'CRNT.Network.card_positiveSteadyStates_le_signVariations' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
