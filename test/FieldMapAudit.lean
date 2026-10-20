@@ -809,6 +809,126 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Examples.NilpotentJacobian.massActionVectorField_eq_zero
 
+-- S21
+/-- info: 'CRNT.Network.IsUnimolecular' does not depend on any axioms -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.IsUnimolecular
+
+-- S21
+/-- info: 'CRNT.Network.Unimolecular' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.Unimolecular
+
+-- S21
+/-- info: 'CRNT.Network.massActionVectorField_linear_of_unimolecular' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionVectorField_linear_of_unimolecular
+
+-- S21
+/-- info: 'CRNT.Network.massActionVectorField_eq_transfer' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionVectorField_eq_transfer
+
+-- S21
+/-- info: 'CRNT.Network.treeConcentration' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.treeConcentration
+
+-- S21
+/-- info: 'CRNT.Network.treeConcentration_isSteadyState' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.treeConcentration_isSteadyState
+
+-- S21
+/-- info: 'CRNT.Network.totalTreeWeight' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.totalTreeWeight
+
+-- S21
+/-- info: 'CRNT.Network.totalTreeWeight_eq_sum_spanningTreeWeights' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.totalTreeWeight_eq_sum_spanningTreeWeights
+
+-- S21
+/-- info: 'CRNT.Network.root_unique' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.root_unique
+
+-- S21
+/-- info: 'CRNT.Network.kingAltman' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.kingAltman
+
+-- S21
+/-- info: 'CRNT.Network.kingAltman_eq_treeSum' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.kingAltman_eq_treeSum
+
+-- S21
+/-- info: 'CRNT.Network.kingAltman_ratio' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.kingAltman_ratio
+
+-- S21
+/-- info: 'CRNT.Network.kingAltmanSteadyState_isSteadyState' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.kingAltmanSteadyState_isSteadyState
+
+-- S21
+/-- info: 'CRNT.Network.kingAltmanSteadyState_sum_eq_one' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.kingAltmanSteadyState_sum_eq_one
+
+-- S21
+/-- info: 'CRNT.Network.kingAltmanSteadyState_pos' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.kingAltmanSteadyState_pos
+
+-- S21
+/-- info: 'CRNT.Network.exists_smul_eq_of_positive_kineticKernel' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_smul_eq_of_positive_kineticKernel
+
+-- S21
+/-- info: 'CRNT.Network.exists_pos_mul_eq_kingAltmanSteadyState' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_pos_mul_eq_kingAltmanSteadyState
+
+-- S21
+/-- info: 'CRNT.Examples.KingAltman.unique_arborescence_rootX' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.KingAltman.unique_arborescence_rootX
+
+-- S21
+/-- info: 'CRNT.Examples.KingAltman.treeConstant_rootX' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.KingAltman.treeConstant_rootX
+
+-- S21
+/-- info: 'CRNT.Examples.KingAltman.kineticCofactor_rootX' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.KingAltman.kineticCofactor_rootX
+
+-- S21
+/-- info: 'CRNT.Examples.KingAltman.totalTreeWeight_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.KingAltman.totalTreeWeight_eq
+
+-- S21
+/-- info: 'CRNT.Examples.KingAltman.steadyState_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.KingAltman.steadyState_iff
+
+-- S21
+/-- info: 'CRNT.Examples.KingAltman.kingAltman_checked' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.KingAltman.kingAltman_checked
+
+-- S21
+/-- info: 'CRNT.Examples.KingAltman.kingAltman_ratio_checked' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.KingAltman.kingAltman_ratio_checked
+
 -- M1
 /-- info: 'CRNT.Network.massAction_subsingleton_steadyState_of_injective' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in

@@ -1048,6 +1048,7 @@ import CRNT.Thermo.GibbsFreeEnergy
 import CRNT.Equilibria.NilpotentJacobian
 import CRNT.Stochastic.PathExitEvent
 import CRNT.Algebra.ExcludedCircuit
+import CRNT.Equilibria.KingAltman
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
