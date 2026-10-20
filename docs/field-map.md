@@ -259,16 +259,18 @@ Declarations are written with their full names. Every declaration listed is pinn
 
 ## 3. Gaps by tier
 
-The 19 partial leaves (2026-10-14).
+The 19 partial leaves (2026-10-20).
 
 **Tier A — classical canon, settled mathematics.**
 M7, M8 (correctness of the Deficiency One and Advanced Deficiency Algorithms).
 
 **Tier B — modern standard results.**
-S17 (MESSI systems), M9 (structural nonzero degree, dimension ≥ 2), M11 (nondegeneracy of the
-constructed steady states), M13 (circuit description of parameter regions), D14 (Hirsch's generic convergence), P7 (Anderson–Cappelletti–Kim–Nguyen positive recurrence of
-strongly endotactic systems), A4 (tropical derivation of slow–fast decompositions), C3 (Briat–Gupta–Khammash for general
-plants), C2 (semilinear characterization).
+M9 (the *total*-degree theorem), M11 (a closed form for two irreversible reactions), M13 (the
+product-of-rates reading of the reduced determinant), P7 (the full ACK theorem for an arbitrary
+strongly endotactic network), A4 (the tube hypothesis and the slow error), C3 (the drift
+condition for an arbitrary output-controllable plant), C2 (the full Chen–Doty–Soloveichik
+theorem), E3 (existence theory for delay systems), D14 (the incomparable-orbit case of the
+order-convexity).
 
 *Session 2026-10-19 (continued, 2).* M8: the Advanced Deficiency Algorithm is formalized
 (the shelf decomposition, the per-shelf confluence vectors, the capacity verdict, and the
@@ -323,9 +325,10 @@ linear-elimination class (every source complex of total molecularity one) is for
 invariants; rational parametrizations and the general steady-state invariants remain.
 
 **Tier C — needs general mathematics Mathlib lacks.**
-A3 (mixed volumes; Descartes sign-variation bounds beyond the circuit `n + 1` bound); P8 (path-space formulation of the
-uniform-in-time law; mean-square law outside `MonoWeight`); P9 (process-level convergence); D16 (center-manifold
-averaging); E2 (parabolic PDEs).
+A3 (the mixed volumes / BKK bound); P8 (the path-space formulation of the uniform-in-time law);
+P9 (the fluctuation-scale uniform-in-time estimate and the process-level convergence); D16 (the
+`O(R⁴)` remainder and the mass-action verdict); D18 (the Jordan refinement of the Poincaré–Bendixson
+classification); E2 (parabolic PDEs).
 
 *Session 2026-10-19.* D16: the angular averaging is now computed (`radialDrift_normalForm`) and
 the averaged radial field is constructed rather than assumed (`truncatedFullRadialField`), and
@@ -339,8 +342,9 @@ factorization (`exitMass_factor`); the identification with a literal path event 
 union bound as a probability remain.
 
 **Tier D — open.**
-D12 (persistence conjecture: unbounded trajectories, three or more species), D18 (general
-existence of oscillations), E3 (semistability of delayed systems; non-isothermal kinetics).
+D12 (the persistence conjecture for unbounded trajectories, three or more species); M11 (the
+two-irreversible-reaction classification, which the literature settles only by
+computer-assisted enumeration).
 
 *Session 2026-10-19.* E3: non-isothermal (temperature-dependent) kinetics are now formalized
 (`coupledField`, `isothermal_species_eq_massAction`, `temperatureEquation_eq_neg_sum_heat`, an
