@@ -714,6 +714,101 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.DegreeExampleParity.card_positiveSteadyStates_eq_one
 
+-- S20
+/-- info: 'CRNT.Network.IsNilpotentJacobian' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.IsNilpotentJacobian
+
+-- S20
+/-- info: 'CRNT.Network.eq_zero_of_isNilpotent_of_weightedQuadraticForm_nonpos' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.eq_zero_of_isNilpotent_of_weightedQuadraticForm_nonpos
+
+-- S20
+/-- info: 'CRNT.Network.nilpotent_jacobian_eq_zero_of_complexBalanced' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.nilpotent_jacobian_eq_zero_of_complexBalanced
+
+-- S20
+/-- info: 'CRNT.Network.reactionVector_eq_zero_of_nilpotent_jacobian' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.reactionVector_eq_zero_of_nilpotent_jacobian
+
+-- S20
+/-- info: 'CRNT.Network.reactionVector_eq_zero_of_nilpotent_jacobian_of_all' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.reactionVector_eq_zero_of_nilpotent_jacobian_of_all
+
+-- S20
+/-- info: 'CRNT.Network.massActionVectorField_eq_zero_of_nilpotent_jacobian' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionVectorField_eq_zero_of_nilpotent_jacobian
+
+-- S20
+/-- info: 'CRNT.Network.isComplexBalanced_of_nilpotent_jacobian' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.isComplexBalanced_of_nilpotent_jacobian
+
+-- S20
+/-- info: 'CRNT.Network.not_isNilpotentJacobian_of_complexBalanced_of_no_null_reaction' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.not_isNilpotentJacobian_of_complexBalanced_of_no_null_reaction
+
+-- S20
+/-- info: 'CRNT.Network.unique_complexBalanced_of_nilpotent_jacobian' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.unique_complexBalanced_of_nilpotent_jacobian
+
+-- S20
+/-- info: 'CRNT.Network.unique_complexBalanced_of_nilpotent_jacobian_of_no_null_reaction' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.unique_complexBalanced_of_nilpotent_jacobian_of_no_null_reaction
+
+-- S20
+/-- info: 'CRNT.Network.exists_unique_isComplexBalanced_in_positiveClass_of_nilpotent_jacobian' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_unique_isComplexBalanced_in_positiveClass_of_nilpotent_jacobian
+
+-- S20
+/-- info: 'CRNT.Network.complexBalanceJacobianQuadratic_eq_weightedQuadraticForm' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.complexBalanceJacobianQuadratic_eq_weightedQuadraticForm
+
+-- S20
+/-- info: 'CRNT.Network.trace_eq_zero_of_isNilpotent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.trace_eq_zero_of_isNilpotent
+
+-- S20
+/-- info: 'CRNT.Examples.NilpotentJacobian.isNilpotentJacobian' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.NilpotentJacobian.isNilpotentJacobian
+
+-- S20
+/-- info: 'CRNT.Examples.NilpotentJacobian.equilibrium_jacobian_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.NilpotentJacobian.equilibrium_jacobian_eq_zero
+
+-- S20
+/-- info: 'CRNT.Examples.NilpotentJacobian.two_distinct_complexBalanced' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.NilpotentJacobian.two_distinct_complexBalanced
+
+-- S20
+/-- info: 'CRNT.Examples.NilpotentJacobian.isComplexBalanced' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.NilpotentJacobian.isComplexBalanced
+
+-- S20
+/-- info: 'CRNT.Examples.NilpotentJacobian.massActionJacobian_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.NilpotentJacobian.massActionJacobian_eq_zero
+
+-- S20
+/-- info: 'CRNT.Examples.NilpotentJacobian.massActionVectorField_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.NilpotentJacobian.massActionVectorField_eq_zero
+
 -- M1
 /-- info: 'CRNT.Network.massAction_subsingleton_steadyState_of_injective' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -3399,6 +3494,21 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.JumpSystem.outsideMassENN_eq_ofReal
 
+-- P8
+/-- info: 'CRNT.Network.dist_le_three_halves' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.dist_le_three_halves
+
+-- P8
+/-- info: 'CRNT.Network.union_bound_grid' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.union_bound_grid
+
+-- P8
+/-- info: 'CRNT.Network.grid_exitMass_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.grid_exitMass_nonneg
+
 -- P9
 /-- info: 'CRNT.tendsto_secondOrder_slope' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -3953,6 +4063,26 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Circuit.card_circuit_solutions_le_signVariations' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Circuit.card_circuit_solutions_le_signVariations
+
+-- A3
+/-- info: 'CRNT.ExcludedCircuit.card_excludedCircuit_pos_le_one' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.ExcludedCircuit.card_excludedCircuit_pos_le_one
+
+-- A3
+/-- info: 'CRNT.ExcludedCircuit.card_circuitSystem_pos_le_one' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.ExcludedCircuit.card_circuitSystem_pos_le_one
+
+-- A3
+/-- info: 'CRNT.ExcludedCircuit.card_ray_solutions_le_signVariations' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.ExcludedCircuit.card_ray_solutions_le_signVariations
+
+-- A3
+/-- info: 'CRNT.ExcludedCircuit.card_common_pos_roots_le_mixedVolume' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.ExcludedCircuit.card_common_pos_roots_le_mixedVolume
 
 -- A4
 /-- info: 'CRNT.Tropical.eventually_sum_pos_of_minimizers_pos' depends on axioms: [propext, Classical.choice, Quot.sound] -/

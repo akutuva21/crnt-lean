@@ -71,6 +71,9 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.JumpSystem.insideMassENN_add_outsideMassENN",
             "CRNT.JumpSystem.outsideMassENN_eq_ofReal",
             "CRNT.Network.three_halves_step",
+            "CRNT.Network.dist_le_three_halves",
+            "CRNT.Network.union_bound_grid",
+            "CRNT.Network.grid_exitMass_nonneg",
         ],
         " The exit mass of the frozen chain is now isolated as `JumpSystem.exitMass` and proved "
         "to be a probability-like quantity (`exitMass_nonneg`, `exitMass_le_one`, "
@@ -83,7 +86,16 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "`1`). The deterministic `3δ/2` step of the sample-path reading is proved "
         "(`three_halves_step`). Still missing: the identification of the exit mass with a "
         "literal path event and the union bound over the grid as a probability; the library "
-        "has no path measure.",
+        "has no path measure. The **path space** is now built: a jump path (counts, fired "
+        "reactions, holding times), the literal exit event "
+        "(`CRNT.Network.LeavesDuring`: there is a jump index `k` with the accumulated holding "
+        "time at most `h` and the count outside the set), the exit-exact kernel "
+        "`CRNT.JumpSystem.Pexit` with its support, non-negativity and recursion, the grid sum "
+        "(`CRNT.Network.grid_exitMass`), the union bound over a finite grid of events "
+        "(`CRNT.Network.union_bound_grid`) and the `3δ/2` step in the path-free form "
+        "(`CRNT.Network.dist_le_three_halves`). What remains is the algebraic identification of "
+        "the exit mass with the exit-exact kernel, and a probability measure on the path space "
+        "(the library has no i.i.d.-exponential measure and no strong Markov property).",
     ),
     "D14": (
         [
@@ -479,6 +491,10 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.CircuitDescartes.card_zeros_exp_sum_le",
             "CRNT.CircuitDescartes.card_pos_roots_exp_le_signVariations",
             "CRNT.Circuit.card_circuit_solutions_le_signVariations",
+            "CRNT.ExcludedCircuit.card_excludedCircuit_pos_le_one",
+            "CRNT.ExcludedCircuit.card_circuitSystem_pos_le_one",
+            "CRNT.ExcludedCircuit.card_ray_solutions_le_signVariations",
+            "CRNT.ExcludedCircuit.card_common_pos_roots_le_mixedVolume",
         ],
         " The sign-variation count needed for the Bihan–Dickenstein refinement is now defined "
         "and proved to skip zeros (`CRNT.CircuitDescartes.signVariations`), and the "
@@ -494,7 +510,42 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "(`CRNT.Circuit.card_circuit_solutions_le_signVariations`), which is at most `n + 1` and "
         "strictly smaller when the numerator has few sign changes; the bound is attained "
         "(`1 + y − y²` has exactly one positive root). Still missing: the row-wise "
-        "Bihan–Dickenstein bound and the BKK mixed volumes.",
+        "Bihan–Dickenstein bound and the BKK mixed volumes. The **excluded-circuit** bound is "
+        "now proved: under the substitution `x_s = z_s^{σ_s}` the system becomes equivalent to a "
+        "monotone one, the exclusion condition being exactly that all twisted reaction vectors "
+        "have positive coordinate sum, and a square system supported on a circuit has **at most "
+        "one positive solution** "
+        "(`CRNT.ExcludedCircuit.card_excludedCircuit_pos_le_one`, "
+        "`card_circuitSystem_pos_le_one`); the ray form gives the sign-variation bound "
+        "(`card_ray_solutions_le_signVariations`). The **mixed volume** is introduced for "
+        "intervals (`CRNT.ExcludedCircuit.mixedVolumeIntervals`, with the volume polynomial and "
+        "the Minkowski-sum identity) and the BKK bound is proved in the one- and two-variable "
+        "cases (`card_pos_roots_le_natDegree`, `card_common_pos_roots_le_mixedVolume`). A scope "
+        "caveat is recorded in the module docstring: in the `n+2`-monomial framework the bound "
+        "`1` does not hold (the repository's own example has two positive roots and its "
+        "reaction vectors are excluded), so the bound is stated for the *linear* circuit system.",
+    ),
+    "S20": (
+        [
+            "CRNT.Network.nilpotent_jacobian_eq_zero_of_complexBalanced",
+            "CRNT.Network.unique_complexBalanced_of_nilpotent_jacobian",
+            "CRNT.Network.not_isNilpotentJacobian_of_complexBalanced_of_no_null_reaction",
+            "CRNT.Network.exists_unique_isComplexBalanced_in_positiveClass_of_nilpotent_jacobian",
+        ],
+        " The **nilpotent-Jacobian criterion** is formalized: at a positive complex-balanced "
+        "equilibrium the Horn–Jackson sum-of-squares identity makes the quadratic form of the "
+        "Jacobian nonpositive, and a nilpotent matrix with everywhere nonpositive quadratic form "
+        "is zero, so the Jacobian vanishes "
+        "(`CRNT.Network.nilpotent_jacobian_eq_zero_of_complexBalanced`); the sum of squares then "
+        "forces every reaction with positive flux to be stoichiometrically null, whence the "
+        "uniqueness of the complex-balanced equilibrium in a class "
+        "(`unique_complexBalanced_of_nilpotent_jacobian`) and the no-go theorem that a "
+        "nontrivial weakly reversible network never has a nilpotent Jacobian at a positive "
+        "complex-balanced equilibrium "
+        "(`not_isNilpotentJacobian_of_complexBalanced_of_no_null_reaction`). The spectral form "
+        "of the classical argument (the eigenvalues of the Jacobian being the negatives of the "
+        "eigenvalues of the weighted adjacency matrix) is not formalized: the repository has no "
+        "eigenvalue theory for mass-action Jacobians.",
     ),
     "M7": (
         [

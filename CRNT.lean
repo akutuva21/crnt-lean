@@ -1045,6 +1045,9 @@ import CRNT.Multistationarity.ParityOfSteadyStates
 import CRNT.Computation.SemilinearRealization
 import CRNT.Multistationarity.MultistationarityRegionDescription
 import CRNT.Thermo.GibbsFreeEnergy
+import CRNT.Equilibria.NilpotentJacobian
+import CRNT.Stochastic.PathExitEvent
+import CRNT.Algebra.ExcludedCircuit
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
