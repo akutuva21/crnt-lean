@@ -1049,6 +1049,13 @@ import CRNT.Equilibria.NilpotentJacobian
 import CRNT.Stochastic.PathExitEvent
 import CRNT.Algebra.ExcludedCircuit
 import CRNT.Equilibria.KingAltman
+import CRNT.Multistationarity.MultiShelfConverse
+import CRNT.Stochastic.EndotacticFull
+import CRNT.Dynamics.MassActionHopf
+import CRNT.Dynamics.TikhonovTube
+import CRNT.Multistationarity.TotalDegree
+import CRNT.Stochastic.ExitMassIdentification
+import CRNT.Dynamics.StrongOrderConvex
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has

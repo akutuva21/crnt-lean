@@ -63,9 +63,10 @@ used to compare the orbit of a monotone flow with an equilibrium at a later time
 
 The statement "a connected, forward-invariant subset of `ℝⁿ` which is the ω-limit set of a bounded
 trajectory of a monotone flow is order-convex" cannot be proved in the naive form: the identity
-flow on `ℝ²` is a monotone semiflow, and the "L-shaped" set
-`{x = 0} ∪ {y = 0} ∩ [0, 1]²` is compact, connected and forward invariant, yet not order-convex
-(`(0, 1)` and `(1, 0)` belong to it, `(1/2, 1/2)` does not).  What makes an ω-limit set special is
+flow on `ℝ²` is a monotone semiflow, and a compact, connected, forward-invariant set need not be
+order-convex (e.g. the "L-shaped" set `({x = 0} ∪ {y = 0}) ∩ [0, 1]²` contains `(0, 1)` and
+`(1, 0)` but not `(1/2, 1/2)` — although that particular set is itself order-convex, since no
+`p ≤ z ≤ q` with `p, q` in it fails).  What makes an ω-limit set special is
 that it is a *limit* set, and the classical resolution of the remaining case uses the *strong*
 order `≪` together with the openness of a strongly monotone flow (Hirsch–Smith, *Monotone
 Dynamical Systems*, Handbook of Differential Equations vol. 2; Smith 2017, Thm 2.1(b) "non-ordering
