@@ -165,4 +165,65 @@ which both exclusion routes must therefore fail. It is in `test/LotkaNonVacuity.
 here, because `CRNT.Examples.Lotka` has never been elaborated and this file gates the core build.
 Move it here once the example compiles. -/
 
+/-! ## The newest modules: negative controls
+
+The rule above applies to the predicates introduced by the newest wave of modules as well: each
+of them must be able to *fail*.  The entries below give a network on which each new verdict
+fails, so a predicate that silently became `True` would break this file. -/
+
+/-- The toy network `2A → B`: the source complex has total molecularity two, so the network is
+**not** a MESSI network. -/
+def messiCounter : Network (Fin 2) :=
+  { R := Unit, decEqR := inferInstance, fintypeR := inferInstance,
+    reaction := fun _ => { source := ![2, 0], target := ![0, 1] } }
+
+/-- **The MESSI predicate can fail.**  A network with a bimolecular source is not MESSI, so the
+linear steady-state machinery of `CRNT/Equilibria/MESSI.lean` is conditional. -/
+example : ¬ messiCounter.MESSI := by
+  intro hM
+  obtain ⟨i, hi⟩ := hM ()
+  have h1 : (![2, 0] : Complex (Fin 2)) i = 1 := hi.1
+  fin_cases i <;> simp at h1
+
+/-- **The deficiency-one and advanced-deficiency algorithms can report "no".**  For the
+one-reaction network whose source and target coincide no species is consumed, so the
+feasibility condition `1 < ∑ s with a s < b s, a s` fails; neither algorithm affirms the
+multistationarity capacity. -/
+example {S : Type} [DecidableEq S] [Fintype S] (a : Complex S) :
+    ¬ (Network.oneRxn a a).fullyOpen.DOAFeasible ∧
+      ¬ (Network.oneRxn a a).fullyOpen.ADAFeasible := by
+  have hno : ¬ (Network.oneRxn a a).fullyOpen.DOAFeasible := by
+    intro h
+    have h' := (Network.oneRxn_doaFeasible_iff a a).mp h
+    have hz : (∑ s with a s < a s, a s) = 0 := by
+      refine Finset.sum_eq_zero fun s hs => ?_
+      rw [Finset.mem_filter] at hs
+      exact absurd hs.2 (lt_irrefl _)
+    rw [hz] at h'
+    omega
+  refine ⟨hno, ?_⟩
+  intro h
+  have hcap := (Network.hasMultistationarityCapacity_iff_adaFeasible
+    (Network.oneRxn a a).fullyOpen).mpr h
+  have hdoa := (Network.hasMultistationarityCapacity_iff_doaFeasible
+    (Network.oneRxn a a).fullyOpen).mp hcap
+  exact hno hdoa
+
+/-- **The escape-direction conclusion is conditional.**  The autocatalytic network `A → 2A`
+genuinely escapes to infinity, so the "no escape" theorem of
+`CRNT/Dynamics/EscapeDirection.lean` cannot be unconditional. -/
+example : Filter.Tendsto (fun t => ‖(CRNT.Examples.EscapeAutocatalysis.sol t :
+    CRNT.Examples.EscapeAutocatalysis.Species → ℝ)‖) Filter.atTop Filter.atTop :=
+  CRNT.Examples.EscapeAutocatalysis.sol_escapes
+
+/-- **The tier-domination claim can fail.**  In the endotactic counterexample the top tier does
+not dominate the escape count, so the domination criterion of
+`CRNT/Stochastic/EndotacticTierDomination.lean` is a genuine obstruction and not a tautology. -/
+example (k : ℕ) (hk : 1 ≤ k) :
+    CRNT.Network.countDescFactorial (CRNT.Examples.EndotacticCounterexample.net.reaction 3).source
+        (CRNT.Examples.EndotacticCounterexample.escapeCount k) >
+      CRNT.Network.countDescFactorial (CRNT.Examples.EndotacticCounterexample.net.reaction 1).source
+        (CRNT.Examples.EndotacticCounterexample.escapeCount k) :=
+  CRNT.Examples.EndotacticCounterexample.topTier_does_not_dominate k hk
+
 end CRNT.Test.NonVacuity

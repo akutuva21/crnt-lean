@@ -1038,6 +1038,7 @@ import CRNT.Multistationarity.DegreeMultistationarity
 import CRNT.Dynamics.OmegaLimitOrderConvex
 import CRNT.Stochastic.EndotacticTierDomination
 import CRNT.Oscillation.NoChaos
+import CRNT.Design.GeneralPlantDrift
 import CRNT.Dynamics.EscapeDirection
 import CRNT.Deficiency.DeficiencyOneAlgorithmCorrectness
 import CRNT.Multistationarity.ParityOfSteadyStates

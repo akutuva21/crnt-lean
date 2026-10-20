@@ -860,3 +860,352 @@ trajectories have a positive coordinate floor, via a zero-separating polyhedral 
 /-- info: 'CRNT.Network.complexBalanced_globalAttractor' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_globalAttractor
+
+/-!
+## The newest wave of modules, pinned module by module
+
+The sections above are the historical audit trail; the pins below are the ones for the modules
+added most recently, grouped by module in the order the modules landed.  They follow the same
+convention as the rest of this file: one `#guard_msgs`-pinned `#print axioms` per headline
+declaration, so that a `sorry` (or any other axiom) creeping into a dependency of any of these
+shows up as a failing build rather than as a silently weaker theorem.
+
+Every module below is reachable from `import CRNT` (the root module imports all of them), so no
+extra `import` line is needed here.
+-/
+
+/-! ### `CRNT/Dynamics/HopfAveraging.lean` -/
+
+/-- info: 'CRNT.Hopf.radialDrift_normalForm' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.radialDrift_normalForm
+
+/-- info: 'CRNT.Hopf.truncatedFullRadialField' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.truncatedFullRadialField
+
+/-- info: 'CRNT.Hopf.averagedRadialField_amplitude' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.averagedRadialField_amplitude
+
+/-! ### `CRNT/Dynamics/NormalFormCubic.lean` -/
+
+/-- info: 'CRNT.Hopf.cubic_normal_form' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.cubic_normal_form
+
+/-- info: 'CRNT.Hopf.cubic_normal_form_cubic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.cubic_normal_form_cubic
+
+/-- info: 'CRNT.Hopf.homologicalQuad_solution' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.homologicalQuad_solution
+
+/-- info: 'CRNT.Hopf.homologicalQuad_unique' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.homologicalQuad_unique
+
+/-! ### `CRNT/Dynamics/HopfLyapunovCalibration.lean` -/
+
+/-- info: 'CRNT.Hopf.classical_lyapunov_formula' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.classical_lyapunov_formula
+
+/-- info: 'CRNT.Hopf.hopf_lyapunov_calibration' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.hopf_lyapunov_calibration
+
+/-- info: 'CRNT.Hopf.cubicCombination_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.cubicCombination_eq
+
+/-! ### `CRNT/Dynamics/HirschConvergence.lean` -/
+
+/-- info: 'CRNT.hirsch_generic_convergence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.hirsch_generic_convergence
+
+/-- info: 'CRNT.massAction_hirsch_convergence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.massAction_hirsch_convergence
+
+/-! ### `CRNT/Dynamics/OmegaLimitOrderConvex.lean` -/
+
+/-- info: 'CRNT.omegaLimit_orderConvex_of_stronglyMonotone' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.omegaLimit_orderConvex_of_stronglyMonotone
+
+/-- info: 'CRNT.hirsch_generic_convergence_of_monotone' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.hirsch_generic_convergence_of_monotone
+
+/-! ### `CRNT/Dynamics/EscapeDirection.lean` -/
+
+/-- info: 'CRNT.Network.escape_in_orthogonalComplement' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.escape_in_orthogonalComplement
+
+/-- info: 'CRNT.Network.no_escape_of_positive_conservation_law' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.no_escape_of_positive_conservation_law
+
+/-- info: 'CRNT.Network.persistenceConjectureStrong_of_positive_conservation_law' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.persistenceConjectureStrong_of_positive_conservation_law
+
+/-! ### `CRNT/Dynamics/TikhonovLocal.lean` -/
+
+/-- info: 'CRNT.tikhonov_local' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.tikhonov_local
+
+/-- info: 'CRNT.tikhonov_local_attraction' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.tikhonov_local_attraction
+
+/-- info: 'CRNT.exists_local_slow_manifold' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.exists_local_slow_manifold
+
+/-- info: 'CRNT.hurwitz_linear_decay' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.hurwitz_linear_decay
+
+/-! ### `CRNT/Stochastic/ExitMass.lean` -/
+
+/-- info: 'CRNT.JumpSystem.exitMass_factor' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.JumpSystem.exitMass_factor
+
+/-- info: 'CRNT.JumpSystem.outsideMassENN_factor' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.JumpSystem.outsideMassENN_factor
+
+/-! ### `CRNT/Stochastic/EndotacticPositiveRecurrence.lean` -/
+
+/-- info: 'CRNT.Network.positiveRecurrence_of_endotactic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.positiveRecurrence_of_endotactic
+
+/-- info: 'CRNT.Network.foster_hitting_time_of_endotactic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.foster_hitting_time_of_endotactic
+
+/-! ### `CRNT/Stochastic/EndotacticTierPositiveRecurrence.lean` -/
+
+/-- info: 'CRNT.Network.tier_positiveRecurrence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.tier_positiveRecurrence
+
+/-- info: 'CRNT.Network.tier_nonExplosion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.tier_nonExplosion
+
+/-- info: 'CRNT.Network.tier_geometricErgodic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.tier_geometricErgodic
+
+/-! ### `CRNT/Stochastic/EndotacticTierDomination.lean` -/
+
+/-- info: 'CRNT.Network.tierBalanceDrift_le_of' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.tierBalanceDrift_le_of
+
+/-- info: 'CRNT.Network.tierBalance_positiveRecurrence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.tierBalance_positiveRecurrence
+
+/-- info: 'CRNT.Examples.EndotacticCounterexample.topTier_does_not_dominate' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.EndotacticCounterexample.topTier_does_not_dominate
+
+/-! ### `CRNT/Stochastic/CLTWeak.lean` -/
+
+/-- info: 'CRNT.Network.multivariate_clt_open_weak' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.multivariate_clt_open_weak
+
+/-- info: 'CRNT.Network.fluctuation_uniform_concentration' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fluctuation_uniform_concentration
+
+/-! ### `CRNT/Multistationarity/DegreeExistence.lean` -/
+
+/-- info: 'CRNT.Network.exists_positiveSteadyState_of_nonnegativeClassDegree_ne_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_positiveSteadyState_of_nonnegativeClassDegree_ne_zero
+
+/-! ### `CRNT/Multistationarity/DegreeStructural.lean` -/
+
+/-- info: 'CRNT.Network.nonnegativeClassDegree_eq_sign_reducedDet_of_unique_preimage' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.nonnegativeClassDegree_eq_sign_reducedDet_of_unique_preimage
+
+/-- info: 'CRNT.Network.exists_positiveSteadyState_of_positive_reducedDet' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_positiveSteadyState_of_positive_reducedDet
+
+/-! ### `CRNT/Multistationarity/DegreeMultistationarity.lean` -/
+
+/-- info: 'CRNT.Network.exists_two_positiveSteadyStates_of_classDegree_neg_localDegree' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_two_positiveSteadyStates_of_classDegree_neg_localDegree
+
+/-! ### `CRNT/Multistationarity/DeficiencyOneAlgorithm.lean` -/
+
+/-- info: 'CRNT.Network.hasMultistationarityCapacity_iff_doaFeasible' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.hasMultistationarityCapacity_iff_doaFeasible
+
+/-- info: 'CRNT.Network.oneRxn_doaFeasible_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.oneRxn_doaFeasible_iff
+
+/-! ### `CRNT/Multistationarity/AdvancedDeficiencyAlgorithm.lean` -/
+
+/-- info: 'CRNT.Network.hasMultistationarityCapacity_iff_adaFeasible' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.hasMultistationarityCapacity_iff_adaFeasible
+
+/-- info: 'CRNT.Network.adaFeasible_implies_adaAffirmsCapacity' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.adaFeasible_implies_adaAffirmsCapacity
+
+/-! ### `CRNT/Multistationarity/TwoReactionAtoms.lean` -/
+
+/-- info: 'CRNT.Network.twoRxnOpen_isAtom_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoRxnOpen_isAtom_iff
+
+/-! ### `CRNT/Multistationarity/MultistationarityRegion.lean` -/
+
+/-- info: 'CRNT.Network.rankOne_multistationary_iff_det_pos' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.rankOne_multistationary_iff_det_pos
+
+/-- info: 'CRNT.Network.isOpen_multistationarityRegion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.isOpen_multistationarityRegion
+
+/-! ### `CRNT/Equilibria/MESSI.lean` -/
+
+/-- info: 'CRNT.Network.messi_steadyState_iff_linear' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.messi_steadyState_iff_linear
+
+/-- info: 'CRNT.Network.messi_no_exactly_two' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.messi_no_exactly_two
+
+/-- info: 'CRNT.Network.messi_linearInvariant_iff_rowSpace' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.messi_linearInvariant_iff_rowSpace
+
+/-! ### `CRNT/Equilibria/ToricParametrization.lean` -/
+
+/-- info: 'CRNT.Network.toric_positiveSteadyStates_eq_parametrization' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.toric_positiveSteadyStates_eq_parametrization
+
+/-- info: 'CRNT.Network.steadyStateInvariant_iff_log_orthogonal' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.steadyStateInvariant_iff_log_orthogonal
+
+/-! ### `CRNT/Extensions/NonIsothermal.lean` -/
+
+/-- info: 'CRNT.NonIsothermal.isothermal_species_eq_massAction' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.NonIsothermal.isothermal_species_eq_massAction
+
+/-- info: 'CRNT.NonIsothermal.temperatureEquation_eq_neg_sum_heat' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.NonIsothermal.temperatureEquation_eq_neg_sum_heat
+
+/-! ### `CRNT/Extensions/DelaySemistability.lean` -/
+
+/-- info: 'CRNT.Network.delay_semistability' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delay_semistability
+
+/-- info: 'CRNT.Network.delay_limit_isSteadyState' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delay_limit_isSteadyState
+
+/-! ### `CRNT/Extensions/ReactionDiffusion.lean` -/
+
+/-- info: 'CRNT.ReactionDiffusion.exists_reactionDiffusion_solution' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.ReactionDiffusion.exists_reactionDiffusion_solution
+
+/-- info: 'CRNT.ReactionDiffusion.brusselator_turing_instance' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.ReactionDiffusion.brusselator_turing_instance
+
+/-! ### `CRNT/Design/GeneralPlantRPA.lean` -/
+
+/-- info: 'CRNT.Design.GeneralPlant.LinearPlant.antitheticLoop_setpoint' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.LinearPlant.antitheticLoop_setpoint
+
+/-- info: 'CRNT.Design.GeneralPlant.ergodic_of_fosterDrift' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.ergodic_of_fosterDrift
+
+/-! ### `CRNT/Oscillation/PlanarOscillationCriterion.lean` -/
+
+/-- info: 'CRNT.Oscillation.periodicSolution_constant_of_monotone' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Oscillation.periodicSolution_constant_of_monotone
+
+/-- info: 'CRNT.Oscillation.Network.neverPositivePeriodic_of_cooperative' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Oscillation.Network.neverPositivePeriodic_of_cooperative
+
+/-! ### `CRNT/Oscillation/TrappingRegion.lean` -/
+
+/-- info: 'CRNT.Oscillation.lotka_hasPositivePeriodicOrbit_of_trappingRegion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Oscillation.lotka_hasPositivePeriodicOrbit_of_trappingRegion
+
+/-! ### `CRNT/Oscillation/NoChaos.lean` -/
+
+/-- info: 'CRNT.Planar.omegaSet_not_chaotic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Planar.omegaSet_not_chaotic
+
+/-! ### `CRNT/Algebra/CircuitDescartes.lean` -/
+
+/-- info: 'CRNT.CircuitDescartes.card_zeros_exp_sum_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.CircuitDescartes.card_zeros_exp_sum_le
+
+/-- info: 'CRNT.Circuit.card_circuit_solutions_le_signVariations' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Circuit.card_circuit_solutions_le_signVariations
+
+/-! ### `CRNT/Algebra/TropicalReduction.lean` -/
+
+/-- info: 'CRNT.Network.tropicalReduced_species_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.tropicalReduced_species_eq
+
+/-- info: 'CRNT.Network.leadingSystem_eq_reduced_of_equilibration' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.leadingSystem_eq_reduced_of_equilibration
+
+/-! ### `CRNT/Computation/Semilinear.lean` -/
+
+/-- info: 'CRNT.Computation.not_semilinear_pow2' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Computation.not_semilinear_pow2
+
+/-- info: 'CRNT.Computation.affineCRN_stablyComputes' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Computation.affineCRN_stablyComputes
+
+/-! ### `CRNT/Deficiency/DeficiencyOneAlgorithmCorrectness.lean` -/
+
+/-- info: 'CRNT.Network.doaRun_hasMultistationarityCapacity' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.doaRun_hasMultistationarityCapacity

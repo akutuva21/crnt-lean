@@ -296,6 +296,11 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.Design.GeneralPlant.geometric_ergodic_of_fosterDrift",
             "CRNT.Design.GeneralPlant.ProductionDegradationNetwork.closedLoop_mean_output_tendsto_via_general",
             "CRNT.Design.GeneralPlant.ProductionDegradationNetwork.ConcreteInstance.antithetic_equilibrium",
+            "CRNT.Design.GeneralPlant.fosterDrift_of_certificate",
+            "CRNT.Design.GeneralPlant.ergodic_of_certificate",
+            "CRNT.Design.GeneralPlant.geometricErgodic_of_certificate",
+            "CRNT.Design.GeneralPlant.LinearPlant.fosterDrift_of_plant",
+            "CRNT.Design.GeneralPlant.LinearPlant.plant_lyapunov_equation",
         ],
         " The **general-plant** version of robust perfect adaptation is now formalized: a linear "
         "unimolecular plant `ẋ = A x + B u` with output `y = C x` closed by the antithetic "
@@ -308,7 +313,18 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "production–degradation plant, recovering the mean-output convergence "
         "(`closedLoop_mean_output_tendsto_via_general`). Still missing: the construction of "
         "the drift condition for an *arbitrary* output-controllable unimolecular plant, which "
-        "is the remaining Briat–Gupta–Khammash theorem.",
+        "is the remaining Briat–Gupta–Khammash theorem. The **Foster drift condition is now "
+        "constructed for a general plant**: a first-order (unimolecular) network together with a "
+        "quadratic Lyapunov certificate (a symmetric positive-definite `P` solving the "
+        "Lyapunov equation of the closed-loop drift matrix) yields the drift bound "
+        "`QV(n) ≤ −(3/8)‖n − n*‖² + K` (`CRNT.Design.GeneralPlant.fosterDrift_of_certificate`), "
+        "from which the Foster–Lyapunov transfer theorem gives ergodicity and geometric "
+        "ergodicity (`ergodic_of_certificate`, `geometricErgodic_of_certificate`); the "
+        "closed-loop matrix of a general linear plant is related to the network's drift matrix by "
+        "`plant_lyapunov_equation`, so the certificate transfers to the plant "
+        "(`LinearPlant.fosterDrift_of_plant`). Still missing: the *molecular* realization of "
+        "the antithetic controller, whose annihilation reaction is bimolecular and contributes a "
+        "cubic term to the drift of a quadratic Lyapunov function.",
     ),
     "M8": (
         [
