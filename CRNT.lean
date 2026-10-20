@@ -1037,6 +1037,9 @@ import CRNT.Oscillation.TrappingRegion
 import CRNT.Multistationarity.DegreeMultistationarity
 import CRNT.Dynamics.OmegaLimitOrderConvex
 import CRNT.Stochastic.EndotacticTierDomination
+import CRNT.Oscillation.NoChaos
+import CRNT.Dynamics.EscapeDirection
+import CRNT.Deficiency.DeficiencyOneAlgorithmCorrectness
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has

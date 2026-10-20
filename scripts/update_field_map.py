@@ -251,6 +251,10 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.Oscillation.lotka_hasPositivePeriodicOrbit_of_poincareBendixson",
             "CRNT.Oscillation.lotka_hasPositivePeriodicOrbit_of_trappingRegion",
             "CRNT.Oscillation.lotka_oscillatoryCapacity_of_trappingRegion",
+            "CRNT.Planar.omegaSet_not_chaotic",
+            "CRNT.Planar.eq_orbitSet_of_minimal_invariant_subset",
+            "CRNT.Oscillation.rankTwo_noChaos",
+            "CRNT.Oscillation.lotka_canonical_omegaSet_not_chaotic",
         ],
         " A **structural criterion for the absence of oscillations** is now formalized: an "
         "order-preserving (or Kamke) planar field has no nonconstant periodic orbit "
@@ -271,7 +275,15 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "(`CRNT.Oscillation.lotka_hasPositivePeriodicOrbit_of_trappingRegion`, "
         "`lotka_oscillatoryCapacity_of_trappingRegion`). The two *universal* inputs (the `C¹` "
         "dependence of the flow on the initial point and the Jordan separation theorem) "
-        "remain hypotheses.",
+        "remain hypotheses. The **\"no chaos in the plane\"** half is now formalized: a minimal "
+        "compact closed invariant subset of a planar omega-limit set is *exactly* a periodic "
+        "orbit (`CRNT.Planar.eq_orbitSet_of_minimal_invariant_subset`), so the omega-limit set "
+        "contains no chaotic (fractal) minimal invariant set "
+        "(`CRNT.Planar.omegaSet_not_chaotic`) -- no Solenoid, Plykin or horseshoe attractor, and "
+        "no Devaney-chaotic or positive-topological-entropy minimal set. The rank-two "
+        "mass-action application is `CRNT.Oscillation.rankTwo_noChaos`. Still missing: the "
+        "Jordan refinement (the omega-limit set is a single periodic orbit or a finite union of "
+        "them, and every omega-limit point is an equilibrium or on a periodic orbit).",
     ),
     "C3": (
         [
@@ -338,6 +350,34 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "(`CRNT.Network.fluctuation_uniform_concentration`). Still missing: the "
         "fluctuation-scale (`O(1)`) uniform-in-time estimate and the path-space statement, "
         "which need martingale second-moment machinery that Mathlib lacks.",
+    ),
+    "D12": (
+        [
+            "CRNT.Network.conservationLawSpace_total_const_along_solution",
+            "CRNT.Network.escape_in_orthogonalComplement",
+            "CRNT.Network.projection_on_conservationLawSpace_const",
+            "CRNT.Network.escape_to_infinity_in_escape_direction",
+            "CRNT.Network.coordinate_le_of_positive_conservation_law",
+            "CRNT.Network.no_escape_of_positive_conservation_law",
+            "CRNT.Network.persistenceConjectureStrong_of_positive_conservation_law",
+            "CRNT.Network.escape_confined_to_zero_face",
+            "CRNT.Network.escapingSpecies_subset_escapeFace",
+        ],
+        " The **geometry of a possible escape to infinity** is now formalized: every conservation "
+        "law is constant along a mass-action trajectory, so the displacement of an escaping "
+        "trajectory lies in the orthogonal complement of the conservation-law space "
+        "(`CRNT.Network.escape_in_orthogonalComplement`) and the projection onto the "
+        "conservation-law space is constant "
+        "(`projection_on_conservationLawSpace_const`); a species detected by a *nonnegative* "
+        "conservation law has a bounded coordinate, so the escape is confined to a face "
+        "(`escape_confined_to_zero_face`, `escapingSpecies_subset_escapeFace`). Consequently a "
+        "network with a strictly positive conservation law cannot escape: its trajectories are "
+        "bounded and uniformly bounded away from zero, and the strong persistence conjecture "
+        "holds for it (`no_escape_of_positive_conservation_law`, "
+        "`persistenceConjectureStrong_of_positive_conservation_law`). Instances: the reversible "
+        "pair `A <-> B` and the autocatalytic network `A -> 2A` with a spectator `B`. Still "
+        "missing: the unbounded case of the persistence conjecture for a weakly reversible "
+        "network *without* a strictly positive conservation law (three or more species).",
     ),
     "M13": (
         [
@@ -418,6 +458,10 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.Network.hasMultistationarityCapacity_iff_doaFeasible",
             "CRNT.Network.rankOne_hasMultistationarityCapacity_iff",
             "CRNT.Network.oneRxn_doaFeasible_iff",
+            "CRNT.Network.doaAffirmsCapacity_iff_nonempty_run",
+            "CRNT.Network.doaRun_hasMultistationarityCapacity",
+            "CRNT.Network.doaRun_doaFeasible",
+            "CRNT.Network.capacity_implies_doaShelfFluxes",
         ],
         " The **correctness of the Deficiency One Algorithm is now proved in both directions**: "
         "the algorithm's system (`DOAFeasible`: a log-ratio `μ` and a flux `α` with the lower "
@@ -433,7 +477,15 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "family. Still missing: the *presentation* of the algorithm (the shelf/confluence "
         "enumeration of `CRNT.Deficiency.DeficiencyOneAlgorithm`) and its connection to the "
         "numerical version, and the analogous correctness of the Advanced Deficiency Algorithm "
-        "(leaf M8).",
+        "(leaf M8). The **presentation** of the algorithm is now bridged to the semantic "
+        "criterion: the repository's verdict `CRNT.Network.DOAAffirmsCapacity` is the "
+        "existence of a run (a shelf partition, a cut-space confluence vector, a sign-compatible "
+        "log-ratio) `CRNT.Network.doaAffirmsCapacity_iff_nonempty_run`, and a run together with "
+        "the shelf-wise confluence vectors gives multistationarity "
+        "(`CRNT.Network.doaRun_hasMultistationarityCapacity`), so the *presented* algorithm is "
+        "correct in the algorithmic direction (`doaRun_doaFeasible`). Still missing: the "
+        "multi-shelf converse (a capacity flux always decomposes into shelf-wise confluence "
+        "vectors) and the numerical version of the algorithm.",
     ),
     "M11": (
         [

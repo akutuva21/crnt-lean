@@ -764,6 +764,26 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.oneRxn_doaFeasible_iff
 
+-- M7
+/-- info: 'CRNT.Network.doaAffirmsCapacity_iff_nonempty_run' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.doaAffirmsCapacity_iff_nonempty_run
+
+-- M7
+/-- info: 'CRNT.Network.doaRun_hasMultistationarityCapacity' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.doaRun_hasMultistationarityCapacity
+
+-- M7
+/-- info: 'CRNT.Network.doaRun_doaFeasible' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.doaRun_doaFeasible
+
+-- M7
+/-- info: 'CRNT.Network.capacity_implies_doaShelfFluxes' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.capacity_implies_doaShelfFluxes
+
 -- M8
 /-- info: 'CRNT.Network.stoichSubspace_ne_bot_of_adaAffirmsCapacity' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -1659,6 +1679,51 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.persistenceConjectureStrong_of_card_two
 
+-- D12
+/-- info: 'CRNT.Network.conservationLawSpace_total_const_along_solution' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.conservationLawSpace_total_const_along_solution
+
+-- D12
+/-- info: 'CRNT.Network.escape_in_orthogonalComplement' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.escape_in_orthogonalComplement
+
+-- D12
+/-- info: 'CRNT.Network.projection_on_conservationLawSpace_const' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.projection_on_conservationLawSpace_const
+
+-- D12
+/-- info: 'CRNT.Network.escape_to_infinity_in_escape_direction' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.escape_to_infinity_in_escape_direction
+
+-- D12
+/-- info: 'CRNT.Network.coordinate_le_of_positive_conservation_law' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.coordinate_le_of_positive_conservation_law
+
+-- D12
+/-- info: 'CRNT.Network.no_escape_of_positive_conservation_law' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.no_escape_of_positive_conservation_law
+
+-- D12
+/-- info: 'CRNT.Network.persistenceConjectureStrong_of_positive_conservation_law' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.persistenceConjectureStrong_of_positive_conservation_law
+
+-- D12
+/-- info: 'CRNT.Network.escape_confined_to_zero_face' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.escape_confined_to_zero_face
+
+-- D12
+/-- info: 'CRNT.Network.escapingSpecies_subset_escapeFace' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.escapingSpecies_subset_escapeFace
+
 -- D13
 /-- info: 'CRNT.Network.isCompact_nonnegativeCompatibilityClass_of_strictPSemiflow' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -2108,6 +2173,26 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Oscillation.lotka_oscillatoryCapacity_of_trappingRegion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Oscillation.lotka_oscillatoryCapacity_of_trappingRegion
+
+-- D18
+/-- info: 'CRNT.Planar.omegaSet_not_chaotic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Planar.omegaSet_not_chaotic
+
+-- D18
+/-- info: 'CRNT.Planar.eq_orbitSet_of_minimal_invariant_subset' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Planar.eq_orbitSet_of_minimal_invariant_subset
+
+-- D18
+/-- info: 'CRNT.Oscillation.rankTwo_noChaos' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Oscillation.rankTwo_noChaos
+
+-- D18
+/-- info: 'CRNT.Oscillation.lotka_canonical_omegaSet_not_chaotic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Oscillation.lotka_canonical_omegaSet_not_chaotic
 
 -- D19
 /-- info: 'ODE.fenichel_persistence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
