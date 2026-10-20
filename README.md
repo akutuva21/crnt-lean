@@ -146,6 +146,11 @@ Grouped by area; the precise statements and module names are in each linked doc.
 - Complex balancing and the toric structure of steady states
 - Birch's theorem, and Perron–Frobenius for column-stochastic matrices
 - The deficiency-zero theorem, weakly reversible deficiency-one existence, and deficiency-one uniqueness (single- and multi-class)
+- The **linear-elimination class** (every source complex of molecularity one): linear homogeneous
+  steady-state equations, a convex cone of positive steady states, "never exactly multistationary",
+  and the linear steady-state invariants — which need not coincide with the conservation laws
+- The **toric parametrization** of the steady-state variety (the exponential parametrization by the
+  kernel of the exponent-difference matrix) and the general steady-state invariants
 
 **[Dynamics & stability](docs/dynamics.md)**
 - The complex-space factorization `ẋ = Y(A_k(Ψ x))` and the forward semiflow
@@ -160,6 +165,16 @@ Grouped by area; the precise statements and module names are in each linked doc.
 - The planar Poincaré normal form with its first Lyapunov coefficient, and the closed-form limit cycle
   of the truncated normal form; the sustained-oscillation verdict for the full field is reduced to
   explicit center-manifold, averaging, and smooth-flow-dependence hypotheses (see Scope & Open Problems)
+- The **Poincaré–Dulac normal form to cubic order**, computed: the quadratic part of a planar field is
+  removable exactly when the linearization is non-degenerate, the cubic push-forward is exact, and the
+  resonant coefficient `w² w̄` is an explicit rational function of the Taylor data
+- The **Guckenheimer–Holmes calibration** of that coefficient to the classical real-coordinate first
+  Lyapunov coefficient formula, so the repository's `lyapunovFromPartials` is identified with the
+  normal-form computation rather than assumed
+- The **angular averaging** of the reduced field, computed rather than assumed, with the averaged
+  radial field constructed and its amplitude law proved
+- **Hirsch's generic convergence** for strongly monotone fields, with the order-convexity of the
+  ω-limit set derived rather than assumed
 
 **[Oscillation & recurrent dynamics](docs/oscillation.md)**
 - Exact `PeriodicTrajectory`, fixed-parameter positive periodic-orbit, oscillatory-capacity, and
@@ -171,6 +186,13 @@ Grouped by area; the precise statements and module names are in each linked doc.
   and positive/negative-feedback classification are represented natively
 - Rank-two Poincare--Bendixson and Bendixson--Dulac routes are specified as explicit proof frontiers,
   not axioms or numerical heuristics
+- A **structural criterion for the absence of oscillations**: an order-preserving (or Kamke) planar field
+  has no nonconstant periodic orbit, so a cooperative planar mass-action network never oscillates for
+  any positive rate vector
+- The network-specific half of the **Poincaré–Bendixson route**: a compact, positively invariant,
+  equilibrium-free trapping region built from a first integral, giving a positive periodic orbit
+- **"No chaos in the plane"**: a minimal compact closed invariant subset of a planar ω-limit set is
+  exactly a periodic orbit, so there is no Solenoid, Plykin or horseshoe attractor
 
 **[Persistence & global attraction](docs/persistence-gac.md)**
 - The reduction GAC ⟺ persistence, and unconditional convergence for the no-critical-siphon class
@@ -191,6 +213,13 @@ Grouped by area; the precise statements and module names are in each linked doc.
   singleton ratios
 - The Kurtz density-dependent generator-convergence estimate: the volume-scaled generator of a
   differentiable observable converges to its derivative along the deterministic mass-action field
+- **Positive recurrence and non-explosion** for strongly endotactic stochastic mass-action systems,
+  via a count-lattice Lyapunov function with a constant negative drift outside a finite set
+- The **exit-mass factorization**: the union-bound mechanism of the sample-path law of large numbers,
+  with the exit mass of the frozen chain proved to be probability-like
+- The **distributional CLT for networks whose chains may explode** — the fluctuation law is a
+  sub-probability measure completed at the origin, and Lévy's continuity theorem gives the weak
+  convergence to the linear-noise Gaussian, with no conservation, weight or non-explosion hypothesis
 
 **[Multistationarity & robustness](docs/multistationarity-robustness.md)**
 - Degree-free Gale–Nikaido univalence, bound to class injectivity
@@ -198,7 +227,19 @@ Grouped by area; the precise statements and module names are in each linked doc.
 - The signed species–reaction graph and the determinant cycle-cover expansion
 - Topological-degree steady-state existence (a nonzero reduced degree forces a steady state in the
   compatibility class) and a multistationarity-capacity test from a sign-indefinite reduced Jacobian
+- The **degree equals the sign of the reduced Jacobian determinant** at a steady state, with the
+  Conradi–Feliu–Mincheva–Wiuf conclusion (a second positive steady state) obtained by a perturbation
+  argument, and the degree shown independent of the rate constants
+- The **Deficiency One and Advanced Deficiency Algorithms proved to decide multistationarity
+  capacity**, in both directions, with the rank-one reduction of the algorithm's inequality system
+  and the shelf/confluence presentation bridged to the semantic criterion
+- The **two-reaction atom criterion** for the fully open network, and the **parity theorem** (the
+  number of positive steady states of a fully open network is odd)
+- An **explicit description of the multistationarity region** of a rank-one network: the sign of the
+  reduced determinant at a steady state
 - Absolute concentration robustness, antithetic integral feedback, open (CFSTR) systems, and composition
+- **Robust perfect adaptation for a general plant**: the setpoint of the antithetic internal model,
+  a linear-quadratic Lyapunov certificate, and a Foster–Lyapunov ergodicity transfer theorem
 
 Every abstraction is exercised by at least one worked example network in [`CRNT/Examples/`](./CRNT/Examples/).
 
