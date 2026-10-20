@@ -1354,6 +1354,21 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.twoRxnOpen_revPair_not_atom
 
+-- M11
+/-- info: 'CRNT.Network.twoReaction_criterion_table' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoReaction_criterion_table
+
+-- M11
+/-- info: 'CRNT.Network.twoReaction_atom_table' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoReaction_atom_table
+
+-- M11
+/-- info: 'CRNT.Network.twoRxnMultistationary_sound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoRxnMultistationary_sound
+
 -- M12
 /-- info: 'CRNT.Network.Kinetics.InjectiveOnClass.sum_subsingleton_steadyState' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -2488,6 +2503,21 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Hopf.MassActionHopf.massAction_hasPeriodicOrbit_of_hopf' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Hopf.MassActionHopf.massAction_hasPeriodicOrbit_of_hopf
+
+-- D16
+/-- info: 'CRNT.Hopf.radialDrift_remainder' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.radialDrift_remainder
+
+-- D16
+/-- info: 'CRNT.Hopf.radialDrift_remainder_resonant' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.radialDrift_remainder_resonant
+
+-- D16
+/-- info: 'CRNT.Hopf.fullRadialFieldOf_remainder' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.fullRadialFieldOf_remainder
 
 -- D17
 /-- info: 'CRNT.Network.neverPositivePeriodic_of_weaklyReversible_deficiencyZero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
@@ -4453,6 +4483,21 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.tikhonov_local_slow_error' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.tikhonov_local_slow_error
+
+-- A4
+/-- info: 'CRNT.Network.tropicalLeadingField_leading' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.tropicalLeadingField_leading
+
+-- A4
+/-- info: 'CRNT.Network.tropical_critical_manifold' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.tropical_critical_manifold
+
+-- A4
+/-- info: 'CRNT.Network.tropical_reduction_estimate' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.tropical_reduction_estimate
 
 -- A5
 /-- info: 'CRNT.Complex.sum_massActionMonomial_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/

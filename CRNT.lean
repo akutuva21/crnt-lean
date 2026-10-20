@@ -1056,6 +1056,9 @@ import CRNT.Dynamics.TikhonovTube
 import CRNT.Multistationarity.TotalDegree
 import CRNT.Stochastic.ExitMassIdentification
 import CRNT.Dynamics.StrongOrderConvex
+import CRNT.Multistationarity.TwoReactionClassification
+import CRNT.Algebra.TropicalSlowFast
+import CRNT.Dynamics.AveragingRemainder
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
