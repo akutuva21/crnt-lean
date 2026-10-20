@@ -1499,6 +1499,41 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.not_eq_rateProduct_mul
 
+-- M13
+/-- info: 'Matrix.det_sum_eq_sum_tuples' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms Matrix.det_sum_eq_sum_tuples
+
+-- M13
+/-- info: 'Matrix.det_mul_diag_mul_eq_sum_subsets' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms Matrix.det_mul_diag_mul_eq_sum_subsets
+
+-- M13
+/-- info: 'CRNT.Network.reducedJacobianInChart_det_eq_cauchyBinet' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.reducedJacobianInChart_det_eq_cauchyBinet
+
+-- M13
+/-- info: 'CRNT.Network.reducedJacobian_det_eq_cauchyBinet' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.reducedJacobian_det_eq_cauchyBinet
+
+-- M13
+/-- info: 'CRNT.Network.circuitMatrix_det_eq_zero_of_circuit' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.circuitMatrix_det_eq_zero_of_circuit
+
+-- M13
+/-- info: 'CRNT.Network.chartVector_positiveDep_of_circuit' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.chartVector_positiveDep_of_circuit
+
+-- M13
+/-- info: 'CRNT.Network.IsPositiveCircuit' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.IsPositiveCircuit
+
 -- D1
 /-- info: 'CRNT.Network.orbit_pos_forward' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
