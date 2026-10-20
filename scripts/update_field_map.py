@@ -182,6 +182,8 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.Network.toric_steadyStates_eq_exp_kernel",
             "CRNT.Network.steadyStateInvariant_iff_log_orthogonal",
             "CRNT.Network.messi_generalInvariant_iff_valueAtOrigin",
+            "CRNT.Network.toric_steadyStates_eq_exp_ker",
+            "CRNT.Network.messi_variety_eq_linearParametrization",
         ],
         " The class of networks in which every reaction has a source complex of total "
         "molecularity one (the *linear-elimination* class; the term MESSI is used for it here "
