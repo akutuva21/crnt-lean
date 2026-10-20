@@ -159,6 +159,13 @@ Grouped by area; the precise statements and module names are in each linked doc.
   complex-balanced equilibrium is unique in its class — and a nontrivial weakly reversible network
   never has a nilpotent Jacobian there
 - The **parity theorem**: the number of isolated positive steady states of a fully open network is odd
+- The **spectral factorization** of the mass-action Jacobian, `J(x) = Yᵀ A_κ(x) Y D(x)⁻¹`, with the
+  characteristic-polynomial consequence — and a machine-checked refutation of the naive claim that
+  the eigenvalues of `J` are the negatives of those of the bare weighted adjacency
+- The **Cauchy–Binet expansion** of the reduced determinant: in rank `s` it is a sum of products of
+  `s` rate constants, and a positive circuit in a reaction set kills the corresponding term
+- The **two-reaction classification**: a machine-checked table of the multistationary and the atom
+  members of the 75 two-species bimolecular two-reaction networks
 
 **[Dynamics & stability](docs/dynamics.md)**
 - The complex-space factorization `ẋ = Y(A_k(Ψ x))` and the forward semiflow
@@ -181,6 +188,17 @@ Grouped by area; the precise statements and module names are in each linked doc.
   normal-form computation rather than assumed
 - The **angular averaging** of the reduced field, computed rather than assumed, with the averaged
   radial field constructed and its amplitude law proved
+- The **mass-action Hopf verdict**: the Taylor data of a mass-action family are computed from the
+  genuine field, the first Lyapunov coefficient is the Guckenheimer–Holmes calibration, and the
+  branch of periodic orbits is exhibited for a concrete two-species network
+- The **tube hypothesis** of Tikhonov's theorem is a theorem, not an assumption: a first-exit
+  argument on the shifted Lyapunov function keeps the coupled solution in the tube, and the slow
+  error is bounded
+- The **tropical → slow–fast link**: the tropical system is the `ε → 0⁺` limit of the rescaled
+  mass-action field, and a tropical critical point with a Hurwitz fibre derivative has a local `C¹`
+  slow manifold
+- The **strong order** `≪` with the monotone separating functionals of Hirsch–Smith, and the
+  non-ordering argument for the incomparable-orbit case
 - **Hirsch's generic convergence** for strongly monotone fields, with the order-convexity of the
   ω-limit set derived rather than assumed
 
