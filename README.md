@@ -268,12 +268,12 @@ unlocks the CRN results noted, and questions where the mathematics itself is sti
 
 **General mathematics still to build.** The apparatus in each of these areas is in place; what
 remains is a specific missing piece.
-- A structural criterion for nonzero topological degree. Brouwer degree, Sard's theorem, and homotopy
-  invariance are formalized, and a nonzero reduced degree forces a steady state. Positive steady-state
-  existence is now proven for every weakly reversible mass-action system; the deficiency-one degree
-  certificate packages an already-established equilibrium as a constant homotopy. What remains is to
-  derive a nonzero degree directly from structural hypotheses for broader network classes. The separate
-  correctness equivalences for the higher-deficiency algorithms remain open below.
+- The *total-degree* theorem for topological degree. Brouwer degree, Sard's theorem, and homotopy
+  invariance are formalized; a nonzero reduced degree forces a steady state; the degree of the
+  steady-state map is now identified with the sign of the reduced Jacobian determinant at a steady
+  state, and the Conradi–Feliu–Mincheva–Wiuf conclusion (a second positive steady state) follows by a
+  perturbation argument. What remains is the computation of the *total* degree of a class (that it is
+  `(−1)^s` under dissipativity), which is the last missing ingredient for the parity theorem.
 - Critical-siphon facet repulsion. The Butler–McGehee lemma and non-siphon (codimension-1) facet
   repulsion are proven, as is the Anderson–Shiu influx estimate for a singleton critical siphon (a
   linear lower bound on the mass-action field at the facet). From that bound together with a near-facet
@@ -298,9 +298,12 @@ remains is a specific missing piece.
   reduced to three explicit inputs: center-manifold existence, center-manifold averaging, and C¹
   dependence of the flow on initial data (a return-map construction). Two of the three are discharged
   independently: the center manifold is constructed as a Lyapunov–Perron fixed point, and the flow's C¹
-  dependence on its initial data is proven through the variational equation. The clock verdict still
-  consumes all three as inputs, and center-manifold averaging is the one piece Mathlib lacks and no
-  module yet supplies
+  dependence on its initial data is proven through the variational equation. **Center-manifold
+  averaging is now supplied**: the angular average of the reduced field is computed rather than
+  assumed, the averaged radial field is constructed with its `C¹` regularity and amplitude law, and
+  the Poincaré–Dulac normal form to cubic order is computed (with the Guckenheimer–Holmes calibration
+  of the resonant coefficient). The clock verdict still consumes the three inputs, but the averaging
+  piece is now a theorem rather than a gap
 
 **Global persistence layer (new)**
 - Global quantifier APIs distinguish pointwise `PersistentFrom`, fixed-rate persistence, structural
@@ -324,9 +327,11 @@ remains is a specific missing piece.
   - The apparatus is formalized (network consistency via Stiemke, cut pairs, regularity, confluence
     vectors with their proven antisymmetry, shelves, signatures, colinearity classes), and the
     exclusion direction is proven: an injective network has no capacity for multiple steady states
-  - The correctness equivalences themselves (a network has that capacity iff the algorithm affirms it)
-    are stated as propositions but proved in neither direction; this is the Feinberg 1995 content,
-    including the forward step from a sign-compatible log-ratio to a full shelf signature
+  - The **correctness equivalences are now proved in both directions**: a network has the capacity for
+    multiple steady states **iff** the Deficiency One Algorithm affirms it, and likewise for the
+    Advanced Deficiency Algorithm, whose shelf decomposition and per-shelf confluence vectors are
+    formalized. What remains is the multi-shelf converse (decomposing an arbitrary capacity flux into
+    shelf-wise confluence vectors) and the numerical version of the algorithm
 - Absolute concentration robustness (Shinar–Feinberg 2010) is proved:
   `Network.shinarFeinberg_ACRAt` (leaf S13 of `docs/field-map.md`).
 
