@@ -1010,6 +1010,7 @@ import CRNT.Dynamics.StrongMonotone
 import CRNT.Dynamics.SlowFast
 import CRNT.Algebra.CircuitDescartes
 import CRNT.Dynamics.HopfAveraging
+import CRNT.Dynamics.NormalFormCubic
 import CRNT.Dynamics.HirschConvergence
 import CRNT.Stochastic.ExitMass
 import CRNT.Stochastic.EndotacticPositiveRecurrence

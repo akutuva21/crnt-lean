@@ -100,6 +100,16 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.Hopf.hasDerivAt_averagedRadialField_RR",
             "CRNT.Hopf.truncatedFullRadialField",
             "CRNT.Hopf.fullRadialFieldOf",
+            "CRNT.Hopf.cubic_normal_form",
+            "CRNT.Hopf.cubic_normal_form_cubic",
+            "CRNT.Hopf.quadratic_removed",
+            "CRNT.Hopf.homologicalQuad_solution",
+            "CRNT.Hopf.homologicalQuad_unique",
+            "CRNT.Hopf.quadratic_removable_iff",
+            "CRNT.Hopf.planar_quadratic_removed",
+            "CRNT.Hopf.cubic_pushForward",
+            "CRNT.Hopf.resonantCoefficient",
+            "CRNT.Hopf.hopf_cubic_resonance",
         ],
         " The angular averaging is now computed rather than assumed: the average of the radial "
         "component of the truncated Hopf normal form over the circle of radius `R` is "
@@ -108,9 +118,20 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "obey the amplitude law `R² = −α/ℓ₁` (`averagedRadialField_amplitude`), and the "
         "repository's `FullRadialField` is *constructed* for the truncated normal form "
         "(`truncatedFullRadialField`, `fullRadialFieldOf`) instead of being assumed as data. "
-        "Still missing: the `O(R⁴)` remainder for a general reduced field, the derivation of "
-        "the normal form from the mass-action Taylor data (the `hcubic`/`hquad` calibration of "
-        "`lyapunovFromPartials`), and the mass-action verdict on a sustained periodic orbit.",
+        "The **Poincaré–Dulac normal form to cubic order** is also computed: for a cubic "
+        "complex field `λw + aw² + bw³` the quadratic term is removed by `w ↦ w − (a/λ)w²` "
+        "(`quadratic_removed`, `cubic_normal_form`) and the cubic correction removes the "
+        "quartic term (`cubic_normal_form_cubic`); for a real planar field the quadratic part "
+        "is removable exactly when the linearization is non-degenerate "
+        "(`quadratic_removable_iff`, `homologicalQuad_solution`, `homologicalQuad_unique`, "
+        "`planar_quadratic_removed`), the cubic push-forward is exact "
+        "(`cubic_pushForward`), and the resonant cubic coefficient is an explicit rational "
+        "function of the Taylor data (`resonantCoefficient`); the only resonant cubic monomial "
+        "is `w²w̄` and it is resonant exactly at a purely imaginary linearization "
+        "(`hopf_cubic_resonance`). Still missing: the calibration of that coefficient to the "
+        "repository's real-coordinate formula `lyapunovFromPartials`, the `O(R⁴)` remainder "
+        "for a general reduced field, and the mass-action verdict on a sustained periodic "
+        "orbit.",
     ),
     "S17": (
         [

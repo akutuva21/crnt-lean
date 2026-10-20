@@ -1764,6 +1764,56 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Hopf.fullRadialFieldOf
 
+-- D16
+/-- info: 'CRNT.Hopf.cubic_normal_form' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.cubic_normal_form
+
+-- D16
+/-- info: 'CRNT.Hopf.cubic_normal_form_cubic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.cubic_normal_form_cubic
+
+-- D16
+/-- info: 'CRNT.Hopf.quadratic_removed' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.quadratic_removed
+
+-- D16
+/-- info: 'CRNT.Hopf.homologicalQuad_solution' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.homologicalQuad_solution
+
+-- D16
+/-- info: 'CRNT.Hopf.homologicalQuad_unique' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.homologicalQuad_unique
+
+-- D16
+/-- info: 'CRNT.Hopf.quadratic_removable_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.quadratic_removable_iff
+
+-- D16
+/-- info: 'CRNT.Hopf.planar_quadratic_removed' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.planar_quadratic_removed
+
+-- D16
+/-- info: 'CRNT.Hopf.cubic_pushForward' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.cubic_pushForward
+
+-- D16
+/-- info: 'CRNT.Hopf.resonantCoefficient' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.resonantCoefficient
+
+-- D16
+/-- info: 'CRNT.Hopf.hopf_cubic_resonance' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.hopf_cubic_resonance
+
 -- D17
 /-- info: 'CRNT.Network.neverPositivePeriodic_of_weaklyReversible_deficiencyZero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
