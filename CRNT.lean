@@ -1008,6 +1008,13 @@ import CRNT.Multistationarity.OneReactionReversibleNondegenerate
 import CRNT.Algebra.CircuitBound
 import CRNT.Dynamics.StrongMonotone
 import CRNT.Dynamics.SlowFast
+import CRNT.Algebra.CircuitDescartes
+import CRNT.Dynamics.HopfAveraging
+import CRNT.Dynamics.HirschConvergence
+import CRNT.Stochastic.ExitMass
+import CRNT.Stochastic.EndotacticPositiveRecurrence
+import CRNT.Algebra.TropicalReduction
+import CRNT.Extensions.NonIsothermal
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has

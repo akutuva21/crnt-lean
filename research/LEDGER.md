@@ -3,7 +3,7 @@
 Objective: `research/scripts/measure.py` → `holes = 0`. Baseline at round 1:
 `holes=2, frontier_mods=844, scaffold_mods=24, lean_lines=137502, score=-1301`.
 
-Branch of record (retired 2026-10-11): formerly `holes`; swarm base formerly `research/swarm`. Worktrees (historical):
+Branch of record: `holes`. Swarm base: `research/swarm`. Worktrees:
 `/Users/akutuva/Documents/Proofs/crnt-wt/<agent>`.
 
 ## Roster

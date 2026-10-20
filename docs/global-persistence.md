@@ -74,15 +74,16 @@ route to strongly-endotactic permanence:
 - top source tier and tier-descending sequences;
 - the global `TierDescending` property.
 
-The two hard literature-level steps are named as proof obligations:
+The two hard literature-level steps were named as proof obligations:
 
 ```lean
 StrongEndotacticTierCharacterizationClaim N
 TierDescendingPermanenceClaim N
 ```
 
-and composition to `StructurallyPermanent` is already proved once those obligations are
-available.
+Both are now theorems: `stronglyEndotacticStd_iff_tierDescending` and
+`tierDescendingPermanenceClaim` (`Persistence/StronglyEndotacticPermanence.lean`; the persistence
+step is in `Persistence/StronglyEndotacticPersistence.lean`).
 
 ## Frontier discipline
 
@@ -129,3 +130,17 @@ Two certificate levels are intentionally distinct:
 
 This prevents a decidable structural filter from being mislabeled as a proof of a stronger dynamical
 statement than the formal development currently establishes.
+
+
+## Flow-based definitions are vacuous without a global flow
+
+`IsMassActionFlow κ ϕ γ` requires a flow on all of `ℝ^S` whose curves solve the mass-action
+equations from every initial point, including points outside the nonnegative orthant. For networks
+with a reaction consuming a species with molecularity at least two this fails: for `2X → 0`,
+`x' = −2κ x²` blows up in finite time from `x(0) = −1` (`CRNT.Examples.FlowVacuity.no_massActionFlow`).
+Every flow-based property (`StructurallyPersistentStd`, `StructurallyPermanent`, and hence
+`PersistenceConjecture`) then holds vacuously, although the positive solutions of `2X → 0` tend to
+`0` (`CRNT.Examples.FlowVacuity.not_structurallyPersistent`). Results whose conclusion is one of
+these flow-based properties should be read together with their trajectory-based counterparts:
+`PersistentFrom` / `StructurallyPersistent`, `GenuinePermanentOnPositiveClass` /
+`GenuinePermanentForRates`.
