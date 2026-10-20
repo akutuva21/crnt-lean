@@ -2849,6 +2849,26 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.three_halves_step
 
+-- P8
+/-- info: 'CRNT.JumpSystem.exitMass_factor' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.JumpSystem.exitMass_factor
+
+-- P8
+/-- info: 'CRNT.JumpSystem.outsideMassENN_factor' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.JumpSystem.outsideMassENN_factor
+
+-- P8
+/-- info: 'CRNT.JumpSystem.insideMassENN_add_outsideMassENN' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.JumpSystem.insideMassENN_add_outsideMassENN
+
+-- P8
+/-- info: 'CRNT.JumpSystem.outsideMassENN_eq_ofReal' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.JumpSystem.outsideMassENN_eq_ofReal
+
 -- P9
 /-- info: 'CRNT.tendsto_secondOrder_slope' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in

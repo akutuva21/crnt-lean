@@ -50,14 +50,24 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.JumpSystem.exitMass_nonneg",
             "CRNT.JumpSystem.exitMass_le_one",
             "CRNT.JumpSystem.exitMass_zero_of_mem",
+            "CRNT.JumpSystem.exitMass_factor",
+            "CRNT.JumpSystem.outsideMassENN_factor",
+            "CRNT.JumpSystem.insideMassENN_add_outsideMassENN",
+            "CRNT.JumpSystem.outsideMassENN_eq_ofReal",
             "CRNT.Network.three_halves_step",
         ],
         " The exit mass of the frozen chain is now isolated as `JumpSystem.exitMass` and proved "
         "to be a probability-like quantity (`exitMass_nonneg`, `exitMass_le_one`, "
-        "`exitMass_zero_of_mem`); the deterministic `3δ/2` step of the sample-path reading is "
-        "proved (`three_halves_step`). The union bound over the grid (the subadditivity of the "
-        "exit mass in time) and the identification of the exit mass with a path event are still "
-        "missing; the library has no path measure.",
+        "`exitMass_zero_of_mem`); the **exit-mass factorization** `exitMass_factor` proves the "
+        "union-bound mechanism: the mass outside a set at time `h₁ + h₂` is the mass inside at "
+        "time `h₁`, weighted by the frozen transition function, times the exit mass of the "
+        "window of length `h₂` (the `ℝ≥0∞` form `outsideMassENN_factor` is the version used in "
+        "the proof, because Fubini for infinite sums is unconditional there; "
+        "`insideMassENN_add_outsideMassENN` shows the inside and outside masses add up to "
+        "`1`). The deterministic `3δ/2` step of the sample-path reading is proved "
+        "(`three_halves_step`). Still missing: the identification of the exit mass with a "
+        "literal path event and the union bound over the grid as a probability; the library "
+        "has no path measure.",
     ),
     "D14": (
         [
