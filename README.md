@@ -151,6 +151,14 @@ Grouped by area; the precise statements and module names are in each linked doc.
   and the linear steady-state invariants — which need not coincide with the conservation laws
 - The **toric parametrization** of the steady-state variety (the exponential parametrization by the
   kernel of the exponent-difference matrix) and the general steady-state invariants
+- The **King–Altman formula** for a unimolecular network: the steady state is the tree constant at a
+  species divided by the total tree weight, i.e. the cofactor ratio of the directed Matrix–Tree
+  theorem; it is the only positive steady state up to scaling
+- The **nilpotent-Jacobian criterion**: at a positive complex-balanced equilibrium a nilpotent
+  Jacobian forces every reaction with positive flux to be stoichiometrically null, so the
+  complex-balanced equilibrium is unique in its class — and a nontrivial weakly reversible network
+  never has a nilpotent Jacobian there
+- The **parity theorem**: the number of isolated positive steady states of a fully open network is odd
 
 **[Dynamics & stability](docs/dynamics.md)**
 - The complex-space factorization `ẋ = Y(A_k(Ψ x))` and the forward semiflow
@@ -237,9 +245,15 @@ Grouped by area; the precise statements and module names are in each linked doc.
   number of positive steady states of a fully open network is odd)
 - An **explicit description of the multistationarity region** of a rank-one network: the sign of the
   reduced determinant at a steady state
+- The **semilinear characterization** of stably computable functions: a piecewise-affine
+  (over polyhedral regions) notion of semilinearity, closure under `+`, `min`, `k·`, an explicit
+  network computing every affine function and every minimum of affine functions, and a proof that
+  `2ⁿ` is not semilinear
 - Absolute concentration robustness, antithetic integral feedback, open (CFSTR) systems, and composition
 - **Robust perfect adaptation for a general plant**: the setpoint of the antithetic internal model,
   a linear-quadratic Lyapunov certificate, and a Foster–Lyapunov ergodicity transfer theorem
+- The **Gibbs free energy with standard chemical potentials**: the chemical affinity, De Donder's
+  identity, and the classical dissipation formula, linked to the entropy production
 
 Every abstraction is exercised by at least one worked example network in [`CRNT/Examples/`](./CRNT/Examples/).
 
