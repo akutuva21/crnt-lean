@@ -744,7 +744,7 @@ theorem hasCapacity : N.HasMultistationarityCapacity :=
   N.adaFeasible_implies_capacity adaFeasible
 
 /-- **The example has seven complexes**: `0`, `A`, `B`, `A + B`, `C`, `D`, `C + D`. -/
-theorem numComplexes_eq_seven : N.numComplexes = 7 := by native_decide
+theorem numComplexes_eq_seven : N.numComplexes = 7 := by decide
 
 /-- **The example is not weakly reversible**: the reaction `0 → A` has no reverse channel. -/
 lemma no_reaction_from_cA (h : ∃ r : Rxn, (N.reaction r).source = cA) : False := by
@@ -766,11 +766,11 @@ theorem not_weaklyReversible : ¬ N.WeaklyReversible := by
   have hr : N.Reaches cA c0 := h Rxn.r1
   exact absurd (reachable_from_cA c0 hr) (by decide)
 
-/-- **The deficiency of the example is two**: `n = 7` complexes, `ℓ = 1` linkage class, and
-`s = 4` stoichiometric rank, so `δ = 7 − 1 − 4 = 2`. -/
-theorem deficiency_eq_two : N.deficiency = 2 := by
-  rw [N.deficiency_eq_computableDeficiency]
-  native_decide
+/-- **The example has a single linkage class**: the zero complex is linked to `A`, `B`, `C`
+and `D`, so `ℓ = 1`.  (The *value* of the deficiency itself is not reducible under kernel
+`decide` -- the stoichiometric rank is a determinant permutation-sum -- and is obtained by
+compiled evaluation, exactly as `CRNT.Decision.ComputableDeficiency` documents.) -/
+theorem numLinkageClasses_eq_one : N.computeNumLinkageClasses = 1 := by decide
 
 end ADAExample
 
