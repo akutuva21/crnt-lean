@@ -624,6 +624,86 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Examples.AugmentedCells.two_nondegenerate_steadyStates
 
+-- S19
+/-- info: 'CRNT.Network.card_positiveSteadyStates_odd' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.card_positiveSteadyStates_odd
+
+-- S19
+/-- info: 'CRNT.Network.card_positiveSteadyStates_odd_of_classDegree_eq_pow_neg_one' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.card_positiveSteadyStates_odd_of_classDegree_eq_pow_neg_one
+
+-- S19
+/-- info: 'CRNT.Network.card_positiveSteadyStates_odd_of_classDegree_eq_one_or_neg_one' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.card_positiveSteadyStates_odd_of_classDegree_eq_one_or_neg_one
+
+-- S19
+/-- info: 'CRNT.Network.fullyOpen_card_positiveSteadyStates_odd' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fullyOpen_card_positiveSteadyStates_odd
+
+-- S19
+/-- info: 'CRNT.Network.classDegree_eq_card_sub_two_mul_negCount' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.classDegree_eq_card_sub_two_mul_negCount
+
+-- S19
+/-- info: 'CRNT.Network.mem_positiveSteadyStates_in_class_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.mem_positiveSteadyStates_in_class_iff
+
+-- S19
+/-- info: 'CRNT.Network.card_positiveSteadyStates_in_class' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.card_positiveSteadyStates_in_class
+
+-- S19
+/-- info: 'CRNT.Network.card_negativeReducedDet_in_class' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.card_negativeReducedDet_in_class
+
+-- S19
+/-- info: 'CRNT.Network.fullyOpen_massActionVectorField_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fullyOpen_massActionVectorField_eq
+
+-- S19
+/-- info: 'CRNT.Network.fullyOpen_field_pos_of_nonneg_of_eq_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fullyOpen_field_pos_of_nonneg_of_eq_zero
+
+-- S19
+/-- info: 'CRNT.Network.fullyOpen_noBoundarySteadyState' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fullyOpen_noBoundarySteadyState
+
+-- S19
+/-- info: 'CRNT.Network.fullyOpen_steadyStateMap_ne_zero_on_classBoundary' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fullyOpen_steadyStateMap_ne_zero_on_classBoundary
+
+-- S19
+/-- info: 'CRNT.Network.emptyNet_fullyOpen_card_positiveSteadyStates_eq_one' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.emptyNet_fullyOpen_card_positiveSteadyStates_eq_one
+
+-- S19
+/-- info: 'CRNT.Network.emptyNet_fullyOpen_card_positiveSteadyStates_odd' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.emptyNet_fullyOpen_card_positiveSteadyStates_odd
+
+-- S19
+/-- info: 'CRNT.Network.DegreeExampleParity.card_positiveSteadyStates_odd' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.DegreeExampleParity.card_positiveSteadyStates_odd
+
+-- S19
+/-- info: 'CRNT.Network.DegreeExampleParity.card_positiveSteadyStates_eq_one' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.DegreeExampleParity.card_positiveSteadyStates_eq_one
+
 -- M1
 /-- info: 'CRNT.Network.massAction_subsingleton_steadyState_of_injective' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
