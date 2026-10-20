@@ -4928,3 +4928,33 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Design.GeneralPlant.plant_lyapunov_equation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Design.GeneralPlant.plant_lyapunov_equation
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.cubic_remainder_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.cubic_remainder_le
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.cubic_not_absorbable' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.cubic_not_absorbable
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.AnnihilationSignCondition' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.AnnihilationSignCondition
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.annihilation_drift_le_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.annihilation_drift_le_zero
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.fosterDrift_of_sign_controlled' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.fosterDrift_of_sign_controlled
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.ergodic_of_sign_controlled' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.ergodic_of_sign_controlled

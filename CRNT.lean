@@ -1059,6 +1059,7 @@ import CRNT.Dynamics.StrongOrderConvex
 import CRNT.Multistationarity.TwoReactionClassification
 import CRNT.Algebra.TropicalSlowFast
 import CRNT.Dynamics.AveragingRemainder
+import CRNT.Design.MolecularControllerDrift
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
