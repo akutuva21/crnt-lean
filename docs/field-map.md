@@ -10,7 +10,7 @@ named in the tables below and writes `test/FieldMapAudit.lean`, which pins each 
 `[propext, Classical.choice, Quot.sound]` (or a subset). If a declaration is renamed, removed, or
 acquires `sorryAx`, that test fails.
 
-Status of the map: 2026-10-20 (session 2026-10-20: D12, D14, D16, D18, E2, E3, M7, M8, M9, M11, M13, P7, P8, P9, S17, S19, A3, A4, C2, C3 extended; 68 proved, 20 partial; 884 declarations pinned). Earlier: 2026-10-14 (session 2026-10-14: D8, M4, P6 proved; D12, D14, P7, P8, P9 extended; 68 proved, 19 partial; see `HANDOFF_SESSION_2026-10-14.md`). Earlier: 2026-10-13 (P2, P4, P6, P7, C3 extended; see `HANDOFF_SESSION_2026-10-13.md`). Earlier: 2026-10-12 (A2, A4, M13, P9 missing → partial; D9 partial → proved), 2026-10-11c, 2026-10-11d.
+Status of the map: 2026-10-20 (session 2026-10-20: S17 proved; D12, D14, D16, D18, E2, E3, M7, M8, M9, M11, M13, P7, P8, P9, S19 added, A3, A4, C2, C3 extended; 69 proved, 19 partial; 886 declarations pinned). Earlier: 2026-10-14 (session 2026-10-14: D8, M4, P6 proved; D12, D14, P7, P8, P9 extended; 68 proved, 19 partial; see `HANDOFF_SESSION_2026-10-14.md`). Earlier: 2026-10-13 (P2, P4, P6, P7, C3 extended; see `HANDOFF_SESSION_2026-10-13.md`). Earlier: 2026-10-12 (A2, A4, M13, P9 missing → partial; D9 partial → proved), 2026-10-11c, 2026-10-11d.
 
 ## Status legend
 
