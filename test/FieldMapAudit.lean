@@ -814,6 +814,36 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Examples.NilpotentJacobian.massActionVectorField_eq_zero
 
+-- S20
+/-- info: 'CRNT.Network.massActionJacobian_eq_factorization' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionJacobian_eq_factorization
+
+-- S20
+/-- info: 'CRNT.Network.charpoly_massActionJacobian_mul_comm' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.charpoly_massActionJacobian_mul_comm
+
+-- S20
+/-- info: 'CRNT.Network.charpoly_massActionJacobian_eq_charpoly_complexSpaceOperator' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.charpoly_massActionJacobian_eq_charpoly_complexSpaceOperator
+
+-- S20
+/-- info: 'CRNT.Network.trace_massActionJacobian_eq_trace_complexSpaceOperator' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.trace_massActionJacobian_eq_trace_complexSpaceOperator
+
+-- S20
+/-- info: 'CRNT.Network.isNilpotent_massActionJacobian_iff_isNilpotent_complexSpaceOperator' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.isNilpotent_massActionJacobian_iff_isNilpotent_complexSpaceOperator
+
+-- S20
+/-- info: 'CRNT.Network.not_isNilpotent_weightedAdjacencyMatrix_of_pos_mulVec' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.not_isNilpotent_weightedAdjacencyMatrix_of_pos_mulVec
+
 -- S21
 /-- info: 'CRNT.Network.IsUnimolecular' does not depend on any axioms -/
 #guard_msgs (whitespace := lax) in
