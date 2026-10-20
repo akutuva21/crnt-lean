@@ -307,10 +307,128 @@ UPDATES: dict[str, tuple[list[str], str]] = {
     "A3": (
         [
             "CRNT.CircuitDescartes.signVariations",
+            "CRNT.CircuitDescartes.card_zeros_exp_sum_le",
+            "CRNT.CircuitDescartes.card_pos_roots_exp_le_signVariations",
+            "CRNT.Circuit.card_circuit_solutions_le_signVariations",
         ],
         " The sign-variation count needed for the Bihan–Dickenstein refinement is now defined "
-        "(`CircuitDescartes.signVariations`); the generalized Descartes rule for real "
-        "exponents, and hence the refined bound, are not yet proved.",
+        "and proved to skip zeros (`CRNT.CircuitDescartes.signVariations`), and the "
+        "**generalized Descartes rule is proved**: the number of distinct real zeros of an "
+        "exponential sum `∑ c_k e^{w_k t}` with `w` strictly increasing is at most the number "
+        "of sign variations of the coefficients "
+        "(`CRNT.CircuitDescartes.card_zeros_exp_sum_le`), hence the number of positive roots of "
+        "`∑ c_k y^{w_k}` is at most the sign variations "
+        "(`card_pos_roots_exp_le_signVariations`). The proof is the classical "
+        "Budan–Fourier/Rolle induction; the missing `−1` comes from the end signs of the "
+        "shifted sum. Applied to circuits, the number of positive solutions of a circuit system "
+        "is bounded by the sign variations of the numerator polynomial "
+        "(`CRNT.Circuit.card_circuit_solutions_le_signVariations`), which is at most `n + 1` and "
+        "strictly smaller when the numerator has few sign changes; the bound is attained "
+        "(`1 + y − y²` has exactly one positive root). Still missing: the row-wise "
+        "Bihan–Dickenstein bound and the BKK mixed volumes.",
+    ),
+    "M7": (
+        [
+            "CRNT.Network.doaFeasible_implies_capacity",
+            "CRNT.Network.capacity_implies_doaFeasible",
+            "CRNT.Network.hasMultistationarityCapacity_iff_doaFeasible",
+            "CRNT.Network.rankOne_hasMultistationarityCapacity_iff",
+            "CRNT.Network.oneRxn_doaFeasible_iff",
+        ],
+        " The **correctness of the Deficiency One Algorithm is now proved in both directions**: "
+        "the algorithm's system (`DOAFeasible`: a log-ratio `μ` and a flux `α` with the lower "
+        "and upper balance equations and the sign compatibility with the stoichiometric "
+        "subspace) is feasible **iff** the network has multistationarity capacity "
+        "(`CRNT.Network.hasMultistationarityCapacity_iff_doaFeasible`), so the algorithm "
+        "*decides* the capacity. For a rank-one network the two balance equations collapse to "
+        "two scalar equations and the algorithm's linear inequality system reduces to the "
+        "single inequality `⟨v, μ⟩ ≠ 0` "
+        "(`CRNT.Network.rankOne_hasMultistationarityCapacity_iff`). For the fully open "
+        "one-reaction network the test is feasible exactly when `∑_{b_i>a_i} a_i > 1` "
+        "(`CRNT.Network.oneRxn_doaFeasible_iff`), a complete correctness statement for that "
+        "family. Still missing: the *presentation* of the algorithm (the shelf/confluence "
+        "enumeration of `CRNT.Deficiency.DeficiencyOneAlgorithm`) and its connection to the "
+        "numerical version, and the analogous correctness of the Advanced Deficiency Algorithm "
+        "(leaf M8).",
+    ),
+    "M11": (
+        [
+            "CRNT.Network.TwoRxnIsAtom",
+            "CRNT.Network.twoRxnOpen_isAtom_iff",
+            "CRNT.Network.twoRxnOpen_revPair_multistationary_iff",
+            "CRNT.Network.twoRxnOpen_revPair_not_atom",
+        ],
+        " The **two-reaction atom criterion** is now formalized: for the fully open network "
+        "with two non-flow reactions `a → b` and `c → d`, the network is an atom of "
+        "multistationarity iff it is multistationary and neither reaction alone is "
+        "(`CRNT.Network.twoRxnOpen_isAtom_iff`); the reversible-pair case is treated "
+        "completely (multistationarity criterion and “never an atom”). Three concrete "
+        "instances are checked, and *two proposed criteria are refuted by proof*: the "
+        "“crossing reaction vectors” criterion is false in the fully open setting (a crossing "
+        "pair can be monostationary) and so is its converse (a non-crossing pair can be "
+        "multistationary). The remaining gap is a closed-form necessary-and-sufficient "
+        "condition for two irreversible reactions, which does not exist in the literature "
+        "(Joshi–Shiu settle it by computer-assisted enumeration).",
+    ),
+    "D16": (
+        [
+            "CRNT.Hopf.quadForm_expansion",
+            "CRNT.Hopf.cubicForm_expansion",
+            "CRNT.Hopf.cubicCombination_eq",
+            "CRNT.Hopf.classical_lyapunov_formula",
+            "CRNT.Hopf.classical_lyapunov",
+            "CRNT.Hopf.hopf_lyapunov_calibration",
+        ],
+        " The **Guckenheimer–Holmes calibration is now proved**: the complex Taylor "
+        "coefficients of a planar field are related to the real partial derivatives by "
+        "explicit expansions (`CRNT.Hopf.quadForm_expansion`, `cubicForm_expansion`), the "
+        "cubic combination satisfies `f_xxx + f_xyy + g_xxy + g_yyy = 16 Re c₂₁` "
+        "(`cubicCombination_eq`), and the **classical first Lyapunov coefficient formula** "
+        "with the *original* real partials is proved "
+        "(`CRNT.Hopf.classical_lyapunov_formula`, `classical_lyapunov`); the repository's "
+        "`lyapunovFromPartials_eq` is then applied to discharge the calibration "
+        "(`CRNT.Hopf.hopf_lyapunov_calibration`). The remaining gap is the `O(R⁴)` remainder "
+        "for a general reduced field and the mass-action verdict on a sustained periodic "
+        "orbit.",
+    ),
+    "E2": (
+        [
+            "CRNT.ReactionDiffusion.exists_reactionDiffusion_solution",
+            "CRNT.ReactionDiffusion.reactionDiffusionField_lipschitz",
+            "CRNT.ReactionDiffusion.reactionDiffusionField_hasDerivAt_curve_matrix",
+            "CRNT.ReactionDiffusion.brusselator_turing_instance",
+            "CRNT.ReactionDiffusion.brusselator_turing_instance_mode",
+        ],
+        " The **semidiscrete (method of lines)** reading of the reaction–diffusion system is "
+        "now formalized: the box Laplacian, the semidiscrete field "
+        "`ẋ = D Δ_h x + f(x)`, its Lipschitz constant, **local existence** by "
+        "Picard–Lindelöf (`CRNT.ReactionDiffusion.exists_reactionDiffusion_solution`), the "
+        "semidiscrete Jacobian together with the identification of the Jacobian with the "
+        "linearization (`reactionDiffusionField_hasDerivAt_curve_matrix`), the connection to "
+        "the library's Turing criterion through the mode matrix, and a **genuine Brusselator "
+        "instance** (`A = 3`, `B = 2`, diffusion ratio `64`) with the explicit unstable "
+        "wavenumber `55/128` (`brusselator_turing_instance`, "
+        "`brusselator_turing_instance_mode`). Still missing: PDE well-posedness, weak/strong "
+        "solutions and pattern selection (Mathlib has no PDE theory); only the local existence "
+        "of the semidiscrete ODE is proved.",
+    ),
+    "E3": (
+        [
+            "CRNT.Network.delayLyapunov_deriv_neg_of_not_steady",
+            "CRNT.Network.delayLyapunov_deriv_eq_zero_iff",
+            "CRNT.Network.delay_limit_isSteadyState",
+            "CRNT.Network.delay_semistability",
+        ],
+        " The **semistability** of delay mass-action systems is now formalized: the exact zero "
+        "set of the derivative of the Lyapunov–Krasovskii functional is the ratio condition "
+        "(`CRNT.Network.delayLyapunov_deriv_eq_zero_iff`), the functional decreases strictly "
+        "whenever that condition fails "
+        "(`delayLyapunov_deriv_neg_of_not_steady`), every limit of a delay solution is a "
+        "mass-action steady state (`delay_limit_isSteadyState`), and a precompact solution "
+        "whose ω-limit set is a singleton converges to that steady state "
+        "(`CRNT.Network.delay_semistability`). Still missing: existence theory for delay "
+        "systems and the delayed-class LaSalle invariance principle (there is no semiflow in "
+        "the library), and the uniqueness of the limiting equilibrium.",
     ),
     "A4": (
         [

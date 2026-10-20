@@ -719,6 +719,31 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.hasMultistationarityCapacity_iff_flux_sign
 
+-- M7
+/-- info: 'CRNT.Network.doaFeasible_implies_capacity' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.doaFeasible_implies_capacity
+
+-- M7
+/-- info: 'CRNT.Network.capacity_implies_doaFeasible' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.capacity_implies_doaFeasible
+
+-- M7
+/-- info: 'CRNT.Network.hasMultistationarityCapacity_iff_doaFeasible' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.hasMultistationarityCapacity_iff_doaFeasible
+
+-- M7
+/-- info: 'CRNT.Network.rankOne_hasMultistationarityCapacity_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.rankOne_hasMultistationarityCapacity_iff
+
+-- M7
+/-- info: 'CRNT.Network.oneRxn_doaFeasible_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.oneRxn_doaFeasible_iff
+
 -- M8
 /-- info: 'CRNT.Network.stoichSubspace_ne_bot_of_adaAffirmsCapacity' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -873,6 +898,26 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Network.revPair_nondegMultistationary_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.revPair_nondegMultistationary_iff
+
+-- M11
+/-- info: 'CRNT.Network.TwoRxnIsAtom' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.TwoRxnIsAtom
+
+-- M11
+/-- info: 'CRNT.Network.twoRxnOpen_isAtom_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoRxnOpen_isAtom_iff
+
+-- M11
+/-- info: 'CRNT.Network.twoRxnOpen_revPair_multistationary_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoRxnOpen_revPair_multistationary_iff
+
+-- M11
+/-- info: 'CRNT.Network.twoRxnOpen_revPair_not_atom' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoRxnOpen_revPair_not_atom
 
 -- M12
 /-- info: 'CRNT.Network.Kinetics.InjectiveOnClass.sum_subsingleton_steadyState' depends on axioms: [propext, Classical.choice, Quot.sound] -/
@@ -1863,6 +1908,36 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Hopf.hopf_cubic_resonance' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Hopf.hopf_cubic_resonance
+
+-- D16
+/-- info: 'CRNT.Hopf.quadForm_expansion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.quadForm_expansion
+
+-- D16
+/-- info: 'CRNT.Hopf.cubicForm_expansion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.cubicForm_expansion
+
+-- D16
+/-- info: 'CRNT.Hopf.cubicCombination_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.cubicCombination_eq
+
+-- D16
+/-- info: 'CRNT.Hopf.classical_lyapunov_formula' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.classical_lyapunov_formula
+
+-- D16
+/-- info: 'CRNT.Hopf.classical_lyapunov' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.classical_lyapunov
+
+-- D16
+/-- info: 'CRNT.Hopf.hopf_lyapunov_calibration' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Hopf.hopf_lyapunov_calibration
 
 -- D17
 /-- info: 'CRNT.Network.neverPositivePeriodic_of_weaklyReversible_deficiencyZero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
@@ -3544,6 +3619,21 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.CircuitDescartes.signVariations
 
+-- A3
+/-- info: 'CRNT.CircuitDescartes.card_zeros_exp_sum_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.CircuitDescartes.card_zeros_exp_sum_le
+
+-- A3
+/-- info: 'CRNT.CircuitDescartes.card_pos_roots_exp_le_signVariations' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.CircuitDescartes.card_pos_roots_exp_le_signVariations
+
+-- A3
+/-- info: 'CRNT.Circuit.card_circuit_solutions_le_signVariations' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Circuit.card_circuit_solutions_le_signVariations
+
 -- A4
 /-- info: 'CRNT.Tropical.eventually_sum_pos_of_minimizers_pos' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -3718,6 +3808,31 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Turing.exists_growing_mode' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Turing.exists_growing_mode
+
+-- E2
+/-- info: 'CRNT.ReactionDiffusion.exists_reactionDiffusion_solution' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.ReactionDiffusion.exists_reactionDiffusion_solution
+
+-- E2
+/-- info: 'CRNT.ReactionDiffusion.reactionDiffusionField_lipschitz' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.ReactionDiffusion.reactionDiffusionField_lipschitz
+
+-- E2
+/-- info: 'CRNT.ReactionDiffusion.reactionDiffusionField_hasDerivAt_curve_matrix' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.ReactionDiffusion.reactionDiffusionField_hasDerivAt_curve_matrix
+
+-- E2
+/-- info: 'CRNT.ReactionDiffusion.brusselator_turing_instance' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.ReactionDiffusion.brusselator_turing_instance
+
+-- E2
+/-- info: 'CRNT.ReactionDiffusion.brusselator_turing_instance_mode' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.ReactionDiffusion.brusselator_turing_instance_mode
 
 -- E3
 /-- info: 'CRNT.Network.const_isDelaySolution_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/

@@ -1023,6 +1023,11 @@ import CRNT.Oscillation.PlanarOscillationCriterion
 import CRNT.Multistationarity.MultistationarityRegion
 import CRNT.Stochastic.EndotacticTierPositiveRecurrence
 import CRNT.Computation.Semilinear
+import CRNT.Dynamics.HopfLyapunovCalibration
+import CRNT.Extensions.ReactionDiffusion
+import CRNT.Extensions.DelaySemistability
+import CRNT.Multistationarity.DeficiencyOneAlgorithm
+import CRNT.Multistationarity.TwoReactionAtoms
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
