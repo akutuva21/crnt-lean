@@ -1042,6 +1042,9 @@ import CRNT.Design.GeneralPlantDrift
 import CRNT.Dynamics.EscapeDirection
 import CRNT.Deficiency.DeficiencyOneAlgorithmCorrectness
 import CRNT.Multistationarity.ParityOfSteadyStates
+import CRNT.Computation.SemilinearRealization
+import CRNT.Multistationarity.MultistationarityRegionDescription
+import CRNT.Thermo.GibbsFreeEnergy
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has

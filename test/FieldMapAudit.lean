@@ -1169,6 +1169,36 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.inst_multistationary
 
+-- M13
+/-- info: 'CRNT.Network.RateMultistationarityRegion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.RateMultistationarityRegion
+
+-- M13
+/-- info: 'CRNT.Network.rateMultistationarityRegion_iff_classIsMultistationary' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.rateMultistationarityRegion_iff_classIsMultistationary
+
+-- M13
+/-- info: 'CRNT.Network.reducedDerivOf_eq_forward_sub_backward' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.reducedDerivOf_eq_forward_sub_backward
+
+-- M13
+/-- info: 'CRNT.Network.reducedDerivOf_pos_iff_two_reaction_circuit' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.reducedDerivOf_pos_iff_two_reaction_circuit
+
+-- M13
+/-- info: 'CRNT.Network.rankOne_circuit_is_pair' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.rankOne_circuit_is_pair
+
+-- M13
+/-- info: 'CRNT.Network.not_eq_rateProduct_mul' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.not_eq_rateProduct_mul
+
 -- D1
 /-- info: 'CRNT.Network.orbit_pos_forward' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -4219,6 +4249,26 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.NonIsothermal.arrhenius_isothermal_reduction
 
+-- E3
+/-- info: 'CRNT.Network.gibbsFreeEnergy_rateOfChange' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.gibbsFreeEnergy_rateOfChange
+
+-- E3
+/-- info: 'CRNT.Network.chemicalAffinity_eq_zero_iff_conservationLaw' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.chemicalAffinity_eq_zero_iff_conservationLaw
+
+-- E3
+/-- info: 'CRNT.Network.gibbsFreeEnergy_dissipation_eq_sum_squares' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.gibbsFreeEnergy_dissipation_eq_sum_squares
+
+-- E3
+/-- info: 'CRNT.Network.gibbsFreeEnergy_dissipation_nonneg_of_consistentChemicalPotentials' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.gibbsFreeEnergy_dissipation_nonneg_of_consistentChemicalPotentials
+
 -- C1
 /-- info: 'CRNT.Network.gac_of_singleLinkage_decide' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -4283,6 +4333,16 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Computation.not_semilinear_pow2' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Computation.not_semilinear_pow2
+
+-- C2
+/-- info: 'CRNT.Computation.MinAffine.minAffineCRN_stablyComputes' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Computation.MinAffine.minAffineCRN_stablyComputes
+
+-- C2
+/-- info: 'CRNT.Computation.MinAffine.minList_semilinear' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Computation.MinAffine.minList_semilinear
 
 -- C3
 /-- info: 'CRNT.Network.maxRPA_output_eq_between_steadyStates' depends on axioms: [propext, Classical.choice, Quot.sound] -/
@@ -4438,3 +4498,28 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Design.GeneralPlant.ProductionDegradationNetwork.ConcreteInstance.antithetic_equilibrium' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Design.GeneralPlant.ProductionDegradationNetwork.ConcreteInstance.antithetic_equilibrium
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.fosterDrift_of_certificate' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.fosterDrift_of_certificate
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.ergodic_of_certificate' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.ergodic_of_certificate
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.geometricErgodic_of_certificate' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.geometricErgodic_of_certificate
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.fosterDrift_of_plant' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.fosterDrift_of_plant
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.plant_lyapunov_equation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.plant_lyapunov_equation

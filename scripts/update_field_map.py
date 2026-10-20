@@ -299,8 +299,8 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.Design.GeneralPlant.fosterDrift_of_certificate",
             "CRNT.Design.GeneralPlant.ergodic_of_certificate",
             "CRNT.Design.GeneralPlant.geometricErgodic_of_certificate",
-            "CRNT.Design.GeneralPlant.LinearPlant.fosterDrift_of_plant",
-            "CRNT.Design.GeneralPlant.LinearPlant.plant_lyapunov_equation",
+            "CRNT.Design.GeneralPlant.fosterDrift_of_plant",
+            "CRNT.Design.GeneralPlant.plant_lyapunov_equation",
         ],
         " The **general-plant** version of robust perfect adaptation is now formalized: a linear "
         "unimolecular plant `ẋ = A x + B u` with output `y = C x` closed by the antithetic "
@@ -404,6 +404,12 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.Network.rankOne_noPositiveCircuit_noSteadyState",
             "CRNT.Network.isOpen_multistationarityRegion",
             "CRNT.Network.inst_multistationary",
+            "CRNT.Network.RateMultistationarityRegion",
+            "CRNT.Network.rateMultistationarityRegion_iff_classIsMultistationary",
+            "CRNT.Network.reducedDerivOf_eq_forward_sub_backward",
+            "CRNT.Network.reducedDerivOf_pos_iff_two_reaction_circuit",
+            "CRNT.Network.rankOne_circuit_is_pair",
+            "CRNT.Network.not_eq_rateProduct_mul",
         ],
         " The **explicit description of the multistationarity region** is now formalized for "
         "rank-one networks: the sign of the reduced Jacobian determinant at a steady state "
@@ -420,7 +426,21 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "(`CRNT.Network.isOpen_multistationarityRegion`) and nonempty for the "
         "decorated-cell instance (`CRNT.Network.inst_multistationary`). Still missing: the product-of-rates "
         "reading of the determinant over a single circuit (the repository's circuit machinery "
-        "covers the full Jacobian, not the rank-one reduced determinant).",
+        "covers the full Jacobian, not the rank-one reduced determinant). The region is now given "
+        "**explicitly as a set of rate constants** (`CRNT.Network.RateMultistationarityRegion`: "
+        "one linear equation, the reduced flux vanishing, plus one linear inequality, the "
+        "reduced determinant being positive), and this set is proved to be exactly the set of "
+        "parameters making the class multistationary "
+        "(`rateMultistationarityRegion_iff_classIsMultistationary`). The correct circuit reading "
+        "is proved: the reduced determinant is the difference of the two *directional fluxes* of "
+        "the circuit (`reducedDerivOf_eq_forward_sub_backward`), the circuits of a rank-one "
+        "network are *pairs* of oppositely oriented reactions (`rankOne_circuit_is_pair`), and "
+        "the region condition is a comparison of two products of rate constants with "
+        "monomial-derivative factors (`reducedDerivOf_pos_iff_two_reaction_circuit`). The "
+        "proposed *single-product* reading is refuted by proof: the rank-one reduced determinant "
+        "is an **affine** functional of the rate constants whereas a product is multilinear, so "
+        "it is not a constant times a product of powers of the rates "
+        "(`CRNT.Network.not_eq_rateProduct_mul`).",
     ),
     "C2": (
         [
@@ -429,6 +449,8 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.Computation.affineCRN_stablyComputes",
             "CRNT.Computation.output_conserving_semilinear",
             "CRNT.Computation.not_semilinear_pow2",
+            "CRNT.Computation.MinAffine.minAffineCRN_stablyComputes",
+            "CRNT.Computation.MinAffine.minList_semilinear",
         ],
         " The **semilinear characterization** is now formalized in the *piecewise affine over "
         "linear regions* form: a function `f : ℕ^d → ℕ` is **semilinear** if it is given by "
@@ -444,7 +466,12 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "semilinear function is stably computable, and every stably computable function is "
         "semilinear for arbitrary networks) remains open; the definition used here is weaker "
         "than Presburger semilinearity (no congruences) and this is stated in the module "
-        "docstring.",
+        "docstring. The **realization direction** is now proved for the min-of-affine class: the "
+        "pointwise minimum of finitely many affine maps on `ℕ^d` is computed by an explicit "
+        "reaction network (`CRNT.Computation.MinAffine.minAffineCRN_stablyComputes`), the "
+        "selection being realized by consumption, with the correctness proof carried by the "
+        "repository's linear-invariant calculus on configurations; the min of a list of affine "
+        "maps is semilinear (`minList_semilinear`).",
     ),
     "A3": (
         [
@@ -630,6 +657,10 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.NonIsothermal.V_iso_derivative_nonpos",
             "CRNT.NonIsothermal.arrhenius_pos",
             "CRNT.NonIsothermal.arrhenius_isothermal_reduction",
+            "CRNT.Network.gibbsFreeEnergy_rateOfChange",
+            "CRNT.Network.chemicalAffinity_eq_zero_iff_conservationLaw",
+            "CRNT.Network.gibbsFreeEnergy_dissipation_eq_sum_squares",
+            "CRNT.Network.gibbsFreeEnergy_dissipation_nonneg_of_consistentChemicalPotentials",
         ],
         " Non-isothermal (temperature-dependent) kinetics are now formalized: the coupled "
         "species/temperature field (`coupledField`), the reduction to the isothermal mass-action "
@@ -641,7 +672,17 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "(`arrhenius_pos`, `arrhenius_isothermal_reduction`). The isothermal pseudo-Helmholtz "
         "function is nonincreasing along the isothermal flow of a detailed-balanced network "
         "(`V_iso_derivative_nonpos`). Still missing: the joint non-isothermal Lyapunov "
-        "function, existence theory and semistability for the delayed systems.",
+        "function, existence theory and semistability for the delayed systems. The **Gibbs free "
+        "energy with standard chemical potentials** is now formalized: the chemical affinity of a "
+        "reaction (`CRNT.Network.chemicalAffinity`), De Donder's identity for the rate of change "
+        "of the free energy (`gibbsFreeEnergy_rateOfChange`), the equivalence between a vanishing "
+        "affinity and a conservation law (`chemicalAffinity_eq_zero_iff_conservationLaw`), the "
+        "stationarity of the free energy at a complex-balanced equilibrium for *every* choice of "
+        "chemical potentials, and the classical dissipation formula "
+        "`−dG/dt = ½ ∑_r κ_r A_r² x^{y_r}` under the local detailed-balance hypothesis "
+        "(`gibbsFreeEnergy_dissipation_eq_sum_squares`), whose nonnegativity is linked to the "
+        "entropy production of leaf E1 "
+        "(`gibbsFreeEnergy_dissipation_nonneg_of_consistentChemicalPotentials`).",
     ),
 }
 

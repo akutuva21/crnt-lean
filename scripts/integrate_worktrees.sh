@@ -32,9 +32,22 @@ for spec in "$@"; do
     exit 1
   fi
   cp "$wt/$mod" "$mod"
-  imp="import $mod"
+  # the module name is the path with `/` replaced by `.` and the `.lean` suffix dropped
+  modname="${mod%.lean}"
+  modname="${modname//\//.}"
+  imp="import $modname"
   if ! grep -qxF "$imp" CRNT.lean; then
-    printf '%s\n' "$imp" >> CRNT.lean
+    # the imports must stay in the import block at the top of the file, which ends
+    # with the last `import` line (the file's docstring follows it)
+    python3 - "$imp" <<'PYEOF'
+import sys
+imp = sys.argv[1]
+path = "CRNT.lean"
+lines = open(path).read().split("\n")
+last = max(i for i, l in enumerate(lines) if l.startswith("import "))
+lines.insert(last + 1, imp)
+open(path, "w").write("\n".join(lines))
+PYEOF
   fi
   added+=("$mod")
 done
