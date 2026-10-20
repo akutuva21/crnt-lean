@@ -171,6 +171,74 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "steady states and the general (non-linear-elimination) steady-state invariants "
         "remain missing.",
     ),
+    "M9": (
+        [
+            "CRNT.Network.exists_positiveSteadyState_of_nonnegativeClassDegree_ne_zero",
+            "CRNT.Network.exists_positiveSteadyState_of_positiveClassDegree_ne_zero",
+            "CRNT.Network.nonnegativeClassDegree_rate_independent",
+            "CRNT.Network.positiveClassDegree_rate_independent",
+            "CRNT.Network.DegreeExample.exists_positive_steady_state",
+        ],
+        " The degree-theoretic existence argument in dimension `s ≥ 2` is now formalized: the "
+        "**relative Brouwer degree** of the steady-state map on the class is defined "
+        "(`Network.nonnegativeClassDegree`, `Network.positiveClassDegree`), a nonzero degree "
+        "together with non-vanishing on the class boundary gives a **positive steady state in "
+        "the class** (`Network.exists_positiveSteadyState_of_nonnegativeClassDegree_ne_zero`), "
+        "and the degree is **independent of the rate constants** as long as the map does not "
+        "vanish on the boundary (`Network.nonnegativeClassDegree_rate_independent`), which "
+        "makes it a *structural* object: a network with a nonzero degree for one choice of "
+        "rates has a positive steady state for every choice with the same boundary sign "
+        "(`Network.exists_positiveSteadyState_of_rate_independent_degree`). Instance: the "
+        "fully open two-species network `0 → A → 0`, `0 → B → 0` with degree `1` "
+        "(`CRNT.Network.DegreeExample`). The remaining gap is a *structural* criterion for a "
+        "nonzero degree (the sign of the reduced determinant at a steady state), and the "
+        "nonvanishing-on-the-boundary hypothesis is still an explicit assumption.",
+    ),
+    "D18": (
+        [
+            "CRNT.Oscillation.periodicSolution_constant_of_monotone",
+            "CRNT.Oscillation.periodicSolution_constant_of_boxedKamke",
+            "CRNT.Oscillation.periodicSolution_constant_of_monotone_locallyLipschitz",
+            "CRNT.Oscillation.Network.neverPositivePeriodic_of_cooperative",
+            "CRNT.Oscillation.Example.neverPositivePeriodic",
+            "CRNT.Oscillation.lotka_hasPositivePeriodicOrbit_of_poincareBendixson",
+        ],
+        " A **structural criterion for the absence of oscillations** is now formalized: an "
+        "order-preserving (or Kamke) planar field has no nonconstant periodic orbit "
+        "(`CRNT.Oscillation.periodicSolution_constant_of_monotone`, "
+        "`periodicSolution_constant_of_boxedKamke`), and hence a **cooperative planar "
+        "mass-action network has no positive periodic orbit for any choice of positive rate "
+        "constants** (`CRNT.Oscillation.Network.neverPositivePeriodic_of_cooperative`, "
+        "instance `CRNT.Oscillation.Example`). The sharpness is checked: the Lotka network, "
+        "which does oscillate, is not cooperative. The converse direction (an oscillation "
+        "criterion) is reduced to the repository's Poincaré–Bendixson bundle "
+        "(`lotka_hasPositivePeriodicOrbit_of_poincareBendixson`); the bundle's universal "
+        "hypotheses (flow regularity, Jordan separation) are still unproved, so the general "
+        "existence of oscillations is still missing.",
+    ),
+    "C3": (
+        [
+            "CRNT.Design.GeneralPlant.LinearPlant.antitheticLoop_setpoint",
+            "CRNT.Design.GeneralPlant.LinearPlant.antitheticLoop_equilibrium",
+            "CRNT.Design.GeneralPlant.LyapunovCertificate.antitheticLieDeriv_neg",
+            "CRNT.Design.GeneralPlant.ergodic_of_fosterDrift",
+            "CRNT.Design.GeneralPlant.geometric_ergodic_of_fosterDrift",
+            "CRNT.Design.GeneralPlant.ProductionDegradationNetwork.closedLoop_mean_output_tendsto_via_general",
+            "CRNT.Design.GeneralPlant.ProductionDegradationNetwork.ConcreteInstance.antithetic_equilibrium",
+        ],
+        " The **general-plant** version of robust perfect adaptation is now formalized: a linear "
+        "unimolecular plant `ẋ = A x + B u` with output `y = C x` closed by the antithetic "
+        "internal model `u̇ = μ − θ(Cx)` has the setpoint `C x = μ/θ` at every equilibrium "
+        "(`CRNT.Design.GeneralPlant.LinearPlant.antitheticLoop_setpoint`), a linear-quadratic "
+        "Lyapunov certificate makes the closed-loop Lyapunov function decrease "
+        "(`antitheticLieDeriv_neg`), and a **general Foster–Lyapunov transfer theorem** gives "
+        "ergodicity (and geometric ergodicity) from a drift condition "
+        "(`CRNT.Design.GeneralPlant.ergodic_of_fosterDrift`), which is then discharged for the "
+        "production–degradation plant, recovering the mean-output convergence "
+        "(`closedLoop_mean_output_tendsto_via_general`). Still missing: the construction of "
+        "the drift condition for an *arbitrary* output-controllable unimolecular plant, which "
+        "is the remaining Briat–Gupta–Khammash theorem.",
+    ),
     "A3": (
         [
             "CRNT.CircuitDescartes.signVariations",

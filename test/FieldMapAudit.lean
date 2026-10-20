@@ -734,6 +734,31 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.rankOne_exists_positive_steadyState
 
+-- M9
+/-- info: 'CRNT.Network.exists_positiveSteadyState_of_nonnegativeClassDegree_ne_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_positiveSteadyState_of_nonnegativeClassDegree_ne_zero
+
+-- M9
+/-- info: 'CRNT.Network.exists_positiveSteadyState_of_positiveClassDegree_ne_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.exists_positiveSteadyState_of_positiveClassDegree_ne_zero
+
+-- M9
+/-- info: 'CRNT.Network.nonnegativeClassDegree_rate_independent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.nonnegativeClassDegree_rate_independent
+
+-- M9
+/-- info: 'CRNT.Network.positiveClassDegree_rate_independent' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.positiveClassDegree_rate_independent
+
+-- M9
+/-- info: 'CRNT.Network.DegreeExample.exists_positive_steady_state' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.DegreeExample.exists_positive_steady_state
+
 -- M10
 /-- info: 'CRNT.Network.hasMultistationarityCapacity_of_two_positive_zeros' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -1858,6 +1883,36 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Examples.Lotka.average_B' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Examples.Lotka.average_B
+
+-- D18
+/-- info: 'CRNT.Oscillation.periodicSolution_constant_of_monotone' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Oscillation.periodicSolution_constant_of_monotone
+
+-- D18
+/-- info: 'CRNT.Oscillation.periodicSolution_constant_of_boxedKamke' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Oscillation.periodicSolution_constant_of_boxedKamke
+
+-- D18
+/-- info: 'CRNT.Oscillation.periodicSolution_constant_of_monotone_locallyLipschitz' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Oscillation.periodicSolution_constant_of_monotone_locallyLipschitz
+
+-- D18
+/-- info: 'CRNT.Oscillation.Network.neverPositivePeriodic_of_cooperative' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Oscillation.Network.neverPositivePeriodic_of_cooperative
+
+-- D18
+/-- info: 'CRNT.Oscillation.Example.neverPositivePeriodic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Oscillation.Example.neverPositivePeriodic
+
+-- D18
+/-- info: 'CRNT.Oscillation.lotka_hasPositivePeriodicOrbit_of_poincareBendixson' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Oscillation.lotka_hasPositivePeriodicOrbit_of_poincareBendixson
 
 -- D19
 /-- info: 'ODE.fenichel_persistence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
@@ -3843,3 +3898,38 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Antithetic.unitRates_mean_output_tendsto' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Antithetic.unitRates_mean_output_tendsto
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.LinearPlant.antitheticLoop_setpoint' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.LinearPlant.antitheticLoop_setpoint
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.LinearPlant.antitheticLoop_equilibrium' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.LinearPlant.antitheticLoop_equilibrium
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.LyapunovCertificate.antitheticLieDeriv_neg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.LyapunovCertificate.antitheticLieDeriv_neg
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.ergodic_of_fosterDrift' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.ergodic_of_fosterDrift
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.geometric_ergodic_of_fosterDrift' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.geometric_ergodic_of_fosterDrift
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.ProductionDegradationNetwork.closedLoop_mean_output_tendsto_via_general' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.ProductionDegradationNetwork.closedLoop_mean_output_tendsto_via_general
+
+-- C3
+/-- info: 'CRNT.Design.GeneralPlant.ProductionDegradationNetwork.ConcreteInstance.antithetic_equilibrium' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Design.GeneralPlant.ProductionDegradationNetwork.ConcreteInstance.antithetic_equilibrium

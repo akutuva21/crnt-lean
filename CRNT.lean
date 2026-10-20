@@ -1017,6 +1017,9 @@ import CRNT.Stochastic.EndotacticPositiveRecurrence
 import CRNT.Algebra.TropicalReduction
 import CRNT.Extensions.NonIsothermal
 import CRNT.Equilibria.MESSI
+import CRNT.Design.GeneralPlantRPA
+import CRNT.Multistationarity.DegreeExistence
+import CRNT.Oscillation.PlanarOscillationCriterion
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
