@@ -329,6 +329,86 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Elimination.eliminated_eq_monomial_combination
 
+-- S17
+/-- info: 'CRNT.Network.MESSI' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.MESSI
+
+-- S17
+/-- info: 'CRNT.Network.messiCoeff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.messiCoeff
+
+-- S17
+/-- info: 'CRNT.Network.messi_vectorField_eq_linear' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.messi_vectorField_eq_linear
+
+-- S17
+/-- info: 'CRNT.Network.messi_steadyState_iff_linear' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.messi_steadyState_iff_linear
+
+-- S17
+/-- info: 'CRNT.Network.messi_steadyState_add' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.messi_steadyState_add
+
+-- S17
+/-- info: 'CRNT.Network.messi_class_positiveSteadyStates_convex' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.messi_class_positiveSteadyStates_convex
+
+-- S17
+/-- info: 'CRNT.Network.messi_no_exactly_two' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.messi_no_exactly_two
+
+-- S17
+/-- info: 'CRNT.Network.IsSteadyStateInvariant' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.IsSteadyStateInvariant
+
+-- S17
+/-- info: 'CRNT.Network.messi_linearInvariant_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.messi_linearInvariant_iff
+
+-- S17
+/-- info: 'CRNT.Network.messi_linearInvariant_iff_rowSpace' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.messi_linearInvariant_iff_rowSpace
+
+-- S17
+/-- info: 'CRNT.Network.messi_variety_eq_orthSum_rowSpace' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.messi_variety_eq_orthSum_rowSpace
+
+-- S17
+/-- info: 'CRNT.Examples.MESSI.unique_positiveSteadyState_in_class' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.MESSI.unique_positiveSteadyState_in_class
+
+-- S17
+/-- info: 'CRNT.Examples.MESSI.invariantWeight_isSteadyStateInvariant' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.MESSI.invariantWeight_isSteadyStateInvariant
+
+-- S17
+/-- info: 'CRNT.Examples.MESSI.invariantWeight_not_conservationLaw' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.MESSI.invariantWeight_not_conservationLaw
+
+-- S17
+/-- info: 'CRNT.Examples.MESSI.totalWeight_not_steadyStateInvariant' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.MESSI.totalWeight_not_steadyStateInvariant
+
+-- S17
+/-- info: 'CRNT.Examples.MESSI.Chain.more_invariants_than_conservationLaws' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.MESSI.Chain.more_invariants_than_conservationLaws
+
 -- S18
 /-- info: 'CRNT.Network.card_positiveSteadyStates_le_signVariations' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in

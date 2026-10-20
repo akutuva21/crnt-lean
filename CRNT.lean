@@ -1015,6 +1015,7 @@ import CRNT.Stochastic.ExitMass
 import CRNT.Stochastic.EndotacticPositiveRecurrence
 import CRNT.Algebra.TropicalReduction
 import CRNT.Extensions.NonIsothermal
+import CRNT.Equilibria.MESSI
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has

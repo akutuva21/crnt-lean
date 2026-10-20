@@ -102,6 +102,44 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "the normal form from the mass-action Taylor data (the `hcubic`/`hquad` calibration of "
         "`lyapunovFromPartials`), and the mass-action verdict on a sustained periodic orbit.",
     ),
+    "S17": (
+        [
+            "CRNT.Network.MESSI",
+            "CRNT.Network.messiCoeff",
+            "CRNT.Network.messi_vectorField_eq_linear",
+            "CRNT.Network.messi_steadyState_iff_linear",
+            "CRNT.Network.messi_steadyState_add",
+            "CRNT.Network.messi_class_positiveSteadyStates_convex",
+            "CRNT.Network.messi_no_exactly_two",
+            "CRNT.Network.IsSteadyStateInvariant",
+            "CRNT.Network.messi_linearInvariant_iff",
+            "CRNT.Network.messi_linearInvariant_iff_rowSpace",
+            "CRNT.Network.messi_variety_eq_orthSum_rowSpace",
+            "CRNT.Examples.MESSI.unique_positiveSteadyState_in_class",
+            "CRNT.Examples.MESSI.invariantWeight_isSteadyStateInvariant",
+            "CRNT.Examples.MESSI.invariantWeight_not_conservationLaw",
+            "CRNT.Examples.MESSI.totalWeight_not_steadyStateInvariant",
+            "CRNT.Examples.MESSI.Chain.more_invariants_than_conservationLaws",
+        ],
+        " The class of networks in which every reaction has a source complex of total "
+        "molecularity one (the *linear-elimination* class; the term MESSI is used for it here "
+        "in the sense of the source-complex condition, which differs from the "
+        "Pérez Millán–Dickenstein usage) is now formalized. For such a network the "
+        "mass-action steady-state equations are *linear homogeneous* in the concentrations "
+        "(`messi_vectorField_eq_linear`, `messi_steadyState_iff_linear`), so the "
+        "steady-state variety is a linear subspace, the positive steady states form a convex "
+        "cone (`messi_steadyState_add`), the positive steady states in a fixed class are "
+        "convex (`messi_class_positiveSteadyStates_convex`), and a MESSI network is never "
+        "*exactly* multistationary: two distinct positive steady states in a class force a "
+        "third (`messi_no_exactly_two`). Steady-state invariants are formalized: the linear "
+        "invariants of a MESSI network are exactly the rows of the coefficient matrix "
+        "(`messi_linearInvariant_iff_rowSpace`), and the conservation laws and the "
+        "steady-state invariants need not coincide — for `X ⇌ Y` the conservation law "
+        "`(1,1)` is *not* a steady-state invariant while `(κ₁,−κ₂)` is and is *not* a "
+        "conservation law (`CRNT.Examples.MESSI`). Rational parametrizations of the toric "
+        "steady states and the general (non-linear-elimination) steady-state invariants "
+        "remain missing.",
+    ),
     "A3": (
         [
             "CRNT.CircuitDescartes.signVariations",
