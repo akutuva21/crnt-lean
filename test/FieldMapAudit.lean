@@ -919,6 +919,31 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Examples.AugmentedCells.region_open_nonempty
 
+-- M13
+/-- info: 'CRNT.Network.reducedJacobian_det_sign_iff' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.reducedJacobian_det_sign_iff
+
+-- M13
+/-- info: 'CRNT.Network.rankOne_multistationary_iff_det_pos' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.rankOne_multistationary_iff_det_pos
+
+-- M13
+/-- info: 'CRNT.Network.rankOne_noPositiveCircuit_noSteadyState' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.rankOne_noPositiveCircuit_noSteadyState
+
+-- M13
+/-- info: 'CRNT.Network.isOpen_multistationarityRegion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.isOpen_multistationarityRegion
+
+-- M13
+/-- info: 'CRNT.Network.inst_multistationary' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.inst_multistationary
+
 -- D1
 /-- info: 'CRNT.Network.orbit_pos_forward' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -2644,6 +2669,31 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Examples.EndotacticBirthDeath.nonExplosion
 
+-- P7
+/-- info: 'CRNT.Network.tierDrift_le_of' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.tierDrift_le_of
+
+-- P7
+/-- info: 'CRNT.Network.tier_nonExplosion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.tier_nonExplosion
+
+-- P7
+/-- info: 'CRNT.Network.tier_positiveRecurrence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.tier_positiveRecurrence
+
+-- P7
+/-- info: 'CRNT.Network.tier_geometricErgodic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.tier_geometricErgodic
+
+-- P7
+/-- info: 'CRNT.Examples.EndotacticTrimerDecay.positiveRecurrence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.EndotacticTrimerDecay.positiveRecurrence
+
 -- P8
 /-- info: 'CRNT.Network.tendsto_scaledGenerator' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -3778,6 +3828,31 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Computation.not_stablyComputes_max_of_outputOblivious' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Computation.not_stablyComputes_max_of_outputOblivious
+
+-- C2
+/-- info: 'CRNT.Computation.Semilinear' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Computation.Semilinear
+
+-- C2
+/-- info: 'CRNT.Computation.semilinear_of_affine' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Computation.semilinear_of_affine
+
+-- C2
+/-- info: 'CRNT.Computation.affineCRN_stablyComputes' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Computation.affineCRN_stablyComputes
+
+-- C2
+/-- info: 'CRNT.Computation.output_conserving_semilinear' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Computation.output_conserving_semilinear
+
+-- C2
+/-- info: 'CRNT.Computation.not_semilinear_pow2' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Computation.not_semilinear_pow2
 
 -- C3
 /-- info: 'CRNT.Network.maxRPA_output_eq_between_steadyStates' depends on axioms: [propext, Classical.choice, Quot.sound] -/

@@ -1020,6 +1020,9 @@ import CRNT.Equilibria.MESSI
 import CRNT.Design.GeneralPlantRPA
 import CRNT.Multistationarity.DegreeExistence
 import CRNT.Oscillation.PlanarOscillationCriterion
+import CRNT.Multistationarity.MultistationarityRegion
+import CRNT.Stochastic.EndotacticTierPositiveRecurrence
+import CRNT.Computation.Semilinear
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has

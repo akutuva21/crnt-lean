@@ -25,6 +25,11 @@ MAP = "docs/field-map.md"
 UPDATES: dict[str, tuple[list[str], str]] = {
     "P7": (
         [
+            "CRNT.Network.tierDrift_le_of",
+            "CRNT.Network.tier_nonExplosion",
+            "CRNT.Network.tier_positiveRecurrence",
+            "CRNT.Network.tier_geometricErgodic",
+            "CRNT.Examples.EndotacticTrimerDecay.positiveRecurrence",
             "CRNT.Network.foster_hitting_time_of_endotactic",
             "CRNT.Network.nonExplosion_of_endotactic",
             "CRNT.Network.nonExplosion_of_endotactic_of_weight",
@@ -43,7 +48,18 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "(`positiveRecurrence_of_endotactic`), and the minimal transition function is "
         "stochastic (`nonExplosion_of_endotactic`). Instance: `0 → X`, `X → 0`. The full "
         "strongly endotactic hypothesis (the deterministic tier machinery of leaf D9) is not "
-        "yet transferred to the count lattice.",
+        "yet transferred to the count lattice. A second, larger step transfers the "
+        "*tier* machinery to the count lattice: a count-lattice tier structure "
+        "(`CRNT.Network.CountTier`, derived from the deterministic `StronglyEndotacticStd` "
+        "hypothesis by `countTierDescent_of_stronglyEndotacticStd`) yields a count Lyapunov "
+        "function with finite sublevel sets and a constant negative drift outside a finite set "
+        "(`CRNT.Network.tierDrift_le_of`), hence Foster's hitting-time bound "
+        "(`tierFoster_hitting_time`), non-explosion (`tier_nonExplosion`) and positive "
+        "recurrence with a strictly positive stationary law (`tier_positiveRecurrence`), even "
+        "geometric ergodicity (`tier_geometricErgodic`). Instance: `0 → X`, `X → 0`, "
+        "`2X → 0` (`CRNT.Examples.EndotacticTrimerDecay`). The remaining gap is the full ACK "
+        "theorem for an arbitrary strongly endotactic network: on the count lattice the "
+        "domination of lower-tier monomials by top-tier ones fails along escape directions.",
     ),
     "P8": (
         [
@@ -238,6 +254,55 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "(`closedLoop_mean_output_tendsto_via_general`). Still missing: the construction of "
         "the drift condition for an *arbitrary* output-controllable unimolecular plant, which "
         "is the remaining Briat–Gupta–Khammash theorem.",
+    ),
+    "M13": (
+        [
+            "CRNT.Network.reducedJacobian_det_sign_iff",
+            "CRNT.Network.rankOne_multistationary_iff_det_pos",
+            "CRNT.Network.rankOne_noPositiveCircuit_noSteadyState",
+            "CRNT.Network.isOpen_multistationarityRegion",
+            "CRNT.Network.inst_multistationary",
+        ],
+        " The **explicit description of the multistationarity region** is now formalized for "
+        "rank-one networks: the sign of the reduced Jacobian determinant at a steady state "
+        "equals the sign of the derivative of the scalar field along the class "
+        "(`CRNT.Network.reducedJacobian_det_sign_iff`), so with all steady states "
+        "nondegenerate the class is multistationary **iff** some steady state has a positive "
+        "reduced determinant (`CRNT.Network.rankOne_multistationary_iff_det_pos`); the "
+        "reduced determinant is a *signed sum of rate constants* "
+        "(`CRNT.MultistationarityRegion.reducedDet_eq_sum_signedRates`), which is the "
+        "circuit-based reading of the region, and a network whose reactions all run in the "
+        "same direction along the class has no positive steady state at all "
+        "(`CRNT.Network.rankOne_noPositiveCircuit_noSteadyState`). The region of parameters "
+        "with `d` distinct nondegenerate positive steady states is open "
+        "(`CRNT.Network.isOpen_multistationarityRegion`) and nonempty for the "
+        "decorated-cell instance (`CRNT.Network.inst_multistationary`). Still missing: the product-of-rates "
+        "reading of the determinant over a single circuit (the repository's circuit machinery "
+        "covers the full Jacobian, not the rank-one reduced determinant).",
+    ),
+    "C2": (
+        [
+            "CRNT.Computation.Semilinear",
+            "CRNT.Computation.semilinear_of_affine",
+            "CRNT.Computation.affineCRN_stablyComputes",
+            "CRNT.Computation.output_conserving_semilinear",
+            "CRNT.Computation.not_semilinear_pow2",
+        ],
+        " The **semilinear characterization** is now formalized in the *piecewise affine over "
+        "linear regions* form: a function `f : ℕ^d → ℕ` is **semilinear** if it is given by "
+        "finitely many affine pieces on finitely many polyhedral regions "
+        "(`CRNT.Computation.Semilinear`); the class is closed under `+`, `min` and `k·`; every "
+        "affine function is semilinear **and stably computable** (an explicit reaction network "
+        "`affineCRN_stablyComputes` computes `x ↦ a + ∑ m_j x_j`, proved with a new "
+        "linear-invariant calculus on configurations); and `2^n` is **not** semilinear "
+        "(`not_semilinear_pow2`). In the necessity direction: a stable computation pins the "
+        "output of every terminal reachable configuration, and for an output-conserving "
+        "network with affine input the computed function is affine, hence semilinear "
+        "(`output_conserving_semilinear`). The full Chen–Doty–Soloveichik theorem (every "
+        "semilinear function is stably computable, and every stably computable function is "
+        "semilinear for arbitrary networks) remains open; the definition used here is weaker "
+        "than Presburger semilinearity (no congruences) and this is stated in the module "
+        "docstring.",
     ),
     "A3": (
         [
