@@ -167,6 +167,10 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.Examples.MESSI.invariantWeight_not_conservationLaw",
             "CRNT.Examples.MESSI.totalWeight_not_steadyStateInvariant",
             "CRNT.Examples.MESSI.Chain.more_invariants_than_conservationLaws",
+            "CRNT.Network.toric_positiveSteadyStates_eq_parametrization",
+            "CRNT.Network.toric_steadyStates_eq_exp_kernel",
+            "CRNT.Network.steadyStateInvariant_iff_log_orthogonal",
+            "CRNT.Network.messi_generalInvariant_iff_valueAtOrigin",
         ],
         " The class of networks in which every reaction has a source complex of total "
         "molecularity one (the *linear-elimination* class; the term MESSI is used for it here "
@@ -254,6 +258,49 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "(`closedLoop_mean_output_tendsto_via_general`). Still missing: the construction of "
         "the drift condition for an *arbitrary* output-controllable unimolecular plant, which "
         "is the remaining Briat–Gupta–Khammash theorem.",
+    ),
+    "M8": (
+        [
+            "CRNT.Network.adaFeasible_implies_capacity",
+            "CRNT.Network.capacity_implies_adaFeasible",
+            "CRNT.Network.hasMultistationarityCapacity_iff_adaFeasible",
+            "CRNT.Network.adaFeasible_implies_adaAffirmsCapacity",
+        ],
+        " As for M7, the **Advanced Deficiency Algorithm** is now formalized: a shelf "
+        "decomposition of the reaction set, a confluence vector per shelf carrying both the "
+        "lower and the upper balance condition, and a sign-compatible log-ratio "
+        "(`CRNT.Network.ADAFeasible`) give the multistationarity capacity "
+        "(`adaFeasible_implies_capacity`), and in the one-shelf case the converse holds "
+        "(`capacity_implies_adaFeasible`). The ADA refines the DOA "
+        "(`adaFeasible_implies_doaFeasible`), and the repository's existing verdict "
+        "(`CRNT.Network.ADAAffirmsCapacity`) is shown to follow from the new work "
+        "(`adaFeasible_implies_adaAffirmsCapacity`). Still missing: the decomposition of an "
+        "arbitrary capacity flux into a multi-shelf system of shelf-wise confluence vectors, "
+        "which is the hard part of Ellison's algorithm.",
+    ),
+    "P9": (
+        [
+            "CRNT.Network.multivariate_clt_open_weak",
+            "CRNT.Network.multivariate_clt_open_weak_integral",
+            "CRNT.Network.fluctuation_uniform_concentration",
+            "CRNT.JumpSystem.mass_outside_le_exitMass",
+        ],
+        " The **distributional** CLT for networks whose chains may explode is now formalized: "
+        "the fluctuation law of the volume-scaled chain is a sub-probability measure of mass "
+        "`P(no explosion)`, the mass tends to `1` as the volume grows, and completing the law "
+        "at the origin changes its characteristic function by a vanishing amount; Lévy's "
+        "continuity theorem then gives the weak convergence of the fluctuation laws to the "
+        "linear-noise Gaussian "
+        "(`CRNT.Network.multivariate_clt_open_weak`, "
+        "`multivariate_clt_open_weak_integral`) with **no conservation, weight, stochasticity "
+        "or non-explosion hypothesis**. The process-level statement is formalized in the "
+        "path-free exit-mass form: the mass of the chain outside a set is bounded by the exit "
+        "mass (`CRNT.JumpSystem.mass_outside_le_exitMass`, the rigorous reading of “the exit "
+        "mass is the probability of leaving the set”), the exit mass is non-decreasing in "
+        "time, and the resulting uniform-in-time bound is proved "
+        "(`CRNT.Network.fluctuation_uniform_concentration`). Still missing: the "
+        "fluctuation-scale (`O(1)`) uniform-in-time estimate and the path-space statement, "
+        "which need martingale second-moment machinery that Mathlib lacks.",
     ),
     "M13": (
         [
@@ -440,6 +487,11 @@ UPDATES: dict[str, tuple[list[str], str]] = {
             "CRNT.Network.tropicalLeadingSystem",
             "CRNT.Network.leadingSystem_eq_reduced_of_equilibration",
             "CRNT.TropicalReductionInstance.ex_species_eq",
+            "CRNT.tikhonov_local",
+            "CRNT.tikhonov_local_attraction",
+            "CRNT.exists_local_slow_manifold",
+            "CRNT.hurwitz_linear_decay",
+            "CRNT.fast_deviation_le_local",
         ],
         " The tropical reduction procedure of Samal et al. is now formalized: the tropical order "
         "of a reaction at a valuation (`tropicalOrder`), the equilibration condition "
@@ -447,7 +499,18 @@ UPDATES: dict[str, tuple[list[str], str]] = {
         "reactions (`tropicalReduced`), the fact that the reduction loses no species "
         "(`tropicalReduced_species_eq`), and that the leading system of the full network at an "
         "equilibration is the leading system of the reduced network "
-        "(`leadingSystem_eq_reduced_of_equilibration`). Instance: a two-reaction network.",
+        "(`leadingSystem_eq_reduced_of_equilibration`). Instance: a two-reaction network. "
+        "**Tikhonov's theorem without a global contraction hypothesis** is now formalized "
+        "for the local (Hurwitz) version: the exponential decay of the linearized fast system "
+        "(`CRNT.hurwitz_linear_decay`), the local one-sided contraction of the nonlinear fast "
+        "field implied by a Hurwitz linearization, the `ε`-scaled frozen system and its "
+        "collapse to the slow manifold as `ε → 0⁺` (`CRNT.tikhonov_local_attraction`), the "
+        "existence, uniqueness and `C¹` regularity of the local slow manifold by the implicit "
+        "function theorem (`CRNT.exists_local_slow_manifold`), and the coupled estimate "
+        "under a *local* contraction hypothesis (`CRNT.fast_deviation_le_local`). Instance: "
+        "the Michaelis–Menten fast subsystem. Still missing: the passage from the frozen "
+        "system to the full coupled system (the tube hypothesis), the slow error, and the "
+        "`ε`-dependent Fenichel manifold.",
     ),
     "E3": (
         [

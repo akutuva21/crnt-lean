@@ -1028,6 +1028,10 @@ import CRNT.Extensions.ReactionDiffusion
 import CRNT.Extensions.DelaySemistability
 import CRNT.Multistationarity.DeficiencyOneAlgorithm
 import CRNT.Multistationarity.TwoReactionAtoms
+import CRNT.Multistationarity.AdvancedDeficiencyAlgorithm
+import CRNT.Equilibria.ToricParametrization
+import CRNT.Dynamics.TikhonovLocal
+import CRNT.Stochastic.CLTWeak
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
