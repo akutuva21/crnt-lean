@@ -1109,6 +1109,21 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.satisfiesWegscheider_iff_exists_positive_reactionwiseDetailedBalanced
 
+-- S24
+/-- info: 'CRNT.Network.equilibrium_smooth_of_nonSingular'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.equilibrium_smooth_of_nonSingular
+
+-- S24
+/-- info: 'CRNT.Network.reducedFieldAtRate_joint_contDiff'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.reducedFieldAtRate_joint_contDiff
+
+-- S24
+/-- info: 'CRNT.Network.reducedFieldOrientationSign_eventually_eq_of_nonSingular'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.reducedFieldOrientationSign_eventually_eq_of_nonSingular
+
 -- M1
 /-- info: 'CRNT.Network.massAction_subsingleton_steadyState_of_injective'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -1708,6 +1723,21 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Network.twoReaction_witness_iff_criterion'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.twoReaction_witness_iff_criterion
+
+-- M11
+/-- info: 'CRNT.Network.multistationarityCapacity_inherited_union'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.multistationarityCapacity_inherited_union
+
+-- M11
+/-- info: 'CRNT.Network.nondegMultistationarityCapacity_inherited_union'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.nondegMultistationarityCapacity_inherited_union
+
+-- M11
+/-- info: 'CRNT.Network.twoRxnOpen_not_atom_of_oneRxn_multistationary'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoRxnOpen_not_atom_of_oneRxn_multistationary
 
 -- M12
 /-- info: 'CRNT.Network.Kinetics.InjectiveOnClass.sum_subsingleton_steadyState'depends on axioms: [propext, Classical.choice, Quot.sound] -/
@@ -3279,6 +3309,16 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Examples.Enzyme.enzyme_intermediate
 
+-- D20
+/-- info: 'CRNT.Network.OneIntermediate.singleIntermediate_reduction_preserves_complexBalance'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.OneIntermediate.singleIntermediate_reduction_preserves_complexBalance
+
+-- D20
+/-- info: 'CRNT.Network.OneIntermediate.toricReductionPreservesComplexBalance_of_one'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.OneIntermediate.toricReductionPreservesComplexBalance_of_one
+
 -- D21
 /-- info: 'CRNT.Network.complexBalanced_hasStrictStoichQuadraticLyapunov'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -3293,6 +3333,26 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Network.complexBalanced_isHurwitzOnStoich'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_isHurwitzOnStoich
+
+-- D23
+/-- info: 'CRNT.Dynamics.RateConvergesExponentially'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.RateConvergesExponentially
+
+-- D23
+/-- info: 'CRNT.Dynamics.massActionVectorField_sub_le_of_expConvergence'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.massActionVectorField_sub_le_of_expConvergence
+
+-- D23
+/-- info: 'CRNT.Dynamics.rateSensitive_convergence'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.rateSensitive_convergence
+
+-- D23
+/-- info: 'CRNT.Dynamics.rateSensitive_sqDist_le'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.rateSensitive_sqDist_le
 
 -- D22
 /-- info: 'CRNT.Network.omegaLimit_eq_singleton_of_persistent'depends on axioms: [propext, Classical.choice, Quot.sound] -/
@@ -3418,6 +3478,26 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Network.exists_tendsto_l1_productPoisson_of_deficiencyZero'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.exists_tendsto_l1_productPoisson_of_deficiencyZero
+
+-- P2
+/-- info: 'CRNT.Stochastic.productForm_pos'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Stochastic.productForm_pos
+
+-- P2
+/-- info: 'CRNT.Stochastic.productForm_invariant'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Stochastic.productForm_invariant
+
+-- P2
+/-- info: 'CRNT.Stochastic.productForm_unique_invariant'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Stochastic.productForm_unique_invariant
+
+-- P2
+/-- info: 'CRNT.Stochastic.complexBalanced_geometric_ergodic'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Stochastic.complexBalanced_geometric_ergodic
 
 -- P3
 /-- info: 'CRNT.Network.exists_microscopicDetailedBalance_of_Wegscheider'depends on axioms: [propext, Classical.choice, Quot.sound] -/
@@ -5468,6 +5548,21 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Network.complexBalanced_of_relEntropy_gradient_zero'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.complexBalanced_of_relEntropy_gradient_zero
+
+-- E1
+/-- info: 'CRNT.Network.absolutePseudoHelmholtz_ge_at_complexBalanced'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.absolutePseudoHelmholtz_ge_at_complexBalanced
+
+-- E1
+/-- info: 'CRNT.Network.absolutePseudoHelmholtz_isClassMinimizer_iff'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.absolutePseudoHelmholtz_isClassMinimizer_iff
+
+-- E1
+/-- info: 'CRNT.Network.absolutePseudoHelmholtz_log_orthogonal_of_isLocalMinOn'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.absolutePseudoHelmholtz_log_orthogonal_of_isLocalMinOn
 
 -- E2
 /-- info: 'CRNT.Turing.diffusionDrivenInstability_iff'depends on axioms: [propext, Classical.choice, Quot.sound] -/
