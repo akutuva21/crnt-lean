@@ -1072,6 +1072,11 @@ import CRNT.Deficiency.DOASignDecomposition
 import CRNT.Dynamics.DelayHalanay
 import CRNT.Multistationarity.ReducedDetHomogeneity
 import CRNT.Persistence.BoundedPersistence
+import CRNT.Equilibria.JacobianSpectrumEigen
+import CRNT.Design.AntitheticInstance
+import CRNT.Decision.DeficiencyOneHypothesesDecide
+import CRNT.Dynamics.HopfFloquet
+import CRNT.Multistationarity.TwoReactionCompleteness
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has

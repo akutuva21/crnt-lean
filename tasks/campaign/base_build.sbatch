@@ -4,7 +4,6 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=16G
 #SBATCH --time=02:00:00
 #SBATCH --output=/net/dali/home/mscbio/ark426/crnt-campaign/logs/%x-%j.out
 #SBATCH --error=/net/dali/home/mscbio/ark426/crnt-campaign/logs/%x-%j.err
@@ -18,6 +17,12 @@
 # Nothing here ever runs on the login node: it is a Slurm batch script.
 
 set -u
+# NOTE ON MEMORY: this cluster's Slurm applies `--mem` as an RLIMIT_AS (address-space)
+# cap.  Lean reserves a large virtual arena and creates one thread stack per worker,
+# so any `--mem` below ~32G makes `lake build` abort with
+# "failed to create thread: Resource temporarily unavailable".  The job therefore
+# requests no address-space cap; the *actual* consumption is read back from
+# `sacct` (MaxRSS) by the orchestrator.
 export HOME=/net/dali/home/mscbio/ark426
 export PATH="$HOME/.elan/bin:$PATH"
 REPO="$HOME/crnt-lean"
