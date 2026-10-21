@@ -608,7 +608,57 @@ functions satisfies it. | q | + (q⁺)² + x | q | + z₁z₂(z₁ + z₂ − 1)
 
 ## 3. Gaps by tier
 
-The 19 partial leaves (2026-10-20).
+The 20 partial leaves (2026-10-21).
+
+**2026-10-21 (campaign).**  The remaining gaps of the twenty partial leaves, re-assessed after
+the twelve-hour campaign:
+
+*Tier A — classical canon, settled mathematics.* **M7** and **M8** remain partial, but the gap
+is now narrow and precisely stated: the *semantic* feasibility test is proved equivalent to the
+capacity in both directions, the criterion table is a proved complete enumeration, the bridge from
+the presented algorithm to the multi-shelf machinery is formal, the analytic core of the capacity
+construction is formal, and the multi-shelf converse is proved under a third independent moment.
+What is missing is Feinberg's *structural analysis* — the construction of the shelf signature from
+the network's combinatorics — and the numerical (LP) version of the algorithms.
+
+*Tier B — modern standard results.* **M9**: the total-degree theorem is proved for an arbitrary
+invertible affine linear part; what remains is the degree at infinity of a field with
+higher-order reaction terms (the mixed-volume count). **M11**: the two-reaction criterion is now
+a proved exact decision procedure on all 75 members, with the table and the atom table proved
+complete; what remains is the criterion outside the two-species bimolecular family.
+**M13**: the degree-`s` homogeneity, the sign rule, the converse characterisation of the
+non-vanishing Cauchy–Binet terms, and the higher-rank criterion are formal; what remains is the
+explicit semialgebraic description of the region in rank `s ≥ 2`. **P7**: the ACK conclusion is
+proved for a genuine two-species network, the countable-state Foster criterion with a constant
+drift is formal, and the count-lattice tier estimate is formal; what remains is the *general*
+multispecies ACK theorem, whose missing input is the deterministic tier-weight construction.
+**P8**, **P9**: the Poisson domination of the jump count, the second moment of the fluctuation and
+the compensated second moment are formal; what remains is the *path-space* statement, which
+needs an i.i.d.-exponential measure and the strong Markov property. **A4**: the uniformity of
+the contraction, the tube hypothesis and the dynamical tropical reduction are formal; what
+remains is the `ε`-dependent Fenichel manifold and the entry into the tube from outside.
+**C3**: the annihilation sign condition and the Foster certificate for the piecewise quadratic
+Lyapunov function are formal, and the obstruction to the exponential drift is proved; what
+remains is the geometric ergodicity of that network, which the obstruction shows needs a
+genuinely new Lyapunov function. **C2**: the composition lemma and the closure under `max` are
+formal; what remains is the full Chen–Doty–Soloveichik theorem (the repository's `Semilinear`
+predicate is weaker than Presburger semilinearity). **E3**: the Halanay comparison principle, the
+Grönwall estimate, the semistability of the linear delay equation, the comparison principle in
+the componentwise order and the joint non-isothermal Lyapunov function are formal; what remains
+is the comparison principle for the *mass-action* delay system and the path-space LaSalle theory.
+**D14**: the strict monotone separator, the uniform gap, the operator-norm (Markus–Yamabe)
+criterion and the structural simplicial-cone criterion are formal; what remains is the general
+order-convexity of the ω-limit set. **D16**: the Floquet multiplier of the Hopf cycle and the
+automatic `C¹` regularity of the averaged remainder are formal; what remains is the persistence
+of the cycle for the full nonlinear field. **D18**: the interval version of the Poincaré–Bendixson
+statement (Coppel's theorem) and the fundamental matrix of the variational equation are formal;
+what remains is the Jordan separation theorem (out of Mathlib's reach). **D12**: the strong
+bounded case is formal; the unbounded case remains **open in the literature**. **A3**: the volume
+polynomial of a zonotope and the BKK bound for a circuit are formal; what remains is the general
+BKK inequality for arbitrary Newton polytopes. **E2**: the spectrum of the box Laplacian, the
+discrete Poincaré inequality, global existence, the two-sided solution and the semigroup law are
+formal; what remains is the PDE theory (out of Mathlib's reach).
+
 
 **Tier A — classical canon, settled mathematics.**
 M7, M8 (correctness of the Deficiency One and Advanced Deficiency Algorithms).
