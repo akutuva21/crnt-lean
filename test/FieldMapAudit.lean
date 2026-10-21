@@ -4784,6 +4784,46 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.gibbsFreeEnergy_dissipation_nonneg_of_consistentChemicalPotentials
 
+-- E3
+/-- info: 'CRNT.Dynamics.DelayField' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.DelayField
+
+-- E3
+/-- info: 'CRNT.Dynamics.delayStep_exists' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.delayStep_exists
+
+-- E3
+/-- info: 'CRNT.Dynamics.delay_glue' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.delay_glue
+
+-- E3
+/-- info: 'CRNT.Dynamics.delay_steps_exists' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.delay_steps_exists
+
+-- E3
+/-- info: 'CRNT.Dynamics.delay_solution_exists' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.delay_solution_exists
+
+-- E3
+/-- info: 'CRNT.Dynamics.delay_solution_unique' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.delay_solution_unique
+
+-- E3
+/-- info: 'CRNT.Dynamics.delayLinear_rate_exists' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.delayLinear_rate_exists
+
+-- E3
+/-- info: 'CRNT.Dynamics.delayLinear_constant_not_tendsto' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.delayLinear_constant_not_tendsto
+
 -- C1
 /-- info: 'CRNT.Network.gac_of_singleLinkage_decide' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in

@@ -1063,6 +1063,7 @@ import CRNT.Design.MolecularControllerDrift
 import CRNT.Equilibria.JacobianSpectrum
 import CRNT.Multistationarity.ReducedDeterminantCircuits
 import CRNT.Algebra.MixedVolume
+import CRNT.Dynamics.DelayExistence
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
