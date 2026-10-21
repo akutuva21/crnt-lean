@@ -166,6 +166,8 @@ Grouped by area; the precise statements and module names are in each linked doc.
   `s` rate constants, and a positive circuit in a reaction set kills the corresponding term
 - The **two-reaction classification**: a machine-checked table of the multistationary and the atom
   members of the 75 two-species bimolecular two-reaction networks
+- The **mixed volume** in the classical Shephard/BKK form, with additivity and homogeneity proved
+  and the BKK bound sharp in one variable
 
 **[Dynamics & stability](docs/dynamics.md)**
 - The complex-space factorization `ẋ = Y(A_k(Ψ x))` and the forward semiflow
@@ -199,6 +201,8 @@ Grouped by area; the precise statements and module names are in each linked doc.
   slow manifold
 - The **strong order** `≪` with the monotone separating functionals of Hirsch–Smith, and the
   non-ordering argument for the incomparable-orbit case
+- The **method of steps** for delay equations on a Banach space: the one-step theorem, the gluing
+  lemma, the induction over the steps, and the global solution with its uniqueness
 - **Hirsch's generic convergence** for strongly monotone fields, with the order-convexity of the
   ω-limit set derived rather than assumed
 
