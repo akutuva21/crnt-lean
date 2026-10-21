@@ -1062,6 +1062,7 @@ import CRNT.Dynamics.AveragingRemainder
 import CRNT.Design.MolecularControllerDrift
 import CRNT.Equilibria.JacobianSpectrum
 import CRNT.Multistationarity.ReducedDeterminantCircuits
+import CRNT.Algebra.MixedVolume
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has

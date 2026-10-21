@@ -4399,6 +4399,51 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.ExcludedCircuit.card_common_pos_roots_le_mixedVolume
 
+-- A3
+/-- info: 'CRNT.MixedVolume.Zonotope' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.MixedVolume.Zonotope
+
+-- A3
+/-- info: 'CRNT.MixedVolume.mixedVolume' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.MixedVolume.mixedVolume
+
+-- A3
+/-- info: 'CRNT.MixedVolume.mixedVolume_add' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.MixedVolume.mixedVolume_add
+
+-- A3
+/-- info: 'CRNT.MixedVolume.mixedVolume_smul' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.MixedVolume.mixedVolume_smul
+
+-- A3
+/-- info: 'CRNT.MixedVolume.mixedVolume_newtonPolytope' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.MixedVolume.mixedVolume_newtonPolytope
+
+-- A3
+/-- info: 'CRNT.MixedVolume.card_pos_roots_le_mixedVolume' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.MixedVolume.card_pos_roots_le_mixedVolume
+
+-- A3
+/-- info: 'CRNT.MixedVolume.card_common_pos_roots_le_mixedVolume' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.MixedVolume.card_common_pos_roots_le_mixedVolume
+
+-- A3
+/-- info: 'CRNT.MixedVolume.card_solutions_le_mixedVolume' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.MixedVolume.card_solutions_le_mixedVolume
+
+-- A3
+/-- info: 'CRNT.MixedVolume.mixedVolume_stdSimplex1' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.MixedVolume.mixedVolume_stdSimplex1
+
 -- A4
 /-- info: 'CRNT.Tropical.eventually_sum_pos_of_minimizers_pos' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
