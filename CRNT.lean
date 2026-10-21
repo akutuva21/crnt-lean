@@ -1086,6 +1086,16 @@ import CRNT.Multistationarity.TotalDegreeGeneral
 import CRNT.Dynamics.DelayComparison
 import CRNT.Multistationarity.MultiShelfMoments
 import CRNT.Extensions.ReactionDiffusionSpectrum
+import CRNT.Stochastic.CompensatedSecondMoment
+import CRNT.Computation.SemilinearMax
+import CRNT.Algebra.TropicalDynamics
+import CRNT.Dynamics.DelayComparisonLattice
+import CRNT.Deficiency.DOACapacityKernel
+import CRNT.Deficiency.ADACoplanar
+import CRNT.Multistationarity.TwoReactionCompleteness2
+import CRNT.Dynamics.AveragingRegularity
+import CRNT.Computation.StableComposition
+import CRNT.Dynamics.StrongOrderStrict
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
