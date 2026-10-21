@@ -1117,6 +1117,8 @@ import CRNT.Equilibria.DegenerateDichotomy
 import CRNT.Theorems.DeficiencyZero.DecayRate
 import CRNT.Algebra.ConvexVolume
 import CRNT.Dynamics.RateSensitive
+import CRNT.Multistationarity.EquilibriumSmoothness
+import CRNT.Theorems.DeficiencyZero.AbsolutePseudoHelmholtz
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
