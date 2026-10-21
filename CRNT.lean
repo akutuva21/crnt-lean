@@ -1098,6 +1098,8 @@ import CRNT.Computation.StableComposition
 import CRNT.Dynamics.StrongOrderStrict
 import CRNT.Stochastic.CountTierCardinality
 import CRNT.Extensions.ReactionDiffusionGlobal
+import CRNT.Design.AntitheticFoster
+import CRNT.Equilibria.PerronFrobenius
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
