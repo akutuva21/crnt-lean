@@ -31,6 +31,13 @@ git rev-parse HEAD
 
 step() { echo "--- $* ($(date +%s)) ---"; }
 
+echo "--- environment ---"
+nproc
+ulimit -u
+cat /sys/fs/cgroup/pids.max 2>/dev/null || echo "no pids.max"
+cat /sys/fs/cgroup/pids.current 2>/dev/null || true
+export LAKE_JOBS="${SLURM_CPUS_PER_TASK:-4}"
+
 step "lake exe cache get"
 if ! lake exe cache get; then
   echo "CACHE_GET_FAILED"

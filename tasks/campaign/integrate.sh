@@ -27,11 +27,10 @@ for mod in "$@"; do
     echo "missing module: $mod" >&2
     exit 1
   fi
-  if grep -nE '(^|[^A-Za-z_])(sorry|admit)([^A-Za-z_]|$)|^\s*axiom\s|@\[implemented_by|native_decide' "$mod" \
-       | grep -v '^\s*[0-9]*:\s*--' ; then
-    echo "FORBIDDEN TOKEN in $mod" >&2
-    exit 1
-  fi
+done
+python3 tasks/campaign/check_module.py "$@" || exit 1
+
+for mod in "$@"; do
   modname="${mod%.lean}"
   modname="${modname//\//.}"
   imp="import $modname"
