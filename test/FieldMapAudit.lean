@@ -189,6 +189,41 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.graphCirculation_decomposes_into_cycles
 
+-- F16
+/-- info: 'CRNT.Network.conservationLaw_const_along_solution'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.conservationLaw_const_along_solution
+
+-- F17
+/-- info: 'CRNT.Network.kineticCofactor_eq_treeConstant'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.kineticCofactor_eq_treeConstant
+
+-- F17
+/-- info: 'CRNT.Network.kineticCofactor_pos_of_weaklyReversible'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.kineticCofactor_pos_of_weaklyReversible
+
+-- F18
+/-- info: 'CRNT.Network.restrictReactions'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.restrictReactions
+
+-- F18
+/-- info: 'CRNT.Network.restrictReactions_complexes_subset'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.restrictReactions_complexes_subset
+
+-- F18
+/-- info: 'CRNT.Complex.restrict'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Complex.restrict
+
+-- F18
+/-- info: 'CRNT.Reaction.restrictSpecies'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Reaction.restrictSpecies
+
 -- S1
 /-- info: 'CRNT.Network.satisfiesWegscheider_iff'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -1013,6 +1048,16 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Examples.KingAltman.kingAltman_ratio_checked'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Examples.KingAltman.kingAltman_ratio_checked
+
+-- S22
+/-- info: 'CRNT.Network.satisfiesWegscheider_iff_hasWegscheiderPotential'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.satisfiesWegscheider_iff_hasWegscheiderPotential
+
+-- S22
+/-- info: 'CRNT.Network.satisfiesWegscheider_iff_exists_positive_reactionwiseDetailedBalanced'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.satisfiesWegscheider_iff_exists_positive_reactionwiseDetailedBalanced
 
 -- M1
 /-- info: 'CRNT.Network.massAction_subsingleton_steadyState_of_injective'depends on axioms: [propext, Classical.choice, Quot.sound] -/
@@ -3083,6 +3128,26 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Examples.Enzyme.enzyme_intermediate'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Examples.Enzyme.enzyme_intermediate
+
+-- D21
+/-- info: 'CRNT.Network.complexBalanced_hasStrictStoichQuadraticLyapunov'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.complexBalanced_hasStrictStoichQuadraticLyapunov
+
+-- D21
+/-- info: 'CRNT.Network.strictStoichQuadraticLyapunov_implies_hurwitz'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.strictStoichQuadraticLyapunov_implies_hurwitz
+
+-- D21
+/-- info: 'CRNT.Network.complexBalanced_isHurwitzOnStoich'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.complexBalanced_isHurwitzOnStoich
+
+-- D22
+/-- info: 'CRNT.Network.omegaLimit_eq_singleton_of_persistent'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.omegaLimit_eq_singleton_of_persistent
 
 -- P1
 /-- info: 'CRNT.Network.cmeGenerator_eq_ackResidual'depends on axioms: [propext, Classical.choice, Quot.sound] -/
