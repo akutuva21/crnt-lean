@@ -5564,6 +5564,31 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.absolutePseudoHelmholtz_log_orthogonal_of_isLocalMinOn
 
+-- E1
+/-- info: 'CRNT.Network.entropyDissipation_eq_fluxLogRatio'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.entropyDissipation_eq_fluxLogRatio
+
+-- E1
+/-- info: 'CRNT.Network.entropyDissipation_eq_sum_squares'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.entropyDissipation_eq_sum_squares
+
+-- E1
+/-- info: 'CRNT.Network.entropyDissipation_eq_zero_iff_complexBalanced'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.entropyDissipation_eq_zero_iff_complexBalanced
+
+-- E1
+/-- info: 'CRNT.Network.relEntropy_hasDerivAt_sum_squares'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.relEntropy_hasDerivAt_sum_squares
+
+-- E1
+/-- info: 'CRNT.Network.complexBalance_fluxBalance'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.complexBalance_fluxBalance
+
 -- E2
 /-- info: 'CRNT.Turing.diffusionDrivenInstability_iff'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
