@@ -63,9 +63,13 @@ jobs were run this way, with 4 CPUs each — well inside the campaign's budget o
 
 See the final campaign report. In brief: every leaf that the field map listed as *missing* was
 either closed or closed with a **machine-checked refutation of the proposed statement** (which is
-a result too: it records that the naive reading is false). The field map now has **97 leaves**
-(77 proved, 20 partial) and **1217 pinned declarations**, and `docs/field-map.md` records, for
+a result too: it records that the naive reading is false). The field map now has **99 leaves**
+(79 proved, 20 partial) and **1245 pinned declarations**, and `docs/field-map.md` records, for
 every leaf, what was added and what remains.
+
+The campaign added **59 new Lean modules** (about 38 000 lines) to the library, in **30 commits**,
+all axiom-clean (`[propext, Classical.choice, Quot.sound]`) and all verified by an independent
+from-scratch build on the cluster.
 
 ## Notable mathematical findings of the campaign
 
