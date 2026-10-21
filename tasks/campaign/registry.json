@@ -1,6 +1,16 @@
 {
- "campaign": "crnt-lean 12h formalization campaign 2026-10-21",
+ "campaign": "crnt-lean 12-hour formalization campaign, 2026-10-21",
  "start_commit": "3065e963124a04e0e4830ac2f320df8c16909ba8",
+ "end_commit": "eb211cd93aafad5d45e2e4a0fc72202706708b9d",
+ "workers": 65,
+ "integration_batches": 30,
+ "slurm": {
+  "partition": "any_cpu",
+  "cpu_hours": 6.2,
+  "peak_cpus": 4,
+  "gpus_used": 0,
+  "high_memory_partition_used": false
+ },
  "tasks": {
   "W01": {
    "id": "W01",
@@ -10,12 +20,12 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   },
   "W02": {
    "id": "W02",
    "commit": "e146520c023b",
-   "subject": "feat: Gronwall infrastructure, a two-species ACK instance, Poisson jump-count domination, the second moment of the fluctuation, and the DOA-to-multi-shelf bridg",
+   "subject": "feat: Gronwall infrastructure, a two-species ACK instance, Poisson jump-count domination, the second moment of the fluctuation, and the DOA-to-multi-shelf bridge",
    "files": [
     "CRNT/Deficiency/DOASignDecomposition.lean",
     "CRNT/Dynamics/Gronwall.lean",
@@ -26,7 +36,7 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   },
   "W03": {
    "id": "W03",
@@ -38,7 +48,7 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   },
   "W04": {
    "id": "W04",
@@ -51,12 +61,12 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   },
   "W05": {
    "id": "W05",
    "commit": "8818472875a1",
-   "subject": "feat: the eigenvalue theory of the nilpotent-Jacobian criterion, the antithetic certificate, the decidable deficiency-one hypotheses, the Hopf Floquet multiplie",
+   "subject": "feat: the eigenvalue theory of the nilpotent-Jacobian criterion, the antithetic certificate, the decidable deficiency-one hypotheses, the Hopf Floquet multiplier and the ",
    "files": [
     "CRNT/Decision/DeficiencyOneHypothesesDecide.lean",
     "CRNT/Design/AntitheticInstance.lean",
@@ -68,12 +78,12 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   },
   "W06": {
    "id": "W06",
    "commit": "55e3a793bf17",
-   "subject": "feat: uniform contraction, the volume polynomial, the countable-state Foster criterion, the general affine total degree, the delay comparison principle, the thr",
+   "subject": "feat: uniform contraction, the volume polynomial, the countable-state Foster criterion, the general affine total degree, the delay comparison principle, the three-shelf m",
    "files": [
     "CRNT/Algebra/TropicalDynamics.lean",
     "CRNT/Algebra/VolumePolynomial.lean",
@@ -91,12 +101,12 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   },
   "W07": {
    "id": "W07",
    "commit": "0c2eb1f70bd0",
-   "subject": "feat: the tropical reduction of the dynamics, the lattice delay comparison, the deficiency-one capacity kernel, the ADA coplanar content, the two-reaction compl",
+   "subject": "feat: the tropical reduction of the dynamics, the lattice delay comparison, the deficiency-one capacity kernel, the ADA coplanar content, the two-reaction completeness, t",
    "files": [
     "CRNT/Algebra/TropicalDynamics.lean",
     "CRNT/Computation/StableComposition.lean",
@@ -111,12 +121,12 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   },
   "W08": {
    "id": "W08",
    "commit": "925215004a46",
-   "subject": "feat: the count-lattice tier estimate, global existence for the semidiscrete reaction-diffusion system, and the Foster certificate for the antithetic closed loo",
+   "subject": "feat: the count-lattice tier estimate, global existence for the semidiscrete reaction-diffusion system, and the Foster certificate for the antithetic closed loop",
    "files": [
     "CRNT/Design/AntitheticFoster.lean",
     "CRNT/Extensions/ReactionDiffusionGlobal.lean",
@@ -125,7 +135,7 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   },
   "W09": {
    "id": "W09",
@@ -138,7 +148,7 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   },
   "W10": {
    "id": "W10",
@@ -148,12 +158,12 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   },
   "W11": {
    "id": "W11",
    "commit": "b37c5a1696a0",
-   "subject": "feat: the obstruction to an exponential drift for the antithetic loop, the joint non-isothermal Lyapunov function, and the fundamental matrix of the mass-action",
+   "subject": "feat: the obstruction to an exponential drift for the antithetic loop, the joint non-isothermal Lyapunov function, and the fundamental matrix of the mass-action variation",
    "files": [
     "CRNT/Design/AntitheticExponential.lean",
     "CRNT/Dynamics/FlowSmoothDependenceProof.lean",
@@ -163,7 +173,7 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   },
   "W12": {
    "id": "W12",
@@ -177,7 +187,7 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   },
   "W13": {
    "id": "W13",
@@ -189,7 +199,7 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   },
   "W14": {
    "id": "W14",
@@ -199,12 +209,12 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   },
   "W15": {
    "id": "W15",
    "commit": "c79c565e407b",
-   "subject": "feat: the completeness of the two-reaction criterion table, the minimum entropy production principle, and a structural criterion for simplicial-cone monotonicit",
+   "subject": "feat: the completeness of the two-reaction criterion table, the minimum entropy production principle, and a structural criterion for simplicial-cone monotonicity",
    "files": [
     "CRNT/Dynamics/SimplicialConeNetwork.lean",
     "CRNT/Multistationarity/TwoReactionTable.lean",
@@ -213,7 +223,7 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   },
   "W16": {
    "id": "W16",
@@ -230,7 +240,7 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   },
   "W17": {
    "id": "W17",
@@ -240,7 +250,152 @@
    "leaf": "",
    "status": "INTEGRATED",
    "last_progress": "2026-10-21",
-   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
+  },
+  "W18": {
+   "id": "W18",
+   "commit": "ace55ee5a389",
+   "subject": "chore(campaign): record the campaign's integration batches in the task registry",
+   "files": [],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
+  },
+  "W19": {
+   "id": "W19",
+   "commit": "807eaf77ce5c",
+   "subject": "fix: untrack the in-progress convex-volume module so that master stays green",
+   "files": [
+    "CRNT/Algebra/ConvexVolume.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
+  },
+  "W20": {
+   "id": "W20",
+   "commit": "e72c81fc9f84",
+   "subject": "docs(campaign): the orchestrator's campaign report",
+   "files": [],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
+  },
+  "W21": {
+   "id": "W21",
+   "commit": "2c958f80d142",
+   "subject": "docs: re-assess the remaining gaps of the partial leaves after the campaign",
+   "files": [],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
+  },
+  "W22": {
+   "id": "W22",
+   "commit": "90ede227331d",
+   "subject": "feat: volume monotonicity for convex bodies and the geometric bridge for the BKK theory",
+   "files": [
+    "CRNT/Algebra/ConvexVolume.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
+  },
+  "W23": {
+   "id": "W23",
+   "commit": "e3eb9b00877f",
+   "subject": "docs: record the convex-volume bridge in leaf A3",
+   "files": [],
+   "leaf": "A3",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
+  },
+  "W24": {
+   "id": "W24",
+   "commit": "c6f109d94f2c",
+   "subject": "docs: record the campaign status in the map's plan section",
+   "files": [],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
+  },
+  "W25": {
+   "id": "W25",
+   "commit": "034ff7a1a517",
+   "subject": "feat: the rate-sensitive convergence of a mass-action system with exponentially converging rates",
+   "files": [
+    "CRNT/Dynamics/RateSensitive.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
+  },
+  "W26": {
+   "id": "W26",
+   "commit": "fda6a32e9998",
+   "subject": "feat: the implicit function theorem for the equilibrium and the absolute pseudo-Helmholtz function",
+   "files": [
+    "CRNT/Multistationarity/EquilibriumSmoothness.lean",
+    "CRNT/Theorems/DeficiencyZero/AbsolutePseudoHelmholtz.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
+  },
+  "W27": {
+   "id": "W27",
+   "commit": "68c4723d4bd0",
+   "subject": "feat: the toric reduction, the geometric ergodicity of the product-form law, and the capacity inheritance",
+   "files": [
+    "CRNT/Multistationarity/InheritanceCapacity.lean",
+    "CRNT/Reduction/ToricReduction.lean",
+    "CRNT/Stochastic/ProductFormGeometric.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
+  },
+  "W28": {
+   "id": "W28",
+   "commit": "c367cb7ae085",
+   "subject": "docs: third round of field-map updates; two new leaves (S24, D23)",
+   "files": [],
+   "leaf": "D23,S24",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
+  },
+  "W29": {
+   "id": "W29",
+   "commit": "640b58ab0bbe",
+   "subject": "feat: the entropy dissipation in flux form",
+   "files": [
+    "CRNT/Theorems/DeficiencyZero/EntropyDissipation.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
+  },
+  "W30": {
+   "id": "W30",
+   "commit": "eb211cd93aaf",
+   "subject": "docs(campaign): final numbers",
+   "files": [],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "independent cluster build (lake build +CRNT, test.AxiomAudit, field-map pins): PASS"
   }
  }
 }
