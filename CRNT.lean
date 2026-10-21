@@ -1069,6 +1069,7 @@ import CRNT.Stochastic.EndotacticTwoSpecies
 import CRNT.Stochastic.JumpCountPoisson
 import CRNT.Stochastic.FluctuationSecondMoment
 import CRNT.Deficiency.DOASignDecomposition
+import CRNT.Dynamics.DelayHalanay
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has

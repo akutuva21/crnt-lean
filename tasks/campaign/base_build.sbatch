@@ -47,7 +47,7 @@ if ! lake exe cache get; then
 fi
 
 step "lake build CRNT"
-if ! lake build -j "${SLURM_CPUS_PER_TASK:-4}" CRNT; then
+if ! lake build CRNT; then
   echo "BUILD_FAILED"
   echo '{"task_id":"base_build","status":"FAIL","detail":"lake build CRNT failed"}' \
     > "$RESULTS/base_build.json"
@@ -55,7 +55,7 @@ if ! lake build -j "${SLURM_CPUS_PER_TASK:-4}" CRNT; then
 fi
 
 step "lake build CRNTFrontier"
-lake build -j "${SLURM_CPUS_PER_TASK:-4}" CRNTFrontier || echo "frontier build failed (expected)"
+lake build CRNTFrontier || echo "frontier build failed (expected)"
 
 nmodules=$(find .lake/build/lib/lean/CRNT -name '*.olean' 2>/dev/null | wc -l)
 echo "=== base build done $(date -Is); $nmodules CRNT oleans ==="
