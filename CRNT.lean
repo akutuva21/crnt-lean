@@ -1107,6 +1107,9 @@ import CRNT.Extensions.NonIsothermalLyapunov
 import CRNT.Dynamics.FlowSmoothDependenceProof
 import CRNT.Stochastic.FluctuationUniform
 import CRNT.Algebra.MixedVolumeBKK
+import CRNT.Multistationarity.TwoReactionTable
+import CRNT.Thermo.MinimumEntropyProduction
+import CRNT.Dynamics.SimplicialConeNetwork
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
