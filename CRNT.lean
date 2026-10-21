@@ -1100,6 +1100,10 @@ import CRNT.Stochastic.CountTierCardinality
 import CRNT.Extensions.ReactionDiffusionGlobal
 import CRNT.Design.AntitheticFoster
 import CRNT.Equilibria.PerronFrobenius
+import CRNT.Multistationarity.CFMWHigherRank
+import CRNT.Extensions.ReactionDiffusionFlow
+import CRNT.Design.AntitheticExponential
+import CRNT.Extensions.NonIsothermalLyapunov
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
