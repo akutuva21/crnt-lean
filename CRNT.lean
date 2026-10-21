@@ -1110,6 +1110,11 @@ import CRNT.Algebra.MixedVolumeBKK
 import CRNT.Multistationarity.TwoReactionTable
 import CRNT.Thermo.MinimumEntropyProduction
 import CRNT.Dynamics.SimplicialConeNetwork
+import CRNT.Theorems.DeficiencyZero.Prigogine
+import CRNT.Open.ConservationLaws
+import CRNT.Dynamics.MarkusYamabe
+import CRNT.Equilibria.DegenerateDichotomy
+import CRNT.Theorems.DeficiencyZero.DecayRate
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
