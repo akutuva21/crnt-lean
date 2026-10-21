@@ -1119,6 +1119,9 @@ import CRNT.Algebra.ConvexVolume
 import CRNT.Dynamics.RateSensitive
 import CRNT.Multistationarity.EquilibriumSmoothness
 import CRNT.Theorems.DeficiencyZero.AbsolutePseudoHelmholtz
+import CRNT.Reduction.ToricReduction
+import CRNT.Stochastic.ProductFormGeometric
+import CRNT.Multistationarity.InheritanceCapacity
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
