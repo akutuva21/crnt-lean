@@ -58,9 +58,24 @@ def probe(names: list[str]) -> dict[str, str]:
         os.unlink(path)
     out = res.stdout + res.stderr
     msgs: dict[str, str] = {}
-    for m in re.finditer(r"'([^']+)' (depends on axioms: \[[^\]]*\]|does not depend on any axioms)",
-                         out, re.S):
-        msgs[m.group(1)] = " ".join(m.group(0).split())
+    # Lean prints one block per declaration:  'NAME' depends on axioms: [...]
+    # The axiom list may be wrapped over several lines, and the *name* may itself
+    # end in a prime (`foo'`), in which case Lean prints `'foo''`.  So the name
+    # is recovered by walking back from the message to the quoted name.
+    msg_re = re.compile(r"(depends on axioms: \[[^\]]*\]|does not depend on any axioms)", re.S)
+    for m in msg_re.finditer(out):
+        head = out[:m.start()]
+        j = head.rfind("'")
+        if j < 0:
+            continue
+        if j >= 1 and head[j - 1] == "'":
+            i = head.rfind("'", 0, j - 1)   # 'NAME'' : the name ends in a prime
+        else:
+            i = head.rfind("'", 0, j)        # 'NAME'
+        if i < 0:
+            continue
+        name = head[i + 1:j]
+        msgs[name] = " ".join((head[i:j + 1] + m.group(0)).split())
     errors = [l for l in out.splitlines() if ": error" in l]
     if errors:
         print("\n".join(errors[:20]), file=sys.stderr)
