@@ -1077,6 +1077,15 @@ import CRNT.Design.AntitheticInstance
 import CRNT.Decision.DeficiencyOneHypothesesDecide
 import CRNT.Dynamics.HopfFloquet
 import CRNT.Multistationarity.TwoReactionCompleteness
+import CRNT.Multistationarity.ParityGeneral
+import CRNT.Oscillation.ReturnMapRotation
+import CRNT.Dynamics.UniformContraction
+import CRNT.Algebra.VolumePolynomial
+import CRNT.Stochastic.CountableStateFoster
+import CRNT.Multistationarity.TotalDegreeGeneral
+import CRNT.Dynamics.DelayComparison
+import CRNT.Multistationarity.MultiShelfMoments
+import CRNT.Extensions.ReactionDiffusionSpectrum
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has

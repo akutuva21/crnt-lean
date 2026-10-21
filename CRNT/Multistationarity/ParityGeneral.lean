@@ -463,7 +463,8 @@ This is the exact content of the "the two opposite local degrees cancel" argumen
 does *not* force the number of positive steady states to be even: the remaining zeros contribute
 the class degree, whose parity is the parity of the number of positive steady states
 (`Network.card_positiveSteadyStates_odd_iff_classDegree_odd`), and the class degree may well be
-odd.  See `CRNT.Network.Counterexample` in this module for an explicit instance. -/
+odd.  See the namespace `CRNT.Network.OppositeSignsCounterexample` in this module for the
+ingredients of an explicit counterexample. -/
 theorem classDegree_eq_sum_erase_two_opposite_signs
     (N : Network S) (κ : N.RateConstants) (c : Concentration S)
     (hfinN : (N.steadyStateMap κ c ⁻¹' {0} ∩ N.nonnegativeClassRegion c).Finite)
