@@ -1116,6 +1116,7 @@ import CRNT.Dynamics.MarkusYamabe
 import CRNT.Equilibria.DegenerateDichotomy
 import CRNT.Theorems.DeficiencyZero.DecayRate
 import CRNT.Algebra.ConvexVolume
+import CRNT.Dynamics.RateSensitive
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
