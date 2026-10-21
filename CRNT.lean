@@ -1070,6 +1070,8 @@ import CRNT.Stochastic.JumpCountPoisson
 import CRNT.Stochastic.FluctuationSecondMoment
 import CRNT.Deficiency.DOASignDecomposition
 import CRNT.Dynamics.DelayHalanay
+import CRNT.Multistationarity.ReducedDetHomogeneity
+import CRNT.Persistence.BoundedPersistence
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
