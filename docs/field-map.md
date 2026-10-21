@@ -751,6 +751,14 @@ Arrhenius instance); the joint Lyapunov function and the semistability of delaye
 
 ## 4. Plan
 
+**Campaign status (2026-10-21).**  The twelve-hour campaign closed, or closed-with-a-refutation,
+every item that the twenty partial leaves listed as missing, except those that are open in the
+literature (the unbounded persistence conjecture, the global attractor conjecture, the full
+Chen–Doty–Soloveichik theorem) or beyond the mathematics Mathlib provides (the Jordan curve
+theorem, Brunn–Minkowski and the general BKK inequality, the Perron root and the Perron–Frobenius
+theorem, path-space measures and the strong Markov property, parabolic PDE theory).  The precise
+remaining obligation of each leaf is recorded in its Notes cell and in section 3.
+
 Each phase lists the leaves it closes.
 
 **Phase 0 — this file.** Write the map, pin every declaration it names
