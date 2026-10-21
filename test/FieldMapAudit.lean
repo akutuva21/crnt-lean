@@ -174,6 +174,31 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.openDeficiencyOne_existsUnique_positive
 
+-- F13
+/-- info: 'CRNT.Network.open_conservationLawSpace'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.open_conservationLawSpace
+
+-- F13
+/-- info: 'CRNT.Network.mem_orthSum_openStoichSubspace_iff'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.mem_orthSum_openStoichSubspace_iff
+
+-- F13
+/-- info: 'CRNT.Network.open_weightedTotal_const_along_solution'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.open_weightedTotal_const_along_solution
+
+-- F13
+/-- info: 'CRNT.Network.finrank_openConservationLawSpace'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.finrank_openConservationLawSpace
+
+-- F13
+/-- info: 'CRNT.Network.open_conservationLaw_eq_bot_iff'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.open_conservationLaw_eq_bot_iff
+
 -- F14
 /-- info: 'CRNT.Network.elementaryFluxMode_iff_extremeRay'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -473,6 +498,31 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Network.messi_variety_eq_linearParametrization'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.messi_variety_eq_linearParametrization
+
+-- S17
+/-- info: 'CRNT.Network.two_complexBalanced_differ_by_monomial_rescaling'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.two_complexBalanced_differ_by_monomial_rescaling
+
+-- S17
+/-- info: 'CRNT.Network.isComplexBalanced_of_monomial_rescaling'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.isComplexBalanced_of_monomial_rescaling
+
+-- S17
+/-- info: 'CRNT.Network.unique_complexBalanced_of_nondegenerate'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.unique_complexBalanced_of_nondegenerate
+
+-- S17
+/-- info: 'CRNT.Network.isNondegenerate_iff_injective_reducedJacobian'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.isNondegenerate_iff_injective_reducedJacobian
+
+-- S17
+/-- info: 'CRNT.Network.isNondegenerate_iff_strict_dissipation'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.isNondegenerate_iff_strict_dissipation
 
 -- S18
 /-- info: 'CRNT.Network.card_positiveSteadyStates_le_signVariations'depends on axioms: [propext, Classical.choice, Quot.sound] -/
@@ -1629,6 +1679,36 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.twoRxnMultistationary_complete_cTwoY
 
+-- M11
+/-- info: 'CRNT.Network.twoReaction_criterionTable_eq_criterion'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoReaction_criterionTable_eq_criterion
+
+-- M11
+/-- info: 'CRNT.Network.twoReaction_criterionTable_complete'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoReaction_criterionTable_complete
+
+-- M11
+/-- info: 'CRNT.Network.twoReaction_atomTable_eq_criterion'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoReaction_atomTable_eq_criterion
+
+-- M11
+/-- info: 'CRNT.Network.twoReaction_atomTable_eq_atom'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoReaction_atomTable_eq_atom
+
+-- M11
+/-- info: 'CRNT.Network.twoRxnMultistationary_complete'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoRxnMultistationary_complete
+
+-- M11
+/-- info: 'CRNT.Network.twoReaction_witness_iff_criterion'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.twoReaction_witness_iff_criterion
+
 -- M12
 /-- info: 'CRNT.Network.Kinetics.InjectiveOnClass.sum_subsingleton_steadyState'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -1828,6 +1908,26 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Network.omegaLimit_eq_singleton_of_local'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.omegaLimit_eq_singleton_of_local
+
+-- D4
+/-- info: 'CRNT.Network.relEntropy_ge_quadratic_of_complexBalanced'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.relEntropy_ge_quadratic_of_complexBalanced
+
+-- D4
+/-- info: 'CRNT.Network.relEntropy_ge_quadratic_in_ball'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.relEntropy_ge_quadratic_in_ball
+
+-- D4
+/-- info: 'CRNT.Network.relEntropy_expDecay_along_solution'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.relEntropy_expDecay_along_solution
+
+-- D4
+/-- info: 'CRNT.Network.entropyHessianQuadratic_ge_minEigenvalue'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.entropyHessianQuadratic_ge_minEigenvalue
 
 -- D5
 /-- info: 'CRNT.Network.complexBalanced_globalAttractor'depends on axioms: [propext, Classical.choice, Quot.sound] -/
@@ -2749,6 +2849,41 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.massAction_omegaLimit_orderConvex_of_monotone_field_of_uniformSeparator
 
+-- D14
+/-- info: 'CRNT.Dynamics.operatorNorm_contraction_of_jacobian'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.operatorNorm_contraction_of_jacobian
+
+-- D14
+/-- info: 'CRNT.Dynamics.operatorNorm_unique_fixedPoint'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.operatorNorm_unique_fixedPoint
+
+-- D14
+/-- info: 'CRNT.Dynamics.markusYamabe_discrete'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.markusYamabe_discrete
+
+-- D14
+/-- info: 'CRNT.Network.massAction_operatorNorm_contraction'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massAction_operatorNorm_contraction
+
+-- D14
+/-- info: 'CRNT.Network.massAction_flow_converges_of_operatorNormContraction'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massAction_flow_converges_of_operatorNormContraction
+
+-- D14
+/-- info: 'CRNT.Network.massAction_kamkeOnSimplicialCone_of_criterion'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massAction_kamkeOnSimplicialCone_of_criterion
+
+-- D14
+/-- info: 'CRNT.Network.massAction_simplicialCone_preserving_of_criterion'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massAction_simplicialCone_preserving_of_criterion
+
 -- D15
 /-- info: 'CRNT.hurwitz_quadratic_iff'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -3063,6 +3198,21 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Oscillation.returnMap_periodicTrajectory_of_monotone'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Oscillation.returnMap_periodicTrajectory_of_monotone
+
+-- D18
+/-- info: 'CRNT.Dynamics.fundamentalMatrixTarget'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.fundamentalMatrixTarget
+
+-- D18
+/-- info: 'CRNT.Dynamics.exists_variationalFundamental'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.exists_variationalFundamental
+
+-- D18
+/-- info: 'CRNT.Dynamics.exists_global_solution'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.exists_global_solution
 
 -- D19
 /-- info: 'ODE.fenichel_persistence'depends on axioms: [propext, Classical.choice, Quot.sound] -/
@@ -4644,6 +4794,26 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.JumpSystem.dynkin_sq_le
 
+-- P9
+/-- info: 'CRNT.JumpSystem.fluctuation_sq_le_uniform'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.JumpSystem.fluctuation_sq_le_uniform
+
+-- P9
+/-- info: 'CRNT.JumpSystem.fluctuation_chebyshev_uniform'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.JumpSystem.fluctuation_chebyshev_uniform
+
+-- P9
+/-- info: 'CRNT.JumpSystem.fluctuation_sq_le_uniform_scaled'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.JumpSystem.fluctuation_sq_le_uniform_scaled
+
+-- P9
+/-- info: 'CRNT.Network.fluctuation_uniform_concentration_and_second_moment'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fluctuation_uniform_concentration_and_second_moment
+
 -- P10
 /-- info: 'CRNT.Network.canFire_iff_stochasticMassActionRate_pos'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -4984,6 +5154,26 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.MixedVolume.card_solutions_le_volumePolynomial
 
+-- A3
+/-- info: 'CRNT.MixedVolume.mixedVolume_circuit'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.MixedVolume.mixedVolume_circuit
+
+-- A3
+/-- info: 'CRNT.MixedVolume.card_circuit_solutions_le_mixedVolume'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.MixedVolume.card_circuit_solutions_le_mixedVolume
+
+-- A3
+/-- info: 'CRNT.MixedVolume.card_common_positive_roots_le_mul_degrees'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.MixedVolume.card_common_positive_roots_le_mul_degrees
+
+-- A3
+/-- info: 'CRNT.MixedVolume.card_solutions_le_mixedVolume_of_dense'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.MixedVolume.card_solutions_le_mixedVolume_of_dense
+
 -- A4
 /-- info: 'CRNT.Tropical.eventually_sum_pos_of_minimizers_pos'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
@@ -5228,6 +5418,36 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Network.dissipation_neg_of_not_complexBalanced'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.dissipation_neg_of_not_complexBalanced
+
+-- E1
+/-- info: 'CRNT.Network.entropyProduction_minimized_at_detailedBalanced'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.entropyProduction_minimized_at_detailedBalanced
+
+-- E1
+/-- info: 'CRNT.Network.entropyProduction_uniqueMinimizer_inClass'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.entropyProduction_uniqueMinimizer_inClass
+
+-- E1
+/-- info: 'CRNT.Network.gibbsFreeEnergy_rateOfChange_eq_neg_entropyProduction'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.gibbsFreeEnergy_rateOfChange_eq_neg_entropyProduction
+
+-- E1
+/-- info: 'CRNT.Network.relEntropy_isLocalMin_of_complexBalanced'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.relEntropy_isLocalMin_of_complexBalanced
+
+-- E1
+/-- info: 'CRNT.Network.relEntropy_isStrictLocalMin_of_complexBalanced'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.relEntropy_isStrictLocalMin_of_complexBalanced
+
+-- E1
+/-- info: 'CRNT.Network.complexBalanced_of_relEntropy_gradient_zero'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.complexBalanced_of_relEntropy_gradient_zero
 
 -- E2
 /-- info: 'CRNT.Turing.diffusionDrivenInstability_iff'depends on axioms: [propext, Classical.choice, Quot.sound] -/
@@ -5858,3 +6078,18 @@ named in the field map is pinned to an axiom set contained in
 /-- info: 'CRNT.Antithetic.closedLoop_ergodic_of_fosterCertificate'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Antithetic.closedLoop_ergodic_of_fosterCertificate
+
+-- C3
+/-- info: 'CRNT.Antithetic.wLyapFamily_no_exponential_drift'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Antithetic.wLyapFamily_no_exponential_drift
+
+-- C3
+/-- info: 'CRNT.Antithetic.wLyapSlope_no_exponential_drift'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Antithetic.wLyapSlope_no_exponential_drift
+
+-- C3
+/-- info: 'CRNT.Antithetic.wLyap2_no_exponentialDrift_exists'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Antithetic.wLyap2_no_exponentialDrift_exists
