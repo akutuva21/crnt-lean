@@ -5174,6 +5174,26 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.MixedVolume.card_solutions_le_mixedVolume_of_dense
 
+-- A3
+/-- info: 'CRNT.Geometry.volume_le_of_subset'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Geometry.volume_le_of_subset
+
+-- A3
+/-- info: 'CRNT.Geometry.circuitNewtonPolytope_subset_zonotopeBody'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Geometry.circuitNewtonPolytope_subset_zonotopeBody
+
+-- A3
+/-- info: 'CRNT.Geometry.volumeI_circuitNewtonPolytope_le'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Geometry.volumeI_circuitNewtonPolytope_le
+
+-- A3
+/-- info: 'CRNT.Geometry.volumeI_zonotopeBody_dimOne'depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Geometry.volumeI_zonotopeBody_dimOne
+
 -- A4
 /-- info: 'CRNT.Tropical.eventually_sum_pos_of_minimizers_pos'depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
