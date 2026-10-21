@@ -1106,6 +1106,7 @@ import CRNT.Design.AntitheticExponential
 import CRNT.Extensions.NonIsothermalLyapunov
 import CRNT.Dynamics.FlowSmoothDependenceProof
 import CRNT.Stochastic.FluctuationUniform
+import CRNT.Algebra.MixedVolumeBKK
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has
