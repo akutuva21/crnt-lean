@@ -1,0 +1,246 @@
+{
+ "campaign": "crnt-lean 12h formalization campaign 2026-10-21",
+ "start_commit": "3065e963124a04e0e4830ac2f320df8c16909ba8",
+ "tasks": {
+  "W01": {
+   "id": "W01",
+   "commit": "e49b40c2851b",
+   "subject": "chore(campaign): the orchestrator's task registry, Slurm harness and worker protocol",
+   "files": [],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  },
+  "W02": {
+   "id": "W02",
+   "commit": "e146520c023b",
+   "subject": "feat: Gronwall infrastructure, a two-species ACK instance, Poisson jump-count domination, the second moment of the fluctuation, and the DOA-to-multi-shelf bridg",
+   "files": [
+    "CRNT/Deficiency/DOASignDecomposition.lean",
+    "CRNT/Dynamics/Gronwall.lean",
+    "CRNT/Stochastic/EndotacticTwoSpecies.lean",
+    "CRNT/Stochastic/FluctuationSecondMoment.lean",
+    "CRNT/Stochastic/JumpCountPoisson.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  },
+  "W03": {
+   "id": "W03",
+   "commit": "85037e832b87",
+   "subject": "feat: the Halanay comparison principle and the semistability of the linear delay equation",
+   "files": [
+    "CRNT/Dynamics/DelayHalanay.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  },
+  "W04": {
+   "id": "W04",
+   "commit": "057c16836487",
+   "subject": "feat: the degree-s homogeneity of the reduced determinant and the bounded persistence case",
+   "files": [
+    "CRNT/Multistationarity/ReducedDetHomogeneity.lean",
+    "CRNT/Persistence/BoundedPersistence.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  },
+  "W05": {
+   "id": "W05",
+   "commit": "8818472875a1",
+   "subject": "feat: the eigenvalue theory of the nilpotent-Jacobian criterion, the antithetic certificate, the decidable deficiency-one hypotheses, the Hopf Floquet multiplie",
+   "files": [
+    "CRNT/Decision/DeficiencyOneHypothesesDecide.lean",
+    "CRNT/Design/AntitheticInstance.lean",
+    "CRNT/Dynamics/HopfFloquet.lean",
+    "CRNT/Equilibria/JacobianSpectrumEigen.lean",
+    "CRNT/Multistationarity/ParityGeneral.lean",
+    "CRNT/Multistationarity/TwoReactionCompleteness.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  },
+  "W06": {
+   "id": "W06",
+   "commit": "55e3a793bf17",
+   "subject": "feat: uniform contraction, the volume polynomial, the countable-state Foster criterion, the general affine total degree, the delay comparison principle, the thr",
+   "files": [
+    "CRNT/Algebra/TropicalDynamics.lean",
+    "CRNT/Algebra/VolumePolynomial.lean",
+    "CRNT/Computation/SemilinearMax.lean",
+    "CRNT/Dynamics/DelayComparison.lean",
+    "CRNT/Dynamics/UniformContraction.lean",
+    "CRNT/Extensions/ReactionDiffusionSpectrum.lean",
+    "CRNT/Multistationarity/MultiShelfMoments.lean",
+    "CRNT/Multistationarity/ParityGeneral.lean",
+    "CRNT/Multistationarity/TotalDegreeGeneral.lean",
+    "CRNT/Oscillation/ReturnMapRotation.lean",
+    "CRNT/Stochastic/CompensatedSecondMoment.lean",
+    "CRNT/Stochastic/CountableStateFoster.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  },
+  "W07": {
+   "id": "W07",
+   "commit": "0c2eb1f70bd0",
+   "subject": "feat: the tropical reduction of the dynamics, the lattice delay comparison, the deficiency-one capacity kernel, the ADA coplanar content, the two-reaction compl",
+   "files": [
+    "CRNT/Algebra/TropicalDynamics.lean",
+    "CRNT/Computation/StableComposition.lean",
+    "CRNT/Deficiency/ADACoplanar.lean",
+    "CRNT/Deficiency/DOACapacityKernel.lean",
+    "CRNT/Dynamics/AveragingRegularity.lean",
+    "CRNT/Dynamics/DelayComparisonLattice.lean",
+    "CRNT/Dynamics/StrongOrderStrict.lean",
+    "CRNT/Multistationarity/TwoReactionCompleteness2.lean",
+    "CRNT/Stochastic/CountTierCardinality.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  },
+  "W08": {
+   "id": "W08",
+   "commit": "925215004a46",
+   "subject": "feat: the count-lattice tier estimate, global existence for the semidiscrete reaction-diffusion system, and the Foster certificate for the antithetic closed loo",
+   "files": [
+    "CRNT/Design/AntitheticFoster.lean",
+    "CRNT/Extensions/ReactionDiffusionGlobal.lean",
+    "CRNT/Stochastic/CountTierCardinality.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  },
+  "W09": {
+   "id": "W09",
+   "commit": "32a521ef2f72",
+   "subject": "feat: the Perron-Frobenius step for primitive matrices and the flow for the semidiscrete reaction-diffusion system",
+   "files": [
+    "CRNT/Equilibria/PerronFrobenius.lean",
+    "CRNT/Extensions/ReactionDiffusionFlow.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  },
+  "W10": {
+   "id": "W10",
+   "commit": "bc34cb8dc7f4",
+   "subject": "docs: fold the campaign's results into the field map",
+   "files": [],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  },
+  "W11": {
+   "id": "W11",
+   "commit": "b37c5a1696a0",
+   "subject": "feat: the obstruction to an exponential drift for the antithetic loop, the joint non-isothermal Lyapunov function, and the fundamental matrix of the mass-action",
+   "files": [
+    "CRNT/Design/AntitheticExponential.lean",
+    "CRNT/Dynamics/FlowSmoothDependenceProof.lean",
+    "CRNT/Extensions/NonIsothermalLyapunov.lean",
+    "CRNT/Multistationarity/CFMWHigherRank.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  },
+  "W12": {
+   "id": "W12",
+   "commit": "1728cea73982",
+   "subject": "feat: the fundamental matrix of the mass-action variational equation and the fluctuation-scale uniform-in-time estimate",
+   "files": [
+    "CRNT/Algebra/MixedVolumeBKK.lean",
+    "CRNT/Dynamics/FlowSmoothDependenceProof.lean",
+    "CRNT/Stochastic/FluctuationUniform.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  },
+  "W13": {
+   "id": "W13",
+   "commit": "d7b17ee0c084",
+   "subject": "feat: the BKK bound for a circuit system in the mixed-volume form",
+   "files": [
+    "CRNT/Algebra/MixedVolumeBKK.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  },
+  "W14": {
+   "id": "W14",
+   "commit": "dbd5dcf9d9a5",
+   "subject": "docs: seven new leaves for classical results the library already proves",
+   "files": [],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  },
+  "W15": {
+   "id": "W15",
+   "commit": "c79c565e407b",
+   "subject": "feat: the completeness of the two-reaction criterion table, the minimum entropy production principle, and a structural criterion for simplicial-cone monotonicit",
+   "files": [
+    "CRNT/Dynamics/SimplicialConeNetwork.lean",
+    "CRNT/Multistationarity/TwoReactionTable.lean",
+    "CRNT/Thermo/MinimumEntropyProduction.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  },
+  "W16": {
+   "id": "W16",
+   "commit": "c399997f88a0",
+   "subject": "feat: the Prigogine principle, the open-system conservation laws, the Markus-Yamabe criterion, the isolation criterion and the entropy decay rate",
+   "files": [
+    "CRNT/Algebra/ConvexVolume.lean",
+    "CRNT/Dynamics/MarkusYamabe.lean",
+    "CRNT/Equilibria/DegenerateDichotomy.lean",
+    "CRNT/Open/ConservationLaws.lean",
+    "CRNT/Theorems/DeficiencyZero/DecayRate.lean",
+    "CRNT/Theorems/DeficiencyZero/Prigogine.lean"
+   ],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  },
+  "W17": {
+   "id": "W17",
+   "commit": "d8097e51514e",
+   "subject": "docs: second round of field-map updates (1217 pinned declarations)",
+   "files": [],
+   "leaf": "",
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-21",
+   "verification": "lake build CRNT (cluster, independent); field-map pins OK"
+  }
+ }
+}
