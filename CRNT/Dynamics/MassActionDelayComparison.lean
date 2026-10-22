@@ -51,42 +51,34 @@ CRN vector field of Craciun (2006), Feinberg (1979) and Shiu (2000).
 * `massActionVectorField_lipschitzOnWith_closedBall`: **the mass-action field is Lipschitz on
   every bounded ball**, with the explicit constant `K(B)`.
 
-## The comparison principle: what is true and what is not
+## The comparison principle: scope and boundary
 
-The comparison principle for the mass-action delay system
-`ẋ(t) = ∑_r κ_r (x(t − τ_r)^{y_r} y'_r − x(t)^{y_r} y_r)`
-(Lipták–Hangos–Pituk–Szederkényi, *Semistability of complex balanced kinetic systems with
-arbitrary time delays*, Systems Control Lett. 114 (2018)) is **false in general**, and the
-reason is structural, not a matter of proof technology:
+The general componentwise comparison principle does not hold for all mass-action delay systems
+`ẋ(t) = ∑_r κ_r (x(t − τ_r)^{y_r} y'_r − x(t)^{y_r} y_r)`, as the following example shows.
 
-* the current-state part of the mass-action delay field is `−∑_r κ_r x^{y_r} y_r`, which is
-  **decreasing** in the current state (the consumption term), while the delayed part
-  `∑_r κ_r x(t − τ_r)^{y_r} y'_r` is increasing.  The field is therefore *competitive*, not
-  *cooperative*, and the flow of a competitive system does not preserve the componentwise
-  order.  The repository already records this obstruction in
-  `CRNT.Network.twoSpeciesDegradation_not_massActionKamkeOn`
-  (`CRNT/Dynamics/DelayComparisonLattice.lean`).
+On the nonnegative orthant, a consumption term can contribute nonpositive off-diagonal
+derivatives in the current state when a reaction consumes multiple species. Those terms can
+violate the Kamke condition; delayed production terms alone do not imply cooperativity. The
+repository formalizes one such obstruction in
+`CRNT.Network.twoSpeciesDegradation_not_massActionKamkeOn`
+(`CRNT/Dynamics/DelayComparisonLattice.lean`).
 
 The **counterexample** is the two-species degradation network `A + B → ∅` (`κ = 1`, any delay
-`τ ≥ 0`), whose delay system reads `ẋ = −x_A x_B`.  The two solutions
+`τ ≥ 0`), whose delay system reads `ẋ = −x_A x_B`. The two solutions
 
 `x(t) = (1/(1+t), 1/(1+t))`  and  `y(t) = (e^{−t}/(2 − e^{−t}), 1 + e^{−t}/(2 − e^{−t}))`
 
 satisfy `x(0) = (1,1) ≤ (1,2) = y(0)`, but `x_A(1) = 1/2 > e^{−1}/(2 − e^{−1}) = y_A(1)`:
-the order is destroyed.  (Both are solutions because `d/dt (u − v) = 0` along solutions of
-`u' = −uv`, `v' = −uv`.)  *This counterexample is stated analytically here; it is not yet
-machine-checked in the repository* — formalising it is the first item of the remaining
-obligation below.
+the order is destroyed. (Both are solutions because `d/dt (u − v) = 0` along solutions of
+`u' = −uv`, `v' = −uv`.) *This counterexample is stated analytically here; it is not yet
+machine-checked in the repository.*
 
-The comparison principle in `CRNT/Dynamics/DelayComparisonLattice.lean` applies to
-*cooperative* delay fields. Monomolecular mass-action fields are one useful class covered by
-that hypothesis; this module does not classify all mass-action networks whose fields are
-cooperative, and higher-order reactions can also satisfy off-diagonal monotonicity on suitable
-domains. General mass-action delay fields need not be cooperative, as the degradation example
-above shows. The remaining comparison obligation is to establish the delay comparison theorem
-for a precisely stated cooperative class of mass-action fields (or to add the required domain
-hypotheses to the existing `KamkeOn` machinery). The explicit local Lipschitz estimate proved
-here is available for such future arguments, but is not itself a comparison result.
+The comparison principle in `CRNT/Dynamics/DelayComparisonLattice.lean` applies to cooperative
+delay fields. Monomolecular mass-action fields are one useful class covered by that hypothesis;
+this module does not classify all mass-action networks whose fields are cooperative. General
+mass-action delay fields need not satisfy Kamke, as the degradation example above shows. The
+explicit local Lipschitz estimate proved here is available for future arguments, but is not
+itself a comparison result.
 
 ## The Lyapunov function
 
@@ -94,11 +86,11 @@ The Lyapunov–Krasovskii functional of Lipták–Hangos–Pituk–Szederkényi 
 delay systems is `CRNT.Network.delayLyapunov`, and the two results
 `CRNT.Network.delayLyapunov_hasDerivAt` and `CRNT.Network.delayLyapunov_deriv_nonpos`
 (`CRNT/Extensions/DelayLyapunov.lean`) already establish that it is nonincreasing along the
-solutions of the mass-action delay system (`CRNT.Network.delayLyapunov_antitone`).  The
-*mass-action* field therefore satisfies the hypotheses of the delay Lyapunov machinery; what
-was missing on the analytic side is exactly the Lipschitz/derivative estimate of the
-mass-action field on which any mass-action Lyapunov or comparison argument rests, and that is
-what this module supplies.
+solutions of the mass-action delay system (`CRNT.Network.delayLyapunov_antitone`). The local
+Lipschitz estimate in this module concerns the undelayed vector field
+`N.massActionVectorField κ`. It is an additional bound that can support ODE uniqueness and
+Gronwall arguments; it does not assert a Lipschitz bound for the full delay field or extend the
+delay comparison theorem.
 
 Depends on: `CRNT.Kinetics.MassActionJacobian`, `CRNT.Stochastic.KurtzFluidLimit`.
 -/
@@ -470,13 +462,12 @@ theorem massActionVectorField_nnnorm_fderiv_le (N : Network S) (κ : N.RateConst
   rw [massActionVectorField_fderiv]
   exact hnn
 
-/-- **The mass-action vector field is Lipschitz on every bounded ball, with an explicit
-constant.**
+/-- **The undelayed mass-action vector field is Lipschitz on every bounded ball, with an
+explicit constant.**
 
-This is the missing analytic input of the delay theory: the mass-action delay field
-`ẋ(t) = ∑_r κ_r (x(t − τ_r)^{y_r} y'_r − x(t)^{y_r} y_r)` is *not* globally Lipschitz in the
-current state (its current-state part is a polynomial), but on the ball of radius `B` it is
-Lipschitz with the constant `K(B)` of `massActionLipschitzConstant`.
+The vector field `N.massActionVectorField κ` is polynomial and is Lipschitz on the ball of radius
+`B` with the constant `K(B)` of `massActionLipschitzConstant`. This theorem does not establish a
+Lipschitz estimate for the full delay equation's history-dependent right-hand side.
 
 Reference: the local Lipschitz estimate for polynomial vector fields (Hale, *Ordinary
 Differential Equations*, Wiley 1980, Ch. 1). -/

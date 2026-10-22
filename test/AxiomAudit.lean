@@ -1215,6 +1215,58 @@ extra `import` line is needed here.
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.det_pos_of_negZMatrix_of_pos_mulVec
 
+/-- info: 'CRNT.Network.sourceDegree' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.sourceDegree
+
+/-- info: 'CRNT.Network.massActionLipschitzConstant' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionLipschitzConstant
+
+/-- info: 'CRNT.Network.massActionLipschitzConstant_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionLipschitzConstant_nonneg
+
+/-- info: 'CRNT.Network.massActionVectorField_fderiv' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionVectorField_fderiv
+
+/-- info: 'CRNT.Network.abs_massActionMonomialGrad_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.abs_massActionMonomialGrad_le
+
+/-- info: 'CRNT.Network.sum_abs_massActionMonomialGrad_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.sum_abs_massActionMonomialGrad_le
+
+/-- info: 'CRNT.Network.massActionJacobianCLM_apply_sum_coordinate' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionJacobianCLM_apply_sum_coordinate
+
+/-- info: 'CRNT.Network.massActionJacobianConstant' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionJacobianConstant
+
+/-- info: 'CRNT.Network.massActionJacobianConstant_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionJacobianConstant_nonneg
+
+/-- info: 'CRNT.Network.massActionJacobianCLM_norm_le_aux' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionJacobianCLM_norm_le_aux
+
+/-- info: 'CRNT.Network.massActionJacobianConstant_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionJacobianConstant_le
+
+/-- info: 'CRNT.Network.massActionJacobianCLM_norm_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionJacobianCLM_norm_le
+
+/-- info: 'CRNT.Network.massActionVectorField_nnnorm_fderiv_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionVectorField_nnnorm_fderiv_le
+
 /-- info: 'CRNT.Network.massActionVectorField_lipschitzOnWith_closedBall' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.massActionVectorField_lipschitzOnWith_closedBall
