@@ -1,4 +1,5 @@
 import CRNT
+import CRNT.Multistationarity.MMatrixDeterminant
 import CRNT.Dynamics.HighCodimensionSiphonFace
 import CRNT.Multistationarity.TrueChemistrySRCriterion
 import CRNT.Dynamics.GlobalAttractorTheorem
@@ -1209,3 +1210,7 @@ extra `import` line is needed here.
 /-- info: 'CRNT.Network.doaRun_hasMultistationarityCapacity' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.doaRun_hasMultistationarityCapacity
+
+/-- info: 'CRNT.Network.det_pos_of_negZMatrix_of_pos_mulVec' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.det_pos_of_negZMatrix_of_pos_mulVec

@@ -1054,6 +1054,7 @@ import CRNT.Stochastic.EndotacticFull
 import CRNT.Dynamics.MassActionHopf
 import CRNT.Dynamics.TikhonovTube
 import CRNT.Multistationarity.TotalDegree
+import CRNT.Multistationarity.MMatrixDeterminant
 import CRNT.Stochastic.ExitMassIdentification
 import CRNT.Dynamics.StrongOrderConvex
 import CRNT.Multistationarity.TwoReactionClassification
