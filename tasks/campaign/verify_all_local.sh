@@ -68,6 +68,16 @@ DIRTY="$(git status --porcelain | wc -l | tr -d ' ')"
 printf 'CRNT-Lean authoritative verification\ncommit: %s\ndirty files: %s\n' \
   "$COMMIT" "$DIRTY" | tee -a "$LOG"
 
+# The full build must have exclusive access to the compilation budget: take every
+# slot in the pool for the duration, so no worker's Lean elaboration can run
+# alongside it and push the machine past its measured capacity.
+POOL_SLOTS="$(tasks/campaign/lean_slot.sh acquire-all "${CRNT_SLOT_WAIT:-3600}")" || {
+  echo "could not acquire the whole build pool" >&2
+  exit 1
+}
+trap 'tasks/campaign/lean_slot.sh release-all >/dev/null 2>&1' EXIT
+printf 'build pool: %s slot(s) held exclusively\n' "$POOL_SLOTS" | tee -a "$LOG"
+
 run_gate build lake build +CRNT
 
 # Regenerate the field-map pins and require that the committed audit file was in

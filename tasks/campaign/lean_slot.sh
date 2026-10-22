@@ -59,6 +59,50 @@ case "${1:-}" in
     echo "lean_slot: timed out after ${timeout}s waiting for a slot (pool=$slots)" >&2
     exit 1
     ;;
+  acquire-all)
+    # Take every slot in the pool: used by the authoritative full build, which must
+    # have exclusive access to the compilation budget.
+    timeout="${2:-3600}"
+    waited=0
+    while : ; do
+      reap
+      i=1
+      ok=1
+      while [ "$i" -le "$slots" ]; do
+        if mkdir "$POOL/slot.$i" 2>/dev/null; then
+          echo "$$" >"$POOL/slot.$i/pid"
+        else
+          ok=0
+        fi
+        i=$((i + 1))
+      done
+      if [ "$ok" = "1" ]; then
+        echo "$slots"
+        exit 0
+      fi
+      # release what we took and retry
+      i=1
+      while [ "$i" -le "$slots" ]; do
+        rm -f "$POOL/slot.$i/pid"
+        rmdir "$POOL/slot.$i" 2>/dev/null || true
+        i=$((i + 1))
+      done
+      [ "$waited" -ge "$timeout" ] && break
+      sleep 3
+      waited=$((waited + 3))
+    done
+    echo "lean_slot: timed out after ${timeout}s waiting for the whole pool" >&2
+    exit 1
+    ;;
+  release-all)
+    i=1
+    while [ "$i" -le "$slots" ]; do
+      rm -f "$POOL/slot.$i/pid"
+      rmdir "$POOL/slot.$i" 2>/dev/null || true
+      i=$((i + 1))
+    done
+    exit 0
+    ;;
   release)
     i="${2:-}"
     if [ -n "$i" ]; then
