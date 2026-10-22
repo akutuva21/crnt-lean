@@ -1282,3 +1282,11 @@ example : ∃ L : ℝ≥0, LipschitzOnWith L
 /-- info: 'CRNT.Network.delayField_coord_mono_of_singleSpeciesSources' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.delayField_coord_mono_of_singleSpeciesSources
+
+/-- info: 'CRNT.Dynamics.delay_comparison_step_local' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.delay_comparison_step_local
+
+/-- info: 'CRNT.Dynamics.delay_comparison_subsolution_local' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.delay_comparison_subsolution_local

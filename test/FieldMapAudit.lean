@@ -6314,6 +6314,16 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.delayField_coord_mono_of_singleSpeciesSources
 
+-- E3
+/-- info: 'CRNT.Dynamics.delay_comparison_step_local' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.delay_comparison_step_local
+
+-- E3
+/-- info: 'CRNT.Dynamics.delay_comparison_subsolution_local' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.delay_comparison_subsolution_local
+
 -- C1
 /-- info: 'CRNT.Network.gac_of_singleLinkage_decide' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
