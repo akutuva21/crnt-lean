@@ -1067,6 +1067,7 @@ import CRNT.Algebra.MixedVolume
 import CRNT.Dynamics.DelayExistence
 import CRNT.Dynamics.Gronwall
 import CRNT.Stochastic.EndotacticTwoSpecies
+import CRNT.Stochastic.EndotacticCoupledTwoSpecies
 import CRNT.Stochastic.JumpCountPoisson
 import CRNT.Stochastic.FluctuationSecondMoment
 import CRNT.Deficiency.DOASignDecomposition
