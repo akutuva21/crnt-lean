@@ -1,122 +1,218 @@
 {
-  "campaign": "crnt-lean 12-hour formalization campaign, 2026-10-22 (local Mac)",
-  "start_commit": "298b1bb2df21577affc35ec14eb9378007f82540",
-  "end_commit": "",
-  "host": "Achyudhans-MBP",
-  "hardware": {
-    "model": "Apple M5 Pro",
-    "logical_cpus": 15,
-    "physical_cpus": 15,
-    "ram_gib": 24,
-    "swap_total_mib": 3072,
-    "swap_used_mib_at_start": 2045,
-    "load_average_at_start": 2.15,
-    "disk_free_gib": 79
+ "campaign": "crnt-lean 12-hour formalization campaign, 2026-10-22 (local Mac)",
+ "start_commit": "298b1bb2df21577affc35ec14eb9378007f82540",
+ "end_commit": "",
+ "host": "Achyudhans-MBP",
+ "hardware": {
+  "model": "Apple M5 Pro",
+  "logical_cpus": 15,
+  "physical_cpus": 15,
+  "ram_gib": 24,
+  "swap_total_mib": 3072,
+  "swap_used_mib_at_start": 2045,
+  "load_average_at_start": 2.15,
+  "disk_free_gib": 79
+ },
+ "limits": {
+  "build_slots_B": 4,
+  "max_agents_A": 9,
+  "formula_B": "min(6, max(1,P-2)=13, max(1,floor(0.6*L)=9), max(1,floor((M-R)/4)=4)) = 4",
+  "formula_A": "min(16, L=15, 2B+2=10, max(2,floor(0.4*M)=9)) = 9"
+ },
+ "workers_spawned": 10,
+ "peak_agents": 8,
+ "peak_lean_compilations": 4,
+ "tasks": {
+  "R1": {
+   "id": "R1",
+   "objective": "Review of TotalDegreeGeneral.lean (M9) and ParityGeneral.lean (S19)",
+   "leaf": "M9,S19",
+   "worker": "reviewer-R1",
+   "owned_files": [
+    "/tmp/crnt-wt-R1/REVIEW_R1.md"
+   ],
+   "dependencies": [],
+   "priority": 1,
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-22T00:22",
+   "commit": "",
+   "verification": "read-only; all 14 axiom sets checked as [propext, Classical.choice, Quot.sound]",
+   "obstacle": "M9 theorems are VALID_SPECIAL_CASE (affine field only). Missing: L1 sign(det M)=(-1)^s (dispatched as P4); L2 degree at infinity with properness (dispatched as P1); L3 the true Brouwer index at degenerate zeros; L4 dissipativity in dimension s>=1; L5 higher-order reaction terms. Also: fullyOpen_classDegree_of_affineLinear_diagonal is an exact duplicate of Network.fullyOpen_classDegree (dispatched as P5); the 'counted with multiplicity' claim is an overstatement (P5)."
   },
-  "limits": {
-    "build_slots_B": 4,
-    "max_agents_A": 9,
-    "formula_B": "min(6, max(1,P-2)=13, max(1,floor(0.6*L)=9), max(1,floor((M-R)/4)=4)) = 4",
-    "formula_A": "min(16, L=15, 2B+2=10, max(2,floor(0.4*M)=9)) = 9"
+  "R2": {
+   "id": "R2",
+   "objective": "Review of AntitheticFoster.lean (C3) and EndotacticTwoSpecies.lean (P7)",
+   "leaf": "C3,P7",
+   "worker": "reviewer-R2",
+   "owned_files": [
+    "/tmp/crnt-wt-R2/REVIEW_R2.md"
+   ],
+   "dependencies": [],
+   "priority": 1,
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-22T00:27",
+   "commit": "",
+   "verification": "read-only; all 13 principal results axiom-clean",
+   "obstacle": "P7's ACK literature attribution is MISSTATED: the cited paper does not exist and the attributed general claim is false (ACK Examples 3.1-3.2 are transient and explosive). Dispatched as P6. C3: geometric_ergodic_of_exponential_drift is CONDITIONAL; lyap_no_exponential_drift is correct but obstructs only certifying with that candidate. Missing: square-integrability of the charge under pi (C3-1)."
   },
-  "workers_spawned": 5,
-  "peak_agents": 5,
-  "peak_lean_compilations": 4,
-  "tasks": {
-    "R1": {
-      "id": "R1",
-      "objective": "Independent mathematical review of CRNT/Multistationarity/TotalDegreeGeneral.lean (M9) and CRNT/Multistationarity/ParityGeneral.lean (S19)",
-      "leaf": "M9,S19",
-      "worker": "reviewer-R1",
-      "owned_files": ["/tmp/crnt-wt-R1/REVIEW_R1.md"],
-      "dependencies": [],
-      "priority": 1,
-      "status": "RUNNING",
-      "last_progress": "2026-10-22T00:20",
-      "commit": "",
-      "verification": "n/a (read-only review)",
-      "obstacle": ""
-    },
-    "R2": {
-      "id": "R2",
-      "objective": "Independent mathematical review of CRNT/Design/AntitheticFoster.lean (C3) and CRNT/Stochastic/EndotacticTwoSpecies.lean (P7)",
-      "leaf": "C3,P7",
-      "worker": "reviewer-R2",
-      "owned_files": ["/tmp/crnt-wt-R2/REVIEW_R2.md"],
-      "dependencies": [],
-      "priority": 1,
-      "status": "RUNNING",
-      "last_progress": "2026-10-22T00:20",
-      "commit": "",
-      "verification": "n/a (read-only review)",
-      "obstacle": ""
-    },
-    "R3": {
-      "id": "R3",
-      "objective": "Independent mathematical review of CRNT/Deficiency/ADACoplanar.lean (M8) and CRNT/Multistationarity/MultiShelfMoments.lean (M7)",
-      "leaf": "M8,M7",
-      "worker": "reviewer-R3",
-      "owned_files": ["/tmp/crnt-wt-R3/REVIEW_R3.md"],
-      "dependencies": [],
-      "priority": 1,
-      "status": "INTEGRATED",
-      "last_progress": "2026-10-22T00:35",
-      "commit": "",
-      "verification": "read-only review; findings machine-checked in Scratch/Inert.lean",
-      "obstacle": "M8: ADAAffirmsCapacityStrong is CONDITIONAL - the capacity certificate is smuggled into the hypotheses. M7: threeShelf_decomposition is CONDITIONAL - the third moment hypothesis is equivalent to the conclusion."
-    },
-    "P1": {
-      "id": "P1",
-      "objective": "Generalise the total-degree theorem from affine mass-action fields to general quadratic fields: the mass-action field is a polynomial of degree <= 2, plus the degree-at-infinity homotopy",
-      "leaf": "M9",
-      "worker": "proof-P1",
-      "owned_files": ["CRNT/Multistationarity/GeneralFieldDegree.lean"],
-      "dependencies": [],
-      "priority": 1,
-      "status": "RUNNING",
-      "last_progress": "2026-10-22T00:30",
-      "commit": "",
-      "verification": "pending",
-      "obstacle": ""
-    },
-    "P2": {
-      "id": "P2",
-      "objective": "A genuinely coupled two-species strongly endotactic network: count-lattice tier weight, drift certificate, non-explosion and positive recurrence",
-      "leaf": "P7",
-      "worker": "proof-P2",
-      "owned_files": ["CRNT/Stochastic/EndotacticCoupledTwoSpecies.lean"],
-      "dependencies": [],
-      "priority": 1,
-      "status": "RUNNING",
-      "last_progress": "2026-10-22T00:30",
-      "commit": "",
-      "verification": "pending",
-      "obstacle": ""
-    },
-    "P3": {
-      "id": "P3",
-      "objective": "Make the Deficiency One Algorithm's shelf construction explicit: positive dependences -> DOAShelfFluxes, global-flux balances, and the reduction isolating Feinberg's combinatorial core",
-      "leaf": "M7,M8",
-      "worker": "proof-P3",
-      "owned_files": ["CRNT/Deficiency/ShelfFluxConstruction.lean"],
-      "dependencies": ["R3"],
-      "priority": 1,
-      "status": "RUNNING",
-      "last_progress": "2026-10-22T00:50",
-      "commit": "",
-      "verification": "pending",
-      "obstacle": ""
-    }
+  "R3": {
+   "id": "R3",
+   "objective": "Review of ADACoplanar.lean (M8) and MultiShelfMoments.lean (M7)",
+   "leaf": "M8,M7",
+   "worker": "reviewer-R3",
+   "owned_files": [
+    "/tmp/crnt-wt-R3/REVIEW_R3.md"
+   ],
+   "dependencies": [],
+   "priority": 1,
+   "status": "INTEGRATED",
+   "last_progress": "2026-10-22T00:35",
+   "commit": "",
+   "verification": "read-only; the inertness claims were re-checked in Lean",
+   "obstacle": "M8: ADAAffirmsCapacityStrong is CONDITIONAL - the capacity certificate is smuggled into the hypotheses; the Ji 1.7 layers are provably inert; WithinClassConditions is MISSTATED. M7: threeShelf_decomposition is CONDITIONAL - the third moment hypothesis is equivalent to the conclusion. Dispatched as P3 (construction) and P5 (documentation)."
   },
-  "infrastructure": {
-    "tasks/campaign/lean_slot.sh": "CPU semaphore for Lean jobs (mkdir-based, stale-slot reclamation by PID)",
-    "tasks/campaign/lean_check.sh": "elaborate a file against the prebuilt library, read-only, holding a slot",
-    "tasks/campaign/verify_module_local.sh": "local replacement for verify_module.sbatch; compiles into a private olean and audits the FRESH artifact",
-    "tasks/campaign/audit_module.py": "discovers a module's own declarations from its olean (Lean.ModuleData.constNames) and audits their axioms",
-    "tasks/campaign/verify_all_local.sh": "the authoritative full pipeline: build, tests, field-map pins, axiom audit, integrity checks"
+  "P1": {
+   "id": "P1",
+   "objective": "Generalise the total-degree theorem from affine mass-action fields to general quadratic fields: the mass-action field is a polynomial of degree <= 2, plus the degree-at-infinity homotopy",
+   "leaf": "M9",
+   "worker": "proof-P1",
+   "owned_files": [
+    "CRNT/Multistationarity/GeneralFieldDegree.lean"
+   ],
+   "dependencies": [],
+   "priority": 1,
+   "status": "RUNNING",
+   "last_progress": "2026-10-22T00:30",
+   "commit": "",
+   "verification": "pending",
+   "obstacle": ""
   },
-  "notes": [
-    "The cluster's verify_module.sbatch audited `import <mod>` through the shared LEAN_PATH, which resolved to the STALE prebuilt olean; a candidate with `sorry` could pass. The local script puts the private output directory FIRST on LEAN_PATH and proves freshness by the sorry self-test.",
-    "Lake in this toolchain (5.0.0) has no -j/--jobs option; build parallelism is bounded indirectly with LEAN_NUM_THREADS."
-  ]
+  "P2": {
+   "id": "P2",
+   "objective": "A genuinely coupled two-species strongly endotactic network: count-lattice tier weight, drift certificate, non-explosion and positive recurrence",
+   "leaf": "P7",
+   "worker": "proof-P2",
+   "owned_files": [
+    "CRNT/Stochastic/EndotacticCoupledTwoSpecies.lean"
+   ],
+   "dependencies": [],
+   "priority": 1,
+   "status": "RUNNING",
+   "last_progress": "2026-10-22T00:30",
+   "commit": "",
+   "verification": "pending",
+   "obstacle": ""
+  },
+  "P3": {
+   "id": "P3",
+   "objective": "Make the Deficiency One Algorithm's shelf construction explicit: positive dependences -> DOAShelfFluxes, global-flux balances, and the reduction isolating Feinberg's combinatorial core",
+   "leaf": "M7,M8",
+   "worker": "proof-P3",
+   "owned_files": [
+    "CRNT/Deficiency/ShelfFluxConstruction.lean"
+   ],
+   "dependencies": [
+    "R3"
+   ],
+   "priority": 1,
+   "status": "RUNNING",
+   "last_progress": "2026-10-22T00:50",
+   "commit": "",
+   "verification": "pending",
+   "obstacle": ""
+  },
+  "P4": {
+   "id": "P4",
+   "objective": "The (-1)^s total-degree theorem: sign(det M) = (-1)^{card S} for a fully open affine field (CFMW)",
+   "leaf": "M9",
+   "worker": "proof-P4",
+   "owned_files": [
+    "CRNT/Multistationarity/TotalDegreeSign.lean"
+   ],
+   "dependencies": [
+    "R1"
+   ],
+   "priority": 1,
+   "status": "RUNNING",
+   "last_progress": "2026-10-22T00:28",
+   "commit": "",
+   "verification": "pending",
+   "obstacle": ""
+  },
+  "P5": {
+   "id": "P5",
+   "objective": "Documentation and duplication repairs in the four reviewed modules (never weakening a statement)",
+   "leaf": "M9,S19,M8,M7",
+   "worker": "proof-P5",
+   "owned_files": [
+    "CRNT/Multistationarity/TotalDegreeGeneral.lean",
+    "CRNT/Multistationarity/ParityGeneral.lean",
+    "CRNT/Deficiency/ADACoplanar.lean",
+    "CRNT/Multistationarity/MultiShelfMoments.lean",
+    "CRNT/Multistationarity/CFMWHigherRank.lean"
+   ],
+   "dependencies": [
+    "R1",
+    "R3"
+   ],
+   "priority": 1,
+   "status": "RUNNING",
+   "last_progress": "2026-10-22T00:36",
+   "commit": "",
+   "verification": "pending",
+   "obstacle": ""
+  },
+  "P6": {
+   "id": "P6",
+   "objective": "Correct the false ACK citation and the false unconditional strong-endotacticity claim across the repository",
+   "leaf": "P7,D9",
+   "worker": "proof-P6",
+   "owned_files": [
+    "CRNT/Stochastic/EndotacticTwoSpecies.lean",
+    "CRNT/Stochastic/CountTierCardinality.lean",
+    "CRNT/Stochastic/EndotacticFull.lean",
+    "CRNT/Dynamics/Tier*.lean",
+    "CRNT/Dynamics/ProperTierTransversal.lean",
+    "CRNT/Dynamics/StrongEndotacticTier.lean"
+   ],
+   "dependencies": [
+    "R2"
+   ],
+   "priority": 1,
+   "status": "RUNNING",
+   "last_progress": "2026-10-22T00:37",
+   "commit": "",
+   "verification": "pending",
+   "obstacle": ""
+  },
+  "P8": {
+   "id": "P8",
+   "objective": "The Lipschitz bound for the mass-action field and the comparison principle for the mass-action delay system",
+   "leaf": "E3",
+   "worker": "proof-P8",
+   "owned_files": [
+    "CRNT/Dynamics/MassActionDelayComparison.lean"
+   ],
+   "dependencies": [],
+   "priority": 2,
+   "status": "RUNNING",
+   "last_progress": "2026-10-22T00:40",
+   "commit": "",
+   "verification": "pending",
+   "obstacle": ""
+  }
+ },
+ "infrastructure": {
+  "tasks/campaign/lean_slot.sh": "CPU semaphore for Lean jobs (mkdir-based, stale-slot reclamation by PID)",
+  "tasks/campaign/lean_check.sh": "elaborate a file against the prebuilt library, read-only, holding a slot",
+  "tasks/campaign/verify_module_local.sh": "local replacement for verify_module.sbatch; compiles into a private olean and audits the FRESH artifact",
+  "tasks/campaign/audit_module.py": "discovers a module's own declarations from its olean (Lean.ModuleData.constNames) and audits their axioms",
+  "tasks/campaign/verify_all_local.sh": "the authoritative full pipeline: build, tests, field-map pins, axiom audit, integrity checks"
+ },
+ "notes": [
+  "The cluster's verify_module.sbatch audited `import <mod>` through the shared LEAN_PATH, which resolved to the STALE prebuilt olean; a candidate with `sorry` could pass. The local script puts the private output directory FIRST on LEAN_PATH and proves freshness by the sorry self-test.",
+  "Lake in this toolchain (5.0.0) has no -j/--jobs option; build parallelism is bounded indirectly with LEAN_NUM_THREADS.",
+  "Another campaign (BioNetGen, /private/tmp/bng3-campaign) runs on the same Mac and uses 4-5 cores; it is never signalled. The load budget was reduced accordingly.",
+  "2026-10-22: the previous campaign's test suite did NOT build at the head commit (scripts/field_map_pins.py omitted a space, so all 1245 #guard_msgs pins were malformed). Repaired; lake build test now succeeds."
+ ]
 }
