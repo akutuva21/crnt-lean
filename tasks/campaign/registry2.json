@@ -1,0 +1,122 @@
+{
+  "campaign": "crnt-lean 12-hour formalization campaign, 2026-10-22 (local Mac)",
+  "start_commit": "298b1bb2df21577affc35ec14eb9378007f82540",
+  "end_commit": "",
+  "host": "Achyudhans-MBP",
+  "hardware": {
+    "model": "Apple M5 Pro",
+    "logical_cpus": 15,
+    "physical_cpus": 15,
+    "ram_gib": 24,
+    "swap_total_mib": 3072,
+    "swap_used_mib_at_start": 2045,
+    "load_average_at_start": 2.15,
+    "disk_free_gib": 79
+  },
+  "limits": {
+    "build_slots_B": 4,
+    "max_agents_A": 9,
+    "formula_B": "min(6, max(1,P-2)=13, max(1,floor(0.6*L)=9), max(1,floor((M-R)/4)=4)) = 4",
+    "formula_A": "min(16, L=15, 2B+2=10, max(2,floor(0.4*M)=9)) = 9"
+  },
+  "workers_spawned": 5,
+  "peak_agents": 5,
+  "peak_lean_compilations": 4,
+  "tasks": {
+    "R1": {
+      "id": "R1",
+      "objective": "Independent mathematical review of CRNT/Multistationarity/TotalDegreeGeneral.lean (M9) and CRNT/Multistationarity/ParityGeneral.lean (S19)",
+      "leaf": "M9,S19",
+      "worker": "reviewer-R1",
+      "owned_files": ["/tmp/crnt-wt-R1/REVIEW_R1.md"],
+      "dependencies": [],
+      "priority": 1,
+      "status": "RUNNING",
+      "last_progress": "2026-10-22T00:20",
+      "commit": "",
+      "verification": "n/a (read-only review)",
+      "obstacle": ""
+    },
+    "R2": {
+      "id": "R2",
+      "objective": "Independent mathematical review of CRNT/Design/AntitheticFoster.lean (C3) and CRNT/Stochastic/EndotacticTwoSpecies.lean (P7)",
+      "leaf": "C3,P7",
+      "worker": "reviewer-R2",
+      "owned_files": ["/tmp/crnt-wt-R2/REVIEW_R2.md"],
+      "dependencies": [],
+      "priority": 1,
+      "status": "RUNNING",
+      "last_progress": "2026-10-22T00:20",
+      "commit": "",
+      "verification": "n/a (read-only review)",
+      "obstacle": ""
+    },
+    "R3": {
+      "id": "R3",
+      "objective": "Independent mathematical review of CRNT/Deficiency/ADACoplanar.lean (M8) and CRNT/Multistationarity/MultiShelfMoments.lean (M7)",
+      "leaf": "M8,M7",
+      "worker": "reviewer-R3",
+      "owned_files": ["/tmp/crnt-wt-R3/REVIEW_R3.md"],
+      "dependencies": [],
+      "priority": 1,
+      "status": "INTEGRATED",
+      "last_progress": "2026-10-22T00:35",
+      "commit": "",
+      "verification": "read-only review; findings machine-checked in Scratch/Inert.lean",
+      "obstacle": "M8: ADAAffirmsCapacityStrong is CONDITIONAL - the capacity certificate is smuggled into the hypotheses. M7: threeShelf_decomposition is CONDITIONAL - the third moment hypothesis is equivalent to the conclusion."
+    },
+    "P1": {
+      "id": "P1",
+      "objective": "Generalise the total-degree theorem from affine mass-action fields to general quadratic fields: the mass-action field is a polynomial of degree <= 2, plus the degree-at-infinity homotopy",
+      "leaf": "M9",
+      "worker": "proof-P1",
+      "owned_files": ["CRNT/Multistationarity/GeneralFieldDegree.lean"],
+      "dependencies": [],
+      "priority": 1,
+      "status": "RUNNING",
+      "last_progress": "2026-10-22T00:30",
+      "commit": "",
+      "verification": "pending",
+      "obstacle": ""
+    },
+    "P2": {
+      "id": "P2",
+      "objective": "A genuinely coupled two-species strongly endotactic network: count-lattice tier weight, drift certificate, non-explosion and positive recurrence",
+      "leaf": "P7",
+      "worker": "proof-P2",
+      "owned_files": ["CRNT/Stochastic/EndotacticCoupledTwoSpecies.lean"],
+      "dependencies": [],
+      "priority": 1,
+      "status": "RUNNING",
+      "last_progress": "2026-10-22T00:30",
+      "commit": "",
+      "verification": "pending",
+      "obstacle": ""
+    },
+    "P3": {
+      "id": "P3",
+      "objective": "Make the Deficiency One Algorithm's shelf construction explicit: positive dependences -> DOAShelfFluxes, global-flux balances, and the reduction isolating Feinberg's combinatorial core",
+      "leaf": "M7,M8",
+      "worker": "proof-P3",
+      "owned_files": ["CRNT/Deficiency/ShelfFluxConstruction.lean"],
+      "dependencies": ["R3"],
+      "priority": 1,
+      "status": "RUNNING",
+      "last_progress": "2026-10-22T00:50",
+      "commit": "",
+      "verification": "pending",
+      "obstacle": ""
+    }
+  },
+  "infrastructure": {
+    "tasks/campaign/lean_slot.sh": "CPU semaphore for Lean jobs (mkdir-based, stale-slot reclamation by PID)",
+    "tasks/campaign/lean_check.sh": "elaborate a file against the prebuilt library, read-only, holding a slot",
+    "tasks/campaign/verify_module_local.sh": "local replacement for verify_module.sbatch; compiles into a private olean and audits the FRESH artifact",
+    "tasks/campaign/audit_module.py": "discovers a module's own declarations from its olean (Lean.ModuleData.constNames) and audits their axioms",
+    "tasks/campaign/verify_all_local.sh": "the authoritative full pipeline: build, tests, field-map pins, axiom audit, integrity checks"
+  },
+  "notes": [
+    "The cluster's verify_module.sbatch audited `import <mod>` through the shared LEAN_PATH, which resolved to the STALE prebuilt olean; a candidate with `sorry` could pass. The local script puts the private output directory FIRST on LEAN_PATH and proves freshness by the sorry self-test.",
+    "Lake in this toolchain (5.0.0) has no -j/--jobs option; build parallelism is bounded indirectly with LEAN_NUM_THREADS."
+  ]
+}

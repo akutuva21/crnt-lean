@@ -75,7 +75,11 @@ def probe(names: list[str]) -> dict[str, str]:
         if i < 0:
             continue
         name = head[i + 1:j]
-        msgs[name] = " ".join((head[i:j + 1] + m.group(0)).split())
+        # The quoted name and the axiom clause are two separate pieces of Lean's
+        # output; they must be joined by a space, or the generated `#guard_msgs`
+        # docstring reads `'NAME'depends on axioms: [...]` and the test fails to
+        # elaborate with "Docstring on `#guard_msgs` does not match generated message".
+        msgs[name] = " ".join((head[i:j + 1] + " " + m.group(0)).split())
     errors = [l for l in out.splitlines() if ": error" in l]
     if errors:
         print("\n".join(errors[:20]), file=sys.stderr)

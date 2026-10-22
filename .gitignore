@@ -47,3 +47,6 @@ CLAUDE.md
 
 # Downloaded toolchain archives used for offline setup
 /lean434-offline-linux-x86_64/
+
+# Campaign-local scratch: build slots, verification results, logs
+/.campaign/
