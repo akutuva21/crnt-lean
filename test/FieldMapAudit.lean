@@ -6324,6 +6324,46 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Dynamics.delay_comparison_subsolution_local
 
+-- E3
+/-- info: 'CRNT.Network.currentConsumptionVectorField_apply' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.currentConsumptionVectorField_apply
+
+-- E3
+/-- info: 'CRNT.Network.massActionDelayField_eq_delayedProduction_add_consumption' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelayField_eq_delayedProduction_add_consumption
+
+-- E3
+/-- info: 'CRNT.Network.massActionDelayField_lipschitzOnWith_closedBall' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelayField_lipschitzOnWith_closedBall
+
+-- E3
+/-- info: 'CRNT.Network.massActionDelayField_currentConsumption_coord_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelayField_currentConsumption_coord_eq
+
+-- E3
+/-- info: 'CRNT.Network.massActionDelayField_kamke_of_singleSpeciesSources' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelayField_kamke_of_singleSpeciesSources
+
+-- E3
+/-- info: 'CRNT.Network.massActionDelayField_monotoneDelayed_of_nonnegative' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelayField_monotoneDelayed_of_nonnegative
+
+-- E3
+/-- info: 'CRNT.Network.boundedNonnegativeConcentrationRegion_sup_closed' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.boundedNonnegativeConcentrationRegion_sup_closed
+
+-- E3
+/-- info: 'CRNT.Network.delay_comparison_massAction_commonDelay_singleSpeciesSources' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delay_comparison_massAction_commonDelay_singleSpeciesSources
+
 -- C1
 /-- info: 'CRNT.Network.gac_of_singleLinkage_decide' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
