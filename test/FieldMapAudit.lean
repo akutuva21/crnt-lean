@@ -4294,6 +4294,286 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.countTierDrift_exceptional_card_le
 
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.count_A' depends on axioms: [propext] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.count_A
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.count_B' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.count_B
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.stronglyEndotacticStd' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.stronglyEndotacticStd
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.coupling_propensity' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.coupling_propensity
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.coupling_depends_on_B' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.coupling_depends_on_B
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.coupling_depends_on_A' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.coupling_depends_on_A
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.coupling_both' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.coupling_both
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.coupling_changes_state' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.coupling_changes_state
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.countTier' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.countTier
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.countTierDescent_net' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.countTierDescent_net
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.tierWeight_pos' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.tierWeight_pos
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.countLyapunov_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.countLyapunov_eq
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.descFactorial_two_ge' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.descFactorial_two_ge
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.drift_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.drift_eq
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.drift_le' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.drift_le
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.countTierDrift_certificate' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.countTierDrift_certificate
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.ack_drift_condition' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.ack_drift_condition
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.reachPos' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.reachPos
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.nonExplosion' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.nonExplosion
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.positiveRecurrence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.positiveRecurrence
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.geometricErgodic' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.geometricErgodic
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.fosterHittingTime' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.fosterHittingTime
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.net' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.net
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.count' depends on axioms: [propext] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.count
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.tierWeight' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.tierWeight
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.wValue_birthA' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.wValue_birthA
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.wValue_birthB' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.wValue_birthB
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.wValue_annA' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.wValue_annA
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.wValue_annB' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.wValue_annB
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.wValue_catal' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.wValue_catal
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.wValue_deathA' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.wValue_deathA
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.wValue_deathB' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.wValue_deathB
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.wRate_birthA' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.wRate_birthA
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.wRate_birthB' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.wRate_birthB
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.wRate_annA' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.wRate_annA
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.wRate_annB' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.wRate_annB
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.wRate_catal' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.wRate_catal
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.wRate_deathA' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.wRate_deathA
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.wRate_deathB' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.wRate_deathB
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.isMaxSource_birthA' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.isMaxSource_birthA
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.isMaxSource_birthB' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.isMaxSource_birthB
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.isMaxSource_annA' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.isMaxSource_annA
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.isMaxSource_annB' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.isMaxSource_annB
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.isMaxSource_catal' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.isMaxSource_catal
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.isMaxSource_deathA' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.isMaxSource_deathA
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.isMaxSource_deathB' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.isMaxSource_deathB
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.rate_birthA' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.rate_birthA
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.rate_birthB' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.rate_birthB
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.rate_annA' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.rate_annA
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.rate_annB' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.rate_annB
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.rate_deathA' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.rate_deathA
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.rate_deathB' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.rate_deathB
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.next_birthA' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.next_birthA
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.next_birthB' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.next_birthB
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.next_deathA' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.next_deathA
+
+-- P7
+/-- info: 'CRNT.Examples.CoupledTwoSpecies.next_deathB' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.CoupledTwoSpecies.next_deathB
+
 -- P8
 /-- info: 'CRNT.Network.tendsto_scaledGenerator' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
