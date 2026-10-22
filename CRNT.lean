@@ -1091,6 +1091,7 @@ import CRNT.Stochastic.CompensatedSecondMoment
 import CRNT.Computation.SemilinearMax
 import CRNT.Algebra.TropicalDynamics
 import CRNT.Dynamics.DelayComparisonLattice
+import CRNT.Dynamics.MassActionDelayComparison
 import CRNT.Deficiency.DOACapacityKernel
 import CRNT.Deficiency.ADACoplanar
 import CRNT.Multistationarity.TwoReactionCompleteness2

@@ -1214,3 +1214,16 @@ extra `import` line is needed here.
 /-- info: 'CRNT.Network.det_pos_of_negZMatrix_of_pos_mulVec' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.det_pos_of_negZMatrix_of_pos_mulVec
+
+/-- info: 'CRNT.Network.massActionVectorField_lipschitzOnWith_closedBall' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionVectorField_lipschitzOnWith_closedBall
+
+/-- A nonlinear two-species mass-action field is covered by the local Lipschitz theorem. -/
+example : ∃ L : ℝ≥0, LipschitzOnWith L
+    (CRNT.Network.twoSpeciesDegradation.massActionVectorField CRNT.Network.twoSpeciesDegradationRates)
+    (Metric.closedBall (0 : CRNT.Concentration (Fin 2)) 1) := by
+  exact ⟨Real.toNNReal (CRNT.Network.massActionLipschitzConstant CRNT.Network.twoSpeciesDegradation
+    CRNT.Network.twoSpeciesDegradationRates 1),
+    CRNT.Network.massActionVectorField_lipschitzOnWith_closedBall CRNT.Network.twoSpeciesDegradation
+      CRNT.Network.twoSpeciesDegradationRates 1⟩
