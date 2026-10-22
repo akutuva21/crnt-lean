@@ -19,8 +19,8 @@
   "formula_B": "min(6, max(1,P-2)=13, max(1,floor(0.6*L)=9), max(1,floor((M-R)/4)=4)) = 4",
   "formula_A": "min(16, L=15, 2B+2=10, max(2,floor(0.4*M)=9)) = 9"
  },
- "workers_spawned": 10,
- "peak_agents": 8,
+ "workers_spawned": 15,
+ "peak_agents": 5,
  "peak_lean_compilations": 4,
  "tasks": {
   "R1": {
@@ -81,11 +81,11 @@
    ],
    "dependencies": [],
    "priority": 1,
-   "status": "RUNNING",
+   "status": "INTEGRATED",
    "last_progress": "2026-10-22T00:30",
-   "commit": "",
-   "verification": "pending",
-   "obstacle": ""
+   "commit": "5afc9e7",
+   "verification": "verify_module_local.sh PASS (71 declarations audited in the fresh artifact)",
+   "obstacle": "The naive quadratic version of the total-degree theorem is REFUTED (machine-checked counterexample: 2A->3A, field 1-x+x^2, class degree 0 != sign det M). The zeros escape to infinity along x -> 1-x+t x^2, so the relative class degree is not transported to the affine slice. The correct invariant is the total degree of the reduced determinant (degree at infinity / mixed-volume count), still missing."
   },
   "P2": {
    "id": "P2",
@@ -97,11 +97,11 @@
    ],
    "dependencies": [],
    "priority": 1,
-   "status": "RUNNING",
+   "status": "INTEGRATED",
    "last_progress": "2026-10-22T00:30",
-   "commit": "",
-   "verification": "pending",
-   "obstacle": ""
+   "commit": "5afc9e7",
+   "verification": "verify_module_local.sh PASS (58 declarations)",
+   "obstacle": "A genuinely coupled two-species instance is done; the general conditional ACK theorem still needs the rate-free tier-sequence Lyapunov function."
   },
   "P3": {
    "id": "P3",
@@ -115,11 +115,11 @@
     "R3"
    ],
    "priority": 1,
-   "status": "RUNNING",
+   "status": "INTEGRATED",
    "last_progress": "2026-10-22T00:50",
-   "commit": "",
-   "verification": "pending",
-   "obstacle": ""
+   "commit": "5afc9e7",
+   "verification": "verify_module_local.sh PASS (93 declarations)",
+   "obstacle": "The assembly of DOAShelfFluxes from positive dependences is proved and the middle-shelf condition is shown to be a REAL hypothesis (the unconditional form is refuted). Remaining: Feinberg's own shelf construction from (g, sp) carries strictly positive dependences."
   },
   "P4": {
    "id": "P4",
@@ -133,11 +133,11 @@
     "R1"
    ],
    "priority": 1,
-   "status": "RUNNING",
+   "status": "PARTIAL",
    "last_progress": "2026-10-22T00:28",
-   "commit": "",
-   "verification": "pending",
-   "obstacle": ""
+   "commit": "5afc9e7",
+   "verification": "verify_module_local.sh PASS (17 declarations)",
+   "obstacle": "The structural lemmas (source positivity, off-diagonal nonnegativity, zero positivity, diagonal negativity) are proved, so the linear part is a Z-matrix. The single missing ingredient is the nonsingular M-matrix determinant theorem, which Mathlib does not have; dispatched as P9."
   },
   "P5": {
    "id": "P5",
@@ -156,10 +156,10 @@
     "R3"
    ],
    "priority": 1,
-   "status": "RUNNING",
+   "status": "INTEGRATED",
    "last_progress": "2026-10-22T00:36",
-   "commit": "",
-   "verification": "pending",
+   "commit": "5afc9e7",
+   "verification": "diff_statements.py: 2 exact duplicates removed, 26 declarations added (the counterexample completed), no other statement changed; full pipeline PASS",
    "obstacle": ""
   },
   "P6": {
@@ -179,10 +179,10 @@
     "R2"
    ],
    "priority": 1,
-   "status": "RUNNING",
+   "status": "INTEGRATED",
    "last_progress": "2026-10-22T00:37",
-   "commit": "",
-   "verification": "pending",
+   "commit": "6a8bd56",
+   "verification": "diff_statements.py: IDENTICAL code in all three modules (documentation only); full pipeline PASS",
    "obstacle": ""
   },
   "P8": {
@@ -195,8 +195,88 @@
    ],
    "dependencies": [],
    "priority": 2,
-   "status": "RUNNING",
+   "status": "PARTIAL",
    "last_progress": "2026-10-22T00:40",
+   "commit": "5afc9e7",
+   "verification": "verify_module_local.sh PASS (15 declarations)",
+   "obstacle": "The Lipschitz bound for the mass-action field is proved. The comparison principle for the mass-action delay system is FALSE (the field is competitive, not cooperative). Remaining: the metzler/monomolecular comparison; dispatched as P10."
+  },
+  "P9": {
+   "id": "P9",
+   "objective": "The nonsingular M-matrix determinant theorem, then the (-1)^s total-degree theorem",
+   "leaf": "M9",
+   "worker": "proof-P9",
+   "owned_files": [
+    "CRNT/Multistationarity/MMatrixDeterminant.lean"
+   ],
+   "dependencies": [],
+   "priority": 1,
+   "status": "RUNNING",
+   "last_progress": "2026-10-22T01:15",
+   "commit": "",
+   "verification": "pending",
+   "obstacle": ""
+  },
+  "P10": {
+   "id": "P10",
+   "objective": "The metzler (quasi-positive) comparison principle for the monomolecular mass-action delay system",
+   "leaf": "E3",
+   "worker": "proof-P10",
+   "owned_files": [
+    "CRNT/Dynamics/MetzlerDelayComparison.lean"
+   ],
+   "dependencies": [],
+   "priority": 1,
+   "status": "RUNNING",
+   "last_progress": "2026-10-22T01:15",
+   "commit": "",
+   "verification": "pending",
+   "obstacle": ""
+  },
+  "P11": {
+   "id": "P11",
+   "objective": "The linear-algebraic core of the shelf construction: a strictly positive dependence for a shelf of reactions in deficiency one",
+   "leaf": "M7,M8",
+   "worker": "proof-P11",
+   "owned_files": [
+    "CRNT/Deficiency/ShelfDependence.lean"
+   ],
+   "dependencies": [],
+   "priority": 1,
+   "status": "RUNNING",
+   "last_progress": "2026-10-22T01:15",
+   "commit": "",
+   "verification": "pending",
+   "obstacle": ""
+  },
+  "P12": {
+   "id": "P12",
+   "objective": "Independent review of D16/D18 (oscillation) and C2/C3 (computation/design)",
+   "leaf": "D16,D18,C2,C3",
+   "worker": "proof-P12",
+   "owned_files": [
+    "/tmp/crnt-wt-P12/REVIEW_P12.md"
+   ],
+   "dependencies": [],
+   "priority": 1,
+   "status": "RUNNING",
+   "last_progress": "2026-10-22T01:15",
+   "commit": "",
+   "verification": "pending",
+   "obstacle": ""
+  },
+  "P13": {
+   "id": "P13",
+   "objective": "The persistence of the Hopf cycle for the full nonlinear mass-action field",
+   "leaf": "D16",
+   "worker": "proof-P13",
+   "owned_files": [
+    "CRNT/Oscillation/NonlinearHopfPersistence.lean"
+   ],
+   "dependencies": [],
+   "priority": 1,
+   "status": "RUNNING",
+   "last_progress": "2026-10-22T01:15",
    "commit": "",
    "verification": "pending",
    "obstacle": ""
