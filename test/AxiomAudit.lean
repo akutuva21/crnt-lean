@@ -1279,3 +1279,6 @@ example : ∃ L : ℝ≥0, LipschitzOnWith L
     CRNT.Network.twoSpeciesDegradationRates 1),
     CRNT.Network.massActionVectorField_lipschitzOnWith_closedBall CRNT.Network.twoSpeciesDegradation
       CRNT.Network.twoSpeciesDegradationRates 1⟩
+/-- info: 'CRNT.Network.delayField_coord_mono_of_singleSpeciesSources' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayField_coord_mono_of_singleSpeciesSources

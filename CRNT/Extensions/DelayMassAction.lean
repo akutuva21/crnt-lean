@@ -1,6 +1,7 @@
 import CRNT.Equilibria.SteadyState
 import CRNT.LinearAlgebra.OrthogonalComplement
 import CRNT.Stoich.Subspace
+import CRNT.Dynamics.CooperativeNetworks
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.Analysis.Calculus.Deriv.Pi
 import Mathlib.Analysis.Calculus.Deriv.Prod
@@ -41,6 +42,54 @@ noncomputable def delayField (N : Network S) (κ : RateConstants N) (τ : N.R �
   fun s => ∑ r, κ.k r * ((N.reaction r).source.massActionMonomial (x (t - τ r)) *
       ((N.reaction r).target s : ℝ) -
     (N.reaction r).source.massActionMonomial (x t) * ((N.reaction r).source s : ℝ))
+
+/-- Every reaction source contains at most one distinct species. -/
+def HasSingleSpeciesSources (N : Network S) : Prop :=
+  ∀ r i j, (N.reaction r).source i ≠ 0 → (N.reaction r).source j ≠ 0 → i = j
+
+/-- **Delayed production is order preserving while current consumption is coordinatewise.**
+
+If each reaction source contains at most one species, then whenever two trajectories are ordered
+at every delayed evaluation, have nonnegative lower delayed states, and agree in coordinate `i` at
+the current time, the `i`-th coordinate of the delayed mass-action field is ordered as well.
+This is a field-level comparison lemma; it does not assert a trajectory comparison theorem for
+delay systems. -/
+theorem delayField_coord_mono_of_singleSpeciesSources (N : Network S) (κ : RateConstants N)
+    (τ : N.R → ℝ) (hsrc : N.HasSingleSpeciesSources)
+    {x y : ℝ → Concentration S} (t : ℝ) (i : S)
+    (hdel : ∀ r, x (t - τ r) ≤ y (t - τ r))
+    (hdelNonneg : ∀ r s, 0 ≤ x (t - τ r) s)
+    (hcurEq : x t i = y t i) :
+    N.delayField κ τ x t i ≤ N.delayField κ τ y t i := by
+  classical
+  rw [delayField, delayField]
+  refine Finset.sum_le_sum fun r _ => ?_
+  let src := (N.reaction r).source
+  let tgt := (N.reaction r).target
+  have hmono : src.massActionMonomial (x (t - τ r)) ≤
+      src.massActionMonomial (y (t - τ r)) :=
+    massActionMonomial_mono (fun s => hdelNonneg r s) (hdel r)
+  have hcurMono : src.massActionMonomial (x t) * (src i : ℝ) =
+      src.massActionMonomial (y t) * (src i : ℝ) := by
+    by_cases hi : src i = 0
+    · simp [hi]
+    · have hsupp : ∀ j, j ≠ i → src j = 0 := by
+        intro j hji
+        by_contra hj
+        exact hji (hsrc r i j hi (Nat.ne_of_gt (Nat.pos_of_ne_zero hj))).symm
+      rw [massActionMonomial_eq_of_support hsupp hcurEq]
+  have hrelease : κ.k r *
+      (src.massActionMonomial (x (t - τ r)) * (tgt i : ℝ)) ≤
+      κ.k r * (src.massActionMonomial (y (t - τ r)) * (tgt i : ℝ)) :=
+    mul_le_mul_of_nonneg_left
+      (mul_le_mul_of_nonneg_right hmono (Nat.cast_nonneg _)) (κ.positive r).le
+  change κ.k r *
+      (src.massActionMonomial (x (t - τ r)) * (tgt i : ℝ) -
+        src.massActionMonomial (x t) * (src i : ℝ)) ≤
+    κ.k r * (src.massActionMonomial (y (t - τ r)) * (tgt i : ℝ) -
+        src.massActionMonomial (y t) * (src i : ℝ))
+  rw [hcurMono]
+  nlinarith [hrelease]
 
 /-- `x` solves the delay system. -/
 def IsDelaySolution (N : Network S) (κ : RateConstants N) (τ : N.R → ℝ)
