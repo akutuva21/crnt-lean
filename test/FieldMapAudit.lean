@@ -6309,6 +6309,11 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.twoSpeciesDegradation_not_massActionKamkeOn
 
+-- E3
+/-- info: 'CRNT.Network.delayField_coord_mono_of_singleSpeciesSources' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayField_coord_mono_of_singleSpeciesSources
+
 -- C1
 /-- info: 'CRNT.Network.gac_of_singleLinkage_decide' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
