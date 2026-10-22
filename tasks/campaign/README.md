@@ -27,74 +27,78 @@ as much of chemical reaction network theory as possible into the `crnt-lean` lib
 | `verify_module.sbatch`, `submit.sh` | per-module isolated verification jobs |
 | `diag.sbatch` | the diagnostic used to find the cluster's `--mem`/address-space interaction |
 
-## How the campaign was run
+---
 
-* **Model.** Every theorem-proving worker ran on `opencode/minimax-m3.1-flash-free` (MiniMax M3.1
-  Flash). Workers were given an exact target, the mathematical reference, the repository
-  definitions to read, the single file they owned, and the verification command.
-* **Isolation.** A worker owned exactly one new file under `CRNT/`; it never touched `CRNT.lean`,
-  `CRNTFrontier.lean`, `lakefile.toml`, `docs/field-map.md`, `test/` or `scripts/`. The
-  orchestrator owned the shared files and every integration.
-* **Local iteration, cluster verification.** Workers elaborated their module locally with
-  `lake env lean <file>` (the library was already built). The *authoritative* check — a build
-  from scratch on the cluster, followed by the field-map pin audit — was run inside Slurm
-  allocations on the `any_cpu` partition.
-* **Nothing heavy on the login node.** `elan`'s toolchain download and `git` were the only things
-  run on the login node; every Lean compilation and every audit ran inside a `sbatch` job.
+# The 2026-10-22 campaign (local Mac)
 
-## The cluster: the `--mem` / address-space interaction
+The second campaign runs **entirely on one Mac** — no Slurm, no `/scr`, no cluster home, no SSH.
+The starting point is the end of the first campaign, `298b1bb2df21577affc35ec14eb9378007f82540`
+(99 leaves: 79 proved, 20 partial; 1245 pinned declarations; 59 new modules).
 
-The CSB cluster's Slurm applies `--mem` as an **address-space** limit (`RLIMIT_AS`), not as a
-cgroup limit. Lean reserves a large virtual arena and allocates one thread stack per worker, so
-*any* `--mem` below roughly 32 GB makes `lake build` abort with
+## Hardware profile and concurrency
+
+| | |
+|---|---|
+| machine | Apple M5 Pro (15 logical / 15 physical cores, 24 GiB RAM) |
+| swap | 3 GiB total; ~1.9 GiB in use at the start (stable) |
+| load average | 2.15 at the start |
+| disk free | 79 GiB |
+
+The conservative starting limits are
 
 ```
-libc++abi: terminating due to uncaught exception of type lean::exception:
-failed to create thread: Resource temporarily unavailable
+R = max(4 GiB, 0.25 × M) = 6 GiB
+B = min(6, max(1,P-2)=13, max(1,floor(0.6·L)=9), max(1,floor((M-R)/4)=4)) = 4   # Lean jobs
+A = min(16, L=15, 2B+2=10, max(2,floor(0.4·M)=9)) = 9                          # MiniMax agents
 ```
 
-This was diagnosed with `tasks/campaign/diag.sbatch` (which prints `ulimit -a`, the cgroup
-`pids.max`, and tries to spawn threads from both Python and Lean). The fix is to request **no**
-address-space cap (`--mem=0`) and to bound the campaign by the number of concurrent jobs; the
-*actual* consumption is read back from `sacct` (`MaxRSS`). The base build and the verification
-jobs were run this way, with 4 CPUs each — well inside the campaign's budget of 48 CPUs.
+`B` bounds *simultaneous CPU-intensive Lean processes*; `A` bounds *active MiniMax agents*.
+The two are independent: model inference is remote, so an agent waiting for a build slot keeps
+working (reading references, planning, searching the library) instead of burning CPU.
 
-## Results
+## The local verification infrastructure
 
-See the final campaign report. In brief: every leaf that the field map listed as *missing* was
-either closed or closed with a **machine-checked refutation of the proposed statement** (which is
-a result too: it records that the naive reading is false). The field map now has **99 leaves**
-(79 proved, 20 partial) and **1245 pinned declarations**, and `docs/field-map.md` records, for
-every leaf, what was added and what remains.
+| file | purpose |
+|---|---|
+| `lean_slot.sh` | a portable CPU semaphore.  Slots are plain directories created with `mkdir` (atomic on POSIX); each holds the owner's PID, so a slot whose owner died is reclaimed automatically.  macOS ships no `flock`, which is why this is not a lock file. |
+| `lean_check.sh` | elaborate a file against the **already built** library, read-only, holding a slot.  This is what workers use; they never run `lake build`. |
+| `verify_module_local.sh` | the local replacement for `verify_module.sbatch`.  Compiles the candidate into a private output directory and audits *that* artifact.  `--self-test` proves the audit is sound. |
+| `audit_module.py` | discovers a module's **own** declarations from its own compiled `.olean` (`Lean.ModuleData.constNames`), then audits their axiom sets.  No source parsing, so namespaces, `instance`s and `private` declarations are handled exactly. |
+| `verify_all_local.sh` | the authoritative pipeline: build → field-map pin regeneration and drift check → test library → exclusion/import/stub gates → frontier ledger → JSON record with the exact commit hash.  A gate that cannot run counts as a failure. |
+| `registry2.json` | this campaign's machine-readable task registry. |
 
-The campaign added **59 new Lean modules** (about 38 000 lines) to the library, in **30 commits**,
-all axiom-clean (`[propext, Classical.choice, Quot.sound]`) and all verified by an independent
-from-scratch build on the cluster.
+### The audit bug this campaign fixes
 
-## Notable mathematical findings of the campaign
+The cluster's `verify_module.sbatch` compiled the candidate into `$WORKDIR/out/module.olean` and
+then audited `import $modname` **through the shared `LEAN_PATH`**, which resolved to the *stale*
+prebuilt `.olean` of the same module.  A candidate carrying `sorry` could therefore be audited
+against the clean previous build and *pass*.  The local script puts the private output directory
+**first** on `LEAN_PATH` for every subsequent `lean` invocation, so `import Foo` provably
+resolves to the artifact that was just built, and `--self-test` exercises exactly that failure
+mode:
 
-Several of the statements the field map proposed as targets turned out to be **false**, and the
-campaign proved them false rather than weakening them silently:
+```
+$ CRNT_SKIP_STATIC_CHECK=1 tasks/campaign/verify_module_local.sh --self-test
+  → FORBIDDEN: Campaign.SelfTest.selfTest_withSorry depends on ['sorryAx']
+  → status PASS  (the self-test's expectation was met)
+```
 
-* the total-degree theorem is false for a general fully open network (the repository already knew
-  this; the campaign generalized the counterexample to an arbitrary invertible affine linear part);
-* the Halanay estimate is false without `0 ≤ M` (a negative solution is *raised* by the delayed
-  term) — the campaign proved the correct form and the counterexample;
-* "two positive steady states of opposite sign ⟹ an even number of positive steady states" is
-  false; the correct consequence is about the *parity* of the class degree;
-* the BKK bound for an `n+2`-monomial circuit system in the "mixed volume of the circuit
-  simplex" reading is false — the Newton polytope is a *larger* polytope;
-* the Markus–Yamabe *flow* version (an operator-norm contraction alone forces attraction) is
-  false — `X → 2X` is a counterexample;
-* "strictly positive inflow ⟹ the open conservation-law space is trivial" is false;
-* the global uniqueness of the entropy-production minimizer is false — the minimizers form the
-  toric manifold of detailed-balanced states;
-* no Lyapunov function of the proposed piecewise-quadratic shape can give the antithetic closed
-  loop an exponential drift, and allowing the slope to depend on `z₁` does not help.
+### The field-map audit bug this campaign fixes
 
-## Preserved for later
+`scripts/field_map_pins.py` joined the quoted declaration name and the axiom clause without a
+space, so every generated `#guard_msgs` docstring read
 
-The field map's remaining gaps are now precisely localised. The items that are **open in the
-literature** (and are therefore not formalized) are listed in the map's own "Gaps by tier"
-section. The items that are *formalization* gaps are recorded per leaf, together with the
-precise obstruction that was found.
+```
+/-- info: 'CRNT.Network.source_mem_complexes'depends on axioms: [...] -/
+```
+
+and Lean's `#guard_msgs` rejected **all 1245 pins** with *"Docstring on `#guard_msgs` does not
+match generated message"*.  The `test` library therefore **did not build** at the head commit.
+The generator is fixed, the audit regenerated, and `lake build test` now succeeds.
+
+## The cluster scripts
+
+`verify_module.sbatch`, `submit.sh`, `base_build.sbatch` and `sync_build.sbatch` are **kept** for
+the historical record.  They are not usable on this Mac (they need Slurm, `/scr` and a cluster
+home directory) and the local campaign does not invoke them.  The useful parts — source
+checking, integration, the task registry — are preserved in the local scripts above.
