@@ -1349,6 +1349,121 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.deficiencyOneHypotheses_iff_compute
 
+-- M7
+/-- info: 'CRNT.Network.ShelfDependence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ShelfDependence
+
+-- M7
+/-- info: 'CRNT.Network.ShelfDependenceFamily' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ShelfDependenceFamily
+
+-- M7
+/-- info: 'CRNT.Network.ShelfDependenceFamily.toShelfFluxes' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ShelfDependenceFamily.toShelfFluxes
+
+-- M7
+/-- info: 'CRNT.Network.ShelfDependenceFamily.globalFlux_eq_sum' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ShelfDependenceFamily.globalFlux_eq_sum
+
+-- M7
+/-- info: 'CRNT.Network.ShelfDependenceFamily.globalFlux_pos' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ShelfDependenceFamily.globalFlux_pos
+
+-- M7
+/-- info: 'CRNT.Network.ShelfDependenceFamily.globalFlux_lower_balance' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ShelfDependenceFamily.globalFlux_lower_balance
+
+-- M7
+/-- info: 'CRNT.Network.ShelfUpperBalance' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ShelfUpperBalance
+
+-- M7
+/-- info: 'CRNT.Network.ShelfDependenceFamily.globalFlux_upper_balance' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ShelfDependenceFamily.globalFlux_upper_balance
+
+-- M7
+/-- info: 'CRNT.Network.ShelfDependenceFamily.shelfUpperBalance_of_constPairing' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.ShelfDependenceFamily.shelfUpperBalance_of_constPairing
+
+-- M7
+/-- info: 'CRNT.Network.doaRun_hasMultistationarityCapacity_of_shelfDependences' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.doaRun_hasMultistationarityCapacity_of_shelfDependences
+
+-- M7
+/-- info: 'CRNT.Network.doaRun_hasMultistationarityCapacity_of_shelfDependences_exists' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.doaRun_hasMultistationarityCapacity_of_shelfDependences_exists
+
+-- M7
+/-- info: 'CRNT.Network.doaRun_hasMultistationarityCapacity_of_shelfDependences_of_upperBalance' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.doaRun_hasMultistationarityCapacity_of_shelfDependences_of_upperBalance
+
+-- M7
+/-- info: 'CRNT.Network.doaRun_doaFeasible_of_shelfDependences_of_upperBalance' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.doaRun_doaFeasible_of_shelfDependences_of_upperBalance
+
+-- M7
+/-- info: 'CRNT.Network.DOAExample.ShelfFlux.oneShelfDependence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.DOAExample.ShelfFlux.oneShelfDependence
+
+-- M7
+/-- info: 'CRNT.Network.DOAExample.ShelfFlux.family' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.DOAExample.ShelfFlux.family
+
+-- M7
+/-- info: 'CRNT.Network.DOAExample.ShelfFlux.run' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.DOAExample.ShelfFlux.run
+
+-- M7
+/-- info: 'CRNT.Network.DOAExample.ShelfFlux.middle_sources' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.DOAExample.ShelfFlux.middle_sources
+
+-- M7
+/-- info: 'CRNT.Network.DOAExample.ShelfFlux.hasCapacity_of_shelfDependence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.DOAExample.ShelfFlux.hasCapacity_of_shelfDependence
+
+-- M7
+/-- info: 'CRNT.Network.TwoWay.N' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.TwoWay.N
+
+-- M7
+/-- info: 'CRNT.Network.TwoWay.oneShelfDependence' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.TwoWay.oneShelfDependence
+
+-- M7
+/-- info: 'CRNT.Network.TwoWay.not_hasCapacity' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.TwoWay.not_hasCapacity
+
+-- M7
+/-- info: 'CRNT.Network.TwoWay.univ_Rxn' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.TwoWay.univ_Rxn
+
+-- M7
+/-- info: 'CRNT.Network.TwoWay.univ_Species' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.TwoWay.univ_Species
+
 -- M8
 /-- info: 'CRNT.Network.stoichSubspace_ne_bot_of_adaAffirmsCapacity' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in

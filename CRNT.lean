@@ -1041,6 +1041,7 @@ import CRNT.Oscillation.NoChaos
 import CRNT.Design.GeneralPlantDrift
 import CRNT.Dynamics.EscapeDirection
 import CRNT.Deficiency.DeficiencyOneAlgorithmCorrectness
+import CRNT.Deficiency.ShelfFluxConstruction
 import CRNT.Multistationarity.ParityOfSteadyStates
 import CRNT.Computation.SemilinearRealization
 import CRNT.Multistationarity.MultistationarityRegionDescription
