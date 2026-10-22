@@ -446,16 +446,7 @@ theorem fullyOpen_classDegree_eq_pow_neg_one (N : Network S) (κ : N.fullyOpen.R
     N.fullyOpen.nonnegativeClassDegree κ c hfin = (-1 : ℤ) ^ N.fullyOpen.stoichRank := by
   rw [fullyOpen_classDegree N κ c h hfin, stoichRank_fullyOpen]
 
-/-- **The total degree of a fully open network with a general affine field with a diagonal
-negative linear part, in the chart coordinates.** -/
-theorem fullyOpen_classDegree_of_affineLinear_diagonal_eq_pow_neg_one
-    (N : Network S) (κ : N.fullyOpen.RateConstants) (c : Concentration S)
-    (h : AffineField N.fullyOpen κ)
-    (hfin : (N.fullyOpen.steadyStateMap κ c ⁻¹' {0} ∩ N.fullyOpen.nonnegativeClassRegion c).Finite) :
-    N.fullyOpen.nonnegativeClassDegree κ c hfin = (-1 : ℤ) ^ N.fullyOpen.stoichRank := by
-  rw [fullyOpen_classDegree_of_affineLinear_diagonal N κ c h hfin, stoichRank_fullyOpen]
-
-/-! ## 4. The Conradi–Feliu–Mincheva–Wiuf conclusion in the affine case -/
+/-! ## 4. The Conradi–Feliu-Mincheva–Mnev–Wiuf conclusion in the affine case -/
 
 /-- **The power of `-1` at a successor is the negative of the power.** -/
 theorem pow_neg_one_succ_neg (n : ℕ) : (-1 : ℤ) ^ (n + 1) = -((-1 : ℤ) ^ n) := by

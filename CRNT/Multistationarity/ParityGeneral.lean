@@ -3,30 +3,60 @@ import CRNT.Multistationarity.ParityOfSteadyStates
 /-!
 # The parity theorem in a general form
 
-This module states the **parity theorem of Šošić–Sibuya** in its general form, and adds the
-leaf **S19** ("the parity theorem: the number of positive steady states is odd") of
-`docs/field-map.md` to the field map in the *general* version that does not go through the
-total-degree theorem.
+This module states the **parity relation** between the number of positive steady states of a
+class and the class degree, and adds the leaf **S19** ("the parity theorem: the number of
+positive steady states is odd") of `docs/field-map.md` to the field map in the *general* version
+that does not go through the total-degree theorem.  The parity **relation** is what is proved
+here; the parity **theorem** of Šošić–Šibuya itself is *not* proved here, for the reasons
+recorded in "What is *not* proved here" below.
 
 ## The parity theorem and the Brouwer degree
 
-Šošić & Sibuya, *The number of steady states of a chemical network is odd*, Proc. Amer. Math.
-Soc. **134** (2006), 1835–1844, prove that a *fully open* network has an odd number of positive
-steady states.  Their argument is a parity argument on the **Brouwer degree** of the steady-state
-map: the degree of the map on a compatibility class is the *signed count* of its zeros, and the
-number of zeros and the degree differ by an even number, so that the parity of the number of
-zeros is the parity of the degree.  The total degree `(-1)^s` of Conradi–Feliu–Mincheva–Wiuf is
-odd, whence the conclusion.
+I. Šošić and M. Šibuya, *The number of positive steady states of a chemical reaction network*,
+Math. Biosci. **178** (2006), 26–41, prove that a *fully open* network has an odd number of
+positive steady states, **counted with multiplicity**.  Their argument is a parity argument on
+the **Brouwer degree** of the steady-state map: the degree of the map on a compatibility class
+is the *signed count* of its zeros, each zero entering with its **local index** (the Brouwer
+local degree), and the number of zeros and the degree differ by an even number, so that the
+parity of the number of zeros is the parity of the degree.  The total degree `(-1)^s` of
+Conradi–Feliu-Mincheva–Mnev–Wiuf is odd, whence the conclusion.
+
+## What the library's "class degree" is, and what it is **not**
+
+The degree machinery of this repository does **not** compute the Brouwer degree of the
+steady-state map.  `Network.localDegreeOn` — and hence `Network.nonnegativeClassDegree` — is the
+sum, over the zeros `y` of the reduced field in the nonnegative part of the class, of
+
+```text
+sign (det (D (steadyStateMap) y)),
+```
+
+the **orientation sign** of the derivative at the zero.  This coincides with the true local index
+(the Brouwer local degree) of the zero **only at a nondegenerate zero**, i.e. only when
+`det (D (steadyStateMap) y) ≠ 0`; at a *degenerate* zero the orientation sign is `0`, whereas the
+local index is a nonzero integer (`±2`, `±3`, …).
+
+Consequently the phrase "counted with multiplicity" must be read with care: the *weighted count*
+`Network.weightedCount_eq_classDegree` of this module is the sum of the **orientation signs**,
+not the sum of the local indices, so it is **not** the Šošić–Šibuya multiplicity count.  What
+this module proves is the parity *relation* between the class degree and the count of the
+**nondegenerate** positive steady states; the literature-level statement "the number of isolated
+positive steady states of a fully open network, counted with multiplicity, is odd" would need
+the true local index, and the identification of the class degree with the degree at infinity of
+the field.  Neither is available in the repository today.
 
 The repository's degree machinery (`CRNT.Multistationarity.DegreeExistence`,
 `CRNT.Multistationarity.DegreeStructural`) provides:
 
-* the **class degree** `Network.nonnegativeClassDegree`: the relative Brouwer degree of the
+* the **class degree** `Network.nonnegativeClassDegree`: the *relative* degree of the
   steady-state map on the nonnegative part of the compatibility class, i.e. the signed count
-  `∑ y, sign (det (D (steadyStateMap) y))` over the zeros of the reduced field in the class;
-* the **local degree** at a zero: `sign (det (D (steadyStateMap) y))`, which by
+  `∑ y, sign (det (D (steadyStateMap) y))` over the zeros of the reduced field in the class — an
+  **orientation-sign** count, *not* a Brouwer degree (see the paragraph above);
+* the **local degree** at a zero (in the sense of this library): the **orientation sign**
+  `sign (det (D (steadyStateMap) y))`, which by
   `Network.det_fderiv_steadyStateMap_eq_reducedJacobian_det` is the sign of the reduced Jacobian
-  determinant `Network.reducedJacobian` (Conradi–Feliu–Mincheva–Wiuf's *local degree*);
+  determinant `Network.reducedJacobian` (Conradi–Feliu-Mincheva–Mnev–Wiuf's *local degree* at a
+  nondegenerate zero);
 * the identity `Network.classDegree_eq_card_sub_two_mul_negCount`: under the nondegeneracy
   hypothesis, the class degree is the number of positive steady states minus twice the number of
   those at which the reduced Jacobian determinant is negative.
@@ -41,10 +71,14 @@ and the *parity* of the number of positive steady states is the parity of the cl
   of the parity theorem; it does *not* require the class degree to be `(-1)^s`, only the relation
   `degree = count − 2 · (number of negative local degrees)`.
 * `Network.card_positiveSteadyStates_even_iff_classDegree_even` — the even case.
-* `Network.weightedCount_eq_classDegree` — the **"counted with multiplicity" reading**: the
-  *weighted count* of the positive steady states of a class (the sum of the local degrees over
-  them) is the class degree, *exactly*, and this holds **without** the nondegeneracy hypothesis.
-  Consequently the parity theorem survives without the nondegeneracy hypothesis in the form
+* `Network.weightedCount_eq_classDegree` — the **orientation-sign weighted count**: the
+  *weighted count* of the positive steady states of a class (the sum of the orientation signs
+  `sign (det (reducedJacobian y))` over them) is the class degree, *exactly*, and this holds
+  **without** the nondegeneracy hypothesis.  Note that the weight is the **orientation sign**,
+  *not* the multiplicity of a zero: at a degenerate zero the weight is `0`, whereas the
+  multiplicity (the Brouwer local index) is a nonzero integer.  This weighted count is therefore
+  **not** the "counted with multiplicity" count of Šošić–Šibuya (see above).  Consequently the
+  parity relation survives without the nondegeneracy hypothesis in the form
   `Network.card_nondegenerate_positiveSteadyStates_odd_iff_classDegree_odd`: the parity of the
   number of *nondegenerate* positive steady states is the parity of the class degree.  (The
   *total* number of positive steady states need not have the parity of the class degree when
@@ -53,7 +87,7 @@ and the *parity* of the number of positive steady states is the parity of the cl
 * `Network.classDegree_eq_sum_erase_two_opposite_signs` — the two opposite local degrees `+1` and
   `−1` *cancel* in the class degree;
 * `Network.card_positiveSteadyStates_odd_of_two_opposite_signs_of_odd_classDegree` — the parity
-  refinement of the Conradi–Feliu–Mincheva–Wiuf "exceptional local degree" criterion: an odd
+  refinement of the Conradi–Feliu-Mincheva–Mnev–Wiuf "exceptional local degree" criterion: an odd
   class degree together with two positive steady states of opposite local degrees gives an
   **odd** number of positive steady states, at least three;
 * `Network.card_positiveSteadyStates_even_of_two_opposite_signs_of_even_classDegree` and
@@ -66,19 +100,25 @@ The reading of the parity theorem that says "*a class with two positive steady s
 reduced-Jacobian signs carries an **even** number of positive steady states*" is **false**.  The
 two opposite local degrees cancel in the class degree, but the class degree is the signed count
 of the local degrees of the *remaining* zeros, and its parity — not evenness — is what the
-parity theorem relates to the count.  The namespace `CRNT.Network.OppositeSignsCounterexample`
-of this module records the ingredients of an explicit counterexample: the one-species network
+parity relation relates to the count.  The namespace `CRNT.Network.OppositeSignsCounterexample`
+of this module records an explicit counterexample: the one-species network
 `∅ → A`, `A → ∅`, `2A → 3A`, `3A → 2A` (rates `6`, `11`, `6`, `1`), whose field is
 `6 − 11 x + 6 x² − x³ = −(x − 1)(x − 2)(x − 3)` with the three positive zeros `1`, `2`, `3`;
 the class of the origin is the whole concentration space (the stoichiometric subspace is the
 whole space and the rank is one), so the class carries **three** positive steady states, while
 the reduced Jacobian determinants at them are `−2`, `+1`, `−2` — two of them of opposite signs.
 Three is odd, so the "even count" conclusion fails, while the class degree is `−1 + 1 − 1 = −1`,
-odd as well, in agreement with the parity theorem of this module.
+odd as well, in agreement with the parity relation of this module.
+
+**This counterexample is machine-checked end to end** (see the section "A counterexample to the
+'two opposite signs ⇒ even count' reading" below): the class carries exactly three positive
+steady states, their reduced Jacobian determinants are `−2`, `+1`, `−2`, the class degree is
+`−1`, and `OppositeSignsCounterexample.odd_count_with_two_opposite_signs` combines the two
+opposite signs with the odd count.
 
 ## What is *not* proved here: the total-degree theorem
 
-The **total-degree theorem** of Conradi–Feliu–Mincheva–Wiuf — that the class degree of a
+The **total-degree theorem** of Conradi–Feliu-Mincheva–Mnev–Wiuf — that the class degree of a
 dissipative network is `(-1)^s` — is **false in general**, and the failure is proved in the
 repository: `CRNT.Network.Counterexample.classDegree_ne_pow_neg_one` (in
 `CRNT.Multistationarity.TotalDegree`) exhibits a one-species network with the autocatalytic
@@ -652,7 +692,7 @@ theorem card_positiveSteadyStates_even_of_two_opposite_signs_of_even_classDegree
     N.card_positiveSteadyStates_ge_two_of_two_mem κ c hfinP y₁ y₂ hy₁ hy₂ hne
   exact ⟨heven, hcard2⟩
 
-/-- **The parity refinement of the Conradi–Feliu–Mincheva–Wiuf "exceptional local degree"
+/-- **The parity refinement of the Conradi–Feliu-Mincheva–Mnev–Wiuf "exceptional local degree"
 criterion.**  Suppose that the class degree is odd (as it is for a fully open network, where it is
 the total degree `(-1)^s`) and that the class contains two positive steady states with opposite
 signs of the reduced Jacobian determinant (an "exceptional local degree").  Then the number of
@@ -744,12 +784,10 @@ The statement "a class with two positive steady states of opposite reduced-Jacob
 an **even** number of positive steady states" is **false**: the two opposite local degrees cancel
 in the *class degree*, but the class degree is the signed count of the local degrees of the
 *remaining* zeros, and its parity is the parity of the number of positive steady states
-(`Network.card_positiveSteadyStates_odd_iff_classDegree_odd`).  The following is the
-counterexample; the ingredients that are machine-checked here are the field, its zeros, and the
-geometry of the class.
+(`Network.card_positiveSteadyStates_odd_iff_classDegree_odd`).
 
-The network is the **one-species network** `∅ → A`, `A → ∅`, `2A → 3A`, `3A → 2A` with the rate
-constants `6`, `11`, `6`, `1`.  Its mass-action field is
+The counterexample is the **one-species network** `∅ → A`, `A → ∅`, `2A → 3A`, `3A → 2A` with the
+rate constants `6`, `11`, `6`, `1`.  Its mass-action field is
 
 ```
 f(x) = 6 − 11 x + 6 x² − x³ = −(x − 1)(x − 2)(x − 3),
@@ -759,16 +797,32 @@ so it has exactly the three **positive** zeros `x = 1`, `x = 2`, `x = 3`
 (`OppositeSignsCounterexample.massActionVectorField_eq_zero_iff`).  The stoichiometric subspace
 is the whole species space (`OppositeSignsCounterexample.stoichSubspace_eq_top`) and the
 stoichiometric rank is one (`OppositeSignsCounterexample.stoichRank_eq`), so the compatibility
-class of the origin is the whole concentration space: all three zeros are positive steady states
-of that class, and the number of positive steady states of the class is **three**, an odd
-number.
+class of the origin is the whole concentration space.
 
-In rank one the reduced Jacobian determinant is the derivative of the scalar reduced field along
-the class (`Network.reducedJacobian_det_eq_deriv`), i.e. `f′(x) = −11 + 12 x − 3 x²`; at the
-three steady states it is `−2`, `+1`, `−2`.  Hence the class contains two positive steady states
-of **opposite** signs (at `x = 2` and at `x = 1`), while the number of positive steady states is
-`3`, which is **odd**.  The class degree is the signed count `−1 + 1 − 1 = −1`, which is odd as
-well — exactly as the parity theorem of this module predicts. -/
+**The counterexample is machine-checked end to end.**  The namespace
+`CRNT.Network.OppositeSignsCounterexample` proves:
+
+* `OppositeSignsCounterexample.coord` — the chart coordinate of the concentration `t` in the
+  class of the origin, with `OppositeSignsCounterexample.affineChart_coord` (the affine chart
+  sends it back to `t`) and `OppositeSignsCounterexample.coord_injective` (the three chart
+  coordinates are pairwise distinct);
+* `OppositeSignsCounterexample.mem_steadyStateMap_zero_iff` — the zeros of the reduced field
+  of the class of the origin are **exactly** the three chart coordinates of the concentrations
+  `1`, `2`, `3`;
+* `OppositeSignsCounterexample.mem_positiveSteadyStates_iff` and
+  `OppositeSignsCounterexample.card_positiveSteadyStates_eq_three` — the class carries exactly
+  **three** positive steady states, and the count is `3`;
+* `OppositeSignsCounterexample.reducedJacobian_det` — the reduced Jacobian determinant at the
+  chart coordinate of the concentration `t` is `−11 + 12 t − 3 t²`, i.e. `−2`, `+1`, `−2` at
+  `t = 1, 2, 3` (through `Network.reducedJacobian_det_eq_deriv`);
+* `OppositeSignsCounterexample.classDegree_eq_neg_one` — the class degree is `−1`;
+* `OppositeSignsCounterexample.odd_count_with_two_opposite_signs` — the class contains two
+  positive steady states of **opposite** reduced-Jacobian signs (at `t = 2` and at `t = 1`)
+  while the number of positive steady states is `3`, which is **odd**.  This is the refutation
+  of the "even count" reading.
+
+The class degree `−1 = −1 + 1 − 1` is odd, in agreement with the parity relation of this
+module. -/
 
 namespace OppositeSignsCounterexample
 
@@ -921,6 +975,318 @@ theorem stoichSubspace_eq_span : N.stoichSubspace = Submodule.span ℝ {e₀} :=
   · intro _
     exact Submodule.mem_top
 
+/-- The chart coordinate of the concentration `t`. -/
+noncomputable def coord (t : ℝ) : ClassCoord N := N.chartCoord 0 (fun _ => t)
+
+theorem coord_injective : Function.Injective coord := by
+  intro a b hab
+  have hcompat : N.StoichCompatible 0 (fun _ => a) := by
+    rw [StoichCompatible, stoichSubspace_eq_top]
+    exact Submodule.mem_top
+  have hcompat' : N.StoichCompatible 0 (fun _ => b) := by
+    rw [StoichCompatible, stoichSubspace_eq_top]
+    exact Submodule.mem_top
+  have h1 : N.chartCoord 0 (fun _ : Fin 1 => a) = N.chartCoord 0 (fun _ : Fin 1 => b) := by
+    rw [← coord, ← coord]
+    exact hab
+  have h1' : N.affineChart 0 (N.chartCoord 0 (fun _ : Fin 1 => a))
+      = N.affineChart 0 (N.chartCoord 0 (fun _ : Fin 1 => b)) := congrArg _ h1
+  rw [affineChart_chartCoord N hcompat, affineChart_chartCoord N hcompat'] at h1'
+  have h3 := congrFun h1' (0 : Fin 1)
+  simpa using h3
+
+theorem affineChart_coord (t : ℝ) : N.affineChart 0 (coord t) = fun _ => t := by
+  have hcompat : N.StoichCompatible 0 (fun _ => t) := by
+    rw [StoichCompatible, stoichSubspace_eq_top]
+    exact Submodule.mem_top
+  rw [coord]
+  exact affineChart_chartCoord N hcompat
+
+theorem mem_steadyStateMap_zero_iff (y : ClassCoord N) :
+    N.steadyStateMap rates 0 y = 0 ↔ y = coord 1 ∨ y = coord 2 ∨ y = coord 3 := by
+  constructor
+  · intro hz
+    have hz' : N.stoichProj (N.massActionVectorField rates (N.affineChart 0 y)) = N.stoichProj 0 := by
+      rw [steadyStateMap, reducedField] at hz
+      exact hz.trans (map_zero N.stoichProj).symm
+    have hF : N.massActionVectorField rates (N.affineChart 0 y) = 0 :=
+      stoichProj_injective_of_stoichSubspace_eq_top N stoichSubspace_eq_top hz'
+    have hval : (N.affineChart 0 y) 0 = 1 ∨ (N.affineChart 0 y) 0 = 2 ∨ (N.affineChart 0 y) 0 = 3 :=
+      (massActionVectorField_eq_zero_iff (N.affineChart 0 y)).mp hF
+    have heq : N.affineChart 0 y = fun _ => (N.affineChart 0 y) 0 := by
+      funext s
+      have hs : s = 0 := Fin.ext (Nat.lt_one_iff.mp s.isLt)
+      rw [hs]
+    have hcoord : y = N.chartCoord 0 (N.affineChart 0 y) := (chartCoord_affineChart N 0 y).symm
+    rcases hval with h | h | h
+    · left
+      have hfun : N.affineChart 0 y = fun _ => (1 : ℝ) := by rw [heq, h]
+      rw [hfun] at hcoord
+      exact hcoord
+    · right; left
+      have hfun : N.affineChart 0 y = fun _ => (2 : ℝ) := by rw [heq, h]
+      rw [hfun] at hcoord
+      exact hcoord
+    · right; right
+      have hfun : N.affineChart 0 y = fun _ => (3 : ℝ) := by rw [heq, h]
+      rw [hfun] at hcoord
+      exact hcoord
+  · rintro (h | h | h)
+    · subst h
+      have hz : N.massActionVectorField rates (fun _ => (1 : ℝ)) = 0 :=
+        (massActionVectorField_eq_zero_iff (fun _ => (1 : ℝ))).mpr (Or.inl rfl)
+      rw [steadyStateMap, reducedField, affineChart_coord, hz, map_zero]
+    · subst h
+      have hz : N.massActionVectorField rates (fun _ => (2 : ℝ)) = 0 :=
+        (massActionVectorField_eq_zero_iff (fun _ => (2 : ℝ))).mpr (Or.inr (Or.inl rfl))
+      rw [steadyStateMap, reducedField, affineChart_coord, hz, map_zero]
+    · subst h
+      have hz : N.massActionVectorField rates (fun _ => (3 : ℝ)) = 0 :=
+        (massActionVectorField_eq_zero_iff (fun _ => (3 : ℝ))).mpr (Or.inr (Or.inr rfl))
+      rw [steadyStateMap, reducedField, affineChart_coord, hz, map_zero]
+
+theorem mem_positiveSteadyStates_coord_iff (t : ℝ) :
+    coord t ∈ N.positiveSteadyStates_in_class rates 0 ↔ t = 1 ∨ t = 2 ∨ t = 3 := by
+  rw [Network.mem_positiveSteadyStates_in_class_iff]
+  constructor
+  · rintro ⟨hpos, hsteady⟩
+    have hz : N.steadyStateMap rates 0 (coord t) = 0 := by
+      have hF : N.massActionVectorField rates (N.affineChart 0 (coord t)) = 0 := by
+        funext s
+        exact hsteady s
+      rw [steadyStateMap, reducedField, hF, map_zero]
+    rcases (mem_steadyStateMap_zero_iff (coord t)).mp hz with h | h | h
+    · left; exact coord_injective h
+    · right; left; exact coord_injective h
+    · right; right; exact coord_injective h
+  · rintro (h | h | h)
+    · subst h
+      refine ⟨?_, ?_⟩
+      · rw [affineChart_coord]
+        intro s
+        have hs : s = 0 := Fin.ext (Nat.lt_one_iff.mp s.isLt)
+        rw [hs]
+        norm_num
+      · rw [affineChart_coord]
+        intro s
+        rw [massActionVectorField_eq]
+        norm_num
+    · subst h
+      refine ⟨?_, ?_⟩
+      · rw [affineChart_coord]
+        intro s
+        have hs : s = 0 := Fin.ext (Nat.lt_one_iff.mp s.isLt)
+        rw [hs]
+        norm_num
+      · rw [affineChart_coord]
+        intro s
+        rw [massActionVectorField_eq]
+        norm_num
+    · subst h
+      refine ⟨?_, ?_⟩
+      · rw [affineChart_coord]
+        intro s
+        have hs : s = 0 := Fin.ext (Nat.lt_one_iff.mp s.isLt)
+        rw [hs]
+        norm_num
+      · rw [affineChart_coord]
+        intro s
+        rw [massActionVectorField_eq]
+        norm_num
+
+theorem mem_positiveSteadyStates_iff (y : ClassCoord N) :
+    y ∈ N.positiveSteadyStates_in_class rates 0 ↔ y = coord 1 ∨ y = coord 2 ∨ y = coord 3 := by
+  constructor
+  · intro hy
+    exact (mem_steadyStateMap_zero_iff y).mp hy.1
+  · rintro (h | h | h)
+    · rw [h]; exact (mem_positiveSteadyStates_coord_iff 1).mpr (Or.inl rfl)
+    · rw [h]; exact (mem_positiveSteadyStates_coord_iff 2).mpr (Or.inr (Or.inl rfl))
+    · rw [h]; exact (mem_positiveSteadyStates_coord_iff 3).mpr (Or.inr (Or.inr rfl))
+
+/-- The three chart coordinates of the three positive steady states. -/
+noncomputable def threeCoords : Finset (ClassCoord N) :=
+  insert (coord 1) (insert (coord 2) (insert (coord 3) ∅))
+
+theorem mem_threeCoords (y : ClassCoord N) :
+    y ∈ threeCoords ↔ y = coord 1 ∨ y = coord 2 ∨ y = coord 3 := by
+  simp [threeCoords]
+
+theorem hfinP : (N.positiveSteadyStates_in_class rates 0).Finite := by
+  have hset : N.positiveSteadyStates_in_class rates 0 = (↑threeCoords : Set (ClassCoord N)) := by
+    ext y
+    constructor
+    · intro hy
+      exact (mem_threeCoords y).mpr ((mem_positiveSteadyStates_iff y).mp hy)
+    · intro hy
+      exact (mem_positiveSteadyStates_iff y).mpr ((mem_threeCoords y).mp hy)
+  rw [hset]
+  exact Finset.finite_toSet threeCoords
+
+theorem toFinset_eq_threeCoords (h : (N.positiveSteadyStates_in_class rates 0).Finite) :
+    h.toFinset = threeCoords := by
+  ext y
+  rw [Set.Finite.mem_toFinset]
+  constructor
+  · intro hy
+    exact (mem_threeCoords y).mpr ((mem_positiveSteadyStates_iff y).mp hy)
+  · intro hy
+    exact (mem_positiveSteadyStates_iff y).mpr ((mem_threeCoords y).mp hy)
+
+/-- **The reduced Jacobian determinant at the chart coordinate of the concentration `t`** is the
+derivative of the scalar field along the class, `-11 + 12 t - 3 t²`. -/
+theorem reducedJacobian_det (t : ℝ) :
+    (N.reducedJacobian rates 0 (coord t)).det = -11 + 12 * t - 3 * t ^ 2 := by
+  have hcard : N.stoichRank = 1 := stoichRank_eq
+  have hspan : N.stoichSubspace = Submodule.span ℝ {e₀} := stoichSubspace_eq_span
+  have hi₀ : e₀ (0 : Fin 1) ≠ 0 := by simp [e₀]
+  have hconc : (0 : Concentration (Fin 1)) + t • e₀ = (fun _ => t) := by
+    funext s
+    simp [e₀, Pi.smul_apply, smul_eq_mul, zero_add]
+  have hchart : N.chartCoord 0 (0 + t • e₀) = coord t := by
+    rw [hconc, coord]
+  have hline : N.lineField rates 0 e₀ 0
+      = (fun u : ℝ => 6 - 11 * u + 6 * u ^ 2 - u ^ 3) := by
+    funext u
+    have h1 : (0 : Concentration (Fin 1)) + u • e₀ = (fun _ => u) := by
+      funext s
+      simp [e₀, Pi.smul_apply, smul_eq_mul, zero_add]
+    rw [lineField, h1, massActionVectorField_eq]
+    have he₀ : e₀ (0 : Fin 1) = 1 := by simp [e₀]
+    rw [he₀]
+    simp
+  have hderiv : HasDerivAt (fun u : ℝ => 6 - 11 * u + 6 * u ^ 2 - u ^ 3)
+      (-11 + 12 * t - 3 * t ^ 2) t := by
+    have hid : HasDerivAt (fun u : ℝ => u) 1 t := hasDerivAt_id t
+    have hmul := (hasDerivAt_const t 11).mul hid
+    have hp2 := hid.pow 2
+    have hp3 := hid.pow 3
+    have h6p2 := (hasDerivAt_const t 6).mul hp2
+    have hA := ((hasDerivAt_const t 6).sub hmul).add h6p2
+    have hB := hA.sub hp3
+    convert hB using 1
+    ring
+  rw [← hchart]
+  rw [reducedJacobian_det_eq_deriv N rates hcard hspan hi₀ 0 t]
+  rw [hline]
+  exact hderiv.deriv
+
+theorem mem_nonnegativeClassRegion_zero_iff (y : ClassCoord N) :
+    (y ∈ N.steadyStateMap rates 0 ⁻¹' {0} ∩ N.nonnegativeClassRegion 0) ↔
+      y = coord 1 ∨ y = coord 2 ∨ y = coord 3 := by
+  rw [Set.mem_inter_iff, Set.mem_preimage, Set.mem_singleton_iff,
+    mem_nonnegativeClassRegion_iff]
+  constructor
+  · rintro ⟨hz, _⟩
+    exact (mem_steadyStateMap_zero_iff y).mp hz
+  · rintro (h | h | h)
+    · refine ⟨?_, ?_⟩
+      · rw [h]; exact (mem_steadyStateMap_zero_iff (coord 1)).mpr (Or.inl rfl)
+      · rw [h, affineChart_coord]
+        intro s
+        have hs : s = 0 := Fin.ext (Nat.lt_one_iff.mp s.isLt)
+        rw [hs]
+        norm_num
+    · refine ⟨?_, ?_⟩
+      · rw [h]; exact (mem_steadyStateMap_zero_iff (coord 2)).mpr (Or.inr (Or.inl rfl))
+      · rw [h, affineChart_coord]
+        intro s
+        have hs : s = 0 := Fin.ext (Nat.lt_one_iff.mp s.isLt)
+        rw [hs]
+        norm_num
+    · refine ⟨?_, ?_⟩
+      · rw [h]; exact (mem_steadyStateMap_zero_iff (coord 3)).mpr (Or.inr (Or.inr rfl))
+      · rw [h, affineChart_coord]
+        intro s
+        have hs : s = 0 := Fin.ext (Nat.lt_one_iff.mp s.isLt)
+        rw [hs]
+        norm_num
+
+theorem hfinN : (N.steadyStateMap rates 0 ⁻¹' {0} ∩ N.nonnegativeClassRegion 0).Finite := by
+  have h1 : N.steadyStateMap rates 0 ⁻¹' {0} ∩ N.nonnegativeClassRegion 0
+      ⊆ (↑threeCoords : Set (ClassCoord N)) := by
+    intro y hy
+    exact (mem_threeCoords y).mpr ((mem_nonnegativeClassRegion_zero_iff y).mp hy)
+  exact (Finset.finite_toSet threeCoords).subset h1
+
+theorem toFinset_eq_threeCoordsN
+    (h : (N.steadyStateMap rates 0 ⁻¹' {0} ∩ N.nonnegativeClassRegion 0).Finite) :
+    h.toFinset = threeCoords := by
+  ext y
+  rw [Set.Finite.mem_toFinset]
+  constructor
+  · intro hy
+    exact (mem_threeCoords y).mpr ((mem_nonnegativeClassRegion_zero_iff y).mp hy)
+  · intro hy
+    exact (mem_nonnegativeClassRegion_zero_iff y).mpr ((mem_threeCoords y).mp hy)
+
+theorem coord_ne_12 : coord 1 ≠ coord 2 := fun h => absurd (coord_injective h) (by norm_num)
+
+theorem coord_ne_13 : coord 1 ≠ coord 3 := fun h => absurd (coord_injective h) (by norm_num)
+
+theorem coord_ne_23 : coord 2 ≠ coord 3 := fun h => absurd (coord_injective h) (by norm_num)
+
+theorem not_mem_1 : coord 1 ∉ insert (coord 2) (insert (coord 3) (∅ : Finset (ClassCoord N))) := by
+  simp [coord_ne_12, coord_ne_13]
+
+theorem not_mem_2 : coord 2 ∉ insert (coord 3) (∅ : Finset (ClassCoord N)) := by
+  simp [coord_ne_23]
+
+theorem not_mem_3 : coord 3 ∉ (∅ : Finset (ClassCoord N)) := by simp
+
+theorem card_threeCoords : threeCoords.card = 3 := by
+  rw [threeCoords, Finset.card_insert_of_notMem not_mem_1,
+    Finset.card_insert_of_notMem not_mem_2, Finset.card_insert_of_notMem not_mem_3]
+  norm_num
+
+theorem card_positiveSteadyStates_eq_three :
+    N.card_positiveSteadyStates_in_class rates 0 hfinP = 3 := by
+  have h : N.card_positiveSteadyStates_in_class rates 0 hfinP = hfinP.toFinset.card := rfl
+  rw [h, toFinset_eq_threeCoords hfinP]
+  exact card_threeCoords
+
+theorem classDegree_eq_neg_one
+    (hfinN : (N.steadyStateMap rates 0 ⁻¹' {0} ∩ N.nonnegativeClassRegion 0).Finite) :
+    N.nonnegativeClassDegree rates 0 hfinN = -1 := by
+  have hset := toFinset_eq_threeCoordsN hfinN
+  unfold nonnegativeClassDegree localDegreeOn
+  rw [hset]
+  simp only [threeCoords]
+  rw [Finset.sum_insert not_mem_1, Finset.sum_insert not_mem_2, Finset.sum_insert not_mem_3]
+  simp
+  have g1 : ((SignType.sign (LinearMap.det
+      (fderiv ℝ (N.steadyStateMap rates 0) (coord 1)).toLinearMap) : SignType) : ℤ) = -1 := by
+    rw [N.det_fderiv_steadyStateMap_eq_reducedJacobian_det, reducedJacobian_det 1]
+    rw [sign_neg (by norm_num)]
+    rw [SignType.coe_neg_one]
+  have g2 : ((SignType.sign (LinearMap.det
+      (fderiv ℝ (N.steadyStateMap rates 0) (coord 2)).toLinearMap) : SignType) : ℤ) = 1 := by
+    rw [N.det_fderiv_steadyStateMap_eq_reducedJacobian_det, reducedJacobian_det 2]
+    rw [sign_pos (by norm_num)]
+    rw [SignType.coe_one]
+  have g3 : ((SignType.sign (LinearMap.det
+      (fderiv ℝ (N.steadyStateMap rates 0) (coord 3)).toLinearMap) : SignType) : ℤ) = -1 := by
+    rw [N.det_fderiv_steadyStateMap_eq_reducedJacobian_det, reducedJacobian_det 3]
+    rw [sign_neg (by norm_num)]
+    rw [SignType.coe_neg_one]
+  rw [g1, g2, g3]
+  ring
+
+theorem odd_count_with_two_opposite_signs :
+    (∃ y₁ y₂ : ClassCoord N, y₁ ∈ N.positiveSteadyStates_in_class rates 0 ∧
+      y₂ ∈ N.positiveSteadyStates_in_class rates 0 ∧ y₁ ≠ y₂ ∧
+      0 < (N.reducedJacobian rates 0 y₁).det ∧
+        (N.reducedJacobian rates 0 y₂).det < 0) ∧
+      Odd (N.card_positiveSteadyStates_in_class rates 0 hfinP : ℤ) := by
+  refine ⟨⟨coord 2, coord 1, ?_, ?_, ?_, ?_, ?_⟩, ?_⟩
+  · exact (mem_positiveSteadyStates_coord_iff 2).mpr (Or.inr (Or.inl rfl))
+  · exact (mem_positiveSteadyStates_coord_iff 1).mpr (Or.inl rfl)
+  · exact coord_ne_12.symm
+  · rw [reducedJacobian_det 2]; norm_num
+  · rw [reducedJacobian_det 1]; norm_num
+  · rw [card_positiveSteadyStates_eq_three]
+    exact ⟨1, by norm_num⟩
+
 end OppositeSignsCounterexample
 
 #print axioms CRNT.Network.card_positiveSteadyStates_odd_iff_classDegree_odd
@@ -930,6 +1296,12 @@ end OppositeSignsCounterexample
 #print axioms CRNT.Network.card_nondegenerate_positiveSteadyStates_odd_iff_classDegree_odd
 #print axioms CRNT.Network.classDegree_eq_sum_erase_two_opposite_signs
 #print axioms CRNT.Network.card_positiveSteadyStates_odd_of_two_opposite_signs_of_odd_classDegree
+#print axioms CRNT.Network.OppositeSignsCounterexample.mem_steadyStateMap_zero_iff
+#print axioms CRNT.Network.OppositeSignsCounterexample.mem_positiveSteadyStates_iff
+#print axioms CRNT.Network.OppositeSignsCounterexample.reducedJacobian_det
+#print axioms CRNT.Network.OppositeSignsCounterexample.card_positiveSteadyStates_eq_three
+#print axioms CRNT.Network.OppositeSignsCounterexample.classDegree_eq_neg_one
+#print axioms CRNT.Network.OppositeSignsCounterexample.odd_count_with_two_opposite_signs
 
 end Network
 

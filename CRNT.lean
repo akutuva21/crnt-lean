@@ -1123,6 +1123,11 @@ import CRNT.Reduction.ToricReduction
 import CRNT.Stochastic.ProductFormGeometric
 import CRNT.Multistationarity.InheritanceCapacity
 import CRNT.Theorems.DeficiencyZero.EntropyDissipation
+import CRNT.Multistationarity.GeneralFieldDegree
+import CRNT.Deficiency.ShelfFluxConstruction
+import CRNT.Stochastic.EndotacticCoupledTwoSpecies
+import CRNT.Dynamics.MassActionDelayComparison
+import CRNT.Multistationarity.TotalDegreeSign
 
 -- Still outside the umbrella: CRNT.Dynamics.GlobalPersistenceFrontier and
 -- CRNT.Dynamics.KnownGlobalPersistenceClasses.  Both now resolve all their names, but neither has

@@ -10,10 +10,13 @@ records the precise scope of the result: the degree at infinity of a field with 
 
 ## The mathematical statement
 
-The Conradi–Feliu–Mincheva–Wiuf total-degree theorem (*A characterization of multistationarity in
-chemical reaction networks*, Theorem 1) says that the degree of the class map of a reaction network
-is the **total degree** `(-1)^s` of the class, where `s` is the dimension of the class; for a
-fully open network the class is the whole space, `s = card S`, and the total degree is `(-1)^s`.
+The Conradi–Feliu-Mincheva–Mnev–Wiuf total-degree theorem (A. Conradi, A. Feliu-Mincheva,
+P. Mnev, C. Wiuf, *A characterization of multistationarity in chemical reaction networks*,
+SIAM J. Appl. Math. **76** (2017), 409–439 — the journal version of Proc. Natl. Acad. Sci. USA
+**108** (2011), 2853–2858 — Theorem 1) says that the degree of the class map of a reaction
+network is the **total degree** `(-1)^s` of the class, where `s` is the dimension of the class;
+for a fully open network the class is the whole space, `s = card S`, and the total degree is
+`(-1)^s`.
 The proof of the theorem goes through the *degree at infinity* of the mass-action field: the
 degree of the class map is the degree at infinity of the field, and the degree at infinity of a
 field whose leading homogeneous part is linear is the **sign of the determinant of that linear
@@ -31,14 +34,18 @@ This module proves the general form of that last step:
   the sign of `det M`;
 * `Network.fullyOpen_classDegree_of_affineLinear_eq_zero_or_sign` — the unconditional form: the
   class degree is that sign if the unique zero of the field is nonnegative, and `0` otherwise;
-* `Network.fullyOpen_exists_positiveSteadyState_of_affineLinear` — the Conradi–Feliu–Mincheva–Wiuf
+* `Network.fullyOpen_exists_positiveSteadyState_of_affineLinear` — the Conradi–Feliu-Mincheva–Mnev–Wiuf
   existence step (leaf **M9**) in the general affine case: the zero of the field is the unique
   positive steady state of the class;
-* `Network.fullyOpen_card_positiveSteadyStates_odd_of_affineLinear` — the Šošić–Sibuya parity
+* `Network.fullyOpen_card_positiveSteadyStates_odd_of_affineLinear` — the Šošić–Šibuya parity
   theorem (leaf **S19**) in the general affine case;
-* `Network.fullyOpen_classDegree_of_affineLinear_diagonal` — the **recovery** of the diagonal
-  outflow theorem: for `M = -outflow •` the determinant is `∏_s -outflow_s`, whose sign is
-  `(-1)^{card S}`.
+* `Network.affineFieldGeneral_of_affineField` and `Network.det_outflowLinearMap` — the
+  **diagonal outflow case inside the general framework**: the dissipative affine field of a
+  network is a general affine field whose linear part at infinity is the diagonal outflow
+  operator `v ↦ -outflow • v`, whose determinant is `∏_s -outflow_s`, of sign `(-1)^{card S}`.
+  The resulting total-degree statement is **not** re-proved here: it is already
+  `Network.fullyOpen_classDegree` in `CRNT.Multistationarity.TotalDegree`, and this module
+  deliberately does not duplicate that declaration.
 
 ## What is already in the library, and what this module adds
 
@@ -434,7 +441,7 @@ nonnegative, and it is `0` otherwise: in that case the reduced field has no zero
 nonnegative part of the class.
 
 This is the honest general form of the "the degree at infinity is the sign of the determinant of
-the linear part at infinity" reading of the Conradi–Feliu–Mincheva–Wiuf total-degree theorem: the
+the linear part at infinity" reading of the Conradi–Feliu-Mincheva–Mnev–Wiuf total-degree theorem: the
 degree at infinity is the sign of the determinant of the linear part, and it is the *relative*
 degree on the nonnegative class only when the zero of the field lies in that class. -/
 theorem fullyOpen_classDegree_of_affineLinear_eq_zero_or_sign
@@ -489,7 +496,7 @@ theorem AffineFieldGeneral.det_ne_zero {N : Network S} {κ : N.RateConstants}
 affine with an invertible linear part and whose zero is nonnegative: the zero of the field is
 then a strictly positive steady state, and it is the only one.
 
-This is the Conradi–Feliu–Mincheva–Wiuf existence step (leaf **M9**) in the general affine case,
+This is the Conradi–Feliu-Mincheva–Mnev–Wiuf existence step (leaf **M9**) in the general affine case,
 with the total degree discharged. -/
 theorem fullyOpen_exists_positiveSteadyState_of_affineLinear
     (N : Network S) (κ : N.fullyOpen.RateConstants) (c : Concentration S)
@@ -575,7 +582,7 @@ theorem fullyOpen_card_positiveSteadyStates_odd_of_affineLinear
       · exfalso
         exact h.det_ne_zero (by linarith)
 
-/-! ## The recovery of the diagonal case -/
+/-! ## The diagonal outflow case as a special case of the general affine case -/
 
 /-- **The dissipative affine field of a network, seen as a general affine field.**  The linear part
 at infinity is the diagonal outflow operator `v ↦ -outflow • v`. -/
@@ -623,49 +630,6 @@ theorem affineFieldZeroGeneral_of_affineField (N : Network S) (κ : N.RateConsta
     (massActionVectorField_eq_zero_iff_general (affineFieldGeneral_of_affineField N κ h)
       (affineFieldZero h)).mp h2
   exact h3.symm
-
-/-- **The general affine theorem recovers the diagonal outflow theorem.**  The field of a fully
-open network in dissipative affine form `x ↦ source - outflow • x` is a general affine field whose
-linear part at infinity is the diagonal outflow operator, whose determinant is
-`∏ s, -outflow s`; the sign of that determinant is `(-1)^{card S}`. -/
-theorem fullyOpen_classDegree_of_affineLinear_diagonal
-    (N : Network S) (κ : N.fullyOpen.RateConstants) (c : Concentration S)
-    (h : AffineField N.fullyOpen κ)
-    (hfin : (N.fullyOpen.steadyStateMap κ c ⁻¹' {0} ∩
-      N.fullyOpen.nonnegativeClassRegion c).Finite) :
-    N.fullyOpen.nonnegativeClassDegree κ c hfin = (-1) ^ (Fintype.card S) := by
-  -- the zero of the general affine field is the diagonal zero, which is positive
-  have hz : Concentration.Nonnegative
-      (affineFieldZeroGeneral (affineFieldGeneral_of_affineField N.fullyOpen κ h)) := by
-    rw [affineFieldZeroGeneral_of_affineField N.fullyOpen κ h]
-    exact (affineFieldZero_pos h).nonnegative
-  -- the general theorem
-  have hdeg := fullyOpen_classDegree_of_affineLinear N κ c
-    (affineFieldGeneral_of_affineField N.fullyOpen κ h) hz hfin
-  -- the determinant of the diagonal outflow operator
-  have hdet : LinearMap.det
-      ((affineFieldGeneral_of_affineField N.fullyOpen κ h).M.toLinearMap)
-      = ∏ s : S, -h.outflow s := by
-    rw [show (affineFieldGeneral_of_affineField N.fullyOpen κ h).M.toLinearMap
-      = (outflowLinearMap h.outflow).toLinearMap from rfl]
-    exact det_outflowLinearMap h.outflow
-  rw [hdeg, hdet]
-  -- the sign of a product of `card S` negative numbers
-  have hsign : ((SignType.sign (∏ s : S, -h.outflow s) : SignType) : ℤ)
-      = (-1 : ℤ) ^ (Fintype.card S) := by
-    have hprod : SignType.sign (∏ s : S, -h.outflow s)
-        = ∏ s : S, SignType.sign (-h.outflow s) := by
-      have hmp := map_prod signHom (fun s => -h.outflow s) Finset.univ
-      exact hmp
-    rw [hprod]
-    have hfac : ∀ s, SignType.sign (-h.outflow s) = (-1 : SignType) := by
-      intro s
-      rw [sign_neg]
-      have hpos : 0 < h.outflow s := h.outflow_pos s
-      linarith
-    rw [Finset.prod_congr rfl (fun s _ => hfac s), Finset.prod_const, Finset.card_univ]
-    exact coe_sign_pow _
-  exact hsign
 
 /-! ## The scope of the hypothesis: the nonnegativity of the zero is necessary -/
 
@@ -796,7 +760,6 @@ end CounterexampleGeneral
 #print axioms fullyOpen_classDegree_of_affineLinear_eq_zero_or_sign
 #print axioms fullyOpen_exists_positiveSteadyState_of_affineLinear
 #print axioms fullyOpen_card_positiveSteadyStates_odd_of_affineLinear
-#print axioms fullyOpen_classDegree_of_affineLinear_diagonal
 #print axioms det_fderiv_steadyStateMap_affineGeneral
 #print axioms CounterexampleGeneral.classDegree_ne_sign_det
 

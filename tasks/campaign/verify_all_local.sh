@@ -70,16 +70,18 @@ printf 'CRNT-Lean authoritative verification\ncommit: %s\ndirty files: %s\n' \
 
 run_gate build lake build +CRNT
 
-# Regenerate the field-map pins and require that the regenerated file is exactly the
-# committed one: a stale audit would silently pin declarations that no longer exist.
-if [ ! -s "$RESULTS/../../.campaign/fieldmap_pins.before" ]; then
-  cp test/FieldMapAudit.lean .campaign/fieldmap_pins.before 2>/dev/null || true
-fi
+# Regenerate the field-map pins and require that the committed audit file was in
+# sync with `docs/field-map.md`.  A stale audit silently pins declarations that no
+# longer exist, so this is a hard gate: if the regeneration changes the file, the
+# audit was out of date, the file has now been regenerated, and it must be
+# committed before the pipeline passes again.
+mkdir -p .campaign
+cp test/FieldMapAudit.lean .campaign/fieldmap_pins.before 2>/dev/null || true
 if lake env python3 scripts/field_map_pins.py >>"$LOG" 2>&1; then
-  if git diff --quiet -- test/FieldMapAudit.lean; then
+  if cmp -s .campaign/fieldmap_pins.before test/FieldMapAudit.lean; then
     gate pins ok ""
   else
-    gate pins fail "test/FieldMapAudit.lean drifted from docs/field-map.md"
+    gate pins fail "test/FieldMapAudit.lean was out of date w.r.t. docs/field-map.md; it has been regenerated and must be committed"
     git diff --stat -- test/FieldMapAudit.lean >>"$LOG" 2>&1
   fi
 else

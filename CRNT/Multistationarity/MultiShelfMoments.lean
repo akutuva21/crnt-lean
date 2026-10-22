@@ -13,7 +13,7 @@ import Mathlib.Tactic.NormDet
 
 This module continues the work of `CRNT.Multistationarity.MultiShelfConverse` (leaf M7) on the
 **shelf** construction of Feinberg's *Deficiency One Algorithm* (DOA, 1995b) and of the
-*Advanced Deficiency Algorithm* (ADA) of Ellison (1998) and Ji (2003).
+*Advanced Deficiency Algorithm* (ADA) of Ellison (1998) and Ji (2011).
 
 A **shelf** is a part of the reaction set whose reactions are *pairing-constant* at the
 log-ratio `μ`: all the sources of the shelf pair equally with `μ`.  A network is *ADA feasible*
@@ -54,21 +54,27 @@ explicit:
   of the two balance moments, the *full* three-moment system still has a nonzero solution, so the
   shelf balances are still not forced.
 
-## The correct way out: a third independent moment supplied as data
+Note the precise scope of these three statements: they are statements about the **moment
+system**, i.e. about *formal* vectors `L ∈ ℝ³` of partial balances.  They are **not** statements
+about an actual network and an actual flux whose partial balances fail to vanish while the
+global balances hold; that stronger statement needs a *realised* instance and is not proved
+here.
 
-The correct way out of the obstruction is not to iterate the two-value argument, but to supply the
-missing moment **as additional data**.  This module formalizes that:
+## The third moment: a third independent moment supplied as data
+
+This module formalizes the linear algebra of a **third moment** `w` in addition to the two
+balance moments `1` and `e^c`:
 
 * `shelfMomentMatrix` — the **moment matrix** of a three-shelf partition: the moment with which
   each shelf enters the partial balances (the plain count `1`, the exponential moment `e^{c_i}`
   from the upper balance, and the third moment `w_i`);
-* `threeShelf_decomposition` — **the three-shelf converse under three independent moments**: if
-  the reaction set is partitioned into three pairing-constant shelves, the flux balances the whole
-  network at the lower and at the upper state, the partial balances satisfy the third moment
-  relation with weights `w`, and the moment matrix `shelfMomentMatrix c w` is **nonsingular**,
-  then *every* partial balance vanishes: the flux decomposes into three shelf-wise confluence
-  vectors, the network is ADA feasible, and it has the capacity for multiple positive steady
-  states;
+* `threeShelf_decomposition` — the **three-shelf decomposition under three independent
+  moments**: if the reaction set is partitioned into three pairing-constant shelves, the flux
+  balances the whole network at the lower and at the upper state, the partial balances satisfy
+  the third moment relation with weights `w`, and the moment matrix `shelfMomentMatrix c w` is
+  **nonsingular**, then *every* partial balance vanishes: the flux decomposes into three
+  shelf-wise confluence vectors, the network is ADA feasible, and it has the capacity for
+  multiple positive steady states;
 * `shelfMomentMatrix_det_ne_zero_iff` — the criterion, in linear-algebraic form: the moment
   matrix is nonsingular exactly when the three moments `1`, `e^{c}` and `w` are linearly
   independent;
@@ -79,9 +85,30 @@ missing moment **as additional data**.  This module formalizes that:
   moment must be *independent* of the two balance moments, i.e. it must not be of the form
   `w i = a + b e^{c_i}`.
 
-Note that the third moment is an **additional hypothesis**, not a conclusion: the statement is
-not circular.  It is exactly the content that a genuine multi-shelf construction (Feinberg's or
-Ellison's) has to establish.
+### The status of the third moment: it is *not* independent of the conclusion
+
+**The third moment is not independent data.**  Given the two global balances `hlow`, `hupp` and
+the nonsingularity `hdet` of the moment matrix, the third moment relation `hmom` is
+**equivalent to the conclusion** — to the vanishing of every partial balance.  The reason is
+linear algebra: `hdet ≠ 0` forces the two balance moments `1` and `e^c` to be linearly
+independent, so the solution space of the two moment relations is the one-dimensional kernel
+spanned by `Network.twoMomentKernel c`; `hdet ≠ 0` also forces
+`⟨w, twoMomentKernel c⟩ ≠ 0`; and `hmom` kills exactly that one-dimensional kernel.  So the
+hypothesis `hmom` *is* the conclusion in disguise: the three-shelf statement of this module is,
+given its other hypotheses, a tautology.
+
+Two further points of scope, both verified in Lean:
+
+* the **flux is an input**.  The hypotheses `hα`, `hlow`, `hupp`, `hμ0`, `hsc` already imply
+  `N.HasMultistationarityCapacity` by
+  `CRNT.Network.hasMultistationarityCapacity_iff_flux_sign`.  The three shelves, the
+  pairing-constancy `hconst`, the third moment `hmom` and the nonsingularity `hdet` are
+  therefore *not needed* for the conclusion; the statement is a corollary of the flux
+  certificate, not a converse.
+* consequently the **third-shelf converse of Feinberg is not established here**.  What Feinberg's
+  analysis supplies, and what is missing, is a way of *deriving* a third independent moment (or
+  of deriving the shelf balances directly) from the combinatorics of the deficiency-one case;
+  see "What is *not* proved here" below.
 
 ## A concrete instance
 
@@ -96,14 +123,27 @@ in the stoichiometric subspace as `σ = v₁ + 2 v₄ + 3 v₇`.  With the third
 nonsingular — the three-shelf decomposition theorem applies and the network has the capacity for
 multiple positive steady states (`ThreeShelfExample.hasCapacity`).
 
+Note that in this example each module already balances on its own, so the partial balances
+vanish before the third moment is used: the example exhibits the **conclusion**, not the
+mechanism.
+
 ## What is *not* proved here
 
-* **The third moment is not constructed from the combinatorics of the network.**  Nothing here
-  shows that a network which admits a multi-shelf decomposition automatically admits a third
-  independent moment; that remains Feinberg's *structural* analysis of the shelves (and the
-  outstanding item of leaf M8).  What is proved here is the *converse* direction of such a
-  construction: whenever the third moment is available and the moment matrix is nonsingular, the
-  shelf balances follow automatically, exactly as the two-value argument does for two shelves.
+* **The third shelf converse of Feinberg is not established.**  Nothing here shows that a
+  network which admits a multi-shelf decomposition automatically admits a third independent
+  moment, or that the shelf balances follow from the structure of the deficiency-one case; that
+  remains Feinberg's *structural* analysis of the shelves (and the outstanding item of leaf M8).
+  What is proved here is the **linear algebra** of the third moment: the moment matrix, its
+  determinant, the criterion for its nonsingularity, and the fact that a dependent third moment
+  leaves a nontrivial kernel.
+* **The flux is not derived from the combinatorics.**  The flux `α` and the two balances are
+  *hypotheses* of the three-shelf statements, so those statements are corollaries of the flux
+  certificate rather than converses.  The missing bridge is the "signature ⇒ flux" lemma: from
+  a purely combinatorial run one must *construct* a strictly positive flux satisfying the two
+  balances.
+* **The rank obstruction is not realised by an instance.**  The statements about the moment
+  system are statements about formal vectors of partial balances; no network and flux are
+  exhibited whose partial balances fail to vanish while the global balances hold.
 * The **numerical version** of the algorithms.
 * The **endotacticity** of the shelves, which is kept separate here as in
   `CRNT.Multistationarity.AdvancedDeficiencyAlgorithm`.
@@ -307,9 +347,13 @@ def threeShelfConfluences {N : Network S} (sh0 sh1 sh2 : Finset N.R)
 /-! ### The three-shelf converse under three independent moments -/
 
 /-- **The shelf balances follow from three independent moments.**  This is the analytic core of
-the three-shelf converse: the two global balances supply the moments `1` and `e^{c}`, the third
+the three-shelf statement: the two global balances supply the moments `1` and `e^{c}`, the third
 moment relation supplies the moment `w`, and the nonsingularity of the moment matrix
-`shelfMomentMatrix c w` forces every partial balance to vanish. -/
+`shelfMomentMatrix c w` forces every partial balance to vanish.
+
+Caveat: given `hlow`, `hupp` and `hdet`, the hypothesis `hmom` is **equivalent** to the
+conclusion (the vanishing of all the partial balances), so this is a *determination* statement,
+not an independent derivation of the shelf balances.  See the module documentation. -/
 theorem threeShelf_shelfBalances
     (μ : S → ℝ) (α : N.R → ℝ)
     (sh0 sh1 sh2 : Finset N.R) (c : Fin 3 → ℝ) (w : Fin 3 → ℝ)
@@ -370,7 +414,7 @@ theorem threeShelf_shelfBalances
     (fun r hr r' hr' => (hconst i r hr).trans (hconst i r' hr').symm)
     (fun s => hzero s i) s
 
-/-- **The three-shelf converse under three independent moments: the ADA feasibility.** -/
+/-- **The three-shelf decomposition under three independent moments: the ADA feasibility.** -/
 theorem threeShelf_adaFeasible
     (μ : S → ℝ) (α : N.R → ℝ)
     (sh0 sh1 sh2 : Finset N.R) (c : Fin 3 → ℝ) (w : Fin 3 → ℝ)
@@ -390,7 +434,7 @@ theorem threeShelf_adaFeasible
   exact ⟨threeShelfDecomposition sh0 sh1 sh2 hcover hdisj,
     threeShelfConfluences sh0 sh1 sh2 hcover hdisj μ α hα hbal huppShelf, hμ0, hsc⟩
 
-/-- **The three-shelf converse under three independent moments.**  Let the reaction set be
+/-- **The three-shelf decomposition under three independent moments.**  Let the reaction set be
 partitioned into three shelves, each pairing-constant at `μ` at the values `c 0`, `c 1`, `c 2`.
 Suppose the flux `α` balances the whole network at the lower and at the upper state, and
 suppose *additionally* that the partial balances satisfy a third moment relation with weights
@@ -398,8 +442,15 @@ suppose *additionally* that the partial balances satisfy a third moment relation
 vanishes**: the flux decomposes into three shelf-wise confluence vectors, the network is ADA
 feasible, and it has the capacity for multiple positive steady states.
 
-This is the genuine three-shelf analogue of `twoShelf_decomposition`; the difference is that
-the third relation is *extra data*, not the conclusion, so the statement is not circular. -/
+Two points of scope, both verified in Lean and recorded in the module documentation:
+
+* the third moment relation `hmom` is **equivalent to the conclusion** given `hlow`, `hupp` and
+  `hdet` — it is the conclusion in disguise, not independent extra data;
+* the flux `α` with the two balances is an **input**, so the conclusion already follows from
+  `hα`, `hlow`, `hupp`, `hμ0`, `hsc` alone by
+  `CRNT.Network.hasMultistationarityCapacity_iff_flux_sign`.  This statement is therefore a
+  corollary of the flux certificate, **not** the third-shelf converse of Feinberg, which is not
+  established here. -/
 theorem threeShelf_decomposition
     (μ : S → ℝ) (α : N.R → ℝ)
     (sh0 sh1 sh2 : Finset N.R) (c : Fin 3 → ℝ) (w : Fin 3 → ℝ)
@@ -885,8 +936,9 @@ lemma shelves_disjoint : shelf 0 ∩ shelf 1 = ∅ ∧ shelf 0 ∩ shelf 2 = ∅
     ext r; cases r <;> simp
 
 /-- **The example has the capacity for multiple positive steady states.**  The three shelves
-carry the shelf-wise confluence vectors; the third moment relation is the extra datum which
-makes the three-shelf system determined. -/
+carry the shelf-wise confluence vectors; the third moment relation with the nonsingular moment
+matrix makes the three-shelf system determined.  (In this example each module already balances
+on its own, so the example exhibits the conclusion rather than the mechanism.) -/
 theorem hasCapacity : N.HasMultistationarityCapacity :=
   threeShelf_decomposition μ α (shelf 0) (shelf 1) (shelf 2) c w
     shelves_cover shelves_disjoint

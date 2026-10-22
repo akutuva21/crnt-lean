@@ -36,6 +36,18 @@ N.ADAAffirmsCapacity  ↔  ∃ μ, μ ≠ 0 ∧ N.SignCompatibleWithStoich μ
 imposed: the **within-class sign comparisons** of `y · μ` versus `y' · μ` driven by the chosen
 sign of `CCᵢ`, and the **coplanar-set `Mᵢ`-orderings**.
 
+**What this module does and does not repair.**  The layers are formalized here and they are
+genuine extra constraints on the *data* of a run.  They are, however, **inert for the
+conclusion** of the strengthened verdict: that conclusion follows already from
+`{μ ≠ 0, N.SignCompatibleWithStoich μ, α > 0, lower balance, upper balance}`, by
+`CRNT.Network.hasMultistationarityCapacity_iff_flux_sign`.  What makes the strengthened verdict
+reach the multistationarity capacity is the **flux certificate**, which is carried in its
+hypotheses.  The strengthened verdict is therefore *not* the literature's forward direction of
+the ADA — "a signature exists ⇒ the network has the capacity" — which takes **no flux** as
+input; it is the capacity certificate itself, decorated with the two Ji §1.7 layers.  The
+missing ingredient is the "signature ⇒ flux" lemma (a purely combinatorial run must *produce* a
+strictly positive flux with the two balances), which is **not** formalized here.
+
 ## What this module formalizes
 
 * **The colinearity classes and their orientation** (`SameLine`, `SameHalfLine`): two reactions
@@ -57,16 +69,27 @@ sign of `CCᵢ`, and the **coplanar-set `Mᵢ`-orderings**.
   verdict implies the multistationarity capacity (`ADAAffirmsCapacityStrong_hasCapacity`), so it
   is no longer equivalent to mere sign-compatibility
   (`ADAAffirmsCapacityStrong_ne_exists_signCompatible`,
-  `ADACoplanarExample.signCompatible_ne_hasCapacity`).  The two layers are genuine extra
-  constraints on the run's data: the degenerate choice `M ≡ 0` with the sign-based shelving
-  fails the within-class *realization* condition on a concrete network
-  (`ADACoplanarExample.degenerateData_fails_withinClass`).
+  `ADACoplanarExample.signCompatible_ne_hasCapacity`).
+
+  **Scope.**  The two Ji §1.7 layers — `d.imposes μ`, `N.WithinClassConditions d μ` and
+  `N.CoplanarMOrder d` — are **inert for the conclusion**: the conclusion follows already from
+  `{μ ≠ 0, N.SignCompatibleWithStoich μ, α > 0, lower balance, upper balance}`, by
+  `CRNT.Network.hasMultistationarityCapacity_iff_flux_sign`.  They are genuine extra
+  constraints on the *data* of a run — the degenerate choice `M ≡ 0` with the sign-based
+  shelving fails the within-class *realization* condition on a concrete network
+  (`ADACoplanarExample.degenerateData_fails_withinClass`) — but they do not change the
+  verdict's conclusion.
 
 The verdict is a `def` with an existential, not a `structure`: a `Prop`-valued structure cannot
 carry the data of a run (`d`, `μ`, the flux), exactly as `N.ADAAffirmsCapacity` is a `def`.
 
 ## What remains open
 
+* The **"signature ⇒ flux" lemma** — the forward direction of the ADA in its literature form.
+  The strengthened verdict takes the flux certificate as an *input*, so it is not a decision
+  procedure; the missing step is to *derive* a strictly positive flux with the two balances from
+  a purely combinatorial run (a nonzero, sign-compatible solution of the extended system of
+  Ji §1.7).  This is also the missing step that would make the two Ji §1.7 layers *matter*.
 * The **numerical version** of the ADA — the reduction of the flux feasibility problem to a
   linear program over the sign patterns of the fluxes — is **not** formalized here, and neither is
   the **endotacticity of the shelves** (`N.EndotacticShelf`, `N.StronglyEndotacticShelf` remain
@@ -154,14 +177,18 @@ theorem SameHalfLine.colinear {N : Network S} {r r' : N.R} (h : N.SameHalfLine r
   obtain ⟨a, ha, _⟩ := h
   exact ⟨a, ha⟩
 
-/-- **The within-class sign comparison of Ji §1.7.**  Two reactions of one colinearity class
-lying on the *same half-line* of that class have `μ`-rates of the same sign: the sign of
-`⟨v_r, μ⟩` is constant along the class, and it is the sign which drives the algorithm's
-comparison of `y · μ` against `y' · μ` inside the class.
+/-- **The within-class sign comparison, for the pairing differences.**  Two reactions of one
+colinearity class lying on the *same half-line* of that class have `μ`-rates of the same sign:
+the sign of `⟨v_r, μ⟩` is constant along the class, and it is the sign which drives the
+algorithm's comparison of `y · μ` against `y' · μ` inside the class.
 
 This is the precise content of the "within-class sign comparison" for *reaction vectors*.  For
 the *source* pairings alone the analogous claim is false: two collinear reactions may have
-different reactant complexes (see `colinear_source_pairings_need_not_agree`). -/
+different reactant complexes (see `colinear_source_pairings_need_not_agree`).
+
+Note that this is **not** Ji's within-class comparison, which is about the source pairings and
+is false; it is the strictly weaker, purely linear-algebraic statement about the pairing
+*differences*. -/
 theorem colinear_pairing_sign_agrees {N : Network S} {r r' : N.R}
     (h : N.SameHalfLine r r') (μ : S → ℝ) :
     SignType.sign (N.wRate μ r') = SignType.sign (N.wRate μ r) := by
@@ -182,7 +209,9 @@ theorem colinear_pairingDifference_sign_agrees {N : Network S} {r r' : N.R}
   exact colinear_pairing_sign_agrees h μ
 
 /-- **The within-class sign comparison is a theorem, not an extra hypothesis**: it holds for
-every log-ratio `μ`.  This is the mathematical content of the first Ji §1.7 layer. -/
+every log-ratio `μ`.  It is therefore a tautology as a *condition*; the content of the first
+Ji §1.7 layer that survives in this module is the *pairing-difference* comparison, not the
+source-pairing comparison, which is false (`colinear_source_pairings_need_not_agree`). -/
 theorem withinClassSignComparison (N : Network S) (μ : S → ℝ) :
     ∀ r r' : N.R, N.SameHalfLine r r' →
       SignType.sign (N.wRate μ r') = SignType.sign (N.wRate μ r) :=
@@ -316,11 +345,21 @@ theorem coplanarMOrder_of_zeroM (N : Network S) (d : N.ADAData) (hM : ∀ r, d.M
   · rw [hM rᵢ, hM rₖ]
   · rw [hM rₖ, hM rⱼ]
 
-/-- **The within-class conditions of Ji §1.7** on the data of a run:
+/-- **The within-class data conditions on a run.**  Two clauses:
+
 * the *realization* of the class value: the class value `Mᵢ` is one of the source pairings of the
   reactions of its class — the middle shelf of the class is nonempty, so `Mᵢ` is one of the finitely
-  many candidate values the algorithm enumerates;
-* the *sign comparison* within the class, which is a theorem (`withinClassSignComparison`). -/
+  many candidate values the algorithm enumerates.  This is a genuine condition on the data;
+* the *sign comparison* within the class, which is a **theorem** for every `μ`
+  (`withinClassSignComparison`), hence a tautology as a condition.
+
+**This is *not* Ji §1.7's within-class comparison.**  Ji's within-class comparison concerns the
+**source pairings** `y · μ` of two reactions of the same colinearity class, and that statement is
+**false**: the module records the counterexample (`colinear_source_pairings_need_not_agree`).
+What is formalized here is the strictly weaker *pairing-difference* comparison (a purely
+linear-algebraic fact about the `μ`-rates), together with the *realization* condition.  The
+declaration is a faithful formalization of these two facts, but it must not be read as a
+formalization of Ji's within-class layer, and its second clause carries no information at all. -/
 def WithinClassConditions (N : Network S) (d : N.ADAData) (μ : S → ℝ) : Prop :=
   (∀ r : N.R, ∃ r' : N.R, N.SameLine r r' ∧
       CRNT.complexPairing (N.reaction r').source μ = d.M r) ∧
@@ -340,9 +379,10 @@ theorem complexPairing_eq (y : Complex S) (μ : S → ℝ) :
 `N.ADAAffirmsCapacity` — some `ADAData` and a nonzero, sign-compatible `μ` meeting the
 shelf-versus-`Mᵢ` constraints — with the two constraint layers of Ji §1.7 imposed:
 
-* the **within-class conditions** (`N.WithinClassConditions`): the within-class sign comparison
-  of Ji §1.7, together with the *realization* of the class value `Mᵢ` inside its class (the middle
-  shelf of a class is nonempty);
+* the **within-class conditions** (`N.WithinClassConditions`): the *realization* of the class
+  value `Mᵢ` inside its class (the middle shelf of a class is nonempty), together with the
+  within-class *pairing-difference* comparison (which is a theorem for every `μ`, hence
+  redundant as a condition — see the docstring of `N.WithinClassConditions`);
 * the **coplanar-set ordering** (`N.CoplanarMOrder`): for a coplanar triplet
   `cₖwₖ = cᵢwᵢ + cⱼwⱼ`, the class values are ordered `Mᵢ > Mₖ > Mⱼ`, all equal, or
   `Mᵢ < Mₖ < Mⱼ`;
@@ -350,6 +390,18 @@ shelf-versus-`Mᵢ` constraints — with the two constraint layers of Ji §1.7 i
 and with the **flux certificate** which the numerical version of the algorithm tests for (a
 strictly positive flux satisfying the two flux balances).  The flux certificate is what makes
 the verdict reach the multistationarity capacity.
+
+**Scope — read this before citing the verdict.**  The verdict *carries its own capacity
+certificate in its hypotheses*: the conjunction of the flux certificate and the sign data is
+already equivalent to `N.HasMultistationarityCapacity` by
+`CRNT.Network.hasMultistationarityCapacity_iff_flux_sign`.  Consequently
+`N.ADAAffirmsCapacityStrong_hasCapacity` has the shape `X ∧ (decoration) ⟹ X`, with `X` the
+capacity certificate: it is **circular in effect**, and the three layers `d.imposes μ`,
+`N.WithinClassConditions d μ` and `N.CoplanarMOrder d` are **inert** for the conclusion — the
+conclusion follows from `{μ ≠ 0, N.SignCompatibleWithStoich μ, α > 0, lower balance, upper
+balance}` alone.  The verdict is therefore *not* the literature's forward direction of the ADA
+("a signature exists ⇒ the network has the capacity"), which is a *combinatorial* decision
+procedure taking **no flux** as input; the missing ingredient is the "signature ⇒ flux" lemma.
 
 (The data are existential, as in `N.ADAAffirmsCapacity`: a `Prop`-valued structure cannot carry
 the data of a run.) -/
@@ -368,11 +420,16 @@ theorem adaAffirmsCapacity_of_adaAffirmsCapacityStrong {N : Network S}
   obtain ⟨d, μ, _, hμ0, hsc, himp, _, _, _, _, _⟩ := h
   exact ⟨d, μ, hμ0, hsc, himp⟩
 
-/-- **The strengthened verdict implies the multistationarity capacity.**  This is the *forward*
-direction of the Advanced Deficiency Algorithm under the strengthened hypotheses: the witness is
+/-- **The strengthened verdict implies the multistationarity capacity.**  The witness is
 the flux certificate `(α, μ, σ)` of
 `CRNT.Network.hasMultistationarityCapacity_iff_flux_sign`, `σ` being the stoichiometric vector
-realizing the sign pattern of `μ`. -/
+realizing the sign pattern of `μ`.
+
+**Scope.**  The flux certificate is a **hypothesis** of `N.ADAAffirmsCapacityStrong`, so this
+theorem has the shape `X ∧ (decoration) ⟹ X` with `X` the capacity certificate; the three Ji
+§1.7 layers (`d.imposes μ`, `N.WithinClassConditions d μ`, `N.CoplanarMOrder d`) are **inert**
+for the conclusion.  It is therefore *not* the forward direction of the ADA as a combinatorial
+test. -/
 theorem ADAAffirmsCapacityStrong_hasCapacity {N : Network S}
     (h : N.ADAAffirmsCapacityStrong) : N.HasMultistationarityCapacity := by
   obtain ⟨_, μ, α, hμ0, hsc, _, _, _, hα, hlb, hub⟩ := h
@@ -626,9 +683,11 @@ theorem adaAffirmsCapacity : N.ADAAffirmsCapacity :=
 
 /-- **The degenerate data fails the within-class conditions** at the log-ratio `μ' = (1, 0)`:
 the third reaction's source pairs at `1`, and no reaction of its (singleton) colinearity class
-pairs at `0`, so the class value `M = 0` is not realized in the class.  The within-class layer
-of Ji §1.7 is therefore a *genuine* extra constraint on the run's data: it is not met by the
-degenerate choice `M ≡ 0` in general. -/
+pairs at `0`, so the class value `M = 0` is not realized in the class.  The *realization* clause
+of the within-class layer is therefore a *genuine* extra constraint on the run's data: it is
+not met by the degenerate choice `M ≡ 0` in general.  (It is, however, a statement about one
+particular `μ` and about the *data*; it does not show that the clause affects the verdict's
+conclusion, which is decided by the flux certificate alone.) -/
 theorem degenerateData_fails_withinClass :
     ¬ N.WithinClassConditions degenerateData μ' := by
   rintro ⟨hreal, _⟩
@@ -746,7 +805,12 @@ network which admits a nonzero sign-compatible log-ratio — so that the old ver
 compatibility — but which does **not** satisfy the strengthened verdict: the strengthened
 verdict demands the flux certificate, and this network admits none.  Together with
 `ADAAffirmsCapacityStrong_hasCapacity` (the strengthened verdict implies the multistationarity
-capacity) this exhibits the restored content of the combinatorial verdict. -/
+capacity) this exhibits the restored content of the combinatorial verdict.
+
+**Scope.**  The witness is the *deficiency-zero*, single-reaction network `0 → A`, whose only
+steady-state equation is `k₁ = 0`; it exercises nothing beyond the flux certificate.  The
+strengthening that is exhibited here is the one coming from the **flux certificate**, not the
+one coming from the two Ji §1.7 layers, which are inert for the conclusion. -/
 theorem ADAAffirmsCapacityStrong_ne_exists_signCompatible :
     ∃ (N : Network ADACoplanarExample.Species),
       N.ADAAffirmsCapacity ∧ ¬ N.ADAAffirmsCapacityStrong :=

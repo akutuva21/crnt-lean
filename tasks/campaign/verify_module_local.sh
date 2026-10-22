@@ -218,10 +218,16 @@ mkdir -p "$OUT/$ROOTNAME"
   mkdir -p "$OUT/$ROOTNAME/$(dirname "$f")"
   ln -sf "$PKGROOT/$ROOTNAME/$f" "$OUT/$ROOTNAME/$f"
 done
-RELPATH="${MODULE%.lean}.olean"
+RELPATH="${MODULE#"$ROOTNAME/"}"
+RELPATH="${RELPATH%.lean}.olean"
 rm -f "$OUT/$ROOTNAME/$RELPATH"
 mkdir -p "$OUT/$ROOTNAME/$(dirname "$RELPATH")"
 cp "$OLEANTARGET" "$OUT/$ROOTNAME/$RELPATH"
+if [ ! -f "$OUT/$ROOTNAME/$RELPATH" ]; then
+  gate axiom-audit FAIL
+  detail="the fresh artifact was not installed in the audit root at $OUT/$ROOTNAME/$RELPATH"
+  exit 1
+fi
 if ! python3 "$ROOT/tasks/campaign/audit_module.py" "$SRCROOT/$MODULE" "$OLEANTARGET" "$OUT" "$DEPS" "$modname" \
       >"$axioms_out" 2>"$WORK/audit.err"; then
   gate axiom-audit FAIL
