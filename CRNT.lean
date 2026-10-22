@@ -1084,6 +1084,7 @@ import CRNT.Dynamics.UniformContraction
 import CRNT.Algebra.VolumePolynomial
 import CRNT.Stochastic.CountableStateFoster
 import CRNT.Multistationarity.TotalDegreeGeneral
+import CRNT.Multistationarity.TotalDegreeSign
 import CRNT.Dynamics.DelayComparison
 import CRNT.Multistationarity.MultiShelfMoments
 import CRNT.Extensions.ReactionDiffusionSpectrum

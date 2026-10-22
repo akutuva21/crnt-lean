@@ -1504,6 +1504,36 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.CounterexampleGeneral.classDegree_ne_sign_det
 
+-- M9
+/-- info: 'CRNT.Network.fullyOpen_affineFieldGeneral_source_pos' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fullyOpen_affineFieldGeneral_source_pos
+
+-- M9
+/-- info: 'CRNT.Network.fullyOpen_affineFieldGeneral_offdiag_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fullyOpen_affineFieldGeneral_offdiag_nonneg
+
+-- M9
+/-- info: 'CRNT.Network.fullyOpen_affineFieldGeneral_zero_pos' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fullyOpen_affineFieldGeneral_zero_pos
+
+-- M9
+/-- info: 'CRNT.Network.fullyOpen_affineFieldGeneral_diag_neg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fullyOpen_affineFieldGeneral_diag_neg
+
+-- M9
+/-- info: 'CRNT.Network.fullyOpen_affineFieldGeneral_neg_det_pos' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fullyOpen_affineFieldGeneral_neg_det_pos
+
+-- M9
+/-- info: 'CRNT.Network.fullyOpen_classDegree_of_affineLinear_eq_negOne_pow' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.fullyOpen_classDegree_of_affineLinear_eq_negOne_pow
+
 -- M10
 /-- info: 'CRNT.Network.hasMultistationarityCapacity_of_two_positive_zeros' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
