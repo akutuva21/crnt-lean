@@ -9,8 +9,8 @@ import CRNT.Dynamics.StrongEndotacticTier
 # Positive recurrence of strongly endotactic stochastic mass-action systems
 
 This module transfers the **deterministic tier machinery** of leaf D9 (Anderson–Cappelletti–Kim–Nguyen
-2020, _Persistence and absence of infinite trajectories for strongly endotactic chemical reaction
-networks_) to the **count lattice** `ℕ^S`, and proves the stochastic counterpart of the deterministic
+2020, _Tier structure of strongly endotactic reaction networks_, Stochastic Processes and their
+Applications **130** (2020), 7218–7259) to the **count lattice** `ℕ^S`, and proves the stochastic counterpart of the deterministic
 permanence theorem:
 
 > a stochastic mass-action system whose network carries a count-lattice tier structure is

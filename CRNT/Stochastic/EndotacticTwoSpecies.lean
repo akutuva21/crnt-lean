@@ -6,11 +6,15 @@ import CRNT.Stochastic.EndotacticTierDomination
 This module discharges the Anderson–Cappelletti–Kim–Nguyen (ACK) conclusion for a **genuine
 two-species** strongly endotactic stochastic mass-action system.
 
-**Reference.** J. Anderson, A. Cappelletti, E. Kim and H. Nguyen, *Persistence and absence of
-infinite trajectories for strongly endotactic chemical reaction networks*, Discrete and
-Continuous Dynamical Systems **S** 14 (2020), 1107–1148.  The stochastic part of that paper
-(their §5) asserts that a strongly endotactic stochastic mass-action system is
-**non-explosive** and **positive recurrent**, with a strictly positive stationary law.
+**Reference.** D. F. Anderson, D. Cappelletti, J. Kim and T. D. Nguyen, *Tier structure of strongly
+endotactic reaction networks*, Stochastic Processes and their Applications **130** (2020),
+7218–7259 (preprint arXiv:1808.05328).  Its stochastic section (§7) is **conditional**: strong
+endacticity **alone** does **not** imply non-explosion or positive recurrence.  The authors' own
+Examples 3.1 (`0 → 2A+B → 4A+4B → A`) and 3.2 (`0 → 2A → 4A+B → 6A+4B → 3A`) are strongly
+endotactic and are respectively **transient** and **explosive**, for every choice of rate
+constants.  Their non-explosion and recurrence results are therefore stated **conditionally**:
+their Theorem 7.2 and Corollary 7.1 require strong endacticity **together with** (a) the network
+being **binary** and **fully open**, or (b) the rate-free **molecularity condition** (7.2).
 
 **The instance.** `CRNT.Examples.EndotacticCounterexample.net` is the two-species network
 
@@ -24,11 +28,23 @@ independent birth–death chains**.  This module proves the ACK conclusion for i
 non-explosive, is positively recurrent with a stationary probability that charges **every**
 count, and is **geometrically ergodic**.
 
-This is the sharpest multispecies progress currently available in the library: the ACK
-conclusion was previously proved only in the **one-species** case
-(`CRNT.Network.OneSpecies.positiveRecurrence`, `CRNT.Examples.EndotacticBirthDeath`,
-`CRNT.Examples.EndotacticTrimerDecay`).  The multispecies instance gap recorded by the field
-map (leaf **P7**) is closed *for this instance*.
+This instance is a **genuine instance of ACK Corollary 7.1**: the network `0 → A`, `A → 0`,
+`0 → B`, `B → 0` is **binary** (every source complex has total molecularity `≤ 2`), **fully
+open** (`0 → S` and `S → 0` are present for `S = A` and `S = B`), and strongly endotactic.  The
+extra hypothesis being used here is therefore the *binary-and-fully-open* one, **not** the
+molecularity condition (7.2); ACK Corollary 7.1 then gives positive recurrence of every state of
+the (single) closed irreducible component, and `E[τ_{x₀}] < ∞`, for **every** choice of rate
+constants.  The module below re-derives that conclusion for this network by an independent
+Foster--Lyapunov argument.
+
+The multispecies instance gap recorded by the field map (leaf **P7**) is closed *for this
+instance*.  The **new** content of this module is the direct derivation (`twoSpecies_reachPos`,
+`twoSpecies_drift_eq`, `twoSpecies_drift`, `twoSpecies_observable`, `twoSpeciesEpsilon`,
+`twoSpeciesK`, `twoSpecies_tierLyapunov`): the same three conclusions were already available in
+the library through the count-lattice tier machinery (`CRNT.Network.tier_positiveRecurrence`
+applied to `Examples.EndotacticCounterexample.countTier`, and the one-species results
+`CRNT.Network.OneSpecies.positiveRecurrence`, `CRNT.Examples.EndotacticBirthDeath`,
+`CRNT.Examples.EndotacticTrimerDecay`).
 
 ## The mathematics
 
@@ -94,7 +110,7 @@ the same three conclusions.
 
 ## What is **not** proved here
 
-The **general** multispecies ACK theorem is **not** proved: the deterministic tier-weight
+The **general** multispecies ACK results are **not** proved: the deterministic tier-weight
 construction of ACK — a weight whose tiers separate the complexes, together with the matching
 of each descending channel to the ascending channels it dominates — is the missing input, and it
 is not available on the count lattice.  The naive route, in which the top-tier monomial is
@@ -106,6 +122,15 @@ property of the *weight*, not of the network: with the weight `w = (1, 1)` the t
 share the top tier, the two ascending channels have the empty source complex (hence
 count-independent propensity) and each species is consumed by its own strictly descending
 top-tier channel, and the ACK conclusion follows.
+
+In particular, this module does **not** prove the general **conditional** statements of ACK
+Theorem 7.2 and Corollary 7.1 over the class of *all* binary, fully open strongly endotactic
+networks: it proves the ACK conclusion for one particular such network (the two-species product
+instance).  The repository proves non-explosion and positive recurrence for the one-species
+networks of `CRNT.Stochastic.EndotacticFull`, for the two-species instance of this module, and
+for the networks carrying a count-lattice tier structure
+(`CRNT.Network.CountTier`, `CRNT.Network.CountTierBalance`); each of these satisfies the extra
+hypotheses of the ACK result it instantiates.
 
 Depends on:
 `CRNT.Stochastic.EndotacticTierDomination`, `CRNT.Stochastic.EndotacticTierPositiveRecurrence`,
@@ -346,11 +371,16 @@ observable as its tier Lyapunov function. -/
 theorem twoSpecies_tierLyapunov (κ : net.RateConstants) (n : Fin 2 → ℕ) :
     Network.CountLyapunov net κ countTier n = linearObservable twoSpeciesWeight n := rfl
 
-/-! ### The Anderson--Cappelletti--Kim--Nguyen conclusion -/
+/-! ### The Anderson--Cappelletti--Kim--Nguyen conclusion for this instance -/
 
 /-- **Non-explosion of the two-species instance.**  The stochastic mass-action chain of
 `0 → A`, `A → 0`, `0 → B`, `B → 0` makes only finitely many jumps in a finite time interval:
-its minimal transition function is stochastic. -/
+its minimal transition function is stochastic.
+
+This is an **instance** of the Anderson--Cappelletti--Kim--Nguyen conclusion (their
+Corollary 7.1), not their theorem: the network is binary and fully open and strongly endotactic,
+so the extra hypothesis being used is the *binary-and-fully-open* one.  Strong endacticity alone
+would not suffice (their Examples 3.1 and 3.2 are strongly endotactic, transient and explosive). -/
 theorem twoSpecies_nonExplosion (κ : net.RateConstants) {t : ℝ} (ht : 0 ≤ t)
     (n : Fin 2 → ℕ) :
     HasSum (fun m => net.transition κ t n m) 1 := by
@@ -379,7 +409,12 @@ theorem twoSpecies_nonExplosion (κ : net.RateConstants) {t : ℝ} (ht : 0 ≤ t
 /-- **Positive recurrence of the two-species instance.**  The stochastic mass-action chain of
 `0 → A`, `A → 0`, `0 → B`, `B → 0` is non-explosive and positively recurrent: it has a
 stationary probability `π` which charges **every** count (`0 < π b`), and the probability of
-being at the starting count converges to the strictly positive limit `π a`. -/
+being at the starting count converges to the strictly positive limit `π a`.
+
+This is an **instance** of the Anderson--Cappelletti--Kim--Nguyen conclusion (their
+Corollary 7.1: a binary, fully open, strongly endotactic network is positively recurrent for
+every choice of rate constants), not their theorem over the class of all binary fully open
+strongly endotactic networks. -/
 theorem twoSpecies_positiveRecurrence (κ : net.RateConstants) :
     ∃ π : (Fin 2 → ℕ) → ℝ, (∀ b, 0 ≤ π b) ∧ HasSum π 1 ∧
       (∀ s, 0 ≤ s → ∀ b, ∑' x, π x * (net.jumpSystem κ).Pmin s x b = π b) ∧

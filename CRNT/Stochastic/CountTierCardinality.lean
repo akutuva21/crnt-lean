@@ -11,15 +11,24 @@ of that set.
 
 ## 1. The Anderson--Cappelletti--Kim--Nguyen tier construction
 
-Anderson--Cappelletti--Kim--Nguyen (2020, _Persistence and absence of infinite trajectories for
-strongly endotactic chemical reaction networks_) organise the complexes of a network into
-**tiers** by the level sets of a linear functional `w ↦ ∑_s w_s y_s` read on the complexes `y`.
-The *top tier* is the `w`-maximal face of the Newton polytope; the reactions out of the top
-tier do not ascend the tier potential, and at least one of them descends it strictly.  The tier
-construction is what produces the **strictly negative drift** of the Lyapunov function
-`V (x) = ∑_s w_s x_s` of the stochastic mass-action chain, and hence the
-Anderson--Cappelletti--Kim--Nguyen conclusions: non-explosion, a Foster hitting-time bound,
-positive recurrence with a strictly positive stationary law, and geometric ergodicity.
+Anderson--Cappelletti--Kim--Nguyen (2020, _Tier structure of strongly endotactic reaction
+networks_; Stochastic Processes and their Applications **130** (2020), 7218–7259) organise the
+complexes of a network into **tiers** by the level sets of a linear functional `w ↦ ∑_s w_s y_s`
+read on the complexes `y`.  The *top tier* is the `w`-maximal face of the Newton polytope; the
+reactions out of the top tier do not ascend the tier potential, and at least one of them descends
+it strictly.  The tier construction is what produces the **strictly negative drift** of the
+Lyapunov function `V (x) = ∑_s w_s x_s` of the stochastic mass-action chain, and hence — **once
+the extra hypotheses below are met** — the Anderson--Cappelletti--Kim--Nguyen conclusions:
+non-explosion, a Foster hitting-time bound, positive recurrence with a strictly positive
+stationary law, and geometric ergodicity.
+
+**Those conclusions are conditional, exactly as in the paper.**  Strong endacticity **alone**
+does **not** imply non-explosion or positive recurrence: the authors' own Examples 3.1
+(`0 → 2A+B → 4A+4B → A`) and 3.2 (`0 → 2A → 4A+B → 6A+4B → 3A`) are strongly endotactic and are
+**transient** and **explosive** respectively, for every choice of rate constants.  Their
+non-explosion and recurrence results are the **conditional** Theorem 7.2 and Corollary 7.1,
+which require strong endacticity **together with** (a) the network being **binary** and **fully
+open**, or (b) the rate-free **molecularity condition** (7.2).
 
 The *count-lattice* reading of that construction is the repository's
 `CRNT.Network.CountTier` (`CRNT.Stochastic.EndotacticTierPositiveRecurrence`):
@@ -74,11 +83,14 @@ the balanced structure as well (`countTierBalance_exceptional_card_le`).
 
 ## 4. What remains open
 
-* **The general multispecies Anderson--Cappelletti--Kim--Nguyen theorem is still open.**  The
-  hypothesis `CRNT.Network.StronglyEndotacticStd` alone does not produce a tier weight `w` with
-  either the tier domination or the balance property: that *deterministic tier-weight
-  construction* is the genuinely new input of the Anderson--Cappelletti--Kim--Nguyen paper and
-  it is missing here.
+* **The general *conditional* Anderson--Cappelletti--Kim--Nguyen results are still open here.**
+  Their Theorem 7.2 and Corollary 7.1 are *conditional* — strong endacticity **together with**
+  the binary-and-fully-open hypothesis, or **together with** the rate-free molecularity condition
+  (7.2) — and this module proves neither of them over the class of all binary, fully open
+  strongly endotactic networks.  A further obstacle is internal: the hypothesis
+  `CRNT.Network.StronglyEndotacticStd` alone does not produce a tier weight `w` with either the
+  tier domination or the balance property: that *deterministic tier-weight construction* is the
+  genuinely new input of the Anderson--Cappelletti--Kim--Nguyen paper and it is missing here.
 * **The naive tier-domination route is refuted.**
   `CRNT.Examples.EndotacticCounterexample.topTier_does_not_dominate` exhibits a
   `StronglyEndotacticStd` network (the two-species network `0 → A`, `A → 0`, `0 → B`, `B → 0`)
@@ -86,6 +98,21 @@ the balanced structure as well (`countTierBalance_exceptional_card_le`).
   the lower tier `B` is `k` while that of the top tier `A` is `0`: the top tier does **not**
   dominate the lower tiers, so the "top-tier monomial dominates the lower-tier monomials" step
   of the continuous proof has no count-lattice analogue.
+* **What the repository actually proves.**  Non-explosion and positive recurrence are proved for
+  *particular* instances and classes, each of which carries the extra hypotheses required by the
+  Anderson--Cappelletti--Kim--Nguyen result it instantiates: the **one-species** class of
+  `CRNT.Stochastic.EndotacticFull` (`CRNT.Network.OneSpecies.nonExplosion`,
+  `CRNT.Network.OneSpecies.positiveRecurrence`; extra hypotheses: the total count is not
+  conserved and the embedded jump chain is irreducible — the class is *not* covered by their
+  Corollary 7.1, which requires a binary network); the **two-species product instance**
+  `0 → A`, `A → 0`, `0 → B`, `B → 0` of `CRNT.Stochastic.EndotacticTwoSpecies` (binary, fully
+  open and strongly endotactic, hence a genuine instance of their Corollary 7.1); and every
+  network carrying a count-lattice tier structure, `CRNT.Network.CountTier` or
+  `CRNT.Network.CountTierBalance` — the count-lattice counterpart of the molecularity condition
+  (7.2) of their Theorem 7.2 — whose conclusions are `CRNT.Network.tier_nonExplosion`,
+  `CRNT.Network.tier_positiveRecurrence` and `CRNT.Network.tier_geometricErgodic`.
+  **None** of this is the general conditional theorem of their Theorem 7.2 / Corollary 7.1 over
+  the class of all binary, fully open strongly endotactic networks.
 * What *is* proved here is the quantitative part of the count-lattice tier theory: the tier
   estimate (finiteness and the explicit cardinality bound of a tier band), the relation between
   the tier of a count and the tier potential of a complex, and the consequence that the

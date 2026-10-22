@@ -1,7 +1,7 @@
 import CRNT.Stochastic.EndotacticTierDomination
 
 /-!
-# The full Anderson--Cappelletti--Kim--Nguyen theorem: the deterministic hypothesis, the sharp
+# The Anderson--Cappelletti--Kim--Nguyen programme: the deterministic hypothesis, the sharp
 # count-lattice condition, and the one-species case
 
 This module attacks the last remaining gap of leaf **P7** (positive recurrence and
@@ -11,6 +11,18 @@ records the gap as follows:
 > "The remaining gap is the full ACK theorem for an arbitrary strongly endotactic network:
 > on the count lattice the domination of lower-tier monomials by top-tier ones fails along
 > escape directions."
+
+(The field map's phrase "the full ACK theorem" must be read as the **conditional** results of
+Anderson--Cappelletti--Kim--Nguyen, *Tier structure of strongly endotactic reaction networks*,
+Stochastic Processes and their Applications **130** (2020), 7218--7259: their Theorem 7.2 and
+Corollary 7.1.  Strong endacticity **alone** does **not** imply non-explosion or positive
+recurrence -- the authors' own Examples 3.1 (`0 → 2A+B → 4A+4B → A`) and 3.2
+(`0 → 2A → 4A+B → 6A+4B → 3A`) are strongly endotactic and are **transient** and **explosive**
+for every choice of rate constants.  Their non-explosion and recurrence results require strong
+endacticity **together with** (a) the network being **binary** and **fully open**, or (b) the
+rate-free **molecularity condition** (7.2).  This module proves neither statement over the class
+of all binary, fully open strongly endotactic networks; it proves the conclusion for the
+**one-species** class, with the extra hypotheses spelled out in §3.)
 
 The previous module `CRNT.Stochastic.EndotacticTierDomination` **refuted** the route the field
 map proposes (for the strongly endotactic network `0 → A`, `A → 0`, `0 → B`, `B → 0` the top
@@ -66,17 +78,28 @@ count lattice, a single descending reaction can cancel an ascending reaction on 
 enabled region of the ascending reaction only if the two reactions have the same source complex
 (`partner_same_source`, `CountTierBalance.partner_same_source`).
 
-## 3. A new positive case: the Anderson--Cappelletti--Kim--Nguyen theorem for one species
+## 3. A new positive case: the Anderson--Cappelletti--Kim--Nguyen conclusion for one species
 
 The truncation obstruction disappears in the **one-species** case: there the failure set of the
 comparison is finite, and the matching condition "the descending partner has a source complex
 of at least the molecularity of the ascending one" is enough.
 
-This module proves the ACK theorem for **every strongly endotactic one-species network**
+This module proves the ACK **conclusion** for **every strongly endotactic one-species network**
 (`OneSpecies.nonExplosion`, `OneSpecies.positiveRecurrence`, `OneSpecies.geometricErgodic`):
 the stochastic mass-action chain of such a network is non-explosive, and — as soon as the
 embedded jump chain is irreducible — it is positively recurrent with a strictly positive
 stationary law and is geometrically ergodic.
+
+**Which extra hypothesis is being used.**  The two ingredients of the literature results that
+are *not* implied by strong endacticity alone are, first, that the descending reaction out of
+the top complex dominates the ascending ones (the rate-free **molecularity condition (7.2)** of
+ACK Theorem 7.2, which here is the existence of a strictly descending reaction `r₀` out of the
+maximal molecularity `X^m`), and, second, irreducibility of the embedded jump chain, which is
+what ACK Corollary 7.1 supplies through its "closed irreducible component" hypothesis.  Note
+that the one-species class is *not* covered by ACK Corollary 7.1 itself, which requires the
+network to be **binary**: a one-species network may have molecularity `m > 2`.  The repository
+does not formalise ACK's hypothesis (7.2); it proves the corresponding count-lattice drift
+directly.
 
 The mechanism is explicit: with the tier direction `w = 1` (the total-count direction) the
 top tier is the maximal molecularity `X^m`; every ascending reaction has source `X^i` with
@@ -93,9 +116,9 @@ the chain is confined to a finite level set.
 
 ## 4. What remains open
 
-The full ACK theorem for an arbitrary strongly endotactic network with several species needs,
-on top of the deterministic hypothesis, a count-lattice *matching* that the deterministic
-hypothesis does not deliver:
+The ACK **conditional** results (Theorem 7.2 / Corollary 7.1) for an arbitrary strongly
+endotactic network with several species need, on top of the deterministic hypothesis, a
+count-lattice *matching* that the deterministic hypothesis does not deliver:
 
 * **(BAL)** for every ascending reaction with a nonempty source complex, a descending reaction
   with the **same** source complex and enough rate capacity — §2 shows that no other choice is
@@ -108,6 +131,16 @@ condition (a producing reaction always has a competitor with more of the produce
 not the matching itself; §2 shows that the matching cannot be weakened.  The one-species case
 (§3) is the case in which the matching can be dispensed with, because the truncation
 obstruction has an empty escape direction.
+
+**What this module does not prove.**  It does not prove the general conditional statements of
+ACK Theorem 7.2 / Corollary 7.1 over the class of all binary, fully open strongly endotactic
+networks, and it proves nothing for strongly endactic networks that are neither binary nor
+covered by the molecularity condition (7.2).  What the repository proves is non-explosion and
+positive recurrence for the **one-species** class of §3 (with the extra hypotheses `hact` and
+irreducibility), for the **two-species product instance** `0 → A`, `A → 0`, `0 → B`, `B → 0` of
+`CRNT.Stochastic.EndotacticTwoSpecies` (a binary, fully open, strongly endotactic network, hence
+a genuine instance of ACK Corollary 7.1), and for the networks carrying a count-lattice tier
+structure (`CRNT.Network.CountTier`, `CRNT.Network.CountTierBalance`).
 
 Depends on: `CRNT.Stochastic.EndotacticTierDomination`.
 -/
@@ -478,7 +511,7 @@ theorem CountTierBalance.partner_same_source {S : Type} [DecidableEq S] [Fintype
     (N.reaction (B.partner r)).source = (N.reaction r).source :=
   (B.hpartner r hasc hne).2.1
 
-/-! ## 4. The Anderson--Cappelletti--Kim--Nguyen theorem for one species -/
+/-! ## 4. The Anderson--Cappelletti--Kim--Nguyen conclusion for one species -/
 
 namespace OneSpecies
 
@@ -580,7 +613,14 @@ drift `Q V (n) ≤ -c · V (n) + K` with `c > 0` and `K ≥ 0`, where `V (n) = n
 
 The mechanism: every ascending reaction has source of molecularity `≤ m - 1`, so its propensity
 is bounded by a polynomial of degree `m - 1`, while the descending reaction `r₀` has a propensity
-of degree `m`, which beats the ascending ones for large counts. -/
+of degree `m`, which beats the ascending ones for large counts.
+
+The hypothesis on `r₀` is the count-lattice counterpart of the rate-free **molecularity
+condition (7.2)** of ACK Theorem 7.2 (`Tier structure of strongly endotactic reaction networks`,
+Stochastic Processes and their Applications **130** (2020), 7218--7259): a molecule-decreasing
+reaction out of the top complex whose target is strictly smaller than its source.  It is *not*
+implied by strong endacticity alone in the multi-species case, and the one-species class is not
+covered by ACK Corollary 7.1 either, since that corollary requires a **binary** network. -/
 theorem drift_le {N : Network (Fin 1)} {κ : N.RateConstants}
     (hse : N.StronglyEndotacticStd)
     (r₀ : N.R) (hmax : N.IsMaxSource (fun _ => (1 : ℝ)) r₀)
@@ -970,7 +1010,13 @@ theorem lyapunov_finiteSublevel (R : ℝ) :
     (by intro s; fin_cases s; norm_num) R
 
 /-- **Non-explosion for a one-species strongly endotactic network.**  The stochastic mass-action
-chain makes only finitely many jumps in a finite time interval. -/
+chain makes only finitely many jumps in a finite time interval.
+
+The extra hypothesis beyond strong endacticity is `hact` (some reaction changes the number of
+molecules), which guarantees the existence of the strictly descending top-tier reaction used in
+`drift_le`; this is the count-lattice counterpart of the molecularity condition (7.2) of ACK
+Theorem 7.2.  It is *not* a consequence of strong endacticity alone in general: ACK's Examples
+3.1 and 3.2 are strongly endotactic, transient and explosive. -/
 theorem nonExplosion {N : Network (Fin 1)} {κ : N.RateConstants}
     (hse : N.StronglyEndotacticStd)
     (hact : ∃ r : N.R, N.wRate (fun _ => (1 : ℝ)) r ≠ 0)
@@ -985,7 +1031,14 @@ theorem nonExplosion {N : Network (Fin 1)} {κ : N.RateConstants}
 
 /-- **Positive recurrence for a one-species strongly endotactic network.**  The chain has a
 stationary probability which charges every count, and the probability of being at the starting
-count converges to a strictly positive limit. -/
+count converges to a strictly positive limit.
+
+This is the ACK **conclusion** for the one-species class, obtained with two extra hypotheses
+that are *not* implied by strong endacticity: `hact` (some reaction changes the number of
+molecules, i.e. the molecularity condition (7.2) of ACK Theorem 7.2 has bite) and `hirr`
+(irreducibility of the embedded jump chain, which is what ACK Corollary 7.1 obtains from its
+"closed irreducible component" hypothesis).  The class is not covered by ACK Corollary 7.1
+itself, which requires a **binary** network. -/
 theorem positiveRecurrence {N : Network (Fin 1)} {κ : N.RateConstants}
     (hse : N.StronglyEndotacticStd)
     (hact : ∃ r : N.R, N.wRate (fun _ => (1 : ℝ)) r ≠ 0)

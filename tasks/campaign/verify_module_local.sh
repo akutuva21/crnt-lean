@@ -167,10 +167,11 @@ modname="${MODULE%.lean}"
 modname="${modname//\//.}"
 
 # --------------------------------------------------- compile the candidate alone
-OUT="$WORK/out"
-rm -rf "$OUT"
-mkdir -p "$OUT/$(dirname "$MODULE")"
-OLEANTARGET="$OUT/${MODULE%.lean}.olean"
+# Compile into a scratch directory that is NOT on LEAN_PATH yet.
+TMPOUT="$WORK/compiled"
+rm -rf "$TMPOUT"
+mkdir -p "$TMPOUT/$(dirname "$MODULE")"
+OLEANTARGET="$TMPOUT/${MODULE%.lean}.olean"
 if ! ( cd "$SRCROOT" && LEAN_PATH="$DEPS" lean -o "$OLEANTARGET" "$MODULE" ) >>"$build_log" 2>&1; then
   gate compile FAIL
   if [ "$SELF_TEST" = "1" ]; then
@@ -190,7 +191,37 @@ OLEAN_SHA="$(shasum -a 256 "$OLEANTARGET" | awk '{print $1}')"
 gate compile ok
 
 # ----------------------------------------------------------------- axiom audit
-# `$OUT` is first on LEAN_PATH => `import <modname>` loads the artifact just built.
+# Lean's module resolution (Lean.Util.Path.findWithExt) picks the *first* search-path
+# entry that contains a directory named after the module's ROOT package (`CRNT`), and
+# then resolves *every* `CRNT.*` module under that entry.  A private output directory
+# that merely contains `CRNT/` would therefore shadow the whole package and the
+# dependency oleans would "not exist".  So the audit root is a mirror of the built
+# package in which the candidate's artifact replaces the stale one; the mirror is
+# symlinks, so the shared build directory is never written to.
+PKGROOT=""
+ROOTNAME="${MODULE%%/*}"
+IFS=':' read -r -a _departs <<<"$DEPS"
+for d in "${_departs[@]}"; do
+  if [ -d "$d/$ROOTNAME" ]; then PKGROOT="$d"; break; fi
+done
+if [ -z "$PKGROOT" ]; then
+  # The module's root package is not in the build (a brand-new package, or the
+  # self-test module).  The audit root then holds just the candidate, and its
+  # dependencies resolve from the ordinary search path.
+  PKGROOT="$WORK/absent-package"
+  mkdir -p "$PKGROOT"
+fi
+OUT="$WORK/auditroot"
+rm -rf "$OUT"
+mkdir -p "$OUT/$ROOTNAME"
+( cd "$PKGROOT/$ROOTNAME" && find . -name '*.olean' -print0 ) | while IFS= read -r -d '' f; do
+  mkdir -p "$OUT/$ROOTNAME/$(dirname "$f")"
+  ln -sf "$PKGROOT/$ROOTNAME/$f" "$OUT/$ROOTNAME/$f"
+done
+RELPATH="${MODULE%.lean}.olean"
+rm -f "$OUT/$ROOTNAME/$RELPATH"
+mkdir -p "$OUT/$ROOTNAME/$(dirname "$RELPATH")"
+cp "$OLEANTARGET" "$OUT/$ROOTNAME/$RELPATH"
 if ! python3 "$ROOT/tasks/campaign/audit_module.py" "$SRCROOT/$MODULE" "$OLEANTARGET" "$OUT" "$DEPS" "$modname" \
       >"$axioms_out" 2>"$WORK/audit.err"; then
   gate axiom-audit FAIL
