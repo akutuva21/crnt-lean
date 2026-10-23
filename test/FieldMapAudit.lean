@@ -6529,6 +6529,16 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.delayConservedQuantity_norm_bound
 
+-- E3
+/-- info: 'CRNT.Network.massActionDelay_global_exists_of_positive_conservation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_global_exists_of_positive_conservation
+
+-- E3
+/-- info: 'CRNT.Examples.Dimerization.delayed_global_exists' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.Dimerization.delayed_global_exists
+
 -- C1
 /-- info: 'CRNT.Network.gac_of_singleLinkage_decide' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in

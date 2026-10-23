@@ -1072,6 +1072,164 @@ theorem delayConservedQuantity_norm_bound_on
   have htop := le_trans hup hden
   exact abs_le.mpr ⟨by linarith [hB, hxnonneg t (Set.Icc_subset_Icc_left (by linarith) ht) s], htop⟩
 
+/-- The delayed conservation functional at time zero depends only on the nonpositive history. -/
+theorem delayConservedQuantity_zero_congr
+    (N : Network S) (κ : N.RateConstants) (τ : N.R → ℝ) (w : S → ℝ)
+    (hτ : ∀ r, 0 ≤ τ r) {x y : ℝ → Concentration S}
+    (hxy : ∀ t ≤ 0, x t = y t) :
+    N.delayConservedQuantity κ τ w x 0 = N.delayConservedQuantity κ τ w y 0 := by
+  unfold delayConservedQuantity
+  rw [hxy 0 le_rfl]
+  congr 1
+  apply Finset.sum_congr rfl
+  intro r hr
+  apply congrArg (fun z : ℝ => κ.k r * (∑ s, w s * ((N.reaction r).source s : ℝ)) * z)
+  apply intervalIntegral.integral_congr
+  intro u hu
+  change (N.reaction r).source.massActionMonomial (x u) =
+    (N.reaction r).source.massActionMonomial (y u)
+  rw [hxy u (by
+    have hu' : u ∈ Set.uIcc (0 - τ r) 0 := hu
+    rw [Set.uIcc_of_le (by linarith [hτ r])] at hu'
+    exact hu'.2)]
+
+/-- A positive conservation weight bounds the initial state directly from its nonnegative
+continuous history, before any solution is constructed. -/
+theorem delayConservedQuantity_initial_norm_bound
+    (N : Network S) (κ : N.RateConstants) (τ : N.R → ℝ) (w : S → ℝ)
+    [Nonempty S] (hτ : ∀ r, 0 ≤ τ r) (hwpos : ∀ s, 0 < w s)
+    (φ : ℝ → Concentration S) (hφ : Continuous φ)
+    (hφnonneg : ∀ t ≤ 0, ∀ s, 0 ≤ φ t s) :
+    0 ≤ N.delayConservedQuantity κ τ w φ 0 ∧
+      ‖φ 0‖ ≤ N.delayConservedQuantity κ τ w φ 0 /
+        ((Finset.univ.image w).min'
+          (Finset.image_nonempty.mpr Finset.univ_nonempty)) := by
+  let wmin := (Finset.univ.image w).min' (Finset.image_nonempty.mpr Finset.univ_nonempty)
+  have hwmin : wmin ∈ Finset.univ.image w := Finset.min'_mem _ _
+  obtain ⟨s₀, hs₀, hws₀⟩ := Finset.mem_image.mp hwmin
+  have hwminpos : 0 < wmin := by rw [← hws₀]; exact hwpos s₀
+  have hwmin_le (s : S) : wmin ≤ w s :=
+    Finset.min'_le _ _ (Finset.mem_image_of_mem w (Finset.mem_univ s))
+  have hsource (r : N.R) : 0 ≤ ∑ s, w s * ((N.reaction r).source s : ℝ) := by
+    apply Finset.sum_nonneg
+    intro s hs
+    exact mul_nonneg (hwpos s).le (Nat.cast_nonneg _)
+  have hmon (r : N.R) : 0 ≤
+      ∫ u in (0 - τ r)..(0 : ℝ), (N.reaction r).source.massActionMonomial (φ u) := by
+    apply intervalIntegral.integral_nonneg (by linarith [hτ r])
+    intro u hu
+    exact Complex.massActionMonomial_nonneg (hφnonneg u (by linarith [hu.2]))
+      (N.reaction r).source
+  have hQ : 0 ≤ N.delayConservedQuantity κ τ w φ 0 := by
+    unfold delayConservedQuantity
+    apply add_nonneg
+    · apply Finset.sum_nonneg
+      intro s hs
+      exact mul_nonneg (hwpos s).le (hφnonneg 0 le_rfl s)
+    · apply Finset.sum_nonneg
+      intro r hr
+      exact mul_nonneg (mul_nonneg (κ.positive r).le (hsource r)) (hmon r)
+  have hcurrent : (∑ s, w s * φ 0 s) ≤ N.delayConservedQuantity κ τ w φ 0 := by
+    unfold delayConservedQuantity
+    exact le_add_of_nonneg_right (Finset.sum_nonneg fun r _ =>
+      mul_nonneg (mul_nonneg (κ.positive r).le (hsource r)) (hmon r))
+  have hcoord (s : S) : φ 0 s ≤ N.delayConservedQuantity κ τ w φ 0 / w s := by
+    have hsingle : w s * φ 0 s ≤ ∑ j, w j * φ 0 j :=
+      Finset.single_le_sum (fun j _ => mul_nonneg (hwpos j).le
+        (hφnonneg 0 le_rfl j)) (Finset.mem_univ s)
+    have hpair : w s * φ 0 s ≤ N.delayConservedQuantity κ τ w φ 0 :=
+      le_trans hsingle (le_trans hcurrent (by rfl))
+    exact (le_div_iff₀ (hwpos s)).2 (by simpa [mul_comm] using hpair)
+  have hbound_nonneg : 0 ≤ N.delayConservedQuantity κ τ w φ 0 / wmin :=
+    div_nonneg hQ hwminpos.le
+  have hden (s : S) : N.delayConservedQuantity κ τ w φ 0 / w s ≤
+      N.delayConservedQuantity κ τ w φ 0 / wmin := by
+    apply (div_le_div_iff₀ (hwpos s) hwminpos).2
+    nlinarith [hQ, hwmin_le s]
+  have hnorm : ‖φ 0‖ ≤ N.delayConservedQuantity κ τ w φ 0 / wmin := by
+    apply (pi_norm_le_iff_of_nonneg hbound_nonneg).2
+    intro s
+    exact abs_le.mpr ⟨by linarith [hφnonneg 0 le_rfl s], le_trans (hcoord s) (hden s)⟩
+  exact ⟨hQ, by simpa [wmin] using hnorm⟩
+
+/-- Start with a nonnegative history and obtain a conservative first step. The step length is
+chosen uniformly from the initial-history bound and the conserved-weight bound. -/
+theorem massActionDelay_conservative_first_step
+    (N : Network S) (κ : N.RateConstants) (τ : N.R → ℝ) (d D H₀ : ℝ)
+    [Nonempty S] (hd : 0 < d) (hD : 0 ≤ D)
+    (hτ : ∀ r, 0 ≤ τ r) (hgap : ∀ r, 0 < τ r → d ≤ τ r)
+    (hτD : ∀ r, τ r ≤ D) (w : S → ℝ)
+    (hw : w ∈ orthSum N.stoichSubspace) (hwpos : ∀ s, 0 < w s)
+    (φ : ℝ → Concentration S) (hφ : Continuous φ)
+    (hφnonneg : ∀ t ≤ 0, ∀ s, 0 ≤ φ t s)
+    (hφbound : ∀ t ∈ Set.Icc (-D) 0, ‖φ t‖ ≤ H₀) :
+    ∃ h : ℝ, 0 < h ∧ h ≤ d ∧
+      (∀ (ψ : ℝ → Concentration S), Continuous ψ →
+        (∀ t ∈ Set.Icc (-D) 0,
+          ‖ψ t‖ ≤ max H₀ (N.delayConservedQuantity κ τ w φ 0 /
+            ((Finset.univ.image w).min' (Finset.image_nonempty.mpr Finset.univ_nonempty)))) →
+        ∀ x₀ : Concentration S,
+        ‖x₀‖ ≤ N.delayConservedQuantity κ τ w φ 0 /
+          ((Finset.univ.image w).min' (Finset.image_nonempty.mpr Finset.univ_nonempty)) →
+        ψ 0 = x₀ → ∃ z : ℝ → Concentration S,
+          Continuous z ∧ (∀ t ≤ 0, z t = ψ t) ∧ z 0 = x₀ ∧
+          ∀ t ∈ Set.Icc 0 h,
+            HasDerivWithinAt z (N.delayField κ τ z t) (Set.Icc 0 h) t) ∧
+      ∃ x : ℝ → Concentration S,
+      Continuous x ∧ (∀ t ≤ 0, x t = φ t) ∧
+      (∀ t ∈ Set.Icc (-D) h, ∀ s, 0 ≤ x t s) ∧
+      (∀ t ∈ Set.Icc 0 h, ‖x t‖ ≤
+        N.delayConservedQuantity κ τ w φ 0 /
+          ((Finset.univ.image w).min' (Finset.image_nonempty.mpr Finset.univ_nonempty))) ∧
+      ∀ t ∈ Set.Icc 0 h,
+        HasDerivWithinAt x (N.delayField κ τ x t) (Set.Icc 0 h) t := by
+  let wmin : ℝ := (Finset.univ.image w).min' (Finset.image_nonempty.mpr Finset.univ_nonempty)
+  have hwmin_mem : wmin ∈ Finset.univ.image w := Finset.min'_mem _ _
+  have hwmin : 0 < wmin := by
+    obtain ⟨s, hs, hws⟩ := Finset.mem_image.mp hwmin_mem
+    rw [← hws]
+    exact hwpos s
+  obtain ⟨hQ, hφ₀⟩ := N.delayConservedQuantity_initial_norm_bound κ τ w hτ hwpos φ hφ
+    hφnonneg
+  let B := N.delayConservedQuantity κ τ w φ 0 / wmin
+  have hB : 0 ≤ B := div_nonneg hQ hwmin.le
+  have hφ₀B : ‖φ 0‖ ≤ B := by simpa [B, wmin] using hφ₀
+  let H := max H₀ B
+  have hH : 0 ≤ H := by
+    have hH₀ : 0 ≤ H₀ := by
+      have := hφbound 0 ⟨by linarith [hD], le_rfl⟩
+      exact le_trans (norm_nonneg _) this
+    exact le_max_of_le_right hB
+  have hH₀H : H₀ ≤ H := le_max_left _ _
+  obtain ⟨h, hh, hhd, hrestart⟩ := N.massActionDelay_local_exists_uniform_continuous κ τ d D B H
+    hd hB hH hτ hgap hτD
+  obtain ⟨x, hxc, hxhist, hx₀, hx⟩ := hrestart φ hφ
+    (fun t ht => le_trans (hφbound t ht) hH₀H) (φ 0) hφ₀B rfl
+  have hhistory : ∀ (r : N.R) s q, q ∈ Set.Icc (0 - τ r) 0 → 0 ≤ x q s := by
+    intro r s q hq
+    rw [hxhist q hq.2]
+    exact hφnonneg q hq.2 s
+  have hstart : ∀ s, 0 ≤ x 0 s := by
+    intro s
+    rw [hxhist 0 le_rfl]
+    exact hφnonneg 0 le_rfl s
+  have hpos := N.delayField_nonneg_of_nonnegative_delays κ τ hh.le hτ hx hhistory hstart
+  have hxnonneg : ∀ t ∈ Set.Icc (-D) h, ∀ s, 0 ≤ x t s := by
+    intro t ht s
+    by_cases ht0 : t ≤ 0
+    · rw [hxhist t ht0]
+      exact hφnonneg t ht0 s
+    · exact hpos t ⟨le_of_not_ge ht0, ht.2⟩ s
+  have hbound := N.delayConservedQuantity_norm_bound_on κ τ w h D hh.le hD hτ hτD
+    hw hwpos hxc hx hxnonneg
+  have hQeq := N.delayConservedQuantity_zero_congr κ τ w hτ hxhist
+  refine ⟨h, hh, hhd, ?_, x, hxc, hxhist, hxnonneg, ?_, hx⟩
+  · intro ψ hψ hψbound x₀ hx₀ hψ₀
+    exact hrestart ψ hψ (fun t ht => hψbound t ht) x₀ hx₀ hψ₀
+  · intro t ht
+    rw [hQeq] at hbound
+    simpa [B, wmin] using hbound t ht
+
 /-- A uniform restart preserves positivity and the conservation-law norm bound.  The delayed
 invariance theorem supplies nonnegativity on the new slab; the finite-interval conservation
 estimate then recovers the same bound from the unchanged history functional. -/
@@ -1128,6 +1286,319 @@ theorem massActionDelay_uniform_restart_nonneg
   intro t ht
   exact hbound t ht
 
+
+/-- Restart a bounded conservative trajectory while retaining the bound computed from its
+initial history. This is the exact induction step for finite-stage global continuation. -/
+theorem massActionDelay_conservative_restart_step
+    (N : Network S) (κ : N.RateConstants) (τ : N.R → ℝ) (D B H₀ h a : ℝ)
+    [Nonempty S] (hh : 0 < h) (hD : 0 ≤ D) (hτ : ∀ r, 0 ≤ τ r)
+    (hτD : ∀ r, τ r ≤ D) (ha : 0 ≤ a)
+    (w : S → ℝ) (hw : w ∈ orthSum N.stoichSubspace) (hwpos : ∀ s, 0 < w s)
+    (φ : ℝ → Concentration S) (hφbound : ∀ t ∈ Set.Icc (-D) 0, ‖φ t‖ ≤ H₀)
+    (hrestart : ∀ (ψ : ℝ → Concentration S), Continuous ψ →
+      (∀ t ∈ Set.Icc (-D) 0, ‖ψ t‖ ≤ max H₀ B) → ∀ x₀ : Concentration S,
+      ‖x₀‖ ≤ B → ψ 0 = x₀ → ∃ z : ℝ → Concentration S,
+        Continuous z ∧ (∀ t ≤ 0, z t = ψ t) ∧ z 0 = x₀ ∧
+        ∀ t ∈ Set.Icc 0 h,
+          HasDerivWithinAt z (N.delayField κ τ z t) (Set.Icc 0 h) t)
+    {x : ℝ → Concentration S} (hxc : Continuous x)
+    (hxhist : ∀ t ≤ 0, x t = φ t)
+    (hxnonneg : ∀ t ∈ Set.Icc (-D) a, ∀ s, 0 ≤ x t s)
+    (hxBound : ∀ t ∈ Set.Icc 0 a, ‖x t‖ ≤ B)
+    (hQ : N.delayConservedQuantity κ τ w x 0 = N.delayConservedQuantity κ τ w φ 0)
+    (hx : ∀ t ∈ Set.Icc 0 a,
+      HasDerivWithinAt x (N.delayField κ τ x t) (Set.Icc 0 a) t) :
+    ∃ y : ℝ → Concentration S,
+      Continuous y ∧ (∀ t ≤ a, y t = x t) ∧
+      (∀ t ∈ Set.Icc (-D) (a + h), ∀ s, 0 ≤ y t s) ∧
+      (∀ t ∈ Set.Icc 0 (a + h), ‖y t‖ ≤
+        N.delayConservedQuantity κ τ w φ 0 /
+          ((Finset.univ.image w).min' (Finset.image_nonempty.mpr Finset.univ_nonempty))) ∧
+      ∀ t ∈ Set.Icc 0 (a + h),
+        HasDerivWithinAt y (N.delayField κ τ y t) (Set.Icc 0 (a + h)) t := by
+  have hH₀ : 0 ≤ H₀ := by
+    have hzero := hφbound 0 ⟨by linarith [hD], le_rfl⟩
+    exact le_trans (norm_nonneg _) hzero
+  have hB : 0 ≤ B := by
+    have hzero := hxBound 0 ⟨le_rfl, ha⟩
+    exact le_trans (norm_nonneg _) hzero
+  have hH : 0 ≤ max H₀ B := le_max_of_le_right hB
+  have hwindow : ∀ t ∈ Set.Icc (-D) a, ‖x t‖ ≤ max H₀ B := by
+    intro t ht
+    by_cases ht0 : t ≤ 0
+    · rw [hxhist t ht0]
+      exact le_trans (hφbound t ⟨ht.1, ht0⟩) (le_max_left _ _)
+    · exact le_trans (hxBound t ⟨le_of_not_ge ht0, ht.2⟩) (le_max_right _ _)
+  have hstart : ‖x a‖ ≤ B := hxBound a ⟨ha, le_rfl⟩
+  have hxhistory : ∀ t ∈ Set.Icc (-D) 0, ∀ s, 0 ≤ x t s := by
+    intro t ht s
+    exact hxnonneg t ⟨ht.1, le_trans ht.2 ha⟩ s
+  have hxnonneg' : ∀ t ∈ Set.Icc 0 a, ∀ s, 0 ≤ x t s := by
+    intro t ht s
+    exact hxnonneg t ⟨by linarith [ht.1, hD], ht.2⟩ s
+  obtain ⟨y, hyc, hyold, hyNonneg, hyBound, hy⟩ :=
+    N.massActionDelay_uniform_restart_nonneg κ τ D B (max H₀ B) h a
+      hh hD hτ hτD ha w hw hwpos hrestart hxc hxhistory hxnonneg' hstart
+      (fun t ht => hwindow t ⟨by linarith [ht.1, hD], ht.2⟩) hx
+  have hQy : N.delayConservedQuantity κ τ w y 0 =
+      N.delayConservedQuantity κ τ w x 0 :=
+    N.delayConservedQuantity_zero_congr κ τ w hτ (fun t ht => hyold t (le_trans ht ha))
+  refine ⟨y, hyc, hyold, hyNonneg, ?_, hy⟩
+  intro t ht
+  rw [hQy, hQ] at hyBound
+  exact hyBound t ht
+
+/-- Iterating the conservative restart step yields solutions on every finite number of uniform
+steps, with one history-determined norm bound independent of the number of steps. -/
+theorem massActionDelay_conservative_finite_steps
+    (N : Network S) (κ : N.RateConstants) (τ : N.R → ℝ) (D B H₀ h : ℝ)
+    [Nonempty S] (hh : 0 < h) (hD : 0 ≤ D) (hτ : ∀ r, 0 ≤ τ r)
+    (hτD : ∀ r, τ r ≤ D) (w : S → ℝ) (hw : w ∈ orthSum N.stoichSubspace)
+    (hwpos : ∀ s, 0 < w s) (φ : ℝ → Concentration S)
+    (hφbound : ∀ t ∈ Set.Icc (-D) 0, ‖φ t‖ ≤ H₀)
+    (hB : B = N.delayConservedQuantity κ τ w φ 0 /
+      ((Finset.univ.image w).min' (Finset.image_nonempty.mpr Finset.univ_nonempty)))
+    (hrestart : ∀ (ψ : ℝ → Concentration S), Continuous ψ →
+      (∀ t ∈ Set.Icc (-D) 0, ‖ψ t‖ ≤ max H₀ B) → ∀ x₀ : Concentration S,
+      ‖x₀‖ ≤ B → ψ 0 = x₀ → ∃ z : ℝ → Concentration S,
+        Continuous z ∧ (∀ t ≤ 0, z t = ψ t) ∧ z 0 = x₀ ∧
+        ∀ t ∈ Set.Icc 0 h,
+          HasDerivWithinAt z (N.delayField κ τ z t) (Set.Icc 0 h) t)
+    {x₀ : ℝ → Concentration S} (hxc₀ : Continuous x₀)
+    (hxhist₀ : ∀ t ≤ 0, x₀ t = φ t)
+    (hxnonneg₀ : ∀ t ∈ Set.Icc (-D) h, ∀ s, 0 ≤ x₀ t s)
+    (hxBound₀ : ∀ t ∈ Set.Icc 0 h, ‖x₀ t‖ ≤ B)
+    (hQ₀ : N.delayConservedQuantity κ τ w x₀ 0 = N.delayConservedQuantity κ τ w φ 0)
+    (hx₀ : ∀ t ∈ Set.Icc 0 h,
+      HasDerivWithinAt x₀ (N.delayField κ τ x₀ t) (Set.Icc 0 h) t) :
+    ∀ n : ℕ, ∃ x : ℝ → Concentration S,
+      Continuous x ∧ (∀ t ≤ 0, x t = φ t) ∧
+      (∀ t ∈ Set.Icc (-D) (((n : ℝ) + 1) * h), ∀ s, 0 ≤ x t s) ∧
+      (∀ t ∈ Set.Icc 0 (((n : ℝ) + 1) * h), ‖x t‖ ≤ B) ∧
+      N.delayConservedQuantity κ τ w x 0 = N.delayConservedQuantity κ τ w φ 0 ∧
+      ∀ t ∈ Set.Icc 0 (((n : ℝ) + 1) * h),
+        HasDerivWithinAt x (N.delayField κ τ x t)
+          (Set.Icc 0 (((n : ℝ) + 1) * h)) t := by
+  classical
+  let T : ℕ → ℝ := fun n => ((n : ℝ) + 1) * h
+  have hT_nonneg (n : ℕ) : 0 ≤ T n := by
+    dsimp [T]
+    positivity
+  have hT_succ (n : ℕ) : T (n + 1) = T n + h := by
+    dsimp [T]
+    push_cast
+    ring
+  let P : ℕ → Prop := fun n => ∃ x : ℝ → Concentration S,
+      Continuous x ∧ (∀ t ≤ 0, x t = φ t) ∧
+      (∀ t ∈ Set.Icc (-D) (T n), ∀ s, 0 ≤ x t s) ∧
+      (∀ t ∈ Set.Icc 0 (T n), ‖x t‖ ≤ B) ∧
+      N.delayConservedQuantity κ τ w x 0 = N.delayConservedQuantity κ τ w φ 0 ∧
+      ∀ t ∈ Set.Icc 0 (T n),
+        HasDerivWithinAt x (N.delayField κ τ x t) (Set.Icc 0 (T n)) t
+  have hP : ∀ n, P n := by
+    intro n
+    induction n with
+    | zero =>
+        change ∃ x, _
+        refine ⟨x₀, hxc₀, hxhist₀, ?_, ?_, hQ₀, ?_⟩
+        · intro t ht s
+          exact hxnonneg₀ t (by simpa [T] using ht) s
+        · intro t ht
+          exact hxBound₀ t (by simpa [T] using ht)
+        · intro t ht
+          have ht' : t ∈ Set.Icc 0 h := by simpa [T] using ht
+          simpa [T] using hx₀ t ht'
+    | succ n ih =>
+        change P n at ih
+        obtain ⟨x, hxc, hhist, hnonneg, hbound, hQ, hx⟩ := ih
+        have ha : 0 ≤ T n := hT_nonneg n
+        obtain ⟨y, hyc, hyold, hyNonneg, hyBound, hy⟩ :=
+          N.massActionDelay_conservative_restart_step κ τ D B H₀ h (T n)
+            hh hD hτ hτD ha w hw hwpos φ hφbound hrestart hxc hhist hnonneg
+            hbound hQ hx
+        unfold P
+        rw [hT_succ n]
+        have hyBound' : ∀ t ∈ Set.Icc 0 (T n + h), ‖y t‖ ≤ B := by
+          intro t ht
+          rw [hB]
+          exact hyBound t ht
+        refine ⟨y, hyc, fun t ht => by
+          calc y t = x t := hyold t (by linarith [ha])
+            _ = φ t := hhist t ht,
+          hyNonneg, hyBound', ?_, ?_⟩
+        · exact N.delayConservedQuantity_zero_congr κ τ w hτ
+            (fun t ht => hyold t (by linarith [ht, ha])) |>.trans hQ
+        · intro t ht
+          exact hy t (by simpa [hT_succ n] using ht)
+  intro n
+  simpa [P, T] using hP n
+
+/-- Coherent finite-stage solutions assemble into one trajectory on every finite time interval.
+The hypothesis `hB` identifies the invariant norm bound with the initial history functional. -/
+theorem massActionDelay_conservative_global_from_first_step
+    (N : Network S) (κ : N.RateConstants) (τ : N.R → ℝ) (D B H₀ h : ℝ)
+    [Nonempty S] (hh : 0 < h) (hD : 0 ≤ D) (hτ : ∀ r, 0 ≤ τ r)
+    (hτD : ∀ r, τ r ≤ D) (w : S → ℝ) (hw : w ∈ orthSum N.stoichSubspace)
+    (hwpos : ∀ s, 0 < w s) (φ : ℝ → Concentration S)
+    (hφbound : ∀ t ∈ Set.Icc (-D) 0, ‖φ t‖ ≤ H₀)
+    (hB : B = N.delayConservedQuantity κ τ w φ 0 /
+      ((Finset.univ.image w).min' (Finset.image_nonempty.mpr Finset.univ_nonempty)))
+    (hrestart : ∀ (ψ : ℝ → Concentration S), Continuous ψ →
+      (∀ t ∈ Set.Icc (-D) 0, ‖ψ t‖ ≤ max H₀ B) → ∀ x₀ : Concentration S,
+      ‖x₀‖ ≤ B → ψ 0 = x₀ → ∃ z : ℝ → Concentration S,
+        Continuous z ∧ (∀ t ≤ 0, z t = ψ t) ∧ z 0 = x₀ ∧
+        ∀ t ∈ Set.Icc 0 h,
+          HasDerivWithinAt z (N.delayField κ τ z t) (Set.Icc 0 h) t)
+    {x₀ : ℝ → Concentration S} (hxc₀ : Continuous x₀)
+    (hxhist₀ : ∀ t ≤ 0, x₀ t = φ t)
+    (hxnonneg₀ : ∀ t ∈ Set.Icc (-D) h, ∀ s, 0 ≤ x₀ t s)
+    (hxBound₀ : ∀ t ∈ Set.Icc 0 h, ‖x₀ t‖ ≤ B)
+    (hQ₀ : N.delayConservedQuantity κ τ w x₀ 0 = N.delayConservedQuantity κ τ w φ 0)
+    (hx₀ : ∀ t ∈ Set.Icc 0 h,
+      HasDerivWithinAt x₀ (N.delayField κ τ x₀ t) (Set.Icc 0 h) t) :
+    ∃ X : ℝ → Concentration S, (∀ t ≤ 0, X t = φ t) ∧
+      ∀ T : ℝ, 0 ≤ T → ContinuousOn X (Set.Icc 0 T) ∧
+        ∀ t ∈ Set.Icc 0 T,
+          HasDerivWithinAt X (N.delayField κ τ X t) (Set.Icc 0 T) t := by
+  classical
+  have hsteps := N.massActionDelay_conservative_finite_steps κ τ D B H₀ h
+    hh hD hτ hτD w hw hwpos φ hφbound hB hrestart hxc₀ hxhist₀ hxnonneg₀
+    hxBound₀ hQ₀ hx₀
+  let Tn : ℕ → ℝ := fun n => ((n : ℝ) + 1) * h
+  let xs : ℕ → (ℝ → Concentration S) := fun n => Classical.choose (hsteps n)
+  have hxspec (n : ℕ) := Classical.choose_spec (hsteps n)
+  have hcompat : ∀ k m : ℕ, k ≤ m → ∀ y ∈ Set.Icc 0 (Tn k), xs k y = xs m y := by
+    intro k m hkm y hy
+    have hcast : (k : ℝ) + 1 ≤ (m : ℝ) + 1 := by exact_mod_cast Nat.add_le_add_right hkm 1
+    have hTkm : Tn k ≤ Tn m := by
+      dsimp [Tn]
+      exact mul_le_mul_of_nonneg_right hcast hh.le
+    obtain ⟨_, hhistK, _, _, _, hderK⟩ := hxspec k
+    obtain ⟨_, hhistM, _, _, _, hderM⟩ := hxspec m
+    have hderM' : ∀ t ∈ Set.Icc 0 (Tn k),
+        HasDerivWithinAt (xs m) (N.delayField κ τ (xs m) t) (Set.Icc 0 (Tn k)) t := by
+      intro t ht
+      exact (hderM t ⟨ht.1, ht.2.trans hTkm⟩).mono
+        (by intro u hu; exact ⟨hu.1, hu.2.trans hTkm⟩)
+    have hTk : 0 ≤ Tn k := by
+      dsimp [Tn]
+      positivity
+    exact N.massActionDelay_solution_unique κ τ hTk hτ φ
+      (x := xs k) (y := xs m) hhistK hhistM hderK hderM' y hy
+  let X : ℝ → Concentration S := fun t =>
+    if t ≤ 0 then φ t else xs (Nat.ceil (t / h)) t
+  refine ⟨X, ?_, ?_⟩
+  · intro t ht
+    simp [X, ht]
+  · intro T hT
+    let m : ℕ := Nat.ceil (T / h)
+    have hmh : (m : ℝ) * h ≤ Tn m := by
+      dsimp [Tn]
+      have hm0 : (0 : ℝ) ≤ (m : ℝ) := Nat.cast_nonneg _
+      calc (m : ℝ) * h ≤ (m : ℝ) * h + h := by linarith
+        _ = ((m : ℝ) + 1) * h := by ring
+    have hTmh : T ≤ (m : ℝ) * h := by
+      have hceil : T / h ≤ (m : ℝ) := by
+        have hc := Nat.le_ceil (T / h)
+        simpa [m] using hc
+      have heq : T = T / h * h := by field_simp
+      calc T = T / h * h := heq
+        _ ≤ (m : ℝ) * h := mul_le_mul_of_nonneg_right hceil hh.le
+    have hagree : ∀ y ∈ Set.Icc 0 T, X y = xs m y := by
+      intro y hy
+      by_cases hy0 : y ≤ 0
+      · simp [X, hy0]
+        obtain ⟨_, hhistM, _, _, _, _⟩ := hxspec m
+        exact (hhistM y hy0).symm
+      · have hceil : Nat.ceil (y / h) ≤ m := by
+          have hdiv : y / h ≤ T / h := div_le_div_of_nonneg_right hy.2 hh.le
+          have hceils := Nat.ceil_le_ceil hdiv
+          simpa [m] using hceils
+        have hyT : y ∈ Set.Icc 0 (Tn (Nat.ceil (y / h))) := by
+          constructor
+          · exact le_of_lt (lt_of_not_ge hy0)
+          · have hle := Nat.le_ceil (y / h)
+            have heq : y = y / h * h := by field_simp
+            have hmul : y / h * h ≤ (Nat.ceil (y / h) : ℝ) * h :=
+              mul_le_mul_of_nonneg_right hle hh.le
+            have hstep : (Nat.ceil (y / h) : ℝ) * h ≤
+                ((Nat.ceil (y / h) : ℝ) + 1) * h := by
+              have hn : 0 ≤ (Nat.ceil (y / h) : ℝ) := Nat.cast_nonneg _
+              nlinarith [hh.le]
+            dsimp [Tn]
+            calc y = y / h * h := heq
+              _ ≤ (Nat.ceil (y / h) : ℝ) * h := hmul
+              _ ≤ ((Nat.ceil (y / h) : ℝ) + 1) * h := hstep
+        have hsame := hcompat (Nat.ceil (y / h)) m (by simpa using hceil) y hyT
+        simp [X, hy0]
+        exact hsame
+    have ⟨hcontM, _, _, _, _, hderM⟩ := hxspec m
+    have hcont : ContinuousOn (xs m) (Set.Icc 0 T) :=
+      hcontM.continuousOn.mono (fun y _ => Set.mem_univ y)
+    refine ⟨hcont.congr hagree, ?_⟩
+    intro t ht
+    have htM : t ∈ Set.Icc 0 (Tn m) := ⟨ht.1, by linarith [ht.2, hTmh, hmh]⟩
+    have hder := (hderM t htM).mono
+      (by
+        intro u (hu : u ∈ Set.Icc 0 T)
+        exact ⟨hu.1, le_trans hu.2 (le_trans hTmh hmh)⟩)
+    have hcur : X t = xs m t := hagree t ht
+    have hdel : ∀ r, X (t - τ r) = xs m (t - τ r) := by
+      intro r
+      by_cases hq : t - τ r ≤ 0
+      · simp [X, hq]
+        obtain ⟨_, hhistM, _, _, _, _⟩ := hxspec m
+        exact (hhistM (t - τ r) hq).symm
+      · have hqmem : t - τ r ∈ Set.Icc 0 T := by
+          constructor
+          · exact le_of_not_ge hq
+          · linarith [ht.2, hτ r]
+        exact hagree (t - τ r) hqmem
+    have hfield : N.delayField κ τ X t = N.delayField κ τ (xs m) t := by
+      funext s
+      simp only [Network.delayField]
+      simp [hcur, hdel]
+    have hder' := hder.congr_of_mem (fun u hu => hagree u hu) ht
+    exact hder'.congr_deriv hfield.symm
+
+/-- **Global existence under a strictly positive conservation law.** Every continuous
+nonnegative history extends to one continuous trajectory solving the finite-delay mass-action
+system on every finite forward interval. The proof uses the conserved-history bound to choose a
+uniform restart length and assembles the unique finite-stage paths. -/
+theorem massActionDelay_global_exists_of_positive_conservation
+    (N : Network S) (κ : N.RateConstants) (τ : N.R → ℝ) [Nonempty S]
+    (hτ : ∀ r, 0 ≤ τ r) (w : S → ℝ)
+    (hw : w ∈ orthSum N.stoichSubspace) (hwpos : ∀ s, 0 < w s)
+    (φ : ℝ → Concentration S) (hφ : Continuous φ)
+    (hφnonneg : ∀ t ≤ 0, ∀ s, 0 ≤ φ t s) :
+    ∃ x : ℝ → Concentration S, (∀ t ≤ 0, x t = φ t) ∧
+      ∀ T : ℝ, 0 ≤ T → ContinuousOn x (Set.Icc 0 T) ∧
+        ∀ t ∈ Set.Icc 0 T,
+          HasDerivWithinAt x (N.delayField κ τ x t) (Set.Icc 0 T) t := by
+  classical
+  let D := ∑ r, τ r
+  have hD : 0 ≤ D := Finset.sum_nonneg fun r _ => hτ r
+  have hτD : ∀ r, τ r ≤ D := by
+    intro r
+    change τ r ≤ ∑ q, τ q
+    exact Finset.single_le_sum (fun q _ => hτ q) (Finset.mem_univ r)
+  obtain ⟨d, hd, hgap⟩ := N.massActionDelay_exists_positive_step τ
+  obtain ⟨H₀, hH₀⟩ := isCompact_Icc.bddAbove_image
+    (f := fun t : ℝ => ‖φ t‖) hφ.continuousOn.norm
+  have hφbound : ∀ t ∈ Set.Icc (-D) 0, ‖φ t‖ ≤ H₀ := by
+    intro t ht
+    exact hH₀ (Set.mem_image_of_mem _ ht)
+  obtain ⟨h, hh, hhd, hrestart, x₀, hxc₀, hxhist₀, hxnonneg₀,
+      hxBound₀, hx₀⟩ :=
+    N.massActionDelay_conservative_first_step κ τ d D H₀ hd hD hτ hgap hτD w hw hwpos
+      φ hφ hφnonneg hφbound
+  have hxQ₀ := N.delayConservedQuantity_zero_congr κ τ w hτ hxhist₀
+  let B := N.delayConservedQuantity κ τ w φ 0 /
+    ((Finset.univ.image w).min' (Finset.image_nonempty.mpr Finset.univ_nonempty))
+  have hB : B = N.delayConservedQuantity κ τ w φ 0 /
+      ((Finset.univ.image w).min' (Finset.image_nonempty.mpr Finset.univ_nonempty)) := rfl
+  exact N.massActionDelay_conservative_global_from_first_step κ τ D B H₀ h hh hD hτ hτD
+    w hw hwpos φ hφbound hB hrestart hxc₀ hxhist₀ hxnonneg₀ hxBound₀ hxQ₀ hx₀
 
 /-- **A positive conserved weight bounds every nonnegative delayed trajectory.**
 
@@ -1246,6 +1717,13 @@ theorem delayConservedQuantity_norm_bound
 #print axioms CRNT.Network.massActionDelay_local_exists_uniform_continuous
 #print axioms CRNT.Network.massActionDelay_uniform_restart
 #print axioms CRNT.Network.massActionDelay_uniform_restart_nonneg
+#print axioms CRNT.Network.delayConservedQuantity_zero_congr
+#print axioms CRNT.Network.delayConservedQuantity_initial_norm_bound
+#print axioms CRNT.Network.massActionDelay_conservative_first_step
+#print axioms CRNT.Network.massActionDelay_conservative_restart_step
+#print axioms CRNT.Network.massActionDelay_conservative_finite_steps
+#print axioms CRNT.Network.massActionDelay_conservative_global_from_first_step
+#print axioms CRNT.Network.massActionDelay_global_exists_of_positive_conservation
 #print axioms CRNT.Network.delayConservedQuantity_const_on
 #print axioms CRNT.Network.delayConservedQuantity_coord_bound_on
 #print axioms CRNT.Network.delayConservedQuantity_norm_bound_on
