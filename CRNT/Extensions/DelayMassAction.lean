@@ -43,6 +43,38 @@ noncomputable def delayField (N : Network S) (κ : RateConstants N) (τ : N.R �
       ((N.reaction r).target s : ℝ) -
     (N.reaction r).source.massActionMonomial (x t) * ((N.reaction r).source s : ℝ))
 
+/-- **Delayed mass-action is inward at every coordinate boundary.** For arbitrary
+reaction-specific delays, if all delayed concentrations are nonnegative and the current
+concentration vanishes at species `i`, then the `i`-th component of the delay field is
+nonnegative. No restriction on reaction source support is needed: each current-consumption term
+for `i` vanishes at the boundary, while delayed production is nonnegative. -/
+theorem delayField_coord_nonneg_of_current_zero (N : Network S) (κ : RateConstants N)
+    (τ : N.R → ℝ) (x : ℝ → Concentration S) (t : ℝ) (i : S)
+    (hzero : x t i = 0)
+    (hdelayed : ∀ r s, 0 ≤ x (t - τ r) s) :
+    0 ≤ N.delayField κ τ x t i := by
+  unfold delayField
+  refine Finset.sum_nonneg fun r _ => ?_
+  have hcons : (N.reaction r).source.massActionMonomial (x t) *
+      ((N.reaction r).source i : ℝ) = 0 := by
+    by_cases hi : (N.reaction r).source i = 0
+    · simp [hi]
+    · have hmon : (N.reaction r).source.massActionMonomial (x t) = 0 := by
+        show (∏ s, (x t) s ^ (N.reaction r).source s) = 0
+        exact Finset.prod_eq_zero (Finset.mem_univ i) (by rw [hzero, zero_pow hi])
+      rw [hmon]
+      simp
+  have hprod : 0 ≤ (N.reaction r).source.massActionMonomial (x (t - τ r)) :=
+    Complex.massActionMonomial_nonneg (fun s => hdelayed r s) (N.reaction r).source
+  change 0 ≤ κ.k r *
+    ((N.reaction r).source.massActionMonomial (x (t - τ r)) *
+        ((N.reaction r).target i : ℝ) -
+      (N.reaction r).source.massActionMonomial (x t) *
+        ((N.reaction r).source i : ℝ))
+  rw [hcons, sub_zero]
+  exact mul_nonneg (κ.positive r).le
+    (mul_nonneg hprod (Nat.cast_nonneg _))
+
 /-- Every reaction source contains at most one distinct species. -/
 def HasSingleSpeciesSources (N : Network S) : Prop :=
   ∀ r i j, (N.reaction r).source i ≠ 0 → (N.reaction r).source j ≠ 0 → i = j

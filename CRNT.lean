@@ -1097,6 +1097,7 @@ import CRNT.Dynamics.DelayComparisonLattice
 import CRNT.Dynamics.DelayComparisonLocal
 import CRNT.Dynamics.MassActionDelayComparison
 import CRNT.Dynamics.MassActionLocalDelayComparison
+import CRNT.Dynamics.DelayMassActionInvariance
 import CRNT.Deficiency.DOACapacityKernel
 import CRNT.Deficiency.ADACoplanar
 import CRNT.Multistationarity.TwoReactionCompleteness2

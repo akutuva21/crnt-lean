@@ -135,6 +135,132 @@ theorem kamke_comparison_step_on {a b : ℝ} {f : ℝ → (S → ℝ) → (S →
   linarith
 
 
+/-- Finite-interval orthant invariance from boundary inwardness and a local Lipschitz bound.
+
+Unlike the global scalar Nagumo lemma, this version only requires the Lipschitz estimate on a
+state region containing the trajectory and its coordinatewise positive part. It is useful for
+polynomial fields, whose derivative need not be globally bounded. -/
+theorem forwardInvariant_nonnegOrthant_step_on
+    {a b : ℝ} {f : ℝ → (S → ℝ) → (S → ℝ)} {L : ℝ≥0} {K : Set (S → ℝ)}
+    (hlip : ∀ t ∈ Set.Icc a b, LipschitzOnWith L (f t) K)
+    (hclamp : ∀ u ∈ K, (fun i => max (u i) 0) ∈ K)
+    (hboundary : ∀ t ∈ Set.Icc a b, ∀ u ∈ K, (∀ j, 0 ≤ u j) →
+      ∀ i, u i = 0 → 0 ≤ f t u i)
+    {x : ℝ → (S → ℝ)}
+    (hx : ∀ t ∈ Set.Icc a b, HasDerivWithinAt x (f t (x t)) (Set.Icc a b) t)
+    (hxK : ∀ t ∈ Set.Icc a b, x t ∈ K)
+    (ha : ∀ i, 0 ≤ x a i) :
+    ∀ t ∈ Set.Icc a b, ∀ i, 0 ≤ x t i := by
+  set D := Set.Icc a b
+  set C : ℝ := 2 * (L : ℝ) * Fintype.card S
+  let w : ℝ → S → ℝ := fun t i => max (-(x t i)) 0
+  let V : ℝ → ℝ := fun t => ∑ i, (w t i) ^ 2
+  have hV0 : ∀ t, 0 ≤ V t := fun t => Finset.sum_nonneg fun i _ => sq_nonneg _
+  have hw_le : ∀ t i, w t i ≤ Real.sqrt (V t) := by
+    intro t i
+    rw [Real.le_sqrt (le_max_right _ _) (hV0 t)]
+    exact Finset.single_le_sum (f := fun i => (w t i) ^ 2) (fun j _ => sq_nonneg _)
+      (Finset.mem_univ i)
+  have hVd : ∀ t ∈ D, HasDerivWithinAt V
+      (∑ i, 2 * w t i * (-(f t (x t) i))) D t := by
+    intro t ht
+    refine HasDerivWithinAt.fun_sum fun i _ => ?_
+    have hxi := (hasDerivWithinAt_pi.mp (hx t ht)) i
+    exact (Monotone.hasDerivAt_posPart_sq (-(x t i))).comp_hasDerivWithinAt t hxi.neg
+  have hVineq : ∀ t ∈ D, (∑ i, 2 * w t i * (-(f t (x t) i))) ≤ C * V t := by
+    intro t ht
+    let z : S → ℝ := fun i => max (x t i) 0
+    have hzK : z ∈ K := by
+      exact hclamp (x t) (hxK t ht)
+    have hzx : ‖z - x t‖ ≤ Real.sqrt (V t) := by
+      refine (pi_norm_le_iff_of_nonneg (Real.sqrt_nonneg _)).mpr fun i => ?_
+      have hi : (z - x t) i = w t i := by
+        dsimp [z, w]
+        rcases le_total 0 (x t i) with h | h
+        · rw [max_eq_left h, max_eq_right (by linarith)]
+          simp
+        · rw [max_eq_right h, max_eq_left (by linarith)]
+          ring
+      rw [hi, Real.norm_eq_abs, abs_of_nonneg (le_max_right _ _)]
+      exact hw_le t i
+    have hfl : ‖f t z - f t (x t)‖ ≤ (L : ℝ) * Real.sqrt (V t) :=
+      (hlip t ht).norm_sub_le hzK (hxK t ht) |>.trans
+        (mul_le_mul_of_nonneg_left hzx L.2)
+    have hterm : ∀ i, 2 * w t i * (-(f t (x t) i)) ≤
+        2 * (L : ℝ) * Real.sqrt (V t) * Real.sqrt (V t) := by
+      intro i
+      by_cases hneg : x t i < 0
+      · have hwi : w t i = -(x t i) := max_eq_left (by linarith)
+        have hzi : z i = 0 := by simp [z, max_eq_right hneg.le]
+        have hface := hboundary t ht z hzK (fun j => le_max_right (x t j) 0) i hzi
+        have hdiff : -(f t (x t) i) ≤ (L : ℝ) * Real.sqrt (V t) := by
+          have hcoord := norm_le_pi_norm (f t z - f t (x t)) i
+          rw [Pi.sub_apply, Real.norm_eq_abs] at hcoord
+          have hlower : -(f t (x t) i) ≤ f t z i - f t (x t) i := by linarith [hface]
+          have habs : f t z i - f t (x t) i ≤ |f t z i - f t (x t) i| := le_abs_self _
+          linarith [hfl, hcoord]
+        calc 2 * w t i * (-(f t (x t) i))
+            ≤ 2 * w t i * ((L : ℝ) * Real.sqrt (V t)) :=
+              mul_le_mul_of_nonneg_left hdiff (by positivity)
+          _ ≤ 2 * Real.sqrt (V t) * ((L : ℝ) * Real.sqrt (V t)) := by
+              have hmul := mul_le_mul_of_nonneg_right (hw_le t i)
+                (show 0 ≤ (L : ℝ) * Real.sqrt (V t) by positivity)
+              nlinarith
+          _ = 2 * (L : ℝ) * Real.sqrt (V t) * Real.sqrt (V t) := by ring
+      · have hwi : w t i = 0 := max_eq_right (by linarith)
+        have hR : 0 ≤ 2 * (L : ℝ) * Real.sqrt (V t) * Real.sqrt (V t) :=
+          mul_nonneg (mul_nonneg (mul_nonneg (by norm_num) L.2)
+            (Real.sqrt_nonneg _)) (Real.sqrt_nonneg _)
+        calc 2 * w t i * (-(f t (x t) i)) = 0 := by simp [hwi]
+          _ ≤ 2 * (L : ℝ) * Real.sqrt (V t) * Real.sqrt (V t) := hR
+    calc (∑ i, 2 * w t i * (-(f t (x t) i)))
+        ≤ ∑ _i : S, 2 * (L : ℝ) * Real.sqrt (V t) * Real.sqrt (V t) :=
+          Finset.sum_le_sum fun i _ => hterm i
+      _ = C * V t := by
+          rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul, mul_assoc (2 * (L : ℝ)),
+            Real.mul_self_sqrt (hV0 t)]
+          simp only [C]
+          ring
+  let g : ℝ → ℝ := fun t => Real.exp (-C * t) * V t
+  have hgd : ∀ t ∈ D, HasDerivWithinAt g
+      (Real.exp (-C * t) * (-C) * V t +
+        Real.exp (-C * t) * ∑ i, 2 * w t i * (-(f t (x t) i))) D t := by
+    intro t ht
+    have he : HasDerivWithinAt (fun t => Real.exp (-C * t))
+        (Real.exp (-C * t) * (-C)) D t := by
+      have := ((hasDerivAt_id t).const_mul (-C)).exp
+      simpa using this.hasDerivWithinAt
+    exact he.mul (hVd t ht)
+  have hanti : AntitoneOn g D := by
+    refine antitoneOn_of_hasDerivWithinAt_nonpos (convex_Icc a b)
+      (fun t ht => (hgd t ht).continuousWithinAt)
+      (fun t ht => (hgd t (interior_subset ht)).mono interior_subset) ?_
+    intro t ht
+    have hineq := hVineq t (interior_subset ht)
+    have hep := Real.exp_pos (-C * t)
+    nlinarith [mul_le_mul_of_nonneg_left hineq hep.le]
+  have hV0a : V a = 0 := by
+    refine Finset.sum_eq_zero fun i _ => ?_
+    have hnonneg : 0 ≤ x a i := ha i
+    simp [w, max_eq_right (by linarith : -(x a i) ≤ 0)]
+  intro t ht i
+  have haD : a ∈ D := ⟨le_rfl, ht.1.trans ht.2⟩
+  have hgt := hanti haD ht ht.1
+  simp only [g, hV0a, mul_zero] at hgt
+  have hVt : V t = 0 := by
+    have hVt_nonneg := hV0 t
+    have hexp := Real.exp_pos (-C * t)
+    have : Real.exp (-C * t) * V t ≤ 0 := by simpa using hgt
+    nlinarith
+  have hwi : w t i ^ 2 = 0 :=
+    (Finset.sum_eq_zero_iff_of_nonneg (fun j _ => sq_nonneg (w t j))).mp hVt i
+      (Finset.mem_univ i)
+  have hzero : w t i = 0 := (pow_eq_zero_iff (n := 2) (by norm_num)).mp hwi
+  have hle := le_max_left (-(x t i)) 0
+  simp only [w] at hzero
+  linarith
+
+
 end Dynamics
 end CRNT
 
@@ -203,7 +329,7 @@ theorem delay_comparison_subsolution_local
     (hsub : ∀ t ∈ Set.Icc 0 T, fx t ≤ f t (x t) (x (t - τ)))
     (hy : ∀ t ∈ Set.Icc 0 T,
       HasDerivWithinAt y (f t (y t) (y (t - τ))) (Set.Icc 0 T) t)
-    (horder : ∀ r ≤ 0, x r ≤ y r)
+    (horder : ∀ r ∈ Set.Icc (-τ) 0, x r ≤ y r)
     (hxK : ∀ t ∈ Set.Icc 0 T, x t ∈ K)
     (hyK : ∀ t ∈ Set.Icc 0 T, y t ∈ K)
     (hdelD : ∀ t ∈ Set.Icc 0 T, x (t - τ) ∈ D ∧ y (t - τ) ∈ D) :
@@ -228,7 +354,7 @@ theorem delay_comparison_subsolution_local
           rw [hmin] at hr
           exact le_antisymm hr.2 (by linarith [hr.1])
         subst hr0
-        exact horder 0 le_rfl
+        exact horder 0 ⟨by linarith [hτ], le_rfl⟩
     | succ n ih =>
         intro r hr
         by_cases haT : T ≤ (n : ℝ) * τ
@@ -256,7 +382,7 @@ theorem delay_comparison_subsolution_local
                 linarith [h2]
               linarith
             by_cases h0 : t - τ ≤ 0
-            · exact horder (t - τ) h0
+            · exact horder (t - τ) ⟨by linarith [h0n, ht.1], h0⟩
             · have hmem : t - τ ∈ Set.Icc 0 (min T ((n : ℝ) * τ)) := by
                 rw [hmin]
                 exact ⟨by linarith, h1⟩
