@@ -1322,3 +1322,71 @@ example : ∃ L : ℝ≥0, LipschitzOnWith L
 /-- info: 'CRNT.Network.delay_comparison_massAction_commonDelay_singleSpeciesSources' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.delay_comparison_massAction_commonDelay_singleSpeciesSources
+
+/-- info: 'CRNT.Network.delayField_coord_nonneg_of_current_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayField_coord_nonneg_of_current_zero
+
+/-- info: 'CRNT.Dynamics.forwardInvariant_nonnegOrthant_step_on' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Dynamics.forwardInvariant_nonnegOrthant_step_on
+
+/-- info: 'CRNT.Network.delayedProductionByReaction' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayedProductionByReaction
+
+/-- info: 'CRNT.Network.massActionDelayField_eq_delayedProductionByReaction_add_consumption' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelayField_eq_delayedProductionByReaction_add_consumption
+
+/-- info: 'CRNT.Network.massActionDelayField_lipschitzOnWith_closedBall_byReaction' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelayField_lipschitzOnWith_closedBall_byReaction
+
+/-- info: 'CRNT.Network.instantaneousDelayNetwork' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.instantaneousDelayNetwork
+
+/-- info: 'CRNT.Network.instantaneousDelayRates' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.instantaneousDelayRates
+
+/-- info: 'CRNT.Network.massActionDelayField_eq_instantaneousDelayNetwork_add_delayedProduction' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelayField_eq_instantaneousDelayNetwork_add_delayedProduction
+
+/-- info: 'CRNT.Network.massActionDelayField_lipschitzOnWith_zeroDelaySplit' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelayField_lipschitzOnWith_zeroDelaySplit
+
+/-- info: 'CRNT.Network.massActionDelayField_coord_nonneg_of_current_zero' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelayField_coord_nonneg_of_current_zero
+
+/-- info: 'CRNT.Network.delayField_nonneg_on_interval_of_nonneg_delayed' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayField_nonneg_on_interval_of_nonneg_delayed
+
+/-- info: 'CRNT.Network.delayField_nonneg_on_methodStep' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayField_nonneg_on_methodStep
+
+/-- info: 'CRNT.Network.delayField_nonneg_on_interval_of_nonneg_positive_delayed' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayField_nonneg_on_interval_of_nonneg_positive_delayed
+
+/-- info: 'CRNT.Network.delayField_nonneg_on_mixed_methodStep' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayField_nonneg_on_mixed_methodStep
+
+/-- info: 'CRNT.Network.delayField_nonneg_of_positive_delays' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayField_nonneg_of_positive_delays
+
+/-- info: 'CRNT.Network.delayField_nonneg_of_nonnegative_delays' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayField_nonneg_of_nonnegative_delays
+
+/-- info: 'CRNT.Network.delay_comparison_massAction_commonDelay_singleSpeciesSources_of_nonnegative_history' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delay_comparison_massAction_commonDelay_singleSpeciesSources_of_nonnegative_history
