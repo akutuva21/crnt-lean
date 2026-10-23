@@ -6454,6 +6454,26 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.delay_comparison_massAction_commonDelay_singleSpeciesSources_of_nonnegative_history
 
+-- E3
+/-- info: 'CRNT.Network.massActionDelay_local_exists_of_delayGap' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_local_exists_of_delayGap
+
+-- E3
+/-- info: 'CRNT.Network.massActionDelay_exists_positive_step' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_exists_positive_step
+
+-- E3
+/-- info: 'CRNT.Network.massActionDelay_local_exists' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_local_exists
+
+-- E3
+/-- info: 'CRNT.Network.massActionDelay_local_exists_nonneg_history' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_local_exists_nonneg_history
+
 -- C1
 /-- info: 'CRNT.Network.gac_of_singleLinkage_decide' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in

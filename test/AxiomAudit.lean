@@ -1390,3 +1390,19 @@ example : ∃ L : ℝ≥0, LipschitzOnWith L
 /-- info: 'CRNT.Network.delay_comparison_massAction_commonDelay_singleSpeciesSources_of_nonnegative_history' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.delay_comparison_massAction_commonDelay_singleSpeciesSources_of_nonnegative_history
+
+/-- info: 'CRNT.Network.massActionDelay_local_exists_of_delayGap' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_local_exists_of_delayGap
+
+/-- info: 'CRNT.Network.massActionDelay_exists_positive_step' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_exists_positive_step
+
+/-- info: 'CRNT.Network.massActionDelay_local_exists' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_local_exists
+
+/-- info: 'CRNT.Network.massActionDelay_local_exists_nonneg_history' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_local_exists_nonneg_history
