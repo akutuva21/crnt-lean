@@ -1406,3 +1406,11 @@ example : ∃ L : ℝ≥0, LipschitzOnWith L
 /-- info: 'CRNT.Network.massActionDelay_local_exists_nonneg_history' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.massActionDelay_local_exists_nonneg_history
+
+/-- info: 'CRNT.Network.massActionDelay_firstStep_unique' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_firstStep_unique
+
+/-- info: 'CRNT.Network.massActionDelay_solution_unique' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_solution_unique

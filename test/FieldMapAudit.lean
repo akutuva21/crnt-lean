@@ -6474,6 +6474,16 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.massActionDelay_local_exists_nonneg_history
 
+-- E3
+/-- info: 'CRNT.Network.massActionDelay_firstStep_unique' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_firstStep_unique
+
+-- E3
+/-- info: 'CRNT.Network.massActionDelay_solution_unique' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_solution_unique
+
 -- C1
 /-- info: 'CRNT.Network.gac_of_singleLinkage_decide' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
