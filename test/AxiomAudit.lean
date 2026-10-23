@@ -1290,3 +1290,35 @@ example : ∃ L : ℝ≥0, LipschitzOnWith L
 /-- info: 'CRNT.Dynamics.delay_comparison_subsolution_local' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Dynamics.delay_comparison_subsolution_local
+
+/-- info: 'CRNT.Network.currentConsumptionVectorField_apply' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.currentConsumptionVectorField_apply
+
+/-- info: 'CRNT.Network.massActionDelayField_eq_delayedProduction_add_consumption' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelayField_eq_delayedProduction_add_consumption
+
+/-- info: 'CRNT.Network.massActionDelayField_lipschitzOnWith_closedBall' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelayField_lipschitzOnWith_closedBall
+
+/-- info: 'CRNT.Network.massActionDelayField_currentConsumption_coord_eq' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelayField_currentConsumption_coord_eq
+
+/-- info: 'CRNT.Network.massActionDelayField_kamke_of_singleSpeciesSources' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelayField_kamke_of_singleSpeciesSources
+
+/-- info: 'CRNT.Network.massActionDelayField_monotoneDelayed_of_nonnegative' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelayField_monotoneDelayed_of_nonnegative
+
+/-- info: 'CRNT.Network.boundedNonnegativeConcentrationRegion_sup_closed' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.boundedNonnegativeConcentrationRegion_sup_closed
+
+/-- info: 'CRNT.Network.delay_comparison_massAction_commonDelay_singleSpeciesSources' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delay_comparison_massAction_commonDelay_singleSpeciesSources
