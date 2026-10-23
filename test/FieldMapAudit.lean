@@ -6484,6 +6484,51 @@ named in the field map is pinned to an axiom set contained in
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.massActionDelay_solution_unique
 
+-- E3
+/-- info: 'CRNT.Network.massActionDelay_local_exists_uniform' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_local_exists_uniform
+
+-- E3
+/-- info: 'CRNT.Network.massActionDelay_local_exists_uniform_continuous' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_local_exists_uniform_continuous
+
+-- E3
+/-- info: 'CRNT.Network.massActionDelay_uniform_restart' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_uniform_restart
+
+-- E3
+/-- info: 'CRNT.Network.massActionDelay_uniform_restart_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_uniform_restart_nonneg
+
+-- E3
+/-- info: 'CRNT.Network.delayConservedQuantity_const_on' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayConservedQuantity_const_on
+
+-- E3
+/-- info: 'CRNT.Network.delayConservedQuantity_coord_bound_on' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayConservedQuantity_coord_bound_on
+
+-- E3
+/-- info: 'CRNT.Network.delayConservedQuantity_norm_bound_on' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayConservedQuantity_norm_bound_on
+
+-- E3
+/-- info: 'CRNT.Network.delayConservedQuantity_coord_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayConservedQuantity_coord_bound
+
+-- E3
+/-- info: 'CRNT.Network.delayConservedQuantity_norm_bound' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayConservedQuantity_norm_bound
+
 -- C1
 /-- info: 'CRNT.Network.gac_of_singleLinkage_decide' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
