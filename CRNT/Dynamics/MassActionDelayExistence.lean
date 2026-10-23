@@ -1,7 +1,8 @@
 import CRNT.Dynamics.DelayMassActionInvariance
 import Mathlib.Analysis.ODE.ExistUnique
+import Mathlib.Topology.Order.Compact
 
-/-! # Local existence for delayed mass-action systems
+/-! # Local existence and first-step uniqueness for delayed mass-action systems
 
 This file proves a first-step existence theorem for reaction-specific mass-action delays. It uses
 only a positive lower bound on nonzero delays, so that all delayed production on the first interval
@@ -11,7 +12,7 @@ is a known forcing term. It makes no global-existence or continuation claim.
 namespace CRNT
 namespace Network
 
-open Set
+open Set Filter Topology
 
 set_option maxHeartbeats 2400000
 
@@ -217,10 +218,293 @@ theorem massActionDelay_local_exists_nonneg_history
     hhistory hstart t ht
   exact ⟨hx t ht, hnonneg⟩
 
+/-- Two delayed mass-action solutions with the same history and initial state agree throughout
+their common first step. Positive-delay reactions sample only the prescribed history on this
+interval, while zero-delay reactions form a locally Lipschitz ordinary vector field. No global
+Lipschitz assumption or uniqueness premise is needed. -/
+theorem massActionDelay_firstStep_unique
+    (N : Network S) (κ : N.RateConstants) (τ : N.R → ℝ) (d T : ℝ)
+    (hd : 0 < d) (hT : 0 < T)
+    (hτ : ∀ r, 0 ≤ τ r) (hgap : ∀ r, 0 < τ r → d ≤ τ r)
+    (φ : ℝ → Concentration S) (x₀ : Concentration S)
+    {x y : ℝ → Concentration S}
+    (hxhist : ∀ t ≤ 0, x t = φ t) (hyhist : ∀ t ≤ 0, y t = φ t)
+    (hx₀ : x 0 = x₀) (hy₀ : y 0 = x₀)
+    (hx : ∀ t ∈ Set.Icc 0 T,
+      HasDerivWithinAt x (N.delayField κ τ x t) (Set.Icc 0 T) t)
+    (hy : ∀ t ∈ Set.Icc 0 T,
+      HasDerivWithinAt y (N.delayField κ τ y t) (Set.Icc 0 T) t) :
+    ∀ t ∈ Set.Icc 0 (min d T), x t = y t := by
+  classical
+  let H := min d T
+  have hH : 0 < H := lt_min hd hT
+  have hHd : H ≤ d := min_le_left _ _
+  have hHT : H ≤ T := min_le_right _ _
+  let f : ℝ → Concentration S → Concentration S := fun t u =>
+    N.massActionDelayField κ u (fun r => if τ r = 0 then u else φ (t - τ r))
+  have hxcont : ContinuousOn x (Set.Icc 0 T) := fun t ht => (hx t ht).continuousWithinAt
+  have hycont : ContinuousOn y (Set.Icc 0 T) := fun t ht => (hy t ht).continuousWithinAt
+  obtain ⟨Bx, hBx⟩ := isCompact_Icc.bddAbove_image (f := fun t => ‖x t‖) hxcont.norm
+  obtain ⟨By, hBy⟩ := isCompact_Icc.bddAbove_image (f := fun t => ‖y t‖) hycont.norm
+  have hBx0 : 0 ≤ Bx := by
+    have hmem : ‖x 0‖ ∈ Set.image (fun t => ‖x t‖) (Set.Icc (0 : ℝ) T) :=
+      Set.mem_image_of_mem _ ⟨le_rfl, hT.le⟩
+    exact le_trans (norm_nonneg _) (hBx hmem)
+  have hBy0 : 0 ≤ By := by
+    have hmem : ‖y 0‖ ∈ Set.image (fun t => ‖y t‖) (Set.Icc (0 : ℝ) T) :=
+      Set.mem_image_of_mem _ ⟨le_rfl, hT.le⟩
+    exact le_trans (norm_nonneg _) (hBy hmem)
+  let B := max Bx By
+  have hB0 : 0 ≤ B := le_max_of_le_left hBx0
+  let K := Real.toNNReal
+    (massActionLipschitzConstant (N.instantaneousDelayNetwork τ)
+      (N.instantaneousDelayRates τ κ) B)
+  have hv : ∀ t ∈ Set.Ico 0 H, LipschitzOnWith K (f t)
+      (Metric.closedBall (0 : Concentration S) B) := by
+    intro t ht u hu u' hu'
+    have hL := N.massActionDelayField_lipschitzOnWith_zeroDelaySplit κ τ B
+      (fun r => φ (t - τ r))
+    change edist (N.massActionDelayField κ u
+        (fun r => if τ r = 0 then u else φ (t - τ r)))
+      (N.massActionDelayField κ u'
+        (fun r => if τ r = 0 then u' else φ (t - τ r))) ≤ _
+    exact hL hu hu'
+  have hxBall : ∀ t ∈ Set.Icc 0 H, x t ∈ Metric.closedBall (0 : Concentration S) B := by
+    intro t ht
+    rw [Metric.mem_closedBall, dist_zero_right]
+    exact le_trans (hBx (Set.mem_image_of_mem _ ⟨ht.1, ht.2.trans hHT⟩)) (le_max_left _ _)
+  have hyBall : ∀ t ∈ Set.Icc 0 H, y t ∈ Metric.closedBall (0 : Concentration S) B := by
+    intro t ht
+    rw [Metric.mem_closedBall, dist_zero_right]
+    exact le_trans (hBy (Set.mem_image_of_mem _ ⟨ht.1, ht.2.trans hHT⟩)) (le_max_right _ _)
+  have hright : ∀ (g : ℝ → Concentration S)
+      (hg : ∀ t ∈ Set.Icc 0 H,
+        HasDerivWithinAt g (f t (g t)) (Set.Icc 0 H) t),
+      ∀ t ∈ Set.Ico 0 H, HasDerivWithinAt g (f t (g t)) (Set.Ici t) t := by
+    intro g hg t ht
+    by_cases heq : t = 0
+    · subst t
+      refine (hg 0 ⟨le_rfl, hH.le⟩).mono_of_mem_nhdsWithin ?_
+      refine mem_nhdsWithin.mpr ⟨Set.Ioo (-1) H, isOpen_Ioo, ?_, ?_⟩
+      · exact ⟨by norm_num, hH⟩
+      · intro z hz
+        exact ⟨hz.2, hz.1.2.le⟩
+    · have ht' : t ∈ Set.Ioo 0 H := ⟨lt_of_le_of_ne ht.1 (Ne.symm heq), ht.2⟩
+      have hnhds : Set.Icc 0 H ∈ 𝓝 t := Icc_mem_nhds ht'.1 ht'.2
+      exact (hg t ⟨ht.1, ht.2.le⟩).hasDerivAt hnhds |>.hasDerivWithinAt
+  have hfield (g : ℝ → Concentration S) (hhist : ∀ t ≤ 0, g t = φ t)
+      (t : ℝ) (ht : t ∈ Set.Icc 0 H) :
+      N.delayField κ τ g t = f t (g t) := by
+    have hdel : ∀ r, g (t - τ r) = (if τ r = 0 then g t else φ (t - τ r)) := by
+      intro r
+      by_cases hzero : τ r = 0
+      · simp [hzero]
+      · have hpos : 0 < τ r := lt_of_le_of_ne (hτ r) (Ne.symm hzero)
+        have harg : t - τ r ≤ 0 := by
+          have := hgap r hpos
+          linarith [ht.2, hHd]
+        rw [hhist (t - τ r) harg]
+        simp [hzero]
+    have : (fun r => g (t - τ r)) =
+        (fun r => if τ r = 0 then g t else φ (t - τ r)) := funext hdel
+    change N.massActionDelayField κ (g t) (fun r => g (t - τ r)) = _
+    rw [this]
+  have hx' : ∀ t ∈ Set.Ico 0 H, HasDerivWithinAt x (f t (x t)) (Set.Ici t) t := by
+    intro t ht
+    have hderiv : ∀ s ∈ Set.Icc 0 H,
+        HasDerivWithinAt x (f s (x s)) (Set.Icc 0 H) s := by
+      intro s hs
+      have hsource := hx s ⟨hs.1, hs.2.trans hHT⟩
+      have hsource' := hsource.congr_deriv (hfield x hxhist s hs)
+      exact hsource'.mono (by
+        intro z hz
+        exact ⟨hz.1, hz.2.trans hHT⟩)
+    exact hright x hderiv t ht
+  have hy' : ∀ t ∈ Set.Ico 0 H, HasDerivWithinAt y (f t (y t)) (Set.Ici t) t := by
+    intro t ht
+    have hderiv : ∀ s ∈ Set.Icc 0 H,
+        HasDerivWithinAt y (f s (y s)) (Set.Icc 0 H) s := by
+      intro s hs
+      have hsource := hy s ⟨hs.1, hs.2.trans hHT⟩
+      have hsource' := hsource.congr_deriv (hfield y hyhist s hs)
+      exact hsource'.mono (by
+        intro z hz
+        exact ⟨hz.1, hz.2.trans hHT⟩)
+    exact hright y hderiv t ht
+  have hxcont' : ContinuousOn x (Set.Icc 0 H) := hxcont.mono (by
+    intro t ht
+    exact ⟨ht.1, ht.2.trans hHT⟩)
+  have hycont' : ContinuousOn y (Set.Icc 0 H) := hycont.mono (by
+    intro t ht
+    exact ⟨ht.1, ht.2.trans hHT⟩)
+  have heq := ODE_solution_unique_of_mem_Icc_right
+    (v := f) (s := fun _ => Metric.closedBall (0 : Concentration S) B) (K := K)
+    hv hxcont' hx' (fun t ht => hxBall t ⟨ht.1, ht.2.le⟩)
+    hycont' hy' (fun t ht => hyBall t ⟨ht.1, ht.2.le⟩) (hx₀.trans hy₀.symm)
+  exact fun t ht => heq ht
+
+/-- **Finite-interval uniqueness for delayed mass-action solutions.** Two solutions with the same
+history and initial state agree on every common finite interval. The proof derives the minimum
+positive delay from the finite reaction family, then applies local ODE uniqueness successively;
+compactness of the two paths supplies each local Lipschitz ball. -/
+theorem massActionDelay_solution_unique
+    (N : Network S) (κ : N.RateConstants) (τ : N.R → ℝ) {T : ℝ}
+    (hT : 0 ≤ T) (hτ : ∀ r, 0 ≤ τ r) (φ : ℝ → Concentration S)
+    {x y : ℝ → Concentration S}
+    (hxhist : ∀ t ≤ 0, x t = φ t) (hyhist : ∀ t ≤ 0, y t = φ t)
+    (hx : ∀ t ∈ Set.Icc 0 T,
+      HasDerivWithinAt x (N.delayField κ τ x t) (Set.Icc 0 T) t)
+    (hy : ∀ t ∈ Set.Icc 0 T,
+      HasDerivWithinAt y (N.delayField κ τ y t) (Set.Icc 0 T) t) :
+    ∀ t ∈ Set.Icc 0 T, x t = y t := by
+  obtain ⟨d, hd, hgap⟩ := massActionDelay_exists_positive_step N τ
+  let n : ℕ := Nat.ceil (T / d)
+  have hsteps : T ≤ (n : ℝ) * d := by
+    have hceil : T / d ≤ (n : ℝ) := Nat.le_ceil _
+    have hmul := (div_le_iff₀ hd).mp hceil
+    simpa [n] using hmul
+  have hall : ∀ k : ℕ, ∀ q ≤ min T ((k : ℝ) * d), x q = y q := by
+    intro k
+    induction k with
+    | zero =>
+        intro q hq
+        have hmin : min T ((0 : ℕ) * d) = 0 := by simp [hT]
+        rw [hmin] at hq
+        rw [hxhist q hq, hyhist q hq]
+    | succ k ih =>
+        intro q hq
+        let c : ℝ := min T ((k : ℝ) * d)
+        let e : ℝ := min T (((k + 1 : ℕ) : ℝ) * d)
+        have hstep : c ≤ e := by
+          dsimp [c, e]
+          exact min_le_min_left T (by push_cast; nlinarith [hd])
+        by_cases hcT : T ≤ c
+        · have heq : e = T := by
+            apply min_eq_left
+            have hTkd : T ≤ (k : ℝ) * d := le_trans hcT (min_le_right _ _)
+            have hsucc : (k : ℝ) * d ≤ ((k + 1 : ℕ) : ℝ) * d := by
+              push_cast
+              nlinarith [hd]
+            exact le_trans hTkd hsucc
+          have hc_eq : c = T := le_antisymm (min_le_left _ _) hcT
+          have hqprev : q ≤ c := by
+            have hqT : q ≤ T := le_trans hq (by simpa [heq] using min_le_left T _)
+            simpa [hc_eq] using hqT
+          exact ih q (by simpa [c] using hqprev)
+        · have hc_lt : c < T := lt_of_not_ge hcT
+          have hkd : (k : ℝ) * d < T := by
+            by_contra hnot
+            have hTle : T ≤ (k : ℝ) * d := le_of_not_gt hnot
+            have : c = T := min_eq_left hTle
+            exact hc_lt.ne this
+          have hc_eq : c = (k : ℝ) * d := min_eq_right hkd.le
+          have hc0 : 0 ≤ c := by
+            dsimp [c]
+            positivity
+          have he_upper : e ≤ c + d := by
+            calc
+              e ≤ ((k + 1 : ℕ) : ℝ) * d := min_le_right _ _
+              _ = (k : ℝ) * d + d := by push_cast; ring
+              _ = c + d := by rw [hc_eq]
+          have hdelta : 0 < e - c := by
+            rw [hc_eq] at *
+            dsimp [e]
+            have hsucc : (k : ℝ) * d < ((k + 1 : ℕ) : ℝ) * d := by
+              push_cast
+              nlinarith [hd]
+            have := lt_min hkd hsucc
+            linarith
+          have hdelta_le : e - c ≤ d := by linarith
+          have hprev : ∀ q ≤ c, x q = y q := by
+            intro q hq'
+            exact ih q (by simpa [c] using hq')
+          let xs : ℝ → Concentration S := fun u => x (u + c)
+          let ys : ℝ → Concentration S := fun u => y (u + c)
+          let ψ : ℝ → Concentration S := xs
+          have hψ : ∀ u ≤ 0, ys u = ψ u := by
+            intro u hu
+            dsimp [ys, ψ, xs]
+            exact (hprev (u + c) (by linarith)).symm
+          have hxs₀ : xs 0 = x c := by simp [xs]
+          have hys₀ : ys 0 = x c := by
+            simpa [ys] using (hprev c le_rfl).symm
+          have hxs : ∀ u ∈ Set.Icc 0 (e - c),
+              HasDerivWithinAt xs (N.delayField κ τ xs u) (Set.Icc 0 (e - c)) u := by
+            intro u hu
+            have huT : u + c ∈ Set.Icc 0 T := by
+              constructor
+              · exact add_nonneg hu.1 hc0
+              · have : u + c ≤ e := by calc
+                  u + c ≤ (e - c) + c := by nlinarith [hu.2]
+                  _ = e := by ring
+                exact le_trans this (min_le_left T _)
+            have htrans : HasDerivWithinAt (fun v : ℝ => v + c) 1
+                (Set.Icc 0 (e - c)) u := (hasDerivAt_id u).add_const c |>.hasDerivWithinAt
+            have hmap : MapsTo (fun v : ℝ => v + c) (Set.Icc 0 (e - c)) (Set.Icc 0 T) := by
+              intro v hv
+              constructor
+              · exact add_nonneg hv.1 hc0
+              · have : v + c ≤ e := by calc
+                  v + c ≤ (e - c) + c := by nlinarith [hv.2]
+                  _ = e := by ring
+                exact le_trans this (min_le_left T _)
+            have hcomp := (hx (u + c) huT).scomp u htrans hmap
+            have hdelay : N.delayField κ τ xs u = N.delayField κ τ x (u + c) := by
+              simp [xs, Network.delayField, massActionDelayField_delayField]
+              congr 1
+              funext r
+              ring
+            simpa [xs, Function.comp_def, hdelay] using hcomp
+          have hys : ∀ u ∈ Set.Icc 0 (e - c),
+              HasDerivWithinAt ys (N.delayField κ τ ys u) (Set.Icc 0 (e - c)) u := by
+            intro u hu
+            have huT : u + c ∈ Set.Icc 0 T := by
+              constructor
+              · exact add_nonneg hu.1 hc0
+              · have : u + c ≤ e := by calc
+                  u + c ≤ (e - c) + c := by nlinarith [hu.2]
+                  _ = e := by ring
+                exact le_trans this (min_le_left T _)
+            have htrans : HasDerivWithinAt (fun v : ℝ => v + c) 1
+                (Set.Icc 0 (e - c)) u := (hasDerivAt_id u).add_const c |>.hasDerivWithinAt
+            have hmap : MapsTo (fun v : ℝ => v + c) (Set.Icc 0 (e - c)) (Set.Icc 0 T) := by
+              intro v hv
+              constructor
+              · exact add_nonneg hv.1 hc0
+              · have : v + c ≤ e := by calc
+                  v + c ≤ (e - c) + c := by nlinarith [hv.2]
+                  _ = e := by ring
+                exact le_trans this (min_le_left T _)
+            have hcomp := (hy (u + c) huT).scomp u htrans hmap
+            have hdelay : N.delayField κ τ ys u = N.delayField κ τ y (u + c) := by
+              simp [ys, Network.delayField, massActionDelayField_delayField]
+              congr 1
+              funext r
+              ring
+            simpa [ys, Function.comp_def, hdelay] using hcomp
+          have hsame := N.massActionDelay_firstStep_unique κ τ d (e - c)
+            hd hdelta hτ hgap ψ (x c)
+            (fun _ _ => rfl) hψ hxs₀ hys₀ hxs hys
+          have hmin : min d (e - c) = e - c := min_eq_right hdelta_le
+          by_cases hqc : q ≤ c
+          · exact hprev q hqc
+          · have hqge : c ≤ q := le_of_lt (lt_of_not_ge hqc)
+            have hqshift : q - c ∈ Set.Icc (0 : ℝ) (e - c) := by
+              constructor <;> linarith
+            have hq' := hsame (q - c) (by simpa [hmin] using hqshift)
+            have heq_q : (q - c) + c = q := sub_add_cancel _ _
+            simpa [xs, ys, ψ, heq_q] using hq'
+  intro t ht
+  have hlast : min T ((n : ℝ) * d) = T := min_eq_left hsteps
+  have ht' : t ≤ min T ((n : ℝ) * d) := by simpa [hlast] using ht.2
+  exact hall n t ht'
+
 #print axioms CRNT.Network.massActionDelay_local_exists_of_delayGap
 #print axioms CRNT.Network.massActionDelay_exists_positive_step
 #print axioms CRNT.Network.massActionDelay_local_exists
 #print axioms CRNT.Network.massActionDelay_local_exists_nonneg_history
+#print axioms CRNT.Network.massActionDelay_firstStep_unique
+#print axioms CRNT.Network.massActionDelay_solution_unique
 
 end Network
 end CRNT
