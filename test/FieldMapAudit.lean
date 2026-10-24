@@ -6530,9 +6530,44 @@ named in the field map is pinned to an axiom set contained in
 #print axioms CRNT.Network.delayConservedQuantity_norm_bound
 
 -- E3
+/-- info: 'CRNT.Network.delayConservedQuantity_hasDerivWithinAt' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayConservedQuantity_hasDerivWithinAt
+
+-- E3
+/-- info: 'CRNT.Network.delayConservedQuantity_antitone_on' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayConservedQuantity_antitone_on
+
+-- E3
+/-- info: 'CRNT.Network.delayConservedQuantity_coord_bound_on_of_antitone' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayConservedQuantity_coord_bound_on_of_antitone
+
+-- E3
+/-- info: 'CRNT.Network.delayConservedQuantity_norm_bound_on_of_antitone' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayConservedQuantity_norm_bound_on_of_antitone
+
+-- E3
+/-- info: 'CRNT.Network.massActionDelay_global_exists_of_weighted_subconservation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_global_exists_of_weighted_subconservation
+
+-- E3
 /-- info: 'CRNT.Network.massActionDelay_global_exists_of_positive_conservation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.massActionDelay_global_exists_of_positive_conservation
+
+-- E3
+/-- info: 'CRNT.Examples.DelayedQuadraticDecay.strict_weight_loss' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.DelayedQuadraticDecay.strict_weight_loss
+
+-- E3
+/-- info: 'CRNT.Examples.DelayedQuadraticDecay.delayed_global_exists' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.DelayedQuadraticDecay.delayed_global_exists
 
 -- E3
 /-- info: 'CRNT.Examples.Dimerization.delayed_global_exists' depends on axioms: [propext, Classical.choice, Quot.sound] -/

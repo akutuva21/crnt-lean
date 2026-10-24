@@ -1414,3 +1414,51 @@ example : ∃ L : ℝ≥0, LipschitzOnWith L
 /-- info: 'CRNT.Network.massActionDelay_solution_unique' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs (whitespace := lax) in
 #print axioms CRNT.Network.massActionDelay_solution_unique
+
+/-- info: 'CRNT.Network.delayConservedQuantity_hasDerivWithinAt' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayConservedQuantity_hasDerivWithinAt
+
+/-- info: 'CRNT.Network.delayConservedQuantity_antitone_on' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayConservedQuantity_antitone_on
+
+/-- info: 'CRNT.Network.delayConservedQuantity_coord_bound_on_of_antitone' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayConservedQuantity_coord_bound_on_of_antitone
+
+/-- info: 'CRNT.Network.delayConservedQuantity_norm_bound_on_of_antitone' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.delayConservedQuantity_norm_bound_on_of_antitone
+
+/-- info: 'CRNT.Network.massActionDelay_weighted_loss_first_step' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_weighted_loss_first_step
+
+/-- info: 'CRNT.Network.massActionDelay_weighted_loss_restart_step' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_weighted_loss_restart_step
+
+/-- info: 'CRNT.Network.massActionDelay_weighted_loss_finite_steps' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_weighted_loss_finite_steps
+
+/-- info: 'CRNT.Network.massActionDelay_weighted_loss_global_from_first_step' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_weighted_loss_global_from_first_step
+
+/-- info: 'CRNT.Network.massActionDelay_global_exists_of_weighted_subconservation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_global_exists_of_weighted_subconservation
+
+/-- info: 'CRNT.Network.massActionDelay_global_exists_of_positive_conservation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Network.massActionDelay_global_exists_of_positive_conservation
+
+/-- info: 'CRNT.Examples.DelayedQuadraticDecay.strict_weight_loss' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.DelayedQuadraticDecay.strict_weight_loss
+
+/-- info: 'CRNT.Examples.DelayedQuadraticDecay.delayed_global_exists' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs (whitespace := lax) in
+#print axioms CRNT.Examples.DelayedQuadraticDecay.delayed_global_exists
