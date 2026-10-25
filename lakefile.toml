@@ -28,10 +28,13 @@ excludeGlobs = []
 name = "CRNTFrontier"
 globs = [
   "CRNTFrontier",
+  "CRNT.Computation.SemilinearDefect",
+  "CRNT.Design.AntitheticGeometric",
   "CRNT.Dynamics.GACLowRank",
   "CRNT.Dynamics.GACVertexFacet",
   "CRNT.Dynamics.GlobalAttractorTheorem",
   "CRNT.Dynamics.HighCodimensionSiphonFace",
+  "CRNT.Dynamics.OmegaOrderConvexCounterexample",
   "CRNT.Examples.CatalyticChainGAC",
   "CRNT.Multistationarity.TrueChemistrySRCriterion",
   "CRNT.Oscillation",
@@ -70,6 +73,12 @@ globs = [
   "CRNT.Oscillation.SpectralOpenness",
   "CRNT.Oscillation.StableCodimOneDHopf",
   "CRNT.Oscillation.VassenaPrincipal",
+  "CRNT.Stochastic.ACKEntropyObstruction",
+  "CRNT.Stochastic.ACKTransientExample",
+  "CRNT.Stochastic.BinaryFlowsEntropy",
+  "CRNT.Stochastic.BinaryFlowsMixed",
+  "CRNT.Stochastic.BinaryFlowsMixedExample",
+  "CRNT.Stochastic.ExpSqrtDrift",
   "CRNT.Theorems.DeficiencyOne.DegreeExistence",
   "CRNT.Theorems.DeficiencyOne.Theorem",
   "CRNT.Theorems.DeficiencyOne.WeaklyReversibleExistence"
